@@ -149,10 +149,7 @@ class FAQDetailView(APIView):
         # Check visibility for non-owners
         if not faq.is_visible:
             # Only owner of thing or questioner can see hidden FAQs
-            if (
-                not thing.is_owner(request.user.code)
-                and faq.questioner != request.user.code
-            ):
+            if not thing.is_owner(request.user.code) and faq.questioner != request.user.code:
                 return Response(
                     {"error": "FAQ not found"},
                     status=status.HTTP_404_NOT_FOUND,

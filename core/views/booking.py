@@ -94,9 +94,7 @@ class OwnerBookingsView(APIView):
         thing_codes = [t.code for t in owned_things]
 
         # Get all bookings for those things
-        bookings = BookingPeriod.objects.filter(thing_code__in=thing_codes).order_by(
-            "-created"
-        )
+        bookings = BookingPeriod.objects.filter(thing_code__in=thing_codes).order_by("-created")
 
         serializer = BookingPeriodSerializer(bookings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
