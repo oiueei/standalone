@@ -32,7 +32,7 @@ class CollectionListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        collections = Collection.objects.filter(collection_owner=request.user.user_code)
+        collections = Collection.objects.filter(owner=request.user.code)
         serializer = CollectionSerializer(collections, many=True)
         return Response(serializer.data)
 
@@ -42,20 +42,20 @@ class CollectionListView(APIView):
 
         # Use default theeeme if not provided
         validated_data = serializer.validated_data
-        if "collection_theeeme" not in validated_data:
-            default_theeeme = Theeeme.objects.filter(theeeme_code="JMPA01").first()
+        if "theeeme" not in validated_data:
+            default_theeeme = Theeeme.objects.filter(code="JMPA01").first()
             if default_theeeme:
-                validated_data["collection_theeeme"] = default_theeeme
+                validated_data["theeeme"] = default_theeeme
 
         collection = Collection.objects.create(
-            collection_owner=request.user.user_code,
+            owner=request.user.code,
             **validated_data,
         )
 
         # Add to user's own collections
-        if collection.collection_code not in request.user.user_own_collections:
-            request.user.user_own_collections.append(collection.collection_code)
-            request.user.save(update_fields=["user_own_collections"])
+        if collection.code not in request.user.own_collections:
+            request.user.own_collections.append(collection.code)
+            request.user.save(update_fields=["own_collections"])
 
         return Response(
             CollectionSerializer(collection).data,
@@ -82,7 +82,7 @@ class CollectionDetailView(APIView):
 
     def get_collection(self, collection_code):
         try:
-            return Collection.objects.get(collection_code=collection_code)
+            return Collection.objects.get(code=collection_code)
         except Collection.DoesNotExist:
             return None
 
@@ -94,7 +94,7 @@ class CollectionDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not collection.can_view(request.user.user_code):
+        if not collection.can_view(request.user.code):
             return Response(
                 {"error": "Not authorized to view this collection"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -112,7 +112,7 @@ class CollectionDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not collection.is_owner(request.user.user_code):
+        if not collection.is_owner(request.user.code):
             return Response(
                 {"error": "Only the owner can add things to this collection"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -124,20 +124,20 @@ class CollectionDetailView(APIView):
         thing_code = serializer.validated_data["thing_code"]
 
         try:
-            thing = Thing.objects.get(thing_code=thing_code)
+            thing = Thing.objects.get(code=thing_code)
         except Thing.DoesNotExist:
             return Response(
                 {"error": "Thing not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not thing.is_owner(request.user.user_code):
+        if not thing.is_owner(request.user.code):
             return Response(
                 {"error": "You can only add your own things to collections"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if thing_code in collection.collection_things:
+        if thing_code in collection.things:
             return Response(
                 {"error": "Thing is already in this collection"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -161,7 +161,7 @@ class CollectionDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not collection.is_owner(request.user.user_code):
+        if not collection.is_owner(request.user.code):
             return Response(
                 {"error": "Only the owner can update this collection"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -181,16 +181,16 @@ class CollectionDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not collection.is_owner(request.user.user_code):
+        if not collection.is_owner(request.user.code):
             return Response(
                 {"error": "Only the owner can delete this collection"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Remove from user's collections
-        if collection_code in request.user.user_own_collections:
-            request.user.user_own_collections.remove(collection_code)
-            request.user.save(update_fields=["user_own_collections"])
+        if collection_code in request.user.own_collections:
+            request.user.own_collections.remove(collection_code)
+            request.user.save(update_fields=["own_collections"])
 
         collection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -209,14 +209,14 @@ class CollectionInviteView(APIView):
 
     def post(self, request, collection_code):
         try:
-            collection = Collection.objects.get(collection_code=collection_code)
+            collection = Collection.objects.get(code=collection_code)
         except Collection.DoesNotExist:
             return Response(
                 {"error": "Collection not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not collection.is_owner(request.user.user_code):
+        if not collection.is_owner(request.user.code):
             return Response(
                 {"error": "Only the owner can invite users"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -229,15 +229,15 @@ class CollectionInviteView(APIView):
 
         # Get or create user to invite
         invited_user, created = User.objects.get_or_create(
-            user_email=email,
-            defaults={"user_email": email},
+            email=email,
+            defaults={"email": email},
         )
 
         # Create RSVP with collection_code (invitation pending acceptance)
         rsvp = RSVP.objects.create(
-            user_code=invited_user.user_code,
+            user_code=invited_user.code,
             user_email=email,
-            rsvp_action="COLLECTION_INVITE",
+            action="COLLECTION_INVITE",
             collection_code=collection_code,
         )
 
@@ -245,18 +245,18 @@ class CollectionInviteView(APIView):
         magic_link_base = getattr(
             settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/magic-link"
         )
-        invite_link = f"{magic_link_base}/{rsvp.rsvp_code}"
+        invite_link = f"{magic_link_base}/{rsvp.code}"
 
         send_mail(
-            subject=f"{request.user.user_name or 'Someone'} te ha invitado a una colección",
-            message=f"Has sido invitado a ver: {collection.collection_headline}. "
+            subject=f"{request.user.name or 'Someone'} te ha invitado a una colección",
+            message=f"Has sido invitado a ver: {collection.headline}. "
             f"Accede aquí: {invite_link}",
             from_email=None,
             recipient_list=[email],
             html_message=f"""
             <html>
-            <p>{request.user.user_name or 'Someone'} te ha invitado a ver:</p>
-            <p><strong>{collection.collection_headline}</strong></p>
+            <p>{request.user.name or 'Someone'} te ha invitado a ver:</p>
+            <p><strong>{collection.headline}</strong></p>
             <p><a href="{invite_link}">Aceptar invitación</a></p>
             </html>
             """,
@@ -266,21 +266,21 @@ class CollectionInviteView(APIView):
             {
                 "message": "Invitation sent",
                 "email": email,
-                "user_code": invited_user.user_code,
+                "user_code": invited_user.code,
             },
             status=status.HTTP_200_OK,
         )
 
     def delete(self, request, collection_code):
         try:
-            collection = Collection.objects.get(collection_code=collection_code)
+            collection = Collection.objects.get(code=collection_code)
         except Collection.DoesNotExist:
             return Response(
                 {"error": "Collection not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not collection.is_owner(request.user.user_code):
+        if not collection.is_owner(request.user.code):
             return Response(
                 {"error": "Only the owner can remove invites"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -291,35 +291,35 @@ class CollectionInviteView(APIView):
 
         user_code = serializer.validated_data["user_code"]
 
-        if user_code not in collection.collection_invites:
+        if user_code not in collection.invites:
             return Response(
                 {"error": "User is not invited to this collection"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Remove from collection_invites
-        collection.collection_invites.remove(user_code)
-        collection.save(update_fields=["collection_invites"])
+        # Remove from invites
+        collection.invites.remove(user_code)
+        collection.save(update_fields=["invites"])
 
         # Remove from user's shared_collections and send notification
         try:
-            user = User.objects.get(user_code=user_code)
-            if collection_code in user.user_invited_collections:
-                user.user_invited_collections.remove(collection_code)
-                user.save(update_fields=["user_invited_collections"])
+            user = User.objects.get(code=user_code)
+            if collection_code in user.invited_collections:
+                user.invited_collections.remove(collection_code)
+                user.save(update_fields=["invited_collections"])
 
             # Send notification email to removed user
-            owner_name = request.user.user_name or request.user.user_email
+            owner_name = request.user.name or request.user.email
             send_mail(
-                subject=f"Tu acceso a '{collection.collection_headline}' ha sido revocado",
+                subject=f"Tu acceso a '{collection.headline}' ha sido revocado",
                 message=f"{owner_name} ha revocado tu acceso a la colección "
-                f"'{collection.collection_headline}'.",
+                f"'{collection.headline}'.",
                 from_email=None,
-                recipient_list=[user.user_email],
+                recipient_list=[user.email],
                 html_message=f"""
                 <html>
                 <p>{owner_name} ha revocado tu acceso a:</p>
-                <p><strong>{collection.collection_headline}</strong></p>
+                <p><strong>{collection.headline}</strong></p>
                 <p>Ya no podrás ver el contenido de esta colección.</p>
                 </html>
                 """,
@@ -339,15 +339,15 @@ class CollectionInviteView(APIView):
 class InvitedCollectionsView(APIView):
     """
     GET /api/v1/invited-collections/
-    List collections where the current user is in collection_invites.
+    List collections where the current user is in invites.
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_code = request.user.user_code
+        user_code = request.user.code
         # Use Python-side filtering for SQLite compatibility
         all_collections = Collection.objects.all()
-        invited_collections = [c for c in all_collections if user_code in c.collection_invites]
+        invited_collections = [c for c in all_collections if user_code in c.invites]
         serializer = CollectionSerializer(invited_collections, many=True)
         return Response(serializer.data)

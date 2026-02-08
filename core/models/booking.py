@@ -34,7 +34,7 @@ class BookingPeriod(models.Model):
     For LEND/RENT/SHARE: start_date and end_date required
 
     The thing_type field determines behavior on acceptance:
-    - GIFT/SELL: thing.thing_status -> INACTIVE, thing.thing_available -> False
+    - GIFT/SELL: thing.status -> INACTIVE, thing.available -> False
     - ORDER: thing stays ACTIVE (can be ordered again)
     - LEND/RENT/SHARE: thing stays ACTIVE (date-based availability)
     """
@@ -46,8 +46,8 @@ class BookingPeriod(models.Model):
         ("EXPIRED", "Expired"),
     ]
 
-    booking_code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    booking_created = models.DateTimeField(default=timezone.now)
+    code = models.CharField(max_length=6, primary_key=True, default=generate_id)
+    created = models.DateTimeField(default=timezone.now)
     thing_code = models.CharField(max_length=6, db_index=True)
     thing_type = models.CharField(max_length=12, default="GIFT_THING")  # To know how to handle
     requester_code = models.CharField(max_length=6)
@@ -66,16 +66,16 @@ class BookingPeriod(models.Model):
     def __str__(self):
         if self.start_date and self.end_date:
             return (
-                f"Booking {self.booking_code} for {self.thing_code} "
+                f"Booking {self.code} for {self.thing_code} "
                 f"({self.start_date} - {self.end_date})"
             )
         if self.delivery_date:
             qty = f"x{self.quantity}" if self.quantity else ""
             return (
-                f"Order {self.booking_code} for {self.thing_code} "
+                f"Order {self.code} for {self.thing_code} "
                 f"(delivery: {self.delivery_date}) {qty}"
             )
-        return f"Booking {self.booking_code} for {self.thing_code}"
+        return f"Booking {self.code} for {self.thing_code}"
 
     def is_date_based(self):
         """Check if this booking requires dates (LEND/RENT/SHARE)."""
@@ -92,7 +92,7 @@ class BookingPeriod(models.Model):
     def is_valid(self):
         """Check if the booking request is still valid (not expired and PENDING)."""
         expiry_hours = getattr(settings, "BOOKING_EXPIRY_HOURS", 72)
-        expiry_time = self.booking_created + timedelta(hours=expiry_hours)
+        expiry_time = self.created + timedelta(hours=expiry_hours)
         return timezone.now() < expiry_time and self.status == "PENDING"
 
     def accept(self):
@@ -125,7 +125,7 @@ class BookingPeriod(models.Model):
             end_date__gte=start_date,
         )
         if exclude_booking_code:
-            queryset = queryset.exclude(booking_code=exclude_booking_code)
+            queryset = queryset.exclude(code=exclude_booking_code)
         return queryset.exists()
 
     @classmethod
@@ -149,6 +149,6 @@ class BookingPeriod(models.Model):
         cutoff_time = timezone.now() - timedelta(hours=expiry_hours)
         expired_count = cls.objects.filter(
             status="PENDING",
-            booking_created__lt=cutoff_time,
+            created__lt=cutoff_time,
         ).update(status="EXPIRED")
         return expired_count

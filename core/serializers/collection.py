@@ -12,53 +12,53 @@ from core.validators import ImageIdField, SafeHeadlineField
 class CollectionSerializer(serializers.ModelSerializer):
     """Full collection serializer."""
 
-    collection_thumbnail_url = serializers.SerializerMethodField()
-    collection_hero_url = serializers.SerializerMethodField()
-    collection_theeeme = serializers.SlugRelatedField(
-        slug_field="theeeme_code",
+    thumbnail_url = serializers.SerializerMethodField()
+    hero_url = serializers.SerializerMethodField()
+    theeeme = serializers.SlugRelatedField(
+        slug_field="code",
         queryset=Theeeme.objects.all(),
     )
 
     class Meta:
         model = Collection
         fields = [
-            "collection_code",
-            "collection_owner",
-            "collection_created",
-            "collection_headline",
-            "collection_description",
-            "collection_thumbnail",
-            "collection_thumbnail_url",
-            "collection_hero",
-            "collection_hero_url",
-            "collection_status",
-            "collection_things",
-            "collection_invites",
-            "collection_theeeme",
+            "code",
+            "owner",
+            "created",
+            "headline",
+            "description",
+            "thumbnail",
+            "thumbnail_url",
+            "hero",
+            "hero_url",
+            "status",
+            "things",
+            "invites",
+            "theeeme",
         ]
         read_only_fields = [
-            "collection_code",
-            "collection_owner",
-            "collection_created",
-            "collection_things",
-            "collection_invites",
+            "code",
+            "owner",
+            "created",
+            "things",
+            "invites",
         ]
 
-    def get_collection_thumbnail_url(self, obj):
-        return cloudinary_url(obj.collection_thumbnail)
+    def get_thumbnail_url(self, obj):
+        return cloudinary_url(obj.thumbnail)
 
-    def get_collection_hero_url(self, obj):
-        return cloudinary_url(obj.collection_hero)
+    def get_hero_url(self, obj):
+        return cloudinary_url(obj.hero)
 
 
 class CollectionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a collection."""
 
-    collection_headline = SafeHeadlineField(max_length=64)
-    collection_thumbnail = ImageIdField()
-    collection_hero = ImageIdField()
-    collection_theeeme = serializers.SlugRelatedField(
-        slug_field="theeeme_code",
+    headline = SafeHeadlineField(max_length=64)
+    thumbnail = ImageIdField()
+    hero = ImageIdField()
+    theeeme = serializers.SlugRelatedField(
+        slug_field="code",
         queryset=Theeeme.objects.all(),
         required=False,
     )
@@ -66,22 +66,22 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         fields = [
-            "collection_headline",
-            "collection_description",
-            "collection_thumbnail",
-            "collection_hero",
-            "collection_theeeme",
+            "headline",
+            "description",
+            "thumbnail",
+            "hero",
+            "theeeme",
         ]
 
 
 class CollectionUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating a collection."""
 
-    collection_headline = SafeHeadlineField(max_length=64, required=False)
-    collection_thumbnail = ImageIdField()
-    collection_hero = ImageIdField()
-    collection_theeeme = serializers.SlugRelatedField(
-        slug_field="theeeme_code",
+    headline = SafeHeadlineField(max_length=64, required=False)
+    thumbnail = ImageIdField()
+    hero = ImageIdField()
+    theeeme = serializers.SlugRelatedField(
+        slug_field="code",
         queryset=Theeeme.objects.all(),
         required=False,
     )
@@ -89,12 +89,12 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
         fields = [
-            "collection_headline",
-            "collection_description",
-            "collection_thumbnail",
-            "collection_hero",
-            "collection_status",
-            "collection_theeeme",
+            "headline",
+            "description",
+            "thumbnail",
+            "hero",
+            "status",
+            "theeeme",
         ]
 
 

@@ -138,7 +138,7 @@ SIMPLE_JWT = {
     "ALGORITHM": "HS256",
     "SIGNING_KEY": SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "USER_ID_FIELD": "user_code",
+    "USER_ID_FIELD": "code",
     "USER_ID_CLAIM": "user_code",
 }
 

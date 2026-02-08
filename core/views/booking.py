@@ -32,7 +32,7 @@ class ThingCalendarView(APIView):
 
     def get(self, request, thing_code):
         try:
-            thing = Thing.objects.get(thing_code=thing_code)
+            thing = Thing.objects.get(code=thing_code)
         except Thing.DoesNotExist:
             return Response(
                 {"error": "Thing not found"},
@@ -40,7 +40,7 @@ class ThingCalendarView(APIView):
             )
 
         # Check if user can view this thing
-        if not thing.can_view(request.user.user_code):
+        if not thing.can_view(request.user.code):
             return Response(
                 {"error": "Not authorized to view this thing"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -50,7 +50,7 @@ class ThingCalendarView(APIView):
         blocked_periods = BookingPeriod.get_blocked_periods(thing_code)
 
         # Owner sees full details, guests see limited info
-        if thing.is_owner(request.user.user_code):
+        if thing.is_owner(request.user.code):
             serializer = BookingPeriodOwnerCalendarSerializer(blocked_periods, many=True)
         else:
             serializer = BookingPeriodCalendarSerializer(blocked_periods, many=True)
@@ -72,8 +72,8 @@ class MyBookingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        bookings = BookingPeriod.objects.filter(requester_code=request.user.user_code).order_by(
-            "-booking_created"
+        bookings = BookingPeriod.objects.filter(requester_code=request.user.code).order_by(
+            "-created"
         )
 
         serializer = MyBookingSerializer(bookings, many=True)
@@ -90,12 +90,12 @@ class OwnerBookingsView(APIView):
 
     def get(self, request):
         # Get all things owned by user
-        owned_things = Thing.objects.filter(thing_owner=request.user.user_code)
-        thing_codes = [t.thing_code for t in owned_things]
+        owned_things = Thing.objects.filter(owner=request.user.code)
+        thing_codes = [t.code for t in owned_things]
 
         # Get all bookings for those things
         bookings = BookingPeriod.objects.filter(thing_code__in=thing_codes).order_by(
-            "-booking_created"
+            "-created"
         )
 
         serializer = BookingPeriodSerializer(bookings, many=True)

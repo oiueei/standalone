@@ -13,15 +13,15 @@ from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
 def default_theeeme(db):
     """Create the default theeeme for all tests."""
     theeeme, _ = Theeeme.objects.get_or_create(
-        theeeme_code="JMPA01",
+        code="JMPA01",
         defaults={
-            "theeeme_name": "BAR_CEL_ONA",
-            "theeeme_01": "FFCA2C",
-            "theeeme_02": "CB4E22",
-            "theeeme_03": "827F2A",
-            "theeeme_04": "2B9A9E",
-            "theeeme_05": "4F3B28",
-            "theeeme_06": "FFF2EB",
+            "name": "BAR_CEL_ONA",
+            "color_01": "FFCA2C",
+            "color_02": "CB4E22",
+            "color_03": "827F2A",
+            "color_04": "2B9A9E",
+            "color_05": "4F3B28",
+            "color_06": "FFF2EB",
         },
     )
     return theeeme
@@ -37,9 +37,9 @@ def api_client():
 def user(db):
     """Create a test user."""
     return User.objects.create(
-        user_code="TEST01",
-        user_email="test@example.com",
-        user_name="Test User",
+        code="TEST01",
+        email="test@example.com",
+        name="Test User",
     )
 
 
@@ -47,9 +47,9 @@ def user(db):
 def user2(db):
     """Create a second test user."""
     return User.objects.create(
-        user_code="TEST02",
-        user_email="test2@example.com",
-        user_name="Test User 2",
+        code="TEST02",
+        email="test2@example.com",
+        name="Test User 2",
     )
 
 
@@ -73,9 +73,9 @@ def authenticated_client2(api_client, user2):
 def rsvp(db, user):
     """Create a test RSVP."""
     return RSVP.objects.create(
-        rsvp_code="RSVP01",
-        user_code=user.user_code,
-        user_email=user.user_email,
+        code="RSVP01",
+        user_code=user.code,
+        user_email=user.email,
     )
 
 
@@ -89,12 +89,12 @@ def theeeme(default_theeeme):
 def collection(db, user, theeeme):
     """Create a test collection."""
     coll = Collection.objects.create(
-        collection_code="COLL01",
-        collection_owner=user.user_code,
-        collection_headline="Test Collection",
-        collection_theeeme=theeeme,
+        code="COLL01",
+        owner=user.code,
+        headline="Test Collection",
+        theeeme=theeeme,
     )
-    user.user_own_collections.append(coll.collection_code)
+    user.own_collections.append(coll.code)
     user.save()
     return coll
 
@@ -103,14 +103,14 @@ def collection(db, user, theeeme):
 def thing(db, user, collection):
     """Create a test thing."""
     t = Thing.objects.create(
-        thing_code="THNG01",
-        thing_type="GIFT_THING",
-        thing_owner=user.user_code,
-        thing_headline="Test Thing",
+        code="THNG01",
+        type="GIFT_THING",
+        owner=user.code,
+        headline="Test Thing",
     )
-    user.user_things.append(t.thing_code)
+    user.things.append(t.code)
     user.save()
-    collection.add_thing(t.thing_code)
+    collection.add_thing(t.code)
     return t
 
 
@@ -118,10 +118,10 @@ def thing(db, user, collection):
 def faq(db, user2, thing):
     """Create a test FAQ."""
     f = FAQ.objects.create(
-        faq_code="FAQ001",
-        faq_thing=thing.thing_code,
-        faq_questioner=user2.user_code,
-        faq_question="Is this available?",
+        code="FAQ001",
+        thing=thing.code,
+        questioner=user2.code,
+        question="Is this available?",
     )
-    thing.add_faq(f.faq_code)
+    thing.add_faq(f.code)
     return f

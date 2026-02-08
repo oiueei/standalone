@@ -24,7 +24,7 @@ class TestMagicLinkFlow:
         email = "inviteduser@example.com"
 
         # Pre-condition: User must exist (was invited to a collection)
-        user = User.objects.create(user_email=email)
+        user = User.objects.create(email=email)
 
         # Step 1: Request magic link
         response = api_client.post(
@@ -35,24 +35,24 @@ class TestMagicLinkFlow:
         assert response.status_code == status.HTTP_200_OK
 
         # Verify RSVP was created
-        rsvp = RSVP.objects.get(user_code=user.user_code)
+        rsvp = RSVP.objects.get(user_code=user.code)
 
         # Step 2: Verify magic link
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.rsvp_code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
         assert response.status_code == status.HTTP_200_OK
         assert "token" in response.data
         assert "refresh" in response.data
-        assert response.data["user"]["user_code"] == user.user_code
+        assert response.data["user"]["code"] == user.code
 
         # Verify RSVP was deleted (one-time use)
-        assert not RSVP.objects.filter(rsvp_code=rsvp.rsvp_code).exists()
+        assert not RSVP.objects.filter(code=rsvp.code).exists()
 
         # Step 3: Use token to access protected endpoint
         token = response.data["token"]
         api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
         response = api_client.get("/api/v1/auth/me/")
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["user_email"] == email
+        assert response.data["email"] == email
 
 
 @pytest.mark.django_db
@@ -70,37 +70,37 @@ class TestCreateCollectionFlow:
         response = authenticated_client.post(
             "/api/v1/collections/",
             {
-                "collection_headline": "My Birthday Wishlist",
-                "collection_description": "Things I want for my birthday",
+                "headline": "My Birthday Wishlist",
+                "description": "Things I want for my birthday",
             },
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED
-        collection_code = response.data["collection_code"]
+        collection_code = response.data["code"]
 
         # Step 2: Create thing and add to collection
         response = authenticated_client.post(
             "/api/v1/things/",
             {
-                "thing_headline": "Red Bicycle",
-                "thing_type": "GIFT_THING",
-                "thing_description": "A shiny red bicycle",
+                "headline": "Red Bicycle",
+                "type": "GIFT_THING",
+                "description": "A shiny red bicycle",
                 "collection_code": collection_code,
             },
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED
-        thing_code = response.data["thing_code"]
+        thing_code = response.data["code"]
 
         # Step 3: Verify thing is in collection
         response = authenticated_client.get(f"/api/v1/collections/{collection_code}/")
         assert response.status_code == status.HTTP_200_OK
-        assert thing_code in response.data["collection_things"]
+        assert thing_code in response.data["things"]
 
         # Step 4: Verify user's collections and things are updated
         response = authenticated_client.get("/api/v1/auth/me/")
-        assert collection_code in response.data["user_own_collections"]
-        assert thing_code in response.data["user_things"]
+        assert collection_code in response.data["own_collections"]
+        assert thing_code in response.data["things"]
 
 
 @pytest.mark.django_db
@@ -119,17 +119,17 @@ class TestShareCollectionFlow:
 
         # Create owner
         owner = User.objects.create(
-            user_code="OWNER1",
-            user_email="owner@example.com",
-            user_name="Owner",
+            code="OWNER1",
+            email="owner@example.com",
+            name="Owner",
         )
         owner_token = RefreshToken.for_user(owner)
 
         # Create friend
         friend = User.objects.create(
-            user_code="FRND01",
-            user_email="friend@example.com",
-            user_name="Friend",
+            code="FRND01",
+            email="friend@example.com",
+            name="Friend",
         )
         friend_token = RefreshToken.for_user(friend)
 
@@ -137,22 +137,22 @@ class TestShareCollectionFlow:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {owner_token.access_token}")
         response = client.post(
             "/api/v1/collections/",
-            {"collection_headline": "Gift Ideas"},
+            {"headline": "Gift Ideas"},
             format="json",
         )
-        collection_code = response.data["collection_code"]
+        collection_code = response.data["code"]
 
         # Step 2: Owner creates thing
         response = client.post(
             "/api/v1/things/",
             {
-                "thing_headline": "Coffee Machine",
-                "thing_type": "GIFT_THING",
+                "headline": "Coffee Machine",
+                "type": "GIFT_THING",
                 "collection_code": collection_code,
             },
             format="json",
         )
-        thing_code = response.data["thing_code"]
+        thing_code = response.data["code"]
 
         # Step 3: Owner invites friend
         response = client.post(
@@ -166,7 +166,7 @@ class TestShareCollectionFlow:
         from core.models import RSVP
 
         rsvp = RSVP.objects.get(user_email="friend@example.com")
-        response = client.get(f"/api/v1/auth/verify/{rsvp.rsvp_code}/")
+        response = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
         assert response.status_code == status.HTTP_200_OK
 
         # Step 4: Friend views shared collections
@@ -175,12 +175,12 @@ class TestShareCollectionFlow:
 
         response = client.get("/api/v1/invited-collections/")
         assert response.status_code == status.HTTP_200_OK
-        assert any(c["collection_code"] == collection_code for c in response.data)
+        assert any(c["code"] == collection_code for c in response.data)
 
         # Step 5: Friend views collection
         response = client.get(f"/api/v1/collections/{collection_code}/")
         assert response.status_code == status.HTTP_200_OK
-        assert thing_code in response.data["collection_things"]
+        assert thing_code in response.data["things"]
 
         # Step 6: Friend requests thing (BookingPeriod flow)
         response = client.post(f"/api/v1/things/{thing_code}/request/")
@@ -191,24 +191,24 @@ class TestShareCollectionFlow:
         # Thing status should be TAKEN (awaiting owner approval)
         from core.models import Thing
 
-        thing = Thing.objects.get(thing_code=thing_code)
-        assert thing.thing_status == "TAKEN"
+        thing = Thing.objects.get(code=thing_code)
+        assert thing.status == "TAKEN"
 
         # Step 7: Owner accepts the booking via RSVP
         # Find the accept RSVP
         accept_rsvp = RSVP.objects.get(
-            rsvp_action="BOOKING_ACCEPT",
-            rsvp_target_code=booking_code,
+            action="BOOKING_ACCEPT",
+            target_code=booking_code,
         )
-        response = client.get(f"/api/v1/rsvp/{accept_rsvp.rsvp_code}/")
+        response = client.get(f"/api/v1/rsvp/{accept_rsvp.code}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_ACCEPT"
 
-        # Step 8: Verify thing is now INACTIVE and friend is in thing_deal
+        # Step 8: Verify thing is now INACTIVE and friend is in deal
         thing.refresh_from_db()
-        assert thing.thing_status == "INACTIVE"
-        assert thing.thing_available is False
-        assert friend.user_code in thing.thing_deal
+        assert thing.status == "INACTIVE"
+        assert thing.available is False
+        assert friend.code in thing.deal
 
 
 @pytest.mark.django_db
@@ -226,17 +226,17 @@ class TestFAQFlow:
 
         # Create owner
         owner = User.objects.create(
-            user_code="OWNER2",
-            user_email="owner2@example.com",
-            user_name="Owner",
+            code="OWNER2",
+            email="owner2@example.com",
+            name="Owner",
         )
         owner_token = RefreshToken.for_user(owner)
 
         # Create friend
         friend = User.objects.create(
-            user_code="FRND02",
-            user_email="friend2@example.com",
-            user_name="Friend",
+            code="FRND02",
+            email="friend2@example.com",
+            name="Friend",
         )
         friend_token = RefreshToken.for_user(friend)
 
@@ -244,22 +244,22 @@ class TestFAQFlow:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {owner_token.access_token}")
         response = client.post(
             "/api/v1/collections/",
-            {"collection_headline": "For Sale"},
+            {"headline": "For Sale"},
             format="json",
         )
-        collection_code = response.data["collection_code"]
+        collection_code = response.data["code"]
 
         response = client.post(
             "/api/v1/things/",
             {
-                "thing_headline": "Vintage Camera",
-                "thing_type": "SELL_THING",
-                "thing_fee": "150.00",
+                "headline": "Vintage Camera",
+                "type": "SELL_THING",
+                "fee": "150.00",
                 "collection_code": collection_code,
             },
             format="json",
         )
-        thing_code = response.data["thing_code"]
+        thing_code = response.data["code"]
 
         # Owner invites friend
         client.post(
@@ -270,35 +270,35 @@ class TestFAQFlow:
 
         # Friend accepts invitation by verifying RSVP
         rsvp = RSVP.objects.get(user_email="friend2@example.com")
-        client.get(f"/api/v1/auth/verify/{rsvp.rsvp_code}/")
+        client.get(f"/api/v1/auth/verify/{rsvp.code}/")
 
         # Step 1: Friend asks question
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {friend_token.access_token}")
         response = client.post(
             f"/api/v1/things/{thing_code}/faq/",
-            {"faq_question": "Does it work with film?"},
+            {"question": "Does it work with film?"},
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED
-        faq_code = response.data["faq_code"]
-        assert response.data["faq_answer"] == ""
+        faq_code = response.data["code"]
+        assert response.data["answer"] == ""
 
         # Step 2: Owner answers question
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {owner_token.access_token}")
         response = client.post(
             f"/api/v1/faq/{faq_code}/answer/",
-            {"faq_answer": "Yes, it works with 35mm film!"},
+            {"answer": "Yes, it works with 35mm film!"},
             format="json",
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["faq_answer"] == "Yes, it works with 35mm film!"
+        assert response.data["answer"] == "Yes, it works with 35mm film!"
 
         # Step 3: Friend can see answered question
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {friend_token.access_token}")
         response = client.get(f"/api/v1/things/{thing_code}/faq/")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]["faq_answer"] == "Yes, it works with 35mm film!"
+        assert response.data[0]["answer"] == "Yes, it works with 35mm film!"
 
 
 @pytest.mark.django_db
@@ -314,7 +314,7 @@ class TestCompleteUserJourney:
         # === Alice signs up and creates a wishlist ===
 
         # Alice was invited earlier (user must exist first in invite-only system)
-        alice = User.objects.create(user_email="alice@example.com")
+        alice = User.objects.create(email="alice@example.com")
 
         # Alice requests magic link
         response = client.post(
@@ -324,17 +324,17 @@ class TestCompleteUserJourney:
         )
         assert response.status_code == status.HTTP_200_OK
 
-        alice_rsvp = RSVP.objects.get(user_code=alice.user_code)
+        alice_rsvp = RSVP.objects.get(user_code=alice.code)
 
         # Alice verifies and gets token
-        response = client.get(f"/api/v1/auth/verify/{alice_rsvp.rsvp_code}/")
+        response = client.get(f"/api/v1/auth/verify/{alice_rsvp.code}/")
         alice_token = response.data["token"]
 
         # Alice updates profile
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token}")
         client.put(
-            f"/api/v1/users/{alice.user_code}/",
-            {"user_name": "Alice", "user_headline": "Birthday coming up!"},
+            f"/api/v1/users/{alice.code}/",
+            {"name": "Alice", "headline": "Birthday coming up!"},
             format="json",
         )
 
@@ -342,18 +342,18 @@ class TestCompleteUserJourney:
         response = client.post(
             "/api/v1/collections/",
             {
-                "collection_headline": "Alice's Birthday Wishlist",
-                "collection_description": "Things I'd love for my birthday!",
+                "headline": "Alice's Birthday Wishlist",
+                "description": "Things I'd love for my birthday!",
             },
             format="json",
         )
-        wishlist_code = response.data["collection_code"]
+        wishlist_code = response.data["code"]
 
         # Alice adds items to wishlist
         items = [
-            {"thing_headline": "Wireless Headphones", "thing_fee": "100.00"},
-            {"thing_headline": "Cozy Blanket", "thing_fee": "50.00"},
-            {"thing_headline": "Book: Clean Code", "thing_fee": "35.00"},
+            {"headline": "Wireless Headphones", "fee": "100.00"},
+            {"headline": "Cozy Blanket", "fee": "50.00"},
+            {"headline": "Book: Clean Code", "fee": "35.00"},
         ]
 
         thing_codes = []
@@ -362,12 +362,12 @@ class TestCompleteUserJourney:
                 "/api/v1/things/",
                 {
                     **item,
-                    "thing_type": "GIFT_THING",
+                    "type": "GIFT_THING",
                     "collection_code": wishlist_code,
                 },
                 format="json",
             )
-            thing_codes.append(response.data["thing_code"])
+            thing_codes.append(response.data["code"])
 
         # === Alice invites Bob and Charlie ===
 
@@ -376,22 +376,22 @@ class TestCompleteUserJourney:
             {"email": "bob@example.com"},
             format="json",
         )
-        bob = User.objects.get(user_email="bob@example.com")
+        bob = User.objects.get(email="bob@example.com")
 
         response = client.post(
             f"/api/v1/collections/{wishlist_code}/invite/",
             {"email": "charlie@example.com"},
             format="json",
         )
-        charlie = User.objects.get(user_email="charlie@example.com")
+        charlie = User.objects.get(email="charlie@example.com")
 
         # === Bob and Charlie accept invitations ===
 
         bob_rsvp = RSVP.objects.get(user_email="bob@example.com")
-        client.get(f"/api/v1/auth/verify/{bob_rsvp.rsvp_code}/")
+        client.get(f"/api/v1/auth/verify/{bob_rsvp.code}/")
 
         charlie_rsvp = RSVP.objects.get(user_email="charlie@example.com")
-        client.get(f"/api/v1/auth/verify/{charlie_rsvp.rsvp_code}/")
+        client.get(f"/api/v1/auth/verify/{charlie_rsvp.code}/")
 
         # === Bob logs in and requests an item ===
 
@@ -410,10 +410,10 @@ class TestCompleteUserJourney:
 
         # Alice accepts Bob's request
         bob_accept_rsvp = RSVP.objects.get(
-            rsvp_action="BOOKING_ACCEPT",
-            rsvp_target_code=bob_booking_code,
+            action="BOOKING_ACCEPT",
+            target_code=bob_booking_code,
         )
-        client.get(f"/api/v1/rsvp/{bob_accept_rsvp.rsvp_code}/")
+        client.get(f"/api/v1/rsvp/{bob_accept_rsvp.code}/")
 
         # === Charlie asks a question ===
 
@@ -423,17 +423,17 @@ class TestCompleteUserJourney:
         # Charlie asks about the book
         response = client.post(
             f"/api/v1/things/{thing_codes[2]}/faq/",
-            {"faq_question": "Is it the paperback or hardcover?"},
+            {"question": "Is it the paperback or hardcover?"},
             format="json",
         )
-        faq_code = response.data["faq_code"]
+        faq_code = response.data["code"]
 
         # === Alice answers the question ===
 
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token}")
         response = client.post(
             f"/api/v1/faq/{faq_code}/answer/",
-            {"faq_answer": "Paperback is fine!"},
+            {"answer": "Paperback is fine!"},
             format="json",
         )
 
@@ -447,10 +447,10 @@ class TestCompleteUserJourney:
 
         # Alice accepts Charlie's request
         charlie_accept_rsvp = RSVP.objects.get(
-            rsvp_action="BOOKING_ACCEPT",
-            rsvp_target_code=charlie_booking_code,
+            action="BOOKING_ACCEPT",
+            target_code=charlie_booking_code,
         )
-        client.get(f"/api/v1/rsvp/{charlie_accept_rsvp.rsvp_code}/")
+        client.get(f"/api/v1/rsvp/{charlie_accept_rsvp.code}/")
 
         # === Final state verification ===
 
@@ -458,15 +458,15 @@ class TestCompleteUserJourney:
 
         # Alice sees her collection status
         response = client.get(f"/api/v1/collections/{wishlist_code}/")
-        assert len(response.data["collection_things"]) == 3
+        assert len(response.data["things"]) == 3
 
         # Check reservations
         response = client.get(f"/api/v1/things/{thing_codes[0]}/")
-        assert bob.user_code in response.data["thing_deal"]
+        assert bob.code in response.data["deal"]
 
         response = client.get(f"/api/v1/things/{thing_codes[2]}/")
-        assert charlie.user_code in response.data["thing_deal"]
+        assert charlie.code in response.data["deal"]
 
         # Blanket still available
         response = client.get(f"/api/v1/things/{thing_codes[1]}/")
-        assert response.data["thing_available"] is True
+        assert response.data["available"] is True

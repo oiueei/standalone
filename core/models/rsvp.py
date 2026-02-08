@@ -36,34 +36,34 @@ class RSVP(models.Model):
         ("BOOKING_REJECT", "Booking Reject"),
     ]
 
-    rsvp_code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    rsvp_created = models.DateTimeField(default=timezone.now)
+    code = models.CharField(max_length=6, primary_key=True, default=generate_id)
+    created = models.DateTimeField(default=timezone.now)
     user_code = models.CharField(max_length=6)
     user_email = models.CharField(max_length=64)
 
     # Action type and target
-    rsvp_action = models.CharField(max_length=20, choices=ACTION_CHOICES, default="MAGIC_LINK")
-    rsvp_target_code = models.CharField(max_length=6, null=True, blank=True)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default="MAGIC_LINK")
+    target_code = models.CharField(max_length=6, null=True, blank=True)
 
     # Legacy field for collection invites (maintained for backwards compatibility)
     collection_code = models.CharField(max_length=6, null=True, blank=True)
 
     # Additional context data (JSON) for the action
-    rsvp_context = models.JSONField(default=dict, blank=True)
+    context = models.JSONField(default=dict, blank=True)
 
     class Meta:
         app_label = "core"
         db_table = "rsvps"
 
     def __str__(self):
-        return f"RSVP {self.rsvp_code} ({self.rsvp_action}) for {self.user_email}"
+        return f"RSVP {self.code} ({self.action}) for {self.user_email}"
 
     def is_valid(self):
         """Check if the RSVP is still valid (not expired)."""
         from datetime import timedelta
 
         expiry_hours = getattr(settings, "MAGIC_LINK_EXPIRY_HOURS", 24)
-        expiry_time = self.rsvp_created + timedelta(hours=expiry_hours)
+        expiry_time = self.created + timedelta(hours=expiry_hours)
         return timezone.now() < expiry_time
 
     @classmethod
@@ -96,7 +96,7 @@ class RSVP(models.Model):
         return cls.objects.create(
             user_code=booking.owner_code,
             user_email=owner_email,
-            rsvp_action=action,
-            rsvp_target_code=booking.booking_code,
-            rsvp_context=context,
+            action=action,
+            target_code=booking.code,
+            context=context,
         )

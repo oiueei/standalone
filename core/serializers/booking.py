@@ -15,8 +15,8 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookingPeriod
         fields = [
-            "booking_code",
-            "booking_created",
+            "code",
+            "created",
             "thing_code",
             "thing_type",
             "requester_code",
@@ -29,8 +29,8 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "status",
         ]
         read_only_fields = [
-            "booking_code",
-            "booking_created",
+            "code",
+            "created",
             "thing_code",
             "thing_type",
             "requester_code",
@@ -58,7 +58,7 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookingPeriod
         fields = [
-            "booking_code",
+            "code",
             "requester_code",
             "start_date",
             "end_date",
@@ -110,8 +110,8 @@ class MyBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookingPeriod
         fields = [
-            "booking_code",
-            "booking_created",
+            "code",
+            "created",
             "thing_code",
             "thing_type",
             "owner_code",

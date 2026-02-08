@@ -25,7 +25,7 @@ class ThingFAQListView(APIView):
 
     def get_thing(self, thing_code):
         try:
-            return Thing.objects.get(thing_code=thing_code)
+            return Thing.objects.get(code=thing_code)
         except Thing.DoesNotExist:
             return None
 
@@ -38,17 +38,17 @@ class ThingFAQListView(APIView):
             )
 
         # Check if user can view the thing
-        if not thing.can_view(request.user.user_code):
+        if not thing.can_view(request.user.code):
             return Response(
                 {"error": "Not authorized to view this thing's FAQs"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Get visible FAQs (or all if owner)
-        if thing.is_owner(request.user.user_code):
-            faqs = FAQ.objects.filter(faq_thing=thing_code)
+        if thing.is_owner(request.user.code):
+            faqs = FAQ.objects.filter(thing=thing_code)
         else:
-            faqs = FAQ.objects.filter(faq_thing=thing_code, faq_is_visible=True)
+            faqs = FAQ.objects.filter(thing=thing_code, is_visible=True)
 
         serializer = FAQSerializer(faqs, many=True)
         return Response(serializer.data)
@@ -62,14 +62,14 @@ class ThingFAQListView(APIView):
             )
 
         # Owner cannot ask questions about their own thing
-        if thing.is_owner(request.user.user_code):
+        if thing.is_owner(request.user.code):
             return Response(
                 {"error": "Owner cannot ask questions about their own thing"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if user can view the thing (must be invited to ask questions)
-        if not thing.can_view(request.user.user_code):
+        if not thing.can_view(request.user.code):
             return Response(
                 {"error": "Not authorized to ask questions about this thing"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -79,28 +79,28 @@ class ThingFAQListView(APIView):
         serializer.is_valid(raise_exception=True)
 
         faq = FAQ.objects.create(
-            faq_thing=thing_code,
-            faq_questioner=request.user.user_code,
-            faq_question=serializer.validated_data["faq_question"],
+            thing=thing_code,
+            questioner=request.user.code,
+            question=serializer.validated_data["question"],
         )
 
         # Add FAQ to thing
-        thing.add_faq(faq.faq_code)
+        thing.add_faq(faq.code)
 
         # Notify owner by email
         try:
-            owner = User.objects.get(user_code=thing.thing_owner)
-            questioner_name = request.user.user_name or request.user.user_email
+            owner = User.objects.get(code=thing.owner)
+            questioner_name = request.user.name or request.user.email
             send_mail(
-                subject=f"Nueva pregunta sobre: {thing.thing_headline}",
-                message=f"{questioner_name} ha preguntado: {faq.faq_question}",
+                subject=f"Nueva pregunta sobre: {thing.headline}",
+                message=f"{questioner_name} ha preguntado: {faq.question}",
                 from_email=None,
-                recipient_list=[owner.user_email],
+                recipient_list=[owner.email],
                 html_message=f"""
                 <html>
                 <p><strong>{questioner_name}</strong> ha hecho una pregunta sobre:</p>
-                <p><strong>{thing.thing_headline}</strong></p>
-                <p>Pregunta: {faq.faq_question}</p>
+                <p><strong>{thing.headline}</strong></p>
+                <p>Pregunta: {faq.question}</p>
                 </html>
                 """,
             )
@@ -123,7 +123,7 @@ class FAQDetailView(APIView):
 
     def get(self, request, faq_code):
         try:
-            faq = FAQ.objects.get(faq_code=faq_code)
+            faq = FAQ.objects.get(code=faq_code)
         except FAQ.DoesNotExist:
             return Response(
                 {"error": "FAQ not found"},
@@ -132,7 +132,7 @@ class FAQDetailView(APIView):
 
         # Get the thing to check access
         try:
-            thing = Thing.objects.get(thing_code=faq.faq_thing)
+            thing = Thing.objects.get(code=faq.thing)
         except Thing.DoesNotExist:
             return Response(
                 {"error": "Thing not found"},
@@ -140,18 +140,18 @@ class FAQDetailView(APIView):
             )
 
         # Check if user can view the thing
-        if not thing.can_view(request.user.user_code):
+        if not thing.can_view(request.user.code):
             return Response(
                 {"error": "Not authorized to view this FAQ"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Check visibility for non-owners
-        if not faq.faq_is_visible:
+        if not faq.is_visible:
             # Only owner of thing or questioner can see hidden FAQs
             if (
-                not thing.is_owner(request.user.user_code)
-                and faq.faq_questioner != request.user.user_code
+                not thing.is_owner(request.user.code)
+                and faq.questioner != request.user.code
             ):
                 return Response(
                     {"error": "FAQ not found"},
@@ -172,7 +172,7 @@ class FAQAnswerView(APIView):
 
     def post(self, request, faq_code):
         try:
-            faq = FAQ.objects.get(faq_code=faq_code)
+            faq = FAQ.objects.get(code=faq_code)
         except FAQ.DoesNotExist:
             return Response(
                 {"error": "FAQ not found"},
@@ -181,14 +181,14 @@ class FAQAnswerView(APIView):
 
         # Check if user is thing owner
         try:
-            thing = Thing.objects.get(thing_code=faq.faq_thing)
+            thing = Thing.objects.get(code=faq.thing)
         except Thing.DoesNotExist:
             return Response(
                 {"error": "Thing not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not thing.is_owner(request.user.user_code):
+        if not thing.is_owner(request.user.code):
             return Response(
                 {"error": "Only the thing owner can answer questions"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -197,23 +197,23 @@ class FAQAnswerView(APIView):
         serializer = FAQAnswerSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        faq.answer(serializer.validated_data["faq_answer"])
+        faq.set_answer(serializer.validated_data["answer"])
 
         # Notify questioner by email
         try:
-            questioner = User.objects.get(user_code=faq.faq_questioner)
-            owner_name = request.user.user_name or request.user.user_email
+            questioner = User.objects.get(code=faq.questioner)
+            owner_name = request.user.name or request.user.email
             send_mail(
-                subject=f"Tu pregunta ha sido respondida: {thing.thing_headline}",
-                message=f"{owner_name} ha respondido: {faq.faq_answer}",
+                subject=f"Tu pregunta ha sido respondida: {thing.headline}",
+                message=f"{owner_name} ha respondido: {faq.answer}",
                 from_email=None,
-                recipient_list=[questioner.user_email],
+                recipient_list=[questioner.email],
                 html_message=f"""
                 <html>
                 <p><strong>{owner_name}</strong> ha respondido tu pregunta sobre:</p>
-                <p><strong>{thing.thing_headline}</strong></p>
-                <p>Tu pregunta: {faq.faq_question}</p>
-                <p>Respuesta: {faq.faq_answer}</p>
+                <p><strong>{thing.headline}</strong></p>
+                <p>Tu pregunta: {faq.question}</p>
+                <p>Respuesta: {faq.answer}</p>
                 </html>
                 """,
             )
@@ -236,8 +236,8 @@ class FAQVisibilityView(APIView):
 
     def _get_faq_and_thing(self, faq_code):
         try:
-            faq = FAQ.objects.get(faq_code=faq_code)
-            thing = Thing.objects.get(thing_code=faq.faq_thing)
+            faq = FAQ.objects.get(code=faq_code)
+            thing = Thing.objects.get(code=faq.thing)
             return faq, thing
         except (FAQ.DoesNotExist, Thing.DoesNotExist):
             return None, None
@@ -251,30 +251,30 @@ class FAQVisibilityView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not thing.is_owner(request.user.user_code):
+        if not thing.is_owner(request.user.code):
             return Response(
                 {"error": "Only the thing owner can change FAQ visibility"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         if action == "hide":
-            faq.faq_is_visible = False
-            faq.save(update_fields=["faq_is_visible"])
+            faq.is_visible = False
+            faq.save(update_fields=["is_visible"])
 
             # Notify questioner by email
             try:
-                questioner = User.objects.get(user_code=faq.faq_questioner)
-                owner_name = request.user.user_name or request.user.user_email
+                questioner = User.objects.get(code=faq.questioner)
+                owner_name = request.user.name or request.user.email
                 send_mail(
-                    subject=f"Tu pregunta ha sido ocultada: {thing.thing_headline}",
-                    message=f"{owner_name} ha ocultado tu pregunta: {faq.faq_question}",
+                    subject=f"Tu pregunta ha sido ocultada: {thing.headline}",
+                    message=f"{owner_name} ha ocultado tu pregunta: {faq.question}",
                     from_email=None,
-                    recipient_list=[questioner.user_email],
+                    recipient_list=[questioner.email],
                     html_message=f"""
                     <html>
                     <p><strong>{owner_name}</strong> ha ocultado tu pregunta sobre:</p>
-                    <p><strong>{thing.thing_headline}</strong></p>
-                    <p>Tu pregunta: {faq.faq_question}</p>
+                    <p><strong>{thing.headline}</strong></p>
+                    <p>Tu pregunta: {faq.question}</p>
                     </html>
                     """,
                 )
@@ -283,8 +283,8 @@ class FAQVisibilityView(APIView):
 
             return Response({"message": "FAQ hidden", "faq": FAQSerializer(faq).data})
         elif action == "show":
-            faq.faq_is_visible = True
-            faq.save(update_fields=["faq_is_visible"])
+            faq.is_visible = True
+            faq.save(update_fields=["is_visible"])
             return Response({"message": "FAQ shown", "faq": FAQSerializer(faq).data})
         else:
             return Response(

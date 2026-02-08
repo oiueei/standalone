@@ -9,49 +9,49 @@ from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ["user_code", "user_email", "user_name", "user_created"]
-    search_fields = ["user_code", "user_email", "user_name"]
+    list_display = ["code", "email", "name", "created"]
+    search_fields = ["code", "email", "name"]
 
 
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
     list_display = [
-        "collection_code",
-        "collection_headline",
-        "collection_owner",
-        "collection_status",
+        "code",
+        "headline",
+        "owner",
+        "status",
     ]
-    search_fields = ["collection_code", "collection_headline"]
-    list_filter = ["collection_status", "collection_theeeme"]
+    search_fields = ["code", "headline"]
+    list_filter = ["status", "theeeme"]
 
 
 @admin.register(Thing)
 class ThingAdmin(admin.ModelAdmin):
     list_display = [
-        "thing_code",
-        "thing_headline",
-        "thing_owner",
-        "thing_type",
-        "thing_status",
+        "code",
+        "headline",
+        "owner",
+        "type",
+        "status",
     ]
-    search_fields = ["thing_code", "thing_headline"]
-    list_filter = ["thing_type", "thing_status", "thing_available"]
+    search_fields = ["code", "headline"]
+    list_filter = ["type", "status", "available"]
 
 
 @admin.register(FAQ)
 class FAQAdmin(admin.ModelAdmin):
-    list_display = ["faq_code", "faq_question", "faq_thing", "faq_is_visible"]
-    search_fields = ["faq_code", "faq_question"]
-    list_filter = ["faq_is_visible"]
+    list_display = ["code", "question", "thing", "is_visible"]
+    search_fields = ["code", "question"]
+    list_filter = ["is_visible"]
 
 
 @admin.register(RSVP)
 class RSVPAdmin(admin.ModelAdmin):
-    list_display = ["rsvp_code", "user_email", "user_code", "rsvp_created"]
-    search_fields = ["rsvp_code", "user_email"]
+    list_display = ["code", "user_email", "user_code", "created"]
+    search_fields = ["code", "user_email"]
 
 
 @admin.register(Theeeme)
 class TheeemeAdmin(admin.ModelAdmin):
-    list_display = ["theeeme_code", "theeeme_name"]
-    search_fields = ["theeeme_code", "theeeme_name"]
+    list_display = ["code", "name"]
+    search_fields = ["code", "name"]

@@ -33,7 +33,7 @@ class ThingRequestView(APIView):
 
     def post(self, request, thing_code):
         try:
-            thing = Thing.objects.get(thing_code=thing_code)
+            thing = Thing.objects.get(code=thing_code)
         except Thing.DoesNotExist:
             return Response(
                 {"error": "Thing not found"},
@@ -41,30 +41,30 @@ class ThingRequestView(APIView):
             )
 
         # Check if user can view this thing (is invited to collection)
-        if not thing.can_view(request.user.user_code):
+        if not thing.can_view(request.user.code):
             return Response(
                 {"error": "Not authorized to request this thing"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         # Owner cannot request their own thing
-        if thing.is_owner(request.user.user_code):
+        if thing.is_owner(request.user.code):
             return Response(
                 {"error": "Cannot request your own thing"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Check if thing is available
-        if thing.thing_status != "ACTIVE":
+        if thing.status != "ACTIVE":
             return Response(
                 {"error": "Thing is not available for reservation"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Route based on thing_type
-        if thing.thing_type in DATE_BASED_TYPES:
+        # Route based on thing type
+        if thing.type in DATE_BASED_TYPES:
             return self._handle_date_based_request(request, thing)
-        elif thing.thing_type in REPEATABLE_TYPES:
+        elif thing.type in REPEATABLE_TYPES:
             return self._handle_order_request(request, thing)
         else:
             return self._handle_standard_request(request, thing)
@@ -80,7 +80,7 @@ class ThingRequestView(APIView):
         end_date = serializer.validated_data["end_date"]
 
         # Check for overlap with existing bookings
-        if BookingPeriod.has_overlap(thing.thing_code, start_date, end_date):
+        if BookingPeriod.has_overlap(thing.code, start_date, end_date):
             return Response(
                 {"error": "Selected dates overlap with existing booking"},
                 status=status.HTTP_409_CONFLICT,
@@ -88,17 +88,17 @@ class ThingRequestView(APIView):
 
         # Create booking period (status=PENDING, blocks dates for 72h)
         booking = BookingPeriod.objects.create(
-            thing_code=thing.thing_code,
-            thing_type=thing.thing_type,
-            requester_code=request.user.user_code,
-            requester_email=request.user.user_email,
-            owner_code=thing.thing_owner,
+            thing_code=thing.code,
+            thing_type=thing.type,
+            requester_code=request.user.code,
+            requester_email=request.user.email,
+            owner_code=thing.owner,
             start_date=start_date,
             end_date=end_date,
         )
 
         # Get owner info and send email
-        owner_email = self._get_owner_email(thing.thing_owner)
+        owner_email = self._get_owner_email(thing.owner)
         if not owner_email:
             return Response(
                 {"error": "Thing owner not found"},
@@ -107,13 +107,13 @@ class ThingRequestView(APIView):
 
         self._send_booking_email(request.user, thing, booking, owner_email, with_dates=True)
 
-        # NOTE: Do NOT change thing_status - it stays ACTIVE for date-based types
+        # NOTE: Do NOT change thing status - it stays ACTIVE for date-based types
         # Multiple bookings can exist for different date ranges
 
         return Response(
             {
                 "message": "Booking request sent",
-                "booking_code": booking.booking_code,
+                "booking_code": booking.code,
                 "start_date": str(start_date),
                 "end_date": str(end_date),
             },
@@ -132,17 +132,17 @@ class ThingRequestView(APIView):
 
         # Create booking with order info
         booking = BookingPeriod.objects.create(
-            thing_code=thing.thing_code,
-            thing_type=thing.thing_type,
-            requester_code=request.user.user_code,
-            requester_email=request.user.user_email,
-            owner_code=thing.thing_owner,
+            thing_code=thing.code,
+            thing_type=thing.type,
+            requester_code=request.user.code,
+            requester_email=request.user.email,
+            owner_code=thing.owner,
             delivery_date=delivery_date,
             quantity=quantity,
         )
 
         # Get owner info and send email
-        owner_email = self._get_owner_email(thing.thing_owner)
+        owner_email = self._get_owner_email(thing.owner)
         if not owner_email:
             return Response(
                 {"error": "Thing owner not found"},
@@ -155,7 +155,7 @@ class ThingRequestView(APIView):
         return Response(
             {
                 "message": "Order request sent",
-                "booking_code": booking.booking_code,
+                "booking_code": booking.code,
                 "delivery_date": str(delivery_date),
                 "quantity": quantity,
             },
@@ -166,8 +166,8 @@ class ThingRequestView(APIView):
         """Handle GIFT/SELL requests (no dates)."""
         # Check if user already has a pending request
         existing = BookingPeriod.objects.filter(
-            thing_code=thing.thing_code,
-            requester_code=request.user.user_code,
+            thing_code=thing.code,
+            requester_code=request.user.code,
             status="PENDING",
         ).first()
         if existing:
@@ -178,19 +178,19 @@ class ThingRequestView(APIView):
 
         # Create booking (no dates for standard requests)
         booking = BookingPeriod.objects.create(
-            thing_code=thing.thing_code,
-            thing_type=thing.thing_type,
-            requester_code=request.user.user_code,
-            requester_email=request.user.user_email,
-            owner_code=thing.thing_owner,
+            thing_code=thing.code,
+            thing_type=thing.type,
+            requester_code=request.user.code,
+            requester_email=request.user.email,
+            owner_code=thing.owner,
         )
 
         # Update thing status to TAKEN (blocks other requests)
-        thing.thing_status = "TAKEN"
-        thing.save(update_fields=["thing_status"])
+        thing.status = "TAKEN"
+        thing.save(update_fields=["status"])
 
         # Get owner info and send email
-        owner_email = self._get_owner_email(thing.thing_owner)
+        owner_email = self._get_owner_email(thing.owner)
         if not owner_email:
             return Response(
                 {"error": "Thing owner not found"},
@@ -202,7 +202,7 @@ class ThingRequestView(APIView):
         return Response(
             {
                 "message": "Booking request sent",
-                "booking_code": booking.booking_code,
+                "booking_code": booking.code,
             },
             status=status.HTTP_200_OK,
         )
@@ -210,8 +210,8 @@ class ThingRequestView(APIView):
     def _get_owner_email(self, owner_code):
         """Get owner's email address."""
         try:
-            owner = User.objects.get(user_code=owner_code)
-            return owner.user_email
+            owner = User.objects.get(code=owner_code)
+            return owner.email
         except User.DoesNotExist:
             return None
 
@@ -225,23 +225,23 @@ class ThingRequestView(APIView):
 
         # Build links
         base_url = getattr(settings, "RSVP_BASE_URL", "http://localhost:3000/rsvp")
-        accept_link = f"{base_url}/{rsvp_accept.rsvp_code}"
-        reject_link = f"{base_url}/{rsvp_reject.rsvp_code}"
+        accept_link = f"{base_url}/{rsvp_accept.code}"
+        reject_link = f"{base_url}/{rsvp_reject.code}"
 
-        requester_name = requester.user_name or requester.user_email
+        requester_name = requester.name or requester.email
 
         # Build email content based on booking type
         if with_dates:
             message = (
-                f"{requester_name} ha solicitado reservar '{thing.thing_headline}' "
+                f"{requester_name} ha solicitado reservar '{thing.headline}' "
                 f"del {booking.start_date} al {booking.end_date}. "
                 f"Aceptar: {accept_link} | Rechazar: {reject_link}"
             )
             html_extra = f"<p>Fechas: {booking.start_date} - {booking.end_date}</p>"
-            subject = f"{requester_name} quiere reservar: {thing.thing_headline}"
+            subject = f"{requester_name} quiere reservar: {thing.headline}"
         elif order_info:
             message = (
-                f"{requester_name} ha solicitado {booking.quantity}x '{thing.thing_headline}' "
+                f"{requester_name} ha solicitado {booking.quantity}x '{thing.headline}' "
                 f"para el {booking.delivery_date}. "
                 f"Aceptar: {accept_link} | Rechazar: {reject_link}"
             )
@@ -249,14 +249,14 @@ class ThingRequestView(APIView):
                 f"<p>Cantidad: {booking.quantity}</p>"
                 f"<p>Fecha de entrega: {booking.delivery_date}</p>"
             )
-            subject = f"{requester_name} quiere pedir: {thing.thing_headline}"
+            subject = f"{requester_name} quiere pedir: {thing.headline}"
         else:
             message = (
-                f"{requester_name} ha solicitado reservar '{thing.thing_headline}'. "
+                f"{requester_name} ha solicitado reservar '{thing.headline}'. "
                 f"Aceptar: {accept_link} | Rechazar: {reject_link}"
             )
             html_extra = ""
-            subject = f"{requester_name} quiere reservar: {thing.thing_headline}"
+            subject = f"{requester_name} quiere reservar: {thing.headline}"
 
         send_mail(
             subject=subject,
@@ -266,7 +266,7 @@ class ThingRequestView(APIView):
             html_message=f"""
             <html>
             <p><strong>{requester_name}</strong> ha solicitado:</p>
-            <p><strong>{thing.thing_headline}</strong></p>
+            <p><strong>{thing.headline}</strong></p>
             {html_extra}
             <p>
                 <a href="{accept_link}">Aceptar</a> |

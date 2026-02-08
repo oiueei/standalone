@@ -13,20 +13,20 @@ from core.utils import generate_id
 class UserManager(BaseUserManager):
     """Custom manager for User model."""
 
-    def create_user(self, user_email, **extra_fields):
+    def create_user(self, email, **extra_fields):
         """Create and return a regular user."""
-        if not user_email:
+        if not email:
             raise ValueError("Email is required")
-        user_email = self.normalize_email(user_email)
-        user = self.model(user_email=user_email, **extra_fields)
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, user_email, **extra_fields):
+    def create_superuser(self, email, **extra_fields):
         """Create and return a superuser."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        return self.create_user(user_email, **extra_fields)
+        return self.create_user(email, **extra_fields)
 
 
 class User(AbstractBaseUser):
@@ -35,17 +35,17 @@ class User(AbstractBaseUser):
     Uses magic link authentication (no password).
     """
 
-    user_code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    user_email = models.CharField(max_length=64, unique=True)
-    user_name = models.CharField(max_length=32, blank=True, default="")
-    user_created = models.DateField(default=date.today)
-    user_last_activity = models.DateField(default=date.today)
-    user_own_collections = models.JSONField(default=list, blank=True)
-    user_invited_collections = models.JSONField(default=list, blank=True)
-    user_things = models.JSONField(default=list, blank=True)
-    user_headline = models.CharField(max_length=64, blank=True, default="")
-    user_thumbnail = models.CharField(max_length=16, blank=True, default="")
-    user_hero = models.CharField(max_length=16, blank=True, default="")
+    code = models.CharField(max_length=6, primary_key=True, default=generate_id)
+    email = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=32, blank=True, default="")
+    created = models.DateField(default=date.today)
+    last_activity = models.DateField(default=date.today)
+    own_collections = models.JSONField(default=list, blank=True)
+    invited_collections = models.JSONField(default=list, blank=True)
+    things = models.JSONField(default=list, blank=True)
+    headline = models.CharField(max_length=64, blank=True, default="")
+    thumbnail = models.CharField(max_length=16, blank=True, default="")
+    hero = models.CharField(max_length=16, blank=True, default="")
 
     # Required for Django auth
     is_active = models.BooleanField(default=True)
@@ -54,7 +54,7 @@ class User(AbstractBaseUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = "user_email"
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     class Meta:
@@ -62,7 +62,7 @@ class User(AbstractBaseUser):
         db_table = "users"
 
     def __str__(self):
-        return f"{self.user_code} ({self.user_email})"
+        return f"{self.code} ({self.email})"
 
     def has_perm(self, perm, obj=None):
         return self.is_superuser
@@ -72,5 +72,5 @@ class User(AbstractBaseUser):
 
     def update_last_activity(self):
         """Update the user's last activity date."""
-        self.user_last_activity = date.today()
-        self.save(update_fields=["user_last_activity"])
+        self.last_activity = date.today()
+        self.save(update_fields=["last_activity"])

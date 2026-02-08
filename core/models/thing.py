@@ -12,11 +12,11 @@ class Thing(models.Model):
     """
     An item in a collection (gift, sale, order, rent, lend, or share).
 
-    Visibility (thing_available):
-    - True: Visible to owner AND all collection_invites
+    Visibility (available):
+    - True: Visible to owner AND all collection invites
     - False: Visible ONLY to owner (hidden from invites)
 
-    Reservation status (thing_status):
+    Reservation status (status):
     - ACTIVE: Available for reservation
     - TAKEN: Awaiting owner confirmation (not available for new requests)
     - INACTIVE: No longer available (completed or disabled)
@@ -37,57 +37,57 @@ class Thing(models.Model):
         ("TAKEN", "Taken"),
     ]
 
-    thing_code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    thing_type = models.CharField(max_length=16, choices=TYPE_CHOICES, default="GIFT_THING")
-    thing_owner = models.CharField(max_length=6)  # FK to User.user_code
-    thing_created = models.DateTimeField(default=timezone.now)
-    thing_headline = models.CharField(max_length=64)
-    thing_description = models.CharField(max_length=256, blank=True, default="")
-    thing_thumbnail = models.CharField(max_length=16, blank=True, default="")
-    thing_pictures = models.JSONField(default=list, blank=True)  # Array of image IDs
-    thing_status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
-    thing_faq = models.JSONField(default=list, blank=True)  # Array of faq_codes
-    thing_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    thing_deal = models.JSONField(default=list, blank=True)  # Array of user_codes who reserved
-    thing_available = models.BooleanField(default=True)
+    code = models.CharField(max_length=6, primary_key=True, default=generate_id)
+    type = models.CharField(max_length=16, choices=TYPE_CHOICES, default="GIFT_THING")
+    owner = models.CharField(max_length=6)  # FK to User.code
+    created = models.DateTimeField(default=timezone.now)
+    headline = models.CharField(max_length=64)
+    description = models.CharField(max_length=256, blank=True, default="")
+    thumbnail = models.CharField(max_length=16, blank=True, default="")
+    pictures = models.JSONField(default=list, blank=True)  # Array of image IDs
+    status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
+    faqs = models.JSONField(default=list, blank=True)  # Array of faq codes
+    fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    deal = models.JSONField(default=list, blank=True)  # Array of user codes who reserved
+    available = models.BooleanField(default=True)
 
     class Meta:
         app_label = "core"
         db_table = "things"
 
     def __str__(self):
-        return f"{self.thing_code}: {self.thing_headline}"
+        return f"{self.code}: {self.headline}"
 
     def is_owner(self, user_code):
         """Check if the given user is the owner."""
-        return self.thing_owner == user_code
+        return self.owner == user_code
 
     def reserve(self, user_code):
         """Reserve this thing for a user."""
-        if user_code not in self.thing_deal:
-            self.thing_deal.append(user_code)
-            self.thing_available = False
-            self.save(update_fields=["thing_deal", "thing_available"])
+        if user_code not in self.deal:
+            self.deal.append(user_code)
+            self.available = False
+            self.save(update_fields=["deal", "available"])
 
     def release(self, user_code):
         """Release a user's reservation."""
-        if user_code in self.thing_deal:
-            self.thing_deal.remove(user_code)
-            if not self.thing_deal:
-                self.thing_available = True
-            self.save(update_fields=["thing_deal", "thing_available"])
+        if user_code in self.deal:
+            self.deal.remove(user_code)
+            if not self.deal:
+                self.available = True
+            self.save(update_fields=["deal", "available"])
 
     def add_faq(self, faq_code):
         """Add a FAQ to this thing."""
-        if faq_code not in self.thing_faq:
-            self.thing_faq.append(faq_code)
-            self.save(update_fields=["thing_faq"])
+        if faq_code not in self.faqs:
+            self.faqs.append(faq_code)
+            self.save(update_fields=["faqs"])
 
     def remove_faq(self, faq_code):
         """Remove a FAQ from this thing."""
-        if faq_code in self.thing_faq:
-            self.thing_faq.remove(faq_code)
-            self.save(update_fields=["thing_faq"])
+        if faq_code in self.faqs:
+            self.faqs.remove(faq_code)
+            self.save(update_fields=["faqs"])
 
     def can_view(self, user_code):
         """
@@ -95,7 +95,7 @@ class Thing(models.Model):
 
         Visibility rules:
         - Owner can always view their own things
-        - Invited users can only view if thing_available=True
+        - Invited users can only view if available=True
 
         Args:
             user_code: The user_code to check
@@ -107,7 +107,7 @@ class Thing(models.Model):
             return True
 
         # If thing is not available, only owner can see it
-        if not self.thing_available:
+        if not self.available:
             return False
 
         # Import here to avoid circular import
@@ -116,9 +116,6 @@ class Thing(models.Model):
         # Check if thing is in any collection where user is invited
         # Using Python-side filtering for SQLite compatibility
         for collection in Collection.objects.all():
-            if (
-                self.thing_code in collection.collection_things
-                and user_code in collection.collection_invites
-            ):
+            if self.code in collection.things and user_code in collection.invites:
                 return True
         return False

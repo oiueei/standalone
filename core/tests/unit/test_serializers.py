@@ -41,19 +41,19 @@ class TestUserSerializer:
     def test_serialize_user(self):
         """Should serialize user with all fields."""
         user = User.objects.create(
-            user_code="ABC123",
-            user_email="test@example.com",
-            user_name="Test User",
-            user_thumbnail="thumb123",
+            code="ABC123",
+            email="test@example.com",
+            name="Test User",
+            thumbnail="thumb123",
         )
         serializer = UserSerializer(user)
         data = serializer.data
 
-        assert data["user_code"] == "ABC123"
-        assert data["user_email"] == "test@example.com"
-        assert data["user_name"] == "Test User"
-        assert data["user_thumbnail_url"] is not None
-        assert "cloudinary" in data["user_thumbnail_url"]
+        assert data["code"] == "ABC123"
+        assert data["email"] == "test@example.com"
+        assert data["name"] == "Test User"
+        assert data["thumbnail_url"] is not None
+        assert "cloudinary" in data["thumbnail_url"]
 
 
 @pytest.mark.django_db
@@ -63,16 +63,16 @@ class TestUserPublicSerializer:
     def test_serialize_public_user(self):
         """Should serialize only public fields."""
         user = User.objects.create(
-            user_code="ABC123",
-            user_email="test@example.com",
-            user_name="Test User",
+            code="ABC123",
+            email="test@example.com",
+            name="Test User",
         )
         serializer = UserPublicSerializer(user)
         data = serializer.data
 
-        assert data["user_code"] == "ABC123"
-        assert data["user_name"] == "Test User"
-        assert "user_email" not in data
+        assert data["code"] == "ABC123"
+        assert data["name"] == "Test User"
+        assert "email" not in data
 
 
 @pytest.mark.django_db
@@ -82,19 +82,19 @@ class TestCollectionSerializer:
     def test_serialize_collection(self, default_theeeme):
         """Should serialize collection with all fields."""
         collection = Collection.objects.create(
-            collection_code="COLL01",
-            collection_owner="ABC123",
-            collection_headline="My Collection",
-            collection_thumbnail="thumb123",
-            collection_theeeme=default_theeeme,
+            code="COLL01",
+            owner="ABC123",
+            headline="My Collection",
+            thumbnail="thumb123",
+            theeeme=default_theeeme,
         )
         serializer = CollectionSerializer(collection)
         data = serializer.data
 
-        assert data["collection_code"] == "COLL01"
-        assert data["collection_headline"] == "My Collection"
-        assert data["collection_thumbnail_url"] is not None
-        assert data["collection_theeeme"] == "JMPA01"
+        assert data["code"] == "COLL01"
+        assert data["headline"] == "My Collection"
+        assert data["thumbnail_url"] is not None
+        assert data["theeeme"] == "JMPA01"
 
 
 class TestCollectionCreateSerializer:
@@ -104,7 +104,7 @@ class TestCollectionCreateSerializer:
         """Should accept valid collection data (theeeme is optional)."""
         serializer = CollectionCreateSerializer(
             data={
-                "collection_headline": "My Collection",
+                "headline": "My Collection",
             }
         )
         assert serializer.is_valid()
@@ -114,8 +114,8 @@ class TestCollectionCreateSerializer:
         """Should accept valid collection data with theeeme."""
         serializer = CollectionCreateSerializer(
             data={
-                "collection_headline": "My Collection",
-                "collection_theeeme": default_theeeme.theeeme_code,
+                "headline": "My Collection",
+                "theeeme": default_theeeme.code,
             }
         )
         assert serializer.is_valid()
@@ -124,7 +124,7 @@ class TestCollectionCreateSerializer:
         """Should reject missing headline."""
         serializer = CollectionCreateSerializer(data={})
         assert not serializer.is_valid()
-        assert "collection_headline" in serializer.errors
+        assert "headline" in serializer.errors
 
 
 @pytest.mark.django_db
@@ -134,17 +134,17 @@ class TestThingSerializer:
     def test_serialize_thing(self):
         """Should serialize thing with all fields."""
         thing = Thing.objects.create(
-            thing_code="THNG01",
-            thing_owner="ABC123",
-            thing_headline="My Thing",
-            thing_pictures=["pic1", "pic2"],
+            code="THNG01",
+            owner="ABC123",
+            headline="My Thing",
+            pictures=["pic1", "pic2"],
         )
         serializer = ThingSerializer(thing)
         data = serializer.data
 
-        assert data["thing_code"] == "THNG01"
-        assert data["thing_headline"] == "My Thing"
-        assert len(data["thing_pictures_urls"]) == 2
+        assert data["code"] == "THNG01"
+        assert data["headline"] == "My Thing"
+        assert len(data["pictures_urls"]) == 2
 
 
 class TestThingCreateSerializer:
@@ -154,15 +154,15 @@ class TestThingCreateSerializer:
         """Should accept valid thing data."""
         serializer = ThingCreateSerializer(
             data={
-                "thing_headline": "My Thing",
-                "thing_type": "GIFT_THING",
+                "headline": "My Thing",
+                "type": "GIFT_THING",
             }
         )
         assert serializer.is_valid()
 
     def test_missing_headline(self):
         """Should reject missing headline."""
-        serializer = ThingCreateSerializer(data={"thing_type": "GIFT_THING"})
+        serializer = ThingCreateSerializer(data={"type": "GIFT_THING"})
         assert not serializer.is_valid()
 
 
@@ -173,18 +173,18 @@ class TestFAQSerializer:
     def test_serialize_faq(self):
         """Should serialize FAQ with all fields."""
         faq = FAQ.objects.create(
-            faq_code="FAQ001",
-            faq_thing="THNG01",
-            faq_questioner="USR001",
-            faq_question="Is this available?",
-            faq_answer="Yes!",
+            code="FAQ001",
+            thing="THNG01",
+            questioner="USR001",
+            question="Is this available?",
+            answer="Yes!",
         )
         serializer = FAQSerializer(faq)
         data = serializer.data
 
-        assert data["faq_code"] == "FAQ001"
-        assert data["faq_question"] == "Is this available?"
-        assert data["faq_answer"] == "Yes!"
+        assert data["code"] == "FAQ001"
+        assert data["question"] == "Is this available?"
+        assert data["answer"] == "Yes!"
 
 
 class TestFAQCreateSerializer:
@@ -192,7 +192,7 @@ class TestFAQCreateSerializer:
 
     def test_valid_faq(self):
         """Should accept valid FAQ data."""
-        serializer = FAQCreateSerializer(data={"faq_question": "Is this available?"})
+        serializer = FAQCreateSerializer(data={"question": "Is this available?"})
         assert serializer.is_valid()
 
     def test_missing_question(self):
