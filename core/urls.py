@@ -5,6 +5,7 @@ IMPORTANT: All email action links use RSVP codes as intermediaries.
 Never expose real codes (booking_code, reservation_code, etc.) in URLs.
 """
 
+from django.http import JsonResponse
 from django.urls import path
 
 from .views.auth import LogoutView, MeView, RequestLinkView, VerifyLinkView
@@ -20,7 +21,13 @@ from .views.reservations import ThingRequestView
 from .views.things import InvitedThingsView, ThingDetailView, ThingListView
 from .views.users import UserDetailView
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
+
+
 urlpatterns = [
+    # Health check
+    path("health/", health_check, name="health-check"),
     # Auth & RSVP Actions
     path("auth/request-link/", RequestLinkView.as_view(), name="request-link"),
     path("auth/verify/<str:rsvp_code>/", VerifyLinkView.as_view(), name="verify-link"),
