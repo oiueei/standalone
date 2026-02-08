@@ -21,6 +21,7 @@ from .views.reservations import ThingRequestView
 from .views.things import InvitedThingsView, ThingDetailView, ThingListView
 from .views.users import UserDetailView
 
+
 def health_check(request):
     return JsonResponse({"status": "ok"})
 
