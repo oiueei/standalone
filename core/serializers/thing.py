@@ -102,3 +102,4 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "fee",
             "available",
         ]
+        read_only_fields = ["status"]

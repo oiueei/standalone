@@ -1,13 +1,8 @@
 from .auth import MeView, RequestLinkView, VerifyLinkView
 from .booking import MyBookingsView, OwnerBookingsView, ThingCalendarView
-from .collections import (
-    CollectionDetailView,
-    CollectionInviteView,
-    CollectionListView,
-    InvitedCollectionsView,
-)
+from .collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
 from .faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
-from .things import ThingDetailView, ThingListView
+from .things import InvitedThingsView, ThingViewSet
 from .users import UserDetailView
 
 __all__ = [
@@ -15,12 +10,11 @@ __all__ = [
     "VerifyLinkView",
     "MeView",
     "UserDetailView",
-    "CollectionListView",
-    "CollectionDetailView",
+    "CollectionViewSet",
     "CollectionInviteView",
     "InvitedCollectionsView",
-    "ThingListView",
-    "ThingDetailView",
+    "ThingViewSet",
+    "InvitedThingsView",
     "ThingFAQListView",
     "FAQDetailView",
     "FAQAnswerView",

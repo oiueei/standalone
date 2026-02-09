@@ -7,107 +7,76 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from core.models import Collection, Thing
+from core.permissions import IsThingOwner
 from core.serializers import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
 
 
-class ThingListView(APIView):
+class ThingViewSet(ModelViewSet):
     """
-    GET /api/v1/things/
-    List user's own things.
+    ViewSet for Thing CRUD operations.
 
-    POST /api/v1/things/
-    Create a new thing.
+    list:   GET /api/v1/things/
+    create: POST /api/v1/things/
+    retrieve: GET /api/v1/things/{code}/
+    update: PUT /api/v1/things/{code}/
+    destroy: DELETE /api/v1/things/{code}/
     """
 
-    permission_classes = [IsAuthenticated]
+    lookup_field = "code"
 
-    def get(self, request):
-        things = Thing.objects.filter(owner=request.user)
-        serializer = ThingSerializer(things, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Thing.objects.filter(owner=self.request.user).order_by("-created")
 
-    def post(self, request):
-        serializer = ThingCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ThingCreateSerializer
+        if self.action in ("update", "partial_update"):
+            return ThingUpdateSerializer
+        return ThingSerializer
 
+    def get_permissions(self):
+        if self.action in ("update", "partial_update", "destroy"):
+            return [IsAuthenticated(), IsThingOwner()]
+        return [IsAuthenticated()]
+
+    def get_object(self):
+        obj = get_object_or_404(Thing, code=self.kwargs[self.lookup_field])
+        if self.action == "retrieve":
+            if not obj.can_view(self.request.user.code):
+                self.permission_denied(self.request)
+        else:
+            self.check_object_permissions(self.request, obj)
+        return obj
+
+    def perform_create(self, serializer):
         thing = Thing.objects.create(
-            owner=request.user,
+            owner=self.request.user,
             **serializer.validated_data,
         )
 
-        # If collection_code is provided, add to collection
-        collection_code = request.data.get("collection_code")
+        collection_code = self.request.data.get("collection_code")
         if collection_code:
             try:
                 collection = Collection.objects.get(code=collection_code)
-                if collection.is_owner(request.user.code):
+                if collection.is_owner(self.request.user.code):
                     collection.things.add(thing)
             except Collection.DoesNotExist:
                 pass
 
+        # Store created thing for create response
+        self._created_thing = thing
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         return Response(
-            ThingSerializer(thing).data,
+            ThingSerializer(self._created_thing).data,
             status=status.HTTP_201_CREATED,
         )
-
-
-class ThingDetailView(APIView):
-    """
-    GET /api/v1/things/{thing_code}/
-    View a thing.
-
-    PUT /api/v1/things/{thing_code}/
-    Update a thing (owner only).
-
-    DELETE /api/v1/things/{thing_code}/
-    Delete a thing (owner only).
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get_thing(self, thing_code):
-        return get_object_or_404(Thing, code=thing_code)
-
-    def get(self, request, thing_code):
-        thing = self.get_thing(thing_code)
-
-        if not thing.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorized to view this thing"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = ThingSerializer(thing)
-        return Response(serializer.data)
-
-    def put(self, request, thing_code):
-        thing = self.get_thing(thing_code)
-
-        if not thing.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can update this thing"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = ThingUpdateSerializer(thing, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(ThingSerializer(thing).data)
-
-    def delete(self, request, thing_code):
-        thing = self.get_thing(thing_code)
-
-        if not thing.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can delete this thing"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        thing.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class InvitedThingsView(APIView):

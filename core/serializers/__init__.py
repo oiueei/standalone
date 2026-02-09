@@ -1,4 +1,4 @@
-from .auth import AuthResponseSerializer, RequestLinkSerializer
+from .auth import RequestLinkSerializer
 from .booking import (
     BookingPeriodCalendarSerializer,
     BookingPeriodOwnerCalendarSerializer,
@@ -20,7 +20,6 @@ from .user import UserPublicSerializer, UserSerializer, UserUpdateSerializer
 
 __all__ = [
     "RequestLinkSerializer",
-    "AuthResponseSerializer",
     "UserSerializer",
     "UserPublicSerializer",
     "UserUpdateSerializer",

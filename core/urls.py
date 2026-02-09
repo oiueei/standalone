@@ -7,24 +7,24 @@ Never expose real codes (booking_code, reservation_code, etc.) in URLs.
 
 from django.http import JsonResponse
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from .views.auth import LogoutView, MeView, RequestLinkView, VerifyLinkView
 from .views.booking import MyBookingsView, OwnerBookingsView, ThingCalendarView
-from .views.collections import (
-    CollectionDetailView,
-    CollectionInviteView,
-    CollectionListView,
-    InvitedCollectionsView,
-)
+from .views.collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
-from .views.things import InvitedThingsView, ThingDetailView, ThingListView
+from .views.things import InvitedThingsView, ThingViewSet
 from .views.users import UserDetailView
 
 
 def health_check(request):
     return JsonResponse({"status": "ok"})
 
+
+router = DefaultRouter()
+router.register(r"things", ThingViewSet, basename="thing")
+router.register(r"collections", CollectionViewSet, basename="collection")
 
 urlpatterns = [
     # Health check
@@ -39,27 +39,19 @@ urlpatterns = [
     path("rsvp/<str:rsvp_code>/", VerifyLinkView.as_view(), name="rsvp-action"),
     # Users
     path("users/<str:user_code>/", UserDetailView.as_view(), name="user-detail"),
-    # Collections
-    path("collections/", CollectionListView.as_view(), name="collection-list"),
+    # Collections (non-viewset)
     path(
         "invited-collections/",
         InvitedCollectionsView.as_view(),
         name="invited-collections",
     ),
     path(
-        "collections/<str:collection_code>/",
-        CollectionDetailView.as_view(),
-        name="collection-detail",
-    ),
-    path(
         "collections/<str:collection_code>/invite/",
         CollectionInviteView.as_view(),
         name="collection-invite",
     ),
-    # Things
-    path("things/", ThingListView.as_view(), name="thing-list"),
+    # Things (non-viewset)
     path("invited-things/", InvitedThingsView.as_view(), name="invited-things"),
-    path("things/<str:thing_code>/", ThingDetailView.as_view(), name="thing-detail"),
     # NOTE: /reserve/ and /release/ endpoints removed - use /request/ with BookingPeriod flow
     path("things/<str:thing_code>/request/", ThingRequestView.as_view(), name="thing-request"),
     path(
@@ -86,4 +78,4 @@ urlpatterns = [
         {"action": "show"},
         name="faq-show",
     ),
-]
+] + router.urls

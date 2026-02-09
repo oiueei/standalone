@@ -5,11 +5,14 @@ Collection views for OIUEEI.
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 
 from core.models import RSVP, Collection, Theeeme, Thing, User
+from core.permissions import IsCollectionOwner
 from core.serializers import (
     CollectionAddThingSerializer,
     CollectionCreateSerializer,
@@ -21,27 +24,47 @@ from core.serializers import (
 from core.services.email_service import send_collection_invite_email, send_collection_revoke_email
 
 
-class CollectionListView(APIView):
+class CollectionViewSet(ModelViewSet):
     """
-    GET /api/v1/collections/
-    List user's own collections.
+    ViewSet for Collection CRUD operations.
 
-    POST /api/v1/collections/
-    Create a new collection.
+    list:    GET /api/v1/collections/
+    create:  POST /api/v1/collections/
+    retrieve: GET /api/v1/collections/{code}/
+    update:  PUT /api/v1/collections/{code}/
+    destroy: DELETE /api/v1/collections/{code}/
+    add_thing: POST /api/v1/collections/{code}/add-thing/
     """
 
-    permission_classes = [IsAuthenticated]
+    lookup_field = "code"
 
-    def get(self, request):
-        collections = Collection.objects.filter(owner=request.user)
-        serializer = CollectionSerializer(collections, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Collection.objects.filter(owner=self.request.user).order_by("-created")
 
-    def post(self, request):
-        serializer = CollectionCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def get_serializer_class(self):
+        if self.action == "create":
+            return CollectionCreateSerializer
+        if self.action in ("update", "partial_update"):
+            return CollectionUpdateSerializer
+        if self.action == "add_thing":
+            return CollectionAddThingSerializer
+        return CollectionSerializer
 
-        # Use default theeeme if not provided
+    def get_permissions(self):
+        if self.action in ("update", "partial_update", "destroy", "add_thing"):
+            return [IsAuthenticated(), IsCollectionOwner()]
+        return [IsAuthenticated()]
+
+    def get_object(self):
+        obj = get_object_or_404(Collection, code=self.kwargs[self.lookup_field])
+        if self.action == "retrieve":
+            if not obj.can_view(self.request.user.code):
+                self.permission_denied(self.request)
+        else:
+            self.check_object_permissions(self.request, obj)
+        return obj
+
+    def perform_create(self, serializer):
         validated_data = serializer.validated_data
         if "theeeme" not in validated_data:
             default_theeeme = Theeeme.objects.filter(code="JMPA01").first()
@@ -49,63 +72,29 @@ class CollectionListView(APIView):
                 validated_data["theeeme"] = default_theeeme
 
         collection = Collection.objects.create(
-            owner=request.user,
+            owner=self.request.user,
             **validated_data,
         )
+        self._created_collection = collection
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         return Response(
-            CollectionSerializer(collection).data,
+            CollectionSerializer(self._created_collection).data,
             status=status.HTTP_201_CREATED,
         )
 
-
-class CollectionDetailView(APIView):
-    """
-    GET /api/v1/collections/{collection_code}/
-    View a collection.
-
-    POST /api/v1/collections/{collection_code}/
-    Add a thing to a collection (owner only).
-
-    PUT /api/v1/collections/{collection_code}/
-    Update a collection (owner only).
-
-    DELETE /api/v1/collections/{collection_code}/
-    Delete a collection (owner only).
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get_collection(self, collection_code):
-        return get_object_or_404(Collection, code=collection_code)
-
-    def get(self, request, collection_code):
-        collection = self.get_collection(collection_code)
-
-        if not collection.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorized to view this collection"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = CollectionSerializer(collection)
-        return Response(serializer.data)
-
-    def post(self, request, collection_code):
+    @action(detail=True, methods=["post"], url_path="add-thing")
+    def add_thing(self, request, code=None):
         """Add a thing to the collection."""
-        collection = self.get_collection(collection_code)
-
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can add things to this collection"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        collection = self.get_object()
 
         serializer = CollectionAddThingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         thing_code = serializer.validated_data["thing_code"]
-
         thing = get_object_or_404(Thing, code=thing_code)
 
         if not thing.is_owner(request.user.code):
@@ -129,33 +118,6 @@ class CollectionDetailView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
-    def put(self, request, collection_code):
-        collection = self.get_collection(collection_code)
-
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can update this collection"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = CollectionUpdateSerializer(collection, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(CollectionSerializer(collection).data)
-
-    def delete(self, request, collection_code):
-        collection = self.get_collection(collection_code)
-
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can delete this collection"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        collection.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CollectionInviteView(APIView):

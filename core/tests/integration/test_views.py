@@ -142,8 +142,8 @@ class TestCollectionViews:
         """Should list user's collections."""
         response = authenticated_client.get("/api/v1/collections/")
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]["code"] == collection.code
+        assert response.data["count"] == 1
+        assert response.data["results"][0]["code"] == collection.code
 
     def test_create_collection(self, authenticated_client, user):
         """Should create a new collection."""
@@ -219,7 +219,6 @@ class TestCollectionViews:
             format="json",
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.data["error"] == "Only the owner can update this collection"
 
     def test_delete_collection(self, authenticated_client, collection):
         """Should delete collection."""
@@ -411,7 +410,7 @@ class TestCollectionViews:
         )
 
         response = authenticated_client.post(
-            f"/api/v1/collections/{collection.code}/",
+            f"/api/v1/collections/{collection.code}/add-thing/",
             {"thing_code": thing.code},
             format="json",
         )
@@ -440,12 +439,11 @@ class TestCollectionViews:
         client2.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
 
         response = client2.post(
-            f"/api/v1/collections/{collection.code}/",
+            f"/api/v1/collections/{collection.code}/add-thing/",
             {"thing_code": thing.code},
             format="json",
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.data["error"] == "Only the owner can add things to this collection"
 
     def test_add_other_users_thing_to_collection_denied(
         self, authenticated_client, user, user2, collection
@@ -463,7 +461,7 @@ class TestCollectionViews:
 
         # user (owner of collection) tries to add user2's thing
         response = authenticated_client.post(
-            f"/api/v1/collections/{collection.code}/",
+            f"/api/v1/collections/{collection.code}/add-thing/",
             {"thing_code": thing.code},
             format="json",
         )
@@ -473,7 +471,7 @@ class TestCollectionViews:
     def test_add_thing_already_in_collection(self, authenticated_client, thing, collection):
         """Should return error when thing is already in collection."""
         response = authenticated_client.post(
-            f"/api/v1/collections/{collection.code}/",
+            f"/api/v1/collections/{collection.code}/add-thing/",
             {"thing_code": thing.code},
             format="json",
         )
@@ -483,7 +481,7 @@ class TestCollectionViews:
     def test_add_nonexistent_thing_to_collection(self, authenticated_client, collection):
         """Should return 404 for nonexistent thing."""
         response = authenticated_client.post(
-            f"/api/v1/collections/{collection.code}/",
+            f"/api/v1/collections/{collection.code}/add-thing/",
             {"thing_code": "NOEXST"},
             format="json",
         )
@@ -501,7 +499,7 @@ class TestCollectionViews:
         )
 
         response = authenticated_client.post(
-            "/api/v1/collections/NOEXST/",
+            "/api/v1/collections/NOEXST/add-thing/",
             {"thing_code": thing.code},
             format="json",
         )
@@ -516,7 +514,7 @@ class TestThingViews:
         """Should list user's things."""
         response = authenticated_client.get("/api/v1/things/")
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        assert response.data["count"] == 1
 
     def test_create_thing(self, authenticated_client):
         """Should create a new thing."""
@@ -1224,7 +1222,7 @@ class TestThingAvailabilityVisibility:
         assert response.status_code == status.HTTP_200_OK
 
         # Owner should see all their things including hidden
-        thing_codes = [t["code"] for t in response.data]
+        thing_codes = [t["code"] for t in response.data["results"]]
         assert hidden_thing.code in thing_codes
 
     def test_can_view_method_respects_thing_available(self, user, user2, thing, collection):
