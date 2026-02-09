@@ -14,9 +14,21 @@ class FAQ(models.Model):
     """
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    thing = models.CharField(max_length=6)  # FK to Thing.code
+    thing = models.ForeignKey(
+        "Thing",
+        on_delete=models.CASCADE,
+        to_field="code",
+        db_column="thing",
+        related_name="faq_set",
+    )
     created = models.DateTimeField(default=timezone.now)
-    questioner = models.CharField(max_length=6)  # FK to User.code
+    questioner = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        to_field="code",
+        db_column="questioner",
+        related_name="asked_faqs",
+    )
     question = models.CharField(max_length=64)
     answer = models.CharField(max_length=256, blank=True, default="")
     is_visible = models.BooleanField(default=True)

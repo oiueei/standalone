@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import RSVP, Thing, User
+from core.models import RSVP, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
 from core.serializers.booking import ThingOrderSerializer, ThingRequestWithDatesSerializer
 
@@ -88,17 +88,17 @@ class ThingRequestView(APIView):
 
         # Create booking period (status=PENDING, blocks dates for 72h)
         booking = BookingPeriod.objects.create(
-            thing_code=thing.code,
+            thing_code=thing,
             thing_type=thing.type,
-            requester_code=request.user.code,
+            requester_code=request.user,
             requester_email=request.user.email,
             owner_code=thing.owner,
             start_date=start_date,
             end_date=end_date,
         )
 
-        # Get owner info and send email
-        owner_email = self._get_owner_email(thing.owner)
+        # Get owner email
+        owner_email = thing.owner.email
         if not owner_email:
             return Response(
                 {"error": "Thing owner not found"},
@@ -132,17 +132,17 @@ class ThingRequestView(APIView):
 
         # Create booking with order info
         booking = BookingPeriod.objects.create(
-            thing_code=thing.code,
+            thing_code=thing,
             thing_type=thing.type,
-            requester_code=request.user.code,
+            requester_code=request.user,
             requester_email=request.user.email,
             owner_code=thing.owner,
             delivery_date=delivery_date,
             quantity=quantity,
         )
 
-        # Get owner info and send email
-        owner_email = self._get_owner_email(thing.owner)
+        # Get owner email
+        owner_email = thing.owner.email
         if not owner_email:
             return Response(
                 {"error": "Thing owner not found"},
@@ -166,8 +166,8 @@ class ThingRequestView(APIView):
         """Handle GIFT/SELL requests (no dates)."""
         # Check if user already has a pending request
         existing = BookingPeriod.objects.filter(
-            thing_code=thing.code,
-            requester_code=request.user.code,
+            thing_code=thing,
+            requester_code=request.user,
             status="PENDING",
         ).first()
         if existing:
@@ -178,9 +178,9 @@ class ThingRequestView(APIView):
 
         # Create booking (no dates for standard requests)
         booking = BookingPeriod.objects.create(
-            thing_code=thing.code,
+            thing_code=thing,
             thing_type=thing.type,
-            requester_code=request.user.code,
+            requester_code=request.user,
             requester_email=request.user.email,
             owner_code=thing.owner,
         )
@@ -189,8 +189,8 @@ class ThingRequestView(APIView):
         thing.status = "TAKEN"
         thing.save(update_fields=["status"])
 
-        # Get owner info and send email
-        owner_email = self._get_owner_email(thing.owner)
+        # Get owner email
+        owner_email = thing.owner.email
         if not owner_email:
             return Response(
                 {"error": "Thing owner not found"},
@@ -207,13 +207,9 @@ class ThingRequestView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def _get_owner_email(self, owner_code):
+    def _get_owner_email(self, owner):
         """Get owner's email address."""
-        try:
-            owner = User.objects.get(code=owner_code)
-            return owner.email
-        except User.DoesNotExist:
-            return None
+        return owner.email if owner else None
 
     def _send_booking_email(
         self, requester, thing, booking, owner_email, with_dates=False, order_info=False

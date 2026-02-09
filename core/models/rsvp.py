@@ -38,7 +38,13 @@ class RSVP(models.Model):
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     created = models.DateTimeField(default=timezone.now)
-    user_code = models.CharField(max_length=6)
+    user_code = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        to_field="code",
+        db_column="user_code",
+        related_name="rsvps",
+    )
     user_email = models.CharField(max_length=64)
 
     # Action type and target
@@ -77,9 +83,9 @@ class RSVP(models.Model):
             owner_email: Email of the owner to send the link to
         """
         context = {
-            "thing_code": booking.thing_code,
+            "thing_code": booking.thing_code_id,
             "thing_type": booking.thing_type,
-            "requester_code": booking.requester_code,
+            "requester_code": booking.requester_code_id,
             "requester_email": booking.requester_email,
         }
         # Include dates if they exist (for LEND/RENT/SHARE)

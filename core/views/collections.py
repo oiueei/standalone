@@ -32,7 +32,7 @@ class CollectionListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        collections = Collection.objects.filter(owner=request.user.code)
+        collections = Collection.objects.filter(owner=request.user)
         serializer = CollectionSerializer(collections, many=True)
         return Response(serializer.data)
 
@@ -48,14 +48,9 @@ class CollectionListView(APIView):
                 validated_data["theeeme"] = default_theeeme
 
         collection = Collection.objects.create(
-            owner=request.user.code,
+            owner=request.user,
             **validated_data,
         )
-
-        # Add to user's own collections
-        if collection.code not in request.user.own_collections:
-            request.user.own_collections.append(collection.code)
-            request.user.save(update_fields=["own_collections"])
 
         return Response(
             CollectionSerializer(collection).data,
@@ -137,13 +132,13 @@ class CollectionDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if thing_code in collection.things:
+        if collection.things.filter(code=thing_code).exists():
             return Response(
                 {"error": "Thing is already in this collection"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        collection.add_thing(thing_code)
+        collection.things.add(thing)
 
         return Response(
             {
@@ -186,11 +181,6 @@ class CollectionDetailView(APIView):
                 {"error": "Only the owner can delete this collection"},
                 status=status.HTTP_403_FORBIDDEN,
             )
-
-        # Remove from user's collections
-        if collection_code in request.user.own_collections:
-            request.user.own_collections.remove(collection_code)
-            request.user.save(update_fields=["own_collections"])
 
         collection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -235,7 +225,7 @@ class CollectionInviteView(APIView):
 
         # Create RSVP with collection_code (invitation pending acceptance)
         rsvp = RSVP.objects.create(
-            user_code=invited_user.code,
+            user_code=invited_user,
             user_email=email,
             action="COLLECTION_INVITE",
             collection_code=collection_code,
@@ -291,24 +281,18 @@ class CollectionInviteView(APIView):
 
         user_code = serializer.validated_data["user_code"]
 
-        if user_code not in collection.invites:
+        if not collection.invites.filter(code=user_code).exists():
             return Response(
                 {"error": "User is not invited to this collection"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Remove from invites
-        collection.invites.remove(user_code)
-        collection.save(update_fields=["invites"])
+        collection.invites.remove(collection.invites.get(code=user_code))
 
-        # Remove from user's shared_collections and send notification
+        # Send notification email to removed user
         try:
             user = User.objects.get(code=user_code)
-            if collection_code in user.invited_collections:
-                user.invited_collections.remove(collection_code)
-                user.save(update_fields=["invited_collections"])
-
-            # Send notification email to removed user
             owner_name = request.user.name or request.user.email
             send_mail(
                 subject=f"Tu acceso a '{collection.headline}' ha sido revocado",
@@ -345,9 +329,6 @@ class InvitedCollectionsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_code = request.user.code
-        # Use Python-side filtering for SQLite compatibility
-        all_collections = Collection.objects.all()
-        invited_collections = [c for c in all_collections if user_code in c.invites]
+        invited_collections = request.user.invited_to_collections.all()
         serializer = CollectionSerializer(invited_collections, many=True)
         return Response(serializer.data)

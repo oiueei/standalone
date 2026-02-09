@@ -23,7 +23,7 @@ class ThingListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        things = Thing.objects.filter(owner=request.user.code)
+        things = Thing.objects.filter(owner=request.user)
         serializer = ThingSerializer(things, many=True)
         return Response(serializer.data)
 
@@ -32,14 +32,9 @@ class ThingListView(APIView):
         serializer.is_valid(raise_exception=True)
 
         thing = Thing.objects.create(
-            owner=request.user.code,
+            owner=request.user,
             **serializer.validated_data,
         )
-
-        # Add to user's things
-        if thing.code not in request.user.things:
-            request.user.things.append(thing.code)
-            request.user.save(update_fields=["things"])
 
         # If collection_code is provided, add to collection
         collection_code = request.data.get("collection_code")
@@ -47,7 +42,7 @@ class ThingListView(APIView):
             try:
                 collection = Collection.objects.get(code=collection_code)
                 if collection.is_owner(request.user.code):
-                    collection.add_thing(thing.code)
+                    collection.things.add(thing)
             except Collection.DoesNotExist:
                 pass
 
@@ -128,16 +123,6 @@ class ThingDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Remove from user's things
-        if thing_code in request.user.things:
-            request.user.things.remove(thing_code)
-            request.user.save(update_fields=["things"])
-
-        # Remove from all collections
-        for collection in Collection.objects.filter(owner=request.user.code):
-            if thing_code in collection.things:
-                collection.remove_thing(thing_code)
-
         thing.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -156,22 +141,6 @@ class InvitedThingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user_code = request.user.code
-
-        # Get all collections where user is invited (Python-side filtering for SQLite)
-        all_collections = Collection.objects.all()
-        invited_collections = [c for c in all_collections if user_code in c.invites]
-
-        # Collect all thing codes from those collections
-        thing_codes = []
-        for collection in invited_collections:
-            thing_codes.extend(collection.things)
-
-        # Remove duplicates
-        thing_codes = list(set(thing_codes))
-
-        # Get things that are available (available=True)
-        # Hidden things (available=False) are only visible to owner
-        things = Thing.objects.filter(code__in=thing_codes, available=True)
+        things = Thing.objects.filter(collections__invites=request.user, available=True).distinct()
         serializer = ThingSerializer(things, many=True)
         return Response(serializer.data)

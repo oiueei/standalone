@@ -39,16 +39,26 @@ class Thing(models.Model):
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     type = models.CharField(max_length=16, choices=TYPE_CHOICES, default="GIFT_THING")
-    owner = models.CharField(max_length=6)  # FK to User.code
+    owner = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        to_field="code",
+        db_column="owner",
+        related_name="owned_things",
+    )
     created = models.DateTimeField(default=timezone.now)
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
     thumbnail = models.CharField(max_length=16, blank=True, default="")
     pictures = models.JSONField(default=list, blank=True)  # Array of image IDs
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
-    faqs = models.JSONField(default=list, blank=True)  # Array of faq codes
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    deal = models.JSONField(default=list, blank=True)  # Array of user codes who reserved
+    deal = models.ManyToManyField(
+        "User",
+        blank=True,
+        related_name="deals",
+        db_table="thing_deals",
+    )
     available = models.BooleanField(default=True)
 
     class Meta:
@@ -60,34 +70,32 @@ class Thing(models.Model):
 
     def is_owner(self, user_code):
         """Check if the given user is the owner."""
-        return self.owner == user_code
+        return self.owner_id == user_code
 
     def reserve(self, user_code):
         """Reserve this thing for a user."""
-        if user_code not in self.deal:
-            self.deal.append(user_code)
+        from core.models import User
+
+        try:
+            user = User.objects.get(code=user_code)
+            self.deal.add(user)
             self.available = False
-            self.save(update_fields=["deal", "available"])
+            self.save(update_fields=["available"])
+        except User.DoesNotExist:
+            pass
 
     def release(self, user_code):
         """Release a user's reservation."""
-        if user_code in self.deal:
-            self.deal.remove(user_code)
-            if not self.deal:
+        from core.models import User
+
+        try:
+            user = User.objects.get(code=user_code)
+            self.deal.remove(user)
+            if not self.deal.exists():
                 self.available = True
-            self.save(update_fields=["deal", "available"])
-
-    def add_faq(self, faq_code):
-        """Add a FAQ to this thing."""
-        if faq_code not in self.faqs:
-            self.faqs.append(faq_code)
-            self.save(update_fields=["faqs"])
-
-    def remove_faq(self, faq_code):
-        """Remove a FAQ from this thing."""
-        if faq_code in self.faqs:
-            self.faqs.remove(faq_code)
-            self.save(update_fields=["faqs"])
+            self.save(update_fields=["available"])
+        except User.DoesNotExist:
+            pass
 
     def can_view(self, user_code):
         """
@@ -110,12 +118,5 @@ class Thing(models.Model):
         if not self.available:
             return False
 
-        # Import here to avoid circular import
-        from core.models import Collection
-
         # Check if thing is in any collection where user is invited
-        # Using Python-side filtering for SQLite compatibility
-        for collection in Collection.objects.all():
-            if self.code in collection.things and user_code in collection.invites:
-                return True
-        return False
+        return self.collections.filter(invites__code=user_code).exists()

@@ -23,17 +23,16 @@ def can_view_user(viewer_user_code, target_user_code):
         return True
 
     # Check if target is invited to any of viewer's collections
-    # Using Python-side filtering for SQLite compatibility
-    viewer_collections = Collection.objects.filter(owner=viewer_user_code)
-    for collection in viewer_collections:
-        if target_user_code in collection.invites:
-            return True
+    if Collection.objects.filter(
+        owner_id=viewer_user_code, invites__code=target_user_code
+    ).exists():
+        return True
 
     # Check if viewer is invited to any of target's collections
-    target_collections = Collection.objects.filter(owner=target_user_code)
-    for collection in target_collections:
-        if viewer_user_code in collection.invites:
-            return True
+    if Collection.objects.filter(
+        owner_id=target_user_code, invites__code=viewer_user_code
+    ).exists():
+        return True
 
     return False
 

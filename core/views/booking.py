@@ -72,9 +72,7 @@ class MyBookingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        bookings = BookingPeriod.objects.filter(requester_code=request.user.code).order_by(
-            "-created"
-        )
+        bookings = BookingPeriod.objects.filter(requester_code=request.user).order_by("-created")
 
         serializer = MyBookingSerializer(bookings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -89,12 +87,8 @@ class OwnerBookingsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Get all things owned by user
-        owned_things = Thing.objects.filter(owner=request.user.code)
-        thing_codes = [t.code for t in owned_things]
-
-        # Get all bookings for those things
-        bookings = BookingPeriod.objects.filter(thing_code__in=thing_codes).order_by("-created")
+        # Get all bookings for things owned by user
+        bookings = BookingPeriod.objects.filter(owner_code=request.user).order_by("-created")
 
         serializer = BookingPeriodSerializer(bookings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -296,7 +296,7 @@ class TestCollectionViews:
         # User should NOT be in invites yet
         invited_user = User.objects.get(email="pending@oiueei.org")
         collection.refresh_from_db()
-        assert invited_user.code not in collection.invites
+        assert not collection.invites.filter(code=invited_user.code).exists()
 
     def test_verify_invite_link_adds_user_to_collection(self, api_client, collection):
         """Verifying invite RSVP should add user to collection."""
@@ -308,7 +308,7 @@ class TestCollectionViews:
             email="invited@oiueei.org",
         )
         rsvp = RSVP.objects.create(
-            user_code=invited_user.code,
+            user_code=invited_user,
             user_email=invited_user.email,
             action="COLLECTION_INVITE",
             collection_code=collection.code,
@@ -321,8 +321,8 @@ class TestCollectionViews:
         # User should now be in invites
         collection.refresh_from_db()
         invited_user.refresh_from_db()
-        assert invited_user.code in collection.invites
-        assert collection.code in invited_user.invited_collections
+        assert collection.invites.filter(code=invited_user.code).exists()
+        assert invited_user.invited_to_collections.filter(code=collection.code).exists()
 
         # Response should include invited_collection and action
         assert response.data["invited_collection"] == collection.code
@@ -332,8 +332,6 @@ class TestCollectionViews:
         """Should remove a user from collection invites."""
         # First add user2 to collection invites
         collection.add_invite(user2.code)
-        user2.invited_collections.append(collection.code)
-        user2.save()
 
         response = authenticated_client.delete(
             f"/api/v1/collections/{collection.code}/invite/",
@@ -346,8 +344,8 @@ class TestCollectionViews:
         # Verify user was removed
         collection.refresh_from_db()
         user2.refresh_from_db()
-        assert user2.code not in collection.invites
-        assert collection.code not in user2.invited_collections
+        assert not collection.invites.filter(code=user2.code).exists()
+        assert not user2.invited_to_collections.filter(code=collection.code).exists()
 
     def test_remove_invite_sends_notification_email(
         self, authenticated_client, user, user2, collection
@@ -357,8 +355,6 @@ class TestCollectionViews:
 
         # First add user2 to collection invites
         collection.add_invite(user2.code)
-        user2.invited_collections.append(collection.code)
-        user2.save()
 
         response = authenticated_client.delete(
             f"/api/v1/collections/{collection.code}/invite/",
@@ -409,7 +405,7 @@ class TestCollectionViews:
         # Create a thing not in any collection
         thing = Thing.objects.create(
             code="THING2",
-            owner=user.code,
+            owner=user,
             headline="New Thing",
             type="GIFT_THING",
         )
@@ -433,7 +429,7 @@ class TestCollectionViews:
         # Create thing owned by user2
         thing = Thing.objects.create(
             code="THING2",
-            owner=user2.code,
+            owner=user2,
             headline="User2 Thing",
             type="GIFT_THING",
         )
@@ -460,7 +456,7 @@ class TestCollectionViews:
         # Create thing owned by user2
         thing = Thing.objects.create(
             code="THING2",
-            owner=user2.code,
+            owner=user2,
             headline="User2 Thing",
             type="GIFT_THING",
         )
@@ -500,7 +496,7 @@ class TestCollectionViews:
 
         thing = Thing.objects.create(
             code="THING2",
-            owner=user.code,
+            owner=user,
             headline="New Thing",
             type="GIFT_THING",
         )
@@ -562,8 +558,6 @@ class TestThingViews:
         """Should request thing via BookingPeriod flow."""
         # Share collection with user2 first
         collection.add_invite(user2.code)
-        user2.invited_collections.append(collection.code)
-        user2.save()
 
         # Create new client for user2
         from rest_framework.test import APIClient
@@ -938,7 +932,7 @@ class TestSecurityRestrictions:
         # User2 creates a collection and invites user
         coll2 = Collection.objects.create(
             code="COLL02",
-            owner=user2.code,
+            owner=user2,
             headline="User2 Collection",
             theeeme=theeeme,
         )
@@ -1015,11 +1009,11 @@ class TestReservationViews:
 
         # Create booking request (for GIFT_THING)
         booking = BookingPeriod.objects.create(
-            thing_code=thing.code,
+            thing_code=thing,
             thing_type=thing.type,
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=None,
             end_date=None,
         )
@@ -1041,7 +1035,7 @@ class TestReservationViews:
         booking.refresh_from_db()
         assert thing.status == "INACTIVE"
         assert thing.available is False
-        assert user2.code in thing.deal
+        assert thing.deal.filter(code=user2.code).exists()
         assert booking.status == "ACCEPTED"
 
     def test_reject_reservation(self, api_client, user, user2, thing, collection):
@@ -1053,11 +1047,11 @@ class TestReservationViews:
 
         # Create booking request (for GIFT_THING)
         booking = BookingPeriod.objects.create(
-            thing_code=thing.code,
+            thing_code=thing,
             thing_type=thing.type,
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=None,
             end_date=None,
         )
@@ -1091,11 +1085,11 @@ class TestReservationViews:
 
         # Create expired booking
         booking = BookingPeriod.objects.create(
-            thing_code=thing.code,
+            thing_code=thing,
             thing_type=thing.type,
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=None,
             end_date=None,
         )
@@ -1118,11 +1112,11 @@ class TestReservationViews:
 
         # Create existing pending booking
         BookingPeriod.objects.create(
-            thing_code=thing.code,
+            thing_code=thing,
             thing_type=thing.type,
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             status="PENDING",
             start_date=None,
             end_date=None,
@@ -1200,7 +1194,7 @@ class TestThingAvailabilityVisibility:
         hidden_thing = Thing.objects.create(
             code="HIDDN1",
             type="GIFT_THING",
-            owner=user.code,
+            owner=user,
             headline="Hidden Thing",
             available=False,
         )
@@ -1223,12 +1217,10 @@ class TestThingAvailabilityVisibility:
         hidden_thing = Thing.objects.create(
             code="HIDDN2",
             type="GIFT_THING",
-            owner=user.code,
+            owner=user,
             headline="Owner Hidden Thing",
             available=False,
         )
-        user.things.append(hidden_thing.code)
-        user.save()
 
         response = authenticated_client.get("/api/v1/things/")
         assert response.status_code == status.HTTP_200_OK
@@ -1312,7 +1304,7 @@ class TestSecurityInputValidation:
         order_thing = Thing.objects.create(
             code="ORDER1",
             type="ORDER_THING",
-            owner=user.code,
+            owner=user,
             headline="Cookies",
             status="ACTIVE",
         )

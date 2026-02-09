@@ -14,6 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     thumbnail_url = serializers.SerializerMethodField()
     hero_url = serializers.SerializerMethodField()
+    own_collections = serializers.SerializerMethodField()
+    invited_collections = serializers.SerializerMethodField()
+    things = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -47,6 +50,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_hero_url(self, obj):
         return cloudinary_url(obj.hero)
+
+    def get_own_collections(self, obj):
+        return list(obj.owned_collections.values_list("code", flat=True))
+
+    def get_invited_collections(self, obj):
+        return list(obj.invited_to_collections.values_list("code", flat=True))
+
+    def get_things(self, obj):
+        return list(obj.owned_things.values_list("code", flat=True))
 
 
 class UserPublicSerializer(serializers.ModelSerializer):

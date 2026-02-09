@@ -66,12 +66,12 @@ class TestUserModel:
         assert "ABC123" in str(user)
         assert "test@example.com" in str(user)
 
-    def test_user_collections_default(self):
-        """User collections should default to empty lists."""
+    def test_user_reverse_relations_empty(self):
+        """User reverse relations should be empty by default."""
         user = User.objects.create(email="test@example.com")
-        assert user.own_collections == []
-        assert user.invited_collections == []
-        assert user.things == []
+        assert user.owned_collections.count() == 0
+        assert user.invited_to_collections.count() == 0
+        assert user.owned_things.count() == 0
 
     def test_update_last_activity(self):
         """Should update last activity date."""
@@ -131,8 +131,9 @@ class TestRSVPModel:
 
     def test_create_rsvp(self):
         """Should create an RSVP with generated code."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
         rsvp = RSVP.objects.create(
-            user_code="ABC123",
+            user_code=user,
             user_email="test@example.com",
         )
         assert len(rsvp.code) == 6
@@ -140,16 +141,18 @@ class TestRSVPModel:
 
     def test_rsvp_is_valid(self):
         """New RSVP should be valid."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
         rsvp = RSVP.objects.create(
-            user_code="ABC123",
+            user_code=user,
             user_email="test@example.com",
         )
         assert rsvp.is_valid() is True
 
     def test_rsvp_expired(self):
         """Old RSVP should be invalid."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
         rsvp = RSVP.objects.create(
-            user_code="ABC123",
+            user_code=user,
             user_email="test@example.com",
         )
         rsvp.created = timezone.now() - timedelta(hours=25)
@@ -195,10 +198,14 @@ class TestTheeemeModel:
 class TestCollectionModel:
     """Tests for Collection model."""
 
+    def _create_user(self, code="ABC123"):
+        return User.objects.create(code=code, email=f"{code}@example.com")
+
     def test_create_collection(self, default_theeeme):
         """Should create a collection with generated code."""
+        user = self._create_user()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
@@ -208,40 +215,48 @@ class TestCollectionModel:
 
     def test_add_thing(self, default_theeeme):
         """Should add thing to collection."""
+        user = self._create_user()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
+        Thing.objects.create(code="THNG01", owner=user, headline="Thing")
         collection.add_thing("THNG01")
-        assert "THNG01" in collection.things
+        assert collection.things.filter(code="THNG01").exists()
 
     def test_remove_thing(self, default_theeeme):
         """Should remove thing from collection."""
+        user = self._create_user()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
-            things=["THNG01", "THNG02"],
             theeeme=default_theeeme,
         )
+        t1 = Thing.objects.create(code="THNG01", owner=user, headline="Thing 1")
+        t2 = Thing.objects.create(code="THNG02", owner=user, headline="Thing 2")
+        collection.things.add(t1, t2)
         collection.remove_thing("THNG01")
-        assert "THNG01" not in collection.things
-        assert "THNG02" in collection.things
+        assert not collection.things.filter(code="THNG01").exists()
+        assert collection.things.filter(code="THNG02").exists()
 
     def test_add_invite(self, default_theeeme):
         """Should add user to invites."""
+        user = self._create_user()
+        User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
         collection.add_invite("USR001")
-        assert "USR001" in collection.invites
+        assert collection.invites.filter(code="USR001").exists()
 
     def test_is_owner(self, default_theeeme):
         """Should check ownership correctly."""
+        user = self._create_user()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
@@ -250,57 +265,66 @@ class TestCollectionModel:
 
     def test_can_view(self, default_theeeme):
         """Should check view permission correctly."""
+        user = self._create_user()
+        invited = User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
-            invites=["USR001"],
             theeeme=default_theeeme,
         )
+        collection.invites.add(invited)
         assert collection.can_view("ABC123") is True  # Owner
         assert collection.can_view("USR001") is True  # Invited
         assert collection.can_view("XYZ789") is False  # Neither
 
     def test_remove_invite(self, default_theeeme):
         """Should remove user from invites."""
+        user = self._create_user()
+        u1 = User.objects.create(code="USR001", email="usr001@example.com")
+        u2 = User.objects.create(code="USR002", email="usr002@example.com")
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
-            invites=["USR001", "USR002"],
             theeeme=default_theeeme,
         )
+        collection.invites.add(u1, u2)
         collection.remove_invite("USR001")
-        assert "USR001" not in collection.invites
-        assert "USR002" in collection.invites
+        assert not collection.invites.filter(code="USR001").exists()
+        assert collection.invites.filter(code="USR002").exists()
 
     def test_is_invited(self, default_theeeme):
         """Should check if user is invited."""
+        user = self._create_user()
+        invited = User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
-            invites=["USR001"],
             theeeme=default_theeeme,
         )
+        collection.invites.add(invited)
         assert collection.is_invited("USR001") is True
         assert collection.is_invited("USR002") is False
         assert collection.is_invited("ABC123") is False  # Owner is not in invites
 
     def test_collection_defaults(self, default_theeeme):
-        """Collection things and invites should default to empty lists."""
+        """Collection things and invites should default to empty."""
+        user = self._create_user()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
-        assert collection.things == []
-        assert collection.invites == []
+        assert collection.things.count() == 0
+        assert collection.invites.count() == 0
 
     def test_collection_created_timestamp(self, default_theeeme):
         """Collection should have creation timestamp."""
         from django.utils import timezone
 
+        user = self._create_user()
         before = timezone.now()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
@@ -309,8 +333,9 @@ class TestCollectionModel:
 
     def test_optional_fields_default_empty(self, default_theeeme):
         """Optional fields should default to empty strings."""
+        user = self._create_user()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
@@ -320,35 +345,43 @@ class TestCollectionModel:
 
     def test_add_thing_idempotent(self, default_theeeme):
         """Adding same thing twice should not duplicate."""
+        user = self._create_user()
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
+        Thing.objects.create(code="THNG01", owner=user, headline="Thing")
         collection.add_thing("THNG01")
         collection.add_thing("THNG01")
-        assert collection.things.count("THNG01") == 1
+        assert collection.things.filter(code="THNG01").count() == 1
 
     def test_add_invite_idempotent(self, default_theeeme):
         """Adding same invite twice should not duplicate."""
+        user = self._create_user()
+        User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             theeeme=default_theeeme,
         )
         collection.add_invite("USR001")
         collection.add_invite("USR001")
-        assert collection.invites.count("USR001") == 1
+        assert collection.invites.filter(code="USR001").count() == 1
 
 
 @pytest.mark.django_db
 class TestThingModel:
     """Tests for Thing model."""
 
+    def _create_user(self, code="ABC123"):
+        return User.objects.create(code=code, email=f"{code}@example.com")
+
     def test_create_thing(self):
         """Should create a thing with generated code."""
+        user = self._create_user()
         thing = Thing.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Thing",
         )
         assert len(thing.code) == 6
@@ -358,45 +391,49 @@ class TestThingModel:
 
     def test_reserve(self):
         """Should reserve thing for user."""
+        user = self._create_user()
+        User.objects.create(code="USR001", email="usr001@example.com")
         thing = Thing.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Thing",
         )
         thing.reserve("USR001")
-        assert "USR001" in thing.deal
+        assert thing.deal.filter(code="USR001").exists()
         assert thing.available is False
 
     def test_release(self):
         """Should release reservation."""
+        user = self._create_user()
+        reserver = User.objects.create(code="USR001", email="usr001@example.com")
         thing = Thing.objects.create(
-            owner="ABC123",
+            owner=user,
             headline="My Thing",
-            deal=["USR001"],
             available=False,
         )
+        thing.deal.add(reserver)
         thing.release("USR001")
-        assert "USR001" not in thing.deal
+        assert not thing.deal.filter(code="USR001").exists()
         assert thing.available is True
-
-    def test_add_faq(self):
-        """Should add FAQ to thing."""
-        thing = Thing.objects.create(
-            owner="ABC123",
-            headline="My Thing",
-        )
-        thing.add_faq("FAQ001")
-        assert "FAQ001" in thing.faqs
 
 
 @pytest.mark.django_db
 class TestFAQModel:
     """Tests for FAQ model."""
 
+    def _create_user(self, code="USR001"):
+        return User.objects.create(code=code, email=f"{code}@example.com")
+
+    def _create_thing(self, owner, code="THNG01"):
+        return Thing.objects.create(code=code, owner=owner, headline="Thing")
+
     def test_create_faq(self):
         """Should create a FAQ with generated code."""
+        owner = self._create_user("OWNER1")
+        thing = self._create_thing(owner)
+        questioner = self._create_user("USR001")
         faq = FAQ.objects.create(
-            thing="THNG01",
-            questioner="USR001",
+            thing=thing,
+            questioner=questioner,
             question="Is this available?",
         )
         assert len(faq.code) == 6
@@ -405,9 +442,12 @@ class TestFAQModel:
 
     def test_has_answer(self):
         """Should check if answered correctly."""
+        owner = self._create_user("OWNER1")
+        thing = self._create_thing(owner)
+        questioner = self._create_user("USR001")
         faq = FAQ.objects.create(
-            thing="THNG01",
-            questioner="USR001",
+            thing=thing,
+            questioner=questioner,
             question="Is this available?",
         )
         assert faq.has_answer() is False
@@ -416,9 +456,12 @@ class TestFAQModel:
 
     def test_answer(self):
         """Should set answer correctly."""
+        owner = self._create_user("OWNER1")
+        thing = self._create_thing(owner)
+        questioner = self._create_user("USR001")
         faq = FAQ.objects.create(
-            thing="THNG01",
-            questioner="USR001",
+            thing=thing,
+            questioner=questioner,
             question="Is this available?",
         )
         faq.set_answer("Yes it is!")

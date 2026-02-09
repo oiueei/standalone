@@ -74,7 +74,7 @@ def rsvp(db, user):
     """Create a test RSVP."""
     return RSVP.objects.create(
         code="RSVP01",
-        user_code=user.code,
+        user_code=user,
         user_email=user.email,
     )
 
@@ -90,12 +90,10 @@ def collection(db, user, theeeme):
     """Create a test collection."""
     coll = Collection.objects.create(
         code="COLL01",
-        owner=user.code,
+        owner=user,
         headline="Test Collection",
         theeeme=theeeme,
     )
-    user.own_collections.append(coll.code)
-    user.save()
     return coll
 
 
@@ -105,12 +103,10 @@ def thing(db, user, collection):
     t = Thing.objects.create(
         code="THNG01",
         type="GIFT_THING",
-        owner=user.code,
+        owner=user,
         headline="Test Thing",
     )
-    user.things.append(t.code)
-    user.save()
-    collection.add_thing(t.code)
+    collection.things.add(t)
     return t
 
 
@@ -119,9 +115,8 @@ def faq(db, user2, thing):
     """Create a test FAQ."""
     f = FAQ.objects.create(
         code="FAQ001",
-        thing=thing.code,
-        questioner=user2.code,
+        thing=thing,
+        questioner=user2,
         question="Is this available?",
     )
-    thing.add_faq(f.code)
     return f

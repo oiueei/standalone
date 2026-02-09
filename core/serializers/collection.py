@@ -14,6 +14,9 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     thumbnail_url = serializers.SerializerMethodField()
     hero_url = serializers.SerializerMethodField()
+    owner = serializers.CharField(source="owner_id")
+    things = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
+    invites = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
     theeeme = serializers.SlugRelatedField(
         slug_field="code",
         queryset=Theeeme.objects.all(),

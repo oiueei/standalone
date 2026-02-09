@@ -35,7 +35,7 @@ class TestMagicLinkFlow:
         assert response.status_code == status.HTTP_200_OK
 
         # Verify RSVP was created
-        rsvp = RSVP.objects.get(user_code=user.code)
+        rsvp = RSVP.objects.get(user_code=user)
 
         # Step 2: Verify magic link
         response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
@@ -208,7 +208,7 @@ class TestShareCollectionFlow:
         thing.refresh_from_db()
         assert thing.status == "INACTIVE"
         assert thing.available is False
-        assert friend.code in thing.deal
+        assert thing.deal.filter(code=friend.code).exists()
 
 
 @pytest.mark.django_db
@@ -324,7 +324,7 @@ class TestCompleteUserJourney:
         )
         assert response.status_code == status.HTTP_200_OK
 
-        alice_rsvp = RSVP.objects.get(user_code=alice.code)
+        alice_rsvp = RSVP.objects.get(user_code=alice)
 
         # Alice verifies and gets token
         response = client.get(f"/api/v1/auth/verify/{alice_rsvp.code}/")

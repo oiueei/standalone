@@ -21,7 +21,7 @@ def lend_thing(db, user, collection):
     t = Thing.objects.create(
         code="LEND01",
         type="LEND_THING",
-        owner=user.code,
+        owner=user,
         headline="Lend Item",
     )
     collection.add_thing(t.code)
@@ -34,7 +34,7 @@ def rent_thing(db, user, collection):
     t = Thing.objects.create(
         code="RENT01",
         type="RENT_THING",
-        owner=user.code,
+        owner=user,
         headline="Rent Item",
         fee=25.00,
     )
@@ -48,7 +48,7 @@ def share_thing(db, user, collection):
     t = Thing.objects.create(
         code="SHAR01",
         type="SHARE_THING",
-        owner=user.code,
+        owner=user,
         headline="Share Item",
     )
     collection.add_thing(t.code)
@@ -96,10 +96,10 @@ class TestBookingCalendarView:
 
         # Create a booking
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
             status="ACCEPTED",
@@ -125,10 +125,10 @@ class TestBookingCalendarView:
         collection.add_invite(user2.code)
 
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
             status="PENDING",
@@ -302,10 +302,10 @@ class TestBookingOverlap:
 
         # Create a pending booking
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=5),
             end_date=date.today() + timedelta(days=10),
             status="PENDING",
@@ -338,10 +338,10 @@ class TestBookingOverlap:
 
         # Create an accepted booking
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=5),
             end_date=date.today() + timedelta(days=10),
             status="ACCEPTED",
@@ -373,10 +373,10 @@ class TestBookingOverlap:
 
         # Create an accepted booking
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=5),
             end_date=date.today() + timedelta(days=10),
             status="ACCEPTED",
@@ -408,10 +408,10 @@ class TestBookingOverlap:
 
         # Create a rejected booking
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=5),
             end_date=date.today() + timedelta(days=10),
             status="REJECTED",
@@ -445,10 +445,10 @@ class TestBookingAcceptReject:
     def test_accept_booking_via_link(self, api_client, user, user2, lend_thing):
         """Owner can accept booking via RSVP email link."""
         booking = BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
         )
@@ -468,10 +468,10 @@ class TestBookingAcceptReject:
     def test_reject_booking_via_link(self, api_client, user, user2, lend_thing):
         """Owner can reject booking via RSVP email link."""
         booking = BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
         )
@@ -491,10 +491,10 @@ class TestBookingAcceptReject:
     def test_cannot_accept_expired_booking(self, api_client, user, user2, lend_thing):
         """Cannot accept booking that has expired (72h)."""
         booking = BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=10),
             end_date=date.today() + timedelta(days=15),
         )
@@ -513,10 +513,10 @@ class TestBookingAcceptReject:
     def test_cannot_accept_already_accepted_booking(self, api_client, user, user2, lend_thing):
         """Cannot accept booking that's already accepted."""
         booking = BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
             status="ACCEPTED",
@@ -581,11 +581,11 @@ class TestLendingThingStatusNotTaken:
     def test_thing_stays_active_after_booking_accepted(self, api_client, user, user2, lend_thing):
         """Thing stays ACTIVE even after booking is accepted."""
         booking = BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
+            thing_code=lend_thing,
             thing_type=lend_thing.type,
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
         )
@@ -605,10 +605,10 @@ class TestLendingThingStatusNotTaken:
 
         # Create first booking
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
             status="ACCEPTED",
@@ -634,7 +634,7 @@ class TestLendingThingStatusNotTaken:
         assert response.status_code == status.HTTP_200_OK
 
         # Verify 2 bookings exist
-        bookings = BookingPeriod.objects.filter(thing_code=lend_thing.code)
+        bookings = BookingPeriod.objects.filter(thing_code=lend_thing)
         assert bookings.count() == 2
 
 
@@ -646,10 +646,10 @@ class TestMyBookingsAndOwnerBookings:
         """my-bookings returns bookings made by the user."""
         # Create booking by user2
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
         )
@@ -667,10 +667,10 @@ class TestMyBookingsAndOwnerBookings:
         """owner-bookings returns bookings for things owned by user."""
         # Create booking for user's thing
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
-            requester_code=user2.code,
+            thing_code=lend_thing,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
         )
@@ -746,7 +746,7 @@ class TestStandardReservationFlowUnchanged:
         sell_thing = Thing.objects.create(
             code="SELL01",
             type="SELL_THING",
-            owner=user.code,
+            owner=user,
             headline="Item for Sale",
             fee=50.00,
         )
@@ -806,7 +806,7 @@ class TestSingleUseThingCompleteFlow:
         thing.refresh_from_db()
         assert thing.status == "INACTIVE"
         assert thing.available is False
-        assert user2.code in thing.deal
+        assert thing.deal.filter(code=user2.code).exists()
 
         # Verify booking is ACCEPTED
         booking.refresh_from_db()
@@ -909,7 +909,7 @@ class TestOrderThingFlow:
         t = Thing.objects.create(
             code="ORDER1",
             type="ORDER_THING",
-            owner=user.code,
+            owner=user,
             headline="Custom Cakes",
             fee=25.00,
         )
@@ -1242,11 +1242,11 @@ class TestDateBasedThingCompleteFlow:
     def test_share_thing_stays_active_after_accept(self, api_client, user, user2, share_thing):
         """SHARE_THING stays ACTIVE after booking is accepted."""
         booking = BookingPeriod.objects.create(
-            thing_code=share_thing.code,
+            thing_code=share_thing,
             thing_type="SHARE_THING",
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=3),
         )
@@ -1266,41 +1266,41 @@ class TestDateBasedThingCompleteFlow:
 
         # Create bookings with different statuses
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
+            thing_code=lend_thing,
             thing_type="LEND_THING",
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=2),
             status="PENDING",
         )
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
+            thing_code=lend_thing,
             thing_type="LEND_THING",
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=5),
             end_date=date.today() + timedelta(days=7),
             status="ACCEPTED",
         )
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
+            thing_code=lend_thing,
             thing_type="LEND_THING",
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=10),
             end_date=date.today() + timedelta(days=12),
             status="REJECTED",
         )
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
+            thing_code=lend_thing,
             thing_type="LEND_THING",
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today() + timedelta(days=15),
             end_date=date.today() + timedelta(days=17),
             status="EXPIRED",
@@ -1324,11 +1324,11 @@ class TestDateBasedThingCompleteFlow:
 
         # Create first booking
         BookingPeriod.objects.create(
-            thing_code=lend_thing.code,
+            thing_code=lend_thing,
             thing_type="LEND_THING",
-            requester_code=user2.code,
+            requester_code=user2,
             requester_email=user2.email,
-            owner_code=user.code,
+            owner_code=user,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=5),
             status="ACCEPTED",

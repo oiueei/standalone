@@ -81,9 +81,10 @@ class TestCollectionSerializer:
 
     def test_serialize_collection(self, default_theeeme):
         """Should serialize collection with all fields."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
         collection = Collection.objects.create(
             code="COLL01",
-            owner="ABC123",
+            owner=user,
             headline="My Collection",
             thumbnail="thumb123",
             theeeme=default_theeeme,
@@ -133,9 +134,10 @@ class TestThingSerializer:
 
     def test_serialize_thing(self):
         """Should serialize thing with all fields."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
         thing = Thing.objects.create(
             code="THNG01",
-            owner="ABC123",
+            owner=user,
             headline="My Thing",
             pictures=["pic1", "pic2"],
         )
@@ -172,10 +174,13 @@ class TestFAQSerializer:
 
     def test_serialize_faq(self):
         """Should serialize FAQ with all fields."""
+        owner = User.objects.create(code="OWNER1", email="owner@example.com")
+        thing = Thing.objects.create(code="THNG01", owner=owner, headline="Thing")
+        questioner = User.objects.create(code="USR001", email="usr001@example.com")
         faq = FAQ.objects.create(
             code="FAQ001",
-            thing="THNG01",
-            questioner="USR001",
+            thing=thing,
+            questioner=questioner,
             question="Is this available?",
             answer="Yes!",
         )

@@ -12,6 +12,10 @@ from core.models.booking import BookingPeriod
 class BookingPeriodSerializer(serializers.ModelSerializer):
     """Full booking period serializer (for owner view)."""
 
+    thing_code = serializers.CharField(source="thing_code_id")
+    requester_code = serializers.CharField(source="requester_code_id")
+    owner_code = serializers.CharField(source="owner_code_id")
+
     class Meta:
         model = BookingPeriod
         fields = [
@@ -54,6 +58,8 @@ class BookingPeriodCalendarSerializer(serializers.ModelSerializer):
 
 class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
     """Calendar view serializer for owner (includes requester info)."""
+
+    requester_code = serializers.CharField(source="requester_code_id")
 
     class Meta:
         model = BookingPeriod
@@ -106,6 +112,9 @@ class ThingOrderSerializer(serializers.Serializer):
 
 class MyBookingSerializer(serializers.ModelSerializer):
     """Serializer for user's own booking requests."""
+
+    thing_code = serializers.CharField(source="thing_code_id")
+    owner_code = serializers.CharField(source="owner_code_id")
 
     class Meta:
         model = BookingPeriod

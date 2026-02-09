@@ -19,7 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import RSVP, Collection, Thing, User
+from core.models import RSVP, Collection, User
 from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
 from core.serializers import RequestLinkSerializer, UserSerializer
 
@@ -58,7 +58,7 @@ class RequestLinkView(APIView):
 
         # Create RSVP
         rsvp = RSVP.objects.create(
-            user_code=user.code,
+            user_code=user,
             user_email=email,
         )
 
@@ -144,10 +144,9 @@ class VerifyLinkView(APIView):
         """Handle magic link authentication."""
         ip = self._get_client_ip(request)
 
-        # Get user
-        try:
-            user = User.objects.get(code=rsvp.user_code)
-        except User.DoesNotExist:
+        # Get user (rsvp.user_code is now a FK)
+        user = rsvp.user_code
+        if not user:
             rsvp.delete()
             return Response(
                 {"error": "User not found"},
@@ -190,10 +189,9 @@ class VerifyLinkView(APIView):
 
     def _handle_collection_invite(self, request, rsvp):
         """Handle collection invitation acceptance."""
-        # Get user
-        try:
-            user = User.objects.get(code=rsvp.user_code)
-        except User.DoesNotExist:
+        # Get user (rsvp.user_code is now a FK)
+        user = rsvp.user_code
+        if not user:
             rsvp.delete()
             return Response(
                 {"error": "User not found"},
@@ -208,12 +206,8 @@ class VerifyLinkView(APIView):
         if rsvp.collection_code:
             try:
                 collection = Collection.objects.get(code=rsvp.collection_code)
-                # Add user to collection invites
-                collection.add_invite(user.code)
-                # Add collection to user's shared collections
-                if rsvp.collection_code not in user.invited_collections:
-                    user.invited_collections.append(rsvp.collection_code)
-                    user.save(update_fields=["invited_collections"])
+                # Add user to collection invites (M2M)
+                collection.invites.add(user)
                 invited_collection = rsvp.collection_code
             except Collection.DoesNotExist:
                 pass  # Collection was deleted, ignore
@@ -262,10 +256,9 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Get thing
-        try:
-            thing = Thing.objects.get(code=booking.thing_code)
-        except Thing.DoesNotExist:
+        # Get thing (FK access)
+        thing = booking.thing_code
+        if not thing:
             rsvp.delete()
             return Response(
                 {"error": "Thing not found"},
@@ -279,9 +272,8 @@ class VerifyLinkView(APIView):
         if booking.thing_type in SINGLE_USE_TYPES:
             thing.status = "INACTIVE"
             thing.available = False
-            if booking.requester_code not in thing.deal:
-                thing.deal.append(booking.requester_code)
-            thing.save(update_fields=["status", "available", "deal"])
+            thing.save(update_fields=["status", "available"])
+            thing.deal.add(booking.requester_code)
 
         # Build email content based on booking type
         if booking.start_date and booking.end_date:
@@ -364,10 +356,9 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Get thing
-        try:
-            thing = Thing.objects.get(code=booking.thing_code)
-        except Thing.DoesNotExist:
+        # Get thing (FK access)
+        thing = booking.thing_code
+        if not thing:
             rsvp.delete()
             return Response(
                 {"error": "Thing not found"},

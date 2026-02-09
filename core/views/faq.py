@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import FAQ, Thing, User
+from core.models import FAQ, Thing
 from core.serializers import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
 
 
@@ -46,9 +46,9 @@ class ThingFAQListView(APIView):
 
         # Get visible FAQs (or all if owner)
         if thing.is_owner(request.user.code):
-            faqs = FAQ.objects.filter(thing=thing_code)
+            faqs = FAQ.objects.filter(thing=thing)
         else:
-            faqs = FAQ.objects.filter(thing=thing_code, is_visible=True)
+            faqs = FAQ.objects.filter(thing=thing, is_visible=True)
 
         serializer = FAQSerializer(faqs, many=True)
         return Response(serializer.data)
@@ -79,17 +79,14 @@ class ThingFAQListView(APIView):
         serializer.is_valid(raise_exception=True)
 
         faq = FAQ.objects.create(
-            thing=thing_code,
-            questioner=request.user.code,
+            thing=thing,
+            questioner=request.user,
             question=serializer.validated_data["question"],
         )
 
-        # Add FAQ to thing
-        thing.add_faq(faq.code)
-
         # Notify owner by email
         try:
-            owner = User.objects.get(code=thing.owner)
+            owner = thing.owner
             questioner_name = request.user.name or request.user.email
             send_mail(
                 subject=f"Nueva pregunta sobre: {thing.headline}",
@@ -104,7 +101,7 @@ class ThingFAQListView(APIView):
                 </html>
                 """,
             )
-        except User.DoesNotExist:
+        except Exception:
             pass  # Owner not found, skip email
 
         return Response(
@@ -131,13 +128,7 @@ class FAQDetailView(APIView):
             )
 
         # Get the thing to check access
-        try:
-            thing = Thing.objects.get(code=faq.thing)
-        except Thing.DoesNotExist:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        thing = faq.thing
 
         # Check if user can view the thing
         if not thing.can_view(request.user.code):
@@ -149,7 +140,7 @@ class FAQDetailView(APIView):
         # Check visibility for non-owners
         if not faq.is_visible:
             # Only owner of thing or questioner can see hidden FAQs
-            if not thing.is_owner(request.user.code) and faq.questioner != request.user.code:
+            if not thing.is_owner(request.user.code) and faq.questioner_id != request.user.code:
                 return Response(
                     {"error": "FAQ not found"},
                     status=status.HTTP_404_NOT_FOUND,
@@ -177,13 +168,7 @@ class FAQAnswerView(APIView):
             )
 
         # Check if user is thing owner
-        try:
-            thing = Thing.objects.get(code=faq.thing)
-        except Thing.DoesNotExist:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        thing = faq.thing
 
         if not thing.is_owner(request.user.code):
             return Response(
@@ -198,7 +183,7 @@ class FAQAnswerView(APIView):
 
         # Notify questioner by email
         try:
-            questioner = User.objects.get(code=faq.questioner)
+            questioner = faq.questioner
             owner_name = request.user.name or request.user.email
             send_mail(
                 subject=f"Tu pregunta ha sido respondida: {thing.headline}",
@@ -214,7 +199,7 @@ class FAQAnswerView(APIView):
                 </html>
                 """,
             )
-        except User.DoesNotExist:
+        except Exception:
             pass  # Questioner not found, skip email
 
         return Response(FAQSerializer(faq).data)
@@ -234,9 +219,9 @@ class FAQVisibilityView(APIView):
     def _get_faq_and_thing(self, faq_code):
         try:
             faq = FAQ.objects.get(code=faq_code)
-            thing = Thing.objects.get(code=faq.thing)
+            thing = faq.thing
             return faq, thing
-        except (FAQ.DoesNotExist, Thing.DoesNotExist):
+        except FAQ.DoesNotExist:
             return None, None
 
     def post(self, request, faq_code, action):
@@ -260,7 +245,7 @@ class FAQVisibilityView(APIView):
 
             # Notify questioner by email
             try:
-                questioner = User.objects.get(code=faq.questioner)
+                questioner = faq.questioner
                 owner_name = request.user.name or request.user.email
                 send_mail(
                     subject=f"Tu pregunta ha sido ocultada: {thing.headline}",
@@ -275,7 +260,7 @@ class FAQVisibilityView(APIView):
                     </html>
                     """,
                 )
-            except User.DoesNotExist:
+            except Exception:
                 pass  # Questioner not found, skip email
 
             return Response({"message": "FAQ hidden", "faq": FAQSerializer(faq).data})

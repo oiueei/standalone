@@ -14,6 +14,9 @@ class ThingSerializer(serializers.ModelSerializer):
 
     thumbnail_url = serializers.SerializerMethodField()
     pictures_urls = serializers.SerializerMethodField()
+    owner = serializers.CharField(source="owner_id")
+    faqs = serializers.SerializerMethodField()
+    deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
 
     class Meta:
         model = Thing
@@ -47,6 +50,9 @@ class ThingSerializer(serializers.ModelSerializer):
 
     def get_pictures_urls(self, obj):
         return [cloudinary_url(pic_id) for pic_id in obj.pictures if pic_id]
+
+    def get_faqs(self, obj):
+        return list(obj.faq_set.values_list("code", flat=True))
 
 
 class ImageIdListField(serializers.ListField):

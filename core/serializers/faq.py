@@ -10,6 +10,9 @@ from core.models import FAQ
 class FAQSerializer(serializers.ModelSerializer):
     """Full FAQ serializer."""
 
+    thing = serializers.CharField(source="thing_id")
+    questioner = serializers.CharField(source="questioner_id")
+
     class Meta:
         model = FAQ
         fields = [

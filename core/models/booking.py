@@ -48,11 +48,29 @@ class BookingPeriod(models.Model):
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     created = models.DateTimeField(default=timezone.now)
-    thing_code = models.CharField(max_length=6, db_index=True)
-    thing_type = models.CharField(max_length=12, default="GIFT_THING")  # To know how to handle
-    requester_code = models.CharField(max_length=6)
+    thing_code = models.ForeignKey(
+        "Thing",
+        on_delete=models.CASCADE,
+        to_field="code",
+        db_column="thing_code",
+        related_name="bookings",
+    )
+    thing_type = models.CharField(max_length=12, default="GIFT_THING")
+    requester_code = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        to_field="code",
+        db_column="requester_code",
+        related_name="booking_requests",
+    )
     requester_email = models.CharField(max_length=64)
-    owner_code = models.CharField(max_length=6)
+    owner_code = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        to_field="code",
+        db_column="owner_code",
+        related_name="booking_owned",
+    )
     start_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE
     end_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE
     delivery_date = models.DateField(null=True, blank=True)  # For ORDER_THING
@@ -66,16 +84,16 @@ class BookingPeriod(models.Model):
     def __str__(self):
         if self.start_date and self.end_date:
             return (
-                f"Booking {self.code} for {self.thing_code} "
+                f"Booking {self.code} for {self.thing_code_id} "
                 f"({self.start_date} - {self.end_date})"
             )
         if self.delivery_date:
             qty = f"x{self.quantity}" if self.quantity else ""
             return (
-                f"Order {self.code} for {self.thing_code} "
+                f"Order {self.code} for {self.thing_code_id} "
                 f"(delivery: {self.delivery_date}) {qty}"
             )
-        return f"Booking {self.code} for {self.thing_code}"
+        return f"Booking {self.code} for {self.thing_code_id}"
 
     def is_date_based(self):
         """Check if this booking requires dates (LEND/RENT/SHARE)."""
