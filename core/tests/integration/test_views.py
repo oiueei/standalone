@@ -87,6 +87,16 @@ class TestAuthViews:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Successfully logged out"
 
+    def test_logout_with_invalid_refresh_token(self, authenticated_client):
+        """Should logout successfully even when refresh token is invalid."""
+        response = authenticated_client.post(
+            "/api/v1/auth/logout/",
+            {"refresh": "invalid-token-string"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["message"] == "Successfully logged out"
+
 
 @pytest.mark.django_db
 class TestUserViews:

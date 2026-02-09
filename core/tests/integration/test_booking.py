@@ -1350,3 +1350,66 @@ class TestDateBasedThingCompleteFlow:
         )
 
         assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+class TestExpireOldPending:
+    """Tests for BookingPeriod.expire_old_pending() classmethod."""
+
+    def test_expire_old_pending_expires_stale_bookings(self, user, user2, lend_thing):
+        """PENDING booking older than 72h should be expired."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today() + timedelta(days=10),
+            end_date=date.today() + timedelta(days=15),
+            status="PENDING",
+        )
+        booking.created = timezone.now() - timedelta(hours=100)
+        booking.save()
+
+        count = BookingPeriod.expire_old_pending()
+
+        assert count == 1
+        booking.refresh_from_db()
+        assert booking.status == "EXPIRED"
+
+    def test_expire_old_pending_does_not_expire_recent(self, user, user2, lend_thing):
+        """Recent PENDING booking should not be expired."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today() + timedelta(days=10),
+            end_date=date.today() + timedelta(days=15),
+            status="PENDING",
+        )
+
+        count = BookingPeriod.expire_old_pending()
+
+        assert count == 0
+        booking.refresh_from_db()
+        assert booking.status == "PENDING"
+
+    def test_expire_old_pending_does_not_expire_accepted(self, user, user2, lend_thing):
+        """Old ACCEPTED booking should not be expired."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today() + timedelta(days=10),
+            end_date=date.today() + timedelta(days=15),
+            status="ACCEPTED",
+        )
+        booking.created = timezone.now() - timedelta(hours=100)
+        booking.save()
+
+        count = BookingPeriod.expire_old_pending()
+
+        assert count == 0
+        booking.refresh_from_db()
+        assert booking.status == "ACCEPTED"

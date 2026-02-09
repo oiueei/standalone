@@ -52,7 +52,6 @@ urlpatterns = [
     ),
     # Things (non-viewset)
     path("invited-things/", InvitedThingsView.as_view(), name="invited-things"),
-    # NOTE: /reserve/ and /release/ endpoints removed - use /request/ with BookingPeriod flow
     path("things/<str:thing_code>/request/", ThingRequestView.as_view(), name="thing-request"),
     path(
         "things/<str:thing_code>/calendar/",

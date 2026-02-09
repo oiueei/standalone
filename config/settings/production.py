@@ -28,6 +28,7 @@ CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # CORS: Configure from environment variable
 # React served by Django = same origin = no CORS needed typically
