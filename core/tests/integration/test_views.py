@@ -275,10 +275,10 @@ class TestCollectionViews:
         )
         assert response.status_code == status.HTTP_200_OK
 
-        # Verify RSVP was created with collection_code
+        # Verify RSVP was created with target_code
         rsvp = RSVP.objects.filter(user_email="newuser@oiueei.org").first()
         assert rsvp is not None
-        assert rsvp.collection_code == collection.code
+        assert rsvp.target_code == collection.code
 
     def test_invite_does_not_add_user_to_collection_immediately(
         self, authenticated_client, collection
@@ -302,7 +302,7 @@ class TestCollectionViews:
         """Verifying invite RSVP should add user to collection."""
         from core.models import RSVP, User
 
-        # Create a user and RSVP with collection_code and COLLECTION_INVITE action
+        # Create a user and RSVP with target_code and COLLECTION_INVITE action
         invited_user = User.objects.create(
             code="INVTD1",
             email="invited@oiueei.org",
@@ -311,7 +311,7 @@ class TestCollectionViews:
             user_code=invited_user,
             user_email=invited_user.email,
             action="COLLECTION_INVITE",
-            collection_code=collection.code,
+            target_code=collection.code,
         )
 
         # Verify the link
@@ -488,7 +488,6 @@ class TestCollectionViews:
             format="json",
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.data["error"] == "Thing not found"
 
     def test_add_thing_to_nonexistent_collection(self, authenticated_client, user):
         """Should return 404 for nonexistent collection."""
@@ -507,7 +506,6 @@ class TestCollectionViews:
             format="json",
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.data["error"] == "Collection not found"
 
 
 @pytest.mark.django_db

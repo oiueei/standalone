@@ -7,7 +7,7 @@ real codes (booking_code, thing_code) in URLs.
 """
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 from core.models import RSVP, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
 from core.serializers.booking import ThingOrderSerializer, ThingRequestWithDatesSerializer
+from core.services.email_service import send_booking_request_email
 
 
 class ThingRequestView(APIView):
@@ -32,13 +33,7 @@ class ThingRequestView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, thing_code):
-        try:
-            thing = Thing.objects.get(code=thing_code)
-        except Thing.DoesNotExist:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        thing = get_object_or_404(Thing, code=thing_code)
 
         # Check if user can view this thing (is invited to collection)
         if not thing.can_view(request.user.code):
@@ -211,9 +206,7 @@ class ThingRequestView(APIView):
         """Get owner's email address."""
         return owner.email if owner else None
 
-    def _send_booking_email(
-        self, requester, thing, booking, owner_email, with_dates=False, order_info=False
-    ):
+    def _send_booking_email(self, requester, thing, booking, owner_email, **kwargs):
         """Send booking request email to owner with RSVP-protected links."""
         # Create RSVP tokens for accept/reject links
         rsvp_accept = RSVP.create_for_booking("BOOKING_ACCEPT", booking, owner_email)
@@ -224,50 +217,4 @@ class ThingRequestView(APIView):
         accept_link = f"{base_url}/{rsvp_accept.code}"
         reject_link = f"{base_url}/{rsvp_reject.code}"
 
-        requester_name = requester.name or requester.email
-
-        # Build email content based on booking type
-        if with_dates:
-            message = (
-                f"{requester_name} ha solicitado reservar '{thing.headline}' "
-                f"del {booking.start_date} al {booking.end_date}. "
-                f"Aceptar: {accept_link} | Rechazar: {reject_link}"
-            )
-            html_extra = f"<p>Fechas: {booking.start_date} - {booking.end_date}</p>"
-            subject = f"{requester_name} quiere reservar: {thing.headline}"
-        elif order_info:
-            message = (
-                f"{requester_name} ha solicitado {booking.quantity}x '{thing.headline}' "
-                f"para el {booking.delivery_date}. "
-                f"Aceptar: {accept_link} | Rechazar: {reject_link}"
-            )
-            html_extra = (
-                f"<p>Cantidad: {booking.quantity}</p>"
-                f"<p>Fecha de entrega: {booking.delivery_date}</p>"
-            )
-            subject = f"{requester_name} quiere pedir: {thing.headline}"
-        else:
-            message = (
-                f"{requester_name} ha solicitado reservar '{thing.headline}'. "
-                f"Aceptar: {accept_link} | Rechazar: {reject_link}"
-            )
-            html_extra = ""
-            subject = f"{requester_name} quiere reservar: {thing.headline}"
-
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=None,
-            recipient_list=[owner_email],
-            html_message=f"""
-            <html>
-            <p><strong>{requester_name}</strong> ha solicitado:</p>
-            <p><strong>{thing.headline}</strong></p>
-            {html_extra}
-            <p>
-                <a href="{accept_link}">Aceptar</a> |
-                <a href="{reject_link}">Rechazar</a>
-            </p>
-            </html>
-            """,
-        )
+        send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link)

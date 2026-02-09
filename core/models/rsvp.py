@@ -51,9 +51,6 @@ class RSVP(models.Model):
     action = models.CharField(max_length=20, choices=ACTION_CHOICES, default="MAGIC_LINK")
     target_code = models.CharField(max_length=6, null=True, blank=True)
 
-    # Legacy field for collection invites (maintained for backwards compatibility)
-    collection_code = models.CharField(max_length=6, null=True, blank=True)
-
     # Additional context data (JSON) for the action
     context = models.JSONField(default=dict, blank=True)
 

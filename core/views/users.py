@@ -2,6 +2,7 @@
 User views for OIUEEI.
 """
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -49,13 +50,7 @@ class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_code):
-        try:
-            user = User.objects.get(code=user_code)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        user = get_object_or_404(User, code=user_code)
 
         # Check if viewer can see this user's profile
         if not can_view_user(request.user.code, user_code):

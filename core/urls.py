@@ -35,7 +35,7 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="me"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
     # RSVP action endpoint (unified handler for all email-based actions)
-    # Handles: MAGIC_LINK, COLLECTION_INVITE, RESERVATION_ACCEPT/REJECT, BOOKING_ACCEPT/REJECT
+    # Handles: MAGIC_LINK, COLLECTION_INVITE, BOOKING_ACCEPT/REJECT
     path("rsvp/<str:rsvp_code>/", VerifyLinkView.as_view(), name="rsvp-action"),
     # Users
     path("users/<str:user_code>/", UserDetailView.as_view(), name="user-detail"),

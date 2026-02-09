@@ -2,6 +2,7 @@
 Thing views for OIUEEI.
 """
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -67,18 +68,10 @@ class ThingDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_thing(self, thing_code):
-        try:
-            return Thing.objects.get(code=thing_code)
-        except Thing.DoesNotExist:
-            return None
+        return get_object_or_404(Thing, code=thing_code)
 
     def get(self, request, thing_code):
         thing = self.get_thing(thing_code)
-        if not thing:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not thing.can_view(request.user.code):
             return Response(
@@ -91,11 +84,6 @@ class ThingDetailView(APIView):
 
     def put(self, request, thing_code):
         thing = self.get_thing(thing_code)
-        if not thing:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not thing.is_owner(request.user.code):
             return Response(
@@ -111,11 +99,6 @@ class ThingDetailView(APIView):
 
     def delete(self, request, thing_code):
         thing = self.get_thing(thing_code)
-        if not thing:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not thing.is_owner(request.user.code):
             return Response(
@@ -125,11 +108,6 @@ class ThingDetailView(APIView):
 
         thing.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# NOTE: ThingReserveView and ThingReleaseView have been removed.
-# All reservations now go through ThingRequestView which uses the BookingPeriod flow
-# with owner approval via RSVP links.
 
 
 class InvitedThingsView(APIView):

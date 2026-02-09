@@ -6,6 +6,7 @@ BookingAcceptView and BookingRejectView have been removed -
 all accept/reject actions now go through the unified RSVP endpoint.
 """
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -31,13 +32,7 @@ class ThingCalendarView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, thing_code):
-        try:
-            thing = Thing.objects.get(code=thing_code)
-        except Thing.DoesNotExist:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        thing = get_object_or_404(Thing, code=thing_code)
 
         # Check if user can view this thing
         if not thing.can_view(request.user.code):
@@ -56,11 +51,6 @@ class ThingCalendarView(APIView):
             serializer = BookingPeriodCalendarSerializer(blocked_periods, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# NOTE: BookingAcceptView and BookingRejectView have been removed.
-# All booking accept/reject actions now go through the unified RSVP endpoint
-# at /api/v1/rsvp/{rsvp_code}/ to avoid exposing real codes in URLs.
 
 
 class MyBookingsView(APIView):

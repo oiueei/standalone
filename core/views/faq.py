@@ -2,7 +2,7 @@
 FAQ views for OIUEEI.
 """
 
-from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,6 +10,11 @@ from rest_framework.views import APIView
 
 from core.models import FAQ, Thing
 from core.serializers import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
+from core.services.email_service import (
+    send_faq_answer_email,
+    send_faq_hide_email,
+    send_faq_question_email,
+)
 
 
 class ThingFAQListView(APIView):
@@ -24,18 +29,10 @@ class ThingFAQListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_thing(self, thing_code):
-        try:
-            return Thing.objects.get(code=thing_code)
-        except Thing.DoesNotExist:
-            return None
+        return get_object_or_404(Thing, code=thing_code)
 
     def get(self, request, thing_code):
         thing = self.get_thing(thing_code)
-        if not thing:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         # Check if user can view the thing
         if not thing.can_view(request.user.code):
@@ -55,11 +52,6 @@ class ThingFAQListView(APIView):
 
     def post(self, request, thing_code):
         thing = self.get_thing(thing_code)
-        if not thing:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         # Owner cannot ask questions about their own thing
         if thing.is_owner(request.user.code):
@@ -88,19 +80,7 @@ class ThingFAQListView(APIView):
         try:
             owner = thing.owner
             questioner_name = request.user.name or request.user.email
-            send_mail(
-                subject=f"Nueva pregunta sobre: {thing.headline}",
-                message=f"{questioner_name} ha preguntado: {faq.question}",
-                from_email=None,
-                recipient_list=[owner.email],
-                html_message=f"""
-                <html>
-                <p><strong>{questioner_name}</strong> ha hecho una pregunta sobre:</p>
-                <p><strong>{thing.headline}</strong></p>
-                <p>Pregunta: {faq.question}</p>
-                </html>
-                """,
-            )
+            send_faq_question_email(questioner_name, thing.headline, faq.question, owner.email)
         except Exception:
             pass  # Owner not found, skip email
 
@@ -119,13 +99,7 @@ class FAQDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, faq_code):
-        try:
-            faq = FAQ.objects.get(code=faq_code)
-        except FAQ.DoesNotExist:
-            return Response(
-                {"error": "FAQ not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        faq = get_object_or_404(FAQ, code=faq_code)
 
         # Get the thing to check access
         thing = faq.thing
@@ -159,13 +133,7 @@ class FAQAnswerView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, faq_code):
-        try:
-            faq = FAQ.objects.get(code=faq_code)
-        except FAQ.DoesNotExist:
-            return Response(
-                {"error": "FAQ not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        faq = get_object_or_404(FAQ, code=faq_code)
 
         # Check if user is thing owner
         thing = faq.thing
@@ -185,19 +153,8 @@ class FAQAnswerView(APIView):
         try:
             questioner = faq.questioner
             owner_name = request.user.name or request.user.email
-            send_mail(
-                subject=f"Tu pregunta ha sido respondida: {thing.headline}",
-                message=f"{owner_name} ha respondido: {faq.answer}",
-                from_email=None,
-                recipient_list=[questioner.email],
-                html_message=f"""
-                <html>
-                <p><strong>{owner_name}</strong> ha respondido tu pregunta sobre:</p>
-                <p><strong>{thing.headline}</strong></p>
-                <p>Tu pregunta: {faq.question}</p>
-                <p>Respuesta: {faq.answer}</p>
-                </html>
-                """,
+            send_faq_answer_email(
+                owner_name, thing.headline, faq.question, faq.answer, questioner.email
             )
         except Exception:
             pass  # Questioner not found, skip email
@@ -217,21 +174,11 @@ class FAQVisibilityView(APIView):
     permission_classes = [IsAuthenticated]
 
     def _get_faq_and_thing(self, faq_code):
-        try:
-            faq = FAQ.objects.get(code=faq_code)
-            thing = faq.thing
-            return faq, thing
-        except FAQ.DoesNotExist:
-            return None, None
+        faq = get_object_or_404(FAQ, code=faq_code)
+        return faq, faq.thing
 
     def post(self, request, faq_code, action):
         faq, thing = self._get_faq_and_thing(faq_code)
-
-        if not faq:
-            return Response(
-                {"error": "FAQ not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not thing.is_owner(request.user.code):
             return Response(
@@ -247,19 +194,7 @@ class FAQVisibilityView(APIView):
             try:
                 questioner = faq.questioner
                 owner_name = request.user.name or request.user.email
-                send_mail(
-                    subject=f"Tu pregunta ha sido ocultada: {thing.headline}",
-                    message=f"{owner_name} ha ocultado tu pregunta: {faq.question}",
-                    from_email=None,
-                    recipient_list=[questioner.email],
-                    html_message=f"""
-                    <html>
-                    <p><strong>{owner_name}</strong> ha ocultado tu pregunta sobre:</p>
-                    <p><strong>{thing.headline}</strong></p>
-                    <p>Tu pregunta: {faq.question}</p>
-                    </html>
-                    """,
-                )
+                send_faq_hide_email(owner_name, thing.headline, faq.question, questioner.email)
             except Exception:
                 pass  # Questioner not found, skip email
 

@@ -3,7 +3,7 @@ Collection views for OIUEEI.
 """
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -18,6 +18,7 @@ from core.serializers import (
     CollectionSerializer,
     CollectionUpdateSerializer,
 )
+from core.services.email_service import send_collection_invite_email, send_collection_revoke_email
 
 
 class CollectionListView(APIView):
@@ -76,18 +77,10 @@ class CollectionDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_collection(self, collection_code):
-        try:
-            return Collection.objects.get(code=collection_code)
-        except Collection.DoesNotExist:
-            return None
+        return get_object_or_404(Collection, code=collection_code)
 
     def get(self, request, collection_code):
         collection = self.get_collection(collection_code)
-        if not collection:
-            return Response(
-                {"error": "Collection not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not collection.can_view(request.user.code):
             return Response(
@@ -101,11 +94,6 @@ class CollectionDetailView(APIView):
     def post(self, request, collection_code):
         """Add a thing to the collection."""
         collection = self.get_collection(collection_code)
-        if not collection:
-            return Response(
-                {"error": "Collection not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not collection.is_owner(request.user.code):
             return Response(
@@ -118,13 +106,7 @@ class CollectionDetailView(APIView):
 
         thing_code = serializer.validated_data["thing_code"]
 
-        try:
-            thing = Thing.objects.get(code=thing_code)
-        except Thing.DoesNotExist:
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        thing = get_object_or_404(Thing, code=thing_code)
 
         if not thing.is_owner(request.user.code):
             return Response(
@@ -150,11 +132,6 @@ class CollectionDetailView(APIView):
 
     def put(self, request, collection_code):
         collection = self.get_collection(collection_code)
-        if not collection:
-            return Response(
-                {"error": "Collection not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not collection.is_owner(request.user.code):
             return Response(
@@ -170,11 +147,6 @@ class CollectionDetailView(APIView):
 
     def delete(self, request, collection_code):
         collection = self.get_collection(collection_code)
-        if not collection:
-            return Response(
-                {"error": "Collection not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
         if not collection.is_owner(request.user.code):
             return Response(
@@ -198,13 +170,7 @@ class CollectionInviteView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, collection_code):
-        try:
-            collection = Collection.objects.get(code=collection_code)
-        except Collection.DoesNotExist:
-            return Response(
-                {"error": "Collection not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        collection = get_object_or_404(Collection, code=collection_code)
 
         if not collection.is_owner(request.user.code):
             return Response(
@@ -223,12 +189,12 @@ class CollectionInviteView(APIView):
             defaults={"email": email},
         )
 
-        # Create RSVP with collection_code (invitation pending acceptance)
+        # Create RSVP with target_code (invitation pending acceptance)
         rsvp = RSVP.objects.create(
             user_code=invited_user,
             user_email=email,
             action="COLLECTION_INVITE",
-            collection_code=collection_code,
+            target_code=collection_code,
         )
 
         # Send invitation email with specific RSVP link
@@ -237,19 +203,11 @@ class CollectionInviteView(APIView):
         )
         invite_link = f"{magic_link_base}/{rsvp.code}"
 
-        send_mail(
-            subject=f"{request.user.name or 'Someone'} te ha invitado a una colección",
-            message=f"Has sido invitado a ver: {collection.headline}. "
-            f"Accede aquí: {invite_link}",
-            from_email=None,
-            recipient_list=[email],
-            html_message=f"""
-            <html>
-            <p>{request.user.name or 'Someone'} te ha invitado a ver:</p>
-            <p><strong>{collection.headline}</strong></p>
-            <p><a href="{invite_link}">Aceptar invitación</a></p>
-            </html>
-            """,
+        send_collection_invite_email(
+            request.user.name or "Someone",
+            collection.headline,
+            email,
+            invite_link,
         )
 
         return Response(
@@ -262,13 +220,7 @@ class CollectionInviteView(APIView):
         )
 
     def delete(self, request, collection_code):
-        try:
-            collection = Collection.objects.get(code=collection_code)
-        except Collection.DoesNotExist:
-            return Response(
-                {"error": "Collection not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        collection = get_object_or_404(Collection, code=collection_code)
 
         if not collection.is_owner(request.user.code):
             return Response(
@@ -294,20 +246,7 @@ class CollectionInviteView(APIView):
         try:
             user = User.objects.get(code=user_code)
             owner_name = request.user.name or request.user.email
-            send_mail(
-                subject=f"Tu acceso a '{collection.headline}' ha sido revocado",
-                message=f"{owner_name} ha revocado tu acceso a la colección "
-                f"'{collection.headline}'.",
-                from_email=None,
-                recipient_list=[user.email],
-                html_message=f"""
-                <html>
-                <p>{owner_name} ha revocado tu acceso a:</p>
-                <p><strong>{collection.headline}</strong></p>
-                <p>Ya no podrás ver el contenido de esta colección.</p>
-                </html>
-                """,
-            )
+            send_collection_revoke_email(owner_name, collection.headline, user.email)
         except User.DoesNotExist:
             pass
 

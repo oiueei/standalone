@@ -10,7 +10,6 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import login
-from django.core.mail import send_mail
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import status
@@ -20,8 +19,11 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import RSVP, Collection, User
-from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
+from core.models.booking import BookingPeriod
 from core.serializers import RequestLinkSerializer, UserSerializer
+from core.services.booking_service import accept_booking, reject_booking
+from core.services.email_service import send_booking_decision_email, send_magic_link_email
+from core.utils import get_client_ip
 
 security_logger = logging.getLogger("security")
 
@@ -40,7 +42,7 @@ class RequestLinkView(APIView):
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"].lower()
-        ip = self._get_client_ip(request)
+        ip = get_client_ip(request)
 
         # INVITE-ONLY: Only existing users can request magic links
         try:
@@ -68,30 +70,12 @@ class RequestLinkView(APIView):
         )
         magic_link = f"{magic_link_base}/{rsvp.code}"
 
-        send_mail(
-            subject="Tu enlace de acceso a OIUEEI",
-            message=f"Hola! Haz clic aquí para acceder: {magic_link}",
-            from_email=None,
-            recipient_list=[email],
-            html_message=f"""
-            <html>
-            <p>Hola! Haz clic aquí para acceder:</p>
-            <a href="{magic_link}">Acceder</a>
-            </html>
-            """,
-        )
+        send_magic_link_email(email, magic_link)
 
         return Response(
             {"message": "Magic link sent", "email": email},
             status=status.HTTP_200_OK,
         )
-
-    def _get_client_ip(self, request):
-        """Get client IP address from request."""
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            return x_forwarded_for.split(",")[0].strip()
-        return request.META.get("REMOTE_ADDR", "unknown")
 
 
 class VerifyLinkView(APIView):
@@ -110,7 +94,7 @@ class VerifyLinkView(APIView):
 
     @method_decorator(ratelimit(key="ip", rate="10/m", method="GET", block=True))
     def get(self, request, rsvp_code):
-        ip = self._get_client_ip(request)
+        ip = get_client_ip(request)
 
         try:
             rsvp = RSVP.objects.get(code=rsvp_code)
@@ -142,7 +126,7 @@ class VerifyLinkView(APIView):
 
     def _handle_magic_link(self, request, rsvp):
         """Handle magic link authentication."""
-        ip = self._get_client_ip(request)
+        ip = get_client_ip(request)
 
         # Get user (rsvp.user_code is now a FK)
         user = rsvp.user_code
@@ -180,13 +164,6 @@ class VerifyLinkView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def _get_client_ip(self, request):
-        """Get client IP address from request."""
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            return x_forwarded_for.split(",")[0].strip()
-        return request.META.get("REMOTE_ADDR", "unknown")
-
     def _handle_collection_invite(self, request, rsvp):
         """Handle collection invitation acceptance."""
         # Get user (rsvp.user_code is now a FK)
@@ -203,12 +180,12 @@ class VerifyLinkView(APIView):
 
         # Process collection invitation
         invited_collection = None
-        if rsvp.collection_code:
+        if rsvp.target_code:
             try:
-                collection = Collection.objects.get(code=rsvp.collection_code)
+                collection = Collection.objects.get(code=rsvp.target_code)
                 # Add user to collection invites (M2M)
                 collection.invites.add(user)
-                invited_collection = rsvp.collection_code
+                invited_collection = rsvp.target_code
             except Collection.DoesNotExist:
                 pass  # Collection was deleted, ignore
 
@@ -265,56 +242,11 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Accept the booking
-        booking.accept()
-
-        # For GIFT/SELL: Mark thing as INACTIVE and add requester to deal
-        if booking.thing_type in SINGLE_USE_TYPES:
-            thing.status = "INACTIVE"
-            thing.available = False
-            thing.save(update_fields=["status", "available"])
-            thing.deal.add(booking.requester_code)
-
-        # Build email content based on booking type
-        if booking.start_date and booking.end_date:
-            # Date-based booking (LEND/RENT/SHARE)
-            message = (
-                f"Tu solicitud de reserva para '{thing.headline}' "
-                f"del {booking.start_date} al {booking.end_date} ha sido aceptada."
-            )
-            html_extra = f"<p>Fechas: {booking.start_date} - {booking.end_date}</p>"
-            subject = f"Tu reserva ha sido aceptada: {thing.headline}"
-        elif booking.delivery_date:
-            # Order (ORDER_THING)
-            message = (
-                f"Tu pedido de {booking.quantity}x '{thing.headline}' "
-                f"para el {booking.delivery_date} ha sido aceptado."
-            )
-            html_extra = (
-                f"<p>Cantidad: {booking.quantity}</p>"
-                f"<p>Fecha de entrega: {booking.delivery_date}</p>"
-            )
-            subject = f"Tu pedido ha sido aceptado: {thing.headline}"
-        else:
-            # Simple booking (GIFT/SELL)
-            message = f"Tu solicitud de reserva para '{thing.headline}' ha sido aceptada."
-            html_extra = ""
-            subject = f"Tu reserva ha sido aceptada: {thing.headline}"
+        # Accept the booking and update thing status
+        thing = accept_booking(booking)
 
         # Send confirmation email to requester
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=None,
-            recipient_list=[booking.requester_email],
-            html_message=f"""
-            <html>
-            <p>Tu solicitud ha sido <strong>aceptada</strong>:</p>
-            <p><strong>{thing.headline}</strong></p>
-            {html_extra}
-            </html>
-            """,
-        )
+        send_booking_decision_email(booking, thing, accepted=True)
 
         # Delete RSVP (one-time use)
         rsvp.delete()
@@ -365,54 +297,11 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Reject the booking
-        booking.reject()
-
-        # For GIFT/SELL: Restore thing to ACTIVE (was set to TAKEN when request was made)
-        if booking.thing_type in SINGLE_USE_TYPES:
-            thing.status = "ACTIVE"
-            thing.save(update_fields=["status"])
-
-        # Build email content based on booking type
-        if booking.start_date and booking.end_date:
-            # Date-based booking (LEND/RENT/SHARE)
-            message = (
-                f"Tu solicitud de reserva para '{thing.headline}' "
-                f"del {booking.start_date} al {booking.end_date} ha sido rechazada."
-            )
-            html_extra = f"<p>Fechas: {booking.start_date} - {booking.end_date}</p>"
-            subject = f"Tu reserva ha sido rechazada: {thing.headline}"
-        elif booking.delivery_date:
-            # Order (ORDER_THING)
-            message = (
-                f"Tu pedido de {booking.quantity}x '{thing.headline}' "
-                f"para el {booking.delivery_date} ha sido rechazado."
-            )
-            html_extra = (
-                f"<p>Cantidad: {booking.quantity}</p>"
-                f"<p>Fecha de entrega: {booking.delivery_date}</p>"
-            )
-            subject = f"Tu pedido ha sido rechazado: {thing.headline}"
-        else:
-            # Simple booking (GIFT/SELL)
-            message = f"Tu solicitud de reserva para '{thing.headline}' ha sido rechazada."
-            html_extra = ""
-            subject = f"Tu reserva ha sido rechazada: {thing.headline}"
+        # Reject the booking and update thing status
+        thing = reject_booking(booking)
 
         # Send rejection email to requester
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=None,
-            recipient_list=[booking.requester_email],
-            html_message=f"""
-            <html>
-            <p>Tu solicitud ha sido <strong>rechazada</strong>:</p>
-            <p><strong>{thing.headline}</strong></p>
-            {html_extra}
-            </html>
-            """,
-        )
+        send_booking_decision_email(booking, thing, accepted=False)
 
         # Delete RSVP (one-time use)
         rsvp.delete()
