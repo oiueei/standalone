@@ -4,102 +4,149 @@ An open-source web application for people to share their belongings with friends
 
 ## Tech Stack
 
-- **Backend**: Django REST Framework (this repo)
+- **Backend**: Django 5.x + Django REST Framework
 - **Frontend**: React (same repo, not yet implemented)
 - **UI design**: oiueeiDS (not yet implemented)
 - **Auth**: Magic link authentication (passwordless for users, password enabled for admin access)
-- **Database**: SQLite (dev), PostgreSQL (prod)
-- **Worker**: Cron Job / Heroku Scheduler (not yet implemented) - for booking expiration cleanup
+- **Database**: SQLite (dev), PostgreSQL (prod via `dj-database-url`)
+- **Deployment**: Heroku (Procfile + runtime.txt included)
+- **Static files**: WhiteNoise
+- **Worker**: Heroku Scheduler - runs `python manage.py expire_bookings` for booking expiration cleanup
+
+## Project Structure
+
+```
+config/
+  settings/
+    base.py          # Shared settings
+    development.py   # Dev overrides (SQLite, DEBUG=True)
+    production.py    # Prod overrides (PostgreSQL, security headers)
+  urls.py            # Root URL config (admin at /oiueei-admin/)
+  wsgi.py            # WSGI entry point (defaults to production)
+core/
+  models/            # User, Collection, Thing, FAQ, Theeeme, RSVP, BookingPeriod
+  views/             # Auth, collections, things, bookings, FAQ, users
+  serializers/       # DRF serializers per model
+  services/          # Business logic layer
+    email_service.py   # All email composition and sending
+    booking_service.py # Accept/reject booking logic
+  permissions.py     # Custom DRF permissions (IsThingOwner, IsCollectionOwner)
+  validators.py      # Input validation (image IDs, headlines, etc.)
+  utils.py           # ID generation, client IP, Cloudinary URLs
+  pagination.py      # StandardResultsPagination (max 100)
+  management/
+    commands/
+      expire_bookings.py  # Batch expire stale PENDING bookings
+  tests/
+    unit/            # Model, serializer, validator, security tests
+    integration/     # View and booking integration tests
+    scenarios/       # End-to-end user flow tests
+```
 
 ## Data Models
 
 | Model | Purpose |
 |-------|---------|
-| **User** | Users with magic link auth. Custom model with `user_code` as PK (6-char alphanumeric) |
-| **Collection** | Lists of things owned by a user, can be shared via invites |
-| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING. `thing_available` controls visibility (True=visible to invites, False=owner only). `thing_status` controls reservation state (ACTIVE/TAKEN/INACTIVE) |
-| **FAQ** | Questions/answers about things |
-| **Theeeme** | Colour palettes (6 colours) for customising collections |
-| **RSVP** | Magic link tokens (one-time use, 24h expiry) for auth and email actions |
-| **BookingPeriod** | Unified booking/reservation model for all thing types (72h expiry). Handles: single-use (GIFT/SELL), repeatable orders (ORDER with delivery_date+quantity), and date-based calendar (LEND/RENT/SHARE with start_date+end_date) |
+| **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords |
+| **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme` |
+| **Thing** | Items in collections. Types: GIFT, SELL, ORDER, RENT, LEND, SHARE. `available` controls visibility, `status` controls reservation state (ACTIVE/TAKEN/INACTIVE) |
+| **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
+| **Theeeme** | Colour palettes (6 hex colours) for customising collections |
+| **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
+| **BookingPeriod** | Unified booking model for all thing types (72h expiry). FKs to Thing, User (requester), User (owner) |
 
 ## Key Relationships
 
-- Collection → User (owner via `collection_owner`)
-- Collection → Theeeme (FK with PROTECT)
-- Collection has `collection_invites` (list of user_codes who can view)
-- Collection has `collection_things` (list of thing_codes)
-- Thing → User (owner via `thing_owner`)
-- FAQ → Thing (via `faq_thing`)
-- BookingPeriod → Thing (via `thing_code`) - for all thing types
-- BookingPeriod → User (requester via `requester_code`, owner via `owner_code`)
+All relationships use proper Django ForeignKey and ManyToManyField:
+
+- `Collection.owner` -> FK to User
+- `Collection.things` -> M2M to Thing (via `collection_things` table)
+- `Collection.invites` -> M2M to User (via `collection_invites` table)
+- `Collection.theeeme` -> FK to Theeeme (PROTECT)
+- `Thing.owner` -> FK to User
+- `Thing.deal` -> M2M to User (via `thing_deals` table)
+- `FAQ.thing` -> FK to Thing
+- `FAQ.questioner` -> FK to User
+- `BookingPeriod.thing_code` -> FK to Thing
+- `BookingPeriod.requester_code` -> FK to User
+- `BookingPeriod.owner_code` -> FK to User
+- `RSVP.user_code` -> FK to User
 
 ## API Endpoints
 
 ### Auth & RSVP Actions
 | Method | URL | Description |
 |--------|-----|-------------|
-| POST | `/api/v1/auth/request-link/` | Request magic link |
-| GET | `/api/v1/auth/verify/{rsvp_code}/` | Verify magic link or process any RSVP action |
+| POST | `/api/v1/auth/request-link/` | Request magic link (rate limited: 5/min) |
+| GET | `/api/v1/auth/verify/{rsvp_code}/` | Verify magic link or process any RSVP action (rate limited: 10/min) |
 | GET | `/api/v1/auth/me/` | Get authenticated user |
-| POST | `/api/v1/auth/logout/` | Log out |
+| POST | `/api/v1/auth/logout/` | Log out (blacklists refresh token) |
 | GET | `/api/v1/rsvp/{rsvp_code}/` | Process any RSVP action (unified endpoint) |
 
 ### Users
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/v1/users/{user_code}/` | View profile |
-| PUT | `/api/v1/users/{user_code}/` | Update own profile (owner only) |
+| GET | `/api/v1/users/{user_code}/` | View profile (requires collection connection) |
+| PUT | `/api/v1/users/{user_code}/` | Update own profile |
 
-### Collections
+### Collections (ModelViewSet + Router)
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/api/v1/collections/` | List own collections |
 | POST | `/api/v1/collections/` | Create collection |
-| GET | `/api/v1/collections/{code}/` | View collection |
-| POST | `/api/v1/collections/{code}/` | Add thing to collection (owner only) |
+| GET | `/api/v1/collections/{code}/` | View collection (owner or invited) |
 | PUT | `/api/v1/collections/{code}/` | Update collection (owner only) |
 | DELETE | `/api/v1/collections/{code}/` | Delete collection (owner only) |
+| POST | `/api/v1/collections/{code}/add-thing/` | Add thing to collection (owner only) |
 | POST | `/api/v1/collections/{code}/invite/` | Invite user (owner only) |
 | DELETE | `/api/v1/collections/{code}/invite/` | Remove invitee (owner only) |
-| GET | `/api/v1/invited-collections/` | List collections where invited (guest only) |
+| GET | `/api/v1/invited-collections/` | List collections where invited |
 
-### Things
+### Things (ModelViewSet + Router)
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/api/v1/things/` | List own things |
 | POST | `/api/v1/things/` | Create thing |
-| GET | `/api/v1/things/{code}/` | View thing |
+| GET | `/api/v1/things/{code}/` | View thing (owner or invited) |
 | PUT | `/api/v1/things/{code}/` | Update thing (owner only) |
 | DELETE | `/api/v1/things/{code}/` | Delete thing (owner only) |
-| POST | `/api/v1/things/{code}/request/` | Request reservation (guest only). Creates BookingPeriod, owner approves via RSVP. For LEND/RENT/SHARE requires `start_date` and `end_date`. For ORDER requires `delivery_date` and `quantity` |
-| GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE). Owner sees full details, guest sees only blocked dates |
-| GET | `/api/v1/invited-things/` | List things from invited collections (guest only) |
+| POST | `/api/v1/things/{code}/request/` | Request reservation (invited only) |
+| GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE) |
+| GET | `/api/v1/invited-things/` | List things from invited collections |
 
-### Bookings (LEND/RENT/SHARE)
+### Bookings
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/api/v1/my-bookings/` | List my booking requests |
-| GET | `/api/v1/owner-bookings/` | List bookings for my things (owner only) |
-
-**Note:** Reservation and booking accept/reject actions are handled via RSVP links sent by email. The owner receives a unique RSVP code for each action, accessed via `/api/v1/rsvp/{rsvp_code}/`. This prevents exposing real reservation or booking codes in URLs.
+| GET | `/api/v1/owner-bookings/` | List bookings for my things |
 
 ### FAQ
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/v1/things/{thing_code}/faq/` | List FAQs for a thing |
-| POST | `/api/v1/things/{thing_code}/faq/` | Create question (invited users only, not owner) |
-| GET | `/api/v1/faq/{faq_code}/` | View FAQ |
-| POST | `/api/v1/faq/{faq_code}/answer/` | Answer FAQ (owner only) |
-| POST | `/api/v1/faq/{faq_code}/hide/` | Hide FAQ (owner only) |
-| POST | `/api/v1/faq/{faq_code}/show/` | Show FAQ (owner only) |
+| GET | `/api/v1/things/{code}/faq/` | List FAQs for a thing |
+| POST | `/api/v1/things/{code}/faq/` | Ask question (invited users only, not owner) |
+| GET | `/api/v1/faq/{code}/` | View FAQ |
+| POST | `/api/v1/faq/{code}/answer/` | Answer FAQ (owner only) |
+| POST | `/api/v1/faq/{code}/hide/` | Hide FAQ (owner only) |
+| POST | `/api/v1/faq/{code}/show/` | Show FAQ (owner only) |
 
-### Admin
-- `/admin/` - Django Admin (requires password)
+### Other
+| Method | URL | Description |
+|--------|-----|-------------|
+| GET | `/api/v1/health/` | Health check endpoint |
+| - | `/oiueei-admin/` | Django Admin (requires password) |
 
-## Development Commands
+**Note:** Reservation accept/reject actions are handled via RSVP links sent by email. Real codes (booking_code, thing_code) are never exposed in URLs.
+
+## Development
 
 ```bash
+# Setup
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements/development.txt
+cp .env.example .env  # Configure environment variables
+
 # Run server
 python manage.py runserver
 
@@ -107,9 +154,9 @@ python manage.py runserver
 pytest -v --cov=core --cov-fail-under=80
 
 # Linting
-./venv/bin/python -m black .
-./venv/bin/python -m isort .
-./venv/bin/python -m flake8 .
+black .
+isort .
+flake8 .
 
 # Migrations
 python manage.py makemigrations core
@@ -117,29 +164,51 @@ python manage.py migrate
 
 # Create admin user
 python manage.py createsuperuser
+
+# Expire stale bookings (run via Heroku Scheduler in production)
+python manage.py expire_bookings
 ```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DJANGO_SECRET_KEY` | Yes | Django secret key |
+| `DJANGO_SETTINGS_MODULE` | No | Settings module (defaults to production) |
+| `DJANGO_ALLOWED_HOSTS` | No | Comma-separated allowed hosts |
+| `DATABASE_URL` | Prod | PostgreSQL connection string |
+| `MAGIC_LINK_BASE_URL` | No | Base URL for magic link emails |
+| `CORS_ALLOWED_ORIGINS` | Prod | Comma-separated allowed origins |
+| `CSRF_TRUSTED_ORIGINS` | Prod | Comma-separated trusted origins |
+| `EMAIL_HOST` | Prod | SMTP host (default: smtp.sendgrid.net) |
+| `EMAIL_HOST_USER` | Prod | SMTP username |
+| `EMAIL_HOST_PASSWORD` | Prod | SMTP password |
+| `DEFAULT_FROM_EMAIL` | No | Sender email address |
+| `CLOUDINARY_CLOUD_NAME` | No | Cloudinary cloud name (default: oiueei) |
 
 ## Security
 
-### Implemented Security Measures
+### Implemented Measures
 
 | Category | Measure | Description |
 |----------|---------|-------------|
-| Authentication | Magic Link | Passwordless auth via email (24h expiry) |
-| Authentication | JWT | 1-hour access tokens, 7-day refresh tokens |
+| Authentication | Magic Link | Passwordless auth via email (24h expiry, one-time use) |
+| Authentication | JWT | 1-hour access tokens, 7-day refresh with rotation and blacklist |
 | Authentication | Invite-Only | New users must be invited to a collection first |
+| Authorization | DRF Permissions | Custom `IsThingOwner`, `IsCollectionOwner` permission classes |
 | Authorization | IDOR Protection | Profile access only via collection connections |
-| Input Validation | XSS Prevention | HTML stripped from headlines and inputs |
+| Input Validation | XSS Prevention | HTML escaped in emails via `django.utils.html.escape()`. Headlines sanitized |
 | Input Validation | Image ID | Alphanumeric validation prevents path traversal |
 | Input Validation | Quantity Limit | Orders capped at 99 items max |
 | Rate Limiting | Auth | 5 req/min for magic link, 10 req/min for verify |
+| Headers | HSTS | 1-year strict transport security with preload |
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |
 | Headers | Content-Type | nosniff (prevents MIME confusion) |
+| Headers | Referrer-Policy | strict-origin-when-cross-origin |
+| Production | SSL | Forced HTTPS redirect, secure cookies |
+| Production | Admin Path | Custom path (`/oiueei-admin/`) instead of `/admin/` |
+| Production | API Renderer | JSON-only in production (BrowsableAPI disabled) |
 | Pagination | Max 100 | Prevents DoS via large page requests |
-| CORS | Restricted | Only configured origins allowed |
-| CSRF | Protected | Lax same-site cookies, trusted origins |
-| Passwords | Validators | 12+ chars, not common, for admin users |
-| Logging | Security Events | Auth attempts logged with IP |
 
 ### Security Roadmap
 
@@ -148,41 +217,24 @@ python manage.py createsuperuser
 - [ ] Audit logging to external service
 - [ ] Content Security Policy (CSP) headers
 
+## Architecture Decisions
+
+- **Service layer**: Business logic extracted into `core/services/` (email composition, booking accept/reject). Views are thin controllers.
+- **ModelViewSet + Router**: Collections and Things use DRF ModelViewSet with DefaultRouter for standard CRUD. Custom actions use `@action` decorator.
+- **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
+- **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention.
+- **RSVP intermediary**: All email action links use RSVP codes. Real entity codes are never exposed in URLs.
+
 ## Default Data
 
-- Default Theeeme: "BAR_CEL_ONA"
+- Default Theeeme: "BAR_CEL_ONA" (code: JMPA01)
 
 ## Important Notes
 
-- **Superadmin must be created manually** after running migrations. Since users authenticate via magic link, you need to set the password manually via Django shell:
+- **Superadmin must be created manually** after running migrations:
   ```bash
-  python manage.py shell
+  python manage.py createsuperuser
   ```
-  ```python
-  from core.models import User
+  This is required to access `/oiueei-admin/`. Regular users authenticate via magic link and don't need passwords.
 
-  # See all users
-  User.objects.all()
-
-  # Get your user (use the email you created)
-  user = User.objects.get(user_email="your@email.com")
-
-  # Set password and admin permissions
-  user.set_password("your_password")
-  user.is_staff = True
-  user.is_superuser = True
-  user.save()
-  ```
-  This is required to access `/admin/`. Regular users authenticate via magic link and don't need passwords.
-
-- **Booking expiration cleanup** - PENDING bookings expire after 72 hours but require a scheduled job to mark them as EXPIRED. Call `BookingPeriod.expire_old_pending()` via cron/Heroku Scheduler. Example management command:
-  ```python
-  # core/management/commands/expire_bookings.py
-  from django.core.management.base import BaseCommand
-  from core.models.booking import BookingPeriod
-
-  class Command(BaseCommand):
-      def handle(self, *args, **options):
-          count = BookingPeriod.expire_old_pending()
-          self.stdout.write(f"Expired {count} bookings")
-  ```
+- **Booking expiration** - PENDING bookings expire after 72 hours. Run `python manage.py expire_bookings` periodically (Heroku Scheduler recommended).
