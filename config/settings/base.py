@@ -170,7 +170,7 @@ AUTH_USER_MODEL = "core.User"
 MAGIC_LINK_EXPIRY_HOURS = 24
 MAGIC_LINK_BASE_URL = os.environ.get(
     "MAGIC_LINK_BASE_URL",
-    "http://localhost:8000/api/v1/auth/verify",
+    "http://localhost:3000/verify",
 )
 
 
