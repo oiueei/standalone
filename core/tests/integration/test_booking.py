@@ -658,8 +658,8 @@ class TestMyBookingsAndOwnerBookings:
         response = client2.get("/api/v1/my-bookings/")
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]["thing_code"] == lend_thing.code
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["thing_code"] == lend_thing.code
 
     def test_owner_bookings_returns_requests_for_owned_things(
         self, authenticated_client, user, user2, lend_thing
@@ -678,15 +678,15 @@ class TestMyBookingsAndOwnerBookings:
         response = authenticated_client.get("/api/v1/owner-bookings/")
 
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]["requester_code"] == user2.code
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["requester_code"] == user2.code
 
     def test_my_bookings_empty_when_no_bookings(self, authenticated_client):
         """my-bookings returns empty list when user has no bookings."""
         response = authenticated_client.get("/api/v1/my-bookings/")
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == []
+        assert response.data["results"] == []
 
 
 @pytest.mark.django_db

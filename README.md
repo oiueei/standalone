@@ -11,7 +11,7 @@ An open-source web application for people to share their belongings with friends
 - **Database**: SQLite (dev), PostgreSQL (prod via `dj-database-url`)
 - **Deployment**: Heroku (Procfile + runtime.txt included)
 - **Static files**: WhiteNoise
-- **Worker**: Heroku Scheduler - runs `python manage.py expire_bookings` for booking expiration cleanup
+- **Scheduled task**: `python manage.py expire_bookings` for booking expiration cleanup (run via Heroku Scheduler or cron)
 
 ## Project Structure
 
@@ -28,8 +28,8 @@ core/
   views/             # Auth, collections, things, bookings, FAQ, users
   serializers/       # DRF serializers per model
   services/          # Business logic layer
-    email_service.py   # All email composition and sending
-    booking_service.py # Accept/reject booking logic
+    email_service.py   # All email composition and sending (8 functions)
+    booking_service.py # Accept/reject booking logic (transaction.atomic)
   permissions.py     # Custom DRF permissions (IsThingOwner, IsCollectionOwner)
   validators.py      # Input validation (image IDs, headlines, etc.)
   utils.py           # ID generation, client IP, Cloudinary URLs
@@ -219,7 +219,7 @@ python manage.py expire_bookings
 
 ## Architecture Decisions
 
-- **Service layer**: Business logic extracted into `core/services/` (email composition, booking accept/reject). Views are thin controllers.
+- **Service layer**: Business logic extracted into `core/services/` (email composition, booking accept/reject with `transaction.atomic()`). Views are thin controllers.
 - **ModelViewSet + Router**: Collections and Things use DRF ModelViewSet with DefaultRouter for standard CRUD. Custom actions use `@action` decorator.
 - **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
 - **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention.

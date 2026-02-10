@@ -8,12 +8,14 @@ all accept/reject actions now go through the unified RSVP endpoint.
 
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import Thing
 from core.models.booking import BookingPeriod
+from core.pagination import StandardResultsPagination
 from core.serializers.booking import (
     BookingPeriodCalendarSerializer,
     BookingPeriodOwnerCalendarSerializer,
@@ -53,32 +55,29 @@ class ThingCalendarView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class MyBookingsView(APIView):
+class MyBookingsView(ListAPIView):
     """
     GET /api/v1/my-bookings/
     List all booking requests made by the current user.
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = MyBookingSerializer
+    pagination_class = StandardResultsPagination
 
-    def get(self, request):
-        bookings = BookingPeriod.objects.filter(requester_code=request.user).order_by("-created")
-
-        serializer = MyBookingSerializer(bookings, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        return BookingPeriod.objects.filter(requester_code=self.request.user).order_by("-created")
 
 
-class OwnerBookingsView(APIView):
+class OwnerBookingsView(ListAPIView):
     """
     GET /api/v1/owner-bookings/
     List all booking requests for things owned by the current user.
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = BookingPeriodSerializer
+    pagination_class = StandardResultsPagination
 
-    def get(self, request):
-        # Get all bookings for things owned by user
-        bookings = BookingPeriod.objects.filter(owner_code=request.user).order_by("-created")
-
-        serializer = BookingPeriodSerializer(bookings, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        return BookingPeriod.objects.filter(owner_code=self.request.user).order_by("-created")

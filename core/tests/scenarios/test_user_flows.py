@@ -297,8 +297,8 @@ class TestFAQFlow:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {friend_token.access_token}")
         response = client.get(f"/api/v1/things/{thing_code}/faq/")
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]["answer"] == "Yes, it works with 35mm film!"
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["answer"] == "Yes, it works with 35mm film!"
 
 
 @pytest.mark.django_db

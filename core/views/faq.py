@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import FAQ, Thing
+from core.pagination import StandardResultsPagination
 from core.serializers import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
 from core.services.email_service import (
     send_faq_answer_email,
@@ -43,9 +44,15 @@ class ThingFAQListView(APIView):
 
         # Get visible FAQs (or all if owner)
         if thing.is_owner(request.user.code):
-            faqs = FAQ.objects.filter(thing=thing)
+            faqs = FAQ.objects.filter(thing=thing).order_by("-created")
         else:
-            faqs = FAQ.objects.filter(thing=thing, is_visible=True)
+            faqs = FAQ.objects.filter(thing=thing, is_visible=True).order_by("-created")
+
+        paginator = StandardResultsPagination()
+        page = paginator.paginate_queryset(faqs, request)
+        if page is not None:
+            serializer = FAQSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
 
         serializer = FAQSerializer(faqs, many=True)
         return Response(serializer.data)

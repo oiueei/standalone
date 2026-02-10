@@ -358,8 +358,8 @@ These fields are **independent**.
 ### Service Layer
 
 Business logic is extracted into `core/services/`:
-- `email_service.py` - All email HTML composition and sending (7 functions). Uses `django.utils.html.escape()`.
-- `booking_service.py` - `accept_booking()` and `reject_booking()` handle status transitions for Thing and BookingPeriod.
+- `email_service.py` - All email HTML composition and sending (8 functions). Uses `django.utils.html.escape()`.
+- `booking_service.py` - `accept_booking()` and `reject_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`.
 
 ### DRF Patterns
 

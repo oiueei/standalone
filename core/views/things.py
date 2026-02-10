@@ -4,12 +4,13 @@ Thing views for OIUEEI.
 
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from core.models import Collection, Thing
+from core.pagination import StandardResultsPagination
 from core.permissions import IsThingOwner
 from core.serializers import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
 
@@ -79,15 +80,19 @@ class ThingViewSet(ModelViewSet):
         )
 
 
-class InvitedThingsView(APIView):
+class InvitedThingsView(ListAPIView):
     """
     GET /api/v1/invited-things/
     List things from collections where the current user is invited.
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ThingSerializer
+    pagination_class = StandardResultsPagination
 
-    def get(self, request):
-        things = Thing.objects.filter(collections__invites=request.user, available=True).distinct()
-        serializer = ThingSerializer(things, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return (
+            Thing.objects.filter(collections__invites=self.request.user, available=True)
+            .distinct()
+            .order_by("-created")
+        )

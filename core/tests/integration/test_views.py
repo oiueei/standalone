@@ -598,7 +598,7 @@ class TestFAQViews:
         """Should list FAQs for a thing."""
         response = authenticated_client.get(f"/api/v1/things/{thing.code}/faq/")
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        assert len(response.data["results"]) == 1
 
     def test_create_faq(self, user, user2, thing, collection):
         """Should create a new FAQ as invited user."""
@@ -837,7 +837,7 @@ class TestSecurityRestrictions:
         """Should return empty list when user has no invites."""
         response = authenticated_client.get("/api/v1/invited-things/")
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == []
+        assert response.data["results"] == []
 
     def test_invited_things_returns_invited(self, user, user2, thing, collection):
         """Should return things from collections user is invited to."""
@@ -847,8 +847,8 @@ class TestSecurityRestrictions:
         client2 = self._get_client_for_user(user2)
         response = client2.get("/api/v1/invited-things/")
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]["code"] == thing.code
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["code"] == thing.code
 
     # FAQ access tests
 
@@ -1211,7 +1211,7 @@ class TestThingAvailabilityVisibility:
         assert response.status_code == status.HTTP_200_OK
 
         # Should only see the visible thing, not the hidden one
-        thing_codes = [t["code"] for t in response.data]
+        thing_codes = [t["code"] for t in response.data["results"]]
         assert thing.code in thing_codes
         assert hidden_thing.code not in thing_codes
 
