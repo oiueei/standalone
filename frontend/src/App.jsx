@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import VerifyPage from './pages/VerifyPage';
 import HomePage from './pages/HomePage';
+import UserPage from './pages/UserPage';
 import './App.css';
 
 function App() {
@@ -16,7 +17,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify/:code" element={<VerifyPage />} />
-        <Route path="/" element={<HomePage />} />
+        <Route path="/me" element={<HomePage />} />
+        <Route path="/:userCode" element={<UserPage />} />
       </Routes>
     </BrowserRouter>
   );
