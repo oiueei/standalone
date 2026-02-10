@@ -13,6 +13,7 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 | `/me` | `HomePage` | Displays the authenticated user's own profile data |
 | `/collections` | `MyCollectionsPage` | Lists the user's own collections |
 | `/collections/:code` | `CollectionPage` | Collection detail with things (Card + reservation) and invites |
+| `/collections/:code/add-thing` | `AddThingPage` | 3-step wizard to add a thing to a collection |
 | `/invited-collections` | `InvitedCollectionsPage` | Lists collections the user has been invited to |
 | `/:userCode` | `UserPage` | Displays a friend's public profile |
 
@@ -58,7 +59,8 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 - Redirects to `/login` if no token in `localStorage`.
 - Handles 403 (not authorised) and 404 (not found) with specific error messages.
 - Displays collection headline, status, description, and theeeme.
-- **Things** are rendered as oiueeiDS `Card` components (headline + description).
+- **Things** are rendered as oiueeiDS `Card` components with thumbnail image (or oiueeiDS `image-s.png` placeholder when no thumbnail), headline, description, and fee (when present).
+- **"Añadir cosa" button** visible only to collection owner (`localStorage.userCode === collection.owner`), links to `/collections/{code}/add-thing`.
 - **Reservation button** logic per thing:
   - Owner's own things: no button (compares `thing.owner` with `userCode` from `localStorage`).
   - `ACTIVE`: enabled "Reservar" button.
@@ -70,6 +72,18 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
   - `GIFT_THING`, `SELL_THING` — no extra fields.
 - On success: button becomes disabled, toast notification (auto-close, top-right).
 - On error (400, 409): toast notification with error message.
+
+### AddThingPage (`src/pages/AddThingPage.jsx`)
+
+- **API:** `POST /api/v1/things/` with `Bearer` token and `collection_code` in body
+- Redirects to `/login` if no token in `localStorage`.
+- 3-step wizard using oiueeiDS `Stepper` with `StepState` enum:
+  - **Step 1 (Tipo):** `Select` to choose thing type (Regalo, Venta, Pedido, Alquiler, Prestamo, Compartir).
+  - **Step 2 (Detalles):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (only for SELL/RENT/ORDER types).
+  - **Step 3 (Resumen):** Read-only summary of all fields, "Crear" button to submit.
+- Validates required fields (headline) before advancing from step 2.
+- On success: navigates to `/collections/{code}`.
+- On error: toast notification (top-right, auto-close).
 
 ### InvitedCollectionsPage (`src/pages/InvitedCollectionsPage.jsx`)
 

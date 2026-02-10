@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button, Card, Notification } from 'oiueeiDS-react';
+import placeholderImg from '../../../../oiueei-ds/site/static/images/foundation/visual-assets/placeholders/image-s.png';
 
 const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'SHARE_THING'];
 const ORDER_TYPE = 'ORDER_THING';
@@ -65,6 +66,12 @@ function ThingCard({ thing, userCode }) {
 
   return (
     <Card heading={thing.headline} text={thing.description || ''} border>
+      <img
+        src={thing.thumbnail_url || placeholderImg}
+        alt={thing.headline}
+        className="thing-thumbnail"
+      />
+      {thing.fee && <p><strong>Precio:</strong> {thing.fee} EUR</p>}
       {showButton && (
         <>
           {isDateBased && (
@@ -154,6 +161,12 @@ export default function CollectionPage() {
       <p><strong>Estado:</strong> {collection.status}</p>
       {collection.description && <p>{collection.description}</p>}
       <p><strong>Tema:</strong> {collection.theeeme}</p>
+
+      {localStorage.getItem('userCode') === collection.owner && (
+        <Link to={`/collections/${code}/add-thing`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
+          <Button>Anadir cosa</Button>
+        </Link>
+      )}
 
       <h2>Cosas ({collection.things.length})</h2>
       {collection.things.length === 0 ? (

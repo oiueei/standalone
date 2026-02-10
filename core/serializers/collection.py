@@ -13,10 +13,14 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     """Lightweight thing serializer for collection listings."""
 
     owner = serializers.CharField(source="owner_id")
+    thumbnail_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
-        fields = ["code", "type", "owner", "headline", "description", "status"]
+        fields = ["code", "type", "owner", "headline", "description", "status", "fee", "thumbnail_url"]
+
+    def get_thumbnail_url(self, obj):
+        return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
 
 
 class CollectionSerializer(serializers.ModelSerializer):
