@@ -5,7 +5,7 @@ import { Button, Card, Notification } from 'oiueeiDS-react';
 const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'SHARE_THING'];
 const ORDER_TYPE = 'ORDER_THING';
 
-function ThingCard({ thing }) {
+function ThingCard({ thing, userCode }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
@@ -59,7 +59,8 @@ function ThingCard({ thing }) {
     }
   };
 
-  const showButton = thing.status !== 'INACTIVE';
+  const isOwner = thing.owner === userCode;
+  const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
   return (
@@ -160,7 +161,7 @@ export default function CollectionPage() {
       ) : (
         <div style={{ display: 'grid', gap: '1rem' }}>
           {collection.things.map((thing) => (
-            <ThingCard key={thing.code} thing={thing} />
+            <ThingCard key={thing.code} thing={thing} userCode={localStorage.getItem('userCode')} />
           ))}
         </div>
       )}

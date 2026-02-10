@@ -15,6 +15,7 @@ export default function VerifyPage() {
         if (res.ok && data.token) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('refresh', data.refresh);
+          if (data.user?.code) localStorage.setItem('userCode', data.user.code);
           navigate('/me');
         } else {
           setError(data.error || 'Enlace no valido o expirado.');

@@ -21,6 +21,7 @@ export default function HomePage() {
         });
         if (res.ok) {
           const data = await res.json();
+          if (data.code) localStorage.setItem('userCode', data.code);
           setUser(data);
         } else {
           localStorage.removeItem('token');

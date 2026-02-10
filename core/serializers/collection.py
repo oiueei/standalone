@@ -12,9 +12,11 @@ from core.validators import ImageIdField, SafeHeadlineField
 class CollectionThingSummarySerializer(serializers.ModelSerializer):
     """Lightweight thing serializer for collection listings."""
 
+    owner = serializers.CharField(source="owner_id")
+
     class Meta:
         model = Thing
-        fields = ["code", "type", "headline", "description", "status"]
+        fields = ["code", "type", "owner", "headline", "description", "status"]
 
 
 class CollectionSerializer(serializers.ModelSerializer):
