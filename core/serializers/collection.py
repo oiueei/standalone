@@ -4,9 +4,17 @@ Collection serializers for OIUEEI.
 
 from rest_framework import serializers
 
-from core.models import Collection, Theeeme
+from core.models import Collection, Theeeme, Thing
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField
+
+
+class CollectionThingSummarySerializer(serializers.ModelSerializer):
+    """Lightweight thing serializer for collection listings."""
+
+    class Meta:
+        model = Thing
+        fields = ["code", "type", "headline", "description", "status"]
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -15,7 +23,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     hero_url = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
-    things = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
+    things = CollectionThingSummarySerializer(many=True, read_only=True)
     invites = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
     theeeme = serializers.SlugRelatedField(
         slug_field="code",

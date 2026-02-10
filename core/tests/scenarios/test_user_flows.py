@@ -95,7 +95,7 @@ class TestCreateCollectionFlow:
         # Step 3: Verify thing is in collection
         response = authenticated_client.get(f"/api/v1/collections/{collection_code}/")
         assert response.status_code == status.HTTP_200_OK
-        assert thing_code in response.data["things"]
+        assert any(t["code"] == thing_code for t in response.data["things"])
 
         # Step 4: Verify user's collections and things are updated
         response = authenticated_client.get("/api/v1/auth/me/")
@@ -180,7 +180,7 @@ class TestShareCollectionFlow:
         # Step 5: Friend views collection
         response = client.get(f"/api/v1/collections/{collection_code}/")
         assert response.status_code == status.HTTP_200_OK
-        assert thing_code in response.data["things"]
+        assert any(t["code"] == thing_code for t in response.data["things"])
 
         # Step 6: Friend requests thing (BookingPeriod flow)
         response = client.post(f"/api/v1/things/{thing_code}/request/")

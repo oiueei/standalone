@@ -426,7 +426,7 @@ class TestCollectionViews:
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Thing added to collection"
-        assert thing.code in response.data["collection"]["things"]
+        assert any(t["code"] == thing.code for t in response.data["collection"]["things"])
 
     def test_add_thing_to_collection_denied_for_non_owner(self, user, user2, collection):
         """Should deny adding thing for non-owner of collection."""
