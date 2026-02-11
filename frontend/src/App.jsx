@@ -8,6 +8,7 @@ import MyCollectionsPage from './pages/MyCollectionsPage';
 import InvitedCollectionsPage from './pages/InvitedCollectionsPage';
 import CollectionPage from './pages/CollectionPage';
 import AddThingPage from './pages/AddThingPage';
+import LogoutPage from './pages/LogoutPage';
 import UserPage from './pages/UserPage';
 import './App.css';
 
@@ -20,6 +21,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/logout" element={<LogoutPage />} />
         <Route path="/verify/:code" element={<VerifyPage />} />
         <Route path="/me" element={<HomePage />} />
         <Route path="/collections" element={<MyCollectionsPage />} />

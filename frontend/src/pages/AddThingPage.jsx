@@ -62,6 +62,9 @@ export default function AddThingPage() {
     if (!headline.trim()) newErrors.headline = 'El titulo es obligatorio.';
     if (headline.length > 64) newErrors.headline = 'Maximo 64 caracteres.';
     if (thumbnail.length > 16) newErrors.thumbnail = 'Maximo 16 caracteres.';
+    if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
+      newErrors.fee = 'El precio es obligatorio para este tipo.';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -164,6 +167,9 @@ export default function AddThingPage() {
               min={0}
               step={0.01}
               unit="EUR"
+              required
+              invalid={!!errors.fee}
+              errorText={errors.fee}
             />
           )}
           <div style={{ display: 'flex', gap: '0.5rem' }}>

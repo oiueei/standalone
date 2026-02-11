@@ -9,6 +9,7 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 | Route | Page | Description |
 |-------|------|-------------|
 | `/login` | `LoginPage` | Email input form for requesting a magic link |
+| `/logout` | `LogoutPage` | Clears localStorage tokens and redirects to `/login` |
 | `/verify/:code` | `VerifyPage` | Processes magic link verification, stores JWT, redirects to `/me` |
 | `/me` | `HomePage` | Displays the authenticated user's own profile data |
 | `/collections` | `MyCollectionsPage` | Lists the user's own collections |
@@ -67,11 +68,22 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
   - `TAKEN`: disabled "Reservar" button.
   - `INACTIVE`: no button.
 - **Reservation request** (`POST /api/v1/things/{code}/request/`) adapts body to thing type:
-  - `LEND_THING`, `RENT_THING`, `SHARE_THING` — date pickers for `start_date` / `end_date`.
-  - `ORDER_THING` — date picker for `delivery_date` + quantity input.
+  - `LEND_THING`, `RENT_THING`, `SHARE_THING` — oiueeiDS `DateInput` for `start_date` / `end_date`.
+  - `ORDER_THING` — oiueeiDS `DateInput` for `delivery_date` + oiueeiDS `NumberInput` for quantity.
   - `GIFT_THING`, `SELL_THING` — no extra fields.
+- **Date validation rules** (all `DateInput` components):
+  - `minDate`: today (cannot select past dates).
+  - `maxDate`: today + 90 days.
+  - Error text shown when date is outside range.
+  - Required fields show error on submit attempt if empty.
+- **Blocked dates** (LEND/RENT/SHARE only): fetches `GET /api/v1/things/{code}/calendar/` on mount to get existing PENDING/ACCEPTED booking periods, disables those dates via `isDateDisabledBy`. Manual entry of a blocked date shows "La fecha se solapa con otra reserva."
 - On success: button becomes disabled, toast notification (auto-close, top-right).
 - On error (400, 409): toast notification with error message.
+
+### LogoutPage (`src/pages/LogoutPage.jsx`)
+
+- Clears `token`, `refresh`, and `userCode` from `localStorage` on mount.
+- Navigates to `/login` immediately.
 
 ### AddThingPage (`src/pages/AddThingPage.jsx`)
 
@@ -79,9 +91,9 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 - Redirects to `/login` if no token in `localStorage`.
 - 3-step wizard using oiueeiDS `Stepper` with `StepState` enum:
   - **Step 1 (Tipo):** `Select` to choose thing type (Regalo, Venta, Pedido, Alquiler, Prestamo, Compartir).
-  - **Step 2 (Detalles):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (only for SELL/RENT/ORDER types).
+  - **Step 2 (Detalles):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others).
   - **Step 3 (Resumen):** Read-only summary of all fields, "Crear" button to submit.
-- Validates required fields (headline) before advancing from step 2.
+- Validates required fields (headline, fee for SELL/RENT/ORDER) before advancing from step 2.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
 

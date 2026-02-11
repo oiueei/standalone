@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Button, Card, Notification } from 'oiueeiDS-react';
+import { Button, Card, DateInput, NumberInput, Notification } from 'oiueeiDS-react';
 import placeholderImg from '../../../../oiueei-ds/site/static/images/foundation/visual-assets/placeholders/image-s.png';
 
 const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'SHARE_THING'];
 const ORDER_TYPE = 'ORDER_THING';
+
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0);
+const MAX_DATE = new Date(TODAY);
+MAX_DATE.setDate(MAX_DATE.getDate() + 90);
+const RANGE_ERROR = 'La fecha debe estar entre hoy y 90 dias a partir de hoy.';
 
 function ThingCard({ thing, userCode }) {
   const [startDate, setStartDate] = useState('');
@@ -13,14 +19,42 @@ function ThingCard({ thing, userCode }) {
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [requested, setRequested] = useState(false);
+  const [attempted, setAttempted] = useState(false);
   const [toast, setToast] = useState(null);
+  const [blockedPeriods, setBlockedPeriods] = useState([]);
 
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
 
+  useEffect(() => {
+    if (!isDateBased) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    fetch(`/api/v1/things/${thing.code}/calendar/`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setBlockedPeriods(data))
+      .catch(() => {});
+  }, [thing.code, isDateBased]);
+
+  const isDateBlocked = (date) => {
+    return blockedPeriods.some((period) => {
+      const start = new Date(period.start_date);
+      const end = new Date(period.end_date);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d >= start && d <= end;
+    });
+  };
+
   const handleRequest = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
+
+    setAttempted(true);
 
     let body = {};
     if (isDateBased) {
@@ -49,7 +83,7 @@ function ThingCard({ thing, userCode }) {
         const data = await res.json();
         setToast({ type: 'error', message: data.detail || 'Solicitud no valida.' });
       } else if (res.status === 409) {
-        setToast({ type: 'error', message: 'Las fechas se solapan con otra reserva.' });
+        setToast({ type: 'error', message: 'La fecha se solapa con otra reserva.' });
       } else {
         setToast({ type: 'error', message: 'Error al enviar la solicitud.' });
       }
@@ -75,15 +109,61 @@ function ThingCard({ thing, userCode }) {
       {showButton && (
         <>
           {isDateBased && (
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <DateInput
+                label="Inicio"
+                value={startDate}
+                onChange={(value) => setStartDate(value)}
+                dateFormat="yyyy-MM-dd"
+                language="en"
+                required
+                invalid={attempted && !startDate}
+                errorText={attempted && !startDate ? 'La fecha de inicio es obligatoria.' : undefined}
+                minDate={TODAY}
+                maxDate={MAX_DATE}
+                dateOutsideRangeErrorText={RANGE_ERROR}
+                isDateDisabledBy={isDateBlocked}
+                malformedDateErrorText="La fecha se solapa con otra reserva."
+              />
+              <DateInput
+                label="Fin"
+                value={endDate}
+                onChange={(value) => setEndDate(value)}
+                dateFormat="yyyy-MM-dd"
+                language="en"
+                required
+                invalid={attempted && !endDate}
+                errorText={attempted && !endDate ? 'La fecha de fin es obligatoria.' : undefined}
+                minDate={TODAY}
+                maxDate={MAX_DATE}
+                dateOutsideRangeErrorText={RANGE_ERROR}
+                isDateDisabledBy={isDateBlocked}
+                malformedDateErrorText="La fecha se solapa con otra reserva."
+              />
             </div>
           )}
           {isOrder && (
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} />
-              <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} style={{ width: '4rem' }} />
+            <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <DateInput
+                label="Entrega"
+                value={deliveryDate}
+                onChange={(value) => setDeliveryDate(value)}
+                dateFormat="yyyy-MM-dd"
+                language="en"
+                required
+                invalid={attempted && !deliveryDate}
+                errorText={attempted && !deliveryDate ? 'La fecha de entrega es obligatoria.' : undefined}
+                minDate={TODAY}
+                maxDate={MAX_DATE}
+                dateOutsideRangeErrorText={RANGE_ERROR}
+              />
+              <NumberInput
+                label="Cantidad"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                min={1}
+                step={1}
+              />
             </div>
           )}
           <Button disabled={buttonDisabled} onClick={handleRequest}>

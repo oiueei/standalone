@@ -5,8 +5,8 @@ An open-source web application for people to share their belongings with friends
 ## Tech Stack
 
 - **Backend**: Django 5.x + Django REST Framework
-- **Frontend**: React (same repo, not yet implemented)
-- **UI design**: oiueeiDS (not yet implemented)
+- **Frontend**: React (same repo, work in progress)
+- **UI design**: oiueeiDS (work in progress)
 - **Auth**: Magic link authentication (passwordless for users, password enabled for admin access)
 - **Database**: SQLite (dev), PostgreSQL (prod via `dj-database-url`)
 - **Deployment**: Heroku (Procfile + runtime.txt included)
