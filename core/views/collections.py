@@ -151,6 +151,12 @@ class CollectionInviteView(APIView):
             defaults={"email": email},
         )
 
+        if collection.is_invited(invited_user.code):
+            return Response(
+                {"detail": "Este usuario ya esta invitado a esta coleccion."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # Create RSVP with target_code (invitation pending acceptance)
         rsvp = RSVP.objects.create(
             user_code=invited_user,

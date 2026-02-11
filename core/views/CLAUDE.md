@@ -231,7 +231,7 @@ Lists things from collections where the current user is invited. Only returns th
 | **Endpoint** | `POST /api/v1/collections/{collection_code}/invite/` |
 | **Permission** | `IsAuthenticated` + collection owner |
 
-Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Creates RSVP with action `COLLECTION_INVITE` and sends invitation email.
+Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited. Creates RSVP with action `COLLECTION_INVITE` and sends invitation email.
 
 **Request body:**
 ```json

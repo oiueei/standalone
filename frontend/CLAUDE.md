@@ -61,24 +61,29 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 - Handles 403 (not authorised) and 404 (not found) with specific error messages.
 - Displays collection headline, status, description, and theeeme.
 - **Things** are rendered as oiueeiDS `Card` components with thumbnail image (or oiueeiDS `image-s.png` placeholder when no thumbnail), headline, description, and fee (when present).
-- **"Añadir cosa" button** visible only to collection owner (`localStorage.userCode === collection.owner`), links to `/collections/{code}/add-thing`.
+- **"Añadir cosa" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
+- **"Eliminar" button** on each thing card, visible only to thing owner. Calls `DELETE /api/v1/things/{code}/` and removes the thing from the local list.
 - **Reservation button** logic per thing:
   - Owner's own things: no button (compares `thing.owner` with `userCode` from `localStorage`).
   - `ACTIVE`: enabled "Reservar" button.
   - `TAKEN`: disabled "Reservar" button.
   - `INACTIVE`: no button.
-- **Reservation request** (`POST /api/v1/things/{code}/request/`) adapts body to thing type:
-  - `LEND_THING`, `RENT_THING`, `SHARE_THING` — oiueeiDS `DateInput` for `start_date` / `end_date`.
-  - `ORDER_THING` — oiueeiDS `DateInput` for `delivery_date` + oiueeiDS `NumberInput` for quantity.
-  - `GIFT_THING`, `SELL_THING` — no extra fields.
+- **Reservation request** (`POST /api/v1/things/{code}/request/`) adapts to thing type:
+  - `GIFT_THING`, `SELL_THING` — button submits directly, no extra fields.
+  - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button opens oiueeiDS `Dialog` with `DateInput` for `start_date` / `end_date`, then "Reservar" inside the dialog.
+  - `ORDER_THING` — button opens `Dialog` with `DateInput` for `delivery_date` + `NumberInput` for quantity, then "Reservar" inside the dialog.
 - **Date validation rules** (all `DateInput` components):
   - `minDate`: today (cannot select past dates).
   - `maxDate`: today + 90 days.
   - Error text shown when date is outside range.
   - Required fields show error on submit attempt if empty.
 - **Blocked dates** (LEND/RENT/SHARE only): fetches `GET /api/v1/things/{code}/calendar/` on mount to get existing PENDING/ACCEPTED booking periods, disables those dates via `isDateDisabledBy`. Manual entry of a blocked date shows "La fecha se solapa con otra reserva."
-- On success: button becomes disabled, toast notification (auto-close, top-right).
+- On success: dialog closes, button becomes disabled, toast notification (auto-close, top-right).
 - On error (400, 409): toast notification with error message.
+- **Invites section:** "Invitados (N)" heading is a clickable link that opens an oiueeiDS `Dialog`.
+  - Lists invited users by `userCode`.
+  - **Owner only:** "Eliminar" button per invite (`DELETE /api/v1/collections/{code}/invite/`), and email input + "Invitar" button (`POST /api/v1/collections/{code}/invite/`).
+  - Duplicate invites are rejected by the backend (400).
 
 ### LogoutPage (`src/pages/LogoutPage.jsx`)
 
