@@ -18,7 +18,8 @@ class RSVP(models.Model):
 
     Used for:
     - MAGIC_LINK: Passwordless authentication
-    - COLLECTION_INVITE: Invitation to view a collection
+    - COLLECTION_INVITE: Accept invitation to view a collection
+    - COLLECTION_REJECT: Decline invitation to a collection
     - BOOKING_ACCEPT: Accept a booking request (all thing types)
     - BOOKING_REJECT: Reject a booking request (all thing types)
 
@@ -32,6 +33,7 @@ class RSVP(models.Model):
     ACTION_CHOICES = [
         ("MAGIC_LINK", "Magic Link"),
         ("COLLECTION_INVITE", "Collection Invite"),
+        ("COLLECTION_REJECT", "Collection Reject"),
         ("BOOKING_ACCEPT", "Booking Accept"),
         ("BOOKING_REJECT", "Booking Reject"),
     ]

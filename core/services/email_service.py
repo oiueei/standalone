@@ -129,21 +129,46 @@ def send_booking_decision_email(booking, thing, accepted=True):
     )
 
 
-def send_collection_invite_email(inviter_name, collection_headline, email, invite_link):
-    """Send collection invitation email."""
+def send_collection_invite_email(inviter_name, collection_headline, email, accept_link, reject_link):
+    """Send collection invitation email with accept and reject links."""
     safe_inviter = escape(inviter_name)
     safe_headline = escape(collection_headline)
 
     send_mail(
         subject=f"{inviter_name} te ha invitado a una colección",
-        message=f"Has sido invitado a ver: {collection_headline}. " f"Accede aquí: {invite_link}",
+        message=(
+            f"Has sido invitado a ver: {collection_headline}. "
+            f"Aceptar: {accept_link} | Rechazar: {reject_link}"
+        ),
         from_email=None,
         recipient_list=[email],
         html_message=f"""
             <html>
             <p>{safe_inviter} te ha invitado a ver:</p>
             <p><strong>{safe_headline}</strong></p>
-            <p><a href="{invite_link}">Aceptar invitación</a></p>
+            <p>
+                <a href="{accept_link}">Aceptar invitación</a> |
+                <a href="{reject_link}">Rechazar invitación</a>
+            </p>
+            </html>
+            """,
+    )
+
+
+def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
+    """Send notification to collection owner that an invite was declined."""
+    safe_invitee = escape(invitee_name)
+    safe_headline = escape(collection_headline)
+
+    send_mail(
+        subject=f"{invitee_name} ha rechazado tu invitación",
+        message=f"{invitee_name} ha rechazado la invitación a '{collection_headline}'.",
+        from_email=None,
+        recipient_list=[owner_email],
+        html_message=f"""
+            <html>
+            <p><strong>{safe_invitee}</strong> ha rechazado tu invitación a:</p>
+            <p><strong>{safe_headline}</strong></p>
             </html>
             """,
     )

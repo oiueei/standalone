@@ -22,7 +22,11 @@ from core.models import RSVP, Collection, User
 from core.models.booking import BookingPeriod
 from core.serializers import RequestLinkSerializer, UserSerializer
 from core.services.booking_service import accept_booking, reject_booking
-from core.services.email_service import send_booking_decision_email, send_magic_link_email
+from core.services.email_service import (
+    send_booking_decision_email,
+    send_invite_rejected_email,
+    send_magic_link_email,
+)
 from core.utils import get_client_ip
 
 security_logger = logging.getLogger("security")
@@ -117,6 +121,7 @@ class VerifyLinkView(APIView):
         action_handlers = {
             "MAGIC_LINK": self._handle_magic_link,
             "COLLECTION_INVITE": self._handle_collection_invite,
+            "COLLECTION_REJECT": self._handle_collection_reject,
             "BOOKING_ACCEPT": self._handle_booking_accept,
             "BOOKING_REJECT": self._handle_booking_reject,
         }
@@ -195,7 +200,12 @@ class VerifyLinkView(APIView):
         # Also login via session for browser access
         login(request, user)
 
-        # Delete RSVP (one-time use)
+        # Delete this RSVP and the sibling reject RSVP (invalidate both links)
+        RSVP.objects.filter(
+            user_code=user,
+            action="COLLECTION_REJECT",
+            target_code=rsvp.target_code,
+        ).delete()
         rsvp.delete()
 
         # Return token and user data
@@ -212,6 +222,45 @@ class VerifyLinkView(APIView):
             response_data["invited_collection"] = invited_collection
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+    def _handle_collection_reject(self, request, rsvp):
+        """Handle collection invitation rejection."""
+        user = rsvp.user_code
+        if not user:
+            rsvp.delete()
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Send rejection notification to collection owner
+        if rsvp.target_code:
+            try:
+                collection = Collection.objects.get(code=rsvp.target_code)
+                invitee_name = user.name or user.email
+                send_invite_rejected_email(
+                    invitee_name,
+                    collection.headline,
+                    collection.owner.email,
+                )
+            except Collection.DoesNotExist:
+                pass  # Collection was deleted, ignore
+
+        # Delete both accept and reject RSVPs to invalidate all links
+        RSVP.objects.filter(
+            user_code=user,
+            action="COLLECTION_INVITE",
+            target_code=rsvp.target_code,
+        ).delete()
+        rsvp.delete()
+
+        return Response(
+            {
+                "action": "COLLECTION_REJECT",
+                "message": "Invitation declined",
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def _handle_booking_accept(self, request, rsvp):
         """Handle booking accept action for all thing types."""

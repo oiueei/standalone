@@ -36,7 +36,8 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 
 - **API:** `GET /api/v1/auth/verify/{code}/`
 - Fetches on mount using the `:code` route parameter.
-- On success: stores `token`, `refresh`, and `userCode` in `localStorage`, navigates to `/me`.
+- On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. No login/redirect.
+- On success (with token): stores `token`, `refresh`, and `userCode` in `localStorage`, navigates to `/`.
 - On failure: shows error `Notification`.
 
 ### HomePage (`src/pages/HomePage.jsx`)
@@ -63,6 +64,10 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 - **Things** are rendered as oiueeiDS `Card` components with thumbnail image (or oiueeiDS `image-s.png` placeholder when no thumbnail), headline, description, and fee (when present).
 - **"Añadir cosa" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
 - **"Eliminar" button** on each thing card, visible only to thing owner. Calls `DELETE /api/v1/things/{code}/` and removes the thing from the local list.
+- **Accept/Reject buttons** (owner only): When `thing.pending_booking` exists (PENDING booking code from serializer) and user is the thing owner, two buttons are shown:
+  - "Aceptar" → `POST /api/v1/bookings/{code}/accept/` → updates thing status to `INACTIVE` locally, clears `pending_booking`, shows success toast.
+  - "Rechazar" → `POST /api/v1/bookings/{code}/reject/` → updates thing status to `ACTIVE` locally, clears `pending_booking`, shows success toast.
+  - Both buttons are disabled while a booking action is in progress.
 - **Reservation button** logic per thing:
   - Owner's own things: no button (compares `thing.owner` with `userCode` from `localStorage`).
   - `ACTIVE`: enabled "Reservar" button.

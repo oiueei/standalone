@@ -157,25 +157,33 @@ class CollectionInviteView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Create RSVP with target_code (invitation pending acceptance)
-        rsvp = RSVP.objects.create(
+        # Create RSVPs for accept and reject actions
+        accept_rsvp = RSVP.objects.create(
             user_code=invited_user,
             user_email=email,
             action="COLLECTION_INVITE",
             target_code=collection_code,
         )
+        reject_rsvp = RSVP.objects.create(
+            user_code=invited_user,
+            user_email=email,
+            action="COLLECTION_REJECT",
+            target_code=collection_code,
+        )
 
-        # Send invitation email with specific RSVP link
+        # Send invitation email with accept and reject links
         magic_link_base = getattr(
             settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/magic-link"
         )
-        invite_link = f"{magic_link_base}/{rsvp.code}"
+        accept_link = f"{magic_link_base}/{accept_rsvp.code}"
+        reject_link = f"{magic_link_base}/{reject_rsvp.code}"
 
         send_collection_invite_email(
             request.user.name or "Someone",
             collection.headline,
             email,
-            invite_link,
+            accept_link,
+            reject_link,
         )
 
         return Response(

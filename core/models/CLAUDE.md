@@ -206,7 +206,8 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 | Action | Description |
 |--------|-------------|
 | `MAGIC_LINK` | Passwordless authentication (default) |
-| `COLLECTION_INVITE` | Invitation to view a collection |
+| `COLLECTION_INVITE` | Accept invitation to view a collection |
+| `COLLECTION_REJECT` | Decline invitation to a collection |
 | `BOOKING_ACCEPT` | Accept a booking (all thing types) |
 | `BOOKING_REJECT` | Reject a booking (all thing types) |
 
@@ -216,6 +217,7 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 2. **24h expiry** - RSVPs expire after `MAGIC_LINK_EXPIRY_HOURS` (default 24 hours).
 3. **RSVP codes obfuscate URLs** - Email links use `code` instead of exposing real codes.
 4. **RSVP for ALL email communications** - Every email that requires user action uses an RSVP.
+5. **Sibling RSVP cleanup** - Collection invite/reject RSVPs are created in pairs. Using either one deletes both to invalidate the other link.
 
 ### Methods
 

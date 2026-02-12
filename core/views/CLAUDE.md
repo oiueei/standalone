@@ -50,7 +50,8 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 | Action | Handler | Description |
 |--------|---------|-------------|
 | `MAGIC_LINK` | `_handle_magic_link` | Authenticates user, returns JWT |
-| `COLLECTION_INVITE` | `_handle_collection_invite` | Adds user to collection invites M2M, returns JWT |
+| `COLLECTION_INVITE` | `_handle_collection_invite` | Adds user to collection invites M2M, returns JWT, deletes sibling `COLLECTION_REJECT` RSVP |
+| `COLLECTION_REJECT` | `_handle_collection_reject` | Notifies collection owner of rejection, deletes sibling `COLLECTION_INVITE` RSVP, no JWT |
 | `BOOKING_ACCEPT` | `_handle_booking_accept` | Accepts booking via `accept_booking()` service |
 | `BOOKING_REJECT` | `_handle_booking_reject` | Rejects booking via `reject_booking()` service |
 
@@ -78,6 +79,14 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
   "refresh": "<refresh_token>",
   "user": { ... },
   "invited_collection": "<collection_code>"
+}
+```
+
+**COLLECTION_REJECT response (200):**
+```json
+{
+  "action": "COLLECTION_REJECT",
+  "message": "Invitation declined"
 }
 ```
 
@@ -231,7 +240,7 @@ Lists things from collections where the current user is invited. Only returns th
 | **Endpoint** | `POST /api/v1/collections/{collection_code}/invite/` |
 | **Permission** | `IsAuthenticated` + collection owner |
 
-Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited. Creates RSVP with action `COLLECTION_INVITE` and sends invitation email.
+Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited. Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
 
 **Request body:**
 ```json
@@ -357,6 +366,30 @@ Lists all booking requests made by the current user, ordered by `-created`.
 
 Lists all booking requests for things owned by the current user, ordered by `-created`.
 
+### BookingActionView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/bookings/{booking_code}/accept/` |
+| **Permission** | `IsAuthenticated` + booking owner |
+
+Accepts a pending booking. Validates `booking.owner_code == request.user`, checks `is_valid()`. Calls `accept_booking()` service, sends decision email via `send_booking_decision_email()`, and deletes related RSVPs (`BOOKING_ACCEPT`/`BOOKING_REJECT`) to invalidate old email links.
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/bookings/{booking_code}/reject/` |
+| **Permission** | `IsAuthenticated` + booking owner |
+
+Rejects a pending booking. Same permission and validation as accept. Calls `reject_booking()` service, sends decision email, and deletes related RSVPs.
+
+**Responses:**
+| Status | Condition |
+|--------|-----------|
+| 200 | Action completed |
+| 400 | Booking expired or already processed |
+| 403 | Not the booking owner |
+| 404 | Booking not found |
+
 ---
 
 ## Reservation Views (`core/views/reservations.py`)
@@ -458,7 +491,7 @@ Creates a reservation/booking request. Routes based on thing type:
 - All views use `get_object_or_404` for consistent 404 responses.
 - `ThingViewSet` and `CollectionViewSet` use DRF `ModelViewSet` with `DefaultRouter`.
 - `ThingUpdateSerializer` has `status` as read-only to prevent direct status manipulation.
-- Accept/reject actions are handled exclusively via the unified RSVP endpoint (`VerifyLinkView`), not via direct booking endpoints.
+- Accept/reject actions can be performed via the unified RSVP endpoint (`VerifyLinkView`) for email links, or via authenticated `BookingActionView` endpoints for in-app use. Both paths reuse the same `accept_booking()`/`reject_booking()` service functions.
 - All email links use RSVP codes as intermediaries to avoid exposing real object codes in URLs.
 - Security events are logged to the `security` logger with IP addresses.
 
