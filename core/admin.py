@@ -5,6 +5,7 @@ Django Admin configuration for OIUEEI.
 from django.contrib import admin
 
 from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
+from core.models.booking import BookingPeriod
 
 
 @admin.register(User)
@@ -55,3 +56,10 @@ class RSVPAdmin(admin.ModelAdmin):
 class TheeemeAdmin(admin.ModelAdmin):
     list_display = ["code", "name"]
     search_fields = ["code", "name"]
+
+
+@admin.register(BookingPeriod)
+class BookingPeriodAdmin(admin.ModelAdmin):
+    list_display = ["code", "thing_code", "thing_type", "requester_code", "owner_code", "status", "created"]
+    search_fields = ["code", "requester_email"]
+    list_filter = ["status", "thing_type"]

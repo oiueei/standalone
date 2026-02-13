@@ -2,8 +2,7 @@
 Booking views for OIUEEI lending calendar.
 
 All email action links use RSVP codes as intermediaries.
-BookingAcceptView and BookingRejectView have been removed -
-all accept/reject actions now go through the unified RSVP endpoint.
+Accept/reject can also be done by the owner via authenticated API endpoints.
 """
 
 from django.shortcuts import get_object_or_404
@@ -15,6 +14,7 @@ from rest_framework.views import APIView
 
 from core.models import Thing
 from core.models.booking import BookingPeriod
+from core.models.rsvp import RSVP
 from core.pagination import StandardResultsPagination
 from core.serializers.booking import (
     BookingPeriodCalendarSerializer,
@@ -22,6 +22,8 @@ from core.serializers.booking import (
     BookingPeriodSerializer,
     MyBookingSerializer,
 )
+from core.services.booking_service import accept_booking, reject_booking
+from core.services.email_service import send_booking_decision_email
 
 
 class ThingCalendarView(APIView):
@@ -81,3 +83,46 @@ class OwnerBookingsView(ListAPIView):
 
     def get_queryset(self):
         return BookingPeriod.objects.filter(owner_code=self.request.user).order_by("-created")
+
+
+class BookingActionView(APIView):
+    """
+    POST /api/v1/bookings/{booking_code}/accept/
+    POST /api/v1/bookings/{booking_code}/reject/
+
+    Allows the thing owner to accept or reject a pending booking
+    via an authenticated API call (as an alternative to email RSVP links).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_code, action):
+        booking = get_object_or_404(BookingPeriod, code=booking_code)
+
+        # Only the thing owner can accept/reject
+        if booking.owner_code_id != request.user.code:
+            return Response(
+                {"error": "Not authorized"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not booking.is_valid():
+            return Response(
+                {"error": "Booking expired or already processed"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if action == "accept":
+            thing = accept_booking(booking)
+            send_booking_decision_email(booking, thing, accepted=True)
+        else:
+            thing = reject_booking(booking)
+            send_booking_decision_email(booking, thing, accepted=False)
+
+        # Invalidate any outstanding RSVP links for this booking
+        RSVP.objects.filter(
+            target_code=booking_code,
+            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
+        ).delete()
+
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)

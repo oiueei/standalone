@@ -179,7 +179,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Returns 403 if 
 
 **Serializers:**
 - Create: `ThingCreateSerializer`
-- Update: `ThingUpdateSerializer` (`status` is read-only to prevent direct manipulation)
+- Update: `ThingUpdateSerializer` (`status` is read-only to prevent direct manipulation, `type` is editable)
 - Read: `ThingSerializer`
 
 **Queryset:** Own things only (`Thing.objects.filter(owner=request.user)`), ordered by `-created`.
@@ -490,7 +490,8 @@ Creates a reservation/booking request. Routes based on thing type:
 
 - All views use `get_object_or_404` for consistent 404 responses.
 - `ThingViewSet` and `CollectionViewSet` use DRF `ModelViewSet` with `DefaultRouter`.
-- `ThingUpdateSerializer` has `status` as read-only to prevent direct status manipulation.
+- `ThingUpdateSerializer` has `status` as read-only to prevent direct status manipulation. `type` is editable.
+- `ThingSerializer` and `CollectionThingSummarySerializer` include `pending_booking` (first PENDING booking code, or null).
 - Accept/reject actions can be performed via the unified RSVP endpoint (`VerifyLinkView`) for email links, or via authenticated `BookingActionView` endpoints for in-app use. Both paths reuse the same `accept_booking()`/`reject_booking()` service functions.
 - All email links use RSVP codes as intermediaries to avoid exposing real object codes in URLs.
 - Security events are logged to the `security` logger with IP addresses.

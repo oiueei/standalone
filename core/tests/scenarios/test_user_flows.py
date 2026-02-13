@@ -165,7 +165,7 @@ class TestShareCollectionFlow:
         # Step 3.5: Friend accepts invitation by verifying RSVP
         from core.models import RSVP
 
-        rsvp = RSVP.objects.get(user_email="friend@example.com")
+        rsvp = RSVP.objects.get(user_email="friend@example.com", action="COLLECTION_INVITE")
         response = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
         assert response.status_code == status.HTTP_200_OK
 
@@ -269,7 +269,7 @@ class TestFAQFlow:
         )
 
         # Friend accepts invitation by verifying RSVP
-        rsvp = RSVP.objects.get(user_email="friend2@example.com")
+        rsvp = RSVP.objects.get(user_email="friend2@example.com", action="COLLECTION_INVITE")
         client.get(f"/api/v1/auth/verify/{rsvp.code}/")
 
         # Step 1: Friend asks question
@@ -387,10 +387,10 @@ class TestCompleteUserJourney:
 
         # === Bob and Charlie accept invitations ===
 
-        bob_rsvp = RSVP.objects.get(user_email="bob@example.com")
+        bob_rsvp = RSVP.objects.get(user_email="bob@example.com", action="COLLECTION_INVITE")
         client.get(f"/api/v1/auth/verify/{bob_rsvp.code}/")
 
-        charlie_rsvp = RSVP.objects.get(user_email="charlie@example.com")
+        charlie_rsvp = RSVP.objects.get(user_email="charlie@example.com", action="COLLECTION_INVITE")
         client.get(f"/api/v1/auth/verify/{charlie_rsvp.code}/")
 
         # === Bob logs in and requests an item ===

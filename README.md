@@ -119,6 +119,8 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 |--------|-----|-------------|
 | GET | `/api/v1/my-bookings/` | List my booking requests |
 | GET | `/api/v1/owner-bookings/` | List bookings for my things |
+| POST | `/api/v1/bookings/{code}/accept/` | Accept a pending booking (owner only) |
+| POST | `/api/v1/bookings/{code}/reject/` | Reject a pending booking (owner only) |
 
 ### FAQ
 | Method | URL | Description |
@@ -136,7 +138,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | GET | `/api/v1/health/` | Health check endpoint |
 | - | `/oiueei-admin/` | Django Admin (requires password) |
 
-**Note:** Reservation accept/reject actions are handled via RSVP links sent by email. Real codes (booking_code, thing_code) are never exposed in URLs.
+**Note:** Reservation accept/reject actions can be performed via RSVP links sent by email or via authenticated API endpoints (`/bookings/{code}/accept/` and `/bookings/{code}/reject/`). Email links use RSVP codes as intermediaries to avoid exposing real codes in URLs.
 
 ## Development
 
@@ -147,8 +149,13 @@ source venv/bin/activate
 pip install -r requirements/development.txt
 cp .env.example .env  # Configure environment variables
 
-# Run server
+# Run backend server
 python manage.py runserver
+
+# Run frontend (in a separate terminal)
+cd frontend
+npm install
+npm run dev  # Starts on http://localhost:3000
 
 # Run tests
 pytest -v --cov=core --cov-fail-under=80

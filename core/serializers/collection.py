@@ -5,6 +5,7 @@ Collection serializers for OIUEEI.
 from rest_framework import serializers
 
 from core.models import Collection, Theeeme, Thing
+from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField
 
@@ -14,13 +15,23 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
 
     owner = serializers.CharField(source="owner_id")
     thumbnail_url = serializers.SerializerMethodField()
+    pending_booking = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
-        fields = ["code", "type", "owner", "headline", "description", "status", "fee", "thumbnail_url"]
+        fields = [
+            "code", "type", "owner", "headline", "description", "status", "fee",
+            "thumbnail_url", "pending_booking", "created",
+        ]
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
+
+    def get_pending_booking(self, obj):
+        booking = BookingPeriod.objects.filter(
+            thing_code=obj, status="PENDING",
+        ).first()
+        return booking.code if booking else None
 
 
 class CollectionSerializer(serializers.ModelSerializer):

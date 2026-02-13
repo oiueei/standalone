@@ -5,6 +5,7 @@ Thing serializers for OIUEEI.
 from rest_framework import serializers
 
 from core.models import Thing
+from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, validate_image_id
 
@@ -17,6 +18,7 @@ class ThingSerializer(serializers.ModelSerializer):
     owner = serializers.CharField(source="owner_id")
     faqs = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
+    pending_booking = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -36,6 +38,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "fee",
             "deal",
             "available",
+            "pending_booking",
         ]
         read_only_fields = [
             "code",
@@ -50,6 +53,12 @@ class ThingSerializer(serializers.ModelSerializer):
 
     def get_pictures_urls(self, obj):
         return [cloudinary_url(pic_id) for pic_id in obj.pictures if pic_id]
+
+    def get_pending_booking(self, obj):
+        booking = BookingPeriod.objects.filter(
+            thing_code=obj, status="PENDING",
+        ).first()
+        return booking.code if booking else None
 
     def get_faqs(self, obj):
         return list(obj.faq_set.values_list("code", flat=True))
@@ -94,6 +103,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Thing
         fields = [
+            "type",
             "headline",
             "description",
             "thumbnail",

@@ -1413,3 +1413,113 @@ class TestExpireOldPending:
         assert count == 0
         booking.refresh_from_db()
         assert booking.status == "ACCEPTED"
+
+
+@pytest.mark.django_db
+class TestBookingActionView:
+    """Tests for authenticated booking accept/reject via API endpoints."""
+
+    def test_accept_booking_via_api(self, authenticated_client, user, user2, lend_thing):
+        """Owner can accept a booking via the authenticated API endpoint."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+        )
+
+        response = authenticated_client.post(f"/api/v1/bookings/{booking.code}/accept/")
+
+        assert response.status_code == status.HTTP_200_OK
+        booking.refresh_from_db()
+        assert booking.status == "ACCEPTED"
+
+    def test_reject_booking_via_api(self, authenticated_client, user, user2, lend_thing):
+        """Owner can reject a booking via the authenticated API endpoint."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+        )
+
+        response = authenticated_client.post(f"/api/v1/bookings/{booking.code}/reject/")
+
+        assert response.status_code == status.HTTP_200_OK
+        booking.refresh_from_db()
+        assert booking.status == "REJECTED"
+
+    def test_non_owner_cannot_accept(self, api_client, user, user2, lend_thing):
+        """Non-owner receives 403 when trying to accept."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+        )
+
+        # Authenticate as user2 (the requester, not the owner)
+        refresh = RefreshToken.for_user(user2)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+        response = api_client.post(f"/api/v1/bookings/{booking.code}/accept/")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        booking.refresh_from_db()
+        assert booking.status == "PENDING"
+
+    def test_cannot_accept_expired_booking(self, authenticated_client, user, user2, lend_thing):
+        """Cannot accept a booking that has expired."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today() + timedelta(days=10),
+            end_date=date.today() + timedelta(days=15),
+        )
+        booking.created = timezone.now() - timedelta(hours=100)
+        booking.save()
+
+        response = authenticated_client.post(f"/api/v1/bookings/{booking.code}/accept/")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_accept_deletes_rsvps(self, authenticated_client, user, user2, lend_thing):
+        """Accepting via API deletes outstanding RSVP links for the booking."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+        )
+        RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
+        RSVP.create_for_booking("BOOKING_REJECT", booking, user.email)
+        assert RSVP.objects.filter(target_code=booking.code).count() == 2
+
+        authenticated_client.post(f"/api/v1/bookings/{booking.code}/accept/")
+
+        assert RSVP.objects.filter(target_code=booking.code).count() == 0
+
+    def test_unauthenticated_returns_401(self, api_client, user, user2, lend_thing):
+        """Unauthenticated requests get 401."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+        )
+
+        response = api_client.post(f"/api/v1/bookings/{booking.code}/accept/")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
