@@ -20,8 +20,16 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Thing
         fields = [
-            "code", "type", "owner", "headline", "description", "status", "fee",
-            "thumbnail_url", "pending_booking", "created",
+            "code",
+            "type",
+            "owner",
+            "headline",
+            "description",
+            "status",
+            "fee",
+            "thumbnail_url",
+            "pending_booking",
+            "created",
         ]
 
     def get_thumbnail_url(self, obj):
@@ -29,7 +37,8 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
 
     def get_pending_booking(self, obj):
         booking = BookingPeriod.objects.filter(
-            thing_code=obj, status="PENDING",
+            thing_code=obj,
+            status="PENDING",
         ).first()
         return booking.code if booking else None
 

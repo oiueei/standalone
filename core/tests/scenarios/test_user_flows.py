@@ -390,7 +390,9 @@ class TestCompleteUserJourney:
         bob_rsvp = RSVP.objects.get(user_email="bob@example.com", action="COLLECTION_INVITE")
         client.get(f"/api/v1/auth/verify/{bob_rsvp.code}/")
 
-        charlie_rsvp = RSVP.objects.get(user_email="charlie@example.com", action="COLLECTION_INVITE")
+        charlie_rsvp = RSVP.objects.get(
+            user_email="charlie@example.com", action="COLLECTION_INVITE"
+        )
         client.get(f"/api/v1/auth/verify/{charlie_rsvp.code}/")
 
         # === Bob logs in and requests an item ===

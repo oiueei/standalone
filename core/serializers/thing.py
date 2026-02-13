@@ -56,7 +56,8 @@ class ThingSerializer(serializers.ModelSerializer):
 
     def get_pending_booking(self, obj):
         booking = BookingPeriod.objects.filter(
-            thing_code=obj, status="PENDING",
+            thing_code=obj,
+            status="PENDING",
         ).first()
         return booking.code if booking else None
 

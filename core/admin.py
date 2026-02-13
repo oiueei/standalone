@@ -60,6 +60,14 @@ class TheeemeAdmin(admin.ModelAdmin):
 
 @admin.register(BookingPeriod)
 class BookingPeriodAdmin(admin.ModelAdmin):
-    list_display = ["code", "thing_code", "thing_type", "requester_code", "owner_code", "status", "created"]
+    list_display = [
+        "code",
+        "thing_code",
+        "thing_type",
+        "requester_code",
+        "owner_code",
+        "status",
+        "created",
+    ]
     search_fields = ["code", "requester_email"]
     list_filter = ["status", "thing_type"]

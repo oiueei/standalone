@@ -129,7 +129,9 @@ def send_booking_decision_email(booking, thing, accepted=True):
     )
 
 
-def send_collection_invite_email(inviter_name, collection_headline, email, accept_link, reject_link):
+def send_collection_invite_email(
+    inviter_name, collection_headline, email, accept_link, reject_link
+):
     """Send collection invitation email with accept and reject links."""
     safe_inviter = escape(inviter_name)
     safe_headline = escape(collection_headline)

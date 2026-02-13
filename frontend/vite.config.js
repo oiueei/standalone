@@ -20,5 +20,11 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    fs: {
+      allow: [
+        path.resolve(__dirname, '..'),
+        path.resolve(__dirname, '../../oiueei-ds'),
+      ],
+    },
   },
 })
