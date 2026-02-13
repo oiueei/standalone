@@ -3,15 +3,29 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Notification } from 'oiueeiDS-react';
 
 export default function UserPage() {
-  const { userCode } = useParams();
+  const { userCode: paramCode } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
+
+  const userCode = paramCode || localStorage.getItem('userCode');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
+      return;
+    }
+
+    if (!userCode) {
+      // If no userCode yet, fetch /me to get it
+      fetch('/api/v1/auth/me/', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then((res) => res.ok ? res.json() : Promise.reject())
+        .then((data) => {
+          if (data.code) localStorage.setItem('userCode', data.code);
+          setUser(data);
+        })
+        .catch(() => setError('Error al cargar el perfil.'));
       return;
     }
 

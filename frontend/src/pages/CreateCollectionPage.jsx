@@ -1,43 +1,19 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Select,
-  StepByStep,
-  TextInput,
-  TextArea,
-  NumberInput,
-  Button,
-  Notification,
-} from 'oiueeiDS-react';
+import { useNavigate } from 'react-router-dom';
+import { StepByStep, TextInput, TextArea, Button, Notification } from 'oiueeiDS-react';
 
-const TYPE_OPTIONS = [
-  { label: 'Regalo', value: 'GIFT_THING' },
-  { label: 'Venta', value: 'SELL_THING' },
-  { label: 'Pedido', value: 'ORDER_THING' },
-  { label: 'Alquiler', value: 'RENT_THING' },
-  { label: 'Prestamo', value: 'LEND_THING' },
-  { label: 'Compartir', value: 'SHARE_THING' },
-];
-
-const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
-
-const TYPE_LABELS = Object.fromEntries(TYPE_OPTIONS.map((o) => [o.value, o.label]));
-
-export default function AddThingPage() {
-  const { code } = useParams();
+export default function CreateCollectionPage() {
   const navigate = useNavigate();
-
   const token = localStorage.getItem('token');
+
   if (!token) {
     navigate('/login');
   }
 
-  const [type, setType] = useState('GIFT_THING');
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [pictures, setPictures] = useState('');
-  const [fee, setFee] = useState('');
+  const [hero, setHero] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -46,10 +22,6 @@ export default function AddThingPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = 'El titulo es obligatorio.';
     if (headline.length > 64) newErrors.headline = 'Maximo 64 caracteres.';
-    if (thumbnail.length > 16) newErrors.thumbnail = 'Maximo 16 caracteres.';
-    if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
-      newErrors.fee = 'El precio es obligatorio para este tipo.';
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -59,22 +31,13 @@ export default function AddThingPage() {
     setSubmitting(true);
     setToast(null);
 
-    const body = {
-      type,
-      headline: headline.trim(),
-      collection_code: code,
-    };
-    if (thumbnail.trim()) body.thumbnail = thumbnail.trim();
+    const body = { headline: headline.trim() };
     if (description.trim()) body.description = description.trim();
-    if (pictures.trim()) {
-      body.pictures = pictures.split(',').map((s) => s.trim()).filter(Boolean);
-    }
-    if (FEE_TYPES.includes(type) && fee !== '') {
-      body.fee = fee;
-    }
+    if (thumbnail.trim()) body.thumbnail = thumbnail.trim();
+    if (hero.trim()) body.hero = hero.trim();
 
     try {
-      const res = await fetch('/api/v1/things/', {
+      const res = await fetch('/api/v1/collections/', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -83,10 +46,11 @@ export default function AddThingPage() {
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        navigate(`/collections/${code}`);
+        const data = await res.json();
+        navigate(`/collections/${data.code}`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error al crear la cosa.';
+        const message = data.detail || Object.values(data).flat().join(' ') || 'Error al crear la coleccion.';
         setToast({ type: 'error', message });
       }
     } catch {
@@ -97,20 +61,6 @@ export default function AddThingPage() {
   };
 
   const steps = [
-    {
-      title: 'Tipo',
-      description: (
-        <Select
-          options={TYPE_OPTIONS}
-          value={type}
-          onChange={(selectedOptions) => {
-            if (selectedOptions.length > 0) {
-              setType(selectedOptions[0].value);
-            }
-          }}
-        />
-      ),
-    },
     {
       title: 'Detalles',
       description: (
@@ -132,27 +82,12 @@ export default function AddThingPage() {
             label="Thumbnail (Cloudinary ID)"
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
-            invalid={!!errors.thumbnail}
-            errorText={errors.thumbnail}
           />
           <TextInput
-            label="Fotos (IDs separados por comas)"
-            value={pictures}
-            onChange={(e) => setPictures(e.target.value)}
+            label="Hero (Cloudinary ID)"
+            value={hero}
+            onChange={(e) => setHero(e.target.value)}
           />
-          {FEE_TYPES.includes(type) && (
-            <NumberInput
-              label="Precio"
-              value={fee === '' ? '' : Number(fee)}
-              onChange={(e) => setFee(e.target.value)}
-              min={0}
-              step={0.01}
-              unit="EUR"
-              required
-              invalid={!!errors.fee}
-              errorText={errors.fee}
-            />
-          )}
         </div>
       ),
     },
@@ -161,8 +96,6 @@ export default function AddThingPage() {
       description: (
         <div>
           <dl style={{ display: 'grid', gap: '0.5rem' }}>
-            <dt><strong>Tipo</strong></dt>
-            <dd>{TYPE_LABELS[type]}</dd>
             <dt><strong>Titulo</strong></dt>
             <dd>{headline || '—'}</dd>
             {description && (
@@ -173,21 +106,11 @@ export default function AddThingPage() {
             )}
             <dt><strong>Thumbnail</strong></dt>
             <dd>{thumbnail || '—'}</dd>
-            {pictures && (
-              <>
-                <dt><strong>Fotos</strong></dt>
-                <dd>{pictures}</dd>
-              </>
-            )}
-            {FEE_TYPES.includes(type) && fee !== '' && (
-              <>
-                <dt><strong>Precio</strong></dt>
-                <dd>{fee} EUR</dd>
-              </>
-            )}
+            <dt><strong>Hero</strong></dt>
+            <dd>{hero || '—'}</dd>
           </dl>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-            <Button variant="secondary" onClick={() => navigate(`/collections/${code}`)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => navigate('/')}>Cancelar</Button>
             <Button disabled={submitting} onClick={handleSubmit}>
               {submitting ? 'Creando...' : 'Crear'}
             </Button>
@@ -199,7 +122,7 @@ export default function AddThingPage() {
 
   return (
     <div className="page-container">
-      <StepByStep title="Anadir cosa" steps={steps} numberedList />
+      <StepByStep title="Crear coleccion" steps={steps} numberedList />
 
       {toast && (
         <Notification
