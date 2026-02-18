@@ -12,6 +12,7 @@ class FAQSerializer(serializers.ModelSerializer):
 
     thing = serializers.CharField(source="thing_id")
     questioner = serializers.CharField(source="questioner_id")
+    questioner_name = serializers.CharField(source="questioner.name", read_only=True)
 
     class Meta:
         model = FAQ
@@ -20,6 +21,7 @@ class FAQSerializer(serializers.ModelSerializer):
             "thing",
             "created",
             "questioner",
+            "questioner_name",
             "question",
             "answer",
             "is_visible",

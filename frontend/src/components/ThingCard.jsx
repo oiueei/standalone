@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card, DateInput, Dialog, NumberInput, Notification } from 'oiueeiDS-react';
 import placeholderImg from '../../../../oiueei-ds/site/static/images/foundation/visual-assets/placeholders/image-s.png';
 
@@ -22,6 +22,7 @@ MAX_DATE.setDate(MAX_DATE.getDate() + 90);
 const RANGE_ERROR = 'La fecha debe estar entre hoy y 90 dias a partir de hoy.';
 
 export default function ThingCard({ thing, userCode, collectionCode, onDelete, onUpdateThing }) {
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
@@ -115,7 +116,12 @@ export default function ThingCard({ thing, userCode, collectionCode, onDelete, o
     ? `/collections/${collectionCode}/edit-thing/${thing.code}`
     : `/things/${thing.code}/edit`;
 
+  const thingPath = collectionCode
+    ? `/collections/${collectionCode}/things/${thing.code}`
+    : `/things/${thing.code}`;
+
   return (
+    <div onClick={() => navigate(thingPath)} style={{ cursor: 'pointer' }}>
     <Card heading={thing.headline} text={thing.description || ''} border>
       <img
         src={thing.thumbnail_url || placeholderImg}
@@ -126,36 +132,12 @@ export default function ThingCard({ thing, userCode, collectionCode, onDelete, o
       <p><strong>Creado:</strong> {new Date(thing.created).toLocaleDateString('es-ES')}</p>
       {thing.fee && <p><strong>Precio:</strong> {thing.fee} EUR</p>}
       {isOwner && (
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <Link to={editPath}>
-            <Button size="small">Editar</Button>
-          </Link>
-          <Button
-            variant="danger"
-            size="small"
-            onClick={async () => {
-              const token = localStorage.getItem('token');
-              try {
-                const res = await fetch(`/api/v1/things/${thing.code}/`, {
-                  method: 'DELETE',
-                  headers: { 'Authorization': `Bearer ${token}` },
-                });
-                if (res.ok || res.status === 204) {
-                  onDelete(thing.code);
-                } else {
-                  setToast({ type: 'error', message: 'Error al eliminar la cosa.' });
-                }
-              } catch {
-                setToast({ type: 'error', message: 'Error de conexion.' });
-              }
-            }}
-          >
-            Eliminar
-          </Button>
-        </div>
+        <Link to={editPath} onClick={(e) => e.stopPropagation()}>
+          <Button size="small">Editar</Button>
+        </Link>
       )}
       {isOwner && thing.pending_booking && (
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
           <Button
             disabled={bookingAction}
             onClick={async () => {
@@ -212,7 +194,7 @@ export default function ThingCard({ thing, userCode, collectionCode, onDelete, o
         </div>
       )}
       {showButton && (
-        <>
+        <div onClick={(e) => e.stopPropagation()}>
           <Button
             disabled={buttonDisabled}
             onClick={needsDialog ? () => setDialogOpen(true) : handleRequest}
@@ -299,7 +281,7 @@ export default function ThingCard({ thing, userCode, collectionCode, onDelete, o
             </Dialog>
           )}
 
-        </>
+        </div>
       )}
       {toast && (
         <Notification
@@ -315,5 +297,6 @@ export default function ThingCard({ thing, userCode, collectionCode, onDelete, o
         </Notification>
       )}
     </Card>
+    </div>
   );
 }

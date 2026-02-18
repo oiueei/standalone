@@ -11,6 +11,7 @@ import InvitedCollectionsPage from './pages/InvitedCollectionsPage';
 import CollectionPage from './pages/CollectionPage';
 import AddThingPage from './pages/AddThingPage';
 import EditThingPage from './pages/EditThingPage';
+import ThingPage from './pages/ThingPage';
 import CreateCollectionPage from './pages/CreateCollectionPage';
 import LogoutPage from './pages/LogoutPage';
 import UserPage from './pages/UserPage';
@@ -33,7 +34,9 @@ function App() {
         <Route path="/collections/new" element={<CreateCollectionPage />} />
         <Route path="/collections/:code" element={<CollectionPage />} />
         <Route path="/collections/:code/add-thing" element={<AddThingPage />} />
+        <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
         <Route path="/collections/:code/edit-thing/:thingCode" element={<EditThingPage />} />
+        <Route path="/things/:thingCode" element={<ThingPage />} />
         <Route path="/things/:thingCode/edit" element={<EditThingPage />} />
         <Route path="/invited-collections" element={<InvitedCollectionsPage />} />
         <Route path="/:userCode" element={<UserPage />} />

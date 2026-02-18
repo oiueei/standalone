@@ -37,6 +37,7 @@ export default function EditThingPage() {
   const [fee, setFee] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
 
   const returnPath = code ? `/collections/${code}` : '/';
@@ -119,6 +120,26 @@ export default function EditThingPage() {
       setToast({ type: 'error', message: 'Error de conexion con el servidor.' });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setToast(null);
+    try {
+      const res = await fetch(`/api/v1/things/${thingCode}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok || res.status === 204) {
+        navigate(returnPath);
+      } else {
+        setToast({ type: 'error', message: 'Error al eliminar la cosa.' });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Error de conexion.' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -216,8 +237,11 @@ export default function EditThingPage() {
           </dl>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
             <Button variant="secondary" onClick={() => navigate(returnPath)}>Cancelar</Button>
-            <Button disabled={submitting} onClick={handleSubmit}>
+            <Button disabled={submitting || deleting} onClick={handleSubmit}>
               {submitting ? 'Guardando...' : 'Guardar'}
+            </Button>
+            <Button variant="danger" disabled={submitting || deleting} onClick={handleDelete}>
+              {deleting ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </div>
         </div>

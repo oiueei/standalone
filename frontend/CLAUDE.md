@@ -17,7 +17,9 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 | `/collections/new` | `CreateCollectionPage` | Wizard to create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
 | `/collections/:code/add-thing` | `AddThingPage` | Wizard to add a thing to a collection |
+| `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context) |
 | `/collections/:code/edit-thing/:thingCode` | `EditThingPage` | Wizard to edit a thing (from collection context) |
+| `/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (standalone) |
 | `/things/:thingCode/edit` | `EditThingPage` | Wizard to edit a thing (standalone) |
 | `/invited-collections` | `InvitedCollectionsPage` | Lists collections the user has been invited to |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
@@ -77,6 +79,7 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 
 Reusable component for rendering a thing as an oiueeiDS `Card`. Used by `CollectionPage` and `HomePage`.
 
+- **Clickable card**: the entire card navigates to `ThingPage` on click (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). Interactive elements (buttons, links) use `stopPropagation` to prevent navigation.
 - Displays thumbnail (or placeholder), headline, description, type label, creation date, and fee (when present).
 - **"Editar" button** (owner only): links to edit page (collection context or standalone).
 - **"Eliminar" button** (owner only): calls `DELETE /api/v1/things/{code}/` and notifies parent via `onDelete`.
@@ -94,6 +97,22 @@ Reusable component for rendering a thing as an oiueeiDS `Card`. Used by `Collect
   - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button opens `Dialog` with `DateInput` for `start_date` / `end_date`.
   - `ORDER_THING` — button opens `Dialog` with `DateInput` for `delivery_date` + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates (LEND/RENT/SHARE) fetched from calendar API.
+
+### ThingPage (`src/pages/ThingPage.jsx`)
+
+Detail page for a thing with full information and FAQs section.
+
+- **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/faq/` (FAQs), `GET /api/v1/things/{thingCode}/calendar/` (blocked periods), `POST /api/v1/things/{thingCode}/faq/` (ask question), `POST /api/v1/faq/{faqCode}/answer/` (answer), `POST /api/v1/faq/{faqCode}/hide/` and `/show/` (toggle visibility)
+- Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
+- Redirects to `/login` if no token in `localStorage`.
+- Displays thumbnail, headline, description, type, status, creation date, fee, and photo gallery (`pictures_urls`).
+- **"Volver" link**: navigates back to collection or home depending on context.
+- **Owner actions:** "Editar" button links to edit page. Accept/Reject buttons when `pending_booking` exists.
+- **Reservation:** Non-owners see "Reservar" button with same dialog logic as ThingCard.
+- **FAQs section:**
+  - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
+  - **Owner:** inline `TextArea` to answer unanswered questions, "Ocultar"/"Mostrar" toggle button per FAQ.
+  - **Non-owner:** `Fieldset`-wrapped form to ask a new question.
 
 ### LogoutPage (`src/pages/LogoutPage.jsx`)
 

@@ -282,6 +282,8 @@ Lists collections where the current user is in the invites M2M. Not paginated.
 
 Lists FAQs for a thing. Owner sees all FAQs (including hidden). Invited users see only visible FAQs.
 
+**Response fields:** `code`, `thing`, `created`, `questioner` (user code), `questioner_name` (user display name), `question`, `answer`, `is_visible`.
+
 | | |
 |---|---|
 | **Endpoint** | `POST /api/v1/things/{thing_code}/faq/` |

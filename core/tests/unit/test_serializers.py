@@ -176,7 +176,7 @@ class TestFAQSerializer:
         """Should serialize FAQ with all fields."""
         owner = User.objects.create(code="OWNER1", email="owner@example.com")
         thing = Thing.objects.create(code="THNG01", owner=owner, headline="Thing")
-        questioner = User.objects.create(code="USR001", email="usr001@example.com")
+        questioner = User.objects.create(code="USR001", email="usr001@example.com", name="Ana")
         faq = FAQ.objects.create(
             code="FAQ001",
             thing=thing,
@@ -190,6 +190,7 @@ class TestFAQSerializer:
         assert data["code"] == "FAQ001"
         assert data["question"] == "Is this available?"
         assert data["answer"] == "Yes!"
+        assert data["questioner_name"] == "Ana"
 
 
 class TestFAQCreateSerializer:
