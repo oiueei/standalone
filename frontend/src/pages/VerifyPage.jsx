@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Notification } from 'oiueeiDS-react';
+import { Notification } from 'hds-react';
 
 export default function VerifyPage() {
   const { code } = useParams();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, DateInput, Dialog, NumberInput, Notification } from 'oiueeiDS-react';
-import placeholderImg from '../../../../oiueei-ds/site/static/images/foundation/visual-assets/placeholders/image-s.png';
+import { Button, Card, DateInput, Dialog, NumberInput, Notification } from 'hds-react';
+import placeholderImg from '../assets/image-s.png';
 
 const TYPE_LABELS = {
   GIFT_THING: 'Regalo',

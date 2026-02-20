@@ -1,0 +1,114 @@
+/*
+ * OIUEEI Theeemes — Color overrides for HDS design tokens.
+ *
+ * This file is imported AFTER hds-design-tokens in App.jsx so that
+ * these values take precedence over the Helsinki defaults.
+ *
+ * Replace the placeholder values below (#TODO) with your Theeemes palette.
+ * Only override the variables you actually want to change — any variable
+ * left commented out will keep its HDS default.
+ */
+
+:root {
+  /* ================================================================
+   * BRAND COLORS
+   * ================================================================
+   * HDS names its brand palette after Helsinki landmarks/transport.
+   * Map your Theeemes palette onto whichever slots you use.
+   * Unused brand colors can stay commented out.
+   * ================================================================ */
+
+  /* -- Primary (bus) ------------------------------------------------ */
+  /* --color-bus: #TODO; */
+  /* --color-bus-light: #TODO; */
+  /* --color-bus-medium-light: #TODO; */
+  /* --color-bus-dark: #TODO; */
+
+  /* -- Secondary (coat-of-arms) ------------------------------------- */
+  /* --color-coat-of-arms: #TODO; */
+  /* --color-coat-of-arms-light: #TODO; */
+  /* --color-coat-of-arms-medium-light: #TODO; */
+  /* --color-coat-of-arms-dark: #TODO; */
+
+  /* -- Accent 1 (brick) --------------------------------------------- */
+  /* --color-brick: #TODO; */
+  /* --color-brick-light: #TODO; */
+  /* --color-brick-medium-light: #TODO; */
+  /* --color-brick-dark: #TODO; */
+
+  /* -- Accent 2 (copper) -------------------------------------------- */
+  /* --color-copper: #TODO; */
+  /* --color-copper-light: #TODO; */
+  /* --color-copper-medium-light: #TODO; */
+  /* --color-copper-dark: #TODO; */
+
+  /* -- Accent 3 (engel) --------------------------------------------- */
+  /* --color-engel: #TODO; */
+  /* --color-engel-light: #TODO; */
+  /* --color-engel-medium-light: #TODO; */
+  /* --color-engel-dark: #TODO; */
+
+  /* -- Accent 4 (fog) ----------------------------------------------- */
+  /* --color-fog: #TODO; */
+  /* --color-fog-light: #TODO; */
+  /* --color-fog-medium-light: #TODO; */
+  /* --color-fog-dark: #TODO; */
+
+  /* -- Accent 5 (gold) ---------------------------------------------- */
+  /* --color-gold: #TODO; */
+  /* --color-gold-light: #TODO; */
+  /* --color-gold-medium-light: #TODO; */
+  /* --color-gold-dark: #TODO; */
+
+  /* -- Accent 6 (metro) --------------------------------------------- */
+  /* --color-metro: #TODO; */
+  /* --color-metro-light: #TODO; */
+  /* --color-metro-medium-light: #TODO; */
+  /* --color-metro-dark: #TODO; */
+
+  /* -- Accent 7 (silver) -------------------------------------------- */
+  /* --color-silver: #TODO; */
+  /* --color-silver-light: #TODO; */
+  /* --color-silver-medium-light: #TODO; */
+  /* --color-silver-dark: #TODO; */
+
+  /* -- Accent 8 (summer) -------------------------------------------- */
+  /* --color-summer: #TODO; */
+  /* --color-summer-light: #TODO; */
+  /* --color-summer-medium-light: #TODO; */
+  /* --color-summer-dark: #TODO; */
+
+  /* -- Accent 9 (suomenlinna) --------------------------------------- */
+  /* --color-suomenlinna: #TODO; */
+  /* --color-suomenlinna-light: #TODO; */
+  /* --color-suomenlinna-medium-light: #TODO; */
+  /* --color-suomenlinna-dark: #TODO; */
+
+  /* -- Accent 10 (tram) --------------------------------------------- */
+  /* --color-tram: #TODO; */
+  /* --color-tram-light: #TODO; */
+  /* --color-tram-medium-light: #TODO; */
+  /* --color-tram-dark: #TODO; */
+
+  /* ================================================================
+   * UI / STATUS COLORS
+   * ================================================================ */
+
+  /* --color-error: #TODO; */
+  /* --color-error-light: #TODO; */
+  /* --color-error-dark: #TODO; */
+
+  /* --color-success: #TODO; */
+  /* --color-success-light: #TODO; */
+  /* --color-success-dark: #TODO; */
+
+  /* --color-alert: #TODO; */
+  /* --color-alert-light: #TODO; */
+  /* --color-alert-dark: #TODO; */
+
+  /* --color-info: #TODO; */
+  /* --color-info-light: #TODO; */
+  /* --color-info-dark: #TODO; */
+
+  /* --color-focus-outline: #TODO; */
+}

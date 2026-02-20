@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Button, Dialog, Notification, TextInput } from 'oiueeiDS-react';
+import { Button, Dialog, Notification, TextInput } from 'hds-react';
 import ThingCard from '../components/ThingCard';
 
 export default function CollectionPage() {

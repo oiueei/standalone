@@ -1,0 +1,27 @@
+@font-face {
+  font-display: swap;
+  font-family: HelsinkiGrotesk;
+  font-weight: 400;
+  src: url('./GraebenbachTRIAL-Regular.otf') format('opentype');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: HelsinkiGrotesk;
+  font-weight: 500;
+  src: url('./GraebenbachTRIAL-Medium.otf') format('opentype');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: HelsinkiGrotesk;
+  font-weight: 700;
+  src: url('./GraebenbachTRIAL-Bold.otf') format('opentype');
+}
+
+@font-face {
+  font-display: swap;
+  font-family: HelsinkiGrotesk;
+  font-weight: 900;
+  src: url('./GraebenbachTRIAL-Black.otf') format('opentype');
+}

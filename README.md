@@ -6,12 +6,40 @@ An open-source web application for people to share their belongings with friends
 
 - **Backend**: Django 5.x + Django REST Framework
 - **Frontend**: React (same repo, work in progress)
-- **UI design**: oiueeiDS (work in progress)
 - **Auth**: Magic link authentication (passwordless for users, password enabled for admin access)
 - **Database**: SQLite (dev), PostgreSQL (prod via `dj-database-url`)
 - **Deployment**: Heroku (Procfile + runtime.txt included)
 - **Static files**: WhiteNoise
 - **Scheduled task**: `python manage.py expire_bookings` for booking expiration cleanup (run via Heroku Scheduler or cron)
+
+## UI & Design System
+
+OIUEEI's user interface is built on top of the [Helsinki Design System (HDS)](https://hds.hel.fi/), an open-source design system created by the City of Helsinki. We consume HDS at multiple levels:
+
+- **React components** — via [`hds-react`](https://github.com/City-of-Helsinki/helsinki-design-system/tree/master/packages/react)
+- **Design tokens** — colours, spacing, typography, and breakpoints from [`hds-design-tokens`](https://github.com/City-of-Helsinki/helsinki-design-system/tree/master/packages/design-tokens)
+- **Core styles** — base CSS from [`hds-core`](https://github.com/City-of-Helsinki/helsinki-design-system/tree/master/packages/core)
+
+### What we customise
+
+HDS is designed for City of Helsinki services, so we adapt it to fit OIUEEI's context:
+
+| Layer | HDS baseline | OIUEEI adaptation |
+|---|---|---|
+| Brand colours | Helsinki blue/black palette | Custom palette reflecting OIUEEI identity |
+| Typography | HDS type scale | Same scale, different primary typeface (GraebenbachTRIAL) |
+| Components | Used as-is where possible | Extended or wrapped when sharing-specific UX is needed |
+| Layout & spacing | HDS grid and spacing tokens | Followed as-is |
+| Icons | HDS icon set | Supplemented with domain-specific icons |
+
+Our goal is to **stay as close to upstream HDS as possible** to benefit from accessibility audits, updates, and community contributions, while making only the changes strictly necessary for our use case.
+
+### Why HDS?
+
+- **Accessibility built-in** — All HDS components are WCAG 2.1 AA audited.
+- **Open source (MIT)** — Fully compatible with OIUEEI's open-source license.
+- **Production-proven** — Used across hundreds of City of Helsinki digital services.
+- **React-native support** — Aligns with our tech stack (React + Vite).
 
 ## Project Structure
 
@@ -245,3 +273,7 @@ python manage.py expire_bookings
   This is required to access `/oiueei-admin/`. Regular users authenticate via magic link and don't need passwords.
 
 - **Booking expiration** - PENDING bookings expire after 72 hours. Run `python manage.py expire_bookings` periodically (Heroku Scheduler recommended).
+
+## Acknowledgements
+
+This project uses components and design tokens from the [Helsinki Design System](https://hds.hel.fi/) by the [City of Helsinki](https://github.com/City-of-Helsinki), licensed under the [MIT License](https://github.com/City-of-Helsinki/helsinki-design-system/blob/master/LICENSE).

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button, Notification } from 'oiueeiDS-react';
+import { Button, Notification } from 'hds-react';
 import ThingCard from '../components/ThingCard';
 
 export default function HomePage() {

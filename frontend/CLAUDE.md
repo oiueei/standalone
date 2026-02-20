@@ -1,6 +1,6 @@
 # OIUEEI Frontend Documentation
 
-React frontend using oiueeiDS (design system) with Vite dev server on `localhost:3000`. All API requests are proxied to the Django backend on `localhost:8000`.
+React frontend using HDS (Helsinki Design System) from npm with OIUEEI customization layer (fonts, colors, icons). Vite dev server on `localhost:3000`. All API requests are proxied to the Django backend on `localhost:8000`.
 
 ---
 
@@ -70,14 +70,14 @@ React frontend using oiueeiDS (design system) with Vite dev server on `localhost
 - Displays collection headline, status, description, and theeeme.
 - **Things** are rendered using the `ThingCard` component (see below).
 - **"Añadir cosa" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
-- **Invites section:** "Invitados (N)" heading is a clickable link that opens an oiueeiDS `Dialog`.
+- **Invites section:** "Invitados (N)" heading is a clickable link that opens an HDS `Dialog`.
   - Lists invited users by `userCode`.
   - **Owner only:** "Eliminar" button per invite (`DELETE /api/v1/collections/{code}/invite/`), and email input + "Invitar" button (`POST /api/v1/collections/{code}/invite/`).
   - Duplicate invites are rejected by the backend (400).
 
 ### ThingCard (`src/components/ThingCard.jsx`)
 
-Reusable component for rendering a thing as an oiueeiDS `Card`. Used by `CollectionPage` and `HomePage`.
+Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPage` and `HomePage`.
 
 - **Clickable card**: the entire card navigates to `ThingPage` on click (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). Interactive elements (buttons, links) use `stopPropagation` to prevent navigation.
 - Displays thumbnail (or placeholder), headline, description, type label, creation date, and fee (when present).
@@ -123,7 +123,7 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `POST /api/v1/things/` with `Bearer` token and `collection_code` in body
 - Redirects to `/login` if no token in `localStorage`.
-- 3-step wizard using oiueeiDS `StepByStep`:
+- 3-step wizard using HDS `StepByStep`:
   - **Step 1 (Tipo):** `Select` to choose thing type (Regalo, Venta, Pedido, Alquiler, Prestamo, Compartir).
   - **Step 2 (Detalles):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others).
   - **Step 3 (Resumen):** Read-only summary, "Cancelar" and "Crear" buttons. Validates on submit.
@@ -134,14 +134,14 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save
 - Accessible from `/collections/:code/edit-thing/:thingCode` or `/things/:thingCode/edit`.
-- 3-step wizard using oiueeiDS `StepByStep` (same layout as AddThingPage).
+- 3-step wizard using HDS `StepByStep` (same layout as AddThingPage).
 - Pre-populates all fields from the existing thing.
 - On success: navigates back to collection or home.
 
 ### CreateCollectionPage (`src/pages/CreateCollectionPage.jsx`)
 
 - **API:** `POST /api/v1/collections/` with `Bearer` token
-- 2-step wizard using oiueeiDS `StepByStep`:
+- 2-step wizard using HDS `StepByStep`:
   - **Step 1 (Detalles):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs).
   - **Step 2 (Resumen):** Read-only summary, "Cancelar" and "Crear" buttons.
 - On success: navigates to `/collections/{code}`.
@@ -166,14 +166,22 @@ Detail page for a thing with full information and FAQs section.
 ## Tech Stack
 
 - **React 19** + **Vite 7** + **React Router 7**
-- **oiueeiDS-react** — Design system components (local link to `../../oiueei-ds/packages/react`)
-- **oiueeiDS-design-tokens** — CSS tokens (local link to `../../oiueei-ds/packages/design-tokens`)
-- **hds-core** — Helsinki Design System core CSS (fonts and base styles)
+- **hds-react** — Helsinki Design System React components (npm `^4.10.0`)
+- **hds-design-tokens** — HDS CSS custom property tokens (npm `^4.10.0`)
+- **hds-core** — HDS core CSS and base styles (npm `^4.10.0`)
+
+## OIUEEI Customization Layer
+
+The project consumes HDS directly from npm and applies three local overrides:
+
+- **Fonts** (`src/fonts/oiueei-fonts.css`) — GraebenbachTRIAL `.otf` files registered as `font-family: HelsinkiGrotesk` so all HDS components use them transparently.
+- **Colors** (`src/styles/oiueei-theme.css`) — CSS custom property overrides for the "Theeemes" color palette, imported after `hds-design-tokens` to take precedence.
+- **Custom icons** (`src/components/icons/`) — Any icons not available in HDS. Follow HDS icon prop conventions (`size`, `color`, `className`).
+- **Logos & brand assets** (`src/assets/`) — OIUEEI logos, placeholders, and favicon.
 
 ## Key Configuration (`vite.config.js`)
 
-- **Resolve aliases** for oiueeiDS packages pointing to `lib/` directories (local packages not built via npm)
-- **React deduplication** — Aliases `react` and `react-dom` to frontend's `node_modules` to prevent dual-copy hook errors with oiueeiDS (React 17 peer dep vs React 19)
+- **React deduplication** — Aliases `react` and `react-dom` to frontend's `node_modules` to prevent dual-copy hook errors (some HDS internal deps declare React 17 peer dep)
 - **Proxy** — `/api` requests forwarded to `http://localhost:8000`
 - **Dev server** on port 3000
 

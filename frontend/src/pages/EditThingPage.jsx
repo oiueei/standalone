@@ -8,7 +8,7 @@ import {
   NumberInput,
   Button,
   Notification,
-} from 'oiueeiDS-react';
+} from 'hds-react';
 
 const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
 

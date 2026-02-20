@@ -8,8 +8,8 @@ import {
   NumberInput,
   Notification,
   TextArea,
-} from 'oiueeiDS-react';
-import placeholderImg from '../../../../oiueei-ds/site/static/images/foundation/visual-assets/placeholders/image-s.png';
+} from 'hds-react';
+import placeholderImg from '../assets/image-s.png';
 
 const TYPE_LABELS = {
   GIFT_THING: 'Regalo',

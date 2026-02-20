@@ -13,7 +13,7 @@ extend-exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 100
-skip = [".git", ".venv", "venv", "migrations", "__pycache__"]
+skip = [".git", ".venv", "venv", "migrations", "__pycache__", "node_modules"]
 skip_glob = ["*/migrations/*"]
 
 [tool.coverage.run]

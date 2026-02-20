@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StepByStep, TextInput, TextArea, Button, Notification } from 'oiueeiDS-react';
+import { StepByStep, TextInput, TextArea, Button, Notification } from 'hds-react';
 
 export default function CreateCollectionPage() {
   const navigate = useNavigate();

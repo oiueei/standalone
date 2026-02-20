@@ -1,6 +1,7 @@
-import 'oiueeiDS-design-tokens';
-import 'hds-core/lib/fonts/HelsinkiGrotesk.css';
+import 'hds-design-tokens';
 import 'hds-core/lib/base.css';
+import './fonts/oiueei-fonts.css';
+import './styles/oiueei-theme.css';
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';

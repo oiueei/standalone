@@ -6,8 +6,6 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      'oiueeiDS-react': path.resolve(__dirname, '../../oiueei-ds/packages/react/lib'),
-      'oiueeiDS-design-tokens': path.resolve(__dirname, '../../oiueei-ds/packages/design-tokens/lib/all.css'),
       'react': path.resolve(__dirname, 'node_modules/react'),
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
@@ -23,7 +21,6 @@ export default defineConfig({
     fs: {
       allow: [
         path.resolve(__dirname, '..'),
-        path.resolve(__dirname, '../../oiueei-ds'),
       ],
     },
   },

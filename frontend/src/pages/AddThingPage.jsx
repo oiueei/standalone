@@ -8,7 +8,7 @@ import {
   NumberInput,
   Button,
   Notification,
-} from 'oiueeiDS-react';
+} from 'hds-react';
 
 const TYPE_OPTIONS = [
   { label: 'Regalo', value: 'GIFT_THING' },

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TextInput, Button, Notification } from 'oiueeiDS-react';
+import { TextInput, Button, Notification } from 'hds-react';
 
 function getCsrfToken() {
   const match = document.cookie.match(/csrftoken=([^;]+)/);

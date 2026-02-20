@@ -39,6 +39,10 @@ htmlcov/
 .env.*
 !.env.example
 
+# Font binaries (licence does not permit redistribution)
+frontend/src/fonts/*.otf
+frontend/src/fonts/*.pdf
+
 # OS
 .DS_Store
 Thumbs.db

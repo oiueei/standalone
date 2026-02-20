@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Notification } from 'oiueeiDS-react';
+import { Notification } from 'hds-react';
 
 export default function MyCollectionsPage() {
   const navigate = useNavigate();
