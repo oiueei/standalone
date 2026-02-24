@@ -19,6 +19,8 @@ class ThingSerializer(serializers.ModelSerializer):
     faqs = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
     pending_booking = serializers.SerializerMethodField()
+    collection_code = serializers.SerializerMethodField()
+    collection_headline = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -39,6 +41,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "deal",
             "available",
             "pending_booking",
+            "collection_code",
+            "collection_headline",
         ]
         read_only_fields = [
             "code",
@@ -60,6 +64,14 @@ class ThingSerializer(serializers.ModelSerializer):
             status="PENDING",
         ).first()
         return booking.code if booking else None
+
+    def get_collection_code(self, obj):
+        collection = obj.collections.first()
+        return collection.code if collection else None
+
+    def get_collection_headline(self, obj):
+        collection = obj.collections.first()
+        return collection.headline if collection else None
 
     def get_faqs(self, obj):
         return list(obj.faq_set.values_list("code", flat=True))

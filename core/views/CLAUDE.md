@@ -337,6 +337,19 @@ Shows a previously hidden FAQ.
 
 ---
 
+## Theeeme Views (`core/views/theeemes.py`)
+
+### TheeemeListView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/theeemes/` |
+| **Permission** | `IsAuthenticated` |
+
+Lists all available theeemes. Returns `code` and `name` for each theeeme via `TheeemeSerializer`.
+
+---
+
 ## Booking Views (`core/views/booking.py`)
 
 ### ThingCalendarView

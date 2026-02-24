@@ -12,6 +12,7 @@ from rest_framework.routers import DefaultRouter
 from .views.auth import LogoutView, MeView, RequestLinkView, VerifyLinkView
 from .views.booking import BookingActionView, MyBookingsView, OwnerBookingsView, ThingCalendarView
 from .views.collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
+from .views.theeemes import TheeemeListView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
 from .views.things import InvitedThingsView, ThingViewSet
@@ -50,6 +51,8 @@ urlpatterns = [
         CollectionInviteView.as_view(),
         name="collection-invite",
     ),
+    # Theeemes
+    path("theeemes/", TheeemeListView.as_view(), name="theeeme-list"),
     # Things (non-viewset)
     path("invited-things/", InvitedThingsView.as_view(), name="invited-things"),
     path("things/<str:thing_code>/request/", ThingRequestView.as_view(), name="thing-request"),

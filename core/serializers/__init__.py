@@ -16,6 +16,7 @@ from .collection import (
 )
 from .faq import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
 from .thing import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
+from .theeeme import TheeemeSerializer
 from .user import UserPublicSerializer, UserSerializer, UserUpdateSerializer
 
 __all__ = [
@@ -40,4 +41,5 @@ __all__ = [
     "BookingPeriodOwnerCalendarSerializer",
     "ThingRequestWithDatesSerializer",
     "MyBookingSerializer",
+    "TheeemeSerializer",
 ]

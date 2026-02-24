@@ -13,15 +13,17 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/logout` | `LogoutPage` | Clears localStorage tokens and redirects to `/login` |
 | `/verify/:code` | `VerifyPage` | Processes magic link / RSVP verification |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
-| `/collections` | `MyCollectionsPage` | Lists the user's own collections |
+| `/me/edit` | `EditProfilePage` | Wizard to edit own profile |
 | `/collections/new` | `CreateCollectionPage` | Wizard to create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
+| `/collections/:code/edit` | `EditCollectionPage` | Wizard to edit a collection |
+| `/collections/:code/invites` | `ManageInvitesPage` | Wizard to manage collection invites |
 | `/collections/:code/add-thing` | `AddThingPage` | Wizard to add a thing to a collection |
 | `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context) |
 | `/collections/:code/edit-thing/:thingCode` | `EditThingPage` | Wizard to edit a thing (from collection context) |
 | `/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (standalone) |
 | `/things/:thingCode/edit` | `EditThingPage` | Wizard to edit a thing (standalone) |
-| `/invited-collections` | `InvitedCollectionsPage` | Lists collections the user has been invited to |
+| `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
 
 ---
@@ -43,8 +45,13 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - **API:** `GET /api/v1/auth/verify/{code}/`
 - Fetches on mount using the `:code` route parameter.
 - On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. No login/redirect.
-- On success (with token): stores `token`, `refresh`, and `userCode` in `localStorage`, navigates to `/`.
+- On success (with token): stores `token`, `refresh`, and `userCode` in `localStorage`. If `data.invited_collection` is present (COLLECTION_INVITE flow), navigates to `/collections/{code}` with `{ state: { fromInvite: true } }`; otherwise navigates to `/`.
 - On failure: shows error `Notification`.
+
+### WelcomePage (`src/pages/WelcomePage.jsx`)
+
+- Static informational page about OIUEEI.
+- "Volver" link uses `navigate(-1)` to return to the previous page.
 
 ### HomePage (`src/pages/HomePage.jsx`)
 
@@ -52,34 +59,28 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - Redirects to `/login` if no token in `localStorage`.
 - On 401/403: clears tokens and redirects to `/login`.
 - Stores `userCode` in `localStorage` on successful fetch.
-- Displays greeting, links to own collections and invited collections with counts, and "Crear coleccion" button linking to `/collections/new`.
+- Displays greeting, "Crear coleccion" button linking to `/collections/new`, and "Editar perfil" button linking to `/me/edit`.
+- Shows inline lists of own collections and invited collections (headline, status, thing count, invite count) with links to `/collections/{code}`.
 - Lists all things (own + invited) using the `ThingCard` component, sorted by creation date descending.
-
-### MyCollectionsPage (`src/pages/MyCollectionsPage.jsx`)
-
-- **API:** `GET /api/v1/collections/` with `Bearer` token
-- Redirects to `/login` if no token in `localStorage`.
-- Displays own collections with headline, status, thing count, and invite count.
-- Each collection links to `/collections/{code}`.
 
 ### CollectionPage (`src/pages/CollectionPage.jsx`)
 
 - **API:** `GET /api/v1/collections/{code}/` with `Bearer` token
 - Redirects to `/login` if no token in `localStorage`.
 - Handles 403 (not authorised) and 404 (not found) with specific error messages.
-- Displays collection headline, status, description, and theeeme.
+- Displays hero image (`hero_url`, falls back to `thumbnail_url`, then `image-m` placeholder), collection headline, description, status, and theeeme.
 - **Things** are rendered using the `ThingCard` component (see below).
+- **"Editar coleccion" button** visible only to collection owner, links to `/collections/{code}/edit`.
 - **"Añadir cosa" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
-- **Invites section:** "Invitados (N)" heading is a clickable link that opens an HDS `Dialog`.
-  - Lists invited users by `userCode`.
-  - **Owner only:** "Eliminar" button per invite (`DELETE /api/v1/collections/{code}/invite/`), and email input + "Invitar" button (`POST /api/v1/collections/{code}/invite/`).
-  - Duplicate invites are rejected by the backend (400).
+- **"Gestionar invitados" button** visible only to collection owner, links to `/collections/{code}/invites`.
+- **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible.
+- **Things grid**: responsive 3-column layout (2 columns at <=768px, 1 column at <=430px).
 
 ### ThingCard (`src/components/ThingCard.jsx`)
 
-Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPage` and `HomePage`.
+Reusable component for rendering a thing as an HDS `Linkbox`. Used by `CollectionPage` and `HomePage`.
 
-- **Clickable card**: the entire card navigates to `ThingPage` on click (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). Interactive elements (buttons, links) use `stopPropagation` to prevent navigation.
+- **Linkbox**: the entire component is a clickable link to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). Arrow icon is hidden via `linkbox-no-arrow` CSS class. Interactive elements (buttons, links) use `stopPropagation` to prevent navigation.
 - Displays thumbnail (or placeholder), headline, description, type label, creation date, and fee (when present).
 - **"Editar" button** (owner only): links to edit page (collection context or standalone).
 - **"Eliminar" button** (owner only): calls `DELETE /api/v1/things/{code}/` and notifies parent via `onDelete`.
@@ -106,7 +107,7 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
 - Redirects to `/login` if no token in `localStorage`.
 - Displays thumbnail, headline, description, type, status, creation date, fee, and photo gallery (`pictures_urls`).
-- **"Volver" link**: navigates back to collection or home depending on context.
+- **Back link**: shows collection headline (from `thing.collection_headline` API field) or "Home" depending on context.
 - **Owner actions:** "Editar" button links to edit page. Accept/Reject buttons when `pending_booking` exists.
 - **Reservation:** Non-owners see "Reservar" button with same dialog logic as ThingCard.
 - **FAQs section:**
@@ -138,6 +139,34 @@ Detail page for a thing with full information and FAQs section.
 - Pre-populates all fields from the existing thing.
 - On success: navigates back to collection or home.
 
+### EditProfilePage (`src/pages/EditProfilePage.jsx`)
+
+- **API:** `GET /api/v1/auth/me/` to load, `PUT /api/v1/users/{userCode}/` to save
+- 2-step wizard using HDS `StepByStep`:
+  - **Step 1 (Detalles):** `TextInput` for name, `TextArea` for headline (bio), `TextInput` for thumbnail and hero (Cloudinary IDs).
+  - **Step 2 (Resumen):** Read-only summary, "Guardar" button.
+- Pre-populates all fields from the current user profile.
+- On success: navigates to `/`.
+
+### ManageInvitesPage (`src/pages/ManageInvitesPage.jsx`)
+
+- **API:** `GET /api/v1/collections/{code}/` to load invites, `POST /api/v1/collections/{code}/invite/` to invite, `DELETE /api/v1/collections/{code}/invite/` to remove
+- Accessible from `/collections/:code/invites`.
+- 2-step wizard using HDS `StepByStep`:
+  - **Step 1 (Invitados actuales):** Lists current invites by userCode. Owner sees "Eliminar" button per invite. "Volver" button navigates to collection.
+  - **Step 2 (Invitar):** Owner sees email input + "Invitar" button. Non-owners see a message. "Volver" button navigates to collection.
+- Each invite/remove is an immediate API call (no final submit).
+
+### EditCollectionPage (`src/pages/EditCollectionPage.jsx`)
+
+- **API:** `GET /api/v1/collections/{code}/` to load, `GET /api/v1/theeemes/` to list themes, `PATCH /api/v1/collections/{code}/` to save
+- Accessible from `/collections/:code/edit`.
+- 2-step wizard using HDS `StepByStep`:
+  - **Step 1 (Detalles):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs), `Select` for status (ACTIVE/INACTIVE), `Select` for theeeme (from API).
+  - **Step 2 (Resumen):** Read-only summary, "Cancelar" and "Guardar" buttons.
+- Pre-populates all fields from the existing collection.
+- On success: navigates to `/collections/{code}`.
+
 ### CreateCollectionPage (`src/pages/CreateCollectionPage.jsx`)
 
 - **API:** `POST /api/v1/collections/` with `Bearer` token
@@ -145,13 +174,6 @@ Detail page for a thing with full information and FAQs section.
   - **Step 1 (Detalles):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs).
   - **Step 2 (Resumen):** Read-only summary, "Cancelar" and "Crear" buttons.
 - On success: navigates to `/collections/{code}`.
-
-### InvitedCollectionsPage (`src/pages/InvitedCollectionsPage.jsx`)
-
-- **API:** `GET /api/v1/invited-collections/` with `Bearer` token
-- Redirects to `/login` if no token in `localStorage`.
-- Displays invited collections with headline, status, thing count, and invite count.
-- Each collection links to `/collections/{code}`.
 
 ### UserPage (`src/pages/UserPage.jsx`)
 

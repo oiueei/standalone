@@ -22,6 +22,32 @@ body {
   font-weight: 700;
 }
 
+div[class*="Linkbox-module_linkbox"] {
+  max-width: 400px;
+}
+
+.linkbox-no-arrow a[class*="Linkbox-module_link"] {
+  display: none;
+}
+
+.things-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .things-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 430px) {
+  .things-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .thing-thumbnail {
   width: 200px;
   height: 150px;

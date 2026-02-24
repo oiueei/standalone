@@ -4,7 +4,7 @@ Unit tests for OIUEEI serializers.
 
 import pytest
 
-from core.models import FAQ, Collection, Thing, User
+from core.models import FAQ, Collection, Theeeme, Thing, User
 from core.serializers import (
     CollectionCreateSerializer,
     CollectionSerializer,
@@ -147,6 +147,44 @@ class TestThingSerializer:
         assert data["code"] == "THNG01"
         assert data["headline"] == "My Thing"
         assert len(data["pictures_urls"]) == 2
+
+    def test_serialize_thing_with_collection(self):
+        """Should include collection_code and collection_headline."""
+        user = User.objects.create(code="OWN001", email="owner@example.com")
+        thing = Thing.objects.create(
+            code="THNG02",
+            owner=user,
+            headline="Collected Thing",
+        )
+        theeeme = Theeeme.objects.first()
+        collection = Collection.objects.create(
+            code="COL001",
+            owner=user,
+            headline="My Collection",
+            theeeme=theeeme,
+        )
+        collection.things.add(thing)
+
+        serializer = ThingSerializer(thing)
+        data = serializer.data
+
+        assert data["collection_code"] == "COL001"
+        assert data["collection_headline"] == "My Collection"
+
+    def test_serialize_thing_without_collection(self):
+        """Should return None for collection fields when thing has no collection."""
+        user = User.objects.create(code="OWN002", email="owner2@example.com")
+        thing = Thing.objects.create(
+            code="THNG03",
+            owner=user,
+            headline="Orphan Thing",
+        )
+
+        serializer = ThingSerializer(thing)
+        data = serializer.data
+
+        assert data["collection_code"] is None
+        assert data["collection_headline"] is None
 
 
 class TestThingCreateSerializer:

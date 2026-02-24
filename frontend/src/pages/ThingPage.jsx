@@ -5,6 +5,7 @@ import {
   DateInput,
   Dialog,
   Fieldset,
+  Highlight,
   NumberInput,
   Notification,
   TextArea,
@@ -131,7 +132,9 @@ export default function ThingPage() {
     ? `/collections/${code}/edit-thing/${thing.code}`
     : `/things/${thing.code}/edit`;
 
-  const backPath = code ? `/collections/${code}` : '/';
+  const collectionCode = code || thing.collection_code;
+  const backPath = collectionCode ? `/collections/${collectionCode}` : '/';
+  const backLabel = thing.collection_headline || (collectionCode ? 'Colección' : 'Home');
 
   const isDateBlocked = (date) => {
     return blockedPeriods.some((period) => {
@@ -269,7 +272,7 @@ export default function ThingPage() {
   return (
     <div className="page-container">
       <Link to={backPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; Volver
+        &larr; {backLabel}
       </Link>
 
       <div style={{ display: 'grid', gap: '1rem' }}>
@@ -318,7 +321,7 @@ export default function ThingPage() {
         {isOwner && (
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <Link to={editPath}>
-              <Button size="small">Editar</Button>
+              <Button>Editar</Button>
             </Link>
           </div>
         )}
@@ -383,6 +386,7 @@ export default function ThingPage() {
         {showButton && (
           <>
             <Button
+              style={{ width: 'fit-content' }}
               disabled={buttonDisabled}
               onClick={needsDialog ? () => setDialogOpen(true) : handleRequest}
             >
@@ -472,88 +476,93 @@ export default function ThingPage() {
 
         {/* FAQs Section */}
         <hr />
-        <h2>Preguntas frecuentes ({faqs.length})</h2>
+        <h2>¿Tienes dudas o comentarios?</h2>
 
         {faqs.length === 0 ? (
           <p>No hay preguntas todavia.</p>
         ) : (
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div style={{ display: 'grid', gap: '0.25rem' }}>
             {faqs.map((faq) => (
               <div
                 key={faq.code}
-                style={{
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  padding: '1rem',
-                  opacity: faq.is_visible === false ? 0.6 : 1,
-                }}
+                style={{ opacity: faq.is_visible === false ? 0.6 : 1 }}
               >
-                <p><strong>Pregunta:</strong> {faq.question}</p>
-                {faq.questioner_name && (
-                  <p style={{ fontSize: '0.85rem', color: '#666' }}>
-                    Por: {faq.questioner_name}
-                  </p>
-                )}
-                {faq.answer ? (
-                  <p><strong>Respuesta:</strong> {faq.answer}</p>
-                ) : (
-                  isOwner && (
-                    <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.5rem' }}>
-                      <TextArea
-                        label="Responder"
-                        value={answerTexts[faq.code] || ''}
-                        onChange={(e) =>
-                          setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
-                        }
-                      />
+                <Highlight
+                  text={faq.question}
+                  reference={faq.answer || undefined}
+                />
+                <div style={{ padding: '0 1rem 1rem' }}>
+                  {!faq.answer && (
+                    isOwner && (
+                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                        <TextArea
+                          label="Responder"
+                          value={answerTexts[faq.code] || ''}
+                          onChange={(e) =>
+                            setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
+                          }
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <Button
+                            style={{ width: 'fit-content' }}
+                            disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
+                            onClick={() => handleAnswer(faq.code)}
+                          >
+                            {answerSubmitting[faq.code] ? 'Enviando...' : 'Responder'}
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            onClick={() => handleToggleVisibility(faq)}
+                          >
+                            {faq.is_visible === false ? 'Mostrar' : 'Ocultar'}
+                          </Button>
+                          {faq.is_visible === false && (
+                            <span style={{ fontSize: '0.8rem', color: '#999' }}>
+                              (Oculta)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  )}
+                  {faq.answer && isOwner && (
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <Button
-                        size="small"
-                        disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
-                        onClick={() => handleAnswer(faq.code)}
+                        variant="secondary"
+                        onClick={() => handleToggleVisibility(faq)}
                       >
-                        {answerSubmitting[faq.code] ? 'Enviando...' : 'Responder'}
+                        {faq.is_visible === false ? 'Mostrar' : 'Ocultar'}
                       </Button>
+                      {faq.is_visible === false && (
+                        <span style={{ fontSize: '0.8rem', color: '#999' }}>
+                          (Oculta)
+                        </span>
+                      )}
                     </div>
-                  )
-                )}
-                {isOwner && (
-                  <Button
-                    size="small"
-                    variant="secondary"
-                    style={{ marginTop: '0.5rem' }}
-                    onClick={() => handleToggleVisibility(faq)}
-                  >
-                    {faq.is_visible === false ? 'Mostrar' : 'Ocultar'}
-                  </Button>
-                )}
-                {faq.is_visible === false && isOwner && (
-                  <span style={{ fontSize: '0.8rem', color: '#999', marginLeft: '0.5rem' }}>
-                    (Oculta)
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Ask question form (invited users only, not owner) */}
+
         {!isOwner && (
-          <Fieldset heading="Hacer una pregunta" border helperText="Tu pregunta sera visible para el propietario de la cosa.">
-            <div style={{ display: 'grid', gap: '0.5rem' }}>
-              <TextArea
-                label="Pregunta"
-                value={faqQuestion}
-                onChange={(e) => setFaqQuestion(e.target.value)}
-                placeholder="Escribe tu pregunta aqui..."
-              />
-              <Button
-                disabled={faqSubmitting || !faqQuestion.trim()}
-                onClick={handleAskQuestion}
-              >
-                {faqSubmitting ? 'Enviando...' : 'Enviar pregunta'}
-              </Button>
-            </div>
-          </Fieldset>
+          <div style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
+            <TextArea
+              label="Pregunta"
+              value={faqQuestion}
+              onChange={(e) => setFaqQuestion(e.target.value)}
+              placeholder="Escribe tu pregunta aqui..."
+            />
+            <Button
+              style={{ width: 'fit-content' }}
+              disabled={faqSubmitting || !faqQuestion.trim()}
+              onClick={handleAskQuestion}
+            >
+              {faqSubmitting ? 'Enviando...' : 'Enviar pregunta'}
+            </Button>
+          </div>
         )}
       </div>
 

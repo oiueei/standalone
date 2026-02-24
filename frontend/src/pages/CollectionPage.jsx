@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Button, Dialog, Notification, TextInput } from 'hds-react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Button, Linkbox, Notification } from 'hds-react';
 import ThingCard from '../components/ThingCard';
+import placeholderImg from '../assets/image-m.png';
 
 export default function CollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite);
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteToast, setInviteToast] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.fromInvite) {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -58,22 +63,56 @@ export default function CollectionPage() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">{collection.headline}</h1>
-      <p><strong>Estado:</strong> {collection.status}</p>
-      {collection.description && <p>{collection.description}</p>}
-      <p><strong>Tema:</strong> {collection.theeeme}</p>
-
-      {isOwner && (
-        <Link to={`/collections/${code}/add-thing`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-          <Button>Anadir cosa</Button>
+      {!showWelcome && (
+        <Link to="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
+          &larr; Home
         </Link>
       )}
+      <img
+        src={collection.hero_url || collection.thumbnail_url || placeholderImg}
+        alt={collection.headline}
+        style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem' }}
+      />
+      <h1 className="page-title">{collection.headline}</h1>
+      {collection.description && <p>{collection.description}</p>}
+      <p><strong>Estado:</strong> {collection.status}</p>
+      <p><strong>Tema:</strong> {collection.theeeme}</p>
 
-      <h2>Cosas ({collection.things.length})</h2>
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+        {isOwner && (
+          <Link to={`/collections/${code}/edit`}>
+            <Button>Editar coleccion</Button>
+          </Link>
+        )}
+        {isOwner && (
+          <Link to={`/collections/${code}/add-thing`}>
+            <Button>Anadir cosa</Button>
+          </Link>
+        )}
+        {isOwner && (
+          <Link to={`/collections/${code}/invites`}>
+            <Button>Gestionar invitados</Button>
+          </Link>
+        )}
+      </div>
+
+      {showWelcome && (
+        <Linkbox
+          href="/welcome"
+          onClick={() => setShowWelcome(false)}
+          heading="Welcome to OIUEEI!"
+          text="¿quieres saber más? Click aquí"
+          linkAriaLabel="Ir a Welcome"
+          linkboxAriaLabel="Welcome to OIUEEI!"
+          border
+        />
+      )}
+
+      <h2>Cosas</h2>
       {collection.things.length === 0 ? (
         <p>Sin cosas en esta coleccion.</p>
       ) : (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="things-grid">
           {[...collection.things].sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
             <ThingCard
               key={thing.code}
@@ -95,128 +134,6 @@ export default function CollectionPage() {
         </div>
       )}
 
-      <h2>
-        <a href="#" onClick={(e) => { e.preventDefault(); setDialogOpen(true); }} style={{ color: 'inherit' }}>
-          Invitados ({collection.invites.length})
-        </a>
-      </h2>
-
-      <Dialog
-        id="invites-dialog"
-        isOpen={dialogOpen}
-        aria-labelledby="invites-dialog-title"
-        close={() => setDialogOpen(false)}
-        closeButtonLabelText="Cerrar"
-        scrollable
-      >
-        <Dialog.Header id="invites-dialog-title" title="Invitados" />
-        <Dialog.Content>
-          {collection.invites.length === 0 ? (
-            <p>Sin invitados.</p>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '0.5rem' }}>
-              {collection.invites.map((inviteCode) => (
-                <li key={inviteCode} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{inviteCode}</span>
-                  {isOwner && (
-                    <Button
-                      variant="danger"
-                      size="small"
-                      onClick={async () => {
-                        const token = localStorage.getItem('token');
-                        try {
-                          const res = await fetch(`/api/v1/collections/${code}/invite/`, {
-                            method: 'DELETE',
-                            headers: {
-                              'Authorization': `Bearer ${token}`,
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ user_code: inviteCode }),
-                          });
-                          if (res.ok) {
-                            setCollection((prev) => ({
-                              ...prev,
-                              invites: prev.invites.filter((c) => c !== inviteCode),
-                            }));
-                          } else {
-                            setInviteToast({ type: 'error', message: 'Error al eliminar invitado.' });
-                          }
-                        } catch {
-                          setInviteToast({ type: 'error', message: 'Error de conexion.' });
-                        }
-                      }}
-                    >
-                      Eliminar
-                    </Button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {isOwner && (
-            <div style={{ marginTop: '1rem', display: 'grid', gap: '0.5rem' }}>
-              <TextInput
-                label="Email del invitado"
-                type="email"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="usuario@email.com"
-              />
-              <Button
-                disabled={inviteLoading || !inviteEmail.trim()}
-                onClick={async () => {
-                  const token = localStorage.getItem('token');
-                  setInviteLoading(true);
-                  setInviteToast(null);
-                  try {
-                    const res = await fetch(`/api/v1/collections/${code}/invite/`, {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({ email: inviteEmail.trim() }),
-                    });
-                    if (res.ok) {
-                      const data = await res.json();
-                      setCollection((prev) => ({
-                        ...prev,
-                        invites: [...prev.invites, data.user_code],
-                      }));
-                      setInviteEmail('');
-                      setInviteToast({ type: 'success', message: 'Invitacion enviada.' });
-                    } else {
-                      const data = await res.json().catch(() => ({}));
-                      setInviteToast({ type: 'error', message: data.detail || 'Error al enviar la invitacion.' });
-                    }
-                  } catch {
-                    setInviteToast({ type: 'error', message: 'Error de conexion.' });
-                  } finally {
-                    setInviteLoading(false);
-                  }
-                }}
-              >
-                {inviteLoading ? 'Enviando...' : 'Invitar'}
-              </Button>
-            </div>
-          )}
-        </Dialog.Content>
-      </Dialog>
-
-      {inviteToast && (
-        <Notification
-          label={inviteToast.type === 'success' ? 'Listo' : 'Error'}
-          type={inviteToast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Cerrar"
-          onClose={() => setInviteToast(null)}
-        >
-          {inviteToast.message}
-        </Notification>
-      )}
     </div>
   );
 }

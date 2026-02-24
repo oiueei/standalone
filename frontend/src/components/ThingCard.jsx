@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card, DateInput, Dialog, NumberInput, Notification } from 'hds-react';
+import { Button, Linkbox, DateInput, Dialog, NumberInput, Notification } from 'hds-react';
 import placeholderImg from '../assets/image-s.png';
 
 const TYPE_LABELS = {
@@ -121,19 +121,23 @@ export default function ThingCard({ thing, userCode, collectionCode, onDelete, o
     : `/things/${thing.code}`;
 
   return (
-    <div onClick={() => navigate(thingPath)} style={{ cursor: 'pointer' }}>
-    <Card heading={thing.headline} text={thing.description || ''} border>
-      <img
-        src={thing.thumbnail_url || placeholderImg}
-        alt={thing.headline}
-        className="thing-thumbnail"
-      />
+    <Linkbox
+      className="linkbox-no-arrow"
+      href={thingPath}
+      onClick={(e) => { e.preventDefault(); navigate(thingPath); }}
+      heading={thing.headline}
+      text={thing.description || ''}
+      imgProps={{ src: thing.thumbnail_url || placeholderImg, alt: thing.headline, className: 'thing-thumbnail' }}
+      linkAriaLabel={`Ver ${thing.headline}`}
+      linkboxAriaLabel={thing.headline}
+      border
+    >
       <p><strong>Tipo:</strong> {TYPE_LABELS[thing.type] || thing.type}</p>
       <p><strong>Creado:</strong> {new Date(thing.created).toLocaleDateString('es-ES')}</p>
       {thing.fee && <p><strong>Precio:</strong> {thing.fee} EUR</p>}
       {isOwner && (
         <Link to={editPath} onClick={(e) => e.stopPropagation()}>
-          <Button size="small">Editar</Button>
+          <Button>Editar</Button>
         </Link>
       )}
       {isOwner && thing.pending_booking && (
@@ -296,7 +300,6 @@ export default function ThingCard({ thing, userCode, collectionCode, onDelete, o
           {toast.message}
         </Notification>
       )}
-    </Card>
-    </div>
+    </Linkbox>
   );
 }

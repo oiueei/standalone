@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Select,
   StepByStep,
@@ -32,6 +32,7 @@ export default function AddThingPage() {
     navigate('/login');
   }
 
+  const [collectionHeadline, setCollectionHeadline] = useState('');
   const [type, setType] = useState('GIFT_THING');
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -41,6 +42,16 @@ export default function AddThingPage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`/api/v1/collections/${code}/`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data) => setCollectionHeadline(data.headline || ''))
+      .catch(() => {});
+  }, [token, code]);
 
   const validate = () => {
     const newErrors = {};
@@ -186,8 +197,7 @@ export default function AddThingPage() {
               </>
             )}
           </dl>
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-            <Button variant="secondary" onClick={() => navigate(`/collections/${code}`)}>Cancelar</Button>
+          <div style={{ marginTop: '1rem' }}>
             <Button disabled={submitting} onClick={handleSubmit}>
               {submitting ? 'Creando...' : 'Crear'}
             </Button>
@@ -199,6 +209,9 @@ export default function AddThingPage() {
 
   return (
     <div className="page-container">
+      <Link to={`/collections/${code}`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
+        &larr; {collectionHeadline || 'Colección'}
+      </Link>
       <StepByStep title="Anadir cosa" steps={steps} numberedList />
 
       {toast && (

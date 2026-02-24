@@ -1,26 +1,54 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { StepByStep, TextInput, TextArea, Button, Notification } from 'hds-react';
 
-export default function CreateCollectionPage() {
+export default function EditProfilePage() {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
-  if (!token) {
-    navigate('/login');
-  }
-
+  const [loading, setLoading] = useState(true);
+  const [userCode, setUserCode] = useState('');
+  const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
-  const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [hero, setHero] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/v1/auth/me/', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUserCode(data.code);
+          setName(data.name || '');
+          setHeadline(data.headline || '');
+          setThumbnail(data.thumbnail || '');
+          setHero(data.hero || '');
+        } else {
+          setToast({ type: 'error', message: 'Error al cargar el perfil.' });
+        }
+      } catch {
+        setToast({ type: 'error', message: 'Error de conexion.' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [token, navigate]);
+
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'El titulo es obligatorio.';
+    if (name.length > 32) newErrors.name = 'Maximo 32 caracteres.';
     if (headline.length > 64) newErrors.headline = 'Maximo 64 caracteres.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -31,14 +59,16 @@ export default function CreateCollectionPage() {
     setSubmitting(true);
     setToast(null);
 
-    const body = { headline: headline.trim() };
-    if (description.trim()) body.description = description.trim();
-    if (thumbnail.trim()) body.thumbnail = thumbnail.trim();
-    if (hero.trim()) body.hero = hero.trim();
+    const body = {
+      name: name.trim(),
+      headline: headline.trim(),
+      thumbnail: thumbnail.trim(),
+      hero: hero.trim(),
+    };
 
     try {
-      const res = await fetch('/api/v1/collections/', {
-        method: 'POST',
+      const res = await fetch(`/api/v1/users/${userCode}/`, {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -46,11 +76,10 @@ export default function CreateCollectionPage() {
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        const data = await res.json();
-        navigate(`/collections/${data.code}`);
+        navigate('/');
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error al crear la coleccion.';
+        const message = data.detail || Object.values(data).flat().join(' ') || 'Error al guardar.';
         setToast({ type: 'error', message });
       }
     } catch {
@@ -60,23 +89,28 @@ export default function CreateCollectionPage() {
     }
   };
 
+  if (loading) {
+    return <div className="page-container"><p>Cargando...</p></div>;
+  }
+
   const steps = [
     {
       title: 'Detalles',
       description: (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <TextInput
-            label="Titulo"
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            required
-            invalid={!!errors.headline}
-            errorText={errors.headline}
+            label="Nombre"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            invalid={!!errors.name}
+            errorText={errors.name}
           />
           <TextArea
-            label="Descripcion"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            label="Bio"
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+            invalid={!!errors.headline}
+            errorText={errors.headline}
           />
           <TextInput
             label="Thumbnail (Cloudinary ID)"
@@ -96,12 +130,12 @@ export default function CreateCollectionPage() {
       description: (
         <div>
           <dl style={{ display: 'grid', gap: '0.5rem' }}>
-            <dt><strong>Titulo</strong></dt>
-            <dd>{headline || '—'}</dd>
-            {description && (
+            <dt><strong>Nombre</strong></dt>
+            <dd>{name || '—'}</dd>
+            {headline && (
               <>
-                <dt><strong>Descripcion</strong></dt>
-                <dd>{description}</dd>
+                <dt><strong>Bio</strong></dt>
+                <dd>{headline}</dd>
               </>
             )}
             <dt><strong>Thumbnail</strong></dt>
@@ -111,7 +145,7 @@ export default function CreateCollectionPage() {
           </dl>
           <div style={{ marginTop: '1rem' }}>
             <Button disabled={submitting} onClick={handleSubmit}>
-              {submitting ? 'Creando...' : 'Crear'}
+              {submitting ? 'Guardando...' : 'Guardar'}
             </Button>
           </div>
         </div>
@@ -124,11 +158,11 @@ export default function CreateCollectionPage() {
       <Link to="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
         &larr; Home
       </Link>
-      <StepByStep title="Crear coleccion" steps={steps} numberedList />
+      <StepByStep title="Editar perfil" steps={steps} numberedList />
 
       {toast && (
         <Notification
-          label="Error"
+          label={toast.type === 'success' ? 'Listo' : 'Error'}
           type={toast.type}
           position="top-right"
           autoClose

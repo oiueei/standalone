@@ -19,7 +19,11 @@ export default function VerifyPage() {
           localStorage.setItem('token', data.token);
           localStorage.setItem('refresh', data.refresh);
           if (data.user?.code) localStorage.setItem('userCode', data.user.code);
-          navigate('/');
+          if (data.invited_collection) {
+            navigate(`/collections/${data.invited_collection}`, { state: { fromInvite: true } });
+          } else {
+            navigate('/');
+          }
         } else {
           setError(data.error || 'Enlace no valido o expirado.');
         }

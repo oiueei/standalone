@@ -3,6 +3,7 @@ from .booking import MyBookingsView, OwnerBookingsView, ThingCalendarView
 from .collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
 from .faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .things import InvitedThingsView, ThingViewSet
+from .theeemes import TheeemeListView
 from .users import UserDetailView
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "ThingCalendarView",
     "MyBookingsView",
     "OwnerBookingsView",
+    "TheeemeListView",
 ]

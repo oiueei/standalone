@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Select,
   StepByStep,
@@ -39,8 +39,8 @@ export default function EditThingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
-
-  const returnPath = code ? `/collections/${code}` : '/';
+  const [thingCollectionCode, setThingCollectionCode] = useState(code || '');
+  const [thingCollectionHeadline, setThingCollectionHeadline] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -60,6 +60,8 @@ export default function EditThingPage() {
           setThumbnail(data.thumbnail || '');
           setPictures((data.pictures || []).join(', '));
           setFee(data.fee != null ? data.fee : '');
+          if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
+          if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
           setToast({ type: 'error', message: 'Error al cargar la cosa.' });
         }
@@ -71,6 +73,9 @@ export default function EditThingPage() {
     };
     fetchThing();
   }, [token, thingCode, navigate]);
+
+  const returnPath = thingCollectionCode ? `/collections/${thingCollectionCode}` : '/';
+  const returnLabel = thingCollectionHeadline || (thingCollectionCode ? 'Colección' : 'Home');
 
   const validate = () => {
     const newErrors = {};
@@ -236,7 +241,6 @@ export default function EditThingPage() {
             )}
           </dl>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-            <Button variant="secondary" onClick={() => navigate(returnPath)}>Cancelar</Button>
             <Button disabled={submitting || deleting} onClick={handleSubmit}>
               {submitting ? 'Guardando...' : 'Guardar'}
             </Button>
@@ -251,6 +255,9 @@ export default function EditThingPage() {
 
   return (
     <div className="page-container">
+      <Link to={returnPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
+        &larr; {returnLabel}
+      </Link>
       <StepByStep title="Editar cosa" steps={steps} numberedList />
 
       {toast && (
