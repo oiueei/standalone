@@ -20,6 +20,7 @@ The `User` model represents a person who can own collections, be invited to othe
 | `headline` | CharField(64) | No | Short bio/tagline |
 | `thumbnail` | CharField(16) | No | Cloudinary image ID for avatar |
 | `hero` | CharField(16) | No | Cloudinary image ID for banner |
+| `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: HDS000 / B4s1C0) |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |
@@ -61,6 +62,12 @@ Users authenticate via magic link (passwordless). The `UserManager` handles user
 - `user.booking_requests` - Bookings requested by user (BookingPeriod.requester_code FK)
 - `user.booking_owned` - Bookings for user's things (BookingPeriod.owner_code FK)
 
+### Theeeme Relationship
+
+- Users have a FK to Theeeme with `on_delete=PROTECT` and `default="HDS000"`
+- This prevents deleting a Theeeme that is in use
+- Default Theeeme is "B4s1C0" (code: HDS000)
+
 ---
 
 ## Collection
@@ -81,13 +88,12 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
-| `theeeme` | ForeignKey(Theeeme) | **Yes** | Colour palette for the collection |
 
 ### Business Rules
 
 1. **ACTIVE by default** - A collection starts with `status="ACTIVE"`.
 
-2. **Owner manages all fields** - Only the owner can update the collection's headline, description, images, status, and theeeme. Enforced via `IsCollectionOwner` DRF permission.
+2. **Owner manages all fields** - Only the owner can update the collection's headline, description, images, and status. Enforced via `IsCollectionOwner` DRF permission.
 
 3. **Only owner adds/removes things** - The `add_thing()` and `remove_thing()` methods modify the M2M relationship.
 
@@ -105,18 +111,11 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 - `is_invited(user_code)` - Returns True if user is in invites (`self.invites.filter(code=user_code).exists()`)
 - `can_view(user_code)` - Returns True if user is owner OR invited
 
-### Theeeme Relationship
-
-- Collections have a **required** FK to Theeeme with `on_delete=PROTECT`
-- This prevents deleting a Theeeme that is in use
-- A default Theeeme ("BAR_CEL_ONA", code JMPA01) is used when creating collections without specifying one
-
 ### Validations
 
 | Field | Validation | Level | Error |
 |-------|------------|-------|-------|
 | `headline` | Required | Serializer | 400 Bad Request |
-| `theeeme` | Must exist | Serializer (SlugRelatedField) | 400 Bad Request |
 | `things` | Thing must exist | View (get_object_or_404) | 404 Not Found |
 | `things` | Thing must belong to owner | View | 403 Forbidden |
 | `owner` | From authenticated user | View | Always valid |
@@ -137,9 +136,9 @@ The `Theeeme` model represents a colour palette for customising collections. Eac
 
 ### Business Rules
 
-1. **Each collection has a theeeme** - Collections are personalised with a `theeeme` FK.
-2. **Default theeeme is BAR_CEL_ONA** (code: JMPA01).
-3. **Protected deletion** - Theeemes cannot be deleted if any collection references them (`on_delete=PROTECT`).
+1. **Each user has a theeeme** - Users are personalised with a `theeeme` FK.
+2. **Default theeeme is B4s1C0** (code: HDS000).
+3. **Protected deletion** - Theeemes cannot be deleted if any user references them (`on_delete=PROTECT`).
 
 ---
 

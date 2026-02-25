@@ -4,7 +4,7 @@ Unit tests for OIUEEI serializers.
 
 import pytest
 
-from core.models import FAQ, Collection, Theeeme, Thing, User
+from core.models import FAQ, Collection, Thing, User
 from core.serializers import (
     CollectionCreateSerializer,
     CollectionSerializer,
@@ -79,7 +79,7 @@ class TestUserPublicSerializer:
 class TestCollectionSerializer:
     """Tests for CollectionSerializer."""
 
-    def test_serialize_collection(self, default_theeeme):
+    def test_serialize_collection(self):
         """Should serialize collection with all fields."""
         user = User.objects.create(code="ABC123", email="test@example.com")
         collection = Collection.objects.create(
@@ -87,7 +87,6 @@ class TestCollectionSerializer:
             owner=user,
             headline="My Collection",
             thumbnail="thumb123",
-            theeeme=default_theeeme,
         )
         serializer = CollectionSerializer(collection)
         data = serializer.data
@@ -95,7 +94,7 @@ class TestCollectionSerializer:
         assert data["code"] == "COLL01"
         assert data["headline"] == "My Collection"
         assert data["thumbnail_url"] is not None
-        assert data["theeeme"] == "JMPA01"
+        assert "theeeme" not in data
 
 
 class TestCollectionCreateSerializer:
@@ -106,17 +105,6 @@ class TestCollectionCreateSerializer:
         serializer = CollectionCreateSerializer(
             data={
                 "headline": "My Collection",
-            }
-        )
-        assert serializer.is_valid()
-
-    @pytest.mark.django_db
-    def test_valid_collection_with_theeeme(self, default_theeeme):
-        """Should accept valid collection data with theeeme."""
-        serializer = CollectionCreateSerializer(
-            data={
-                "headline": "My Collection",
-                "theeeme": default_theeeme.code,
             }
         )
         assert serializer.is_valid()
@@ -156,12 +144,10 @@ class TestThingSerializer:
             owner=user,
             headline="Collected Thing",
         )
-        theeeme = Theeeme.objects.first()
         collection = Collection.objects.create(
             code="COL001",
             owner=user,
             headline="My Collection",
-            theeeme=theeeme,
         )
         collection.things.add(thing)
 

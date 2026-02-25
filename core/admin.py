@@ -23,7 +23,7 @@ class CollectionAdmin(admin.ModelAdmin):
         "status",
     ]
     search_fields = ["code", "headline"]
-    list_filter = ["status", "theeeme"]
+    list_filter = ["status"]
 
 
 @admin.register(Thing)

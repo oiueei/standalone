@@ -25,7 +25,7 @@ export default function UserPage() {
           if (data.code) localStorage.setItem('userCode', data.code);
           setUser(data);
         })
-        .catch(() => setError('Error al cargar el perfil.'));
+        .catch(() => setError('Error loading profile.'));
       return;
     }
 
@@ -38,14 +38,14 @@ export default function UserPage() {
           const data = await res.json();
           setUser(data);
         } else if (res.status === 403) {
-          setError('No tienes permiso para ver este perfil.');
+          setError('You do not have permission to view this profile.');
         } else if (res.status === 404) {
-          setError('Usuario no encontrado.');
+          setError('User not found.');
         } else {
-          setError('Error al cargar el perfil.');
+          setError('Error loading profile.');
         }
       } catch {
-        setError('Error de conexion con el servidor.');
+        setError('Connection error.');
       }
     };
     fetchUser();
@@ -60,7 +60,7 @@ export default function UserPage() {
   }
 
   if (!user) {
-    return <div className="page-container"><p>Cargando...</p></div>;
+    return <div className="page-container"><p>Loading...</p></div>;
   }
 
   return (

@@ -45,12 +45,6 @@ class Collection(models.Model):
         related_name="invited_to_collections",
         db_table="collection_invites",
     )
-    theeeme = models.ForeignKey(
-        "Theeeme",
-        on_delete=models.PROTECT,
-        to_field="code",
-        db_column="collection_theeeme",
-    )
 
     class Meta:
         app_label = "core"

@@ -19,6 +19,7 @@ class ThingSerializer(serializers.ModelSerializer):
     faqs = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
     pending_booking = serializers.SerializerMethodField()
+    pending_questions = serializers.SerializerMethodField()
     collection_code = serializers.SerializerMethodField()
     collection_headline = serializers.SerializerMethodField()
 
@@ -41,6 +42,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "deal",
             "available",
             "pending_booking",
+            "pending_questions",
             "collection_code",
             "collection_headline",
         ]
@@ -75,6 +77,9 @@ class ThingSerializer(serializers.ModelSerializer):
 
     def get_faqs(self, obj):
         return list(obj.faq_set.values_list("code", flat=True))
+
+    def get_pending_questions(self, obj):
+        return obj.faq_set.filter(answer="").count()
 
 
 class ImageIdListField(serializers.ListField):

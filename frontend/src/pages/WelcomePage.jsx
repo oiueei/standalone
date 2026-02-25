@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
+import { Button } from 'hds-react';
 
 export default function WelcomePage() {
   return (
     <div className="page-container">
-      <Link to={-1} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; Volver
+      <Link to="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
+        &larr; Home
       </Link>
       <h1 className="page-title">Welcome to OIUEEI!</h1>
       <p>
@@ -12,6 +13,14 @@ export default function WelcomePage() {
         friends and others around. Users can create collections (wishlists, gift lists, items for
         sale) and share them with friends who can then reserve items or ask questions.
       </p>
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+        <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
+          <Button>Create collection</Button>
+        </Link>
+        <Link to="/me/edit" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
+          <Button variant="secondary">Edit profile</Button>
+        </Link>
+      </div>
     </div>
   );
 }

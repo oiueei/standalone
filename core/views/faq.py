@@ -87,7 +87,7 @@ class ThingFAQListView(APIView):
         try:
             owner = thing.owner
             questioner_name = request.user.name or request.user.email
-            send_faq_question_email(questioner_name, thing.headline, faq.question, owner.email)
+            send_faq_question_email(questioner_name, thing, faq.question, owner.email)
         except Exception:
             pass  # Owner not found, skip email
 

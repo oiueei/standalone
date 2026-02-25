@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Notification } from 'hds-react';
-import ThingCard from '../components/ThingCard';
+import ThingLinkbox from '../components/ThingLinkbox';
 import placeholderImg from '../assets/image-m.png';
 
 export default function HomePage() {
@@ -39,7 +39,7 @@ export default function HomePage() {
           handleUnauth();
         }
       } catch {
-        setError('Error de conexion con el servidor.');
+        setError('Connection error.');
       }
     };
 
@@ -113,7 +113,7 @@ export default function HomePage() {
   }
 
   if (!user) {
-    return <div className="page-container"><p>Cargando...</p></div>;
+    return <div className="page-container"><p>Loading...</p></div>;
   }
 
   const allThings = [
@@ -128,23 +128,23 @@ export default function HomePage() {
         alt={user.name || user.email}
         style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem' }}
       />
-      <h1 className="page-title">Hola, {user.name || user.email}</h1>
+      <h1 className="page-title">Hello, {user.name || user.email}</h1>
       {user.headline && <p>{user.headline}</p>}
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
         <Link to="/collections/new">
-          <Button>Crear coleccion</Button>
+          <Button>Create collection</Button>
         </Link>
         <Link to="/me/edit">
-          <Button>Editar perfil</Button>
+          <Button>Edit profile</Button>
         </Link>
       </div>
 
-      <h2>Mis colecciones</h2>
+      <h2>My collections</h2>
       {myCollections === null ? (
-        <p>Cargando...</p>
+        <p>Loading...</p>
       ) : myCollections.length === 0 ? (
-        <p>No tienes colecciones.</p>
+        <p>You have no collections.</p>
       ) : (
         <ul>
           {myCollections.map((c) => (
@@ -153,17 +153,17 @@ export default function HomePage() {
                 <strong>{c.headline}</strong>
               </Link>
               {' — '}
-              {c.status} · {c.things.length} cosas · {c.invites.length} invitados
+              {c.status} · {c.things.length} things · {c.invites.length} guests
             </li>
           ))}
         </ul>
       )}
 
-      <h2>Colecciones invitadas</h2>
+      <h2>Shared with me</h2>
       {invitedCollections === null ? (
-        <p>Cargando...</p>
+        <p>Loading...</p>
       ) : invitedCollections.length === 0 ? (
-        <p>No tienes invitaciones a colecciones.</p>
+        <p>You have no collection invitations.</p>
       ) : (
         <ul>
           {invitedCollections.map((c) => (
@@ -172,21 +172,21 @@ export default function HomePage() {
                 <strong>{c.headline}</strong>
               </Link>
               {' — '}
-              {c.status} · {c.things.length} cosas · {c.invites.length} invitados
+              {c.status} · {c.things.length} things · {c.invites.length} guests
             </li>
           ))}
         </ul>
       )}
 
-      <h2>Todas las cosas</h2>
+      <h2>All things</h2>
       {myThings === null || invitedThings === null ? (
-        <p>Cargando...</p>
+        <p>Loading...</p>
       ) : allThings.length === 0 ? (
-        <p>No tienes cosas.</p>
+        <p>You have no things.</p>
       ) : (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="things-grid">
           {allThings.map((thing) => (
-            <ThingCard
+            <ThingLinkbox
               key={thing.code}
               thing={thing}
               userCode={localStorage.getItem('userCode')}

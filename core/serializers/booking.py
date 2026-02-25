@@ -68,6 +68,8 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
             "requester_code",
             "start_date",
             "end_date",
+            "delivery_date",
+            "quantity",
             "status",
         ]
 

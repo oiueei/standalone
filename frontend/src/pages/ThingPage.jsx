@@ -2,33 +2,26 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Button,
-  DateInput,
-  Dialog,
   Fieldset,
   Highlight,
-  NumberInput,
   Notification,
+  Tag,
   TextArea,
 } from 'hds-react';
 import placeholderImg from '../assets/image-s.png';
 
 const TYPE_LABELS = {
-  GIFT_THING: 'Regalo',
-  SELL_THING: 'Venta',
-  ORDER_THING: 'Pedido',
-  RENT_THING: 'Alquiler',
-  LEND_THING: 'Prestamo',
-  SHARE_THING: 'Compartir',
+  GIFT_THING: 'Gift',
+  SELL_THING: 'Sale',
+  ORDER_THING: 'Order',
+  RENT_THING: 'Rental',
+  LEND_THING: 'Lend',
+  SHARE_THING: 'Share',
 };
 
 const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'SHARE_THING'];
 const ORDER_TYPE = 'ORDER_THING';
-
-const TODAY = new Date();
-TODAY.setHours(0, 0, 0, 0);
-const MAX_DATE = new Date(TODAY);
-MAX_DATE.setDate(MAX_DATE.getDate() + 90);
-const RANGE_ERROR = 'La fecha debe estar entre hoy y 90 dias a partir de hoy.';
+const DIRECT_TYPES = ['GIFT_THING', 'SELL_THING'];
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -41,15 +34,8 @@ export default function ThingPage() {
   const [toast, setToast] = useState(null);
 
   // Reservation state
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState('');
-  const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [requested, setRequested] = useState(false);
-  const [attempted, setAttempted] = useState(false);
-  const [blockedPeriods, setBlockedPeriods] = useState([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [bookingAction, setBookingAction] = useState(false);
 
   // FAQ state
@@ -73,14 +59,14 @@ export default function ThingPage() {
         if (res.ok) {
           setThing(await res.json());
         } else if (res.status === 403) {
-          setError('No tienes permiso para ver esta cosa.');
+          setError('You do not have permission to view this thing.');
         } else if (res.status === 404) {
-          setError('Cosa no encontrada.');
+          setError('Thing not found.');
         } else {
-          setError('Error al cargar la cosa.');
+          setError('Error loading thing.');
         }
       } catch {
-        setError('Error de conexion con el servidor.');
+        setError('Connection error.');
       }
     };
 
@@ -98,17 +84,6 @@ export default function ThingPage() {
     fetchFaqs();
   }, [token, thingCode, navigate]);
 
-  // Fetch blocked periods for date-based types
-  useEffect(() => {
-    if (!thing || !DATE_TYPES.includes(thing.type) || !token) return;
-    fetch(`/api/v1/things/${thing.code}/calendar/`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => setBlockedPeriods(data))
-      .catch(() => {});
-  }, [thing, token]);
-
   if (error) {
     return (
       <div className="page-container">
@@ -118,13 +93,11 @@ export default function ThingPage() {
   }
 
   if (!thing) {
-    return <div className="page-container"><p>Cargando...</p></div>;
+    return <div className="page-container"><p>Loading...</p></div>;
   }
 
   const isOwner = thing.owner === userCode;
-  const isDateBased = DATE_TYPES.includes(thing.type);
-  const isOrder = thing.type === ORDER_TYPE;
-  const needsDialog = isDateBased || isOrder;
+  const needsPage = DATE_TYPES.includes(thing.type) || thing.type === ORDER_TYPE;
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
@@ -134,32 +107,13 @@ export default function ThingPage() {
 
   const collectionCode = code || thing.collection_code;
   const backPath = collectionCode ? `/collections/${collectionCode}` : '/';
-  const backLabel = thing.collection_headline || (collectionCode ? 'Colección' : 'Home');
+  const backLabel = thing.collection_headline || (collectionCode ? 'Collection' : 'Home');
 
-  const isDateBlocked = (date) => {
-    return blockedPeriods.some((period) => {
-      const start = new Date(period.start_date);
-      const end = new Date(period.end_date);
-      start.setHours(0, 0, 0, 0);
-      end.setHours(0, 0, 0, 0);
-      const d = new Date(date);
-      d.setHours(0, 0, 0, 0);
-      return d >= start && d <= end;
-    });
-  };
+  const requestPath = code
+    ? `/collections/${code}/things/${thing.code}/request`
+    : `/things/${thing.code}/request`;
 
   const handleRequest = async () => {
-    setAttempted(true);
-
-    let body = {};
-    if (isDateBased) {
-      if (!startDate || !endDate) return;
-      body = { start_date: startDate, end_date: endDate };
-    } else if (isOrder) {
-      if (!deliveryDate || quantity < 1) return;
-      body = { delivery_date: deliveryDate, quantity };
-    }
-
     setSubmitting(true);
     setToast(null);
     try {
@@ -169,22 +123,19 @@ export default function ThingPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({}),
       });
       if (res.ok) {
         setRequested(true);
-        setDialogOpen(false);
-        setToast({ type: 'success', message: 'Solicitud enviada.' });
+        setToast({ type: 'success', message: 'Request sent.' });
       } else if (res.status === 400) {
         const data = await res.json();
-        setToast({ type: 'error', message: data.detail || 'Solicitud no valida.' });
-      } else if (res.status === 409) {
-        setToast({ type: 'error', message: 'La fecha se solapa con otra reserva.' });
+        setToast({ type: 'error', message: data.detail || 'Invalid request.' });
       } else {
-        setToast({ type: 'error', message: 'Error al enviar la solicitud.' });
+        setToast({ type: 'error', message: 'Error sending request.' });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion con el servidor.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
     }
@@ -207,13 +158,13 @@ export default function ThingPage() {
         const newFaq = await res.json();
         setFaqs((prev) => [...prev, newFaq]);
         setFaqQuestion('');
-        setToast({ type: 'success', message: 'Pregunta enviada.' });
+        setToast({ type: 'success', message: 'Question sent.' });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || 'Error al enviar la pregunta.' });
+        setToast({ type: 'error', message: data.detail || 'Error sending question.' });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setFaqSubmitting(false);
     }
@@ -237,13 +188,13 @@ export default function ThingPage() {
         const updated = await res.json();
         setFaqs((prev) => prev.map((f) => (f.code === faqCode ? { ...f, ...updated } : f)));
         setAnswerTexts((prev) => ({ ...prev, [faqCode]: '' }));
-        setToast({ type: 'success', message: 'Respuesta enviada.' });
+        setToast({ type: 'success', message: 'Answer sent.' });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || 'Error al responder.' });
+        setToast({ type: 'error', message: data.detail || 'Error sending answer.' });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setAnswerSubmitting((prev) => ({ ...prev, [faqCode]: false }));
     }
@@ -262,10 +213,10 @@ export default function ThingPage() {
           prev.map((f) => (f.code === faq.code ? { ...f, is_visible: !faq.is_visible } : f))
         );
       } else {
-        setToast({ type: 'error', message: `Error al ${action === 'hide' ? 'ocultar' : 'mostrar'} la pregunta.` });
+        setToast({ type: 'error', message: `Error ${action === 'hide' ? 'hiding' : 'showing'} the question.` });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     }
   };
 
@@ -282,20 +233,32 @@ export default function ThingPage() {
           style={{ maxWidth: '400px', width: '100%', borderRadius: '4px' }}
         />
 
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+          <Tag>{TYPE_LABELS[thing.type] || thing.type}</Tag>
+          {isOwner && thing.status === 'TAKEN' && (
+            <Tag theme={{ '--tag-background': '#fff4e5', '--tag-color': '#b54708' }}>Taken</Tag>
+          )}
+          {isOwner && thing.status === 'INACTIVE' && (
+            <Tag theme={{ '--tag-background': '#e8e8e8', '--tag-color': '#525252' }}>Inactive</Tag>
+          )}
+          {isOwner && !thing.available && (
+            <Tag theme={{ '--tag-background': '#f5e6e6', '--tag-color': '#b01038' }}>Unavailable</Tag>
+          )}
+          {isOwner && thing.pending_questions > 0 && (
+            <Tag theme={{ '--tag-background': '#fff4e5', '--tag-color': '#b54708' }}>Pending questions</Tag>
+          )}
+        </div>
+
         <h1 className="page-title">{thing.headline}</h1>
 
         {thing.description && <p>{thing.description}</p>}
 
         <dl style={{ display: 'grid', gap: '0.5rem' }}>
-          <dt><strong>Tipo</strong></dt>
-          <dd>{TYPE_LABELS[thing.type] || thing.type}</dd>
-          <dt><strong>Estado</strong></dt>
-          <dd>{thing.status}</dd>
-          <dt><strong>Creado</strong></dt>
-          <dd>{new Date(thing.created).toLocaleDateString('es-ES')}</dd>
+          <dt><strong>Created</strong></dt>
+          <dd>{new Date(thing.created).toLocaleDateString('en-GB')}</dd>
           {thing.fee && (
             <>
-              <dt><strong>Precio</strong></dt>
+              <dt><strong>Price</strong></dt>
               <dd>{thing.fee} EUR</dd>
             </>
           )}
@@ -303,13 +266,13 @@ export default function ThingPage() {
 
         {thing.pictures_urls && thing.pictures_urls.length > 0 && (
           <div>
-            <h2>Fotos</h2>
+            <h2>Photos</h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {thing.pictures_urls.map((url, i) => (
                 <img
                   key={i}
                   src={url}
-                  alt={`${thing.headline} foto ${i + 1}`}
+                  alt={`${thing.headline} photo ${i + 1}`}
                   style={{ maxWidth: '200px', borderRadius: '4px' }}
                 />
               ))}
@@ -321,7 +284,7 @@ export default function ThingPage() {
         {isOwner && (
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <Link to={editPath}>
-              <Button>Editar</Button>
+              <Button>Edit</Button>
             </Link>
           </div>
         )}
@@ -339,19 +302,19 @@ export default function ThingPage() {
                   });
                   if (res.ok) {
                     setThing((prev) => ({ ...prev, status: 'INACTIVE', pending_booking: null }));
-                    setToast({ type: 'success', message: 'Reserva aceptada.' });
+                    setToast({ type: 'success', message: 'Hold confirmed.' });
                   } else {
                     const data = await res.json().catch(() => ({}));
-                    setToast({ type: 'error', message: data.error || 'Error al aceptar.' });
+                    setToast({ type: 'error', message: data.error || 'Error confirming hold.' });
                   }
                 } catch {
-                  setToast({ type: 'error', message: 'Error de conexion.' });
+                  setToast({ type: 'error', message: 'Connection error.' });
                 } finally {
                   setBookingAction(false);
                 }
               }}
             >
-              Aceptar
+              Confirm hold
             </Button>
             <Button
               variant="danger"
@@ -365,121 +328,40 @@ export default function ThingPage() {
                   });
                   if (res.ok) {
                     setThing((prev) => ({ ...prev, status: 'ACTIVE', pending_booking: null }));
-                    setToast({ type: 'success', message: 'Reserva rechazada.' });
+                    setToast({ type: 'success', message: 'Hold cancelled.' });
                   } else {
                     const data = await res.json().catch(() => ({}));
-                    setToast({ type: 'error', message: data.error || 'Error al rechazar.' });
+                    setToast({ type: 'error', message: data.error || 'Error cancelling hold.' });
                   }
                 } catch {
-                  setToast({ type: 'error', message: 'Error de conexion.' });
+                  setToast({ type: 'error', message: 'Connection error.' });
                 } finally {
                   setBookingAction(false);
                 }
               }}
             >
-              Rechazar
+              Cancel hold
             </Button>
           </div>
         )}
 
         {/* Reservation button for invited users */}
         {showButton && (
-          <>
-            <Button
-              style={{ width: 'fit-content' }}
-              disabled={buttonDisabled}
-              onClick={needsDialog ? () => setDialogOpen(true) : handleRequest}
-            >
-              {submitting ? 'Enviando...' : 'Reservar'}
-            </Button>
-
-            {needsDialog && (
-              <Dialog
-                id={`reserve-dialog-${thing.code}`}
-                isOpen={dialogOpen}
-                aria-labelledby={`reserve-dialog-title-${thing.code}`}
-                close={() => setDialogOpen(false)}
-                closeButtonLabelText="Cerrar"
-                scrollable
-              >
-                <Dialog.Header id={`reserve-dialog-title-${thing.code}`} title={`Reservar: ${thing.headline}`} />
-                <Dialog.Content style={{ minHeight: '600px' }}>
-                  {isDateBased && (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <DateInput
-                        label="Inicio"
-                        value={startDate}
-                        onChange={(value) => setStartDate(value)}
-                        dateFormat="yyyy-MM-dd"
-                        language="en"
-                        required
-                        invalid={attempted && !startDate}
-                        errorText={attempted && !startDate ? 'La fecha de inicio es obligatoria.' : undefined}
-                        minDate={TODAY}
-                        maxDate={MAX_DATE}
-                        dateOutsideRangeErrorText={RANGE_ERROR}
-                        isDateDisabledBy={isDateBlocked}
-                        malformedDateErrorText="La fecha se solapa con otra reserva."
-                      />
-                      <DateInput
-                        label="Fin"
-                        value={endDate}
-                        onChange={(value) => setEndDate(value)}
-                        dateFormat="yyyy-MM-dd"
-                        language="en"
-                        required
-                        invalid={attempted && !endDate}
-                        errorText={attempted && !endDate ? 'La fecha de fin es obligatoria.' : undefined}
-                        minDate={TODAY}
-                        maxDate={MAX_DATE}
-                        dateOutsideRangeErrorText={RANGE_ERROR}
-                        isDateDisabledBy={isDateBlocked}
-                        malformedDateErrorText="La fecha se solapa con otra reserva."
-                      />
-                    </div>
-                  )}
-                  {isOrder && (
-                    <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      <DateInput
-                        label="Entrega"
-                        value={deliveryDate}
-                        onChange={(value) => setDeliveryDate(value)}
-                        dateFormat="yyyy-MM-dd"
-                        language="en"
-                        required
-                        invalid={attempted && !deliveryDate}
-                        errorText={attempted && !deliveryDate ? 'La fecha de entrega es obligatoria.' : undefined}
-                        minDate={TODAY}
-                        maxDate={MAX_DATE}
-                        dateOutsideRangeErrorText={RANGE_ERROR}
-                      />
-                      <NumberInput
-                        label="Cantidad"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Number(e.target.value))}
-                        min={1}
-                        step={1}
-                      />
-                    </div>
-                  )}
-                </Dialog.Content>
-                <Dialog.ActionButtons>
-                  <Button variant="secondary" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                  <Button disabled={submitting} onClick={handleRequest}>
-                    {submitting ? 'Enviando...' : 'Reservar'}
-                  </Button>
-                </Dialog.ActionButtons>
-              </Dialog>
-            )}
-          </>
+          <Button
+            style={{ width: 'fit-content' }}
+            disabled={buttonDisabled}
+            onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
+          >
+            {submitting ? 'Sending...' : 'Hold'}
+          </Button>
         )}
 
         {/* FAQs Section */}
         <hr />
-        <h2>¿Tienes dudas o comentarios?</h2>
+        <h2>Questions or comments?</h2>
 
         {faqs.length === 0 ? (
-          <p>No hay preguntas todavia.</p>
+          <p>No questions yet.</p>
         ) : (
           <div style={{ display: 'grid', gap: '0.25rem' }}>
             {faqs.map((faq) => (
@@ -496,7 +378,7 @@ export default function ThingPage() {
                     isOwner && (
                       <div style={{ display: 'grid', gap: '0.5rem' }}>
                         <TextArea
-                          label="Responder"
+                          label="Reply"
                           value={answerTexts[faq.code] || ''}
                           onChange={(e) =>
                             setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
@@ -508,17 +390,17 @@ export default function ThingPage() {
                             disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
                             onClick={() => handleAnswer(faq.code)}
                           >
-                            {answerSubmitting[faq.code] ? 'Enviando...' : 'Responder'}
+                            {answerSubmitting[faq.code] ? 'Sending...' : 'Reply'}
                           </Button>
                           <Button
                             variant="secondary"
                             onClick={() => handleToggleVisibility(faq)}
                           >
-                            {faq.is_visible === false ? 'Mostrar' : 'Ocultar'}
+                            {faq.is_visible === false ? 'Show' : 'Hide'}
                           </Button>
                           {faq.is_visible === false && (
                             <span style={{ fontSize: '0.8rem', color: '#999' }}>
-                              (Oculta)
+                              (Hidden)
                             </span>
                           )}
                         </div>
@@ -531,11 +413,11 @@ export default function ThingPage() {
                         variant="secondary"
                         onClick={() => handleToggleVisibility(faq)}
                       >
-                        {faq.is_visible === false ? 'Mostrar' : 'Ocultar'}
+                        {faq.is_visible === false ? 'Show' : 'Hide'}
                       </Button>
                       {faq.is_visible === false && (
                         <span style={{ fontSize: '0.8rem', color: '#999' }}>
-                          (Oculta)
+                          (Hidden)
                         </span>
                       )}
                     </div>
@@ -550,17 +432,17 @@ export default function ThingPage() {
         {!isOwner && (
           <div style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
             <TextArea
-              label="Pregunta"
+              label="Question"
               value={faqQuestion}
               onChange={(e) => setFaqQuestion(e.target.value)}
-              placeholder="Escribe tu pregunta aqui..."
+              placeholder="Write your question here..."
             />
             <Button
               style={{ width: 'fit-content' }}
               disabled={faqSubmitting || !faqQuestion.trim()}
               onClick={handleAskQuestion}
             >
-              {faqSubmitting ? 'Enviando...' : 'Enviar pregunta'}
+              {faqSubmitting ? 'Sending...' : 'Send question'}
             </Button>
           </div>
         )}
@@ -568,12 +450,12 @@ export default function ThingPage() {
 
       {toast && (
         <Notification
-          label={toast.type === 'success' ? 'Listo' : 'Error'}
+          label={toast.type === 'success' ? 'Done' : 'Error'}
           type={toast.type}
           position="top-right"
           autoClose
           dismissible
-          closeButtonLabelText="Cerrar"
+          closeButtonLabelText="Close"
           onClose={() => setToast(null)}
         >
           {toast.message}

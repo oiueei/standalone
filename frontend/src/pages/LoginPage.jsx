@@ -28,17 +28,17 @@ export default function LoginPage() {
       const data = await res.json();
       if (res.ok) {
         setStatus('success');
-        setMessage('Enlace enviado. Revisa tu correo.');
+        setMessage('Magic link sent. Check your email.');
       } else if (res.status === 404) {
         setStatus('alert');
-        setMessage(data.error || 'No existe una cuenta con ese email.');
+        setMessage(data.error || 'No account found with that email.');
       } else {
         setStatus('error');
-        setMessage(data.error || data.detail || 'Error al enviar el enlace.');
+        setMessage(data.error || data.detail || 'Error sending link.');
       }
     } catch {
       setStatus('error');
-      setMessage('Error de conexion con el servidor.');
+      setMessage('Connection error.');
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export default function LoginPage() {
       <h1 className="page-title">OIUEEI</h1>
 
       {status ? (
-        <Notification label={status === 'success' ? 'Enviado' : status === 'alert' ? 'Aviso' : 'Error'} type={status}>
+        <Notification label={status === 'success' ? 'Sent' : status === 'alert' ? 'Warning' : 'Error'} type={status}>
           {message}
         </Notification>
       ) : (
@@ -58,14 +58,14 @@ export default function LoginPage() {
             id="login-email"
             label="Email"
             type="email"
-            placeholder="tu@email.com"
+            placeholder="you@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             style={{ marginBottom: '1rem' }}
           />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Enviando...' : 'Enviar enlace de acceso'}
+            {loading ? 'Sending...' : 'Sign in'}
           </Button>
         </form>
       )}

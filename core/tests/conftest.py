@@ -11,8 +11,20 @@ from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
 
 @pytest.fixture(autouse=True)
 def default_theeeme(db):
-    """Create the default theeeme for all tests."""
-    theeeme, _ = Theeeme.objects.get_or_create(
+    """Create the default theeemes for all tests."""
+    hds, _ = Theeeme.objects.get_or_create(
+        code="HDS000",
+        defaults={
+            "name": "B4s1C0",
+            "color_01": "0072C6",
+            "color_02": "00D7A7",
+            "color_03": "FFC61E",
+            "color_04": "FD4F00",
+            "color_05": "9FC9EB",
+            "color_06": "F5F5F5",
+        },
+    )
+    Theeeme.objects.get_or_create(
         code="JMPA01",
         defaults={
             "name": "BAR_CEL_ONA",
@@ -24,7 +36,7 @@ def default_theeeme(db):
             "color_06": "FFF2EB",
         },
     )
-    return theeeme
+    return hds
 
 
 @pytest.fixture
@@ -86,13 +98,12 @@ def theeeme(default_theeeme):
 
 
 @pytest.fixture
-def collection(db, user, theeeme):
+def collection(db, user):
     """Create a test collection."""
     coll = Collection.objects.create(
         code="COLL01",
         owner=user,
         headline="Test Collection",
-        theeeme=theeeme,
     )
     return coll
 

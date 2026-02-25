@@ -1185,7 +1185,7 @@ class TestDateBasedThingCompleteFlow:
         assert len(mail.outbox) == 1
         requester_email = mail.outbox[0]
         assert user2.email in requester_email.to
-        assert "aceptada" in requester_email.body.lower()
+        assert "confirmed" in requester_email.body.lower()
         assert str(start) in requester_email.body
 
         # Verify thing stays ACTIVE
@@ -1221,7 +1221,7 @@ class TestDateBasedThingCompleteFlow:
         assert len(mail.outbox) == 1
         requester_email = mail.outbox[0]
         assert user2.email in requester_email.to
-        assert "rechazada" in requester_email.body.lower()
+        assert "cancelled" in requester_email.body.lower()
 
         # Verify thing stays ACTIVE
         lend_thing.refresh_from_db()

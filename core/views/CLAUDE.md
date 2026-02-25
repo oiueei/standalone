@@ -155,7 +155,7 @@ Returns user profile. Own profile returns full data (`UserSerializer`), other pr
 | **Endpoint** | `PUT /api/v1/users/{user_code}/` |
 | **Permission** | `IsAuthenticated` + own profile only |
 
-Updates own profile via `UserUpdateSerializer` (partial update). Returns 403 if attempting to update another user.
+Updates own profile via `UserUpdateSerializer` (partial update). Accepts optional `theeeme` field (Theeeme code). Returns 403 if attempting to update another user.
 
 ---
 
@@ -227,9 +227,7 @@ Lists things from collections where the current user is invited. Only returns th
 
 **Queryset:** Own collections only, ordered by `-created`.
 
-**Retrieve:** Uses `collection.can_view(user_code)` — owner or in invites M2M.
-
-**Create:** If no `theeeme` provided, defaults to `JMPA01` (BAR_CEL_ONA).
+**Retrieve:** Uses `collection.can_view(user_code)` — owner or in invites M2M. The `CollectionSerializer.things` field filters out unavailable things (`available=False`) for non-owners, so invited users only see things they can access.
 
 **Add thing:** Validates thing exists, belongs to user, and is not already in collection.
 
@@ -289,7 +287,7 @@ Lists FAQs for a thing. Owner sees all FAQs (including hidden). Invited users se
 | **Endpoint** | `POST /api/v1/things/{thing_code}/faq/` |
 | **Permission** | `IsAuthenticated` + `thing.can_view()` + not owner |
 
-Creates a new FAQ question. Owner cannot ask questions about their own thing (400). Sends notification email to thing owner.
+Creates a new FAQ question. Owner cannot ask questions about their own thing (400). Sends notification email to thing owner with a "View and reply" link to the thing page.
 
 **Request body:**
 ```json
@@ -326,7 +324,7 @@ Answers a FAQ. Sends notification email to questioner.
 | **Endpoint** | `POST /api/v1/faq/{faq_code}/hide/` |
 | **Permission** | `IsAuthenticated` + thing owner only |
 
-Hides a FAQ. Sends notification email to questioner.
+Hides a FAQ. Sends notification email to questioner (includes thing headline only, no question text).
 
 | | |
 |---|---|
@@ -506,7 +504,7 @@ Creates a reservation/booking request. Routes based on thing type:
 - All views use `get_object_or_404` for consistent 404 responses.
 - `ThingViewSet` and `CollectionViewSet` use DRF `ModelViewSet` with `DefaultRouter`.
 - `ThingUpdateSerializer` has `status` as read-only to prevent direct status manipulation. `type` is editable.
-- `ThingSerializer` and `CollectionThingSummarySerializer` include `pending_booking` (first PENDING booking code, or null).
+- `ThingSerializer` and `CollectionThingSummarySerializer` include `pending_booking` (first PENDING booking code, or null) and `pending_questions` (count of unanswered FAQs).
 - Accept/reject actions can be performed via the unified RSVP endpoint (`VerifyLinkView`) for email links, or via authenticated `BookingActionView` endpoints for in-app use. Both paths reuse the same `accept_booking()`/`reject_booking()` service functions.
 - All email links use RSVP codes as intermediaries to avoid exposing real object codes in URLs.
 - Security events are logged to the `security` logger with IP addresses.

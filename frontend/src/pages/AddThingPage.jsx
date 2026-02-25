@@ -11,12 +11,12 @@ import {
 } from 'hds-react';
 
 const TYPE_OPTIONS = [
-  { label: 'Regalo', value: 'GIFT_THING' },
-  { label: 'Venta', value: 'SELL_THING' },
-  { label: 'Pedido', value: 'ORDER_THING' },
-  { label: 'Alquiler', value: 'RENT_THING' },
-  { label: 'Prestamo', value: 'LEND_THING' },
-  { label: 'Compartir', value: 'SHARE_THING' },
+  { label: 'Gift', value: 'GIFT_THING' },
+  { label: 'Sale', value: 'SELL_THING' },
+  { label: 'Order', value: 'ORDER_THING' },
+  { label: 'Rental', value: 'RENT_THING' },
+  { label: 'Lend', value: 'LEND_THING' },
+  { label: 'Share', value: 'SHARE_THING' },
 ];
 
 const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
@@ -55,11 +55,11 @@ export default function AddThingPage() {
 
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'El titulo es obligatorio.';
-    if (headline.length > 64) newErrors.headline = 'Maximo 64 caracteres.';
-    if (thumbnail.length > 16) newErrors.thumbnail = 'Maximo 16 caracteres.';
+    if (!headline.trim()) newErrors.headline = 'Title is required.';
+    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
+    if (thumbnail.length > 16) newErrors.thumbnail = 'Maximum 16 characters.';
     if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
-      newErrors.fee = 'El precio es obligatorio para este tipo.';
+      newErrors.fee = 'Price is required for this type.';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -97,11 +97,11 @@ export default function AddThingPage() {
         navigate(`/collections/${code}`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error al crear la cosa.';
+        const message = data.detail || Object.values(data).flat().join(' ') || 'Error creating thing.';
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion con el servidor.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +109,7 @@ export default function AddThingPage() {
 
   const steps = [
     {
-      title: 'Tipo',
+      title: 'Type',
       description: (
         <Select
           options={TYPE_OPTIONS}
@@ -123,11 +123,11 @@ export default function AddThingPage() {
       ),
     },
     {
-      title: 'Detalles',
+      title: 'Details',
       description: (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <TextInput
-            label="Titulo"
+            label="Title"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
             required
@@ -135,7 +135,7 @@ export default function AddThingPage() {
             errorText={errors.headline}
           />
           <TextArea
-            label="Descripcion"
+            label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -147,17 +147,16 @@ export default function AddThingPage() {
             errorText={errors.thumbnail}
           />
           <TextInput
-            label="Fotos (IDs separados por comas)"
+            label="Photos (comma-separated IDs)"
             value={pictures}
             onChange={(e) => setPictures(e.target.value)}
           />
           {FEE_TYPES.includes(type) && (
             <NumberInput
-              label="Precio"
+              label="Price"
               value={fee === '' ? '' : Number(fee)}
               onChange={(e) => setFee(e.target.value)}
               min={0}
-              step={0.01}
               unit="EUR"
               required
               invalid={!!errors.fee}
@@ -168,17 +167,17 @@ export default function AddThingPage() {
       ),
     },
     {
-      title: 'Resumen',
+      title: 'Summary',
       description: (
         <div>
           <dl style={{ display: 'grid', gap: '0.5rem' }}>
-            <dt><strong>Tipo</strong></dt>
+            <dt><strong>Type</strong></dt>
             <dd>{TYPE_LABELS[type]}</dd>
-            <dt><strong>Titulo</strong></dt>
+            <dt><strong>Title</strong></dt>
             <dd>{headline || '—'}</dd>
             {description && (
               <>
-                <dt><strong>Descripcion</strong></dt>
+                <dt><strong>Description</strong></dt>
                 <dd>{description}</dd>
               </>
             )}
@@ -186,20 +185,20 @@ export default function AddThingPage() {
             <dd>{thumbnail || '—'}</dd>
             {pictures && (
               <>
-                <dt><strong>Fotos</strong></dt>
+                <dt><strong>Photos</strong></dt>
                 <dd>{pictures}</dd>
               </>
             )}
             {FEE_TYPES.includes(type) && fee !== '' && (
               <>
-                <dt><strong>Precio</strong></dt>
+                <dt><strong>Price</strong></dt>
                 <dd>{fee} EUR</dd>
               </>
             )}
           </dl>
           <div style={{ marginTop: '1rem' }}>
             <Button disabled={submitting} onClick={handleSubmit}>
-              {submitting ? 'Creando...' : 'Crear'}
+              {submitting ? 'Creating...' : 'Create'}
             </Button>
           </div>
         </div>
@@ -210,9 +209,9 @@ export default function AddThingPage() {
   return (
     <div className="page-container">
       <Link to={`/collections/${code}`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {collectionHeadline || 'Colección'}
+        &larr; {collectionHeadline || 'Collection'}
       </Link>
-      <StepByStep title="Anadir cosa" steps={steps} numberedList />
+      <StepByStep title="Add thing" steps={steps} numberedList />
 
       {toast && (
         <Notification
@@ -221,7 +220,7 @@ export default function AddThingPage() {
           position="top-right"
           autoClose
           dismissible
-          closeButtonLabelText="Cerrar"
+          closeButtonLabelText="Close"
           onClose={() => setToast(null)}
         >
           {toast.message}

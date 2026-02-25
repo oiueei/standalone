@@ -165,16 +165,6 @@ class TestCollectionViews:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["headline"] == "New Collection"
 
-    def test_create_collection_uses_default_theeeme(self, authenticated_client):
-        """Should use default theeeme (BAR_CEL_ONA) when not specified."""
-        response = authenticated_client.post(
-            "/api/v1/collections/",
-            {"headline": "New Collection"},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["theeeme"] == "JMPA01"
-
     def test_create_collection_without_headline_fails(self, authenticated_client):
         """Should fail to create collection without headline."""
         response = authenticated_client.post(
@@ -184,19 +174,6 @@ class TestCollectionViews:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "headline" in response.data
-
-    def test_create_collection_with_invalid_theeeme_fails(self, authenticated_client):
-        """Should fail to create collection with non-existent theeeme."""
-        response = authenticated_client.post(
-            "/api/v1/collections/",
-            {
-                "headline": "New Collection",
-                "theeeme": "NOEXST",
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "theeeme" in response.data
 
     def test_get_collection(self, authenticated_client, collection):
         """Should get collection details."""
@@ -213,22 +190,6 @@ class TestCollectionViews:
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["headline"] == "Updated Collection"
-
-    def test_update_collection_theeeme_denied_for_non_owner(self, user, user2, collection):
-        """Should deny theeeme update for non-owner."""
-        from rest_framework.test import APIClient
-        from rest_framework_simplejwt.tokens import RefreshToken
-
-        client2 = APIClient()
-        refresh = RefreshToken.for_user(user2)
-        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
-
-        response = client2.put(
-            f"/api/v1/collections/{collection.code}/",
-            {"theeeme": "JMPA01"},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_delete_collection(self, authenticated_client, collection):
         """Should delete collection."""
@@ -375,8 +336,7 @@ class TestCollectionViews:
         # Check email was sent to removed user
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [user2.email]
-        assert "revocado" in mail.outbox[0].subject
-        assert collection.headline in mail.outbox[0].subject
+        assert "revoked" in mail.outbox[0].subject
 
     def test_remove_invite_denied_for_non_owner(self, user, user2, collection):
         """Should deny removing invite for non-owner."""
@@ -721,7 +681,7 @@ class TestFAQViews:
         # Check email was sent to owner
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [user.email]
-        assert "Nueva pregunta" in mail.outbox[0].subject
+        assert "question to be answered" in mail.outbox[0].subject
 
     def test_answer_faq_sends_email_to_questioner(self, authenticated_client, user, user2, faq):
         """Answering FAQ should send email to questioner."""
@@ -737,7 +697,7 @@ class TestFAQViews:
         # Check email was sent to questioner
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [user2.email]
-        assert "respondida" in mail.outbox[0].subject
+        assert "has been answered" in mail.outbox[0].subject
 
     def test_hide_faq_sends_email_to_questioner(self, authenticated_client, user, user2, faq):
         """Hiding FAQ should send email to questioner."""
@@ -749,7 +709,7 @@ class TestFAQViews:
         # Check email was sent to questioner
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == [user2.email]
-        assert "ocultada" in mail.outbox[0].subject
+        assert "has been hidden" in mail.outbox[0].subject
 
 
 @pytest.mark.django_db
@@ -929,9 +889,7 @@ class TestSecurityRestrictions:
         response = client2.get(f"/api/v1/users/{user.code}/")
         assert response.status_code == status.HTTP_200_OK
 
-    def test_user_profile_access_allowed_when_they_invited_to_your_collection(
-        self, user, user2, theeeme
-    ):
+    def test_user_profile_access_allowed_when_they_invited_to_your_collection(self, user, user2):
         """Should allow profile access when user is in your invites."""
         from core.models import Collection
 
@@ -940,7 +898,6 @@ class TestSecurityRestrictions:
             code="COLL02",
             owner=user2,
             headline="User2 Collection",
-            theeeme=theeeme,
         )
         coll2.add_invite(user.code)
 
@@ -1297,7 +1254,7 @@ class TestSecurityInputValidation:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["thumbnail"] == "abc123_XYZ"
 
-    def test_quantity_max_99(self, user, user2, collection, theeeme):
+    def test_quantity_max_99(self, user, user2, collection):
         """Should reject order quantity over 99."""
         from datetime import date, timedelta
 

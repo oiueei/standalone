@@ -43,6 +43,14 @@ class User(AbstractBaseUser):
     headline = models.CharField(max_length=64, blank=True, default="")
     thumbnail = models.CharField(max_length=16, blank=True, default="")
     hero = models.CharField(max_length=16, blank=True, default="")
+    theeeme = models.ForeignKey(
+        "Theeeme",
+        on_delete=models.PROTECT,
+        to_field="code",
+        db_column="user_theeeme",
+        related_name="users",
+        default="HDS000",
+    )
 
     # Required for Django auth
     is_active = models.BooleanField(default=True)

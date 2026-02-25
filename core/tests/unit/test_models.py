@@ -201,37 +201,33 @@ class TestCollectionModel:
     def _create_user(self, code="ABC123"):
         return User.objects.create(code=code, email=f"{code}@example.com")
 
-    def test_create_collection(self, default_theeeme):
+    def test_create_collection(self):
         """Should create a collection with generated code."""
         user = self._create_user()
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         assert len(collection.code) == 6
         assert collection.status == "ACTIVE"
-        assert collection.theeeme == default_theeeme
 
-    def test_add_thing(self, default_theeeme):
+    def test_add_thing(self):
         """Should add thing to collection."""
         user = self._create_user()
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         Thing.objects.create(code="THNG01", owner=user, headline="Thing")
         collection.add_thing("THNG01")
         assert collection.things.filter(code="THNG01").exists()
 
-    def test_remove_thing(self, default_theeeme):
+    def test_remove_thing(self):
         """Should remove thing from collection."""
         user = self._create_user()
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         t1 = Thing.objects.create(code="THNG01", owner=user, headline="Thing 1")
         t2 = Thing.objects.create(code="THNG02", owner=user, headline="Thing 2")
@@ -240,44 +236,41 @@ class TestCollectionModel:
         assert not collection.things.filter(code="THNG01").exists()
         assert collection.things.filter(code="THNG02").exists()
 
-    def test_add_invite(self, default_theeeme):
+    def test_add_invite(self):
         """Should add user to invites."""
         user = self._create_user()
         User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         collection.add_invite("USR001")
         assert collection.invites.filter(code="USR001").exists()
 
-    def test_is_owner(self, default_theeeme):
+    def test_is_owner(self):
         """Should check ownership correctly."""
         user = self._create_user()
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         assert collection.is_owner("ABC123") is True
         assert collection.is_owner("XYZ789") is False
 
-    def test_can_view(self, default_theeeme):
+    def test_can_view(self):
         """Should check view permission correctly."""
         user = self._create_user()
         invited = User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         collection.invites.add(invited)
         assert collection.can_view("ABC123") is True  # Owner
         assert collection.can_view("USR001") is True  # Invited
         assert collection.can_view("XYZ789") is False  # Neither
 
-    def test_remove_invite(self, default_theeeme):
+    def test_remove_invite(self):
         """Should remove user from invites."""
         user = self._create_user()
         u1 = User.objects.create(code="USR001", email="usr001@example.com")
@@ -285,39 +278,36 @@ class TestCollectionModel:
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         collection.invites.add(u1, u2)
         collection.remove_invite("USR001")
         assert not collection.invites.filter(code="USR001").exists()
         assert collection.invites.filter(code="USR002").exists()
 
-    def test_is_invited(self, default_theeeme):
+    def test_is_invited(self):
         """Should check if user is invited."""
         user = self._create_user()
         invited = User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         collection.invites.add(invited)
         assert collection.is_invited("USR001") is True
         assert collection.is_invited("USR002") is False
         assert collection.is_invited("ABC123") is False  # Owner is not in invites
 
-    def test_collection_defaults(self, default_theeeme):
+    def test_collection_defaults(self):
         """Collection things and invites should default to empty."""
         user = self._create_user()
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         assert collection.things.count() == 0
         assert collection.invites.count() == 0
 
-    def test_collection_created_timestamp(self, default_theeeme):
+    def test_collection_created_timestamp(self):
         """Collection should have creation timestamp."""
         from django.utils import timezone
 
@@ -326,44 +316,40 @@ class TestCollectionModel:
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         after = timezone.now()
         assert before <= collection.created <= after
 
-    def test_optional_fields_default_empty(self, default_theeeme):
+    def test_optional_fields_default_empty(self):
         """Optional fields should default to empty strings."""
         user = self._create_user()
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         assert collection.description == ""
         assert collection.thumbnail == ""
         assert collection.hero == ""
 
-    def test_add_thing_idempotent(self, default_theeeme):
+    def test_add_thing_idempotent(self):
         """Adding same thing twice should not duplicate."""
         user = self._create_user()
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         Thing.objects.create(code="THNG01", owner=user, headline="Thing")
         collection.add_thing("THNG01")
         collection.add_thing("THNG01")
         assert collection.things.filter(code="THNG01").count() == 1
 
-    def test_add_invite_idempotent(self, default_theeeme):
+    def test_add_invite_idempotent(self):
         """Adding same invite twice should not duplicate."""
         user = self._create_user()
         User.objects.create(code="USR001", email="usr001@example.com")
         collection = Collection.objects.create(
             owner=user,
             headline="My Collection",
-            theeeme=default_theeeme,
         )
         collection.add_invite("USR001")
         collection.add_invite("USR001")

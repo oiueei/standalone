@@ -4,7 +4,7 @@ Collection serializers for OIUEEI.
 
 from rest_framework import serializers
 
-from core.models import Collection, Theeeme, Thing
+from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField
@@ -16,6 +16,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     owner = serializers.CharField(source="owner_id")
     thumbnail_url = serializers.SerializerMethodField()
     pending_booking = serializers.SerializerMethodField()
+    pending_questions = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -27,8 +28,10 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "description",
             "status",
             "fee",
+            "available",
             "thumbnail_url",
             "pending_booking",
+            "pending_questions",
             "created",
         ]
 
@@ -42,6 +45,17 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         ).first()
         return booking.code if booking else None
 
+    def get_pending_questions(self, obj):
+        return obj.faq_set.filter(answer="").count()
+
+
+class CollectionInviteSummarySerializer(serializers.ModelSerializer):
+    """Lightweight serializer for invited users."""
+
+    class Meta:
+        model = User
+        fields = ["code", "email", "name"]
+
 
 class CollectionSerializer(serializers.ModelSerializer):
     """Full collection serializer."""
@@ -49,12 +63,9 @@ class CollectionSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     hero_url = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
-    things = CollectionThingSummarySerializer(many=True, read_only=True)
-    invites = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
-    theeeme = serializers.SlugRelatedField(
-        slug_field="code",
-        queryset=Theeeme.objects.all(),
-    )
+    things = serializers.SerializerMethodField()
+    invites = CollectionInviteSummarySerializer(many=True, read_only=True)
+    pending_invites = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
@@ -71,7 +82,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "status",
             "things",
             "invites",
-            "theeeme",
+            "pending_invites",
         ]
         read_only_fields = [
             "code",
@@ -79,7 +90,22 @@ class CollectionSerializer(serializers.ModelSerializer):
             "created",
             "things",
             "invites",
+            "pending_invites",
         ]
+
+    def get_things(self, obj):
+        request = self.context.get("request")
+        things = obj.things.all()
+        if request and not obj.is_owner(request.user.code):
+            things = things.filter(available=True)
+        return CollectionThingSummarySerializer(things, many=True).data
+
+    def get_pending_invites(self, obj):
+        rsvps = RSVP.objects.filter(
+            action="COLLECTION_INVITE",
+            target_code=obj.code,
+        ).values("user_code_id", "user_email")
+        return [{"code": r["user_code_id"], "email": r["user_email"]} for r in rsvps]
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail)
@@ -94,11 +120,6 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64)
     thumbnail = ImageIdField()
     hero = ImageIdField()
-    theeeme = serializers.SlugRelatedField(
-        slug_field="code",
-        queryset=Theeeme.objects.all(),
-        required=False,
-    )
 
     class Meta:
         model = Collection
@@ -107,7 +128,6 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "description",
             "thumbnail",
             "hero",
-            "theeeme",
         ]
 
 
@@ -117,11 +137,6 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64, required=False)
     thumbnail = ImageIdField()
     hero = ImageIdField()
-    theeeme = serializers.SlugRelatedField(
-        slug_field="code",
-        queryset=Theeeme.objects.all(),
-        required=False,
-    )
 
     class Meta:
         model = Collection
@@ -131,7 +146,6 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "thumbnail",
             "hero",
             "status",
-            "theeeme",
         ]
 
 

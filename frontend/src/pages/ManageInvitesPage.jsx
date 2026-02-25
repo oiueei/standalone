@@ -9,6 +9,7 @@ export default function ManageInvitesPage() {
 
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
+  const [pendingInvites, setPendingInvites] = useState([]);
   const [collectionHeadline, setCollectionHeadline] = useState('');
   const [isOwner, setIsOwner] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -29,13 +30,14 @@ export default function ManageInvitesPage() {
         if (res.ok) {
           const data = await res.json();
           setInvites(data.invites || []);
+          setPendingInvites(data.pending_invites || []);
           setCollectionHeadline(data.headline || '');
           setIsOwner(localStorage.getItem('userCode') === data.owner);
         } else {
-          setToast({ type: 'error', message: 'Error al cargar la coleccion.' });
+          setToast({ type: 'error', message: 'Error loading collection.' });
         }
       } catch {
-        setToast({ type: 'error', message: 'Error de conexion.' });
+        setToast({ type: 'error', message: 'Connection error.' });
       } finally {
         setLoading(false);
       }
@@ -43,7 +45,7 @@ export default function ManageInvitesPage() {
     fetchCollection();
   }, [token, code, navigate]);
 
-  const handleRemove = async (userCode) => {
+  const handleRemove = async (userCode, isPending = false) => {
     try {
       const res = await fetch(`/api/v1/collections/${code}/invite/`, {
         method: 'DELETE',
@@ -54,13 +56,17 @@ export default function ManageInvitesPage() {
         body: JSON.stringify({ user_code: userCode }),
       });
       if (res.ok) {
-        setInvites((prev) => prev.filter((c) => c !== userCode));
-        setToast({ type: 'success', message: 'Invitado eliminado.' });
+        if (isPending) {
+          setPendingInvites((prev) => prev.filter((inv) => inv.code !== userCode));
+        } else {
+          setInvites((prev) => prev.filter((inv) => inv.code !== userCode));
+        }
+        setToast({ type: 'success', message: 'Guest removed.' });
       } else {
-        setToast({ type: 'error', message: 'Error al eliminar invitado.' });
+        setToast({ type: 'error', message: 'Error removing guest.' });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     }
   };
 
@@ -78,43 +84,55 @@ export default function ManageInvitesPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setInvites((prev) => [...prev, data.user_code]);
+        setPendingInvites((prev) => [...prev, { email: inviteEmail.trim() }]);
         setInviteEmail('');
-        setToast({ type: 'success', message: 'Invitacion enviada.' });
+        setToast({ type: 'success', message: 'Invitation sent.' });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || 'Error al enviar la invitacion.' });
+        setToast({ type: 'error', message: data.detail || 'Error sending invitation.' });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setInviteLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="page-container"><p>Cargando...</p></div>;
+    return <div className="page-container"><p>Loading...</p></div>;
   }
 
   const steps = [
     {
-      title: 'Invitados actuales',
+      title: 'Current guests',
       description: (
         <div>
-          {invites.length === 0 ? (
-            <p>Sin invitados.</p>
+          {invites.length === 0 && pendingInvites.length === 0 ? (
+            <p>No guests.</p>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '0.5rem' }}>
-              {invites.map((inviteCode) => (
-                <li key={inviteCode} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{inviteCode}</span>
+              {invites.map((invite) => (
+                <li key={invite.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{invite.name || invite.code} ({invite.email})</span>
                   {isOwner && (
                     <Button
                       variant="danger"
-
-                      onClick={() => handleRemove(inviteCode)}
+                      onClick={() => handleRemove(invite.code)}
                     >
-                      Eliminar
+                      Delete
+                    </Button>
+                  )}
+                </li>
+              ))}
+              {pendingInvites.map((pending) => (
+                <li key={pending.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{pending.email} <em style={{ color: '#666' }}>Pending</em></span>
+                  {isOwner && (
+                    <Button
+                      variant="danger"
+                      onClick={() => handleRemove(pending.code, true)}
+                    >
+                      Delete
                     </Button>
                   )}
                 </li>
@@ -125,26 +143,26 @@ export default function ManageInvitesPage() {
       ),
     },
     {
-      title: 'Invitar',
+      title: 'Invite',
       description: isOwner ? (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <TextInput
-            label="Email del invitado"
+            label="Guest email"
             type="email"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="usuario@email.com"
+            placeholder="user@email.com"
           />
           <Button
             disabled={inviteLoading || !inviteEmail.trim()}
             onClick={handleInvite}
             style={{ width: 'fit-content' }}
           >
-            {inviteLoading ? 'Enviando...' : 'Invitar'}
+            {inviteLoading ? 'Sending...' : 'Invite'}
           </Button>
         </div>
       ) : (
-        <p>Solo el propietario puede invitar usuarios.</p>
+        <p>Only the owner can invite users.</p>
       ),
     },
   ];
@@ -152,18 +170,18 @@ export default function ManageInvitesPage() {
   return (
     <div className="page-container">
       <Link to={`/collections/${code}`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {collectionHeadline || 'Colección'}
+        &larr; {collectionHeadline || 'Collection'}
       </Link>
-      <StepByStep title="Gestionar invitados" steps={steps} numberedList />
+      <StepByStep title="Manage guests" steps={steps} numberedList />
 
       {toast && (
         <Notification
-          label={toast.type === 'success' ? 'Listo' : 'Error'}
+          label={toast.type === 'success' ? 'Done' : 'Error'}
           type={toast.type}
           position="top-right"
           autoClose
           dismissible
-          closeButtonLabelText="Cerrar"
+          closeButtonLabelText="Close"
           onClose={() => setToast(null)}
         >
           {toast.message}

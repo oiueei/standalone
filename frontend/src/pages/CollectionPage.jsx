@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button, Linkbox, Notification } from 'hds-react';
-import ThingCard from '../components/ThingCard';
+import ThingLinkbox from '../components/ThingLinkbox';
 import placeholderImg from '../assets/image-m.png';
 
 export default function CollectionPage() {
@@ -34,14 +34,14 @@ export default function CollectionPage() {
           const data = await res.json();
           setCollection(data);
         } else if (res.status === 403) {
-          setError('No tienes permiso para ver esta coleccion.');
+          setError('You do not have permission to view this collection.');
         } else if (res.status === 404) {
-          setError('Coleccion no encontrada.');
+          setError('Collection not found.');
         } else {
-          setError('Error al cargar la coleccion.');
+          setError('Error loading collection.');
         }
       } catch {
-        setError('Error de conexion con el servidor.');
+        setError('Connection error.');
       }
     };
     fetchCollection();
@@ -56,7 +56,7 @@ export default function CollectionPage() {
   }
 
   if (!collection) {
-    return <div className="page-container"><p>Cargando...</p></div>;
+    return <div className="page-container"><p>Loading...</p></div>;
   }
 
   const isOwner = localStorage.getItem('userCode') === collection.owner;
@@ -75,50 +75,58 @@ export default function CollectionPage() {
       />
       <h1 className="page-title">{collection.headline}</h1>
       {collection.description && <p>{collection.description}</p>}
-      <p><strong>Estado:</strong> {collection.status}</p>
-      <p><strong>Tema:</strong> {collection.theeeme}</p>
+      {isOwner && (
+        <p><strong>Status:</strong> {collection.status}</p>
+      )}
 
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
         {isOwner && (
           <Link to={`/collections/${code}/edit`}>
-            <Button>Editar coleccion</Button>
+            <Button>Edit collection</Button>
           </Link>
         )}
         {isOwner && (
           <Link to={`/collections/${code}/add-thing`}>
-            <Button>Anadir cosa</Button>
+            <Button>Add thing</Button>
           </Link>
         )}
         {isOwner && (
           <Link to={`/collections/${code}/invites`}>
-            <Button>Gestionar invitados</Button>
+            <Button>Manage guests</Button>
           </Link>
         )}
       </div>
 
       {showWelcome && (
+        <div className="linkbox-full-width">
         <Linkbox
           href="/welcome"
-          onClick={() => setShowWelcome(false)}
+          onClick={(e) => {
+            e.preventDefault();
+            setShowWelcome(false);
+            navigate('/welcome', { state: { collectionHeadline: collection.headline } });
+          }}
           heading="Welcome to OIUEEI!"
-          text="¿quieres saber más? Click aquí"
-          linkAriaLabel="Ir a Welcome"
+          text="Want to know more? Click here!"
+          linkAriaLabel="Go to Welcome"
           linkboxAriaLabel="Welcome to OIUEEI!"
           border
         />
+        </div>
       )}
 
-      <h2>Cosas</h2>
+      <h2>Things</h2>
       {collection.things.length === 0 ? (
-        <p>Sin cosas en esta coleccion.</p>
+        <p>No things in this collection.</p>
       ) : (
         <div className="things-grid">
           {[...collection.things].sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
-            <ThingCard
+            <ThingLinkbox
               key={thing.code}
               thing={thing}
               userCode={localStorage.getItem('userCode')}
               collectionCode={code}
+              collectionHeadline={collection.headline}
               onDelete={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),

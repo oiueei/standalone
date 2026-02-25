@@ -4,7 +4,7 @@ User serializers for OIUEEI.
 
 from rest_framework import serializers
 
-from core.models import User
+from core.models import Theeeme, User
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField
 
@@ -17,6 +17,11 @@ class UserSerializer(serializers.ModelSerializer):
     own_collections = serializers.SerializerMethodField()
     invited_collections = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
+    theeeme = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=Theeeme.objects.all(),
+        required=False,
+    )
 
     class Meta:
         model = User
@@ -34,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             "thumbnail_url",
             "hero",
             "hero_url",
+            "theeeme",
         ]
         read_only_fields = [
             "code",
@@ -43,6 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
             "own_collections",
             "invited_collections",
             "things",
+            "theeeme",
         ]
 
     def get_thumbnail_url(self, obj):
@@ -92,6 +99,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     hero = ImageIdField()
+    theeeme = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=Theeeme.objects.all(),
+        required=False,
+    )
 
     class Meta:
         model = User
@@ -100,4 +112,5 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "headline",
             "thumbnail",
             "hero",
+            "theeeme",
         ]

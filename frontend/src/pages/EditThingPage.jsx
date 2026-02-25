@@ -13,12 +13,12 @@ import {
 const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
 
 const TYPE_OPTIONS = [
-  { label: 'Regalo', value: 'GIFT_THING' },
-  { label: 'Venta', value: 'SELL_THING' },
-  { label: 'Pedido', value: 'ORDER_THING' },
-  { label: 'Alquiler', value: 'RENT_THING' },
-  { label: 'Prestamo', value: 'LEND_THING' },
-  { label: 'Compartir', value: 'SHARE_THING' },
+  { label: 'Gift', value: 'GIFT_THING' },
+  { label: 'Sale', value: 'SELL_THING' },
+  { label: 'Order', value: 'ORDER_THING' },
+  { label: 'Rental', value: 'RENT_THING' },
+  { label: 'Lend', value: 'LEND_THING' },
+  { label: 'Share', value: 'SHARE_THING' },
 ];
 
 const TYPE_LABELS = Object.fromEntries(TYPE_OPTIONS.map((o) => [o.value, o.label]));
@@ -63,10 +63,10 @@ export default function EditThingPage() {
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
-          setToast({ type: 'error', message: 'Error al cargar la cosa.' });
+          setToast({ type: 'error', message: 'Error loading thing.' });
         }
       } catch {
-        setToast({ type: 'error', message: 'Error de conexion.' });
+        setToast({ type: 'error', message: 'Connection error.' });
       } finally {
         setLoading(false);
       }
@@ -75,14 +75,14 @@ export default function EditThingPage() {
   }, [token, thingCode, navigate]);
 
   const returnPath = thingCollectionCode ? `/collections/${thingCollectionCode}` : '/';
-  const returnLabel = thingCollectionHeadline || (thingCollectionCode ? 'Colección' : 'Home');
+  const returnLabel = thingCollectionHeadline || (thingCollectionCode ? 'Collection' : 'Home');
 
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'El titulo es obligatorio.';
-    if (headline.length > 64) newErrors.headline = 'Maximo 64 caracteres.';
+    if (!headline.trim()) newErrors.headline = 'Title is required.';
+    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
     if (FEE_TYPES.includes(thingType) && (fee === '' || fee === undefined)) {
-      newErrors.fee = 'El precio es obligatorio para este tipo.';
+      newErrors.fee = 'Price is required for this type.';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -118,11 +118,11 @@ export default function EditThingPage() {
         navigate(returnPath);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error al guardar.';
+        const message = data.detail || Object.values(data).flat().join(' ') || 'Error saving.';
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion con el servidor.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
     }
@@ -139,22 +139,22 @@ export default function EditThingPage() {
       if (res.ok || res.status === 204) {
         navigate(returnPath);
       } else {
-        setToast({ type: 'error', message: 'Error al eliminar la cosa.' });
+        setToast({ type: 'error', message: 'Error deleting thing.' });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setDeleting(false);
     }
   };
 
   if (loading) {
-    return <div className="page-container"><p>Cargando...</p></div>;
+    return <div className="page-container"><p>Loading...</p></div>;
   }
 
   const steps = [
     {
-      title: 'Tipo',
+      title: 'Type',
       description: (
         <Select
           options={TYPE_OPTIONS}
@@ -168,11 +168,11 @@ export default function EditThingPage() {
       ),
     },
     {
-      title: 'Detalles',
+      title: 'Details',
       description: (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <TextInput
-            label="Titulo"
+            label="Title"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
             required
@@ -180,7 +180,7 @@ export default function EditThingPage() {
             errorText={errors.headline}
           />
           <TextArea
-            label="Descripcion"
+            label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -190,13 +190,13 @@ export default function EditThingPage() {
             onChange={(e) => setThumbnail(e.target.value)}
           />
           <TextInput
-            label="Fotos (IDs separados por comas)"
+            label="Photos (comma-separated IDs)"
             value={pictures}
             onChange={(e) => setPictures(e.target.value)}
           />
           {FEE_TYPES.includes(thingType) && (
             <NumberInput
-              label="Precio"
+              label="Price"
               value={fee === '' ? '' : Number(fee)}
               onChange={(e) => setFee(e.target.value)}
               min={0}
@@ -211,17 +211,17 @@ export default function EditThingPage() {
       ),
     },
     {
-      title: 'Resumen',
+      title: 'Summary',
       description: (
         <div>
           <dl style={{ display: 'grid', gap: '0.5rem' }}>
-            <dt><strong>Tipo</strong></dt>
+            <dt><strong>Type</strong></dt>
             <dd>{TYPE_LABELS[thingType] || thingType}</dd>
-            <dt><strong>Titulo</strong></dt>
+            <dt><strong>Title</strong></dt>
             <dd>{headline || '—'}</dd>
             {description && (
               <>
-                <dt><strong>Descripcion</strong></dt>
+                <dt><strong>Description</strong></dt>
                 <dd>{description}</dd>
               </>
             )}
@@ -229,23 +229,23 @@ export default function EditThingPage() {
             <dd>{thumbnail || '—'}</dd>
             {pictures && (
               <>
-                <dt><strong>Fotos</strong></dt>
+                <dt><strong>Photos</strong></dt>
                 <dd>{pictures}</dd>
               </>
             )}
             {FEE_TYPES.includes(thingType) && fee !== '' && (
               <>
-                <dt><strong>Precio</strong></dt>
+                <dt><strong>Price</strong></dt>
                 <dd>{fee} EUR</dd>
               </>
             )}
           </dl>
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
             <Button disabled={submitting || deleting} onClick={handleSubmit}>
-              {submitting ? 'Guardando...' : 'Guardar'}
+              {submitting ? 'Saving...' : 'Save'}
             </Button>
             <Button variant="danger" disabled={submitting || deleting} onClick={handleDelete}>
-              {deleting ? 'Eliminando...' : 'Eliminar'}
+              {deleting ? 'Deleting...' : 'Delete'}
             </Button>
           </div>
         </div>
@@ -258,16 +258,16 @@ export default function EditThingPage() {
       <Link to={returnPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
         &larr; {returnLabel}
       </Link>
-      <StepByStep title="Editar cosa" steps={steps} numberedList />
+      <StepByStep title="Edit thing" steps={steps} numberedList />
 
       {toast && (
         <Notification
-          label={toast.type === 'success' ? 'Listo' : 'Error'}
+          label={toast.type === 'success' ? 'Done' : 'Error'}
           type={toast.type}
           position="top-right"
           autoClose
           dismissible
-          closeButtonLabelText="Cerrar"
+          closeButtonLabelText="Close"
           onClose={() => setToast(null)}
         >
           {toast.message}

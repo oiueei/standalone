@@ -26,6 +26,10 @@ div[class*="Linkbox-module_linkbox"] {
   max-width: 400px;
 }
 
+.linkbox-full-width div[class*="Linkbox-module_linkbox"] {
+  max-width: 100%;
+}
+
 .linkbox-no-arrow a[class*="Linkbox-module_link"] {
   display: none;
 }

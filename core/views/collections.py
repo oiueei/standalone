@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from core.models import RSVP, Collection, Theeeme, Thing, User
+from core.models import RSVP, Collection, Thing, User
 from core.permissions import IsCollectionOwner
 from core.serializers import (
     CollectionAddThingSerializer,
@@ -66,11 +66,6 @@ class CollectionViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         validated_data = serializer.validated_data
-        if "theeeme" not in validated_data:
-            default_theeeme = Theeeme.objects.filter(code="JMPA01").first()
-            if default_theeeme:
-                validated_data["theeeme"] = default_theeeme
-
         collection = Collection.objects.create(
             owner=self.request.user,
             **validated_data,
@@ -153,7 +148,7 @@ class CollectionInviteView(APIView):
 
         if collection.is_invited(invited_user.code):
             return Response(
-                {"detail": "Este usuario ya esta invitado a esta coleccion."},
+                {"detail": "This user is already invited to this collection."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -209,29 +204,45 @@ class CollectionInviteView(APIView):
 
         user_code = serializer.validated_data["user_code"]
 
-        if not collection.invites.filter(code=user_code).exists():
+        # Check if user is a confirmed invite
+        if collection.invites.filter(code=user_code).exists():
+            collection.invites.remove(collection.invites.get(code=user_code))
+
+            # Send notification email to removed user
+            try:
+                user = User.objects.get(code=user_code)
+                owner_name = request.user.name or request.user.email
+                send_collection_revoke_email(owner_name, collection.headline, user.email)
+            except User.DoesNotExist:
+                pass
+
             return Response(
-                {"error": "User is not invited to this collection"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "message": "User removed from collection",
+                    "user_code": user_code,
+                },
+                status=status.HTTP_200_OK,
             )
 
-        # Remove from invites
-        collection.invites.remove(collection.invites.get(code=user_code))
-
-        # Send notification email to removed user
-        try:
-            user = User.objects.get(code=user_code)
-            owner_name = request.user.name or request.user.email
-            send_collection_revoke_email(owner_name, collection.headline, user.email)
-        except User.DoesNotExist:
-            pass
+        # Check if user has a pending invite (RSVP)
+        pending_rsvps = RSVP.objects.filter(
+            user_code_id=user_code,
+            target_code=collection_code,
+            action__in=["COLLECTION_INVITE", "COLLECTION_REJECT"],
+        )
+        if pending_rsvps.exists():
+            pending_rsvps.delete()
+            return Response(
+                {
+                    "message": "Pending invitation cancelled",
+                    "user_code": user_code,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         return Response(
-            {
-                "message": "User removed from collection",
-                "user_code": user_code,
-            },
-            status=status.HTTP_200_OK,
+            {"error": "User is not invited to this collection"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 

@@ -17,6 +17,7 @@ import EditProfilePage from './pages/EditProfilePage';
 import ManageInvitesPage from './pages/ManageInvitesPage';
 import LogoutPage from './pages/LogoutPage';
 import UserPage from './pages/UserPage';
+import RequestThingPage from './pages/RequestThingPage';
 import WelcomePage from './pages/WelcomePage';
 import './App.css';
 
@@ -32,6 +33,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/logout" element={<LogoutPage />} />
         <Route path="/verify/:code" element={<VerifyPage />} />
+        <Route path="/rsvp/:code" element={<VerifyPage />} />
         <Route path="/me" element={<UserPage />} />
         <Route path="/me/edit" element={<EditProfilePage />} />
         <Route path="/collections/new" element={<CreateCollectionPage />} />
@@ -41,8 +43,10 @@ function App() {
         <Route path="/collections/:code/add-thing" element={<AddThingPage />} />
         <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
         <Route path="/collections/:code/edit-thing/:thingCode" element={<EditThingPage />} />
+        <Route path="/collections/:code/things/:thingCode/request" element={<RequestThingPage />} />
         <Route path="/things/:thingCode" element={<ThingPage />} />
         <Route path="/things/:thingCode/edit" element={<EditThingPage />} />
+        <Route path="/things/:thingCode/request" element={<RequestThingPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/:userCode" element={<UserPage />} />
       </Routes>

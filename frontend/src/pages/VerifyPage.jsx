@@ -14,7 +14,11 @@ export default function VerifyPage() {
         const res = await fetch(`/api/v1/auth/verify/${code}/`);
         const data = await res.json();
         if (res.ok && data.action === 'COLLECTION_REJECT') {
-          setSuccess('Invitación rechazada. El propietario de la colección ha sido notificado.');
+          setSuccess('Invitation declined. The collection owner has been notified.');
+        } else if (res.ok && data.action === 'BOOKING_ACCEPT') {
+          setSuccess('The hold has been confirmed!');
+        } else if (res.ok && data.action === 'BOOKING_REJECT') {
+          setSuccess('The hold has been rejected.');
         } else if (res.ok && data.token) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('refresh', data.refresh);
@@ -25,10 +29,10 @@ export default function VerifyPage() {
             navigate('/');
           }
         } else {
-          setError(data.error || 'Enlace no valido o expirado.');
+          setError(data.error || 'Invalid or expired link.');
         }
       } catch {
-        setError('Error de conexion con el servidor.');
+        setError('Connection error.');
       }
     };
     verify();
@@ -37,7 +41,7 @@ export default function VerifyPage() {
   if (success) {
     return (
       <div className="page-container">
-        <Notification label="Listo" type="success">
+        <Notification label="Done" type="success">
           {success}
         </Notification>
       </div>
@@ -56,7 +60,7 @@ export default function VerifyPage() {
 
   return (
     <div className="page-container">
-      <p>Verificando...</p>
+      <p>Verifying...</p>
     </div>
   );
 }

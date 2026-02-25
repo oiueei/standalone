@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { StepByStep, TextInput, TextArea, Button, Notification } from 'hds-react';
 
 export default function CreateCollectionPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const backPath = location.state?.backPath || '/';
+  const backLabel = location.state?.backLabel || 'Home';
   const token = localStorage.getItem('token');
 
   if (!token) {
@@ -20,8 +23,8 @@ export default function CreateCollectionPage() {
 
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'El titulo es obligatorio.';
-    if (headline.length > 64) newErrors.headline = 'Maximo 64 caracteres.';
+    if (!headline.trim()) newErrors.headline = 'Title is required.';
+    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -50,11 +53,11 @@ export default function CreateCollectionPage() {
         navigate(`/collections/${data.code}`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error al crear la coleccion.';
+        const message = data.detail || Object.values(data).flat().join(' ') || 'Error creating collection.';
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Error de conexion con el servidor.' });
+      setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
     }
@@ -62,11 +65,11 @@ export default function CreateCollectionPage() {
 
   const steps = [
     {
-      title: 'Detalles',
+      title: 'Details',
       description: (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <TextInput
-            label="Titulo"
+            label="Title"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
             required
@@ -74,7 +77,7 @@ export default function CreateCollectionPage() {
             errorText={errors.headline}
           />
           <TextArea
-            label="Descripcion"
+            label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -92,15 +95,15 @@ export default function CreateCollectionPage() {
       ),
     },
     {
-      title: 'Resumen',
+      title: 'Summary',
       description: (
         <div>
           <dl style={{ display: 'grid', gap: '0.5rem' }}>
-            <dt><strong>Titulo</strong></dt>
+            <dt><strong>Title</strong></dt>
             <dd>{headline || '—'}</dd>
             {description && (
               <>
-                <dt><strong>Descripcion</strong></dt>
+                <dt><strong>Description</strong></dt>
                 <dd>{description}</dd>
               </>
             )}
@@ -111,7 +114,7 @@ export default function CreateCollectionPage() {
           </dl>
           <div style={{ marginTop: '1rem' }}>
             <Button disabled={submitting} onClick={handleSubmit}>
-              {submitting ? 'Creando...' : 'Crear'}
+              {submitting ? 'Creating...' : 'Create'}
             </Button>
           </div>
         </div>
@@ -121,10 +124,10 @@ export default function CreateCollectionPage() {
 
   return (
     <div className="page-container">
-      <Link to="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; Home
+      <Link to={backPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
+        &larr; {backLabel}
       </Link>
-      <StepByStep title="Crear coleccion" steps={steps} numberedList />
+      <StepByStep title="Create collection" steps={steps} numberedList />
 
       {toast && (
         <Notification
@@ -133,7 +136,7 @@ export default function CreateCollectionPage() {
           position="top-right"
           autoClose
           dismissible
-          closeButtonLabelText="Cerrar"
+          closeButtonLabelText="Close"
           onClose={() => setToast(null)}
         >
           {toast.message}

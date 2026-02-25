@@ -12,14 +12,14 @@ from django.utils.html import escape
 def send_magic_link_email(email, magic_link):
     """Send magic link authentication email."""
     send_mail(
-        subject="Tu enlace de acceso a OIUEEI",
-        message=f"Hola! Haz clic aquí para acceder: {magic_link}",
+        subject="Hello, welcome to OIUEEI!",
+        message=f"Hello! Click here to sign in: {magic_link}",
         from_email=None,
         recipient_list=[email],
         html_message=f"""
             <html>
-            <p>Hola! Haz clic aquí para acceder:</p>
-            <a href="{magic_link}">Acceder</a>
+            <p>Hello! Click here to sign in:</p>
+            <a href="{magic_link}">Sign in</a>
             </html>
             """,
     )
@@ -35,29 +35,29 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
         safe_start = escape(str(booking.start_date))
         safe_end = escape(str(booking.end_date))
         message = (
-            f"{requester_name} ha solicitado reservar '{thing.headline}' "
-            f"del {booking.start_date} al {booking.end_date}. "
-            f"Aceptar: {accept_link} | Rechazar: {reject_link}"
+            f"{requester_name} has requested to hold '{thing.headline}' "
+            f"from {booking.start_date} to {booking.end_date}. "
+            f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
         )
-        html_extra = f"<p>Fechas: {safe_start} - {safe_end}</p>"
-        subject = f"{requester_name} quiere reservar: {thing.headline}"
+        html_extra = f"<p>Dates: {safe_start} - {safe_end}</p>"
+        subject = "You have a pending hold request"
     elif booking.delivery_date:
         safe_quantity = escape(str(booking.quantity))
         safe_delivery = escape(str(booking.delivery_date))
         message = (
-            f"{requester_name} ha solicitado {booking.quantity}x '{thing.headline}' "
-            f"para el {booking.delivery_date}. "
-            f"Aceptar: {accept_link} | Rechazar: {reject_link}"
+            f"{requester_name} has requested {booking.quantity}x '{thing.headline}' "
+            f"for {booking.delivery_date}. "
+            f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
         )
-        html_extra = f"<p>Cantidad: {safe_quantity}</p>" f"<p>Fecha de entrega: {safe_delivery}</p>"
-        subject = f"{requester_name} quiere pedir: {thing.headline}"
+        html_extra = f"<p>Quantity: {safe_quantity}</p>" f"<p>Delivery date: {safe_delivery}</p>"
+        subject = "You have a pending hold request"
     else:
         message = (
-            f"{requester_name} ha solicitado reservar '{thing.headline}'. "
-            f"Aceptar: {accept_link} | Rechazar: {reject_link}"
+            f"{requester_name} has requested to hold '{thing.headline}'. "
+            f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
         )
         html_extra = ""
-        subject = f"{requester_name} quiere reservar: {thing.headline}"
+        subject = "You have a pending hold request"
 
     send_mail(
         subject=subject,
@@ -66,12 +66,12 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
         recipient_list=[owner_email],
         html_message=f"""
             <html>
-            <p><strong>{safe_requester_name}</strong> ha solicitado:</p>
+            <p><strong>{safe_requester_name}</strong> has requested:</p>
             <p><strong>{safe_headline}</strong></p>
             {html_extra}
             <p>
-                <a href="{accept_link}">Aceptar</a> |
-                <a href="{reject_link}">Rechazar</a>
+                <a href="{accept_link}">Confirm hold</a> |
+                <a href="{reject_link}">Cancel hold</a>
             </p>
             </html>
             """,
@@ -81,47 +81,41 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
 def send_booking_decision_email(booking, thing, accepted=True):
     """Send booking accept/reject notification email to requester."""
     if accepted:
-        decision_word = "aceptada"
-        decision_strong = "aceptada"
+        decision_word = "confirmed"
     else:
-        decision_word = "rechazada"
-        decision_strong = "rechazada"
+        decision_word = "cancelled"
 
-    safe_decision_strong = escape(decision_strong)
+    safe_decision_word = escape(decision_word)
     safe_headline = escape(thing.headline)
 
     if booking.start_date and booking.end_date:
         safe_start = escape(str(booking.start_date))
         safe_end = escape(str(booking.end_date))
         message = (
-            f"Tu solicitud de reserva para '{thing.headline}' "
-            f"del {booking.start_date} al {booking.end_date} ha sido {decision_word}."
+            f"Your hold request for '{thing.headline}' "
+            f"from {booking.start_date} to {booking.end_date} has been {decision_word}."
         )
-        html_extra = f"<p>Fechas: {safe_start} - {safe_end}</p>"
-        subject = f"Tu reserva ha sido {decision_word}: {thing.headline}"
+        html_extra = f"<p>Dates: {safe_start} - {safe_end}</p>"
     elif booking.delivery_date:
         safe_quantity = escape(str(booking.quantity))
         safe_delivery = escape(str(booking.delivery_date))
-        order_decision = "aceptado" if accepted else "rechazado"
         message = (
-            f"Tu pedido de {booking.quantity}x '{thing.headline}' "
-            f"para el {booking.delivery_date} ha sido {order_decision}."
+            f"Your order of {booking.quantity}x '{thing.headline}' "
+            f"for {booking.delivery_date} has been {decision_word}."
         )
-        html_extra = f"<p>Cantidad: {safe_quantity}</p>" f"<p>Fecha de entrega: {safe_delivery}</p>"
-        subject = f"Tu pedido ha sido {order_decision}: {thing.headline}"
+        html_extra = f"<p>Quantity: {safe_quantity}</p>" f"<p>Delivery date: {safe_delivery}</p>"
     else:
-        message = f"Tu solicitud de reserva para '{thing.headline}' ha sido {decision_word}."
+        message = f"Your hold request for '{thing.headline}' has been {decision_word}."
         html_extra = ""
-        subject = f"Tu reserva ha sido {decision_word}: {thing.headline}"
 
     send_mail(
-        subject=subject,
+        subject="We have news",
         message=message,
         from_email=None,
         recipient_list=[booking.requester_email],
         html_message=f"""
             <html>
-            <p>Tu solicitud ha sido <strong>{safe_decision_strong}</strong>:</p>
+            <p>Your request has been <strong>{safe_decision_word}</strong>:</p>
             <p><strong>{safe_headline}</strong></p>
             {html_extra}
             </html>
@@ -137,20 +131,20 @@ def send_collection_invite_email(
     safe_headline = escape(collection_headline)
 
     send_mail(
-        subject=f"{inviter_name} te ha invitado a una colección",
+        subject="You have an invitation to OIUEEI!",
         message=(
-            f"Has sido invitado a ver: {collection_headline}. "
-            f"Aceptar: {accept_link} | Rechazar: {reject_link}"
+            f"You have been invited to view: {collection_headline}. "
+            f"Accept invitation: {accept_link} | Decline invitation: {reject_link}"
         ),
         from_email=None,
         recipient_list=[email],
         html_message=f"""
             <html>
-            <p>{safe_inviter} te ha invitado a ver:</p>
+            <p>{safe_inviter} has invited you to view:</p>
             <p><strong>{safe_headline}</strong></p>
             <p>
-                <a href="{accept_link}">Aceptar invitación</a> |
-                <a href="{reject_link}">Rechazar invitación</a>
+                <a href="{accept_link}">Accept invitation</a> |
+                <a href="{reject_link}">Decline invitation</a>
             </p>
             </html>
             """,
@@ -163,13 +157,13 @@ def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
     safe_headline = escape(collection_headline)
 
     send_mail(
-        subject=f"{invitee_name} ha rechazado tu invitación",
-        message=f"{invitee_name} ha rechazado la invitación a '{collection_headline}'.",
+        subject="Your invitation was rejected",
+        message=f"{invitee_name} has declined the invitation to '{collection_headline}'.",
         from_email=None,
         recipient_list=[owner_email],
         html_message=f"""
             <html>
-            <p><strong>{safe_invitee}</strong> ha rechazado tu invitación a:</p>
+            <p><strong>{safe_invitee}</strong> has declined your invitation to:</p>
             <p><strong>{safe_headline}</strong></p>
             </html>
             """,
@@ -182,36 +176,49 @@ def send_collection_revoke_email(owner_name, collection_headline, email):
     safe_headline = escape(collection_headline)
 
     send_mail(
-        subject=f"Tu acceso a '{collection_headline}' ha sido revocado",
-        message=f"{owner_name} ha revocado tu acceso a la colección " f"'{collection_headline}'.",
+        subject="Your access has been revoked",
+        message=(f"{owner_name} has revoked your access to '{collection_headline}'."),
         from_email=None,
         recipient_list=[email],
         html_message=f"""
             <html>
-            <p>{safe_owner} ha revocado tu acceso a:</p>
+            <p>{safe_owner} has revoked your access to:</p>
             <p><strong>{safe_headline}</strong></p>
-            <p>Ya no podrás ver el contenido de esta colección.</p>
+            <p>You will no longer be able to view this collection.</p>
             </html>
             """,
     )
 
 
-def send_faq_question_email(questioner_name, thing_headline, question, owner_email):
+def send_faq_question_email(questioner_name, thing, question, owner_email):
     """Send FAQ question notification email to thing owner."""
+    from django.conf import settings
+
     safe_questioner = escape(questioner_name)
-    safe_headline = escape(thing_headline)
+    safe_headline = escape(thing.headline)
     safe_question = escape(question)
 
+    # Build link to thing page
+    base_url = settings.MAGIC_LINK_BASE_URL.rsplit("/", 1)[0]
+    collection = thing.collections.first()
+    if collection:
+        thing_url = f"{base_url}/collections/{collection.code}/things/{thing.code}"
+    else:
+        thing_url = f"{base_url}/things/{thing.code}"
+
     send_mail(
-        subject=f"Nueva pregunta sobre: {thing_headline}",
-        message=f"{questioner_name} ha preguntado: {question}",
+        subject="There is a question to be answered",
+        message=(
+            f"{questioner_name} has asked about '{thing.headline}': {question} "
+            f"View thing: {thing_url}"
+        ),
         from_email=None,
         recipient_list=[owner_email],
         html_message=f"""
             <html>
-            <p><strong>{safe_questioner}</strong> ha hecho una pregunta sobre:</p>
-            <p><strong>{safe_headline}</strong></p>
-            <p>Pregunta: {safe_question}</p>
+            <p><strong>{safe_questioner}</strong> has asked a question about:</p>
+            <p>Question: {safe_question}</p>
+            <p><a href="{thing_url}">View and reply</a></p>
             </html>
             """,
     )
@@ -225,16 +232,16 @@ def send_faq_answer_email(owner_name, thing_headline, question, answer, question
     safe_answer = escape(answer)
 
     send_mail(
-        subject=f"Tu pregunta ha sido respondida: {thing_headline}",
-        message=f"{owner_name} ha respondido: {answer}",
+        subject="Your question has been answered",
+        message=f"{owner_name} has replied: {answer}",
         from_email=None,
         recipient_list=[questioner_email],
         html_message=f"""
             <html>
-            <p><strong>{safe_owner}</strong> ha respondido tu pregunta sobre:</p>
+            <p><strong>{safe_owner}</strong> has replied to your question about:</p>
             <p><strong>{safe_headline}</strong></p>
-            <p>Tu pregunta: {safe_question}</p>
-            <p>Respuesta: {safe_answer}</p>
+            <p>Your question: {safe_question}</p>
+            <p>Reply: {safe_answer}</p>
             </html>
             """,
     )
@@ -247,15 +254,14 @@ def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     safe_question = escape(question)
 
     send_mail(
-        subject=f"Tu pregunta ha sido ocultada: {thing_headline}",
-        message=f"{owner_name} ha ocultado tu pregunta: {question}",
+        subject="Your question has been hidden",
+        message=f"{owner_name} has hidden your question: {question}",
         from_email=None,
         recipient_list=[questioner_email],
         html_message=f"""
             <html>
-            <p><strong>{safe_owner}</strong> ha ocultado tu pregunta sobre:</p>
+            <p><strong>{safe_owner}</strong> has hidden your question about:</p>
             <p><strong>{safe_headline}</strong></p>
-            <p>Tu pregunta: {safe_question}</p>
             </html>
             """,
     )

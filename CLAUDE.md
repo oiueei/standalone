@@ -8,7 +8,7 @@
 - **Test structure**: `core/tests/unit/`, `core/tests/integration/`, `core/tests/scenarios/`
 - **Coverage minimum**: 80% enforced by CI
 - **All PKs**: 6-character alphanumeric codes generated via `secrets.choice()` (not auto-increment)
-- **Emails**: All in Spanish. All user content escaped via `django.utils.html.escape()`
+- **Emails**: All user content escaped via `django.utils.html.escape()`
 
 ## Project Documentation
 
