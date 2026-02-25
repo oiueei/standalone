@@ -67,3 +67,15 @@ class SafeHeadlineField(serializers.CharField):
     def to_internal_value(self, data):
         value = super().to_internal_value(data)
         return validate_headline(value)
+
+
+class SafeTextField(serializers.CharField):
+    """
+    A CharField that rejects HTML content for longer text fields.
+
+    Uses the same bleach-based validation as SafeHeadlineField.
+    """
+
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        return validate_headline(value)

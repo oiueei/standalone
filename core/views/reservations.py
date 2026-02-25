@@ -213,7 +213,7 @@ class ThingRequestView(APIView):
         rsvp_reject = RSVP.create_for_booking("BOOKING_REJECT", booking, owner_email)
 
         # Build links
-        base_url = getattr(settings, "RSVP_BASE_URL", "http://localhost:3000/rsvp")
+        base_url = settings.RSVP_BASE_URL
         accept_link = f"{base_url}/{rsvp_accept.code}"
         reject_link = f"{base_url}/{rsvp_reject.code}"
 

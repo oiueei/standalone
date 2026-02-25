@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { StepByStep, TextInput, TextArea, Button, Notification } from 'hds-react';
 
@@ -9,9 +9,11 @@ export default function CreateCollectionPage() {
   const backLabel = location.state?.backLabel || 'Home';
   const token = localStorage.getItem('token');
 
-  if (!token) {
-    navigate('/login');
-  }
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');

@@ -7,7 +7,7 @@ from rest_framework import serializers
 from core.models import Thing
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
-from core.validators import ImageIdField, SafeHeadlineField, validate_image_id
+from core.validators import ImageIdField, SafeHeadlineField, SafeTextField, validate_image_id
 
 
 class ThingSerializer(serializers.ModelSerializer):
@@ -96,6 +96,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a thing."""
 
     headline = SafeHeadlineField(max_length=64)
+    description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     pictures = ImageIdListField(required=False)
 
@@ -115,6 +116,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating a thing."""
 
     headline = SafeHeadlineField(max_length=64, required=False)
+    description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     pictures = ImageIdListField(required=False)
 

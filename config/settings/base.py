@@ -172,6 +172,10 @@ MAGIC_LINK_BASE_URL = os.environ.get(
     "MAGIC_LINK_BASE_URL",
     "http://localhost:3000/verify",
 )
+RSVP_BASE_URL = os.environ.get(
+    "RSVP_BASE_URL",
+    "http://localhost:3000/rsvp",
+)
 
 
 # Cloudinary settings

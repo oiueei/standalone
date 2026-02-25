@@ -28,9 +28,12 @@ export default function AddThingPage() {
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
-  if (!token) {
-    navigate('/login');
-  }
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
 
   const [collectionHeadline, setCollectionHeadline] = useState('');
   const [type, setType] = useState('GIFT_THING');

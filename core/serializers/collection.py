@@ -7,7 +7,7 @@ from rest_framework import serializers
 from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
-from core.validators import ImageIdField, SafeHeadlineField
+from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
 
 class CollectionThingSummarySerializer(serializers.ModelSerializer):
@@ -118,6 +118,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a collection."""
 
     headline = SafeHeadlineField(max_length=64)
+    description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     hero = ImageIdField()
 
@@ -135,6 +136,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating a collection."""
 
     headline = SafeHeadlineField(max_length=64, required=False)
+    description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     hero = ImageIdField()
 

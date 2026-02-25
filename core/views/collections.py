@@ -77,7 +77,7 @@ class CollectionViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(
-            CollectionSerializer(self._created_collection).data,
+            CollectionSerializer(self._created_collection, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -109,7 +109,7 @@ class CollectionViewSet(ModelViewSet):
         return Response(
             {
                 "message": "Thing added to collection",
-                "collection": CollectionSerializer(collection).data,
+                "collection": CollectionSerializer(collection, context={"request": request}).data,
             },
             status=status.HTTP_200_OK,
         )
@@ -256,5 +256,7 @@ class InvitedCollectionsView(APIView):
 
     def get(self, request):
         invited_collections = request.user.invited_to_collections.all()
-        serializer = CollectionSerializer(invited_collections, many=True)
+        serializer = CollectionSerializer(
+            invited_collections, many=True, context={"request": request}
+        )
         return Response(serializer.data)

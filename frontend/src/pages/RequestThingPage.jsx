@@ -19,9 +19,11 @@ export default function RequestThingPage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || 'Back';
 
-  if (!token) {
-    navigate('/login');
-  }
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+    }
+  }, [token, navigate]);
 
   const [thing, setThing] = useState(null);
   const [startDate, setStartDate] = useState('');

@@ -5,6 +5,7 @@ FAQ serializers for OIUEEI.
 from rest_framework import serializers
 
 from core.models import FAQ
+from core.validators import SafeHeadlineField, SafeTextField
 
 
 class FAQSerializer(serializers.ModelSerializer):
@@ -37,10 +38,10 @@ class FAQSerializer(serializers.ModelSerializer):
 class FAQCreateSerializer(serializers.Serializer):
     """Serializer for creating a FAQ (asking a question)."""
 
-    question = serializers.CharField(max_length=64)
+    question = SafeHeadlineField(max_length=64)
 
 
 class FAQAnswerSerializer(serializers.Serializer):
     """Serializer for answering a FAQ."""
 
-    answer = serializers.CharField(max_length=256)
+    answer = SafeTextField(max_length=256)

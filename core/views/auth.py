@@ -126,7 +126,14 @@ class VerifyLinkView(APIView):
             "BOOKING_REJECT": self._handle_booking_reject,
         }
 
-        handler = action_handlers.get(rsvp.action, self._handle_magic_link)
+        handler = action_handlers.get(rsvp.action)
+        if not handler:
+            security_logger.warning(f"Unknown RSVP action '{rsvp.action}' from IP {ip}")
+            rsvp.delete()
+            return Response(
+                {"error": "Unknown action"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return handler(request, rsvp)
 
     def _handle_magic_link(self, request, rsvp):
@@ -297,8 +304,11 @@ class VerifyLinkView(APIView):
         # Send confirmation email to requester
         send_booking_decision_email(booking, thing, accepted=True)
 
-        # Delete RSVP (one-time use)
-        rsvp.delete()
+        # Delete all accept/reject RSVPs for this booking (invalidate sibling link)
+        RSVP.objects.filter(
+            target_code=booking_code,
+            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
+        ).delete()
 
         # Build response
         response_data = {
@@ -352,8 +362,11 @@ class VerifyLinkView(APIView):
         # Send rejection email to requester
         send_booking_decision_email(booking, thing, accepted=False)
 
-        # Delete RSVP (one-time use)
-        rsvp.delete()
+        # Delete all accept/reject RSVPs for this booking (invalidate sibling link)
+        RSVP.objects.filter(
+            target_code=booking_code,
+            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
+        ).delete()
 
         return Response(
             {

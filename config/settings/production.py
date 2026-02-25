@@ -65,8 +65,9 @@ REST_FRAMEWORK = {  # noqa: F405
     ],
 }
 
-# Magic link base URL for production
+# Magic link and RSVP base URLs for production
 MAGIC_LINK_BASE_URL = os.environ.get("MAGIC_LINK_BASE_URL", "https://oiueei.com/magic-link")
+RSVP_BASE_URL = os.environ.get("RSVP_BASE_URL", "https://oiueei.com/rsvp")
 
 # Logging for production with security logger
 LOGGING = {
