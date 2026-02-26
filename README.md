@@ -109,7 +109,6 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | GET | `/api/v1/auth/verify/{rsvp_code}/` | Verify magic link or process any RSVP action (rate limited: 10/min) |
 | GET | `/api/v1/auth/me/` | Get authenticated user |
 | POST | `/api/v1/auth/logout/` | Log out (blacklists refresh token) |
-| GET | `/api/v1/rsvp/{rsvp_code}/` | Process any RSVP action (unified endpoint) |
 
 ### Users
 | Method | URL | Description |
@@ -219,6 +218,7 @@ python manage.py expire_bookings
 | `EMAIL_HOST_USER` | Prod | SMTP username |
 | `EMAIL_HOST_PASSWORD` | Prod | SMTP password |
 | `DEFAULT_FROM_EMAIL` | No | Sender email address |
+| `RSVP_BASE_URL` | No | Base URL for RSVP action links in emails |
 | `CLOUDINARY_CLOUD_NAME` | No | Cloudinary cloud name (default: oiueei) |
 
 ## Security
@@ -262,7 +262,7 @@ python manage.py expire_bookings
 
 ## Default Data
 
-- Default Theeeme: "BAR_CEL_ONA" (code: JMPA01)
+- Default Theeeme: "B4s1C0" (code: HDS000)
 
 ## Important Notes
 

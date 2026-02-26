@@ -61,6 +61,10 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 3. Delegates to action handler.
 4. RSVP is deleted after use (one-time use).
 
+**Internal helpers:**
+- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, token_data)` tuple or `Response` on failure.
+- `_handle_booking_action(rsvp, accepted)` — Shared by `BOOKING_ACCEPT` and `BOOKING_REJECT` handlers. Looks up booking, validates via `is_valid()`, calls `accept_booking()`/`reject_booking()` service, sends decision email, deletes sibling RSVPs.
+
 **MAGIC_LINK response (200):**
 ```json
 {
@@ -225,7 +229,7 @@ Lists things from collections where the current user is invited. Only returns th
 - Add thing: `CollectionAddThingSerializer`
 - Read: `CollectionSerializer`
 
-**Queryset:** Own collections only, ordered by `-created`.
+**Queryset:** Own collections only, ordered by `-created`. List and retrieve actions use the module-level `_optimise_collection_queryset()` helper for `select_related`/`prefetch_related` optimisation (also reused by `InvitedCollectionsView`).
 
 **Retrieve:** Uses `collection.can_view(user_code)` — owner or in invites M2M. The `CollectionSerializer.things` field filters out unavailable things (`available=False`) for non-owners, so invited users only see things they can access.
 
@@ -441,9 +445,10 @@ Creates a reservation/booking request. Routes based on thing type:
 - Thing status changes to `TAKEN` (blocks other requests).
 
 **Common behaviour:**
-1. Creates `BookingPeriod` with status `PENDING`.
-2. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links.
-3. Sends booking request email to owner with accept/reject links.
+1. Validates owner email in the parent `post()` method (shared across all type handlers).
+2. Creates `BookingPeriod` with status `PENDING`.
+3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `_send_booking_email()`.
+4. Sends booking request email to owner with accept/reject links.
 
 **Responses:**
 | Status | Condition |
@@ -518,5 +523,5 @@ Business logic is extracted into `core/services/`:
 ### Utilities
 
 - `core/utils.py`: `generate_id()`, `get_client_ip()`, `cloudinary_url()`
-- `core/validators.py`: `ImageIdField`, `SafeHeadlineField`, `validate_image_id()`
+- `core/validators.py`: `ImageIdField`, `SafeHeadlineField`, `SafeTextField`, `validate_image_id()`, `validate_headline()`
 - `core/pagination.py`: `StandardResultsPagination` (max 100 items)

@@ -196,8 +196,8 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 | `created` | DateTimeField | Auto | Timestamp when RSVP was created |
 | `user_code` | ForeignKey(User) | **Yes** | User this RSVP is for |
 | `user_email` | CharField(64) | **Yes** | Email address of the recipient |
-| `action` | CharField(20) | No | Action type (default: MAGIC_LINK) |
-| `target_code` | CharField(6) | No | Target object code (booking, collection, etc.) |
+| `action` | CharField(20) | No | Action type (default: MAGIC_LINK). Indexed (`db_index=True`) |
+| `target_code` | CharField(6) | No | Target object code (booking, collection, etc.). Indexed (`db_index=True`) |
 | `context` | JSONField | No | Additional context data for the action |
 
 ### Action Types
@@ -244,7 +244,7 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 | `end_date` | DateField | No | End date (for LEND/RENT/SHARE) |
 | `delivery_date` | DateField | No | Delivery date (for ORDER_THING) |
 | `quantity` | PositiveIntegerField | No | Quantity ordered (for ORDER_THING) |
-| `status` | CharField(8) | No | Status: PENDING, ACCEPTED, REJECTED, EXPIRED |
+| `status` | CharField(8) | No | Status: PENDING, ACCEPTED, REJECTED, EXPIRED. Indexed (`db_index=True`) |
 
 ### Thing Type Categories
 

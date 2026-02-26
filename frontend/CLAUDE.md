@@ -62,7 +62,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - Redirects to `/login` if no token in `localStorage`.
 - On 401/403: clears tokens and redirects to `/login`.
 - Stores `userCode` in `localStorage` on successful fetch.
-- Displays greeting, "Crear coleccion" button linking to `/collections/new`, and "Editar perfil" button linking to `/me/edit`.
+- Displays greeting, "Create collection" button linking to `/collections/new`, and "Edit profile" button linking to `/me/edit`.
 - Shows inline lists of own collections and invited collections (headline, status, thing count, invite count) with links to `/collections/{code}`.
 - Lists all things (own + invited) using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=768px, 1 at <=430px), sorted by creation date descending.
 
@@ -73,9 +73,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - Handles 403 (not authorised) and 404 (not found) with specific error messages.
 - Displays hero image (`hero_url`, falls back to `thumbnail_url`, then `image-m` placeholder), collection headline, description, and status.
 - **Things** are rendered using the `ThingLinkbox` component (see below).
-- **"Editar coleccion" button** visible only to collection owner, links to `/collections/{code}/edit`.
-- **"Añadir cosa" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
-- **"Gestionar invitados" button** visible only to collection owner, links to `/collections/{code}/invites`.
+- **"Edit collection" button** visible only to collection owner, links to `/collections/{code}/edit`.
+- **"Add thing" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
+- **"Manage guests" button** visible only to collection owner, links to `/collections/{code}/invites`.
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
 - **Things grid**: responsive 3-column layout (2 columns at <=768px, 1 column at <=430px).
 - Passes `collectionHeadline` to each `ThingLinkbox` for back navigation context.
@@ -86,18 +86,18 @@ Reusable component for rendering a thing as an HDS `Linkbox`. Used by `Collectio
 
 - **Linkbox**: the entire component is a clickable link to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). Arrow icon is hidden via `linkbox-no-arrow` CSS class. Interactive elements (buttons, links) use `stopPropagation` to prevent navigation.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
-  - **Type** tag (always): Gift, Sale, Order, Rental, Loan, Share.
+  - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share.
   - **Taken** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Unavailable** tag (owner only, `available === false`): red background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
 - Displays thumbnail (or placeholder), headline, description, creation date, and fee (when present).
 - **Owner bookings display** (date-based/order types only): fetches `GET /api/v1/things/{code}/calendar/` on mount. Shows future confirmed and pending bookings with date ranges and status. The active pending booking (matching `thing.pending_booking`) is marked with `*`.
-- **"Editar" button** (owner only): links to edit page (collection context or standalone).
-- **"Eliminar" button** (owner only): calls `DELETE /api/v1/things/{code}/` and notifies parent via `onDelete`.
+- **"Edit" button** (owner only): links to edit page (collection context or standalone).
+- **"Delete" button** (owner only): calls `DELETE /api/v1/things/{code}/` and notifies parent via `onDelete`.
 - **Accept/Reject buttons** (owner only): When `thing.pending_booking` exists (PENDING booking code from serializer):
-  - "Aceptar" → `POST /api/v1/bookings/{code}/accept/` → updates thing locally, finds next pending booking from local state, shows success toast.
-  - "Rechazar" → `POST /api/v1/bookings/{code}/reject/` → updates thing locally, finds next pending booking from local state, shows success toast.
+  - "Accept" → `POST /api/v1/bookings/{code}/accept/` → updates thing locally, finds next pending booking from local state, shows success toast.
+  - "Reject" → `POST /api/v1/bookings/{code}/reject/` → updates thing locally, finds next pending booking from local state, shows success toast.
   - Both buttons are disabled while a booking action is in progress.
 - **Reservation button** logic:
   - Owner's own things: no button (compares `thing.owner` with `userCode`).
@@ -120,11 +120,11 @@ Detail page for a thing with full information and FAQs section.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Unavailable, Pending questions).
 - Displays thumbnail, headline, description, creation date, fee, and photo gallery (`pictures_urls`).
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
-- **Owner actions:** "Editar" button links to edit page. Accept/Reject buttons when `pending_booking` exists.
+- **Owner actions:** "Edit" button links to edit page. Accept/Reject buttons when `pending_booking` exists.
 - **Reservation:** Non-owners see "Hold" button. GIFT/SELL types submit directly; date-based and order types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
-  - **Owner:** inline `TextArea` to answer unanswered questions, "Ocultar"/"Mostrar" toggle button per FAQ.
+  - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
   - **Non-owner:** `Fieldset`-wrapped form to ask a new question.
 
 ### RequestThingPage (`src/pages/RequestThingPage.jsx`)
@@ -152,9 +152,9 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `Bearer` token and `collection_code` in body
 - Redirects to `/login` if no token in `localStorage`.
 - 3-step wizard using HDS `StepByStep`:
-  - **Step 1 (Tipo):** `Select` to choose thing type (Regalo, Venta, Pedido, Alquiler, Prestamo, Compartir).
-  - **Step 2 (Detalles):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others).
-  - **Step 3 (Resumen):** Read-only summary, "Cancelar" and "Crear" buttons. Validates on submit.
+  - **Step 1 (Type):** `Select` to choose thing type (Gift, Sale, Order, Rental, Lend, Share).
+  - **Step 2 (Details):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others).
+  - **Step 3 (Summary):** Read-only summary, "Cancel" and "Create" buttons. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
 
@@ -171,8 +171,8 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Detalles):** `TextInput` for name, `TextArea` for headline (bio), `TextInput` for thumbnail and hero (Cloudinary IDs), `Select` for theeeme (from API).
-  - **Step 2 (Resumen):** Read-only summary, "Guardar" button.
+  - **Step 1 (Details):** `TextInput` for name, `TextArea` for headline (bio), `TextInput` for thumbnail and hero (Cloudinary IDs), `Select` for theeeme (from API).
+  - **Step 2 (Summary):** Read-only summary, "Save" button.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.
 
@@ -181,8 +181,8 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load invites, `POST /api/v1/collections/{code}/invite/` to invite, `DELETE /api/v1/collections/{code}/invite/` to remove
 - Accessible from `/collections/:code/invites`.
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Invitados actuales):** Lists current invites by userCode. Owner sees "Eliminar" button per invite. "Volver" button navigates to collection.
-  - **Step 2 (Invitar):** Owner sees email input + "Invitar" button. Non-owners see a message. "Volver" button navigates to collection.
+  - **Step 1 (Current guests):** Lists current invites by userCode. Owner sees "Remove" button per invite. "Back" button navigates to collection.
+  - **Step 2 (Invite):** Owner sees email input + "Invite" button. Non-owners see a message. "Back" button navigates to collection.
 - Each invite/remove is an immediate API call (no final submit).
 
 ### EditCollectionPage (`src/pages/EditCollectionPage.jsx`)
@@ -190,8 +190,8 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Detalles):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs), `Select` for status (ACTIVE/INACTIVE).
-  - **Step 2 (Resumen):** Read-only summary, "Cancelar" and "Guardar" buttons.
+  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs), `Select` for status (ACTIVE/INACTIVE).
+  - **Step 2 (Summary):** Read-only summary, "Cancel" and "Save" buttons.
 - Pre-populates all fields from the existing collection.
 - On success: navigates to `/collections/{code}`.
 
@@ -200,8 +200,8 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/` with `Bearer` token
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Detalles):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs).
-  - **Step 2 (Resumen):** Read-only summary, "Cancelar" and "Crear" buttons.
+  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs).
+  - **Step 2 (Summary):** Read-only summary, "Cancel" and "Create" buttons.
 - On success: navigates to `/collections/{code}`.
 
 ### UserPage (`src/pages/UserPage.jsx`)
@@ -211,6 +211,30 @@ Detail page for a thing with full information and FAQs section.
 - Redirects to `/login` if no token in `localStorage`.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
 - Displays user name and raw JSON profile data.
+
+---
+
+## Shared Modules
+
+### API Service (`src/services/api.js`)
+
+- `apiFetch(url, options)` — Centralised fetch wrapper. Adds `Authorization: Bearer` header from localStorage, sets `Content-Type: application/json` for requests with body. On 401: clears tokens and redirects to `/login`.
+
+### Shared Components
+
+- **`BackLink`** (`src/components/BackLink.jsx`) — Reusable `← {label}` back navigation link. Props: `to`, `label`.
+- **`Toast`** (`src/components/Toast.jsx`) — Reusable toast notification wrapping HDS `Notification`. Props: `toast` (`{ type, message }`), `onClose`. Renders at `position="top-right"` with auto-close.
+- **`ThingTags`** (`src/components/ThingTags.jsx`) — Shared tag row for thing type, status, availability, and pending questions. Props: `thing`, `isOwner`. Uses `TAG_THEMES` from constants.
+
+### Constants (`src/constants/things.js`)
+
+Central source of truth for thing type definitions:
+- `TYPE_OPTIONS` — Array of `{ label, value }` for Select dropdowns.
+- `TYPE_LABELS` — Map from type value to display label.
+- `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`).
+- `ORDER_TYPE` — `ORDER_THING` constant.
+- `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`, `ORDER_THING`).
+- `TAG_THEMES` — Theme objects for status tags (taken, inactive, unavailable, pending).
 
 ---
 
