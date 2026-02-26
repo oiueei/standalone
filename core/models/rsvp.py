@@ -50,8 +50,10 @@ class RSVP(models.Model):
     user_email = models.CharField(max_length=64)
 
     # Action type and target
-    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default="MAGIC_LINK")
-    target_code = models.CharField(max_length=6, null=True, blank=True)
+    action = models.CharField(
+        max_length=20, choices=ACTION_CHOICES, default="MAGIC_LINK", db_index=True
+    )
+    target_code = models.CharField(max_length=6, null=True, blank=True, db_index=True)
 
     # Additional context data (JSON) for the action
     context = models.JSONField(default=dict, blank=True)

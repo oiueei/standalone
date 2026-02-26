@@ -44,9 +44,13 @@ class ThingFAQListView(APIView):
 
         # Get visible FAQs (or all if owner)
         if thing.is_owner(request.user.code):
-            faqs = FAQ.objects.filter(thing=thing).order_by("-created")
+            faqs = FAQ.objects.filter(thing=thing).select_related("questioner").order_by("-created")
         else:
-            faqs = FAQ.objects.filter(thing=thing, is_visible=True).order_by("-created")
+            faqs = (
+                FAQ.objects.filter(thing=thing, is_visible=True)
+                .select_related("questioner")
+                .order_by("-created")
+            )
 
         paginator = StandardResultsPagination()
         page = paginator.paginate_queryset(faqs, request)
@@ -106,7 +110,7 @@ class FAQDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, faq_code):
-        faq = get_object_or_404(FAQ, code=faq_code)
+        faq = get_object_or_404(FAQ.objects.select_related("questioner", "thing"), code=faq_code)
 
         # Get the thing to check access
         thing = faq.thing
@@ -140,7 +144,7 @@ class FAQAnswerView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, faq_code):
-        faq = get_object_or_404(FAQ, code=faq_code)
+        faq = get_object_or_404(FAQ.objects.select_related("questioner", "thing"), code=faq_code)
 
         # Check if user is thing owner
         thing = faq.thing
@@ -181,7 +185,7 @@ class FAQVisibilityView(APIView):
     permission_classes = [IsAuthenticated]
 
     def _get_faq_and_thing(self, faq_code):
-        faq = get_object_or_404(FAQ, code=faq_code)
+        faq = get_object_or_404(FAQ.objects.select_related("questioner", "thing"), code=faq_code)
         return faq, faq.thing
 
     def post(self, request, faq_code, action):

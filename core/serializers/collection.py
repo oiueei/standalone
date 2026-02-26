@@ -39,6 +39,10 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
 
     def get_pending_booking(self, obj):
+        # Use prefetched _pending_bookings if available, otherwise query
+        if hasattr(obj, "_pending_bookings"):
+            bookings = obj._pending_bookings
+            return bookings[0].code if bookings else None
         booking = BookingPeriod.objects.filter(
             thing_code=obj,
             status="PENDING",
@@ -46,7 +50,8 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         return booking.code if booking else None
 
     def get_pending_questions(self, obj):
-        return obj.faq_set.filter(answer="").count()
+        # Use prefetched faq_set cache if available
+        return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
 
 
 class CollectionInviteSummarySerializer(serializers.ModelSerializer):

@@ -61,6 +61,10 @@ class ThingSerializer(serializers.ModelSerializer):
         return [cloudinary_url(pic_id) for pic_id in obj.pictures if pic_id]
 
     def get_pending_booking(self, obj):
+        # Use prefetched _pending_bookings if available, otherwise query
+        if hasattr(obj, "_pending_bookings"):
+            bookings = obj._pending_bookings
+            return bookings[0].code if bookings else None
         booking = BookingPeriod.objects.filter(
             thing_code=obj,
             status="PENDING",
@@ -68,18 +72,23 @@ class ThingSerializer(serializers.ModelSerializer):
         return booking.code if booking else None
 
     def get_collection_code(self, obj):
-        collection = obj.collections.first()
-        return collection.code if collection else None
+        # Use prefetched collections cache if available
+        collections = obj.collections.all()
+        first = collections[0] if collections else None
+        return first.code if first else None
 
     def get_collection_headline(self, obj):
-        collection = obj.collections.first()
-        return collection.headline if collection else None
+        collections = obj.collections.all()
+        first = collections[0] if collections else None
+        return first.headline if first else None
 
     def get_faqs(self, obj):
-        return list(obj.faq_set.values_list("code", flat=True))
+        # Use prefetched faq_set cache if available
+        return [faq.code for faq in obj.faq_set.all()]
 
     def get_pending_questions(self, obj):
-        return obj.faq_set.filter(answer="").count()
+        # Use prefetched faq_set cache if available
+        return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
 
 
 class ImageIdListField(serializers.ListField):

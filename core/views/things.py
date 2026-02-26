@@ -9,7 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from django.db.models import Prefetch
+
 from core.models import Collection, Thing
+from core.models.booking import BookingPeriod
 from core.pagination import StandardResultsPagination
 from core.permissions import IsThingOwner
 from core.serializers import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
@@ -29,7 +32,20 @@ class ThingViewSet(ModelViewSet):
     lookup_field = "code"
 
     def get_queryset(self):
-        return Thing.objects.filter(owner=self.request.user).order_by("-created")
+        return (
+            Thing.objects.filter(owner=self.request.user)
+            .select_related("owner")
+            .prefetch_related(
+                "collections",
+                "faq_set",
+                Prefetch(
+                    "bookings",
+                    queryset=BookingPeriod.objects.filter(status="PENDING"),
+                    to_attr="_pending_bookings",
+                ),
+            )
+            .order_by("-created")
+        )
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -93,6 +109,16 @@ class InvitedThingsView(ListAPIView):
     def get_queryset(self):
         return (
             Thing.objects.filter(collections__invites=self.request.user, available=True)
+            .select_related("owner")
+            .prefetch_related(
+                "collections",
+                "faq_set",
+                Prefetch(
+                    "bookings",
+                    queryset=BookingPeriod.objects.filter(status="PENDING"),
+                    to_attr="_pending_bookings",
+                ),
+            )
             .distinct()
             .order_by("-created")
         )

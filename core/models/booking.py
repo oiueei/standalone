@@ -75,7 +75,9 @@ class BookingPeriod(models.Model):
     end_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE
     delivery_date = models.DateField(null=True, blank=True)  # For ORDER_THING
     quantity = models.PositiveIntegerField(null=True, blank=True)  # For ORDER_THING
-    status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="PENDING")
+    status = models.CharField(
+        max_length=8, choices=STATUS_CHOICES, default="PENDING", db_index=True
+    )
 
     class Meta:
         app_label = "core"
