@@ -5,6 +5,8 @@ Integration tests for OIUEEI API views.
 import pytest
 from rest_framework import status
 
+from core.models import RSVP
+
 
 @pytest.mark.django_db
 class TestAuthViews:
@@ -1348,3 +1350,164 @@ class TestSecurityAuth:
         assert response.status_code == status.HTTP_200_OK
         assert "email" in response.data
         assert response.data["email"] == user.email
+
+
+@pytest.mark.django_db
+class TestAuthViewEdgeCases:
+    """Tests for auth view edge cases and uncovered branches."""
+
+    def test_verify_expired_rsvp(self, api_client, user):
+        """Expired RSVP should return 401 and be deleted."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+        )
+        rsvp.created = timezone.now() - timedelta(hours=25)
+        rsvp.save(update_fields=["created"])
+
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not RSVP.objects.filter(code=rsvp.code).exists()
+
+    def test_verify_unknown_action(self, api_client, user):
+        """RSVP with unknown action should return 400."""
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+            action="UNKNOWN_ACTION",
+        )
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not RSVP.objects.filter(code=rsvp.code).exists()
+
+    def test_collection_reject_via_rsvp(self, api_client, user, user2, collection):
+        """Collection reject RSVP should decline invitation and notify owner."""
+        from unittest.mock import patch
+
+        # Create accept and reject RSVPs
+        RSVP.objects.create(
+            user_code=user2,
+            user_email=user2.email,
+            action="COLLECTION_INVITE",
+            target_code=collection.code,
+        )
+        reject_rsvp = RSVP.objects.create(
+            user_code=user2,
+            user_email=user2.email,
+            action="COLLECTION_REJECT",
+            target_code=collection.code,
+        )
+
+        with patch("core.views.auth.send_invite_rejected_email") as mock_email:
+            response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.code}/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["action"] == "COLLECTION_REJECT"
+        mock_email.assert_called_once()
+        # Both RSVPs should be deleted
+        assert not RSVP.objects.filter(user_code=user2, target_code=collection.code).exists()
+
+    def test_collection_reject_deleted_collection(self, api_client, user2):
+        """Collection reject for deleted collection should still succeed."""
+        reject_rsvp = RSVP.objects.create(
+            user_code=user2,
+            user_email=user2.email,
+            action="COLLECTION_REJECT",
+            target_code="NOCODE",
+        )
+        response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.code}/")
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_booking_accept_via_rsvp(self, api_client, user, user2, thing, collection):
+        """Booking accept RSVP should accept the booking."""
+        from unittest.mock import patch
+
+        from core.models.booking import BookingPeriod
+
+        collection.invites.add(user2)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+        )
+        accept_rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+            action="BOOKING_ACCEPT",
+            target_code=booking.code,
+        )
+
+        with patch("core.views.auth.send_booking_decision_email"):
+            response = api_client.get(f"/api/v1/auth/verify/{accept_rsvp.code}/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["action"] == "BOOKING_ACCEPT"
+        booking.refresh_from_db()
+        assert booking.status == "ACCEPTED"
+
+    def test_booking_reject_via_rsvp(self, api_client, user, user2, thing, collection):
+        """Booking reject RSVP should reject the booking."""
+        from unittest.mock import patch
+
+        from core.models.booking import BookingPeriod
+
+        collection.invites.add(user2)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+        )
+        reject_rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+            action="BOOKING_REJECT",
+            target_code=booking.code,
+        )
+
+        with patch("core.views.auth.send_booking_decision_email"):
+            response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.code}/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["action"] == "BOOKING_REJECT"
+        booking.refresh_from_db()
+        assert booking.status == "REJECTED"
+
+    def test_booking_rsvp_not_found(self, api_client, user):
+        """Booking RSVP for nonexistent booking should return 404."""
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+            action="BOOKING_ACCEPT",
+            target_code="NOCODE",
+        )
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_booking_rsvp_expired_booking(self, api_client, user, user2, thing):
+        """Booking RSVP for expired booking should return 400."""
+        from core.models.booking import BookingPeriod
+
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            status="ACCEPTED",
+        )
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+            action="BOOKING_ACCEPT",
+            target_code=booking.code,
+        )
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST

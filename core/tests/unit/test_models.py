@@ -452,3 +452,321 @@ class TestFAQModel:
         )
         faq.set_answer("Yes it is!")
         assert faq.answer == "Yes it is!"
+
+    def test_faq_str(self):
+        """Should return readable string representation."""
+        owner = self._create_user("OWNER1")
+        thing = self._create_thing(owner)
+        questioner = self._create_user("USR001")
+        faq = FAQ.objects.create(
+            thing=thing,
+            questioner=questioner,
+            question="Is this available in blue?",
+        )
+        result = str(faq)
+        assert faq.code in result
+        assert "Is this available in blue?" in result
+
+
+@pytest.mark.django_db
+class TestBookingPeriodModel:
+    """Tests for BookingPeriod model."""
+
+    def _create_user(self, code="ABC123"):
+        return User.objects.create(code=code, email=f"{code}@example.com")
+
+    def _create_thing(self, owner, code="THNG01", thing_type="GIFT_THING"):
+        return Thing.objects.create(code=code, owner=owner, headline="Thing", type=thing_type)
+
+    def test_str_date_based(self):
+        """Should show date range for date-based bookings."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner, thing_type="LEND_THING")
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="LEND_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+            start_date="2026-03-01",
+            end_date="2026-03-10",
+        )
+        result = str(booking)
+        assert "2026-03-01" in result
+        assert "2026-03-10" in result
+
+    def test_str_order(self):
+        """Should show delivery date for order bookings."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner, thing_type="ORDER_THING")
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="ORDER_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+            delivery_date="2026-04-01",
+            quantity=5,
+        )
+        result = str(booking)
+        assert "2026-04-01" in result
+        assert "x5" in result
+
+    def test_str_standard(self):
+        """Should show basic info for standard bookings."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+        )
+        result = str(booking)
+        assert booking.code in result
+        assert thing.code in result
+
+    def test_is_date_based(self):
+        """Should identify date-based booking types."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="LEND_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+        )
+        assert booking.is_date_based() is True
+        assert booking.is_single_use() is False
+        assert booking.is_repeatable() is False
+
+    def test_is_single_use(self):
+        """Should identify single-use booking types."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+        )
+        assert booking.is_single_use() is True
+        assert booking.is_date_based() is False
+        assert booking.is_repeatable() is False
+
+    def test_is_repeatable(self):
+        """Should identify repeatable booking types."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="ORDER_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+        )
+        assert booking.is_repeatable() is True
+        assert booking.is_date_based() is False
+        assert booking.is_single_use() is False
+
+    def test_expire(self):
+        """Should mark booking as expired."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+        )
+        assert booking.status == "PENDING"
+        booking.expire()
+        booking.refresh_from_db()
+        assert booking.status == "EXPIRED"
+
+    def test_has_overlap_with_exclude(self):
+        """Should exclude specific booking from overlap check."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner, thing_type="LEND_THING")
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="LEND_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+            start_date="2026-03-01",
+            end_date="2026-03-10",
+        )
+        # Without exclude: should overlap
+        assert BookingPeriod.has_overlap(thing.code, "2026-03-05", "2026-03-15") is True
+        # With exclude: should not overlap
+        assert (
+            BookingPeriod.has_overlap(
+                thing.code, "2026-03-05", "2026-03-15", exclude_booking_code=booking.code
+            )
+            is False
+        )
+
+
+@pytest.mark.django_db
+class TestCollectionModelEdgeCases:
+    """Tests for Collection model DoesNotExist branches."""
+
+    def _create_user(self, code="ABC123"):
+        return User.objects.create(code=code, email=f"{code}@example.com")
+
+    def test_collection_str(self):
+        """Should return readable string representation."""
+        user = self._create_user()
+        collection = Collection.objects.create(owner=user, headline="My Collection")
+        result = str(collection)
+        assert collection.code in result
+        assert "My Collection" in result
+
+    def test_add_thing_nonexistent(self):
+        """Adding nonexistent thing should silently pass."""
+        user = self._create_user()
+        collection = Collection.objects.create(owner=user, headline="My Collection")
+        collection.add_thing("NOCODE")
+        assert collection.things.count() == 0
+
+    def test_remove_thing_nonexistent(self):
+        """Removing nonexistent thing should silently pass."""
+        user = self._create_user()
+        collection = Collection.objects.create(owner=user, headline="My Collection")
+        collection.remove_thing("NOCODE")
+        assert collection.things.count() == 0
+
+    def test_add_invite_nonexistent(self):
+        """Adding nonexistent user as invite should silently pass."""
+        user = self._create_user()
+        collection = Collection.objects.create(owner=user, headline="My Collection")
+        collection.add_invite("NOCODE")
+        assert collection.invites.count() == 0
+
+    def test_remove_invite_nonexistent(self):
+        """Removing nonexistent user from invites should silently pass."""
+        user = self._create_user()
+        collection = Collection.objects.create(owner=user, headline="My Collection")
+        collection.remove_invite("NOCODE")
+        assert collection.invites.count() == 0
+
+
+@pytest.mark.django_db
+class TestThingModelEdgeCases:
+    """Tests for Thing model DoesNotExist branches."""
+
+    def _create_user(self, code="ABC123"):
+        return User.objects.create(code=code, email=f"{code}@example.com")
+
+    def test_thing_str(self):
+        """Should return readable string representation."""
+        user = self._create_user()
+        thing = Thing.objects.create(owner=user, headline="My Thing")
+        result = str(thing)
+        assert thing.code in result
+        assert "My Thing" in result
+
+    def test_reserve_nonexistent_user(self):
+        """Reserving with nonexistent user should silently pass."""
+        user = self._create_user()
+        thing = Thing.objects.create(owner=user, headline="My Thing")
+        thing.reserve("NOCODE")
+        assert thing.deal.count() == 0
+        assert thing.available is True
+
+    def test_release_nonexistent_user(self):
+        """Releasing nonexistent user should silently pass."""
+        user = self._create_user()
+        thing = Thing.objects.create(owner=user, headline="My Thing", available=False)
+        thing.release("NOCODE")
+        assert thing.available is False
+
+
+@pytest.mark.django_db
+class TestUserModelEdgeCases:
+    """Tests for User model edge cases."""
+
+    def test_create_superuser(self):
+        """Should create a superuser."""
+        user = User.objects.create_superuser(email="admin@example.com")
+        assert user.is_staff is True
+        assert user.is_superuser is True
+
+    def test_has_perm_regular_user(self):
+        """Regular user should not have any perms."""
+        user = User.objects.create(email="test@example.com")
+        assert user.has_perm("any_perm") is False
+
+    def test_has_perm_superuser(self):
+        """Superuser should have all perms."""
+        user = User.objects.create_superuser(email="admin@example.com")
+        assert user.has_perm("any_perm") is True
+
+    def test_has_module_perms_regular_user(self):
+        """Regular user should not have module perms."""
+        user = User.objects.create(email="test@example.com")
+        assert user.has_module_perms("core") is False
+
+    def test_has_module_perms_superuser(self):
+        """Superuser should have module perms."""
+        user = User.objects.create_superuser(email="admin@example.com")
+        assert user.has_module_perms("core") is True
+
+
+@pytest.mark.django_db
+class TestRSVPModelEdgeCases:
+    """Tests for RSVP model edge cases."""
+
+    def test_rsvp_str(self):
+        """Should return readable string representation."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email="test@example.com",
+            action="COLLECTION_INVITE",
+        )
+        result = str(rsvp)
+        assert rsvp.code in result
+        assert "COLLECTION_INVITE" in result
+        assert "test@example.com" in result
+
+    def test_create_for_booking(self):
+        """Should create RSVP with booking context."""
+        from core.models.booking import BookingPeriod
+
+        owner = User.objects.create(code="OWNER1", email="owner@example.com")
+        requester = User.objects.create(code="REQ001", email="req@example.com")
+        thing = Thing.objects.create(code="THNG01", owner=owner, headline="Thing")
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=requester,
+            requester_email="req@example.com",
+            owner_code=owner,
+        )
+        rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, "owner@example.com")
+        assert rsvp.action == "BOOKING_ACCEPT"
+        assert rsvp.target_code == booking.code
+        assert rsvp.user_email == "owner@example.com"
+        assert rsvp.context["thing_code"] == thing.code
