@@ -2,8 +2,8 @@ from .auth import MeView, RequestLinkView, VerifyLinkView
 from .booking import MyBookingsView, OwnerBookingsView, ThingCalendarView
 from .collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
 from .faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
-from .things import InvitedThingsView, ThingViewSet
 from .theeemes import TheeemeListView
+from .things import InvitedThingsView, ThingViewSet
 from .users import UserDetailView
 
 __all__ = [

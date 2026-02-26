@@ -15,8 +15,8 @@ from .collection import (
     CollectionUpdateSerializer,
 )
 from .faq import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
-from .thing import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
 from .theeeme import TheeemeSerializer
+from .thing import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
 from .user import UserPublicSerializer, UserSerializer, UserUpdateSerializer
 
 __all__ = [

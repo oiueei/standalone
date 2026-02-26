@@ -12,9 +12,9 @@ from rest_framework.routers import DefaultRouter
 from .views.auth import LogoutView, MeView, RequestLinkView, VerifyLinkView
 from .views.booking import BookingActionView, MyBookingsView, OwnerBookingsView, ThingCalendarView
 from .views.collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
-from .views.theeemes import TheeemeListView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
+from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
 from .views.users import UserDetailView
 
