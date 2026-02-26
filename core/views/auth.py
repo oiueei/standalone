@@ -136,11 +136,11 @@ class VerifyLinkView(APIView):
             )
         return handler(request, rsvp)
 
-    def _handle_magic_link(self, request, rsvp):
-        """Handle magic link authentication."""
-        ip = get_client_ip(request)
+    def _authenticate_user(self, request, rsvp):
+        """Authenticate a user via RSVP: validate, generate JWT, login, delete RSVP.
 
-        # Get user (rsvp.user_code is now a FK)
+        Returns (user, token_data) on success, or a Response on failure.
+        """
         user = rsvp.user_code
         if not user:
             rsvp.delete()
@@ -149,63 +149,52 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Update last activity
         user.update_last_activity()
 
-        # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
-
-        # Also login via session for browser access
         login(request, user)
 
-        # Delete RSVP (one-time use)
+        token_data = {
+            "token": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user": UserSerializer(user).data,
+        }
+        return user, token_data
+
+    def _handle_magic_link(self, request, rsvp):
+        """Handle magic link authentication."""
+        ip = get_client_ip(request)
+
+        result = self._authenticate_user(request, rsvp)
+        if isinstance(result, Response):
+            return result
+        user, token_data = result
+
         rsvp.delete()
 
         security_logger.info(f"User {user.email} logged in via magic link from IP {ip}")
 
-        # Return token and user data
-        user_data = UserSerializer(user).data
-
         return Response(
-            {
-                "action": "MAGIC_LINK",
-                "token": str(refresh.access_token),
-                "refresh": str(refresh),
-                "user": user_data,
-            },
+            {"action": "MAGIC_LINK", **token_data},
             status=status.HTTP_200_OK,
         )
 
     def _handle_collection_invite(self, request, rsvp):
         """Handle collection invitation acceptance."""
-        # Get user (rsvp.user_code is now a FK)
-        user = rsvp.user_code
-        if not user:
-            rsvp.delete()
-            return Response(
-                {"error": "User not found"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
-
-        # Update last activity
-        user.update_last_activity()
+        result = self._authenticate_user(request, rsvp)
+        if isinstance(result, Response):
+            return result
+        user, token_data = result
 
         # Process collection invitation
         invited_collection = None
         if rsvp.target_code:
             try:
                 collection = Collection.objects.get(code=rsvp.target_code)
-                # Add user to collection invites (M2M)
                 collection.invites.add(user)
                 invited_collection = rsvp.target_code
             except Collection.DoesNotExist:
                 pass  # Collection was deleted, ignore
-
-        # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
-
-        # Also login via session for browser access
-        login(request, user)
 
         # Delete this RSVP and the sibling reject RSVP (invalidate both links)
         RSVP.objects.filter(
@@ -215,16 +204,7 @@ class VerifyLinkView(APIView):
         ).delete()
         rsvp.delete()
 
-        # Return token and user data
-        user_data = UserSerializer(user).data
-
-        response_data = {
-            "action": "COLLECTION_INVITE",
-            "token": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": user_data,
-        }
-
+        response_data = {"action": "COLLECTION_INVITE", **token_data}
         if invited_collection:
             response_data["invited_collection"] = invited_collection
 
@@ -269,8 +249,8 @@ class VerifyLinkView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def _handle_booking_accept(self, request, rsvp):
-        """Handle booking accept action for all thing types."""
+    def _handle_booking_action(self, rsvp, accepted):
+        """Shared handler for booking accept/reject via RSVP."""
         booking_code = rsvp.target_code
 
         try:
@@ -289,7 +269,6 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Get thing (FK access)
         thing = booking.thing_code
         if not thing:
             rsvp.delete()
@@ -298,11 +277,12 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Accept the booking and update thing status
-        thing = accept_booking(booking)
-
-        # Send confirmation email to requester
-        send_booking_decision_email(booking, thing, accepted=True)
+        # Process booking and send email
+        if accepted:
+            thing = accept_booking(booking)
+        else:
+            thing = reject_booking(booking)
+        send_booking_decision_email(booking, thing, accepted=accepted)
 
         # Delete all accept/reject RSVPs for this booking (invalidate sibling link)
         RSVP.objects.filter(
@@ -311,71 +291,32 @@ class VerifyLinkView(APIView):
         ).delete()
 
         # Build response
+        action_name = "BOOKING_ACCEPT" if accepted else "BOOKING_REJECT"
+        message = "Booking accepted" if accepted else "Booking rejected"
         response_data = {
-            "action": "BOOKING_ACCEPT",
-            "message": "Booking accepted",
+            "action": action_name,
+            "message": message,
             "thing_headline": thing.headline,
         }
-        if booking.start_date:
-            response_data["start_date"] = str(booking.start_date)
-        if booking.end_date:
-            response_data["end_date"] = str(booking.end_date)
-        if booking.delivery_date:
-            response_data["delivery_date"] = str(booking.delivery_date)
-        if booking.quantity:
-            response_data["quantity"] = booking.quantity
+        if accepted:
+            if booking.start_date:
+                response_data["start_date"] = str(booking.start_date)
+            if booking.end_date:
+                response_data["end_date"] = str(booking.end_date)
+            if booking.delivery_date:
+                response_data["delivery_date"] = str(booking.delivery_date)
+            if booking.quantity:
+                response_data["quantity"] = booking.quantity
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    def _handle_booking_accept(self, request, rsvp):
+        """Handle booking accept action for all thing types."""
+        return self._handle_booking_action(rsvp, accepted=True)
+
     def _handle_booking_reject(self, request, rsvp):
         """Handle booking reject action for all thing types."""
-        booking_code = rsvp.target_code
-
-        try:
-            booking = BookingPeriod.objects.get(code=booking_code)
-        except BookingPeriod.DoesNotExist:
-            rsvp.delete()
-            return Response(
-                {"error": "Booking not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if not booking.is_valid():
-            rsvp.delete()
-            return Response(
-                {"error": "Booking expired or already processed"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Get thing (FK access)
-        thing = booking.thing_code
-        if not thing:
-            rsvp.delete()
-            return Response(
-                {"error": "Thing not found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        # Reject the booking and update thing status
-        thing = reject_booking(booking)
-
-        # Send rejection email to requester
-        send_booking_decision_email(booking, thing, accepted=False)
-
-        # Delete all accept/reject RSVPs for this booking (invalidate sibling link)
-        RSVP.objects.filter(
-            target_code=booking_code,
-            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
-        ).delete()
-
-        return Response(
-            {
-                "action": "BOOKING_REJECT",
-                "message": "Booking rejected",
-                "thing_headline": thing.headline,
-            },
-            status=status.HTTP_200_OK,
-        )
+        return self._handle_booking_action(rsvp, accepted=False)
 
 
 class MeView(APIView):

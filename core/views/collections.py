@@ -26,6 +26,24 @@ from core.serializers import (
 from core.services.email_service import send_collection_invite_email, send_collection_revoke_email
 
 
+def _optimise_collection_queryset(queryset):
+    """Add select/prefetch_related for nested serializer access on collections."""
+    return queryset.select_related("owner").prefetch_related(
+        "invites",
+        Prefetch(
+            "things",
+            queryset=Thing.objects.select_related("owner").prefetch_related(
+                "faq_set",
+                Prefetch(
+                    "bookings",
+                    queryset=BookingPeriod.objects.filter(status="PENDING"),
+                    to_attr="_pending_bookings",
+                ),
+            ),
+        ),
+    )
+
+
 class CollectionViewSet(ModelViewSet):
     """
     ViewSet for Collection CRUD operations.
@@ -40,27 +58,10 @@ class CollectionViewSet(ModelViewSet):
 
     lookup_field = "code"
 
-    def _get_optimised_queryset(self, queryset):
-        """Add prefetch_related for nested serializer access."""
-        return queryset.select_related("owner").prefetch_related(
-            "invites",
-            Prefetch(
-                "things",
-                queryset=Thing.objects.select_related("owner").prefetch_related(
-                    "faq_set",
-                    Prefetch(
-                        "bookings",
-                        queryset=BookingPeriod.objects.filter(status="PENDING"),
-                        to_attr="_pending_bookings",
-                    ),
-                ),
-            ),
-        )
-
     def get_queryset(self):
         qs = Collection.objects.filter(owner=self.request.user).order_by("-created")
         if self.action in ("list", "retrieve"):
-            return self._get_optimised_queryset(qs)
+            return _optimise_collection_queryset(qs)
         return qs
 
     def get_serializer_class(self):
@@ -277,23 +278,8 @@ class InvitedCollectionsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        invited_collections = (
+        invited_collections = _optimise_collection_queryset(
             request.user.invited_to_collections.all()
-            .select_related("owner")
-            .prefetch_related(
-                "invites",
-                Prefetch(
-                    "things",
-                    queryset=Thing.objects.select_related("owner").prefetch_related(
-                        "faq_set",
-                        Prefetch(
-                            "bookings",
-                            queryset=BookingPeriod.objects.filter(status="PENDING"),
-                            to_attr="_pending_bookings",
-                        ),
-                    ),
-                ),
-            )
         )
         serializer = CollectionSerializer(
             invited_collections, many=True, context={"request": request}

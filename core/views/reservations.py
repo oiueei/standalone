@@ -56,17 +56,24 @@ class ThingRequestView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Check owner email early (avoids duplicating this check in each handler)
+        owner_email = thing.owner.email
+        if not owner_email:
+            return Response(
+                {"error": "Thing owner not found"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
         # Route based on thing type
         if thing.type in DATE_BASED_TYPES:
-            return self._handle_date_based_request(request, thing)
+            return self._handle_date_based_request(request, thing, owner_email)
         elif thing.type in REPEATABLE_TYPES:
-            return self._handle_order_request(request, thing)
+            return self._handle_order_request(request, thing, owner_email)
         else:
-            return self._handle_standard_request(request, thing)
+            return self._handle_standard_request(request, thing, owner_email)
 
-    def _handle_date_based_request(self, request, thing):
+    def _handle_date_based_request(self, request, thing, owner_email):
         """Handle LEND/RENT/SHARE requests with date-based booking."""
-        # Validate dates
         serializer = ThingRequestWithDatesSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -74,14 +81,12 @@ class ThingRequestView(APIView):
         start_date = serializer.validated_data["start_date"]
         end_date = serializer.validated_data["end_date"]
 
-        # Check for overlap with existing bookings
         if BookingPeriod.has_overlap(thing.code, start_date, end_date):
             return Response(
                 {"error": "Selected dates overlap with existing booking"},
                 status=status.HTTP_409_CONFLICT,
             )
 
-        # Create booking period (status=PENDING, blocks dates for 72h)
         booking = BookingPeriod.objects.create(
             thing_code=thing,
             thing_type=thing.type,
@@ -92,18 +97,7 @@ class ThingRequestView(APIView):
             end_date=end_date,
         )
 
-        # Get owner email
-        owner_email = thing.owner.email
-        if not owner_email:
-            return Response(
-                {"error": "Thing owner not found"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        self._send_booking_email(request.user, thing, booking, owner_email, with_dates=True)
-
-        # NOTE: Do NOT change thing status - it stays ACTIVE for date-based types
-        # Multiple bookings can exist for different date ranges
+        self._send_booking_email(request.user, thing, booking, owner_email)
 
         return Response(
             {
@@ -115,9 +109,8 @@ class ThingRequestView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def _handle_order_request(self, request, thing):
+    def _handle_order_request(self, request, thing, owner_email):
         """Handle ORDER_THING requests (delivery_date + quantity)."""
-        # Validate order data
         serializer = ThingOrderSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -125,7 +118,6 @@ class ThingRequestView(APIView):
         delivery_date = serializer.validated_data["delivery_date"]
         quantity = serializer.validated_data["quantity"]
 
-        # Create booking with order info
         booking = BookingPeriod.objects.create(
             thing_code=thing,
             thing_type=thing.type,
@@ -136,17 +128,8 @@ class ThingRequestView(APIView):
             quantity=quantity,
         )
 
-        # Get owner email
-        owner_email = thing.owner.email
-        if not owner_email:
-            return Response(
-                {"error": "Thing owner not found"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        self._send_booking_email(request.user, thing, booking, owner_email)
 
-        self._send_booking_email(request.user, thing, booking, owner_email, order_info=True)
-
-        # NOTE: Thing stays ACTIVE - multiple orders allowed
         return Response(
             {
                 "message": "Order request sent",
@@ -157,9 +140,8 @@ class ThingRequestView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def _handle_standard_request(self, request, thing):
+    def _handle_standard_request(self, request, thing, owner_email):
         """Handle GIFT/SELL requests (no dates)."""
-        # Check if user already has a pending request
         existing = BookingPeriod.objects.filter(
             thing_code=thing,
             requester_code=request.user,
@@ -171,7 +153,6 @@ class ThingRequestView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Create booking (no dates for standard requests)
         booking = BookingPeriod.objects.create(
             thing_code=thing,
             thing_type=thing.type,
@@ -180,17 +161,8 @@ class ThingRequestView(APIView):
             owner_code=thing.owner,
         )
 
-        # Update thing status to TAKEN (blocks other requests)
         thing.status = "TAKEN"
         thing.save(update_fields=["status"])
-
-        # Get owner email
-        owner_email = thing.owner.email
-        if not owner_email:
-            return Response(
-                {"error": "Thing owner not found"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
 
         self._send_booking_email(request.user, thing, booking, owner_email)
 
@@ -202,11 +174,7 @@ class ThingRequestView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def _get_owner_email(self, owner):
-        """Get owner's email address."""
-        return owner.email if owner else None
-
-    def _send_booking_email(self, requester, thing, booking, owner_email, **kwargs):
+    def _send_booking_email(self, requester, thing, booking, owner_email):
         """Send booking request email to owner with RSVP-protected links."""
         # Create RSVP tokens for accept/reject links
         rsvp_accept = RSVP.create_for_booking("BOOKING_ACCEPT", booking, owner_email)
