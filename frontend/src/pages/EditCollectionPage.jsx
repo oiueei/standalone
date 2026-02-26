@@ -103,8 +103,9 @@ export default function EditCollectionPage() {
     {
       title: 'Details',
       description: (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="form-grid">
           <TextInput
+            id="edit-collection-headline"
             label="Title"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
@@ -114,21 +115,25 @@ export default function EditCollectionPage() {
             helperText={`${headline.length}/64`}
           />
           <TextArea
+            id="edit-collection-description"
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
           <TextInput
+            id="edit-collection-thumbnail"
             label="Thumbnail (Cloudinary ID)"
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
           />
           <TextInput
+            id="edit-collection-hero"
             label="Hero (Cloudinary ID)"
             value={hero}
             onChange={(e) => setHero(e.target.value)}
           />
           <Select
+            id="edit-collection-status"
             label="Status"
             options={STATUS_OPTIONS}
             value={status}
@@ -145,7 +150,7 @@ export default function EditCollectionPage() {
       title: 'Summary',
       description: (
         <div>
-          <dl style={{ display: 'grid', gap: '0.5rem' }}>
+          <dl className="summary-grid">
             <dt><strong>Title</strong></dt>
             <dd>{headline || '—'}</dd>
             {description && (
@@ -161,7 +166,7 @@ export default function EditCollectionPage() {
             <dt><strong>Status</strong></dt>
             <dd>{status === 'ACTIVE' ? 'Active' : 'Inactive'}</dd>
           </dl>
-          <div style={{ marginTop: '1rem' }}>
+          <div className="section-mt">
             <Button disabled={submitting} onClick={handleSubmit}>
               {submitting ? 'Saving...' : 'Save'}
             </Button>

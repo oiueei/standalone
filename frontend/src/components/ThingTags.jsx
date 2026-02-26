@@ -3,7 +3,7 @@ import { TYPE_LABELS, TAG_THEMES } from '../constants/things';
 
 export default function ThingTags({ thing, isOwner }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+    <div className="gallery-row" style={{ gap: 'var(--spacing-2-xs)' }}>
       <Tag>{TYPE_LABELS[thing.type] || thing.type}</Tag>
       {isOwner && thing.status === 'TAKEN' && (
         <Tag theme={TAG_THEMES.taken}>Taken</Tag>

@@ -68,8 +68,9 @@ export default function CreateCollectionPage() {
     {
       title: 'Details',
       description: (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="form-grid">
           <TextInput
+            id="create-collection-headline"
             label="Title"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
@@ -79,16 +80,19 @@ export default function CreateCollectionPage() {
             helperText={`${headline.length}/64`}
           />
           <TextArea
+            id="create-collection-description"
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
           <TextInput
+            id="create-collection-thumbnail"
             label="Thumbnail (Cloudinary ID)"
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
           />
           <TextInput
+            id="create-collection-hero"
             label="Hero (Cloudinary ID)"
             value={hero}
             onChange={(e) => setHero(e.target.value)}
@@ -100,7 +104,7 @@ export default function CreateCollectionPage() {
       title: 'Summary',
       description: (
         <div>
-          <dl style={{ display: 'grid', gap: '0.5rem' }}>
+          <dl className="summary-grid">
             <dt><strong>Title</strong></dt>
             <dd>{headline || '—'}</dd>
             {description && (
@@ -114,7 +118,7 @@ export default function CreateCollectionPage() {
             <dt><strong>Hero</strong></dt>
             <dd>{hero || '—'}</dd>
           </dl>
-          <div style={{ marginTop: '1rem' }}>
+          <div className="section-mt">
             <Button disabled={submitting} onClick={handleSubmit}>
               {submitting ? 'Creating...' : 'Create'}
             </Button>

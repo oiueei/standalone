@@ -59,3 +59,111 @@ div[class*="Linkbox-module_linkbox"] {
   border-radius: 4px;
   margin-bottom: 0.5rem;
 }
+
+/* Utility classes */
+.form-grid {
+  display: grid;
+  gap: var(--spacing-m);
+}
+
+.summary-grid {
+  display: grid;
+  gap: var(--spacing-s);
+}
+
+.button-row {
+  display: flex;
+  gap: var(--spacing-s);
+}
+
+.button-row-wide {
+  display: flex;
+  gap: var(--spacing-m);
+}
+
+.section-mt {
+  margin-top: var(--spacing-m);
+}
+
+.hero-image {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: var(--spacing-m);
+}
+
+.detail-image {
+  max-width: 400px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.gallery-image {
+  max-width: 200px;
+  border-radius: 4px;
+}
+
+.gallery-row {
+  display: flex;
+  gap: var(--spacing-s);
+  flex-wrap: wrap;
+}
+
+.faq-grid {
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.faq-actions {
+  display: flex;
+  gap: var(--spacing-s);
+  align-items: center;
+}
+
+.faq-meta {
+  font-size: 0.8rem;
+  color: var(--color-black-40);
+}
+
+.text-muted {
+  color: var(--color-black-60);
+}
+
+.invite-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-s);
+}
+
+.invite-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-2-xl) 0;
+}
+
+.actions-bar {
+  display: flex;
+  gap: var(--spacing-m);
+  align-items: center;
+  margin-bottom: var(--spacing-m);
+}
+
+.fit-content {
+  width: fit-content;
+}
+
+.user-debug {
+  background: var(--color-white);
+  padding: var(--spacing-l);
+  border-radius: 8px;
+  overflow: auto;
+  margin-top: var(--spacing-m);
+}

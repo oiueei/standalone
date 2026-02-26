@@ -114,23 +114,23 @@ export default function HomePage() {
       <img
         src={user.hero_url || placeholderImg}
         alt={user.name || user.email}
-        style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem' }}
+        className="hero-image"
       />
       <h1 className="page-title">Hello, {user.name || user.email}</h1>
       {user.headline && <p>{user.headline}</p>}
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div className="button-row-wide" style={{ marginBottom: 'var(--spacing-l)' }}>
         <Link to="/collections/new">
           <Button>Create collection</Button>
         </Link>
         <Link to="/me/edit">
-          <Button>Edit profile</Button>
+          <Button variant="secondary">Edit profile</Button>
         </Link>
       </div>
 
       <h2>My collections</h2>
       {myCollections === null ? (
-        <p style={{ color: '#666' }}>Loading collections...</p>
+        <p className="text-muted">Loading collections...</p>
       ) : myCollections.length === 0 ? (
         <p>You have no collections yet. <Link to="/collections/new">Create your first collection</Link> to get started.</p>
       ) : (
@@ -149,7 +149,7 @@ export default function HomePage() {
 
       <h2>Shared with me</h2>
       {invitedCollections === null ? (
-        <p style={{ color: '#666' }}>Loading collections...</p>
+        <p className="text-muted">Loading collections...</p>
       ) : invitedCollections.length === 0 ? (
         <p>No one has shared a collection with you yet.</p>
       ) : (
@@ -168,7 +168,7 @@ export default function HomePage() {
 
       <h2>All things</h2>
       {myThings === null || invitedThings === null ? (
-        <p style={{ color: '#666' }}>Loading things...</p>
+        <p className="text-muted">Loading things...</p>
       ) : allThings.length === 0 ? (
         <p>No things yet. Add things to your collections to see them here.</p>
       ) : (

@@ -114,8 +114,9 @@ export default function EditProfilePage() {
     {
       title: 'Details',
       description: (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="form-grid">
           <TextInput
+            id="edit-profile-name"
             label="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -124,6 +125,7 @@ export default function EditProfilePage() {
             helperText={`${name.length}/32`}
           />
           <TextArea
+            id="edit-profile-headline"
             label="Bio"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
@@ -132,17 +134,20 @@ export default function EditProfilePage() {
             helperText={`${headline.length}/64`}
           />
           <TextInput
+            id="edit-profile-thumbnail"
             label="Thumbnail (Cloudinary ID)"
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
           />
           <TextInput
+            id="edit-profile-hero"
             label="Hero (Cloudinary ID)"
             value={hero}
             onChange={(e) => setHero(e.target.value)}
           />
           {theeemeOptions.length > 0 && (
             <Select
+              id="edit-profile-theeeme"
               label="Theeeme"
               options={theeemeOptions}
               value={theeeme}
@@ -160,7 +165,7 @@ export default function EditProfilePage() {
       title: 'Summary',
       description: (
         <div>
-          <dl style={{ display: 'grid', gap: '0.5rem' }}>
+          <dl className="summary-grid">
             <dt><strong>Name</strong></dt>
             <dd>{name || '—'}</dd>
             {headline && (
@@ -176,7 +181,7 @@ export default function EditProfilePage() {
             <dt><strong>Theeeme</strong></dt>
             <dd>{selectedTheemeName}</dd>
           </dl>
-          <div style={{ marginTop: '1rem' }}>
+          <div className="section-mt">
             <Button disabled={submitting} onClick={handleSubmit}>
               {submitting ? 'Saving...' : 'Save'}
             </Button>

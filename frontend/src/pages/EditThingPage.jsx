@@ -143,6 +143,8 @@ export default function EditThingPage() {
       title: 'Type',
       description: (
         <Select
+          id="edit-thing-type"
+          label="Type"
           options={TYPE_OPTIONS}
           value={thingType}
           onChange={(selectedOptions) => {
@@ -156,8 +158,9 @@ export default function EditThingPage() {
     {
       title: 'Details',
       description: (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="form-grid">
           <TextInput
+            id="edit-thing-headline"
             label="Title"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
@@ -167,22 +170,26 @@ export default function EditThingPage() {
             helperText={`${headline.length}/64`}
           />
           <TextArea
+            id="edit-thing-description"
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
           <TextInput
+            id="edit-thing-thumbnail"
             label="Thumbnail (Cloudinary ID)"
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
           />
           <TextInput
+            id="edit-thing-pictures"
             label="Photos (comma-separated IDs)"
             value={pictures}
             onChange={(e) => setPictures(e.target.value)}
           />
           {FEE_TYPES.includes(thingType) && (
             <NumberInput
+              id="edit-thing-fee"
               label="Price"
               value={fee === '' ? '' : Number(fee)}
               onChange={(e) => setFee(e.target.value)}
@@ -201,7 +208,7 @@ export default function EditThingPage() {
       title: 'Summary',
       description: (
         <div>
-          <dl style={{ display: 'grid', gap: '0.5rem' }}>
+          <dl className="summary-grid">
             <dt><strong>Type</strong></dt>
             <dd>{TYPE_LABELS[thingType] || thingType}</dd>
             <dt><strong>Title</strong></dt>
@@ -227,7 +234,7 @@ export default function EditThingPage() {
               </>
             )}
           </dl>
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+          <div className="button-row section-mt">
             <Button disabled={submitting || deleting} onClick={handleSubmit}>
               {submitting ? 'Saving...' : 'Save'}
             </Button>

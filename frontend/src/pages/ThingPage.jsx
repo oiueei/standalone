@@ -226,11 +226,11 @@ export default function ThingPage() {
     <div className="page-container">
       <BackLink to={backPath} label={backLabel} />
 
-      <div style={{ display: 'grid', gap: '1rem' }}>
+      <div className="form-grid">
         <img
           src={thing.thumbnail_url || placeholderImg}
           alt={thing.headline}
-          style={{ maxWidth: '400px', width: '100%', borderRadius: '4px' }}
+          className="detail-image"
         />
 
         <ThingTags thing={thing} isOwner={isOwner} />
@@ -239,7 +239,7 @@ export default function ThingPage() {
 
         {thing.description && <p>{thing.description}</p>}
 
-        <dl style={{ display: 'grid', gap: '0.5rem' }}>
+        <dl className="summary-grid">
           <dt><strong>Created</strong></dt>
           <dd>{new Date(thing.created).toLocaleDateString('en-GB')}</dd>
           {thing.fee && (
@@ -253,13 +253,13 @@ export default function ThingPage() {
         {thing.pictures_urls && thing.pictures_urls.length > 0 && (
           <div>
             <h2>Photos</h2>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="gallery-row">
               {thing.pictures_urls.map((url, i) => (
                 <img
                   key={i}
                   src={url}
                   alt={`${thing.headline} photo ${i + 1}`}
-                  style={{ maxWidth: '200px', borderRadius: '4px' }}
+                  className="gallery-image"
                 />
               ))}
             </div>
@@ -268,7 +268,7 @@ export default function ThingPage() {
 
         {/* Owner actions */}
         {isOwner && (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="button-row">
             <Link to={editPath}>
               <Button>Edit</Button>
             </Link>
@@ -276,7 +276,7 @@ export default function ThingPage() {
         )}
 
         {isOwner && thing.pending_booking && (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div className="button-row">
             <Button
               disabled={bookingAction}
               onClick={() => handleBookingAction('accept')}
@@ -296,7 +296,7 @@ export default function ThingPage() {
         {/* Reservation button for invited users */}
         {showButton && (
           <Button
-            style={{ width: 'fit-content' }}
+            className="fit-content"
             disabled={buttonDisabled}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
@@ -311,7 +311,7 @@ export default function ThingPage() {
         {faqs.length === 0 ? (
           <p>No questions yet.</p>
         ) : (
-          <div style={{ display: 'grid', gap: '0.25rem' }}>
+          <div className="faq-grid">
             {faqs.map((faq) => (
               <div
                 key={faq.code}
@@ -321,20 +321,21 @@ export default function ThingPage() {
                   text={faq.question}
                   reference={faq.answer || undefined}
                 />
-                <div style={{ padding: '0 1rem 1rem' }}>
+                <div style={{ padding: '0 var(--spacing-m) var(--spacing-m)' }}>
                   {!faq.answer && (
                     isOwner && (
-                      <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      <div className="summary-grid">
                         <TextArea
+                          id={`faq-reply-${faq.code}`}
                           label="Reply"
                           value={answerTexts[faq.code] || ''}
                           onChange={(e) =>
                             setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
                           }
                         />
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <div className="faq-actions">
                           <Button
-                            style={{ width: 'fit-content' }}
+                            className="fit-content"
                             disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
                             onClick={() => handleAnswer(faq.code)}
                           >
@@ -347,7 +348,7 @@ export default function ThingPage() {
                             {faq.is_visible === false ? 'Show' : 'Hide'}
                           </Button>
                           {faq.is_visible === false && (
-                            <span style={{ fontSize: '0.8rem', color: '#999' }}>
+                            <span className="faq-meta">
                               (Hidden)
                             </span>
                           )}
@@ -356,7 +357,7 @@ export default function ThingPage() {
                     )
                   )}
                   {faq.answer && isOwner && (
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div className="faq-actions">
                       <Button
                         variant="secondary"
                         onClick={() => handleToggleVisibility(faq)}
@@ -364,7 +365,7 @@ export default function ThingPage() {
                         {faq.is_visible === false ? 'Show' : 'Hide'}
                       </Button>
                       {faq.is_visible === false && (
-                        <span style={{ fontSize: '0.8rem', color: '#999' }}>
+                        <span className="faq-meta">
                           (Hidden)
                         </span>
                       )}
@@ -378,15 +379,16 @@ export default function ThingPage() {
 
 
         {!isOwner && (
-          <div style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
+          <div className="summary-grid section-mt">
             <TextArea
+              id="thing-faq-question"
               label="Question"
               value={faqQuestion}
               onChange={(e) => setFaqQuestion(e.target.value)}
               placeholder="Write your question here..."
             />
             <Button
-              style={{ width: 'fit-content' }}
+              className="fit-content"
               disabled={faqSubmitting || !faqQuestion.trim()}
               onClick={handleAskQuestion}
             >

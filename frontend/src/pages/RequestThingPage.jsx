@@ -130,8 +130,9 @@ export default function RequestThingPage() {
       {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
 
       {isDateBased && (
-        <div style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
+        <div className="summary-grid section-mt">
           <DateInput
+            id="request-start-date"
             label="Start"
             value={startDate}
             onChange={(value) => setStartDate(value)}
@@ -147,6 +148,7 @@ export default function RequestThingPage() {
             malformedDateErrorText="Date overlaps with another booking."
           />
           <DateInput
+            id="request-end-date"
             label="End"
             value={endDate}
             onChange={(value) => setEndDate(value)}
@@ -165,8 +167,9 @@ export default function RequestThingPage() {
       )}
 
       {isOrder && (
-        <div style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
+        <div className="summary-grid section-mt">
           <DateInput
+            id="request-delivery-date"
             label="Delivery"
             value={deliveryDate}
             onChange={(value) => setDeliveryDate(value)}
@@ -180,6 +183,7 @@ export default function RequestThingPage() {
             dateOutsideRangeErrorText={RANGE_ERROR}
           />
           <NumberInput
+            id="request-quantity"
             label="Quantity"
             value={quantity}
             onChange={(e) => setQuantity(Number(e.target.value))}
@@ -189,7 +193,7 @@ export default function RequestThingPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+      <div className="button-row section-mt">
         <Button variant="secondary" onClick={() => navigate(backPath)}>
           Cancel
         </Button>

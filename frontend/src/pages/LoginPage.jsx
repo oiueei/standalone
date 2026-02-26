@@ -62,11 +62,13 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{ marginBottom: '1rem' }}
+            className="section-mt"
           />
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Sending...' : 'Sign in'}
-          </Button>
+          <div className="section-mt">
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Sending...' : 'Sign in'}
+            </Button>
+          </div>
         </form>
       )}
     </div>

@@ -78,7 +78,6 @@ export default function ManageInvitesPage() {
         body: JSON.stringify({ email: inviteEmail.trim() }),
       });
       if (res.ok) {
-        const data = await res.json();
         setPendingInvites((prev) => [...prev, { email: inviteEmail.trim() }]);
         setInviteEmail('');
         setToast({ type: 'success', message: 'Invitation sent.' });
@@ -105,9 +104,9 @@ export default function ManageInvitesPage() {
           {invites.length === 0 && pendingInvites.length === 0 ? (
             <p>No guests.</p>
           ) : (
-            <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '0.5rem' }}>
+            <ul className="invite-list">
               {invites.map((invite) => (
-                <li key={invite.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <li key={invite.code} className="invite-row">
                   <span>{invite.name || invite.code} ({invite.email})</span>
                   {isOwner && (
                     <Button
@@ -120,8 +119,8 @@ export default function ManageInvitesPage() {
                 </li>
               ))}
               {pendingInvites.map((pending) => (
-                <li key={pending.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{pending.email} <em style={{ color: '#666' }}>Pending</em></span>
+                <li key={pending.code} className="invite-row">
+                  <span>{pending.email} <em className="text-muted">Pending</em></span>
                   {isOwner && (
                     <Button
                       variant="danger"
@@ -140,8 +139,9 @@ export default function ManageInvitesPage() {
     {
       title: 'Invite',
       description: isOwner ? (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="form-grid">
           <TextInput
+            id="manage-invites-email"
             label="Guest email"
             type="email"
             value={inviteEmail}
@@ -151,7 +151,7 @@ export default function ManageInvitesPage() {
           <Button
             disabled={inviteLoading || !inviteEmail.trim()}
             onClick={handleInvite}
-            style={{ width: 'fit-content' }}
+            className="fit-content"
           >
             {inviteLoading ? 'Sending...' : 'Invite'}
           </Button>

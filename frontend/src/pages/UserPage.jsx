@@ -72,13 +72,13 @@ export default function UserPage() {
       <h1 className="page-title">{user.name || user.email}</h1>
       {user.headline && <p>{user.headline}</p>}
       {isOwnProfile && (
-        <div style={{ marginTop: '1rem' }}>
+        <div className="section-mt">
           <Link to="/me/edit">
             <Button>Edit profile</Button>
           </Link>
         </div>
       )}
-      <pre style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', overflow: 'auto', marginTop: '1rem' }}>
+      <pre className="user-debug">
         {JSON.stringify(user, null, 2)}
       </pre>
     </div>

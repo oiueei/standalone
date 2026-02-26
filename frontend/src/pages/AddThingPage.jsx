@@ -99,6 +99,8 @@ export default function AddThingPage() {
       title: 'Type',
       description: (
         <Select
+          id="add-thing-type"
+          label="Type"
           options={TYPE_OPTIONS}
           value={type}
           onChange={(selectedOptions) => {
@@ -112,8 +114,9 @@ export default function AddThingPage() {
     {
       title: 'Details',
       description: (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="form-grid">
           <TextInput
+            id="add-thing-headline"
             label="Title"
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
@@ -123,11 +126,13 @@ export default function AddThingPage() {
             helperText={`${headline.length}/64`}
           />
           <TextArea
+            id="add-thing-description"
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
           <TextInput
+            id="add-thing-thumbnail"
             label="Thumbnail (Cloudinary ID)"
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
@@ -135,12 +140,14 @@ export default function AddThingPage() {
             errorText={errors.thumbnail}
           />
           <TextInput
+            id="add-thing-pictures"
             label="Photos (comma-separated IDs)"
             value={pictures}
             onChange={(e) => setPictures(e.target.value)}
           />
           {FEE_TYPES.includes(type) && (
             <NumberInput
+              id="add-thing-fee"
               label="Price"
               value={fee === '' ? '' : Number(fee)}
               onChange={(e) => setFee(e.target.value)}
@@ -158,7 +165,7 @@ export default function AddThingPage() {
       title: 'Summary',
       description: (
         <div>
-          <dl style={{ display: 'grid', gap: '0.5rem' }}>
+          <dl className="summary-grid">
             <dt><strong>Type</strong></dt>
             <dd>{TYPE_LABELS[type]}</dd>
             <dt><strong>Title</strong></dt>
@@ -184,7 +191,7 @@ export default function AddThingPage() {
               </>
             )}
           </dl>
-          <div style={{ marginTop: '1rem' }}>
+          <div className="section-mt">
             <Button disabled={submitting} onClick={handleSubmit}>
               {submitting ? 'Creating...' : 'Create'}
             </Button>

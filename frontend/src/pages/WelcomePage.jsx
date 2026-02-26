@@ -12,7 +12,7 @@ export default function WelcomePage() {
         friends and others around. Users can create collections (wishlists, gift lists, items for
         sale) and share them with friends who can then reserve items or ask questions.
       </p>
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+      <div className="button-row section-mt">
         <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
           <Button>Create collection</Button>
         </Link>

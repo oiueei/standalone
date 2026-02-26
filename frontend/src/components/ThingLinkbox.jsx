@@ -127,14 +127,14 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       border
     >
       <ThingTags thing={thing} isOwner={isOwner} />
-      <h3 className="linkbox-heading" style={{ margin: '0.5rem 0 0' }}>{thing.headline}</h3>
-      {thing.description && <p style={{ margin: '0.25rem 0 0' }}>{thing.description}</p>}
+      <h3 className="linkbox-heading" style={{ margin: 'var(--spacing-s) 0 0' }}>{thing.headline}</h3>
+      {thing.description && <p style={{ margin: 'var(--spacing-2-xs) 0 0' }}>{thing.description}</p>}
       <p><strong>Created:</strong> {new Date(thing.created).toLocaleDateString('en-GB')}</p>
       {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
       {isOwner && bookings.length > 0 && (
-        <div style={{ marginTop: '0.5rem' }}>
+        <div className="section-mt">
           <strong>Bookings:</strong>
-          <ul style={{ margin: '0.25rem 0 0', paddingLeft: '1.25rem', fontSize: '0.9rem' }}>
+          <ul style={{ margin: 'var(--spacing-2-xs) 0 0', paddingLeft: '1.25rem', fontSize: '0.9rem' }}>
             {bookings.map((b) => (
               <li key={b.code}>
                 {b.start_date && b.end_date && (
@@ -144,7 +144,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                   <>{b.delivery_date}, qty {b.quantity}</>
                 )}
                 {' '}
-                <span style={{ color: b.status === 'ACCEPTED' ? '#007a64' : '#b54708', fontWeight: b.code === thing.pending_booking ? 'bold' : 'normal' }}>
+                <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)', fontWeight: b.code === thing.pending_booking ? 'bold' : 'normal' }}>
                   ({b.status === 'ACCEPTED' ? 'Confirmed' : 'Pending'}){b.code === thing.pending_booking ? ' *' : ''}
                 </span>
               </li>
@@ -158,7 +158,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </Link>
       )}
       {isOwner && thing.pending_booking && (
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+        <div className="button-row section-mt" onClick={(e) => e.stopPropagation()}>
           <Button
             disabled={bookingAction}
             onClick={() => handleBookingAction('accept')}

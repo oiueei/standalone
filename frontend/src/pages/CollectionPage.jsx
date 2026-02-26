@@ -70,7 +70,7 @@ export default function CollectionPage() {
       <img
         src={collection.hero_url || collection.thumbnail_url || placeholderImg}
         alt={collection.headline}
-        style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1rem' }}
+        className="hero-image"
       />
       <h1 className="page-title">{collection.headline}</h1>
       {collection.description && <p>{collection.description}</p>}
@@ -78,7 +78,7 @@ export default function CollectionPage() {
         <p><strong>Status:</strong> {collection.status}</p>
       )}
 
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+      <div className="actions-bar">
         {isOwner && (
           <Link to={`/collections/${code}/edit`}>
             <Button>Edit collection</Button>
@@ -86,12 +86,12 @@ export default function CollectionPage() {
         )}
         {isOwner && (
           <Link to={`/collections/${code}/add-thing`}>
-            <Button>Add thing</Button>
+            <Button variant="secondary">Add thing</Button>
           </Link>
         )}
         {isOwner && (
           <Link to={`/collections/${code}/invites`}>
-            <Button>Manage guests</Button>
+            <Button variant="secondary">Manage guests</Button>
           </Link>
         )}
       </div>
