@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import LoadingSpinner from '../components/LoadingSpinner';
 import ThingLinkbox from '../components/ThingLinkbox';
 import placeholderImg from '../assets/image-m.png';
 
@@ -56,7 +57,7 @@ export default function CollectionPage() {
   }
 
   if (!collection) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const isOwner = localStorage.getItem('userCode') === collection.owner;
@@ -115,7 +116,7 @@ export default function CollectionPage() {
 
       <h2>Things</h2>
       {collection.things.length === 0 ? (
-        <p>No things in this collection.</p>
+        <p>No things in this collection yet.{isOwner && <> <Link to={`/collections/${code}/add-thing`}>Add one</Link>.</>}</p>
       ) : (
         <div className="things-grid">
           {[...collection.things].sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (

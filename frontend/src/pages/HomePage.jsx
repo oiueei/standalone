@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 import ThingLinkbox from '../components/ThingLinkbox';
 import placeholderImg from '../assets/image-m.png';
 
@@ -100,7 +101,7 @@ export default function HomePage() {
   }
 
   if (!user) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const allThings = [
@@ -129,9 +130,9 @@ export default function HomePage() {
 
       <h2>My collections</h2>
       {myCollections === null ? (
-        <p>Loading...</p>
+        <p style={{ color: '#666' }}>Loading collections...</p>
       ) : myCollections.length === 0 ? (
-        <p>You have no collections.</p>
+        <p>You have no collections yet. <Link to="/collections/new">Create your first collection</Link> to get started.</p>
       ) : (
         <ul>
           {myCollections.map((c) => (
@@ -148,9 +149,9 @@ export default function HomePage() {
 
       <h2>Shared with me</h2>
       {invitedCollections === null ? (
-        <p>Loading...</p>
+        <p style={{ color: '#666' }}>Loading collections...</p>
       ) : invitedCollections.length === 0 ? (
-        <p>You have no collection invitations.</p>
+        <p>No one has shared a collection with you yet.</p>
       ) : (
         <ul>
           {invitedCollections.map((c) => (
@@ -167,9 +168,9 @@ export default function HomePage() {
 
       <h2>All things</h2>
       {myThings === null || invitedThings === null ? (
-        <p>Loading...</p>
+        <p style={{ color: '#666' }}>Loading things...</p>
       ) : allThings.length === 0 ? (
-        <p>You have no things.</p>
+        <p>No things yet. Add things to your collections to see them here.</p>
       ) : (
         <div className="things-grid">
           {allThings.map((thing) => (

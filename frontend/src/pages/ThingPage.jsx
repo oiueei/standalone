@@ -10,6 +10,7 @@ import {
 import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import LoadingSpinner from '../components/LoadingSpinner';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
 import placeholderImg from '../assets/image-s.png';
@@ -82,7 +83,7 @@ export default function ThingPage() {
   }
 
   if (!thing) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const isOwner = thing.owner === userCode;
@@ -299,7 +300,7 @@ export default function ThingPage() {
             disabled={buttonDisabled}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
-            {submitting ? 'Sending...' : 'Hold'}
+            {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
           </Button>
         )}
 

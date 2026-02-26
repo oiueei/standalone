@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { StepByStep, TextInput, TextArea, Select, Button } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 export default function EditProfilePage() {
@@ -103,7 +104,7 @@ export default function EditProfilePage() {
   };
 
   if (loading) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const theeemeOptions = theeemes.map((t) => ({ label: t.name, value: t.code }));
@@ -120,6 +121,7 @@ export default function EditProfilePage() {
             onChange={(e) => setName(e.target.value)}
             invalid={!!errors.name}
             errorText={errors.name}
+            helperText={`${name.length}/32`}
           />
           <TextArea
             label="Bio"
@@ -127,6 +129,7 @@ export default function EditProfilePage() {
             onChange={(e) => setHeadline(e.target.value)}
             invalid={!!errors.headline}
             errorText={errors.headline}
+            helperText={`${headline.length}/64`}
           />
           <TextInput
             label="Thumbnail (Cloudinary ID)"

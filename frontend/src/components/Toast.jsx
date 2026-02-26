@@ -5,6 +5,7 @@ export default function Toast({ toast, onClose }) {
 
   return (
     <Notification
+      aria-live="polite"
       label={toast.type === 'success' ? 'Done' : 'Error'}
       type={toast.type}
       position="top-right"

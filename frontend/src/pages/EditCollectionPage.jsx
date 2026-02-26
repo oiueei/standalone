@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { StepByStep, TextInput, TextArea, Select, Button } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 const STATUS_OPTIONS = [
@@ -95,7 +96,7 @@ export default function EditCollectionPage() {
   };
 
   if (loading) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const steps = [
@@ -110,6 +111,7 @@ export default function EditCollectionPage() {
             required
             invalid={!!errors.headline}
             errorText={errors.headline}
+            helperText={`${headline.length}/64`}
           />
           <TextArea
             label="Description"

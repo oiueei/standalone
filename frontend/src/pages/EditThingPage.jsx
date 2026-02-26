@@ -7,10 +7,12 @@ import {
   TextArea,
   NumberInput,
   Button,
+  Dialog,
 } from 'hds-react';
 import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 export default function EditThingPage() {
@@ -28,6 +30,7 @@ export default function EditThingPage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [toast, setToast] = useState(null);
   const [thingCollectionCode, setThingCollectionCode] = useState(code || '');
   const [thingCollectionHeadline, setThingCollectionHeadline] = useState('');
@@ -132,7 +135,7 @@ export default function EditThingPage() {
   };
 
   if (loading) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const steps = [
@@ -161,6 +164,7 @@ export default function EditThingPage() {
             required
             invalid={!!errors.headline}
             errorText={errors.headline}
+            helperText={`${headline.length}/64`}
           />
           <TextArea
             label="Description"
@@ -227,7 +231,7 @@ export default function EditThingPage() {
             <Button disabled={submitting || deleting} onClick={handleSubmit}>
               {submitting ? 'Saving...' : 'Save'}
             </Button>
-            <Button variant="danger" disabled={submitting || deleting} onClick={handleDelete}>
+            <Button variant="danger" disabled={submitting || deleting} onClick={() => setConfirmDelete(true)}>
               {deleting ? 'Deleting...' : 'Delete'}
             </Button>
           </div>
@@ -241,6 +245,27 @@ export default function EditThingPage() {
       <BackLink to={returnPath} label={returnLabel} />
       <StepByStep title="Edit thing" steps={steps} numberedList />
       <Toast toast={toast} onClose={() => setToast(null)} />
+      <Dialog
+        id="confirm-delete-thing"
+        aria-labelledby="confirm-delete-thing-header"
+        isOpen={confirmDelete}
+        close={() => setConfirmDelete(false)}
+        closeButtonLabelText="Cancel"
+        theme={{ '--accent-line-color': 'var(--color-error)' }}
+      >
+        <Dialog.Header id="confirm-delete-thing-header" title="Delete thing?" />
+        <Dialog.Content>
+          <p>This action cannot be undone. Are you sure you want to delete this thing?</p>
+        </Dialog.Content>
+        <Dialog.ActionButtons>
+          <Button variant="danger" onClick={() => { setConfirmDelete(false); handleDelete(); }}>
+            Delete
+          </Button>
+          <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
+            Cancel
+          </Button>
+        </Dialog.ActionButtons>
+      </Dialog>
     </div>
   );
 }

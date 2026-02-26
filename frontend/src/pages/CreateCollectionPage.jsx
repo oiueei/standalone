@@ -76,6 +76,7 @@ export default function CreateCollectionPage() {
             required
             invalid={!!errors.headline}
             errorText={errors.headline}
+            helperText={`${headline.length}/64`}
           />
           <TextArea
             label="Description"

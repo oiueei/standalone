@@ -180,7 +180,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             disabled={buttonDisabled}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
           >
-            {submitting ? 'Sending...' : 'Hold'}
+            {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
           </Button>
         </div>
       )}

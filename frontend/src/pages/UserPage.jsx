@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Notification } from 'hds-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Button, Notification } from 'hds-react';
+import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
@@ -59,13 +61,24 @@ export default function UserPage() {
   }
 
   if (!user) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
+
+  const isOwnProfile = !paramCode || paramCode === localStorage.getItem('userCode');
 
   return (
     <div className="page-container">
+      <BackLink to="/" label="Home" />
       <h1 className="page-title">{user.name || user.email}</h1>
-      <pre style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', overflow: 'auto' }}>
+      {user.headline && <p>{user.headline}</p>}
+      {isOwnProfile && (
+        <div style={{ marginTop: '1rem' }}>
+          <Link to="/me/edit">
+            <Button>Edit profile</Button>
+          </Link>
+        </div>
+      )}
+      <pre style={{ background: '#fff', padding: '1.5rem', borderRadius: '8px', overflow: 'auto', marginTop: '1rem' }}>
         {JSON.stringify(user, null, 2)}
       </pre>
     </div>

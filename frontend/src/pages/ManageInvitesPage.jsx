@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { StepByStep, TextInput, Button } from 'hds-react';
+import { StepByStep, TextInput, Button, Dialog } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 export default function ManageInvitesPage() {
@@ -18,6 +19,7 @@ export default function ManageInvitesPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [confirmRemove, setConfirmRemove] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -92,7 +94,7 @@ export default function ManageInvitesPage() {
   };
 
   if (loading) {
-    return <div className="page-container"><p>Loading...</p></div>;
+    return <LoadingSpinner />;
   }
 
   const steps = [
@@ -110,9 +112,9 @@ export default function ManageInvitesPage() {
                   {isOwner && (
                     <Button
                       variant="danger"
-                      onClick={() => handleRemove(invite.code)}
+                      onClick={() => setConfirmRemove({ code: invite.code, name: invite.name || invite.email, isPending: false })}
                     >
-                      Delete
+                      Remove
                     </Button>
                   )}
                 </li>
@@ -123,9 +125,9 @@ export default function ManageInvitesPage() {
                   {isOwner && (
                     <Button
                       variant="danger"
-                      onClick={() => handleRemove(pending.code, true)}
+                      onClick={() => setConfirmRemove({ code: pending.code, name: pending.email, isPending: true })}
                     >
-                      Delete
+                      Remove
                     </Button>
                   )}
                 </li>
@@ -165,6 +167,27 @@ export default function ManageInvitesPage() {
       <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
       <StepByStep title="Manage guests" steps={steps} numberedList />
       <Toast toast={toast} onClose={() => setToast(null)} />
+      <Dialog
+        id="confirm-remove-guest"
+        aria-labelledby="confirm-remove-guest-header"
+        isOpen={!!confirmRemove}
+        close={() => setConfirmRemove(null)}
+        closeButtonLabelText="Cancel"
+        theme={{ '--accent-line-color': 'var(--color-error)' }}
+      >
+        <Dialog.Header id="confirm-remove-guest-header" title="Remove guest?" />
+        <Dialog.Content>
+          <p>Are you sure you want to remove <strong>{confirmRemove?.name}</strong> from this collection?</p>
+        </Dialog.Content>
+        <Dialog.ActionButtons>
+          <Button variant="danger" onClick={() => { const { code: c, isPending } = confirmRemove; setConfirmRemove(null); handleRemove(c, isPending); }}>
+            Remove
+          </Button>
+          <Button variant="secondary" onClick={() => setConfirmRemove(null)}>
+            Cancel
+          </Button>
+        </Dialog.ActionButtons>
+      </Dialog>
     </div>
   );
 }

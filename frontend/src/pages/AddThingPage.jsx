@@ -120,6 +120,7 @@ export default function AddThingPage() {
             required
             invalid={!!errors.headline}
             errorText={errors.headline}
+            helperText={`${headline.length}/64`}
           />
           <TextArea
             label="Description"
