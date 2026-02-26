@@ -5,23 +5,14 @@ import {
   Fieldset,
   Highlight,
   Notification,
-  Tag,
   TextArea,
 } from 'hds-react';
+import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import ThingTags from '../components/ThingTags';
+import Toast from '../components/Toast';
 import placeholderImg from '../assets/image-s.png';
-
-const TYPE_LABELS = {
-  GIFT_THING: 'Gift',
-  SELL_THING: 'Sale',
-  ORDER_THING: 'Order',
-  RENT_THING: 'Rental',
-  LEND_THING: 'Lend',
-  SHARE_THING: 'Share',
-};
-
-const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'SHARE_THING'];
-const ORDER_TYPE = 'ORDER_THING';
-const DIRECT_TYPES = ['GIFT_THING', 'SELL_THING'];
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -51,11 +42,9 @@ export default function ThingPage() {
       return;
     }
 
-    const headers = { 'Authorization': `Bearer ${token}` };
-
     const fetchThing = async () => {
       try {
-        const res = await fetch(`/api/v1/things/${thingCode}/`, { headers });
+        const res = await apiFetch(`/api/v1/things/${thingCode}/`);
         if (res.ok) {
           setThing(await res.json());
         } else if (res.status === 403) {
@@ -72,7 +61,7 @@ export default function ThingPage() {
 
     const fetchFaqs = async () => {
       try {
-        const res = await fetch(`/api/v1/things/${thingCode}/faq/`, { headers });
+        const res = await apiFetch(`/api/v1/things/${thingCode}/faq/`);
         if (res.ok) {
           const data = await res.json();
           setFaqs(data.results || data);
@@ -117,12 +106,8 @@ export default function ThingPage() {
     setSubmitting(true);
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/things/${thing.code}/request/`, {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/request/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({}),
       });
       if (res.ok) {
@@ -141,17 +126,38 @@ export default function ThingPage() {
     }
   };
 
+  const handleBookingAction = async (action) => {
+    setBookingAction(true);
+    try {
+      const res = await apiFetch(`/api/v1/bookings/${thing.pending_booking}/${action}/`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        if (action === 'accept') {
+          setThing((prev) => ({ ...prev, status: 'INACTIVE', pending_booking: null }));
+          setToast({ type: 'success', message: 'Hold confirmed.' });
+        } else {
+          setThing((prev) => ({ ...prev, status: 'ACTIVE', pending_booking: null }));
+          setToast({ type: 'success', message: 'Hold cancelled.' });
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setToast({ type: 'error', message: data.error || `Error ${action === 'accept' ? 'confirming' : 'cancelling'} hold.` });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Connection error.' });
+    } finally {
+      setBookingAction(false);
+    }
+  };
+
   const handleAskQuestion = async () => {
     if (!faqQuestion.trim()) return;
     setFaqSubmitting(true);
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/things/${thing.code}/faq/`, {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/faq/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ question: faqQuestion.trim() }),
       });
       if (res.ok) {
@@ -176,12 +182,8 @@ export default function ThingPage() {
     setAnswerSubmitting((prev) => ({ ...prev, [faqCode]: true }));
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/faq/${faqCode}/answer/`, {
+      const res = await apiFetch(`/api/v1/faq/${faqCode}/answer/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ answer }),
       });
       if (res.ok) {
@@ -204,9 +206,8 @@ export default function ThingPage() {
     const action = faq.is_visible ? 'hide' : 'show';
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/faq/${faq.code}/${action}/`, {
+      const res = await apiFetch(`/api/v1/faq/${faq.code}/${action}/`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
         setFaqs((prev) =>
@@ -222,9 +223,7 @@ export default function ThingPage() {
 
   return (
     <div className="page-container">
-      <Link to={backPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {backLabel}
-      </Link>
+      <BackLink to={backPath} label={backLabel} />
 
       <div style={{ display: 'grid', gap: '1rem' }}>
         <img
@@ -233,21 +232,7 @@ export default function ThingPage() {
           style={{ maxWidth: '400px', width: '100%', borderRadius: '4px' }}
         />
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-          <Tag>{TYPE_LABELS[thing.type] || thing.type}</Tag>
-          {isOwner && thing.status === 'TAKEN' && (
-            <Tag theme={{ '--tag-background': '#fff4e5', '--tag-color': '#b54708' }}>Taken</Tag>
-          )}
-          {isOwner && thing.status === 'INACTIVE' && (
-            <Tag theme={{ '--tag-background': '#e8e8e8', '--tag-color': '#525252' }}>Inactive</Tag>
-          )}
-          {isOwner && !thing.available && (
-            <Tag theme={{ '--tag-background': '#f5e6e6', '--tag-color': '#b01038' }}>Unavailable</Tag>
-          )}
-          {isOwner && thing.pending_questions > 0 && (
-            <Tag theme={{ '--tag-background': '#fff4e5', '--tag-color': '#b54708' }}>Pending questions</Tag>
-          )}
-        </div>
+        <ThingTags thing={thing} isOwner={isOwner} />
 
         <h1 className="page-title">{thing.headline}</h1>
 
@@ -293,52 +278,14 @@ export default function ThingPage() {
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <Button
               disabled={bookingAction}
-              onClick={async () => {
-                setBookingAction(true);
-                try {
-                  const res = await fetch(`/api/v1/bookings/${thing.pending_booking}/accept/`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                  });
-                  if (res.ok) {
-                    setThing((prev) => ({ ...prev, status: 'INACTIVE', pending_booking: null }));
-                    setToast({ type: 'success', message: 'Hold confirmed.' });
-                  } else {
-                    const data = await res.json().catch(() => ({}));
-                    setToast({ type: 'error', message: data.error || 'Error confirming hold.' });
-                  }
-                } catch {
-                  setToast({ type: 'error', message: 'Connection error.' });
-                } finally {
-                  setBookingAction(false);
-                }
-              }}
+              onClick={() => handleBookingAction('accept')}
             >
               Confirm hold
             </Button>
             <Button
               variant="danger"
               disabled={bookingAction}
-              onClick={async () => {
-                setBookingAction(true);
-                try {
-                  const res = await fetch(`/api/v1/bookings/${thing.pending_booking}/reject/`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                  });
-                  if (res.ok) {
-                    setThing((prev) => ({ ...prev, status: 'ACTIVE', pending_booking: null }));
-                    setToast({ type: 'success', message: 'Hold cancelled.' });
-                  } else {
-                    const data = await res.json().catch(() => ({}));
-                    setToast({ type: 'error', message: data.error || 'Error cancelling hold.' });
-                  }
-                } catch {
-                  setToast({ type: 'error', message: 'Connection error.' });
-                } finally {
-                  setBookingAction(false);
-                }
-              }}
+              onClick={() => handleBookingAction('reject')}
             >
               Cancel hold
             </Button>
@@ -448,19 +395,7 @@ export default function ThingPage() {
         )}
       </div>
 
-      {toast && (
-        <Notification
-          label={toast.type === 'success' ? 'Done' : 'Error'}
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Button, DateInput, NumberInput, Notification } from 'hds-react';
-
-const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'SHARE_THING'];
-const ORDER_TYPE = 'ORDER_THING';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Button, DateInput, NumberInput } from 'hds-react';
+import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import Toast from '../components/Toast';
 
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0);
@@ -37,9 +38,7 @@ export default function RequestThingPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`/api/v1/things/${thingCode}/`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
+    apiFetch(`/api/v1/things/${thingCode}/`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) setThing(data);
@@ -49,9 +48,7 @@ export default function RequestThingPage() {
 
   useEffect(() => {
     if (!token || !thing || !DATE_TYPES.includes(thing.type)) return;
-    fetch(`/api/v1/things/${thingCode}/calendar/`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
+    apiFetch(`/api/v1/things/${thingCode}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setBlockedPeriods(data))
       .catch(() => {});
@@ -91,12 +88,8 @@ export default function RequestThingPage() {
     setSubmitting(true);
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/things/${thingCode}/request/`, {
+      const res = await apiFetch(`/api/v1/things/${thingCode}/request/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
       });
       if (res.ok) {
@@ -132,9 +125,7 @@ export default function RequestThingPage() {
 
   return (
     <div className="page-container">
-      <Link to={backPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {backLabel}
-      </Link>
+      <BackLink to={backPath} label={backLabel} />
       <h2>Hold: {thing.headline}</h2>
       {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
 
@@ -207,19 +198,7 @@ export default function RequestThingPage() {
         </Button>
       </div>
 
-      {toast && (
-        <Notification
-          label={toast.type === 'success' ? 'Done' : 'Error'}
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

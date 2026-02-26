@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { StepByStep, TextInput, Button, Notification } from 'hds-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { StepByStep, TextInput, Button } from 'hds-react';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import Toast from '../components/Toast';
 
 export default function ManageInvitesPage() {
   const { code } = useParams();
@@ -24,9 +27,7 @@ export default function ManageInvitesPage() {
 
     const fetchCollection = async () => {
       try {
-        const res = await fetch(`/api/v1/collections/${code}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+        const res = await apiFetch(`/api/v1/collections/${code}/`);
         if (res.ok) {
           const data = await res.json();
           setInvites(data.invites || []);
@@ -47,12 +48,8 @@ export default function ManageInvitesPage() {
 
   const handleRemove = async (userCode, isPending = false) => {
     try {
-      const res = await fetch(`/api/v1/collections/${code}/invite/`, {
+      const res = await apiFetch(`/api/v1/collections/${code}/invite/`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ user_code: userCode }),
       });
       if (res.ok) {
@@ -74,12 +71,8 @@ export default function ManageInvitesPage() {
     setInviteLoading(true);
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/collections/${code}/invite/`, {
+      const res = await apiFetch(`/api/v1/collections/${code}/invite/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ email: inviteEmail.trim() }),
       });
       if (res.ok) {
@@ -169,24 +162,9 @@ export default function ManageInvitesPage() {
 
   return (
     <div className="page-container">
-      <Link to={`/collections/${code}`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {collectionHeadline || 'Collection'}
-      </Link>
+      <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
       <StepByStep title="Manage guests" steps={steps} numberedList />
-
-      {toast && (
-        <Notification
-          label={toast.type === 'success' ? 'Done' : 'Error'}
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

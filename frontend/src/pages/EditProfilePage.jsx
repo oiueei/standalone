@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { StepByStep, TextInput, TextArea, Select, Button, Notification } from 'hds-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { StepByStep, TextInput, TextArea, Select, Button } from 'hds-react';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import Toast from '../components/Toast';
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
@@ -30,12 +33,8 @@ export default function EditProfilePage() {
     const fetchData = async () => {
       try {
         const [profileRes, theemesRes] = await Promise.all([
-          fetch('/api/v1/auth/me/', {
-            headers: { 'Authorization': `Bearer ${token}` },
-          }),
-          fetch('/api/v1/theeemes/', {
-            headers: { 'Authorization': `Bearer ${token}` },
-          }),
+          apiFetch('/api/v1/auth/me/'),
+          apiFetch('/api/v1/theeemes/'),
         ]);
 
         if (profileRes.ok) {
@@ -85,12 +84,8 @@ export default function EditProfilePage() {
     if (theeeme) body.theeeme = theeeme;
 
     try {
-      const res = await fetch(`/api/v1/users/${userCode}/`, {
+      const res = await apiFetch(`/api/v1/users/${userCode}/`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
       });
       if (res.ok) {
@@ -190,24 +185,9 @@ export default function EditProfilePage() {
 
   return (
     <div className="page-container">
-      <Link to={backPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {backLabel}
-      </Link>
+      <BackLink to={backPath} label={backLabel} />
       <StepByStep title="Edit profile" steps={steps} numberedList />
-
-      {toast && (
-        <Notification
-          label={toast.type === 'success' ? 'Done' : 'Error'}
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

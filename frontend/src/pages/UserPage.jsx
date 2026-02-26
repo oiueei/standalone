@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Notification } from 'hds-react';
+import { apiFetch } from '../services/api';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
@@ -19,7 +20,7 @@ export default function UserPage() {
 
     if (!userCode) {
       // If no userCode yet, fetch /me to get it
-      fetch('/api/v1/auth/me/', { headers: { 'Authorization': `Bearer ${token}` } })
+      apiFetch('/api/v1/auth/me/')
         .then((res) => res.ok ? res.json() : Promise.reject())
         .then((data) => {
           if (data.code) localStorage.setItem('userCode', data.code);
@@ -31,9 +32,7 @@ export default function UserPage() {
 
     const fetchUser = async () => {
       try {
-        const res = await fetch(`/api/v1/users/${userCode}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+        const res = await apiFetch(`/api/v1/users/${userCode}/`);
         if (res.ok) {
           const data = await res.json();
           setUser(data);

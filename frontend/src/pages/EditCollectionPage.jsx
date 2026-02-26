@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { StepByStep, TextInput, TextArea, Select, Button, Notification } from 'hds-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { StepByStep, TextInput, TextArea, Select, Button } from 'hds-react';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import Toast from '../components/Toast';
 
 const STATUS_OPTIONS = [
   { label: 'Active', value: 'ACTIVE' },
@@ -30,9 +33,7 @@ export default function EditCollectionPage() {
 
     const fetchData = async () => {
       try {
-        const collectionRes = await fetch(`/api/v1/collections/${code}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+        const collectionRes = await apiFetch(`/api/v1/collections/${code}/`);
 
         if (collectionRes.ok) {
           const data = await collectionRes.json();
@@ -75,12 +76,8 @@ export default function EditCollectionPage() {
     };
 
     try {
-      const res = await fetch(`/api/v1/collections/${code}/`, {
+      const res = await apiFetch(`/api/v1/collections/${code}/`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
       });
       if (res.ok) {
@@ -174,24 +171,9 @@ export default function EditCollectionPage() {
 
   return (
     <div className="page-container">
-      <Link to={`/collections/${code}`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {headline || 'Collection'}
-      </Link>
+      <BackLink to={`/collections/${code}`} label={headline || 'Collection'} />
       <StepByStep title="Edit collection" steps={steps} numberedList />
-
-      {toast && (
-        <Notification
-          label={toast.type === 'success' ? 'Done' : 'Error'}
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Select,
   StepByStep,
@@ -7,21 +7,11 @@ import {
   TextArea,
   NumberInput,
   Button,
-  Notification,
 } from 'hds-react';
-
-const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
-
-const TYPE_OPTIONS = [
-  { label: 'Gift', value: 'GIFT_THING' },
-  { label: 'Sale', value: 'SELL_THING' },
-  { label: 'Order', value: 'ORDER_THING' },
-  { label: 'Rental', value: 'RENT_THING' },
-  { label: 'Lend', value: 'LEND_THING' },
-  { label: 'Share', value: 'SHARE_THING' },
-];
-
-const TYPE_LABELS = Object.fromEntries(TYPE_OPTIONS.map((o) => [o.value, o.label]));
+import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES } from '../constants/things';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import Toast from '../components/Toast';
 
 export default function EditThingPage() {
   const { code, thingCode } = useParams();
@@ -49,9 +39,7 @@ export default function EditThingPage() {
     }
     const fetchThing = async () => {
       try {
-        const res = await fetch(`/api/v1/things/${thingCode}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+        const res = await apiFetch(`/api/v1/things/${thingCode}/`);
         if (res.ok) {
           const data = await res.json();
           setThingType(data.type);
@@ -106,12 +94,8 @@ export default function EditThingPage() {
     }
 
     try {
-      const res = await fetch(`/api/v1/things/${thingCode}/`, {
+      const res = await apiFetch(`/api/v1/things/${thingCode}/`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
       });
       if (res.ok) {
@@ -132,9 +116,8 @@ export default function EditThingPage() {
     setDeleting(true);
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/things/${thingCode}/`, {
+      const res = await apiFetch(`/api/v1/things/${thingCode}/`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok || res.status === 204) {
         navigate(returnPath);
@@ -255,24 +238,9 @@ export default function EditThingPage() {
 
   return (
     <div className="page-container">
-      <Link to={returnPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {returnLabel}
-      </Link>
+      <BackLink to={returnPath} label={returnLabel} />
       <StepByStep title="Edit thing" steps={steps} numberedList />
-
-      {toast && (
-        <Notification
-          label={toast.type === 'success' ? 'Done' : 'Error'}
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

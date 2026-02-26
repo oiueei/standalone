@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Select,
   StepByStep,
@@ -7,21 +7,11 @@ import {
   TextArea,
   NumberInput,
   Button,
-  Notification,
 } from 'hds-react';
-
-const TYPE_OPTIONS = [
-  { label: 'Gift', value: 'GIFT_THING' },
-  { label: 'Sale', value: 'SELL_THING' },
-  { label: 'Order', value: 'ORDER_THING' },
-  { label: 'Rental', value: 'RENT_THING' },
-  { label: 'Lend', value: 'LEND_THING' },
-  { label: 'Share', value: 'SHARE_THING' },
-];
-
-const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
-
-const TYPE_LABELS = Object.fromEntries(TYPE_OPTIONS.map((o) => [o.value, o.label]));
+import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES } from '../constants/things';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import Toast from '../components/Toast';
 
 export default function AddThingPage() {
   const { code } = useParams();
@@ -48,9 +38,7 @@ export default function AddThingPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`/api/v1/collections/${code}/`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
+    apiFetch(`/api/v1/collections/${code}/`)
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => setCollectionHeadline(data.headline || ''))
       .catch(() => {});
@@ -88,12 +76,8 @@ export default function AddThingPage() {
     }
 
     try {
-      const res = await fetch('/api/v1/things/', {
+      const res = await apiFetch('/api/v1/things/', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
       });
       if (res.ok) {
@@ -211,24 +195,9 @@ export default function AddThingPage() {
 
   return (
     <div className="page-container">
-      <Link to={`/collections/${code}`} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {collectionHeadline || 'Collection'}
-      </Link>
+      <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
       <StepByStep title="Add thing" steps={steps} numberedList />
-
-      {toast && (
-        <Notification
-          label="Error"
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

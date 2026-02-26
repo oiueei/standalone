@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button, Linkbox, Notification } from 'hds-react';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
 import ThingLinkbox from '../components/ThingLinkbox';
 import placeholderImg from '../assets/image-m.png';
 
@@ -27,9 +29,7 @@ export default function CollectionPage() {
 
     const fetchCollection = async () => {
       try {
-        const res = await fetch(`/api/v1/collections/${code}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+        const res = await apiFetch(`/api/v1/collections/${code}/`);
         if (res.ok) {
           const data = await res.json();
           setCollection(data);
@@ -64,9 +64,7 @@ export default function CollectionPage() {
   return (
     <div className="page-container">
       {!showWelcome && (
-        <Link to="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
-          &larr; Home
-        </Link>
+        <BackLink to="/" label="Home" />
       )}
       <img
         src={collection.hero_url || collection.thumbnail_url || placeholderImg}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Notification } from 'hds-react';
+import { apiFetch } from '../services/api';
 import ThingLinkbox from '../components/ThingLinkbox';
 import placeholderImg from '../assets/image-m.png';
 
@@ -20,23 +21,13 @@ export default function HomePage() {
       return;
     }
 
-    const headers = { 'Authorization': `Bearer ${token}` };
-
-    const handleUnauth = () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh');
-      navigate('/login');
-    };
-
     const fetchMe = async () => {
       try {
-        const res = await fetch('/api/v1/auth/me/', { headers });
+        const res = await apiFetch('/api/v1/auth/me/');
         if (res.ok) {
           const data = await res.json();
           if (data.code) localStorage.setItem('userCode', data.code);
           setUser(data);
-        } else {
-          handleUnauth();
         }
       } catch {
         setError('Connection error.');
@@ -45,8 +36,7 @@ export default function HomePage() {
 
     const fetchMyCollections = async () => {
       try {
-        const res = await fetch('/api/v1/collections/', { headers });
-        if (res.status === 401) { handleUnauth(); return; }
+        const res = await apiFetch('/api/v1/collections/');
         if (res.ok) {
           const data = await res.json();
           setMyCollections(data.results);
@@ -56,8 +46,7 @@ export default function HomePage() {
 
     const fetchInvitedCollections = async () => {
       try {
-        const res = await fetch('/api/v1/invited-collections/', { headers });
-        if (res.status === 401) { handleUnauth(); return; }
+        const res = await apiFetch('/api/v1/invited-collections/');
         if (res.ok) {
           const data = await res.json();
           setInvitedCollections(data);
@@ -67,8 +56,7 @@ export default function HomePage() {
 
     const fetchMyThings = async () => {
       try {
-        const res = await fetch('/api/v1/things/', { headers });
-        if (res.status === 401) { handleUnauth(); return; }
+        const res = await apiFetch('/api/v1/things/');
         if (res.ok) {
           const data = await res.json();
           setMyThings(data.results);
@@ -78,8 +66,7 @@ export default function HomePage() {
 
     const fetchInvitedThings = async () => {
       try {
-        const res = await fetch('/api/v1/invited-things/', { headers });
-        if (res.status === 401) { handleUnauth(); return; }
+        const res = await apiFetch('/api/v1/invited-things/');
         if (res.ok) {
           const data = await res.json();
           setInvitedThings(data.results);

@@ -1,20 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Linkbox, Notification, Tag } from 'hds-react';
+import { Button, Linkbox } from 'hds-react';
+import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { apiFetch } from '../services/api';
+import ThingTags from './ThingTags';
+import Toast from './Toast';
 import placeholderImg from '../assets/image-s.png';
-
-const TYPE_LABELS = {
-  GIFT_THING: 'Gift',
-  SELL_THING: 'Sale',
-  ORDER_THING: 'Order',
-  RENT_THING: 'Rental',
-  LEND_THING: 'Lend',
-  SHARE_THING: 'Share',
-};
-
-const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'SHARE_THING'];
-const ORDER_TYPE = 'ORDER_THING';
-const DIRECT_TYPES = ['GIFT_THING', 'SELL_THING'];
 
 export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, onDelete, onUpdateThing }) {
   const navigate = useNavigate();
@@ -32,11 +23,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
 
   useEffect(() => {
     if (!isOwner || (!isDateBased && !isOrder)) return;
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    fetch(`/api/v1/things/${thing.code}/calendar/`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
+    apiFetch(`/api/v1/things/${thing.code}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         const today = new Date();
@@ -52,18 +39,11 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   }, [thing.code, isOwner, isDateBased, isOrder]);
 
   const handleRequest = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     setSubmitting(true);
     setToast(null);
     try {
-      const res = await fetch(`/api/v1/things/${thing.code}/request/`, {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/request/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({}),
       });
       if (res.ok) {
@@ -79,6 +59,45 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleBookingAction = async (action) => {
+    setBookingAction(true);
+    try {
+      const res = await apiFetch(`/api/v1/bookings/${thing.pending_booking}/${action}/`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        if (action === 'accept') {
+          const acceptedCode = thing.pending_booking;
+          setBookings((prev) => {
+            const updated = prev.map((b) =>
+              b.code === acceptedCode ? { ...b, status: 'ACCEPTED' } : b
+            );
+            const nextPending = updated.find((b) => b.code !== acceptedCode && b.status === 'PENDING');
+            onUpdateThing(thing.code, { status: 'INACTIVE', pending_booking: nextPending ? nextPending.code : null });
+            return updated;
+          });
+          setToast({ type: 'success', message: 'Hold confirmed.' });
+        } else {
+          const rejectedCode = thing.pending_booking;
+          setBookings((prev) => {
+            const remaining = prev.filter((b) => b.code !== rejectedCode);
+            const nextPending = remaining.find((b) => b.status === 'PENDING');
+            onUpdateThing(thing.code, { status: 'ACTIVE', pending_booking: nextPending ? nextPending.code : null });
+            return remaining;
+          });
+          setToast({ type: 'success', message: 'Hold cancelled.' });
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setToast({ type: 'error', message: data.error || `Error ${action === 'accept' ? 'confirming' : 'cancelling'} hold.` });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Connection error.' });
+    } finally {
+      setBookingAction(false);
     }
   };
 
@@ -107,21 +126,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       linkboxAriaLabel={thing.headline}
       border
     >
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-        <Tag>{TYPE_LABELS[thing.type] || thing.type}</Tag>
-        {isOwner && thing.status === 'TAKEN' && (
-          <Tag theme={{ '--tag-background': '#fff4e5', '--tag-color': '#b54708' }}>Taken</Tag>
-        )}
-        {isOwner && thing.status === 'INACTIVE' && (
-          <Tag theme={{ '--tag-background': '#e8e8e8', '--tag-color': '#525252' }}>Inactive</Tag>
-        )}
-        {isOwner && !thing.available && (
-          <Tag theme={{ '--tag-background': '#f5e6e6', '--tag-color': '#b01038' }}>Unavailable</Tag>
-        )}
-        {isOwner && thing.pending_questions > 0 && (
-          <Tag theme={{ '--tag-background': '#fff4e5', '--tag-color': '#b54708' }}>Pending questions</Tag>
-        )}
-      </div>
+      <ThingTags thing={thing} isOwner={isOwner} />
       <h3 className="linkbox-heading" style={{ margin: '0.5rem 0 0' }}>{thing.headline}</h3>
       {thing.description && <p style={{ margin: '0.25rem 0 0' }}>{thing.description}</p>}
       <p><strong>Created:</strong> {new Date(thing.created).toLocaleDateString('en-GB')}</p>
@@ -156,68 +161,14 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
           <Button
             disabled={bookingAction}
-            onClick={async () => {
-              const token = localStorage.getItem('token');
-              setBookingAction(true);
-              try {
-                const res = await fetch(`/api/v1/bookings/${thing.pending_booking}/accept/`, {
-                  method: 'POST',
-                  headers: { 'Authorization': `Bearer ${token}` },
-                });
-                if (res.ok) {
-                  const acceptedCode = thing.pending_booking;
-                  setBookings((prev) => {
-                    const updated = prev.map((b) =>
-                      b.code === acceptedCode ? { ...b, status: 'ACCEPTED' } : b
-                    );
-                    const nextPending = updated.find((b) => b.code !== acceptedCode && b.status === 'PENDING');
-                    onUpdateThing(thing.code, { status: 'INACTIVE', pending_booking: nextPending ? nextPending.code : null });
-                    return updated;
-                  });
-                  setToast({ type: 'success', message: 'Hold confirmed.' });
-                } else {
-                  const data = await res.json().catch(() => ({}));
-                  setToast({ type: 'error', message: data.error || 'Error confirming hold.' });
-                }
-              } catch {
-                setToast({ type: 'error', message: 'Connection error.' });
-              } finally {
-                setBookingAction(false);
-              }
-            }}
+            onClick={() => handleBookingAction('accept')}
           >
             Confirm hold
           </Button>
           <Button
             variant="danger"
             disabled={bookingAction}
-            onClick={async () => {
-              const token = localStorage.getItem('token');
-              setBookingAction(true);
-              try {
-                const res = await fetch(`/api/v1/bookings/${thing.pending_booking}/reject/`, {
-                  method: 'POST',
-                  headers: { 'Authorization': `Bearer ${token}` },
-                });
-                if (res.ok) {
-                  const rejectedCode = thing.pending_booking;
-                  setBookings((prev) => {
-                    const remaining = prev.filter((b) => b.code !== rejectedCode);
-                    const nextPending = remaining.find((b) => b.status === 'PENDING');
-                    onUpdateThing(thing.code, { status: 'ACTIVE', pending_booking: nextPending ? nextPending.code : null });
-                    return remaining;
-                  });
-                  setToast({ type: 'success', message: 'Hold cancelled.' });
-                } else {
-                  const data = await res.json().catch(() => ({}));
-                  setToast({ type: 'error', message: data.error || 'Error cancelling hold.' });
-                }
-              } catch {
-                setToast({ type: 'error', message: 'Connection error.' });
-              } finally {
-                setBookingAction(false);
-              }
-            }}
+            onClick={() => handleBookingAction('reject')}
           >
             Cancel hold
           </Button>
@@ -233,19 +184,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           </Button>
         </div>
       )}
-      {toast && (
-        <Notification
-          label={toast.type === 'success' ? 'Done' : 'Error'}
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </Linkbox>
   );
 }

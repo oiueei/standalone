@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Button } from 'hds-react';
+import BackLink from '../components/BackLink';
 
 export default function WelcomePage() {
   return (
     <div className="page-container">
-      <Link to="/" style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; Home
-      </Link>
+      <BackLink to="/" label="Home" />
       <h1 className="page-title">Welcome to OIUEEI!</h1>
       <p>
         OIUEEI is an open-source web application that lets people share their belongings with

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { StepByStep, TextInput, TextArea, Button, Notification } from 'hds-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { StepByStep, TextInput, TextArea, Button } from 'hds-react';
+import { apiFetch } from '../services/api';
+import BackLink from '../components/BackLink';
+import Toast from '../components/Toast';
 
 export default function CreateCollectionPage() {
   const navigate = useNavigate();
@@ -42,12 +45,8 @@ export default function CreateCollectionPage() {
     if (hero.trim()) body.hero = hero.trim();
 
     try {
-      const res = await fetch('/api/v1/collections/', {
+      const res = await apiFetch('/api/v1/collections/', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
       });
       if (res.ok) {
@@ -126,24 +125,9 @@ export default function CreateCollectionPage() {
 
   return (
     <div className="page-container">
-      <Link to={backPath} style={{ display: 'inline-block', marginBottom: '1rem' }}>
-        &larr; {backLabel}
-      </Link>
+      <BackLink to={backPath} label={backLabel} />
       <StepByStep title="Create collection" steps={steps} numberedList />
-
-      {toast && (
-        <Notification
-          label="Error"
-          type={toast.type}
-          position="top-right"
-          autoClose
-          dismissible
-          closeButtonLabelText="Close"
-          onClose={() => setToast(null)}
-        >
-          {toast.message}
-        </Notification>
-      )}
+      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
