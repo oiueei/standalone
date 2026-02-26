@@ -228,8 +228,13 @@ class CollectionInviteView(APIView):
         user_code = serializer.validated_data["user_code"]
 
         # Check if user is a confirmed invite
-        if collection.invites.filter(code=user_code).exists():
-            collection.invites.remove(collection.invites.get(code=user_code))
+        try:
+            invited_user = collection.invites.get(code=user_code)
+        except User.DoesNotExist:
+            invited_user = None
+
+        if invited_user:
+            collection.invites.remove(invited_user)
 
             # Send notification email to removed user
             try:

@@ -88,12 +88,10 @@ class ThingFAQListView(APIView):
         )
 
         # Notify owner by email
-        try:
-            owner = thing.owner
+        owner = thing.owner
+        if owner and owner.email:
             questioner_name = request.user.name or request.user.email
             send_faq_question_email(questioner_name, thing, faq.question, owner.email)
-        except Exception:
-            pass  # Owner not found, skip email
 
         return Response(
             FAQSerializer(faq).data,
@@ -161,14 +159,12 @@ class FAQAnswerView(APIView):
         faq.set_answer(serializer.validated_data["answer"])
 
         # Notify questioner by email
-        try:
-            questioner = faq.questioner
+        questioner = faq.questioner
+        if questioner and questioner.email:
             owner_name = request.user.name or request.user.email
             send_faq_answer_email(
                 owner_name, thing.headline, faq.question, faq.answer, questioner.email
             )
-        except Exception:
-            pass  # Questioner not found, skip email
 
         return Response(FAQSerializer(faq).data)
 
@@ -202,12 +198,10 @@ class FAQVisibilityView(APIView):
             faq.save(update_fields=["is_visible"])
 
             # Notify questioner by email
-            try:
-                questioner = faq.questioner
+            questioner = faq.questioner
+            if questioner and questioner.email:
                 owner_name = request.user.name or request.user.email
                 send_faq_hide_email(owner_name, thing.headline, faq.question, questioner.email)
-            except Exception:
-                pass  # Questioner not found, skip email
 
             return Response({"message": "FAQ hidden", "faq": FAQSerializer(faq).data})
         elif action == "show":

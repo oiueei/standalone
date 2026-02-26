@@ -217,6 +217,7 @@ def send_faq_question_email(questioner_name, thing, question, owner_email):
         html_message=f"""
             <html>
             <p><strong>{safe_questioner}</strong> has asked a question about:</p>
+            <p><strong>{safe_headline}</strong></p>
             <p>Question: {safe_question}</p>
             <p><a href="{thing_url}">View and reply</a></p>
             </html>
@@ -262,6 +263,7 @@ def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
             <html>
             <p><strong>{safe_owner}</strong> has hidden your question about:</p>
             <p><strong>{safe_headline}</strong></p>
+            <p>Question: {safe_question}</p>
             </html>
             """,
     )

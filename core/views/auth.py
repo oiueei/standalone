@@ -9,13 +9,14 @@ exposing real codes (booking_code, thing_code, etc.) in URLs.
 import logging
 
 from django.conf import settings
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import RSVP, Collection, User
@@ -345,17 +346,14 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        from django.contrib.auth import logout
-
         # Try to blacklist the refresh token if provided
         refresh_token = request.data.get("refresh")
         if refresh_token:
             try:
                 token = RefreshToken(refresh_token)
                 token.blacklist()
-            except Exception:
-                # Blacklist might not be enabled or token invalid
-                pass
+            except (AttributeError, TokenError):
+                pass  # Blacklist not enabled or token invalid
 
         # Logout from Django session
         logout(request)
