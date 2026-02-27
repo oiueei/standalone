@@ -16,15 +16,15 @@ export default function RequestThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem('token');
+  const userCode = localStorage.getItem('userCode');
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || 'Back';
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
     }
-  }, [token, navigate]);
+  }, [userCode, navigate]);
 
   const [thing, setThing] = useState(null);
   const [startDate, setStartDate] = useState('');
@@ -37,22 +37,22 @@ export default function RequestThingPage() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!userCode) return;
     apiFetch(`/api/v1/things/${thingCode}/`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) setThing(data);
       })
       .catch(() => {});
-  }, [token, thingCode, code]);
+  }, [userCode, thingCode, code]);
 
   useEffect(() => {
-    if (!token || !thing || !DATE_TYPES.includes(thing.type)) return;
+    if (!userCode || !thing || !DATE_TYPES.includes(thing.type)) return;
     apiFetch(`/api/v1/things/${thingCode}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setBlockedPeriods(data))
       .catch(() => {});
-  }, [token, thingCode, thing]);
+  }, [userCode, thingCode, thing]);
 
   const isDateBlocked = (date) => {
     return blockedPeriods.some((period) => {

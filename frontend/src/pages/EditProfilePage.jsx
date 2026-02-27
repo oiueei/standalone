@@ -11,10 +11,9 @@ export default function EditProfilePage() {
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || 'Home';
-  const token = localStorage.getItem('token');
+  const userCode = localStorage.getItem('userCode');
 
   const [loading, setLoading] = useState(true);
-  const [userCode, setUserCode] = useState('');
   const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
   const [thumbnail, setThumbnail] = useState('');
@@ -26,7 +25,7 @@ export default function EditProfilePage() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
       return;
     }
@@ -40,7 +39,6 @@ export default function EditProfilePage() {
 
         if (profileRes.ok) {
           const data = await profileRes.json();
-          setUserCode(data.code);
           setName(data.name || '');
           setHeadline(data.headline || '');
           setThumbnail(data.thumbnail || '');
@@ -61,7 +59,7 @@ export default function EditProfilePage() {
       }
     };
     fetchData();
-  }, [token, navigate]);
+  }, [userCode, navigate]);
 
   const validate = () => {
     const newErrors = {};

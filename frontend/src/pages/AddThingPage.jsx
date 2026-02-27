@@ -17,13 +17,13 @@ export default function AddThingPage() {
   const { code } = useParams();
   const navigate = useNavigate();
 
-  const token = localStorage.getItem('token');
+  const userCode = localStorage.getItem('userCode');
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
     }
-  }, [token, navigate]);
+  }, [userCode, navigate]);
 
   const [collectionHeadline, setCollectionHeadline] = useState('');
   const [type, setType] = useState('GIFT_THING');
@@ -37,12 +37,12 @@ export default function AddThingPage() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!userCode) return;
     apiFetch(`/api/v1/collections/${code}/`)
       .then((res) => (res.ok ? res.json() : {}))
       .then((data) => setCollectionHeadline(data.headline || ''))
       .catch(() => {});
-  }, [token, code]);
+  }, [userCode, code]);
 
   const validate = () => {
     const newErrors = {};

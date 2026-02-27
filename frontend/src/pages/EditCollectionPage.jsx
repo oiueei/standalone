@@ -14,7 +14,7 @@ const STATUS_OPTIONS = [
 export default function EditCollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const userCode = localStorage.getItem('userCode');
 
   const [loading, setLoading] = useState(true);
   const [headline, setHeadline] = useState('');
@@ -27,7 +27,7 @@ export default function EditCollectionPage() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
       return;
     }
@@ -53,7 +53,7 @@ export default function EditCollectionPage() {
       }
     };
     fetchData();
-  }, [token, code, navigate]);
+  }, [userCode, code, navigate]);
 
   const validate = () => {
     const newErrors = {};

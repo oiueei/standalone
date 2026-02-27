@@ -22,8 +22,8 @@ export default function CollectionPage() {
   }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    const userCode = localStorage.getItem('userCode');
+    if (!userCode) {
       navigate('/login');
       return;
     }

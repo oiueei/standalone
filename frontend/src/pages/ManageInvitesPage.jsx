@@ -9,7 +9,7 @@ import Toast from '../components/Toast';
 export default function ManageInvitesPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const userCode = localStorage.getItem('userCode');
 
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
@@ -23,7 +23,7 @@ export default function ManageInvitesPage() {
   const [resending, setResending] = useState(null);
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
       return;
     }
@@ -47,7 +47,7 @@ export default function ManageInvitesPage() {
       }
     };
     fetchCollection();
-  }, [token, code, navigate]);
+  }, [userCode, code, navigate]);
 
   const handleRemove = async (userCode, isPending = false) => {
     try {

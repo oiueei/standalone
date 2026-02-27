@@ -7,7 +7,10 @@ real codes (booking_code, thing_code) in URLs.
 """
 
 from django.conf import settings
+from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -32,6 +35,7 @@ class ThingRequestView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(ratelimit(key="user", rate="10/h", method="POST", block=True))
     def post(self, request, thing_code):
         thing = get_object_or_404(Thing, code=thing_code)
 
@@ -89,21 +93,24 @@ class ThingRequestView(APIView):
         start_date = serializer.validated_data["start_date"]
         end_date = serializer.validated_data["end_date"]
 
-        if BookingPeriod.has_overlap(thing.code, start_date, end_date):
-            return Response(
-                {"error": "Selected dates overlap with existing booking"},
-                status=status.HTTP_409_CONFLICT,
-            )
+        with transaction.atomic():
+            Thing.objects.select_for_update().get(code=thing.code)
 
-        booking = BookingPeriod.objects.create(
-            thing_code=thing,
-            thing_type=thing.type,
-            requester_code=request.user,
-            requester_email=request.user.email,
-            owner_code=thing.owner,
-            start_date=start_date,
-            end_date=end_date,
-        )
+            if BookingPeriod.has_overlap(thing.code, start_date, end_date):
+                return Response(
+                    {"error": "Selected dates overlap with existing booking"},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            booking = BookingPeriod.objects.create(
+                thing_code=thing,
+                thing_type=thing.type,
+                requester_code=request.user,
+                requester_email=request.user.email,
+                owner_code=thing.owner,
+                start_date=start_date,
+                end_date=end_date,
+            )
 
         self._send_booking_email(request.user, thing, booking, owner_email)
 
@@ -126,15 +133,18 @@ class ThingRequestView(APIView):
         delivery_date = serializer.validated_data["delivery_date"]
         quantity = serializer.validated_data["quantity"]
 
-        booking = BookingPeriod.objects.create(
-            thing_code=thing,
-            thing_type=thing.type,
-            requester_code=request.user,
-            requester_email=request.user.email,
-            owner_code=thing.owner,
-            delivery_date=delivery_date,
-            quantity=quantity,
-        )
+        with transaction.atomic():
+            Thing.objects.select_for_update().get(code=thing.code)
+
+            booking = BookingPeriod.objects.create(
+                thing_code=thing,
+                thing_type=thing.type,
+                requester_code=request.user,
+                requester_email=request.user.email,
+                owner_code=thing.owner,
+                delivery_date=delivery_date,
+                quantity=quantity,
+            )
 
         self._send_booking_email(request.user, thing, booking, owner_email)
 
@@ -150,27 +160,36 @@ class ThingRequestView(APIView):
 
     def _handle_standard_request(self, request, thing, owner_email):
         """Handle GIFT/SELL requests (no dates)."""
-        existing = BookingPeriod.objects.filter(
-            thing_code=thing,
-            requester_code=request.user,
-            status="PENDING",
-        ).first()
-        if existing:
-            return Response(
-                {"error": "You already have a pending request for this thing"},
-                status=status.HTTP_400_BAD_REQUEST,
+        with transaction.atomic():
+            thing = Thing.objects.select_for_update().get(code=thing.code)
+
+            if thing.status != "ACTIVE":
+                return Response(
+                    {"error": "Thing is not available for reservation"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            existing = BookingPeriod.objects.filter(
+                thing_code=thing,
+                requester_code=request.user,
+                status="PENDING",
+            ).first()
+            if existing:
+                return Response(
+                    {"error": "You already have a pending request for this thing"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            booking = BookingPeriod.objects.create(
+                thing_code=thing,
+                thing_type=thing.type,
+                requester_code=request.user,
+                requester_email=request.user.email,
+                owner_code=thing.owner,
             )
 
-        booking = BookingPeriod.objects.create(
-            thing_code=thing,
-            thing_type=thing.type,
-            requester_code=request.user,
-            requester_email=request.user.email,
-            owner_code=thing.owner,
-        )
-
-        thing.status = "TAKEN"
-        thing.save(update_fields=["status"])
+            thing.status = "TAKEN"
+            thing.save(update_fields=["status"])
 
         self._send_booking_email(request.user, thing, booking, owner_email)
 

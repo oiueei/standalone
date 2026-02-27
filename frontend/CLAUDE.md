@@ -84,9 +84,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 
 ### ThingLinkbox (`src/components/ThingLinkbox.jsx`)
 
-Reusable component for rendering a thing as an HDS `Linkbox`. Used by `CollectionPage` and `HomePage`.
+Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPage` and `HomePage`.
 
-- **Linkbox**: the entire component is a clickable link to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). Arrow icon is hidden via `linkbox-no-arrow` CSS class. Interactive elements (buttons, links) use `stopPropagation` to prevent navigation.
+- **Card**: the component uses HDS `Card` (a `<div>`-based container) instead of `Linkbox`, since it contains interactive elements (buttons, links). The thumbnail and headline are wrapped in `<Link>` components for navigation to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). No `stopPropagation` hacks needed.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.

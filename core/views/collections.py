@@ -5,6 +5,8 @@ Collection views for OIUEEI.
 from django.conf import settings
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -176,6 +178,7 @@ class CollectionInviteView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
     def post(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
 

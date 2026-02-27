@@ -33,6 +33,32 @@ from core.utils import get_client_ip
 security_logger = logging.getLogger("security")
 
 
+def _set_auth_cookies(response, refresh):
+    """Set HttpOnly JWT cookies on the response."""
+    access_token = str(refresh.access_token)
+    refresh_token = str(refresh)
+    is_secure = not settings.DEBUG
+
+    response.set_cookie(
+        "access_token",
+        access_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="Lax",
+        max_age=3600,
+        path="/",
+    )
+    response.set_cookie(
+        "refresh_token",
+        refresh_token,
+        httponly=True,
+        secure=is_secure,
+        samesite="Lax",
+        max_age=7 * 86400,
+        path="/api/v1/auth/refresh/",
+    )
+
+
 class RequestLinkView(APIView):
     """
     POST /api/v1/auth/request-link/
@@ -49,16 +75,18 @@ class RequestLinkView(APIView):
         email = serializer.validated_data["email"].lower()
         ip = get_client_ip(request)
 
+        unified_message = "If this email is registered, a magic link has been sent."
+
         # INVITE-ONLY: Only existing users can request magic links
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             security_logger.warning(
-                f"Magic link request denied for non-existent user: {email} from IP {ip}"
+                f"Magic link request for non-existent user: {email} from IP {ip}"
             )
             return Response(
-                {"error": "No account found. Please ask someone to invite you."},
-                status=status.HTTP_404_NOT_FOUND,
+                {"message": unified_message},
+                status=status.HTTP_200_OK,
             )
 
         security_logger.info(f"Magic link requested for {email} from IP {ip}")
@@ -78,7 +106,7 @@ class RequestLinkView(APIView):
         send_magic_link_email(email, magic_link)
 
         return Response(
-            {"message": "Magic link sent", "email": email},
+            {"message": unified_message},
             status=status.HTTP_200_OK,
         )
 
@@ -140,7 +168,7 @@ class VerifyLinkView(APIView):
     def _authenticate_user(self, request, rsvp):
         """Authenticate a user via RSVP: validate, generate JWT, login, delete RSVP.
 
-        Returns (user, token_data) on success, or a Response on failure.
+        Returns (user, refresh, user_data) on success, or a Response on failure.
         """
         user = rsvp.user_code
         if not user:
@@ -155,12 +183,8 @@ class VerifyLinkView(APIView):
         refresh = RefreshToken.for_user(user)
         login(request, user)
 
-        token_data = {
-            "token": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": UserSerializer(user).data,
-        }
-        return user, token_data
+        user_data = UserSerializer(user).data
+        return user, refresh, user_data
 
     def _handle_magic_link(self, request, rsvp):
         """Handle magic link authentication."""
@@ -169,23 +193,25 @@ class VerifyLinkView(APIView):
         result = self._authenticate_user(request, rsvp)
         if isinstance(result, Response):
             return result
-        user, token_data = result
+        user, refresh, user_data = result
 
         rsvp.delete()
 
         security_logger.info(f"User {user.email} logged in via magic link from IP {ip}")
 
-        return Response(
-            {"action": "MAGIC_LINK", **token_data},
+        response = Response(
+            {"action": "MAGIC_LINK", "user": user_data},
             status=status.HTTP_200_OK,
         )
+        _set_auth_cookies(response, refresh)
+        return response
 
     def _handle_collection_invite(self, request, rsvp):
         """Handle collection invitation acceptance."""
         result = self._authenticate_user(request, rsvp)
         if isinstance(result, Response):
             return result
-        user, token_data = result
+        user, refresh, user_data = result
 
         # Process collection invitation
         invited_collection = None
@@ -205,11 +231,13 @@ class VerifyLinkView(APIView):
         ).delete()
         rsvp.delete()
 
-        response_data = {"action": "COLLECTION_INVITE", **token_data}
+        response_data = {"action": "COLLECTION_INVITE", "user": user_data}
         if invited_collection:
             response_data["invited_collection"] = invited_collection
 
-        return Response(response_data, status=status.HTTP_200_OK)
+        response = Response(response_data, status=status.HTTP_200_OK)
+        _set_auth_cookies(response, refresh)
+        return response
 
     def _handle_collection_reject(self, request, rsvp):
         """Handle collection invitation rejection."""
@@ -346,8 +374,8 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Try to blacklist the refresh token if provided
-        refresh_token = request.data.get("refresh")
+        # Try to blacklist the refresh token from cookie or body
+        refresh_token = request.COOKIES.get("refresh_token") or request.data.get("refresh")
         if refresh_token:
             try:
                 token = RefreshToken(refresh_token)
@@ -358,7 +386,50 @@ class LogoutView(APIView):
         # Logout from Django session
         logout(request)
 
-        return Response(
+        response = Response(
             {"message": "Successfully logged out"},
             status=status.HTTP_200_OK,
         )
+        response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path="/api/v1/auth/refresh/")
+        return response
+
+
+class TokenRefreshView(APIView):
+    """
+    POST /api/v1/auth/refresh/
+    Refresh JWT tokens using the refresh_token cookie.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+        if not refresh_token:
+            return Response(
+                {"error": "No refresh token"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        try:
+            old_refresh = RefreshToken(refresh_token)
+            # Rotate: create new refresh token and blacklist old one
+            new_refresh = RefreshToken.for_user(
+                User.objects.get(code=old_refresh[settings.SIMPLE_JWT["USER_ID_CLAIM"]])
+            )
+            try:
+                old_refresh.blacklist()
+            except AttributeError:
+                pass  # Blacklist not enabled
+        except (TokenError, User.DoesNotExist):
+            response = Response(
+                {"error": "Invalid refresh token"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+            response.delete_cookie("access_token", path="/")
+            response.delete_cookie("refresh_token", path="/api/v1/auth/refresh/")
+            return response
+
+        response = Response({"message": "Token refreshed"}, status=status.HTTP_200_OK)
+        _set_auth_cookies(response, new_refresh)
+        return response

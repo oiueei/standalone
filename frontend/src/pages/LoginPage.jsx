@@ -28,10 +28,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (res.ok) {
         setStatus('success');
-        setMessage('Magic link sent. Check your email.');
-      } else if (res.status === 404) {
-        setStatus('alert');
-        setMessage(data.error || 'No account found with that email.');
+        setMessage(data.message || 'If this email is registered, a magic link has been sent.');
       } else {
         setStatus('error');
         setMessage(data.error || data.detail || 'Error sending link.');

@@ -51,6 +51,9 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@oiueei.com")
 
 # Static files with WhiteNoise
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
+
+# Security headers (CSP + Permissions-Policy)
+MIDDLEWARE.insert(2, "core.middleware.SecurityHeadersMiddleware")  # noqa: F405
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

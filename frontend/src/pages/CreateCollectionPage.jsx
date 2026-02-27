@@ -10,13 +10,13 @@ export default function CreateCollectionPage() {
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || 'Home';
-  const token = localStorage.getItem('token');
+  const userCode = localStorage.getItem('userCode');
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
     }
-  }, [token, navigate]);
+  }, [userCode, navigate]);
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');

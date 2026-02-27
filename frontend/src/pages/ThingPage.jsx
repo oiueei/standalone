@@ -18,7 +18,6 @@ import placeholderImg from '../assets/image-s.png';
 export default function ThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
   const userCode = localStorage.getItem('userCode');
 
   const [thing, setThing] = useState(null);
@@ -38,7 +37,7 @@ export default function ThingPage() {
   const [answerSubmitting, setAnswerSubmitting] = useState({});
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
       return;
     }
@@ -72,7 +71,7 @@ export default function ThingPage() {
 
     fetchThing();
     fetchFaqs();
-  }, [token, thingCode, navigate]);
+  }, [userCode, thingCode, navigate]);
 
   if (error) {
     return (

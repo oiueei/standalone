@@ -12,25 +12,26 @@ from core.models import RSVP
 class TestAuthViews:
     """Tests for authentication views."""
 
-    def test_request_link_non_existent_user_denied(self, api_client):
-        """Should deny magic link for non-existent user (invite-only)."""
+    def test_request_link_non_existent_user_returns_200(self, api_client):
+        """Should return 200 with unified message for non-existent user (no enumeration)."""
         response = api_client.post(
             "/api/v1/auth/request-link/",
             {"email": "lala@oiueei.org"},
             format="json",
         )
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert "No account found" in response.data["error"]
+        assert response.status_code == status.HTTP_200_OK
+        assert "If this email is registered" in response.data["message"]
 
     def test_request_link_existing_user(self, api_client, user):
-        """Should send magic link for existing user."""
+        """Should send magic link for existing user with unified message."""
         response = api_client.post(
             "/api/v1/auth/request-link/",
             {"email": user.email},
             format="json",
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["email"] == user.email
+        assert "If this email is registered" in response.data["message"]
+        assert "email" not in response.data or response.data.get("email") is None
 
     def test_request_link_invalid_email(self, api_client):
         """Should reject invalid email."""
@@ -42,12 +43,12 @@ class TestAuthViews:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_verify_link_valid(self, api_client, rsvp, user):
-        """Should verify valid RSVP and return token."""
+        """Should verify valid RSVP and set auth cookies."""
         response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
         assert response.status_code == status.HTTP_200_OK
-        assert "token" in response.data
-        assert "refresh" in response.data
         assert response.data["user"]["code"] == user.code
+        assert "access_token" in response.cookies
+        assert "refresh_token" in response.cookies
 
     def test_verify_link_invalid(self, api_client):
         """Should reject invalid RSVP code."""
@@ -98,6 +99,39 @@ class TestAuthViews:
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Successfully logged out"
+
+    def test_logout_clears_cookies(self, authenticated_client):
+        """Should clear auth cookies on logout."""
+        response = authenticated_client.post("/api/v1/auth/logout/")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.cookies["access_token"].value == ""
+        assert response.cookies["refresh_token"].value == ""
+
+    def test_token_refresh_without_cookie(self, api_client):
+        """Should return 401 when no refresh cookie is present."""
+        response = api_client.post("/api/v1/auth/refresh/")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_token_refresh_with_valid_cookie(self, api_client, user):
+        """Should set new auth cookies when refresh cookie is valid."""
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = RefreshToken.for_user(user)
+        api_client.cookies["refresh_token"] = str(refresh)
+        response = api_client.post("/api/v1/auth/refresh/")
+        assert response.status_code == status.HTTP_200_OK
+        assert "access_token" in response.cookies
+        assert "refresh_token" in response.cookies
+
+    def test_cookie_auth(self, api_client, user):
+        """Should authenticate using access_token cookie."""
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = RefreshToken.for_user(user)
+        api_client.cookies["access_token"] = str(refresh.access_token)
+        response = api_client.get("/api/v1/auth/me/")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["code"] == user.code
 
 
 @pytest.mark.django_db
@@ -1308,15 +1342,14 @@ class TestSecurityAuth:
     """Tests for authentication security features."""
 
     def test_invite_only_registration(self, api_client):
-        """New users cannot request magic links without being invited first."""
+        """New users get same response as existing users (no enumeration)."""
         response = api_client.post(
             "/api/v1/auth/request-link/",
             {"email": "newuser@example.com"},
             format="json",
         )
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert "No account found" in response.data["error"]
-        assert "invite" in response.data["error"].lower()
+        assert response.status_code == status.HTTP_200_OK
+        assert "If this email is registered" in response.data["message"]
 
     def test_existing_user_can_request_magic_link(self, api_client, user):
         """Existing users can request magic links."""

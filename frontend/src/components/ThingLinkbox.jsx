@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Linkbox } from 'hds-react';
+import { Button, Card } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
@@ -117,17 +117,14 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     : `/things/${thing.code}/request`;
 
   return (
-    <Linkbox
-      className="linkbox-no-arrow"
-      href={thingPath}
-      onClick={(e) => { e.preventDefault(); navigate(thingPath); }}
-      imgProps={{ src: thing.thumbnail_url || placeholderImg, alt: thing.headline, className: 'thing-thumbnail' }}
-      linkAriaLabel={`View ${thing.headline}`}
-      linkboxAriaLabel={thing.headline}
-      border
-    >
+    <Card className="thing-card" border>
+      <Link to={thingPath}>
+        <img src={thing.thumbnail_url || placeholderImg} alt={thing.headline} className="thing-thumbnail" />
+      </Link>
       <ThingTags thing={thing} isOwner={isOwner} />
-      <h3 className="linkbox-heading" style={{ margin: 'var(--spacing-s) 0 0' }}>{thing.headline}</h3>
+      <h3 style={{ margin: 'var(--spacing-s) 0 0' }}>
+        <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
+      </h3>
       {thing.description && <p style={{ margin: 'var(--spacing-2-xs) 0 0' }}>{thing.description}</p>}
       <p><strong>Created:</strong> {new Date(thing.created).toLocaleDateString('en-GB')}</p>
       {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
@@ -154,7 +151,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </div>
       )}
       {isOwner && (
-        <div className="button-row section-mt" onClick={(e) => e.stopPropagation()}>
+        <div className="button-row section-mt">
           <Link to={editPath}>
             <Button>Edit</Button>
           </Link>
@@ -183,7 +180,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </div>
       )}
       {isOwner && thing.pending_booking && (
-        <div className="button-row section-mt" onClick={(e) => e.stopPropagation()}>
+        <div className="button-row section-mt">
           <Button
             disabled={bookingAction}
             onClick={() => handleBookingAction('accept')}
@@ -200,7 +197,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </div>
       )}
       {showButton && (
-        <div onClick={(e) => e.stopPropagation()}>
+        <div>
           <Button
             disabled={buttonDisabled}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
@@ -210,6 +207,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </div>
       )}
       <Toast toast={toast} onClose={() => setToast(null)} />
-    </Linkbox>
+    </Card>
   );
 }

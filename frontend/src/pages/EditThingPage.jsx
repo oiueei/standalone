@@ -18,7 +18,7 @@ import Toast from '../components/Toast';
 export default function EditThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const userCode = localStorage.getItem('userCode');
 
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
@@ -36,7 +36,7 @@ export default function EditThingPage() {
   const [thingCollectionHeadline, setThingCollectionHeadline] = useState('');
 
   useEffect(() => {
-    if (!token) {
+    if (!userCode) {
       navigate('/login');
       return;
     }
@@ -63,7 +63,7 @@ export default function EditThingPage() {
       }
     };
     fetchThing();
-  }, [token, thingCode, navigate]);
+  }, [userCode, thingCode, navigate]);
 
   const returnPath = thingCollectionCode ? `/collections/${thingCollectionCode}` : '/';
   const returnLabel = thingCollectionHeadline || (thingCollectionCode ? 'Collection' : 'Home');

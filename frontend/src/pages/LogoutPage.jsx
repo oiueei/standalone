@@ -5,10 +5,14 @@ export default function LogoutPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh');
-    localStorage.removeItem('userCode');
-    navigate('/login');
+    fetch('/api/v1/auth/logout/', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    }).finally(() => {
+      localStorage.removeItem('userCode');
+      navigate('/login');
+    });
   }, [navigate]);
 
   return null;

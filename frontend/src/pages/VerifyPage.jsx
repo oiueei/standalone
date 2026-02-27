@@ -19,9 +19,7 @@ export default function VerifyPage() {
           setSuccess('The hold has been confirmed!');
         } else if (res.ok && data.action === 'BOOKING_REJECT') {
           setSuccess('The hold has been rejected.');
-        } else if (res.ok && data.token) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('refresh', data.refresh);
+        } else if (res.ok && data.user) {
           if (data.user?.code) localStorage.setItem('userCode', data.user.code);
           if (data.invited_collection) {
             navigate(`/collections/${data.invited_collection}`, { state: { fromInvite: true } });

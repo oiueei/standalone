@@ -30,8 +30,17 @@ div[class*="Linkbox-module_linkbox"] {
   max-width: 100%;
 }
 
-.linkbox-no-arrow a[class*="Linkbox-module_link"] {
-  display: none;
+.thing-card {
+  max-width: 400px;
+}
+
+.thing-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.thing-card-link:hover {
+  text-decoration: underline;
 }
 
 .things-grid {

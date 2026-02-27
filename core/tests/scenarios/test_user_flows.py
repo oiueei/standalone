@@ -40,16 +40,15 @@ class TestMagicLinkFlow:
         # Step 2: Verify magic link
         response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
         assert response.status_code == status.HTTP_200_OK
-        assert "token" in response.data
-        assert "refresh" in response.data
         assert response.data["user"]["code"] == user.code
+        assert "access_token" in response.cookies
+        assert "refresh_token" in response.cookies
 
         # Verify RSVP was deleted (one-time use)
         assert not RSVP.objects.filter(code=rsvp.code).exists()
 
-        # Step 3: Use token to access protected endpoint
-        token = response.data["token"]
-        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        # Step 3: Use cookie to access protected endpoint
+        api_client.cookies["access_token"] = response.cookies["access_token"].value
         response = api_client.get("/api/v1/auth/me/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["email"] == email
@@ -170,6 +169,7 @@ class TestShareCollectionFlow:
         assert response.status_code == status.HTTP_200_OK
 
         # Step 4: Friend views shared collections
+        client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {friend_token.access_token}")
         friend.refresh_from_db()
 
@@ -273,6 +273,7 @@ class TestFAQFlow:
         client.get(f"/api/v1/auth/verify/{rsvp.code}/")
 
         # Step 1: Friend asks question
+        client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {friend_token.access_token}")
         response = client.post(
             f"/api/v1/things/{thing_code}/faq/",
@@ -284,6 +285,7 @@ class TestFAQFlow:
         assert response.data["answer"] == ""
 
         # Step 2: Owner answers question
+        client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {owner_token.access_token}")
         response = client.post(
             f"/api/v1/faq/{faq_code}/answer/",
@@ -294,6 +296,7 @@ class TestFAQFlow:
         assert response.data["answer"] == "Yes, it works with 35mm film!"
 
         # Step 3: Friend can see answered question
+        client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {friend_token.access_token}")
         response = client.get(f"/api/v1/things/{thing_code}/faq/")
         assert response.status_code == status.HTTP_200_OK
@@ -326,12 +329,13 @@ class TestCompleteUserJourney:
 
         alice_rsvp = RSVP.objects.get(user_code=alice)
 
-        # Alice verifies and gets token
+        # Alice verifies and gets auth cookies
         response = client.get(f"/api/v1/auth/verify/{alice_rsvp.code}/")
-        alice_token = response.data["token"]
+        alice_token = RefreshToken.for_user(alice)
 
         # Alice updates profile
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token}")
+        client.cookies.clear()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token.access_token}")
         client.put(
             f"/api/v1/users/{alice.code}/",
             {"name": "Alice", "headline": "Birthday coming up!"},
@@ -398,6 +402,7 @@ class TestCompleteUserJourney:
         # === Bob logs in and requests an item ===
 
         bob_token = RefreshToken.for_user(bob)
+        client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {bob_token.access_token}")
 
         # Bob views shared collections
@@ -420,6 +425,7 @@ class TestCompleteUserJourney:
         # === Charlie asks a question ===
 
         charlie_token = RefreshToken.for_user(charlie)
+        client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {charlie_token.access_token}")
 
         # Charlie asks about the book
@@ -432,7 +438,8 @@ class TestCompleteUserJourney:
 
         # === Alice answers the question ===
 
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token}")
+        client.cookies.clear()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token.access_token}")
         response = client.post(
             f"/api/v1/faq/{faq_code}/answer/",
             {"answer": "Paperback is fine!"},
@@ -441,6 +448,7 @@ class TestCompleteUserJourney:
 
         # === Charlie requests the book ===
 
+        client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {charlie_token.access_token}")
         response = client.post(f"/api/v1/things/{thing_codes[2]}/request/")
         assert response.status_code == status.HTTP_200_OK
@@ -456,7 +464,8 @@ class TestCompleteUserJourney:
 
         # === Final state verification ===
 
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token}")
+        client.cookies.clear()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {alice_token.access_token}")
 
         # Alice sees her collection status
         response = client.get(f"/api/v1/collections/{wishlist_code}/")

@@ -15,8 +15,7 @@ export default function UserPage() {
   const userCode = paramCode || localStorage.getItem('userCode');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!localStorage.getItem('userCode')) {
       navigate('/login');
       return;
     }

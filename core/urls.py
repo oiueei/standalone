@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views.auth import LogoutView, MeView, RequestLinkView, VerifyLinkView
+from .views.auth import LogoutView, MeView, RequestLinkView, TokenRefreshView, VerifyLinkView
 from .views.booking import (
     BookingActionView,
     BookingCancelView,
@@ -41,6 +41,7 @@ urlpatterns = [
     path("auth/verify/<str:rsvp_code>/", VerifyLinkView.as_view(), name="verify-link"),
     path("auth/me/", MeView.as_view(), name="me"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
+    path("auth/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     # RSVP action endpoint (unified handler for all email-based actions)
     # Handles: MAGIC_LINK, COLLECTION_INVITE, BOOKING_ACCEPT/REJECT
     path("rsvp/<str:rsvp_code>/", VerifyLinkView.as_view(), name="rsvp-action"),

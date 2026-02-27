@@ -3,6 +3,8 @@ FAQ views for OIUEEI.
 """
 
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -61,6 +63,7 @@ class ThingFAQListView(APIView):
         serializer = FAQSerializer(faqs, many=True)
         return Response(serializer.data)
 
+    @method_decorator(ratelimit(key="user", rate="20/h", method="POST", block=True))
     def post(self, request, thing_code):
         thing = self.get_thing(thing_code)
 

@@ -31,8 +31,8 @@ export default function MyBookingsPage() {
   const [cancelling, setCancelling] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    const userCode = localStorage.getItem('userCode');
+    if (!userCode) {
       navigate('/login');
       return;
     }
