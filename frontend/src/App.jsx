@@ -43,7 +43,7 @@ function App() {
         <Route path="/collections/:code/invites" element={<ManageInvitesPage />} />
         <Route path="/collections/:code/add-thing" element={<AddThingPage />} />
         <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
-        <Route path="/collections/:code/edit-thing/:thingCode" element={<EditThingPage />} />
+        <Route path="/collections/:code/things/:thingCode/edit" element={<EditThingPage />} />
         <Route path="/collections/:code/things/:thingCode/request" element={<RequestThingPage />} />
         <Route path="/things/:thingCode" element={<ThingPage />} />
         <Route path="/things/:thingCode/edit" element={<EditThingPage />} />

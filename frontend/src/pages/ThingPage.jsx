@@ -91,7 +91,7 @@ export default function ThingPage() {
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
   const editPath = code
-    ? `/collections/${code}/edit-thing/${thing.code}`
+    ? `/collections/${code}/things/${thing.code}/edit`
     : `/things/${thing.code}/edit`;
 
   const collectionCode = code || thing.collection_code;

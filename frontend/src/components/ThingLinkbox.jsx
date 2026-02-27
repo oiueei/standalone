@@ -105,7 +105,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
   const editPath = collectionCode
-    ? `/collections/${collectionCode}/edit-thing/${thing.code}`
+    ? `/collections/${collectionCode}/things/${thing.code}/edit`
     : `/things/${thing.code}/edit`;
 
   const thingPath = collectionCode

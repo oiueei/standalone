@@ -20,7 +20,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/collections/:code/invites` | `ManageInvitesPage` | Wizard to manage collection invites |
 | `/collections/:code/add-thing` | `AddThingPage` | Wizard to add a thing to a collection |
 | `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context) |
-| `/collections/:code/edit-thing/:thingCode` | `EditThingPage` | Wizard to edit a thing (from collection context) |
+| `/collections/:code/things/:thingCode/edit` | `EditThingPage` | Wizard to edit a thing (from collection context) |
 | `/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (standalone) |
 | `/things/:thingCode/edit` | `EditThingPage` | Wizard to edit a thing (standalone) |
 | `/collections/:code/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (collection context) |
@@ -172,7 +172,7 @@ Detail page for a thing with full information and FAQs section.
 ### EditThingPage (`src/pages/EditThingPage.jsx`)
 
 - **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save
-- Accessible from `/collections/:code/edit-thing/:thingCode` or `/things/:thingCode/edit`.
+- Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
 - 3-step wizard using HDS `StepByStep` (same layout as AddThingPage).
 - Pre-populates all fields from the existing thing.
 - On success: navigates back to collection or home.
