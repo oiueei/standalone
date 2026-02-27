@@ -20,6 +20,7 @@ export default function ManageInvitesPage() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(null);
+  const [resending, setResending] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -66,6 +67,25 @@ export default function ManageInvitesPage() {
       }
     } catch {
       setToast({ type: 'error', message: 'Connection error.' });
+    }
+  };
+
+  const handleResend = async (email) => {
+    setResending(email);
+    try {
+      const res = await apiFetch(`/api/v1/collections/${code}/invite/`, {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setToast({ type: 'success', message: 'Invitation resent.' });
+      } else {
+        setToast({ type: 'error', message: 'Error resending invitation.' });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Connection error.' });
+    } finally {
+      setResending(null);
     }
   };
 
@@ -119,15 +139,26 @@ export default function ManageInvitesPage() {
                 </li>
               ))}
               {pendingInvites.map((pending) => (
-                <li key={pending.code} className="invite-row">
+                <li key={pending.code || pending.email} className="invite-row">
                   <span>{pending.email} <em className="text-muted">Pending</em></span>
                   {isOwner && (
-                    <Button
-                      variant="danger"
-                      onClick={() => setConfirmRemove({ code: pending.code, name: pending.email, isPending: true })}
-                    >
-                      Remove
-                    </Button>
+                    <div className="button-row">
+                      <Button
+                        variant="secondary"
+                        size="small"
+                        disabled={resending === pending.email}
+                        onClick={() => handleResend(pending.email)}
+                      >
+                        {resending === pending.email ? 'Sending...' : 'Resend'}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="small"
+                        onClick={() => setConfirmRemove({ code: pending.code, name: pending.email, isPending: true })}
+                      >
+                        Remove
+                      </Button>
+                    </div>
                   )}
                 </li>
               ))}

@@ -135,6 +135,7 @@ export default function EditCollectionPage() {
           <Select
             id="edit-collection-status"
             label="Status"
+            helper="Inactive collections are visible to guests but reservations are paused."
             options={STATUS_OPTIONS}
             value={status}
             onChange={(selectedOptions) => {

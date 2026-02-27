@@ -56,6 +56,14 @@ class ThingRequestView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Check if all collections containing this thing are INACTIVE
+        thing_collections = thing.collections.all()
+        if thing_collections.exists() and not thing_collections.filter(status="ACTIVE").exists():
+            return Response(
+                {"error": "This collection is currently inactive"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         # Check owner email early (avoids duplicating this check in each handler)
         owner_email = thing.owner.email
         if not owner_email:

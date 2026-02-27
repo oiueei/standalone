@@ -10,6 +10,21 @@ from django.db import transaction
 from core.models.booking import SINGLE_USE_TYPES
 
 
+def cancel_booking(booking):
+    """Cancel a booking by the requester and restore the Thing if single-use.
+
+    Wrapped in transaction.atomic to prevent race conditions when
+    updating both BookingPeriod status and Thing status.
+    """
+    with transaction.atomic():
+        booking.cancel()
+        thing = booking.thing_code
+        if booking.thing_type in SINGLE_USE_TYPES:
+            thing.status = "ACTIVE"
+            thing.save(update_fields=["status"])
+    return thing
+
+
 def accept_booking(booking):
     """Accept a booking and update the Thing if it's single-use.
 

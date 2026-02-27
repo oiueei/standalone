@@ -168,6 +168,12 @@ class CollectionAddThingSerializer(serializers.Serializer):
     thing_code = serializers.CharField(max_length=6)
 
 
+class CollectionRemoveThingSerializer(serializers.Serializer):
+    """Serializer for removing a thing from a collection."""
+
+    thing_code = serializers.CharField(max_length=6)
+
+
 class CollectionRemoveInviteSerializer(serializers.Serializer):
     """Serializer for removing a user from a collection's invite list."""
 

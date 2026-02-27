@@ -125,7 +125,8 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | PUT | `/api/v1/collections/{code}/` | Update collection (owner only) |
 | DELETE | `/api/v1/collections/{code}/` | Delete collection (owner only) |
 | POST | `/api/v1/collections/{code}/add-thing/` | Add thing to collection (owner only) |
-| POST | `/api/v1/collections/{code}/invite/` | Invite user (owner only) |
+| POST | `/api/v1/collections/{code}/remove-thing/` | Remove thing from collection (owner only) |
+| POST | `/api/v1/collections/{code}/invite/` | Invite user (owner only, resend-safe) |
 | DELETE | `/api/v1/collections/{code}/invite/` | Remove invitee (owner only) |
 | GET | `/api/v1/invited-collections/` | List collections where invited |
 
@@ -144,10 +145,11 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 ### Bookings
 | Method | URL | Description |
 |--------|-----|-------------|
-| GET | `/api/v1/my-bookings/` | List my booking requests |
-| GET | `/api/v1/owner-bookings/` | List bookings for my things |
+| GET | `/api/v1/my-bookings/` | List my booking requests (with thing headline, owner name) |
+| GET | `/api/v1/owner-bookings/` | List bookings for my things (with requester name) |
 | POST | `/api/v1/bookings/{code}/accept/` | Accept a pending booking (owner only) |
 | POST | `/api/v1/bookings/{code}/reject/` | Reject a pending booking (owner only) |
+| POST | `/api/v1/bookings/{code}/cancel/` | Cancel own pending booking (requester only) |
 
 ### FAQ
 | Method | URL | Description |
@@ -165,7 +167,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | GET | `/api/v1/health/` | Health check endpoint |
 | - | `/oiueei-admin/` | Django Admin (requires password) |
 
-**Note:** Reservation accept/reject actions can be performed via RSVP links sent by email or via authenticated API endpoints (`/bookings/{code}/accept/` and `/bookings/{code}/reject/`). Email links use RSVP codes as intermediaries to avoid exposing real codes in URLs.
+**Note:** Reservation accept/reject actions can be performed via RSVP links sent by email or via authenticated API endpoints (`/bookings/{code}/accept/` and `/bookings/{code}/reject/`). Requesters can cancel their own pending bookings via `/bookings/{code}/cancel/`. Email links use RSVP codes as intermediaries to avoid exposing real codes in URLs.
 
 ## Development
 
@@ -254,7 +256,7 @@ python manage.py expire_bookings
 
 ## Architecture Decisions
 
-- **Service layer**: Business logic extracted into `core/services/` (email composition, booking accept/reject with `transaction.atomic()`). Views are thin controllers.
+- **Service layer**: Business logic extracted into `core/services/` (email composition, booking accept/reject/cancel with `transaction.atomic()`). Views are thin controllers.
 - **ModelViewSet + Router**: Collections and Things use DRF ModelViewSet with DefaultRouter for standard CRUD. Custom actions use `@action` decorator.
 - **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
 - **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention.

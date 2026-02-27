@@ -20,6 +20,7 @@ from core.serializers import (
     CollectionCreateSerializer,
     CollectionInviteSerializer,
     CollectionRemoveInviteSerializer,
+    CollectionRemoveThingSerializer,
     CollectionSerializer,
     CollectionUpdateSerializer,
 )
@@ -74,7 +75,7 @@ class CollectionViewSet(ModelViewSet):
         return CollectionSerializer
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy", "add_thing"):
+        if self.action in ("update", "partial_update", "destroy", "add_thing", "remove_thing"):
             return [IsAuthenticated(), IsCollectionOwner()]
         return [IsAuthenticated()]
 
@@ -137,6 +138,32 @@ class CollectionViewSet(ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=["post"], url_path="remove-thing")
+    def remove_thing(self, request, code=None):
+        """Remove a thing from the collection (without deleting it)."""
+        collection = self.get_object()
+
+        serializer = CollectionRemoveThingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        thing_code = serializer.validated_data["thing_code"]
+
+        if not collection.things.filter(code=thing_code).exists():
+            return Response(
+                {"error": "Thing is not in this collection"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        collection.things.remove(collection.things.get(code=thing_code))
+
+        return Response(
+            {
+                "message": "Thing removed from collection",
+                "collection": CollectionSerializer(collection, context={"request": request}).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class CollectionInviteView(APIView):
     """
@@ -175,6 +202,13 @@ class CollectionInviteView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Delete any old pending RSVPs for this user+collection (allows resend)
+        RSVP.objects.filter(
+            user_code=invited_user,
+            target_code=collection_code,
+            action__in=["COLLECTION_INVITE", "COLLECTION_REJECT"],
+        ).delete()
+
         # Create RSVPs for accept and reject actions
         accept_rsvp = RSVP.objects.create(
             user_code=invited_user,
@@ -197,7 +231,7 @@ class CollectionInviteView(APIView):
         reject_link = f"{magic_link_base}/{reject_rsvp.code}"
 
         send_collection_invite_email(
-            request.user.name or "Someone",
+            request.user.name or request.user.email,
             collection.headline,
             email,
             accept_link,

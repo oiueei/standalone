@@ -126,6 +126,9 @@ export default function HomePage() {
         <Link to="/me/edit">
           <Button variant="secondary">Edit profile</Button>
         </Link>
+        <Link to="/my-bookings">
+          <Button variant="secondary">My requests</Button>
+        </Link>
       </div>
 
       <h2>My collections</h2>

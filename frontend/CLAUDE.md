@@ -25,6 +25,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/things/:thingCode/edit` | `EditThingPage` | Wizard to edit a thing (standalone) |
 | `/collections/:code/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (collection context) |
 | `/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (standalone) |
+| `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
 
@@ -46,9 +47,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 
 - **API:** `GET /api/v1/auth/verify/{code}/`
 - Fetches on mount using the `:code` route parameter.
-- On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. No login/redirect.
+- On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. Shows "Go to login" button. No login/redirect.
 - On success (with token): stores `token`, `refresh`, and `userCode` in `localStorage`. If `data.invited_collection` is present (COLLECTION_INVITE flow), navigates to `/collections/{code}` with `{ state: { fromInvite: true } }`; otherwise navigates to `/`.
-- On failure: shows error `Notification`.
+- On failure: shows error `Notification` with helpful guidance and "Go to login" button (resolves dead-end for expired links).
 
 ### WelcomePage (`src/pages/WelcomePage.jsx`)
 
@@ -62,7 +63,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - Redirects to `/login` if no token in `localStorage`.
 - On 401/403: clears tokens and redirects to `/login`.
 - Stores `userCode` in `localStorage` on successful fetch.
-- Displays greeting, "Create collection" button linking to `/collections/new`, and "Edit profile" button linking to `/me/edit`.
+- Displays greeting, "Create collection" button linking to `/collections/new`, "Edit profile" button linking to `/me/edit`, and "My requests" button linking to `/my-bookings`.
 - Shows inline lists of own collections and invited collections (headline, status, thing count, invite count) with links to `/collections/{code}`.
 - Lists all things (own + invited) using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=768px, 1 at <=430px), sorted by creation date descending.
 
@@ -77,8 +78,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - **"Add thing" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
 - **"Manage guests" button** visible only to collection owner, links to `/collections/{code}/invites`.
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
+- **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is not the owner, a `Notification` informs them "This collection is currently inactive. Reservations are paused." Hold buttons are hidden.
 - **Things grid**: responsive 3-column layout (2 columns at <=768px, 1 column at <=430px).
-- Passes `collectionHeadline` to each `ThingLinkbox` for back navigation context.
+- Passes `collectionHeadline` and `collectionInactive` to each `ThingLinkbox` for back navigation context and reservation gating.
 
 ### ThingLinkbox (`src/components/ThingLinkbox.jsx`)
 
@@ -87,14 +89,14 @@ Reusable component for rendering a thing as an HDS `Linkbox`. Used by `Collectio
 - **Linkbox**: the entire component is a clickable link to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). Arrow icon is hidden via `linkbox-no-arrow` CSS class. Interactive elements (buttons, links) use `stopPropagation` to prevent navigation.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share.
-  - **Taken** tag (owner only, `status === 'TAKEN'`): amber background.
+  - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Unavailable** tag (owner only, `available === false`): red background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
 - Displays thumbnail (or placeholder), headline, description, creation date, and fee (when present).
-- **Owner bookings display** (date-based/order types only): fetches `GET /api/v1/things/{code}/calendar/` on mount. Shows future confirmed and pending bookings with date ranges and status. The active pending booking (matching `thing.pending_booking`) is marked with `*`.
+- **Owner bookings display** (date-based/order types only): fetches `GET /api/v1/things/{code}/calendar/` on mount. Shows future confirmed and pending bookings with requester name, date ranges, and status. The active pending booking (matching `thing.pending_booking`) is marked with `*`.
 - **"Edit" button** (owner only): links to edit page (collection context or standalone).
-- **"Delete" button** (owner only): calls `DELETE /api/v1/things/{code}/` and notifies parent via `onDelete`.
+- **"Remove from collection" button** (owner only, collection context): calls `POST /api/v1/collections/{code}/remove-thing/` and notifies parent via `onRemoveFromCollection`. The thing is not deleted, only unlinked.
 - **Accept/Reject buttons** (owner only): When `thing.pending_booking` exists (PENDING booking code from serializer):
   - "Accept" → `POST /api/v1/bookings/{code}/accept/` → updates thing locally, finds next pending booking from local state, shows success toast.
   - "Reject" → `POST /api/v1/bookings/{code}/reject/` → updates thing locally, finds next pending booking from local state, shows success toast.
@@ -142,6 +144,15 @@ Detail page for a thing with full information and FAQs section.
 - On success: navigates back to collection page or thing page.
 - On error: toast notification (top-right, auto-close).
 
+### MyBookingsPage (`src/pages/MyBookingsPage.jsx`)
+
+- **API:** `GET /api/v1/my-bookings/` with `Bearer` token, `POST /api/v1/bookings/{code}/cancel/` to cancel
+- Redirects to `/login` if no token in `localStorage`.
+- Lists all booking requests made by the current user.
+- Each booking card shows: thing type tag, status tag (Pending/Confirmed/Rejected/Cancelled/Expired), thing headline (linked to thing page), owner name, dates/quantity, and creation date.
+- PENDING bookings show a "Cancel request" button.
+- Accessible from HomePage via "My requests" button.
+
 ### LogoutPage (`src/pages/LogoutPage.jsx`)
 
 - Clears `token`, `refresh`, and `userCode` from `localStorage` on mount.
@@ -181,9 +192,9 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load invites, `POST /api/v1/collections/{code}/invite/` to invite, `DELETE /api/v1/collections/{code}/invite/` to remove
 - Accessible from `/collections/:code/invites`.
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Current guests):** Lists current invites by userCode. Owner sees "Remove" button per invite. "Back" button navigates to collection.
+  - **Step 1 (Current guests):** Lists current invites by name/email. Pending invites show "Pending" label with "Resend" and "Remove" buttons. Owner sees "Remove" button per accepted invite. "Back" button navigates to collection.
   - **Step 2 (Invite):** Owner sees email input + "Invite" button. Non-owners see a message. "Back" button navigates to collection.
-- Each invite/remove is an immediate API call (no final submit).
+- Each invite/remove/resend is an immediate API call (no final submit). Resend cleans up old RSVPs and creates fresh ones.
 
 ### EditCollectionPage (`src/pages/EditCollectionPage.jsx`)
 
@@ -210,7 +221,8 @@ Detail page for a thing with full information and FAQs section.
 - Also serves as `/me` route: when no `userCode` param, fetches `/api/v1/auth/me/` to resolve own code.
 - Redirects to `/login` if no token in `localStorage`.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
-- Displays user name and raw JSON profile data.
+- Displays hero image, avatar, user name (or email fallback), headline, email tag (own profile only), and "Member since" date.
+- Own profile shows "Edit profile" button.
 
 ---
 

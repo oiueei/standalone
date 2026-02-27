@@ -10,7 +10,13 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views.auth import LogoutView, MeView, RequestLinkView, VerifyLinkView
-from .views.booking import BookingActionView, MyBookingsView, OwnerBookingsView, ThingCalendarView
+from .views.booking import (
+    BookingActionView,
+    BookingCancelView,
+    MyBookingsView,
+    OwnerBookingsView,
+    ThingCalendarView,
+)
 from .views.collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
@@ -75,6 +81,11 @@ urlpatterns = [
         BookingActionView.as_view(),
         {"action": "reject"},
         name="booking-reject",
+    ),
+    path(
+        "bookings/<str:booking_code>/cancel/",
+        BookingCancelView.as_view(),
+        name="booking-cancel",
     ),
     # FAQ
     path("things/<str:thing_code>/faq/", ThingFAQListView.as_view(), name="thing-faq-list"),

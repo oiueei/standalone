@@ -43,6 +43,7 @@ class BookingPeriod(models.Model):
         ("PENDING", "Pending"),
         ("ACCEPTED", "Accepted"),
         ("REJECTED", "Rejected"),
+        ("CANCELLED", "Cancelled"),
         ("EXPIRED", "Expired"),
     ]
 
@@ -76,7 +77,7 @@ class BookingPeriod(models.Model):
     delivery_date = models.DateField(null=True, blank=True)  # For ORDER_THING
     quantity = models.PositiveIntegerField(null=True, blank=True)  # For ORDER_THING
     status = models.CharField(
-        max_length=8, choices=STATUS_CHOICES, default="PENDING", db_index=True
+        max_length=9, choices=STATUS_CHOICES, default="PENDING", db_index=True
     )
 
     class Meta:
@@ -123,6 +124,11 @@ class BookingPeriod(models.Model):
     def reject(self):
         """Reject the booking request."""
         self.status = "REJECTED"
+        self.save(update_fields=["status"])
+
+    def cancel(self):
+        """Cancel the booking (by the requester)."""
+        self.status = "CANCELLED"
         self.save(update_fields=["status"])
 
     def expire(self):

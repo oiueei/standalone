@@ -190,7 +190,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 **Retrieve:** Uses `thing.can_view(user_code)` — owner or invited to a collection containing the thing.
 
-**Create behaviour:** Optionally accepts `collection_code` in request body. If provided and user owns the collection, the thing is automatically added to it.
+**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and belongs to the user — returns 400 on invalid or non-owned collection. If valid, the thing is automatically added to it.
 
 ### InvitedThingsView
 
@@ -222,6 +222,7 @@ Lists things from collections where the current user is invited. Only returns th
 | `partial_update` | `PATCH /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
 | `destroy` | `DELETE /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
 | `add_thing` | `POST /api/v1/collections/{code}/add-thing/` | `IsAuthenticated` + `IsCollectionOwner` |
+| `remove_thing` | `POST /api/v1/collections/{code}/remove-thing/` | `IsAuthenticated` + `IsCollectionOwner` |
 
 **Serializers:**
 - Create: `CollectionCreateSerializer`
@@ -235,6 +236,8 @@ Lists things from collections where the current user is invited. Only returns th
 
 **Add thing:** Validates thing exists, belongs to user, and is not already in collection.
 
+**Remove thing:** Validates thing is in the collection, removes it from the M2M without deleting the thing itself.
+
 ### CollectionInviteView
 
 | | |
@@ -242,7 +245,7 @@ Lists things from collections where the current user is invited. Only returns th
 | **Endpoint** | `POST /api/v1/collections/{collection_code}/invite/` |
 | **Permission** | `IsAuthenticated` + collection owner |
 
-Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited. Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
+Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
 
 **Request body:**
 ```json
@@ -383,6 +386,23 @@ Lists all booking requests made by the current user, ordered by `-created`.
 
 Lists all booking requests for things owned by the current user, ordered by `-created`.
 
+### BookingCancelView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/bookings/{booking_code}/cancel/` |
+| **Permission** | `IsAuthenticated` + booking requester |
+
+Allows the requester to cancel their own pending booking. Validates `booking.requester_code == request.user`, checks `is_valid()`. Calls `cancel_booking()` service (restores Thing status to ACTIVE for single-use types), and deletes related RSVPs.
+
+**Responses:**
+| Status | Condition |
+|--------|-----------|
+| 200 | Cancelled |
+| 400 | Booking expired or already processed |
+| 403 | Not the requester |
+| 404 | Booking not found |
+
 ### BookingActionView
 
 | | |
@@ -450,11 +470,14 @@ Creates a reservation/booking request. Routes based on thing type:
 3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `_send_booking_email()`.
 4. Sends booking request email to owner with accept/reject links.
 
+**INACTIVE collection enforcement:**
+If all collections containing the thing are INACTIVE, the request is blocked with 400 "This collection is currently inactive".
+
 **Responses:**
 | Status | Condition |
 |--------|-----------|
 | 200 | Request sent |
-| 400 | Own thing / already pending / invalid data |
+| 400 | Own thing / already pending / invalid data / collection inactive |
 | 403 | Not authorised to view thing |
 | 409 | Date overlap (date-based only) |
 
@@ -518,7 +541,7 @@ Creates a reservation/booking request. Routes based on thing type:
 
 Business logic is extracted into `core/services/`:
 - `email_service.py` — All email HTML composition and sending (8 functions). Uses `django.utils.html.escape()`.
-- `booking_service.py` — `accept_booking()` and `reject_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`.
+- `booking_service.py` — `accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`.
 
 ### Utilities
 

@@ -77,6 +77,11 @@ export default function CollectionPage() {
       {isOwner && (
         <p><strong>Status:</strong> {collection.status}</p>
       )}
+      {!isOwner && collection.status === 'INACTIVE' && (
+        <Notification label="Notice" type="info" style={{ marginBottom: 'var(--spacing-m)' }}>
+          This collection is currently inactive. Reservations are paused.
+        </Notification>
+      )}
 
       <div className="actions-bar">
         {isOwner && (
@@ -126,7 +131,12 @@ export default function CollectionPage() {
               userCode={localStorage.getItem('userCode')}
               collectionCode={code}
               collectionHeadline={collection.headline}
+              collectionInactive={collection.status === 'INACTIVE'}
               onDelete={(thingCode) => setCollection((prev) => ({
+                ...prev,
+                things: prev.things.filter((t) => t.code !== thingCode),
+              }))}
+              onRemoveFromCollection={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),
               }))}

@@ -6,7 +6,7 @@ export default function ThingTags({ thing, isOwner }) {
     <div className="gallery-row" style={{ gap: 'var(--spacing-2-xs)' }}>
       <Tag>{TYPE_LABELS[thing.type] || thing.type}</Tag>
       {isOwner && thing.status === 'TAKEN' && (
-        <Tag theme={TAG_THEMES.taken}>Taken</Tag>
+        <Tag theme={TAG_THEMES.taken}>Requested</Tag>
       )}
       {isOwner && thing.status === 'INACTIVE' && (
         <Tag theme={TAG_THEMES.inactive}>Inactive</Tag>

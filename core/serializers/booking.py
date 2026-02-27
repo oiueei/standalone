@@ -13,7 +13,9 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
     """Full booking period serializer (for owner view)."""
 
     thing_code = serializers.CharField(source="thing_code_id")
+    thing_headline = serializers.CharField(source="thing_code.headline", read_only=True)
     requester_code = serializers.CharField(source="requester_code_id")
+    requester_name = serializers.CharField(source="requester_code.name", read_only=True)
     owner_code = serializers.CharField(source="owner_code_id")
 
     class Meta:
@@ -22,8 +24,10 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "code",
             "created",
             "thing_code",
+            "thing_headline",
             "thing_type",
             "requester_code",
+            "requester_name",
             "requester_email",
             "owner_code",
             "start_date",
@@ -36,8 +40,10 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "code",
             "created",
             "thing_code",
+            "thing_headline",
             "thing_type",
             "requester_code",
+            "requester_name",
             "requester_email",
             "owner_code",
             "status",
@@ -60,18 +66,23 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
     """Calendar view serializer for owner (includes requester info)."""
 
     requester_code = serializers.CharField(source="requester_code_id")
+    requester_name = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
         fields = [
             "code",
             "requester_code",
+            "requester_name",
             "start_date",
             "end_date",
             "delivery_date",
             "quantity",
             "status",
         ]
+
+    def get_requester_name(self, obj):
+        return obj.requester_code.name or obj.requester_email
 
 
 class ThingRequestWithDatesSerializer(serializers.Serializer):
@@ -116,7 +127,9 @@ class MyBookingSerializer(serializers.ModelSerializer):
     """Serializer for user's own booking requests."""
 
     thing_code = serializers.CharField(source="thing_code_id")
+    thing_headline = serializers.CharField(source="thing_code.headline", read_only=True)
     owner_code = serializers.CharField(source="owner_code_id")
+    owner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -124,11 +137,16 @@ class MyBookingSerializer(serializers.ModelSerializer):
             "code",
             "created",
             "thing_code",
+            "thing_headline",
             "thing_type",
             "owner_code",
+            "owner_name",
             "start_date",
             "end_date",
             "delivery_date",
             "quantity",
             "status",
         ]
+
+    def get_owner_name(self, obj):
+        return obj.owner_code.name or obj.owner_code.email

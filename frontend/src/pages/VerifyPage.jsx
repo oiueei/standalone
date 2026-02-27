@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Notification } from 'hds-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Button, Notification } from 'hds-react';
 
 export default function VerifyPage() {
   const { code } = useParams();
@@ -44,6 +44,11 @@ export default function VerifyPage() {
         <Notification label="Done" type="success">
           {success}
         </Notification>
+        <div className="section-mt">
+          <Link to="/login">
+            <Button variant="secondary">Go to login</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -54,6 +59,14 @@ export default function VerifyPage() {
         <Notification label="Error" type="error">
           {error}
         </Notification>
+        <p className="section-mt">
+          If your link has expired, ask the person who invited you to send a new one, or request a new magic link.
+        </p>
+        <div className="section-mt">
+          <Link to="/login">
+            <Button variant="secondary">Go to login</Button>
+          </Link>
+        </div>
       </div>
     );
   }

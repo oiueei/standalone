@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Button, Notification } from 'hds-react';
+import { Button, Notification, Tag } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import placeholderImg from '../assets/image-m.png';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
@@ -69,8 +70,38 @@ export default function UserPage() {
   return (
     <div className="page-container">
       <BackLink to="/" label="Home" />
+
+      <div className="user-profile-header">
+        <img
+          src={user.hero_url || user.thumbnail_url || placeholderImg}
+          alt={user.name || 'Profile'}
+          className="user-hero-img"
+        />
+      </div>
+
+      {user.thumbnail_url && (
+        <img
+          src={user.thumbnail_url}
+          alt={user.name || 'Avatar'}
+          className="user-avatar"
+        />
+      )}
+
       <h1 className="page-title">{user.name || user.email}</h1>
-      {user.headline && <p>{user.headline}</p>}
+      {user.headline && <p className="user-headline">{user.headline}</p>}
+
+      {isOwnProfile && (
+        <div className="section-mt">
+          <Tag>{user.email}</Tag>
+        </div>
+      )}
+
+      {user.created && (
+        <p className="user-meta">
+          Member since {new Date(user.created).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+        </p>
+      )}
+
       {isOwnProfile && (
         <div className="section-mt">
           <Link to="/me/edit">
@@ -78,9 +109,6 @@ export default function UserPage() {
           </Link>
         </div>
       )}
-      <pre className="user-debug">
-        {JSON.stringify(user, null, 2)}
-      </pre>
     </div>
   );
 }

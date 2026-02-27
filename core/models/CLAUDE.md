@@ -244,7 +244,7 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 | `end_date` | DateField | No | End date (for LEND/RENT/SHARE) |
 | `delivery_date` | DateField | No | Delivery date (for ORDER_THING) |
 | `quantity` | PositiveIntegerField | No | Quantity ordered (for ORDER_THING) |
-| `status` | CharField(8) | No | Status: PENDING, ACCEPTED, REJECTED, EXPIRED. Indexed (`db_index=True`) |
+| `status` | CharField(9) | No | Status: PENDING, ACCEPTED, REJECTED, CANCELLED, EXPIRED. Indexed (`db_index=True`) |
 
 ### Thing Type Categories
 
@@ -260,13 +260,14 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 2. **Date-based (LEND/RENT/SHARE)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE.
 3. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept.
 4. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
-5. **Accept/reject via services** - `booking_service.accept_booking()` and `reject_booking()` handle status changes.
+5. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
+6. **Requester can cancel** - Requesters can cancel their own PENDING bookings. For single-use things, cancellation restores status to ACTIVE.
 
 ### Methods
 
 - `is_valid()` - Returns True if not expired and PENDING
 - `is_date_based()` / `is_single_use()` / `is_repeatable()` - Category checks
-- `accept()` / `reject()` / `expire()` - Status transitions
+- `accept()` / `reject()` / `cancel()` / `expire()` - Status transitions
 
 ### Class Methods
 

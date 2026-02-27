@@ -7,7 +7,7 @@ import ThingTags from './ThingTags';
 import Toast from './Toast';
 import placeholderImg from '../assets/image-s.png';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, onDelete, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionInactive, onDelete, onRemoveFromCollection, onUpdateThing }) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [requested, setRequested] = useState(false);
@@ -101,7 +101,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     }
   };
 
-  const showButton = !isOwner && thing.status !== 'INACTIVE';
+  const showButton = !isOwner && thing.status !== 'INACTIVE' && !collectionInactive;
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
   const editPath = collectionCode
@@ -137,6 +137,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           <ul style={{ margin: 'var(--spacing-2-xs) 0 0', paddingLeft: '1.25rem', fontSize: '0.9rem' }}>
             {bookings.map((b) => (
               <li key={b.code}>
+                {b.requester_name && <strong>{b.requester_name}: </strong>}
                 {b.start_date && b.end_date && (
                   <>{b.start_date} — {b.end_date}</>
                 )}
@@ -153,9 +154,33 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </div>
       )}
       {isOwner && (
-        <Link to={editPath} onClick={(e) => e.stopPropagation()}>
-          <Button>Edit</Button>
-        </Link>
+        <div className="button-row section-mt" onClick={(e) => e.stopPropagation()}>
+          <Link to={editPath}>
+            <Button>Edit</Button>
+          </Link>
+          {collectionCode && onRemoveFromCollection && (
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                try {
+                  const res = await apiFetch(`/api/v1/collections/${collectionCode}/remove-thing/`, {
+                    method: 'POST',
+                    body: JSON.stringify({ thing_code: thing.code }),
+                  });
+                  if (res.ok) {
+                    onRemoveFromCollection(thing.code);
+                  } else {
+                    setToast({ type: 'error', message: 'Error removing thing.' });
+                  }
+                } catch {
+                  setToast({ type: 'error', message: 'Connection error.' });
+                }
+              }}
+            >
+              Remove from collection
+            </Button>
+          )}
+        </div>
       )}
       {isOwner && thing.pending_booking && (
         <div className="button-row section-mt" onClick={(e) => e.stopPropagation()}>

@@ -11,6 +11,7 @@ from .collection import (
     CollectionCreateSerializer,
     CollectionInviteSerializer,
     CollectionRemoveInviteSerializer,
+    CollectionRemoveThingSerializer,
     CollectionSerializer,
     CollectionUpdateSerializer,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "CollectionInviteSerializer",
     "CollectionAddThingSerializer",
     "CollectionRemoveInviteSerializer",
+    "CollectionRemoveThingSerializer",
     "ThingSerializer",
     "ThingCreateSerializer",
     "ThingUpdateSerializer",

@@ -22,7 +22,7 @@ from core.serializers.booking import (
     BookingPeriodSerializer,
     MyBookingSerializer,
 )
-from core.services.booking_service import accept_booking, reject_booking
+from core.services.booking_service import accept_booking, cancel_booking, reject_booking
 from core.services.email_service import send_booking_decision_email
 
 
@@ -68,7 +68,11 @@ class MyBookingsView(ListAPIView):
     pagination_class = StandardResultsPagination
 
     def get_queryset(self):
-        return BookingPeriod.objects.filter(requester_code=self.request.user).order_by("-created")
+        return (
+            BookingPeriod.objects.filter(requester_code=self.request.user)
+            .select_related("thing_code", "owner_code")
+            .order_by("-created")
+        )
 
 
 class OwnerBookingsView(ListAPIView):
@@ -82,7 +86,47 @@ class OwnerBookingsView(ListAPIView):
     pagination_class = StandardResultsPagination
 
     def get_queryset(self):
-        return BookingPeriod.objects.filter(owner_code=self.request.user).order_by("-created")
+        return (
+            BookingPeriod.objects.filter(owner_code=self.request.user)
+            .select_related("thing_code", "requester_code")
+            .order_by("-created")
+        )
+
+
+class BookingCancelView(APIView):
+    """
+    POST /api/v1/bookings/{booking_code}/cancel/
+
+    Allows the requester to cancel their own pending booking.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_code):
+        booking = get_object_or_404(BookingPeriod, code=booking_code)
+
+        # Only the requester can cancel
+        if booking.requester_code_id != request.user.code:
+            return Response(
+                {"error": "Not authorized"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not booking.is_valid():
+            return Response(
+                {"error": "Booking expired or already processed"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        cancel_booking(booking)
+
+        # Invalidate any outstanding RSVP links for this booking
+        RSVP.objects.filter(
+            target_code=booking_code,
+            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
+        ).delete()
+
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
 class BookingActionView(APIView):

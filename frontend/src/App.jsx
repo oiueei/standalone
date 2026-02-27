@@ -18,6 +18,7 @@ import ManageInvitesPage from './pages/ManageInvitesPage';
 import LogoutPage from './pages/LogoutPage';
 import UserPage from './pages/UserPage';
 import RequestThingPage from './pages/RequestThingPage';
+import MyBookingsPage from './pages/MyBookingsPage';
 import WelcomePage from './pages/WelcomePage';
 import './App.css';
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/things/:thingCode" element={<ThingPage />} />
         <Route path="/things/:thingCode/edit" element={<EditThingPage />} />
         <Route path="/things/:thingCode/request" element={<RequestThingPage />} />
+        <Route path="/my-bookings" element={<MyBookingsPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/:userCode" element={<UserPage />} />
       </Routes>
