@@ -198,7 +198,7 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 | `user_email` | CharField(64) | **Yes** | Email address of the recipient |
 | `action` | CharField(20) | No | Action type (default: MAGIC_LINK). Indexed (`db_index=True`) |
 | `target_code` | CharField(6) | No | Target object code (booking, collection, etc.). Indexed (`db_index=True`) |
-| `context` | JSONField | No | Additional context data for the action |
+| `context` | JSONField | No | Additional context data for the action (`default=dict`) |
 
 ### Action Types
 
@@ -310,9 +310,9 @@ These fields are **independent**.
 ### Methods
 
 - `is_owner(user_code)` - Check if user is the owner (`self.owner_id == user_code`)
-- `can_view(user_code)` - Check if user can view. Uses efficient query: `self.collections.filter(invites__code=user_code).exists()`
-- `reserve(user_code)` - Add user to `deal` M2M, set `available=False`
-- `release(user_code)` - Remove user from `deal` M2M
+- `can_view(user_code)` - Check if user can view. Returns `False` if `self.available` is `False` (unless user is owner). Uses efficient query: `self.collections.filter(invites__code=user_code).exists()`
+- `reserve(user_code)` - Add user to `deal` M2M and set `available=False`. Does NOT change `status` (status is managed by the booking service)
+- `release(user_code)` - Remove user from `deal` M2M. Only restores `available=True` if no deals remain (`if not self.deal.exists()`)
 
 ### Reverse Relations
 

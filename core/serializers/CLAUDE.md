@@ -17,7 +17,7 @@ Each domain module follows a consistent set of serializer roles:
 | `UpdateSerializer` | Validated input for partial updates | `ThingUpdateSerializer` |
 | (action name) | Single-purpose input | `CollectionInviteSerializer`, `FAQAnswerSerializer` |
 
-### Security Fields (`core/validators.py`)
+### Security Fields (`core/validators.py` and `core/serializers/thing.py`)
 
 All user-facing text inputs use custom validator fields to prevent XSS:
 
@@ -26,7 +26,7 @@ All user-facing text inputs use custom validator fields to prevent XSS:
 | `SafeHeadlineField` | Rejects HTML tags (bleach) | Headlines, FAQ questions |
 | `SafeTextField` | Rejects HTML tags (bleach) | Descriptions, FAQ answers |
 | `ImageIdField` | Alphanumeric + `_-` only | Cloudinary image IDs (prevents path traversal) |
-| `ImageIdListField` | List of validated image IDs | Thing `pictures` field |
+| `ImageIdListField` | List of validated image IDs | Thing `pictures` field (defined in `core/serializers/thing.py`) |
 
 ### Cloudinary Image URLs
 

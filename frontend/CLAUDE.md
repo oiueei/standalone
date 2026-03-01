@@ -10,8 +10,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 |-------|------|-------------|
 | `/` | `HomePage` | Dashboard with collections overview and all things |
 | `/login` | `LoginPage` | Email input form for requesting a magic link |
-| `/logout` | `LogoutPage` | Clears localStorage tokens and redirects to `/login` |
+| `/logout` | `LogoutPage` | Clears auth cookies and localStorage, redirects to `/login` |
 | `/verify/:code` | `VerifyPage` | Processes magic link / RSVP verification |
+| `/rsvp/:code` | `VerifyPage` | Alias for /verify/:code |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
 | `/me/edit` | `EditProfilePage` | Wizard to edit own profile |
 | `/collections/new` | `CreateCollectionPage` | Wizard to create a new collection |
@@ -38,8 +39,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - **API:** `POST /api/v1/auth/request-link/` with `{ email }` and CSRF token
 - Sends a magic link to the provided email address.
 - After submission, replaces the form with a `Notification` component:
-  - `success` — Magic link sent
-  - `alert` — Email not found (404)
+  - `success` — Unified message displayed (backend returns 200 regardless of email existence for anti-enumeration)
   - `error` — Server or network error
 - CSRF token is read from the `csrftoken` cookie via `getCsrfToken()`.
 
@@ -48,7 +48,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 - **API:** `GET /api/v1/auth/verify/{code}/`
 - Fetches on mount using the `:code` route parameter.
 - On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. Shows "Go to login" button. No login/redirect.
-- On success (with token): stores `token`, `refresh`, and `userCode` in `localStorage`. If `data.invited_collection` is present (COLLECTION_INVITE flow), navigates to `/collections/{code}` with `{ state: { fromInvite: true } }`; otherwise navigates to `/`.
+- On success: stores `userCode` in `localStorage`. Auth tokens are set as HttpOnly cookies by the backend. If `data.invited_collection` is present (COLLECTION_INVITE flow), navigates to `/collections/{code}` with `{ state: { fromInvite: true } }`; otherwise navigates to `/`.
 - On failure: shows error `Notification` with helpful guidance and "Go to login" button (resolves dead-end for expired links).
 
 ### WelcomePage (`src/pages/WelcomePage.jsx`)
@@ -59,9 +59,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 
 ### HomePage (`src/pages/HomePage.jsx`)
 
-- **APIs:** `GET /api/v1/auth/me/`, `GET /api/v1/collections/`, `GET /api/v1/invited-collections/`, `GET /api/v1/things/`, `GET /api/v1/invited-things/` with `Bearer` token
-- Redirects to `/login` if no token in `localStorage`.
-- On 401/403: clears tokens and redirects to `/login`.
+- **APIs:** `GET /api/v1/auth/me/`, `GET /api/v1/collections/`, `GET /api/v1/invited-collections/`, `GET /api/v1/things/`, `GET /api/v1/invited-things/` (authenticated via HttpOnly cookies)
+- Redirects to `/login` if no `userCode` in `localStorage`.
+- On 401/403: clears `userCode` and redirects to `/login`.
 - Stores `userCode` in `localStorage` on successful fetch.
 - Displays greeting, "Create collection" button linking to `/collections/new`, "Edit profile" button linking to `/me/edit`, and "My requests" button linking to `/my-bookings`.
 - Shows inline lists of own collections and invited collections (headline, status, thing count, invite count) with links to `/collections/{code}`.
@@ -69,8 +69,8 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 
 ### CollectionPage (`src/pages/CollectionPage.jsx`)
 
-- **API:** `GET /api/v1/collections/{code}/` with `Bearer` token
-- Redirects to `/login` if no token in `localStorage`.
+- **API:** `GET /api/v1/collections/{code}/`
+- Redirects to `/login` if no `userCode` in `localStorage`.
 - Handles 403 (not authorised) and 404 (not found) with specific error messages.
 - Displays hero image (`hero_url`, falls back to `thumbnail_url`, then `image-m` placeholder), collection headline, description, and status.
 - **Things** are rendered using the `ThingLinkbox` component (see below).
@@ -118,7 +118,7 @@ Detail page for a thing with full information and FAQs section.
 
 - **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/faq/` (FAQs), `POST /api/v1/things/{thingCode}/faq/` (ask question), `POST /api/v1/faq/{faqCode}/answer/` (answer), `POST /api/v1/faq/{faqCode}/hide/` and `/show/` (toggle visibility)
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
-- Redirects to `/login` if no token in `localStorage`.
+- Redirects to `/login` if no `userCode` in `localStorage`.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Unavailable, Pending questions).
 - Displays thumbnail, headline, description, creation date, fee, and photo gallery (`pictures_urls`).
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
@@ -133,7 +133,7 @@ Detail page for a thing with full information and FAQs section.
 
 - **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/calendar/` (blocked periods for date-based types), `POST /api/v1/things/{thingCode}/request/` (submit request)
 - Accessible from `/collections/:code/things/:thingCode/request` (collection context) or `/things/:thingCode/request` (standalone).
-- Redirects to `/login` if no token in `localStorage`.
+- Redirects to `/login` if no `userCode` in `localStorage`.
 - **Back link**: uses `location.state.backPath` and `location.state.backLabel` passed from ThingLinkbox or ThingPage.
 - **Page title**: `Hold: {thing.headline}` with fee display when present.
 - **Form fields** adapt to thing type:
@@ -146,8 +146,8 @@ Detail page for a thing with full information and FAQs section.
 
 ### MyBookingsPage (`src/pages/MyBookingsPage.jsx`)
 
-- **API:** `GET /api/v1/my-bookings/` with `Bearer` token, `POST /api/v1/bookings/{code}/cancel/` to cancel
-- Redirects to `/login` if no token in `localStorage`.
+- **API:** `GET /api/v1/my-bookings/`, `POST /api/v1/bookings/{code}/cancel/` to cancel
+- Redirects to `/login` if no `userCode` in `localStorage`.
 - Lists all booking requests made by the current user.
 - Each booking card shows: thing type tag, status tag (Pending/Confirmed/Rejected/Cancelled/Expired), thing headline (linked to thing page), owner name, dates/quantity, and creation date.
 - PENDING bookings show a "Cancel request" button.
@@ -155,13 +155,14 @@ Detail page for a thing with full information and FAQs section.
 
 ### LogoutPage (`src/pages/LogoutPage.jsx`)
 
-- Clears `token`, `refresh`, and `userCode` from `localStorage` on mount.
+- Calls `POST /api/v1/auth/logout/` to clear auth cookies on the backend.
+- Clears `userCode` from `localStorage`.
 - Navigates to `/login` immediately.
 
 ### AddThingPage (`src/pages/AddThingPage.jsx`)
 
-- **API:** `POST /api/v1/things/` with `Bearer` token and `collection_code` in body
-- Redirects to `/login` if no token in `localStorage`.
+- **API:** `POST /api/v1/things/` with `collection_code` in body
+- Redirects to `/login` if no `userCode` in `localStorage`.
 - 3-step wizard using HDS `StepByStep`:
   - **Step 1 (Type):** `Select` to choose thing type (Gift, Sale, Order, Rental, Lend, Share).
   - **Step 2 (Details):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others).
@@ -208,7 +209,7 @@ Detail page for a thing with full information and FAQs section.
 
 ### CreateCollectionPage (`src/pages/CreateCollectionPage.jsx`)
 
-- **API:** `POST /api/v1/collections/` with `Bearer` token
+- **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - 2-step wizard using HDS `StepByStep`:
   - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs).
@@ -217,9 +218,9 @@ Detail page for a thing with full information and FAQs section.
 
 ### UserPage (`src/pages/UserPage.jsx`)
 
-- **API:** `GET /api/v1/users/{userCode}/` with `Bearer` token
+- **API:** `GET /api/v1/users/{userCode}/`
 - Also serves as `/me` route: when no `userCode` param, fetches `/api/v1/auth/me/` to resolve own code.
-- Redirects to `/login` if no token in `localStorage`.
+- Redirects to `/login` if no `userCode` in `localStorage`.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
 - Displays hero image, avatar, user name (or email fallback), headline, email tag (own profile only), and "Member since" date.
 - Own profile shows "Edit profile" button.
@@ -230,12 +231,13 @@ Detail page for a thing with full information and FAQs section.
 
 ### API Service (`src/services/api.js`)
 
-- `apiFetch(url, options)` — Centralised fetch wrapper. Adds `Authorization: Bearer` header from localStorage, sets `Content-Type: application/json` for requests with body. On 401: clears tokens and redirects to `/login`.
+- `apiFetch(url, options)` — Centralised fetch wrapper. Uses `credentials: 'include'` for cookie-based auth, sets `Content-Type: application/json` for requests with body. On 401: silently attempts token refresh via `POST /api/v1/auth/refresh/`. Only `userCode` is stored in localStorage (for ownership checks).
 
 ### Shared Components
 
 - **`BackLink`** (`src/components/BackLink.jsx`) — Reusable `← {label}` back navigation link. Props: `to`, `label`.
 - **`Toast`** (`src/components/Toast.jsx`) — Reusable toast notification wrapping HDS `Notification`. Props: `toast` (`{ type, message }`), `onClose`. Renders at `position="top-right"` with auto-close.
+- **`LoadingSpinner`** (`src/components/LoadingSpinner.jsx`) — Wrapper around HDS `LoadingSpinner` component.
 - **`ThingTags`** (`src/components/ThingTags.jsx`) — Shared tag row for thing type, status, availability, and pending questions. Props: `thing`, `isOwner`. Uses `TAG_THEMES` from constants.
 
 ### Constants (`src/constants/things.js`)
@@ -263,7 +265,6 @@ The project consumes HDS directly from npm and applies three local overrides:
 
 - **Fonts** (`src/fonts/oiueei-fonts.css`) — GraebenbachTRIAL `.otf` files registered as `font-family: HelsinkiGrotesk` so all HDS components use them transparently.
 - **Colors** (`src/styles/oiueei-theme.css`) — CSS custom property overrides for the "Theeemes" color palette, imported after `hds-design-tokens` to take precedence.
-- **Custom icons** (`src/components/icons/`) — Any icons not available in HDS. Follow HDS icon prop conventions (`size`, `color`, `className`).
 - **Logos & brand assets** (`src/assets/`) — OIUEEI logos, placeholders, and favicon.
 
 ## Key Configuration (`vite.config.js`)
@@ -276,8 +277,8 @@ The project consumes HDS directly from npm and applies three local overrides:
 
 1. User enters email on `/login`
 2. Backend sends magic link email pointing to `localhost:3000/verify/{rsvp_code}`
-3. `/verify/:code` calls the backend, receives JWT tokens
-4. Tokens stored in `localStorage` (`token`, `refresh`, `userCode`)
-5. Authenticated pages send `Authorization: Bearer {token}` header
+3. `/verify/:code` calls the backend, which sets JWT tokens as HttpOnly cookies on the response
+4. `userCode` is stored in `localStorage` (for ownership checks only — auth tokens are never in localStorage)
+5. Authenticated pages use `credentials: 'include'` to send cookies automatically. On 401, `apiFetch` silently attempts token refresh via `POST /api/v1/auth/refresh/`
 6. `userCode` is used to determine ownership (e.g. hide reservation button on own things)
 7. CSRF cookie is obtained on app load via a GET to `/api/v1/auth/me/`

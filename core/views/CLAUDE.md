@@ -23,16 +23,14 @@ Requests a magic link for passwordless authentication.
 
 **Behaviour:**
 1. Validates email via `RequestLinkSerializer`.
-2. Looks up user by email (lowercased). Returns 404 if not found (invite-only system).
-3. Creates an RSVP with action `MAGIC_LINK`.
-4. Sends magic link email via `send_magic_link_email()`.
-5. Logs request to `security` logger with IP.
+2. Looks up user by email (lowercased). Returns 200 with unified message regardless of whether email exists (anti-enumeration).
+3. If user found: creates an RSVP with action `MAGIC_LINK` and sends magic link email via `send_magic_link_email()`.
+4. Logs request to `security` logger with IP.
 
 **Responses:**
 | Status | Condition |
 |--------|-----------|
-| 200 | Magic link sent |
-| 404 | Email not found |
+| 200 | Always (unified message for anti-enumeration) |
 | 429 | Rate limited |
 
 ---
@@ -41,7 +39,7 @@ Requests a magic link for passwordless authentication.
 
 | | |
 |---|---|
-| **Endpoint** | `GET /api/v1/auth/verify/{rsvp_code}/` |
+| **Endpoint** | `GET /api/v1/auth/verify/{rsvp_code}/` (also aliased at `GET /api/v1/rsvp/{rsvp_code}/`) |
 | **Permission** | `AllowAny` |
 | **Rate limit** | 10 requests/minute per IP |
 
@@ -49,8 +47,8 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 
 | Action | Handler | Description |
 |--------|---------|-------------|
-| `MAGIC_LINK` | `_handle_magic_link` | Authenticates user, returns JWT |
-| `COLLECTION_INVITE` | `_handle_collection_invite` | Adds user to collection invites M2M, returns JWT, deletes sibling `COLLECTION_REJECT` RSVP |
+| `MAGIC_LINK` | `_handle_magic_link` | Authenticates user, sets auth cookies |
+| `COLLECTION_INVITE` | `_handle_collection_invite` | Adds user to collection invites M2M, sets auth cookies, deletes sibling `COLLECTION_REJECT` RSVP |
 | `COLLECTION_REJECT` | `_handle_collection_reject` | Notifies collection owner of rejection, deletes sibling `COLLECTION_INVITE` RSVP, no JWT |
 | `BOOKING_ACCEPT` | `_handle_booking_accept` | Accepts booking via `accept_booking()` service |
 | `BOOKING_REJECT` | `_handle_booking_reject` | Rejects booking via `reject_booking()` service |
@@ -62,29 +60,27 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 4. RSVP is deleted after use (one-time use).
 
 **Internal helpers:**
-- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, token_data)` tuple or `Response` on failure.
+- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, refresh, user_data)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
 - `_handle_booking_action(rsvp, accepted)` — Shared by `BOOKING_ACCEPT` and `BOOKING_REJECT` handlers. Looks up booking, validates via `is_valid()`, calls `accept_booking()`/`reject_booking()` service, sends decision email, deletes sibling RSVPs.
 
 **MAGIC_LINK response (200):**
 ```json
 {
   "action": "MAGIC_LINK",
-  "token": "<access_token>",
-  "refresh": "<refresh_token>",
   "user": { ... }
 }
 ```
+Auth tokens (`access_token`, `refresh_token`) are set as HttpOnly cookies via `_set_auth_cookies()`.
 
 **COLLECTION_INVITE response (200):**
 ```json
 {
   "action": "COLLECTION_INVITE",
-  "token": "<access_token>",
-  "refresh": "<refresh_token>",
   "user": { ... },
   "invited_collection": "<collection_code>"
 }
 ```
+Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
 
 **COLLECTION_REJECT response (200):**
 ```json
@@ -125,12 +121,22 @@ Returns the current authenticated user's full profile via `UserSerializer`. Upda
 | **Endpoint** | `POST /api/v1/auth/logout/` |
 | **Permission** | `IsAuthenticated` |
 
-Logs out the current user. Optionally blacklists the provided refresh token.
+Logs out the current user. Reads the refresh token from the `refresh_token` HttpOnly cookie, blacklists it, and clears both `access_token` and `refresh_token` cookies.
 
-**Request body (optional):**
-```json
-{ "refresh": "<refresh_token>" }
-```
+### TokenRefreshView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/auth/refresh/` |
+| **Permission** | `AllowAny` |
+
+Rotates auth tokens. Reads the `refresh_token` from the HttpOnly cookie, validates it, generates a new access/refresh token pair, and sets them as HttpOnly cookies on the response.
+
+**Responses:**
+| Status | Condition |
+|--------|-----------|
+| 200 | Tokens rotated successfully |
+| 401 | Missing, invalid, or expired refresh token |
 
 ---
 
@@ -244,6 +250,7 @@ Lists things from collections where the current user is invited. Only returns th
 |---|---|
 | **Endpoint** | `POST /api/v1/collections/{collection_code}/invite/` |
 | **Permission** | `IsAuthenticated` + collection owner |
+| **Rate limit** | 30 requests/hour per user |
 
 Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
 
@@ -257,7 +264,7 @@ Invites a user to a collection by email. Creates user if they don't exist (`get_
 | **Endpoint** | `DELETE /api/v1/collections/{collection_code}/invite/` |
 | **Permission** | `IsAuthenticated` + collection owner |
 
-Removes a user from the collection's invite list. Sends revocation notification email.
+Removes a user from the collection's invite list. If the invite is still pending (user has not accepted yet), deletes the pending RSVPs instead of removing from M2M, and no revocation email is sent. If the invite was accepted (user is in M2M), removes from M2M and sends revocation notification email.
 
 **Request body:**
 ```json
@@ -293,6 +300,7 @@ Lists FAQs for a thing. Owner sees all FAQs (including hidden). Invited users se
 |---|---|
 | **Endpoint** | `POST /api/v1/things/{thing_code}/faq/` |
 | **Permission** | `IsAuthenticated` + `thing.can_view()` + not owner |
+| **Rate limit** | 20 requests/hour per user |
 
 Creates a new FAQ question. Owner cannot ask questions about their own thing (400). Sends notification email to thing owner with a "View and reply" link to the thing page.
 
@@ -437,6 +445,7 @@ Rejects a pending booking. Same permission and validation as accept. Calls `reje
 |---|---|
 | **Endpoint** | `POST /api/v1/things/{thing_code}/request/` |
 | **Permission** | `IsAuthenticated` + `thing.can_view()` + not owner |
+| **Rate limit** | 10 requests/hour per user |
 
 Creates a reservation/booking request. Routes based on thing type:
 
@@ -498,7 +507,7 @@ If all collections containing the thing are INACTIVE, the request is blocked wit
 
 1. **Invite-only registration** — Users cannot self-register. They must be invited to a collection first.
 2. **Magic link authentication** — Passwordless via email. RSVPs expire after 24 hours and are one-time use.
-3. **JWT tokens** — Access tokens expire after 1 hour. Refresh tokens expire after 7 days. Tokens are rotated on refresh, old tokens blacklisted.
+3. **JWT tokens** — HttpOnly cookie-based. Access tokens expire after 1 hour. Refresh tokens expire after 7 days. Tokens are rotated on refresh via `POST /api/v1/auth/refresh/`, old tokens blacklisted.
 4. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections.
 5. **Custom DRF permissions** — `IsThingOwner` and `IsCollectionOwner` in `core/permissions.py`.
 
@@ -514,6 +523,9 @@ If all collections containing the thing are INACTIVE, the request is blocked wit
 
 - `/auth/request-link/` — 5 requests per minute per IP
 - `/auth/verify/{code}/` — 10 requests per minute per IP
+- `/collections/{code}/invite/` POST — 30 requests per hour per user
+- `/things/{code}/request/` POST — 10 requests per hour per user
+- `/things/{code}/faq/` POST — 20 requests per hour per user
 
 ### Secure Code Practices
 

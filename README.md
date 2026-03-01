@@ -77,7 +77,7 @@ core/
 |-------|---------|
 | **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords |
 | **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme` |
-| **Thing** | Items in collections. Types: GIFT, SELL, ORDER, RENT, LEND, SHARE. `available` controls visibility, `status` controls reservation state (ACTIVE/TAKEN/INACTIVE) |
+| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING. `available` controls visibility, `status` controls reservation state (ACTIVE/TAKEN/INACTIVE) |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 hex colours) for customising collections |
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
@@ -107,8 +107,10 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 |--------|-----|-------------|
 | POST | `/api/v1/auth/request-link/` | Request magic link (rate limited: 5/min) |
 | GET | `/api/v1/auth/verify/{rsvp_code}/` | Verify magic link or process any RSVP action (rate limited: 10/min) |
+| GET | `/api/v1/rsvp/{rsvp_code}/` | Alias for verify endpoint |
+| POST | `/api/v1/auth/refresh/` | Rotate access/refresh tokens via HttpOnly cookies |
 | GET | `/api/v1/auth/me/` | Get authenticated user |
-| POST | `/api/v1/auth/logout/` | Log out (blacklists refresh token) |
+| POST | `/api/v1/auth/logout/` | Log out (clears auth cookies) |
 
 ### Users
 | Method | URL | Description |
@@ -164,6 +166,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 ### Other
 | Method | URL | Description |
 |--------|-----|-------------|
+| GET | `/api/v1/theeemes/` | List all available theeemes |
 | GET | `/api/v1/health/` | Health check endpoint |
 | - | `/oiueei-admin/` | Django Admin (requires password) |
 
@@ -230,7 +233,7 @@ python manage.py expire_bookings
 | Category | Measure | Description |
 |----------|---------|-------------|
 | Authentication | Magic Link | Passwordless auth via email (24h expiry, one-time use) |
-| Authentication | JWT | 1-hour access tokens, 7-day refresh with rotation and blacklist |
+| Authentication | JWT | HttpOnly cookie-based. 1-hour access, 7-day refresh with rotation and blacklist |
 | Authentication | Invite-Only | New users must be invited to a collection first |
 | Authorization | DRF Permissions | Custom `IsThingOwner`, `IsCollectionOwner` permission classes |
 | Authorization | IDOR Protection | Profile access only via collection connections |
@@ -238,6 +241,9 @@ python manage.py expire_bookings
 | Input Validation | Image ID | Alphanumeric validation prevents path traversal |
 | Input Validation | Quantity Limit | Orders capped at 99 items max |
 | Rate Limiting | Auth | 5 req/min for magic link, 10 req/min for verify |
+| Rate Limiting | Collection invite | 30 req/hour per user |
+| Rate Limiting | Thing request | 10 req/hour per user |
+| Rate Limiting | FAQ question | 20 req/hour per user |
 | Headers | HSTS | 1-year strict transport security with preload |
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |
 | Headers | Content-Type | nosniff (prevents MIME confusion) |

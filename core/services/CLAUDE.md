@@ -22,7 +22,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 
 - **Atomic transactions**: Every function wraps its work in `transaction.atomic()` to ensure `BookingPeriod` and `Thing` are updated together or not at all.
 - **Row-level locking**: Uses `Thing.objects.select_for_update()` to prevent race conditions when two concurrent requests try to modify the same thing's status.
-- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT, SHARE, ORDER) leave thing status unchanged because multiple bookings can coexist.
+- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT, SHARE) and repeatable types (ORDER) leave thing status unchanged because multiple bookings can coexist.
 
 ---
 
