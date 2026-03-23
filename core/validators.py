@@ -8,7 +8,6 @@ Provides secure validation for user inputs including:
 
 import re
 
-import bleach
 from rest_framework import serializers
 
 
@@ -50,10 +49,8 @@ def validate_headline(value):
 
     Rejects any input that contains HTML to prevent XSS attacks.
     """
-    if value:
-        sanitized = bleach.clean(value, tags=[], strip=True)
-        if sanitized != value:
-            raise serializers.ValidationError("HTML tags are not allowed.")
+    if value and re.search(r"<[^>]+>", value):
+        raise serializers.ValidationError("HTML tags are not allowed.")
     return value
 
 

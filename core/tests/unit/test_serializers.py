@@ -191,6 +191,43 @@ class TestThingCreateSerializer:
         serializer = ThingCreateSerializer(data={"type": "GIFT_THING"})
         assert not serializer.is_valid()
 
+    def test_valid_with_detail_fields(self):
+        """Should accept availability, location, and condition."""
+        serializer = ThingCreateSerializer(
+            data={
+                "headline": "My Thing",
+                "type": "GIFT_THING",
+                "availability": "IMMEDIATE",
+                "location": "Helsinki",
+                "condition": "GOOD",
+            }
+        )
+        assert serializer.is_valid()
+
+    def test_location_max_length(self):
+        """Should reject location exceeding 32 characters."""
+        serializer = ThingCreateSerializer(
+            data={
+                "headline": "My Thing",
+                "type": "GIFT_THING",
+                "location": "A" * 33,
+            }
+        )
+        assert not serializer.is_valid()
+        assert "location" in serializer.errors
+
+    def test_location_rejects_html(self):
+        """Should reject HTML tags in location."""
+        serializer = ThingCreateSerializer(
+            data={
+                "headline": "My Thing",
+                "type": "GIFT_THING",
+                "location": "<script>alert(1)</script>",
+            }
+        )
+        assert not serializer.is_valid()
+        assert "location" in serializer.errors
+
 
 @pytest.mark.django_db
 class TestFAQSerializer:

@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { TextInput, Button, Notification } from 'hds-react';
-
-function getCsrfToken() {
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? match[1] : '';
-}
+import { getCsrfToken } from '../services/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');

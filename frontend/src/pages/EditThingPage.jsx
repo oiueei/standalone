@@ -9,7 +9,7 @@ import {
   Button,
   Dialog,
 } from 'hds-react';
-import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES } from '../constants/things';
+import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_OPTIONS, AVAILABILITY_LABELS, CONDITION_OPTIONS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -27,6 +27,9 @@ export default function EditThingPage() {
   const [thumbnail, setThumbnail] = useState('');
   const [pictures, setPictures] = useState('');
   const [fee, setFee] = useState('');
+  const [availability, setAvailability] = useState('');
+  const [location, setLocation] = useState('');
+  const [condition, setCondition] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -51,6 +54,9 @@ export default function EditThingPage() {
           setThumbnail(data.thumbnail || '');
           setPictures((data.pictures || []).join(', '));
           setFee(data.fee != null ? data.fee : '');
+          setAvailability(data.availability || '');
+          setLocation(data.location || '');
+          setCondition(data.condition || '');
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
@@ -75,6 +81,7 @@ export default function EditThingPage() {
     if (FEE_TYPES.includes(thingType) && (fee === '' || fee === undefined)) {
       newErrors.fee = 'Price is required for this type.';
     }
+    if (location.length > 32) newErrors.location = 'Maximum 32 characters.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -94,6 +101,11 @@ export default function EditThingPage() {
     }
     if (FEE_TYPES.includes(thingType) && fee !== '') {
       body.fee = fee;
+    }
+    if (DETAIL_TYPES.includes(thingType)) {
+      body.availability = availability || '';
+      body.location = location.trim();
+      body.condition = condition || '';
     }
 
     try {
@@ -144,7 +156,7 @@ export default function EditThingPage() {
       description: (
         <Select
           id="edit-thing-type"
-          label="Type"
+          texts={{ label: 'Type' }}
           options={TYPE_OPTIONS}
           value={thingType}
           onChange={(selectedOptions) => {
@@ -201,6 +213,35 @@ export default function EditThingPage() {
               errorText={errors.fee}
             />
           )}
+          {DETAIL_TYPES.includes(thingType) && (
+            <>
+              <Select
+                id="edit-thing-availability"
+                texts={{ label: 'Availability' }}
+                options={AVAILABILITY_OPTIONS}
+                value={availability}
+                onChange={(sel) => sel.length > 0 && setAvailability(sel[0].value)}
+                clearable
+              />
+              <TextInput
+                id="edit-thing-location"
+                label="Location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                helperText={`${location.length}/32`}
+                invalid={!!errors.location}
+                errorText={errors.location}
+              />
+              <Select
+                id="edit-thing-condition"
+                texts={{ label: 'Condition' }}
+                options={CONDITION_OPTIONS}
+                value={condition}
+                onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
+                clearable
+              />
+            </>
+          )}
         </div>
       ),
     },
@@ -231,6 +272,24 @@ export default function EditThingPage() {
               <>
                 <dt><strong>Price</strong></dt>
                 <dd>{fee} EUR</dd>
+              </>
+            )}
+            {DETAIL_TYPES.includes(thingType) && availability && (
+              <>
+                <dt><strong>Availability</strong></dt>
+                <dd>{AVAILABILITY_LABELS[availability]}</dd>
+              </>
+            )}
+            {DETAIL_TYPES.includes(thingType) && location && (
+              <>
+                <dt><strong>Location</strong></dt>
+                <dd>{location}</dd>
+              </>
+            )}
+            {DETAIL_TYPES.includes(thingType) && condition && (
+              <>
+                <dt><strong>Condition</strong></dt>
+                <dd>{CONDITION_LABELS[condition]}</dd>
               </>
             )}
           </dl>

@@ -551,6 +551,48 @@ class TestThingViews:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["headline"] == "Updated Thing"
 
+    def test_create_thing_with_detail_fields(self, authenticated_client):
+        """Should create a thing with availability, location, and condition."""
+        response = authenticated_client.post(
+            "/api/v1/things/",
+            {
+                "headline": "Gift with details",
+                "type": "GIFT_THING",
+                "availability": "IMMEDIATE",
+                "location": "Helsinki",
+                "condition": "GOOD",
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["availability"] == "IMMEDIATE"
+        assert response.data["location"] == "Helsinki"
+        assert response.data["condition"] == "GOOD"
+
+    def test_update_thing_detail_fields(self, authenticated_client, thing):
+        """Should update availability, location, and condition."""
+        response = authenticated_client.patch(
+            f"/api/v1/things/{thing.code}/",
+            {
+                "availability": "NEXT_WEEK",
+                "location": "Espoo",
+                "condition": "FAIR",
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["availability"] == "NEXT_WEEK"
+        assert response.data["location"] == "Espoo"
+        assert response.data["condition"] == "FAIR"
+
+    def test_thing_detail_includes_new_fields(self, authenticated_client, thing):
+        """Should include availability, location, condition in detail response."""
+        response = authenticated_client.get(f"/api/v1/things/{thing.code}/")
+        assert response.status_code == status.HTTP_200_OK
+        assert "availability" in response.data
+        assert "location" in response.data
+        assert "condition" in response.data
+
     def test_delete_thing(self, authenticated_client, thing):
         """Should delete thing."""
         response = authenticated_client.delete(f"/api/v1/things/{thing.code}/")

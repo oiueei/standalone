@@ -93,7 +93,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Unavailable** tag (owner only, `available === false`): red background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
-- Displays thumbnail (or placeholder), headline, description, creation date, and fee (when present).
+- Displays thumbnail (or placeholder), headline, description, creation date, fee (when present), and info rows for type, availability, location, and condition (when present).
 - **Owner bookings display** (date-based/order types only): fetches `GET /api/v1/things/{code}/calendar/` on mount. Shows future confirmed and pending bookings with requester name, date ranges, and status. The active pending booking (matching `thing.pending_booking`) is marked with `*`.
 - **"Edit" button** (owner only): links to edit page (collection context or standalone).
 - **"Remove from collection" button** (owner only, collection context): calls `POST /api/v1/collections/{code}/remove-thing/` and notifies parent via `onRemoveFromCollection`. The thing is not deleted, only unlinked.
@@ -120,7 +120,7 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Unavailable, Pending questions).
-- Displays thumbnail, headline, description, creation date, fee, and photo gallery (`pictures_urls`).
+- Displays thumbnail, headline, description, creation date, fee, availability, location, condition, and photo gallery (`pictures_urls`).
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
 - **Owner actions:** "Edit" button links to edit page. Accept/Reject buttons when `pending_booking` exists.
 - **Reservation:** Non-owners see "Hold" button. GIFT/SELL types submit directly; date-based and order types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`.
@@ -165,17 +165,18 @@ Detail page for a thing with full information and FAQs section.
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - 3-step wizard using HDS `StepByStep`:
   - **Step 1 (Type):** `Select` to choose thing type (Gift, Sale, Order, Rental, Lend, Share).
-  - **Step 2 (Details):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others).
+  - **Step 2 (Details):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition.
   - **Step 3 (Summary):** Read-only summary, "Cancel" and "Create" buttons. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
 
 ### EditThingPage (`src/pages/EditThingPage.jsx`)
 
-- **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save
+- **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save, `DELETE /api/v1/things/{thingCode}/` to delete
 - Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
-- 3-step wizard using HDS `StepByStep` (same layout as AddThingPage).
+- 3-step wizard using HDS `StepByStep` (same layout as AddThingPage, including conditional availability/location/condition fields for `DETAIL_TYPES`).
 - Pre-populates all fields from the existing thing.
+- Delete button with confirmation dialog on step 3.
 - On success: navigates back to collection or home.
 
 ### EditProfilePage (`src/pages/EditProfilePage.jsx`)
@@ -248,6 +249,9 @@ Central source of truth for thing type definitions:
 - `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`).
 - `ORDER_TYPE` — `ORDER_THING` constant.
 - `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`, `ORDER_THING`).
+- `DETAIL_TYPES` — Types with availability/location/condition fields (`GIFT_THING`, `SELL_THING`, `LEND_THING`, `SHARE_THING`).
+- `AVAILABILITY_OPTIONS` / `AVAILABILITY_LABELS` — Options and display labels for thing availability (Immediate, Next week, End of month, Next month).
+- `CONDITION_OPTIONS` / `CONDITION_LABELS` — Options and display labels for thing condition (New, Good condition, Fair, Used, Well used, Almost junk).
 - `TAG_THEMES` — Theme objects for status tags (taken, inactive, unavailable, pending).
 
 ---

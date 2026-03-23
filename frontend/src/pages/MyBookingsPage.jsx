@@ -125,7 +125,6 @@ export default function MyBookingsPage() {
               {b.status === 'PENDING' && (
                 <Button
                   variant="danger"
-                  size="small"
                   disabled={cancelling === b.code}
                   onClick={() => handleCancel(b.code)}
                   style={{ marginTop: 'var(--spacing-xs)' }}

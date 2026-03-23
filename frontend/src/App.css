@@ -31,7 +31,37 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 .thing-card {
-  max-width: 400px;
+  width: 100%;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.thing-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.thing-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  padding: var(--spacing-s) var(--spacing-m) var(--spacing-m);
+}
+
+.thing-card-meta {
+  color: var(--color-black-60);
+  font-size: 1rem;
+  line-height: 24px;
+}
+
+.thing-card-headline {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.2px;
+  margin: 0;
 }
 
 .thing-card-link {
@@ -41,6 +71,55 @@ div[class*="Linkbox-module_linkbox"] {
 
 .thing-card-link:hover {
   text-decoration: underline;
+}
+
+.thing-card-description {
+  font-size: 1.125rem;
+  line-height: 28px;
+  color: var(--color-black-90);
+}
+
+.thing-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2-xs);
+  padding: var(--spacing-2-xs) 0;
+}
+
+.thing-card-info-row {
+  display: flex;
+  gap: var(--spacing-xs);
+  font-size: 1.125rem;
+  line-height: 28px;
+}
+
+.thing-card-info-label {
+  font-weight: 700;
+}
+
+.thing-card-bookings {
+  font-size: 0.875rem;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.thing-card-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-2-xs);
+}
+
+.thing-card-buttons a {
+  display: contents;
+}
+
+/* Global button typography */
+.hds-button {
+  font-size: 1.125rem !important;
+  font-weight: 500 !important;
 }
 
 .things-grid {
@@ -61,13 +140,6 @@ div[class*="Linkbox-module_linkbox"] {
   }
 }
 
-.thing-thumbnail {
-  width: 200px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
 
 /* Utility classes */
 .form-grid {
@@ -83,6 +155,7 @@ div[class*="Linkbox-module_linkbox"] {
 .button-row {
   display: flex;
   gap: var(--spacing-s);
+  flex-wrap: wrap;
 }
 
 .button-row-wide {

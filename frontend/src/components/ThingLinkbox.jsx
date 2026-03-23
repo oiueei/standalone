@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, TYPE_LABELS, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -117,30 +117,58 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     : `/things/${thing.code}/request`;
 
   return (
-    <Card className="thing-card" border>
+    <Card className="thing-card">
       <Link to={thingPath}>
-        <img src={thing.thumbnail_url || placeholderImg} alt={thing.headline} className="thing-thumbnail" />
+        <img src={thing.thumbnail_url || placeholderImg} alt={thing.headline} className="thing-card-image" />
       </Link>
-      <ThingTags thing={thing} isOwner={isOwner} />
-      <h3 style={{ margin: 'var(--spacing-s) 0 0' }}>
-        <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
-      </h3>
-      {thing.description && <p style={{ margin: 'var(--spacing-2-xs) 0 0' }}>{thing.description}</p>}
-      <p><strong>Created:</strong> {new Date(thing.created).toLocaleDateString('en-GB')}</p>
-      {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
-      {isOwner && bookings.length > 0 && (
-        <div className="section-mt">
-          <strong>Bookings:</strong>
-          <ul style={{ margin: 'var(--spacing-2-xs) 0 0', paddingLeft: '1.25rem', fontSize: '0.9rem' }}>
+      <div className="thing-card-body">
+        <ThingTags thing={thing} isOwner={isOwner} showType={false} />
+        <p className="thing-card-meta">
+          {new Date(thing.created).toLocaleDateString('en-GB')}
+        </p>
+        <h3 className="thing-card-headline">
+          <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
+        </h3>
+        {thing.description && (
+          <p className="thing-card-description">{thing.description}</p>
+        )}
+        <div className="thing-card-info">
+          <div className="thing-card-info-row">
+            <span className="thing-card-info-label">Type</span>
+            <span>{TYPE_LABELS[thing.type] || thing.type}</span>
+          </div>
+          {thing.fee && (
+            <div className="thing-card-info-row">
+              <span className="thing-card-info-label">Price</span>
+              <span>{thing.fee} €</span>
+            </div>
+          )}
+          {thing.availability && (
+            <div className="thing-card-info-row">
+              <span className="thing-card-info-label">Availability</span>
+              <span>{AVAILABILITY_LABELS[thing.availability] || thing.availability}</span>
+            </div>
+          )}
+          {thing.location && (
+            <div className="thing-card-info-row">
+              <span className="thing-card-info-label">Location</span>
+              <span>{thing.location}</span>
+            </div>
+          )}
+          {thing.condition && (
+            <div className="thing-card-info-row">
+              <span className="thing-card-info-label">Condition</span>
+              <span>{CONDITION_LABELS[thing.condition] || thing.condition}</span>
+            </div>
+          )}
+        </div>
+        {isOwner && bookings.length > 0 && (
+          <ul className="thing-card-bookings">
             {bookings.map((b) => (
               <li key={b.code}>
                 {b.requester_name && <strong>{b.requester_name}: </strong>}
-                {b.start_date && b.end_date && (
-                  <>{b.start_date} — {b.end_date}</>
-                )}
-                {b.delivery_date && (
-                  <>{b.delivery_date}, qty {b.quantity}</>
-                )}
+                {b.start_date && b.end_date && <>{b.start_date} — {b.end_date}</>}
+                {b.delivery_date && <>{b.delivery_date}, qty {b.quantity}</>}
                 {' '}
                 <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)', fontWeight: b.code === thing.pending_booking ? 'bold' : 'normal' }}>
                   ({b.status === 'ACCEPTED' ? 'Confirmed' : 'Pending'}){b.code === thing.pending_booking ? ' *' : ''}
@@ -148,27 +176,35 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               </li>
             ))}
           </ul>
-        </div>
-      )}
-      {isOwner && (
-        <div className="button-row section-mt">
-          <Link to={editPath}>
-            <Button>Edit</Button>
-          </Link>
-          {collectionCode && onRemoveFromCollection && (
+        )}
+        <div className="thing-card-buttons">
+          {isOwner && (
+            <Link to={editPath} style={{ display: 'contents' }}>
+              <Button variant="secondary" fullWidth>Edit</Button>
+            </Link>
+          )}
+          {isOwner && thing.pending_booking && (
+            <>
+              <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')}>
+                Confirm hold
+              </Button>
+              <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')}>
+                Cancel hold
+              </Button>
+            </>
+          )}
+          {isOwner && collectionCode && onRemoveFromCollection && (
             <Button
               variant="secondary"
+              fullWidth
               onClick={async () => {
                 try {
                   const res = await apiFetch(`/api/v1/collections/${collectionCode}/remove-thing/`, {
                     method: 'POST',
                     body: JSON.stringify({ thing_code: thing.code }),
                   });
-                  if (res.ok) {
-                    onRemoveFromCollection(thing.code);
-                  } else {
-                    setToast({ type: 'error', message: 'Error removing thing.' });
-                  }
+                  if (res.ok) onRemoveFromCollection(thing.code);
+                  else setToast({ type: 'error', message: 'Error removing thing.' });
                 } catch {
                   setToast({ type: 'error', message: 'Connection error.' });
                 }
@@ -177,35 +213,17 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               Remove from collection
             </Button>
           )}
+          {showButton && (
+            <Button
+              fullWidth
+              disabled={buttonDisabled}
+              onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
+            >
+              {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
+            </Button>
+          )}
         </div>
-      )}
-      {isOwner && thing.pending_booking && (
-        <div className="button-row section-mt">
-          <Button
-            disabled={bookingAction}
-            onClick={() => handleBookingAction('accept')}
-          >
-            Confirm hold
-          </Button>
-          <Button
-            variant="danger"
-            disabled={bookingAction}
-            onClick={() => handleBookingAction('reject')}
-          >
-            Cancel hold
-          </Button>
-        </div>
-      )}
-      {showButton && (
-        <div>
-          <Button
-            disabled={buttonDisabled}
-            onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
-          >
-            {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
-          </Button>
-        </div>
-      )}
+      </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
     </Card>
   );

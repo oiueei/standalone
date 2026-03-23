@@ -7,7 +7,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -245,6 +245,24 @@ export default function ThingPage() {
             <>
               <dt><strong>Price</strong></dt>
               <dd>{thing.fee} EUR</dd>
+            </>
+          )}
+          {thing.availability && (
+            <>
+              <dt><strong>Availability</strong></dt>
+              <dd>{AVAILABILITY_LABELS[thing.availability] || thing.availability}</dd>
+            </>
+          )}
+          {thing.location && (
+            <>
+              <dt><strong>Location</strong></dt>
+              <dd>{thing.location}</dd>
+            </>
+          )}
+          {thing.condition && (
+            <>
+              <dt><strong>Condition</strong></dt>
+              <dd>{CONDITION_LABELS[thing.condition] || thing.condition}</dd>
             </>
           )}
         </dl>

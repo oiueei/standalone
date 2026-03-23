@@ -295,6 +295,9 @@ The `Thing` model represents an item in a collection.
 | `pictures` | JSONField | No | Array of Cloudinary image IDs |
 | `status` | CharField(8) | No | Status: ACTIVE, TAKEN, INACTIVE |
 | `fee` | DecimalField | No | Price/fee (for SELL/RENT types) |
+| `availability` | CharField(12) | No | Availability: IMMEDIATE, NEXT_WEEK, END_OF_MONTH, NEXT_MONTH. Only for GIFT/SELL/LEND/SHARE types. |
+| `location` | CharField(32) | No | Free-text location. Only for GIFT/SELL/LEND/SHARE types. |
+| `condition` | CharField(12) | No | Condition: NEW, GOOD, FAIR, USED, WELL_USED, ALMOST_JUNK. Only for GIFT/SELL/LEND/SHARE types. |
 | `deal` | ManyToManyField(User) | No | Users who have reserved |
 | `available` | BooleanField | No | Visibility flag (default: True) |
 

@@ -145,7 +145,6 @@ export default function ManageInvitesPage() {
                     <div className="button-row">
                       <Button
                         variant="secondary"
-                        size="small"
                         disabled={resending === pending.email}
                         onClick={() => handleResend(pending.email)}
                       >
@@ -153,7 +152,6 @@ export default function ManageInvitesPage() {
                       </Button>
                       <Button
                         variant="danger"
-                        size="small"
                         onClick={() => setConfirmRemove({ code: pending.code, name: pending.email, isPending: true })}
                       >
                         Remove

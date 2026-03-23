@@ -23,8 +23,8 @@ All user-facing text inputs use custom validator fields to prevent XSS:
 
 | Field | Validates | Used for |
 |-------|-----------|----------|
-| `SafeHeadlineField` | Rejects HTML tags (bleach) | Headlines, FAQ questions |
-| `SafeTextField` | Rejects HTML tags (bleach) | Descriptions, FAQ answers |
+| `SafeHeadlineField` | Rejects HTML tags (regex) | Headlines, FAQ questions, location |
+| `SafeTextField` | Rejects HTML tags (regex) | Descriptions, FAQ answers |
 | `ImageIdField` | Alphanumeric + `_-` only | Cloudinary image IDs (prevents path traversal) |
 | `ImageIdListField` | List of validated image IDs | Thing `pictures` field (defined in `core/serializers/thing.py`) |
 
@@ -71,16 +71,16 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `ThingSerializer` | code, type, owner, created, headline, description, thumbnail/url, pictures/urls, status, faqs, fee, deal, available, pending_booking, pending_questions, collection_code, collection_headline | Full read representation. `pending_booking` returns first PENDING booking code. `collection_code/headline` from first associated collection. |
-| `ThingCreateSerializer` | type, headline, description, thumbnail, pictures, fee | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`, `ImageIdListField`. |
-| `ThingUpdateSerializer` | type, headline, description, thumbnail, pictures, status (read-only), fee, available | Same validation fields. `status` is read-only (changed by booking flow, not direct edit). |
+| `ThingSerializer` | code, type, owner, created, headline, description, thumbnail/url, pictures/urls, status, faqs, fee, availability, location, condition, deal, available, pending_booking, pending_questions, collection_code, collection_headline | Full read representation. `pending_booking` returns first PENDING booking code. `collection_code/headline` from first associated collection. |
+| `ThingCreateSerializer` | type, headline, description, thumbnail, pictures, fee, availability, location, condition | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`, `ImageIdListField`. `location` uses `SafeHeadlineField(max_length=32)`. |
+| `ThingUpdateSerializer` | type, headline, description, thumbnail, pictures, status (read-only), fee, availability, location, condition, available | Same validation fields. `status` is read-only (changed by booking flow, not direct edit). |
 
 ### `collection.py`
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
 | `CollectionSerializer` | code, owner, created, headline, description, thumbnail/url, hero/url, status, things, invites, pending_invites | `things` filters by `available=True` for non-owners. `pending_invites` queries RSVP table. |
-| `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, available, thumbnail_url, pending_booking, pending_questions, created | Lightweight thing representation nested inside `CollectionSerializer`. |
+| `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, available, thumbnail_url, pending_booking, pending_questions, created | Lightweight thing representation nested inside `CollectionSerializer`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
 | `CollectionCreateSerializer` | headline, description, thumbnail, hero | Input for collection creation. |
 | `CollectionUpdateSerializer` | headline, description, thumbnail, hero, status | Input for collection updates. |

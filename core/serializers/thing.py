@@ -39,6 +39,9 @@ class ThingSerializer(serializers.ModelSerializer):
             "status",
             "faqs",
             "fee",
+            "availability",
+            "location",
+            "condition",
             "deal",
             "available",
             "pending_booking",
@@ -108,6 +111,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     pictures = ImageIdListField(required=False)
+    location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
 
     class Meta:
         model = Thing
@@ -118,6 +122,9 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "thumbnail",
             "pictures",
             "fee",
+            "availability",
+            "location",
+            "condition",
         ]
 
 
@@ -128,6 +135,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     pictures = ImageIdListField(required=False)
+    location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
 
     class Meta:
         model = Thing
@@ -139,6 +147,9 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "pictures",
             "status",
             "fee",
+            "availability",
+            "location",
+            "condition",
             "available",
         ]
         read_only_fields = ["status"]

@@ -37,6 +37,22 @@ class Thing(models.Model):
         ("TAKEN", "Taken"),
     ]
 
+    AVAILABILITY_CHOICES = [
+        ("IMMEDIATE", "Immediate"),
+        ("NEXT_WEEK", "Next week"),
+        ("END_OF_MONTH", "End of month"),
+        ("NEXT_MONTH", "Next month"),
+    ]
+
+    CONDITION_CHOICES = [
+        ("NEW", "New"),
+        ("GOOD", "Good condition"),
+        ("FAIR", "Fair"),
+        ("USED", "Used"),
+        ("WELL_USED", "Well used"),
+        ("ALMOST_JUNK", "Almost junk"),
+    ]
+
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     type = models.CharField(max_length=16, choices=TYPE_CHOICES, default="GIFT_THING")
     owner = models.ForeignKey(
@@ -53,6 +69,9 @@ class Thing(models.Model):
     pictures = models.JSONField(default=list, blank=True)  # Array of image IDs
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    availability = models.CharField(max_length=12, choices=AVAILABILITY_CHOICES, blank=True, default="")
+    location = models.CharField(max_length=32, blank=True, default="")
+    condition = models.CharField(max_length=12, choices=CONDITION_CHOICES, blank=True, default="")
     deal = models.ManyToManyField(
         "User",
         blank=True,

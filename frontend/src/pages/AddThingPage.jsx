@@ -8,7 +8,7 @@ import {
   NumberInput,
   Button,
 } from 'hds-react';
-import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES } from '../constants/things';
+import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_OPTIONS, AVAILABILITY_LABELS, CONDITION_OPTIONS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -32,6 +32,9 @@ export default function AddThingPage() {
   const [thumbnail, setThumbnail] = useState('');
   const [pictures, setPictures] = useState('');
   const [fee, setFee] = useState('');
+  const [availability, setAvailability] = useState('');
+  const [location, setLocation] = useState('');
+  const [condition, setCondition] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -52,6 +55,7 @@ export default function AddThingPage() {
     if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
       newErrors.fee = 'Price is required for this type.';
     }
+    if (location.length > 32) newErrors.location = 'Maximum 32 characters.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -73,6 +77,11 @@ export default function AddThingPage() {
     }
     if (FEE_TYPES.includes(type) && fee !== '') {
       body.fee = fee;
+    }
+    if (DETAIL_TYPES.includes(type)) {
+      if (availability) body.availability = availability;
+      if (location.trim()) body.location = location.trim();
+      if (condition) body.condition = condition;
     }
 
     try {
@@ -100,7 +109,7 @@ export default function AddThingPage() {
       description: (
         <Select
           id="add-thing-type"
-          label="Type"
+          texts={{ label: 'Type' }}
           options={TYPE_OPTIONS}
           value={type}
           onChange={(selectedOptions) => {
@@ -158,6 +167,35 @@ export default function AddThingPage() {
               errorText={errors.fee}
             />
           )}
+          {DETAIL_TYPES.includes(type) && (
+            <>
+              <Select
+                id="add-thing-availability"
+                texts={{ label: 'Availability' }}
+                options={AVAILABILITY_OPTIONS}
+                value={availability}
+                onChange={(sel) => sel.length > 0 && setAvailability(sel[0].value)}
+                clearable
+              />
+              <TextInput
+                id="add-thing-location"
+                label="Location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                helperText={`${location.length}/32`}
+                invalid={!!errors.location}
+                errorText={errors.location}
+              />
+              <Select
+                id="add-thing-condition"
+                texts={{ label: 'Condition' }}
+                options={CONDITION_OPTIONS}
+                value={condition}
+                onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
+                clearable
+              />
+            </>
+          )}
         </div>
       ),
     },
@@ -188,6 +226,24 @@ export default function AddThingPage() {
               <>
                 <dt><strong>Price</strong></dt>
                 <dd>{fee} EUR</dd>
+              </>
+            )}
+            {DETAIL_TYPES.includes(type) && availability && (
+              <>
+                <dt><strong>Availability</strong></dt>
+                <dd>{AVAILABILITY_LABELS[availability]}</dd>
+              </>
+            )}
+            {DETAIL_TYPES.includes(type) && location && (
+              <>
+                <dt><strong>Location</strong></dt>
+                <dd>{location}</dd>
+              </>
+            )}
+            {DETAIL_TYPES.includes(type) && condition && (
+              <>
+                <dt><strong>Condition</strong></dt>
+                <dd>{CONDITION_LABELS[condition]}</dd>
               </>
             )}
           </dl>

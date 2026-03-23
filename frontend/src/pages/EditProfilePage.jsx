@@ -146,7 +146,7 @@ export default function EditProfilePage() {
           {theeemeOptions.length > 0 && (
             <Select
               id="edit-profile-theeeme"
-              label="Theeeme"
+              texts={{ label: 'Theeeme' }}
               options={theeemeOptions}
               value={theeeme}
               onChange={(selectedOptions) => {
