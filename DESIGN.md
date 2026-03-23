@@ -6,9 +6,14 @@ These guidelines define how OIUEEI looks, feels, and communicates. They apply to
 
 ## 1. Helsinki Design System (HDS) First
 
-All frontend components must be based on the [Helsinki Design System](https://hds.hel.fi/) React library. Before building a custom component, check whether HDS already provides it. Custom components are only acceptable when HDS has no equivalent, and must follow HDS visual conventions (spacing, colour tokens, typography scale) to remain consistent.
+All frontend components must be based on the [Helsinki Design System](https://hds.hel.fi/) React library. Before building a custom component, check whether HDS already provides it. Custom components are only acceptable when HDS has no equivalent, and must follow HDS visual conventions to remain consistent.
 
-**When designing a new view:** start from HDS components. Only reach for custom solutions when HDS cannot meet the requirement.
+There are two key references to consult:
+
+- **[HDS Foundation](https://hds.hel.fi/foundation/)** — the design tokens that underpin everything: colour system, typography scale, spacing values, responsive breakpoints, shadows, and layout grid. These must be used instead of arbitrary values in custom code.
+- **[HDS Components](https://hds.hel.fi/components/)** — the full library of ready-made React components, including buttons, form elements, navigation, cards, notifications, tables, tags, icons, and more.
+
+**When designing a new view:** check HDS Components first. For any visual decisions (colour, spacing, typography), use HDS Foundation tokens. Only reach for custom solutions when HDS cannot meet the requirement.
 
 ---
 
