@@ -14,16 +14,16 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/verify/:code` | `VerifyPage` | Processes magic link / RSVP verification |
 | `/rsvp/:code` | `VerifyPage` | Alias for /verify/:code |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
-| `/me/edit` | `EditProfilePage` | Wizard to edit own profile |
-| `/collections/new` | `CreateCollectionPage` | Wizard to create a new collection |
+| `/me/edit` | `EditProfilePage` | Edit own profile |
+| `/collections/new` | `CreateCollectionPage` | Create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
-| `/collections/:code/edit` | `EditCollectionPage` | Wizard to edit a collection |
-| `/collections/:code/invites` | `ManageInvitesPage` | Wizard to manage collection invites |
-| `/collections/:code/add-thing` | `AddThingPage` | Wizard to add a thing to a collection |
+| `/collections/:code/edit` | `EditCollectionPage` | Edit a collection |
+| `/collections/:code/invites` | `ManageInvitesPage` | Manage collection invites |
+| `/collections/:code/add-thing` | `AddThingPage` | Add a thing to a collection |
 | `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context) |
-| `/collections/:code/things/:thingCode/edit` | `EditThingPage` | Wizard to edit a thing (from collection context) |
+| `/collections/:code/things/:thingCode/edit` | `EditThingPage` | Edit a thing (from collection context) |
 | `/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (standalone) |
-| `/things/:thingCode/edit` | `EditThingPage` | Wizard to edit a thing (standalone) |
+| `/things/:thingCode/edit` | `EditThingPage` | Edit a thing (standalone) |
 | `/collections/:code/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (collection context) |
 | `/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (standalone) |
 | `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
@@ -163,10 +163,9 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
-- 3-step wizard using HDS `StepByStep`:
-  - **Step 1 (Type):** `Select` to choose thing type (Gift, Sale, Order, Rental, Lend, Share).
-  - **Step 2 (Details):** `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID, optional), `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition.
-  - **Step 3 (Summary):** Read-only summary, "Cancel" and "Create" buttons. Validates on submit.
+- Simple form with h1 title + `form-grid` layout:
+  - `Select` for thing type, `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition.
+  - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
 
@@ -174,18 +173,18 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save, `DELETE /api/v1/things/{thingCode}/` to delete
 - Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
-- 3-step wizard using HDS `StepByStep` (same layout as AddThingPage, including conditional availability/location/condition fields for `DETAIL_TYPES`).
+- Simple form with h1 title + `form-grid` layout (same fields as AddThingPage, including conditional availability/location/condition fields for `DETAIL_TYPES`).
 - Pre-populates all fields from the existing thing.
-- Delete button with confirmation dialog on step 3.
+- "Save" and "Delete" buttons below the form. Delete has confirmation dialog.
 - On success: navigates back to collection or home.
 
 ### EditProfilePage (`src/pages/EditProfilePage.jsx`)
 
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
-- 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Details):** `TextInput` for name, `TextArea` for headline (bio), `TextInput` for thumbnail (Cloudinary ID), `Select` for theeeme (from API).
-  - **Step 2 (Summary):** Read-only summary, "Save" button.
+- Simple form with h1 title + `form-grid` layout:
+  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API).
+  - "Save" button below the form.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.
 
@@ -193,18 +192,18 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `GET /api/v1/collections/{code}/` to load invites, `POST /api/v1/collections/{code}/invite/` to invite, `DELETE /api/v1/collections/{code}/invite/` to remove
 - Accessible from `/collections/:code/invites`.
-- 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Current guests):** Lists current invites by name/email. Pending invites show "Pending" label with "Resend" and "Remove" buttons. Owner sees "Remove" button per accepted invite. "Back" button navigates to collection.
-  - **Step 2 (Invite):** Owner sees email input + "Invite" button. Non-owners see a message. "Back" button navigates to collection.
+- Simple page with h1 title:
+  - Lists current invites by name/email. Pending invites show "Pending" label with "Resend" and "Remove" buttons. Owner sees "Remove" button per accepted invite.
+  - Owner sees email input + "Invite" button below the guest list.
 - Each invite/remove/resend is an immediate API call (no final submit). Resend cleans up old RSVPs and creates fresh ones.
 
 ### EditCollectionPage (`src/pages/EditCollectionPage.jsx`)
 
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
-- 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID), `Select` for status (ACTIVE/INACTIVE).
-  - **Step 2 (Summary):** Read-only summary, "Cancel" and "Save" buttons.
+- Simple form with h1 title + `form-grid` layout:
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE).
+  - "Save" button below the form.
 - Pre-populates all fields from the existing collection.
 - On success: navigates to `/collections/{code}`.
 
@@ -212,9 +211,9 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
-- 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID).
-  - **Step 2 (Summary):** Read-only summary, "Cancel" and "Create" buttons.
+- Simple form with h1 title + `form-grid` layout:
+  - `TextInput` for headline (required), `TextArea` for description.
+  - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 
 ### UserPage (`src/pages/UserPage.jsx`)

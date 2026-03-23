@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { StepByStep, TextInput, TextArea, Select, Button } from 'hds-react';
+import { TextInput, TextArea, Select, Button } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -16,7 +16,6 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
-  const [thumbnail, setThumbnail] = useState('');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
   const [errors, setErrors] = useState({});
@@ -40,7 +39,6 @@ export default function EditProfilePage() {
           const data = await profileRes.json();
           setName(data.name || '');
           setHeadline(data.headline || '');
-          setThumbnail(data.thumbnail || '');
           setTheeeme(data.theeeme || '');
         } else {
           setToast({ type: 'error', message: 'Error loading profile.' });
@@ -75,7 +73,6 @@ export default function EditProfilePage() {
     const body = {
       name: name.trim(),
       headline: headline.trim(),
-      thumbnail: thumbnail.trim(),
     };
     if (theeeme) body.theeeme = theeeme;
 
@@ -103,85 +100,49 @@ export default function EditProfilePage() {
   }
 
   const theeemeOptions = theeemes.map((t) => ({ label: t.name, value: t.code }));
-  const selectedTheemeName = theeemes.find((t) => t.code === theeeme)?.name || theeeme || '—';
-
-  const steps = [
-    {
-      title: 'Details',
-      description: (
-        <div className="form-grid">
-          <TextInput
-            id="edit-profile-name"
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            invalid={!!errors.name}
-            errorText={errors.name}
-            helperText={`${name.length}/32`}
-          />
-          <TextArea
-            id="edit-profile-headline"
-            label="Bio"
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            invalid={!!errors.headline}
-            errorText={errors.headline}
-            helperText={`${headline.length}/64`}
-          />
-          <TextInput
-            id="edit-profile-thumbnail"
-            label="Thumbnail (Cloudinary ID)"
-            value={thumbnail}
-            onChange={(e) => setThumbnail(e.target.value)}
-          />
-          {theeemeOptions.length > 0 && (
-            <Select
-              id="edit-profile-theeeme"
-              texts={{ label: 'Theeeme' }}
-              options={theeemeOptions}
-              value={theeeme}
-              onChange={(selectedOptions) => {
-                if (selectedOptions.length > 0) {
-                  setTheeeme(selectedOptions[0].value);
-                }
-              }}
-            />
-          )}
-        </div>
-      ),
-    },
-    {
-      title: 'Summary',
-      description: (
-        <div>
-          <dl className="summary-grid">
-            <dt><strong>Name</strong></dt>
-            <dd>{name || '—'}</dd>
-            {headline && (
-              <>
-                <dt><strong>Bio</strong></dt>
-                <dd>{headline}</dd>
-              </>
-            )}
-            <dt><strong>Thumbnail</strong></dt>
-            <dd>{thumbnail || '—'}</dd>
-            <dt><strong>Theeeme</strong></dt>
-            <dd>{selectedTheemeName}</dd>
-          </dl>
-          <div className="section-mt">
-            <Button disabled={submitting} onClick={handleSubmit}>
-              {submitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-        </div>
-      ),
-    },
-  ];
 
   return (
     <div className="page-container">
       <BackLink to={backPath} label={backLabel} />
-      <StepByStep title="Edit profile" steps={steps} numberedList />
+      <h1 className="page-title">Edit profile</h1>
+      <div className="form-grid">
+        <TextInput
+          id="edit-profile-name"
+          label="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          invalid={!!errors.name}
+          errorText={errors.name}
+          helperText={`${name.length}/32`}
+        />
+        <TextArea
+          id="edit-profile-headline"
+          label="Bio"
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+          invalid={!!errors.headline}
+          errorText={errors.headline}
+          helperText={`${headline.length}/64`}
+        />
+        {theeemeOptions.length > 0 && (
+          <Select
+            id="edit-profile-theeeme"
+            texts={{ label: 'Theeeme' }}
+            options={theeemeOptions}
+            value={theeeme}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setTheeeme(selectedOptions[0].value);
+              }
+            }}
+          />
+        )}
+      </div>
+      <div className="section-mt">
+        <Button disabled={submitting} onClick={handleSubmit}>
+          {submitting ? 'Saving...' : 'Save'}
+        </Button>
+      </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );

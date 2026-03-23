@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { StepByStep, TextInput, Button, Dialog } from 'hds-react';
+import { TextInput, Button, Dialog } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -116,59 +116,55 @@ export default function ManageInvitesPage() {
     return <LoadingSpinner />;
   }
 
-  const steps = [
-    {
-      title: 'Current guests',
-      description: (
-        <div>
-          {invites.length === 0 && pendingInvites.length === 0 ? (
-            <p>No guests.</p>
-          ) : (
-            <ul className="invite-list">
-              {invites.map((invite) => (
-                <li key={invite.code} className="invite-row">
-                  <span>{invite.name || invite.code} ({invite.email})</span>
-                  {isOwner && (
-                    <Button
-                      variant="danger"
-                      onClick={() => setConfirmRemove({ code: invite.code, name: invite.name || invite.email, isPending: false })}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </li>
-              ))}
-              {pendingInvites.map((pending) => (
-                <li key={pending.code || pending.email} className="invite-row">
-                  <span>{pending.email} <em className="text-muted">Pending</em></span>
-                  {isOwner && (
-                    <div className="button-row">
-                      <Button
-                        variant="secondary"
-                        disabled={resending === pending.email}
-                        onClick={() => handleResend(pending.email)}
-                      >
-                        {resending === pending.email ? 'Sending...' : 'Resend'}
-                      </Button>
-                      <Button
-                        variant="danger"
-                        onClick={() => setConfirmRemove({ code: pending.code, name: pending.email, isPending: true })}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: 'Invite',
-      description: isOwner ? (
-        <div className="form-grid">
+  return (
+    <div className="page-container">
+      <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
+      <h1 className="page-title">Manage guests</h1>
+
+      {invites.length === 0 && pendingInvites.length === 0 ? (
+        <p>No guests.</p>
+      ) : (
+        <ul className="invite-list">
+          {invites.map((invite) => (
+            <li key={invite.code} className="invite-row">
+              <span>{invite.name || invite.code} ({invite.email})</span>
+              {isOwner && (
+                <Button
+                  variant="danger"
+                  onClick={() => setConfirmRemove({ code: invite.code, name: invite.name || invite.email, isPending: false })}
+                >
+                  Remove
+                </Button>
+              )}
+            </li>
+          ))}
+          {pendingInvites.map((pending) => (
+            <li key={pending.code || pending.email} className="invite-row">
+              <span>{pending.email} <em className="text-muted">Pending</em></span>
+              {isOwner && (
+                <div className="button-row">
+                  <Button
+                    variant="secondary"
+                    disabled={resending === pending.email}
+                    onClick={() => handleResend(pending.email)}
+                  >
+                    {resending === pending.email ? 'Sending...' : 'Resend'}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => setConfirmRemove({ code: pending.code, name: pending.email, isPending: true })}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {isOwner && (
+        <div className="form-grid section-mt">
           <TextInput
             id="manage-invites-email"
             label="Guest email"
@@ -185,16 +181,8 @@ export default function ManageInvitesPage() {
             {inviteLoading ? 'Sending...' : 'Invite'}
           </Button>
         </div>
-      ) : (
-        <p>Only the owner can invite users.</p>
-      ),
-    },
-  ];
+      )}
 
-  return (
-    <div className="page-container">
-      <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
-      <StepByStep title="Manage guests" steps={steps} numberedList />
       <Toast toast={toast} onClose={() => setToast(null)} />
       <Dialog
         id="confirm-remove-guest"

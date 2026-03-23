@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Select,
-  StepByStep,
   TextInput,
   TextArea,
   NumberInput,
@@ -150,10 +149,11 @@ export default function EditThingPage() {
     return <LoadingSpinner />;
   }
 
-  const steps = [
-    {
-      title: 'Type',
-      description: (
+  return (
+    <div className="page-container">
+      <BackLink to={returnPath} label={returnLabel} />
+      <h1 className="page-title">Edit thing</h1>
+      <div className="form-grid">
         <Select
           id="edit-thing-type"
           texts={{ label: 'Type' }}
@@ -165,151 +165,80 @@ export default function EditThingPage() {
             }
           }}
         />
-      ),
-    },
-    {
-      title: 'Details',
-      description: (
-        <div className="form-grid">
-          <TextInput
-            id="edit-thing-headline"
-            label="Title"
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
+        <TextInput
+          id="edit-thing-headline"
+          label="Title"
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+          required
+          invalid={!!errors.headline}
+          errorText={errors.headline}
+          helperText={`${headline.length}/64`}
+        />
+        <TextArea
+          id="edit-thing-description"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <TextInput
+          id="edit-thing-pictures"
+          label="Photos (comma-separated IDs)"
+          value={pictures}
+          onChange={(e) => setPictures(e.target.value)}
+        />
+        {FEE_TYPES.includes(thingType) && (
+          <NumberInput
+            id="edit-thing-fee"
+            label="Price"
+            value={fee === '' ? '' : Number(fee)}
+            onChange={(e) => setFee(e.target.value)}
+            min={0}
+            step={0.01}
+            unit="EUR"
             required
-            invalid={!!errors.headline}
-            errorText={errors.headline}
-            helperText={`${headline.length}/64`}
+            invalid={!!errors.fee}
+            errorText={errors.fee}
           />
-          <TextArea
-            id="edit-thing-description"
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <TextInput
-            id="edit-thing-thumbnail"
-            label="Thumbnail (Cloudinary ID)"
-            value={thumbnail}
-            onChange={(e) => setThumbnail(e.target.value)}
-          />
-          <TextInput
-            id="edit-thing-pictures"
-            label="Photos (comma-separated IDs)"
-            value={pictures}
-            onChange={(e) => setPictures(e.target.value)}
-          />
-          {FEE_TYPES.includes(thingType) && (
-            <NumberInput
-              id="edit-thing-fee"
-              label="Price"
-              value={fee === '' ? '' : Number(fee)}
-              onChange={(e) => setFee(e.target.value)}
-              min={0}
-              step={0.01}
-              unit="EUR"
-              required
-              invalid={!!errors.fee}
-              errorText={errors.fee}
+        )}
+        {DETAIL_TYPES.includes(thingType) && (
+          <>
+            <Select
+              id="edit-thing-availability"
+              texts={{ label: 'Availability' }}
+              options={AVAILABILITY_OPTIONS}
+              value={availability}
+              onChange={(sel) => sel.length > 0 && setAvailability(sel[0].value)}
+              clearable
             />
-          )}
-          {DETAIL_TYPES.includes(thingType) && (
-            <>
-              <Select
-                id="edit-thing-availability"
-                texts={{ label: 'Availability' }}
-                options={AVAILABILITY_OPTIONS}
-                value={availability}
-                onChange={(sel) => sel.length > 0 && setAvailability(sel[0].value)}
-                clearable
-              />
-              <TextInput
-                id="edit-thing-location"
-                label="Location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                helperText={`${location.length}/32`}
-                invalid={!!errors.location}
-                errorText={errors.location}
-              />
-              <Select
-                id="edit-thing-condition"
-                texts={{ label: 'Condition' }}
-                options={CONDITION_OPTIONS}
-                value={condition}
-                onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
-                clearable
-              />
-            </>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: 'Summary',
-      description: (
-        <div>
-          <dl className="summary-grid">
-            <dt><strong>Type</strong></dt>
-            <dd>{TYPE_LABELS[thingType] || thingType}</dd>
-            <dt><strong>Title</strong></dt>
-            <dd>{headline || '—'}</dd>
-            {description && (
-              <>
-                <dt><strong>Description</strong></dt>
-                <dd>{description}</dd>
-              </>
-            )}
-            <dt><strong>Thumbnail</strong></dt>
-            <dd>{thumbnail || '—'}</dd>
-            {pictures && (
-              <>
-                <dt><strong>Photos</strong></dt>
-                <dd>{pictures}</dd>
-              </>
-            )}
-            {FEE_TYPES.includes(thingType) && fee !== '' && (
-              <>
-                <dt><strong>Price</strong></dt>
-                <dd>{fee} EUR</dd>
-              </>
-            )}
-            {DETAIL_TYPES.includes(thingType) && availability && (
-              <>
-                <dt><strong>Availability</strong></dt>
-                <dd>{AVAILABILITY_LABELS[availability]}</dd>
-              </>
-            )}
-            {DETAIL_TYPES.includes(thingType) && location && (
-              <>
-                <dt><strong>Location</strong></dt>
-                <dd>{location}</dd>
-              </>
-            )}
-            {DETAIL_TYPES.includes(thingType) && condition && (
-              <>
-                <dt><strong>Condition</strong></dt>
-                <dd>{CONDITION_LABELS[condition]}</dd>
-              </>
-            )}
-          </dl>
-          <div className="button-row section-mt">
-            <Button disabled={submitting || deleting} onClick={handleSubmit}>
-              {submitting ? 'Saving...' : 'Save'}
-            </Button>
-            <Button variant="danger" disabled={submitting || deleting} onClick={() => setConfirmDelete(true)}>
-              {deleting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </div>
-      ),
-    },
-  ];
-
-  return (
-    <div className="page-container">
-      <BackLink to={returnPath} label={returnLabel} />
-      <StepByStep title="Edit thing" steps={steps} numberedList />
+            <TextInput
+              id="edit-thing-location"
+              label="Location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              helperText={`${location.length}/32`}
+              invalid={!!errors.location}
+              errorText={errors.location}
+            />
+            <Select
+              id="edit-thing-condition"
+              texts={{ label: 'Condition' }}
+              options={CONDITION_OPTIONS}
+              value={condition}
+              onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
+              clearable
+            />
+          </>
+        )}
+      </div>
+      <div className="button-row section-mt">
+        <Button disabled={submitting || deleting} onClick={handleSubmit}>
+          {submitting ? 'Saving...' : 'Save'}
+        </Button>
+        <Button variant="danger" disabled={submitting || deleting} onClick={() => setConfirmDelete(true)}>
+          {deleting ? 'Deleting...' : 'Delete'}
+        </Button>
+      </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
       <Dialog
         id="confirm-delete-thing"

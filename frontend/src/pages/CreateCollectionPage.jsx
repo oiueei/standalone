@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { StepByStep, TextInput, TextArea, Button } from 'hds-react';
+import { TextInput, TextArea, Button } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -20,7 +20,6 @@ export default function CreateCollectionPage() {
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
-  const [thumbnail, setThumbnail] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -40,7 +39,6 @@ export default function CreateCollectionPage() {
 
     const body = { headline: headline.trim() };
     if (description.trim()) body.description = description.trim();
-    if (thumbnail.trim()) body.thumbnail = thumbnail.trim();
 
     try {
       const res = await apiFetch('/api/v1/collections/', {
@@ -62,66 +60,33 @@ export default function CreateCollectionPage() {
     }
   };
 
-  const steps = [
-    {
-      title: 'Details',
-      description: (
-        <div className="form-grid">
-          <TextInput
-            id="create-collection-headline"
-            label="Title"
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            required
-            invalid={!!errors.headline}
-            errorText={errors.headline}
-            helperText={`${headline.length}/64`}
-          />
-          <TextArea
-            id="create-collection-description"
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <TextInput
-            id="create-collection-thumbnail"
-            label="Thumbnail (Cloudinary ID)"
-            value={thumbnail}
-            onChange={(e) => setThumbnail(e.target.value)}
-          />
-        </div>
-      ),
-    },
-    {
-      title: 'Summary',
-      description: (
-        <div>
-          <dl className="summary-grid">
-            <dt><strong>Title</strong></dt>
-            <dd>{headline || '—'}</dd>
-            {description && (
-              <>
-                <dt><strong>Description</strong></dt>
-                <dd>{description}</dd>
-              </>
-            )}
-            <dt><strong>Thumbnail</strong></dt>
-            <dd>{thumbnail || '—'}</dd>
-          </dl>
-          <div className="section-mt">
-            <Button disabled={submitting} onClick={handleSubmit}>
-              {submitting ? 'Creating...' : 'Create'}
-            </Button>
-          </div>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <div className="page-container">
       <BackLink to={backPath} label={backLabel} />
-      <StepByStep title="Create collection" steps={steps} numberedList />
+      <h1 className="page-title">Create collection</h1>
+      <div className="form-grid">
+        <TextInput
+          id="create-collection-headline"
+          label="Title"
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+          required
+          invalid={!!errors.headline}
+          errorText={errors.headline}
+          helperText={`${headline.length}/64`}
+        />
+        <TextArea
+          id="create-collection-description"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+      <div className="section-mt">
+        <Button disabled={submitting} onClick={handleSubmit}>
+          {submitting ? 'Creating...' : 'Create'}
+        </Button>
+      </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );

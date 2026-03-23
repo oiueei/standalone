@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { StepByStep, TextInput, TextArea, Select, Button } from 'hds-react';
+import { TextInput, TextArea, Select, Button } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -96,80 +96,45 @@ export default function EditCollectionPage() {
     return <LoadingSpinner />;
   }
 
-  const steps = [
-    {
-      title: 'Details',
-      description: (
-        <div className="form-grid">
-          <TextInput
-            id="edit-collection-headline"
-            label="Title"
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            required
-            invalid={!!errors.headline}
-            errorText={errors.headline}
-            helperText={`${headline.length}/64`}
-          />
-          <TextArea
-            id="edit-collection-description"
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <TextInput
-            id="edit-collection-thumbnail"
-            label="Thumbnail (Cloudinary ID)"
-            value={thumbnail}
-            onChange={(e) => setThumbnail(e.target.value)}
-          />
-          <Select
-            id="edit-collection-status"
-            texts={{ label: 'Status' }}
-            helper="Inactive collections are visible to guests but reservations are paused."
-            options={STATUS_OPTIONS}
-            value={status}
-            onChange={(selectedOptions) => {
-              if (selectedOptions.length > 0) {
-                setStatus(selectedOptions[0].value);
-              }
-            }}
-          />
-        </div>
-      ),
-    },
-    {
-      title: 'Summary',
-      description: (
-        <div>
-          <dl className="summary-grid">
-            <dt><strong>Title</strong></dt>
-            <dd>{headline || '—'}</dd>
-            {description && (
-              <>
-                <dt><strong>Description</strong></dt>
-                <dd>{description}</dd>
-              </>
-            )}
-            <dt><strong>Thumbnail</strong></dt>
-            <dd>{thumbnail || '—'}</dd>
-            <dt><strong>Status</strong></dt>
-            <dd>{status === 'ACTIVE' ? 'Active' : 'Inactive'}</dd>
-          </dl>
-          <div className="section-mt">
-            <Button disabled={submitting} onClick={handleSubmit}>
-              {submitting ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <div className="page-container">
       <BackLink to={`/collections/${code}`} label={headline || 'Collection'} />
-      <StepByStep title="Edit collection" steps={steps} numberedList />
+      <h1 className="page-title">Edit collection</h1>
+      <div className="form-grid">
+        <TextInput
+          id="edit-collection-headline"
+          label="Title"
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+          required
+          invalid={!!errors.headline}
+          errorText={errors.headline}
+          helperText={`${headline.length}/64`}
+        />
+        <TextArea
+          id="edit-collection-description"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <Select
+          id="edit-collection-status"
+          texts={{ label: 'Status' }}
+          helper="Inactive collections are visible to guests but reservations are paused."
+          options={STATUS_OPTIONS}
+          value={status}
+          onChange={(selectedOptions) => {
+            if (selectedOptions.length > 0) {
+              setStatus(selectedOptions[0].value);
+            }
+          }}
+        />
+      </div>
+      <div className="section-mt">
+        <Button disabled={submitting} onClick={handleSubmit}>
+          {submitting ? 'Saving...' : 'Save'}
+        </Button>
+      </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );

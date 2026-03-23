@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Select,
-  StepByStep,
   TextInput,
   TextArea,
   NumberInput,
@@ -103,27 +102,23 @@ export default function AddThingPage() {
     }
   };
 
-  const steps = [
-    {
-      title: 'Type',
-      description: (
-        <Select
-          id="add-thing-type"
-          texts={{ label: 'Type' }}
-          options={TYPE_OPTIONS}
-          value={type}
-          onChange={(selectedOptions) => {
-            if (selectedOptions.length > 0) {
-              setType(selectedOptions[0].value);
-            }
-          }}
-        />
-      ),
-    },
-    {
-      title: 'Details',
-      description: (
-        <div className="form-grid">
+  return (
+    <div className="page-container">
+      <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
+
+      <h1 className="page-title">Add thing</h1>
+      <div className="form-grid">
+          <Select
+            id="add-thing-type"
+            texts={{ label: 'Type' }}
+            options={TYPE_OPTIONS}
+            value={type}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setType(selectedOptions[0].value);
+              }
+            }}
+          />
           <TextInput
             id="add-thing-headline"
             label="Title"
@@ -139,14 +134,6 @@ export default function AddThingPage() {
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-          />
-          <TextInput
-            id="add-thing-thumbnail"
-            label="Thumbnail (Cloudinary ID)"
-            value={thumbnail}
-            onChange={(e) => setThumbnail(e.target.value)}
-            invalid={!!errors.thumbnail}
-            errorText={errors.thumbnail}
           />
           <TextInput
             id="add-thing-pictures"
@@ -196,71 +183,14 @@ export default function AddThingPage() {
               />
             </>
           )}
-        </div>
-      ),
-    },
-    {
-      title: 'Summary',
-      description: (
-        <div>
-          <dl className="summary-grid">
-            <dt><strong>Type</strong></dt>
-            <dd>{TYPE_LABELS[type]}</dd>
-            <dt><strong>Title</strong></dt>
-            <dd>{headline || '—'}</dd>
-            {description && (
-              <>
-                <dt><strong>Description</strong></dt>
-                <dd>{description}</dd>
-              </>
-            )}
-            <dt><strong>Thumbnail</strong></dt>
-            <dd>{thumbnail || '—'}</dd>
-            {pictures && (
-              <>
-                <dt><strong>Photos</strong></dt>
-                <dd>{pictures}</dd>
-              </>
-            )}
-            {FEE_TYPES.includes(type) && fee !== '' && (
-              <>
-                <dt><strong>Price</strong></dt>
-                <dd>{fee} EUR</dd>
-              </>
-            )}
-            {DETAIL_TYPES.includes(type) && availability && (
-              <>
-                <dt><strong>Availability</strong></dt>
-                <dd>{AVAILABILITY_LABELS[availability]}</dd>
-              </>
-            )}
-            {DETAIL_TYPES.includes(type) && location && (
-              <>
-                <dt><strong>Location</strong></dt>
-                <dd>{location}</dd>
-              </>
-            )}
-            {DETAIL_TYPES.includes(type) && condition && (
-              <>
-                <dt><strong>Condition</strong></dt>
-                <dd>{CONDITION_LABELS[condition]}</dd>
-              </>
-            )}
-          </dl>
-          <div className="section-mt">
-            <Button disabled={submitting} onClick={handleSubmit}>
-              {submitting ? 'Creating...' : 'Create'}
-            </Button>
-          </div>
-        </div>
-      ),
-    },
-  ];
+      </div>
 
-  return (
-    <div className="page-container">
-      <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
-      <StepByStep title="Add thing" steps={steps} numberedList />
+      <div className="section-mt">
+        <Button disabled={submitting} onClick={handleSubmit}>
+          {submitting ? 'Creating...' : 'Create'}
+        </Button>
+      </div>
+
       <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
