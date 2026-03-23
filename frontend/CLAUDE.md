@@ -184,7 +184,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Details):** `TextInput` for name, `TextArea` for headline (bio), `TextInput` for thumbnail and hero (Cloudinary IDs), `Select` for theeeme (from API).
+  - **Step 1 (Details):** `TextInput` for name, `TextArea` for headline (bio), `TextInput` for thumbnail (Cloudinary ID), `Select` for theeeme (from API).
   - **Step 2 (Summary):** Read-only summary, "Save" button.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.
@@ -203,7 +203,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs), `Select` for status (ACTIVE/INACTIVE).
+  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID), `Select` for status (ACTIVE/INACTIVE).
   - **Step 2 (Summary):** Read-only summary, "Cancel" and "Save" buttons.
 - Pre-populates all fields from the existing collection.
 - On success: navigates to `/collections/{code}`.
@@ -213,7 +213,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - 2-step wizard using HDS `StepByStep`:
-  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail and hero (Cloudinary IDs).
+  - **Step 1 (Details):** `TextInput` for headline (required), `TextArea` for description, `TextInput` for thumbnail (Cloudinary ID).
   - **Step 2 (Summary):** Read-only summary, "Cancel" and "Create" buttons.
 - On success: navigates to `/collections/{code}`.
 

@@ -17,7 +17,6 @@ export default function EditProfilePage() {
   const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [hero, setHero] = useState('');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
   const [errors, setErrors] = useState({});
@@ -42,7 +41,6 @@ export default function EditProfilePage() {
           setName(data.name || '');
           setHeadline(data.headline || '');
           setThumbnail(data.thumbnail || '');
-          setHero(data.hero || '');
           setTheeeme(data.theeeme || '');
         } else {
           setToast({ type: 'error', message: 'Error loading profile.' });
@@ -78,7 +76,6 @@ export default function EditProfilePage() {
       name: name.trim(),
       headline: headline.trim(),
       thumbnail: thumbnail.trim(),
-      hero: hero.trim(),
     };
     if (theeeme) body.theeeme = theeeme;
 
@@ -137,12 +134,6 @@ export default function EditProfilePage() {
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
           />
-          <TextInput
-            id="edit-profile-hero"
-            label="Hero (Cloudinary ID)"
-            value={hero}
-            onChange={(e) => setHero(e.target.value)}
-          />
           {theeemeOptions.length > 0 && (
             <Select
               id="edit-profile-theeeme"
@@ -174,8 +165,6 @@ export default function EditProfilePage() {
             )}
             <dt><strong>Thumbnail</strong></dt>
             <dd>{thumbnail || '—'}</dd>
-            <dt><strong>Hero</strong></dt>
-            <dd>{hero || '—'}</dd>
             <dt><strong>Theeeme</strong></dt>
             <dd>{selectedTheemeName}</dd>
           </dl>

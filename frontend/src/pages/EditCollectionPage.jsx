@@ -20,7 +20,6 @@ export default function EditCollectionPage() {
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [hero, setHero] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -41,7 +40,6 @@ export default function EditCollectionPage() {
           setHeadline(data.headline || '');
           setDescription(data.description || '');
           setThumbnail(data.thumbnail || '');
-          setHero(data.hero || '');
           setStatus(data.status || 'ACTIVE');
         } else {
           setToast({ type: 'error', message: 'Error loading collection.' });
@@ -72,7 +70,6 @@ export default function EditCollectionPage() {
       headline: headline.trim(),
       description: description.trim(),
       thumbnail: thumbnail.trim(),
-      hero: hero.trim(),
       status,
     };
 
@@ -126,12 +123,6 @@ export default function EditCollectionPage() {
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
           />
-          <TextInput
-            id="edit-collection-hero"
-            label="Hero (Cloudinary ID)"
-            value={hero}
-            onChange={(e) => setHero(e.target.value)}
-          />
           <Select
             id="edit-collection-status"
             texts={{ label: 'Status' }}
@@ -162,8 +153,6 @@ export default function EditCollectionPage() {
             )}
             <dt><strong>Thumbnail</strong></dt>
             <dd>{thumbnail || '—'}</dd>
-            <dt><strong>Hero</strong></dt>
-            <dd>{hero || '—'}</dd>
             <dt><strong>Status</strong></dt>
             <dd>{status === 'ACTIVE' ? 'Active' : 'Inactive'}</dd>
           </dl>

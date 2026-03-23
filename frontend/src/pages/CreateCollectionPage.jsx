@@ -21,7 +21,6 @@ export default function CreateCollectionPage() {
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [hero, setHero] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -42,7 +41,6 @@ export default function CreateCollectionPage() {
     const body = { headline: headline.trim() };
     if (description.trim()) body.description = description.trim();
     if (thumbnail.trim()) body.thumbnail = thumbnail.trim();
-    if (hero.trim()) body.hero = hero.trim();
 
     try {
       const res = await apiFetch('/api/v1/collections/', {
@@ -91,12 +89,6 @@ export default function CreateCollectionPage() {
             value={thumbnail}
             onChange={(e) => setThumbnail(e.target.value)}
           />
-          <TextInput
-            id="create-collection-hero"
-            label="Hero (Cloudinary ID)"
-            value={hero}
-            onChange={(e) => setHero(e.target.value)}
-          />
         </div>
       ),
     },
@@ -115,8 +107,6 @@ export default function CreateCollectionPage() {
             )}
             <dt><strong>Thumbnail</strong></dt>
             <dd>{thumbnail || '—'}</dd>
-            <dt><strong>Hero</strong></dt>
-            <dd>{hero || '—'}</dd>
           </dl>
           <div className="section-mt">
             <Button disabled={submitting} onClick={handleSubmit}>

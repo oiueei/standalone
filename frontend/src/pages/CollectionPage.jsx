@@ -79,33 +79,25 @@ export default function CollectionPage() {
         )}
         <Hero.Title>{collection.headline}</Hero.Title>
         {collection.description && <Hero.Text>{collection.description}</Hero.Text>}
+        {isOwner && (
+          <div className="button-row-wide">
+            <Link to={`/collections/${code}/edit`}>
+              <Button>Edit collection</Button>
+            </Link>
+            <Link to={`/collections/${code}/add-thing`}>
+              <Button variant="secondary">Add thing</Button>
+            </Link>
+            <Link to={`/collections/${code}/invites`}>
+              <Button variant="secondary">Manage guests</Button>
+            </Link>
+          </div>
+        )}
       </Hero>
-      {isOwner && (
-        <p><strong>Status:</strong> {collection.status}</p>
-      )}
       {!isOwner && collection.status === 'INACTIVE' && (
         <Notification label="Notice" type="info" style={{ marginBottom: 'var(--spacing-m)' }}>
           This collection is currently inactive. Reservations are paused.
         </Notification>
       )}
-
-      <div className="actions-bar">
-        {isOwner && (
-          <Link to={`/collections/${code}/edit`}>
-            <Button>Edit collection</Button>
-          </Link>
-        )}
-        {isOwner && (
-          <Link to={`/collections/${code}/add-thing`}>
-            <Button variant="secondary">Add thing</Button>
-          </Link>
-        )}
-        {isOwner && (
-          <Link to={`/collections/${code}/invites`}>
-            <Button variant="secondary">Manage guests</Button>
-          </Link>
-        )}
-      </div>
 
       {showWelcome && (
         <div className="linkbox-full-width">
