@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Card } from 'hds-react';
+import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, TYPE_LABELS, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
-import placeholderImg from '../assets/image-s.png';
+import placeholderS from '../assets/image-s.png';
+import placeholderM from '../assets/image-m.png';
+import placeholderL from '../assets/image-l.png';
 
 export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionInactive, onDelete, onRemoveFromCollection, onUpdateThing }) {
   const navigate = useNavigate();
@@ -117,15 +119,16 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     : `/things/${thing.code}/request`;
 
   return (
-    <Card className="thing-card">
+    <div className="thing-card">
       <Link to={thingPath}>
-        <img src={thing.thumbnail_url || placeholderImg} alt={thing.headline} className="thing-card-image" />
+        <img
+          src={thing.thumbnail_url || placeholderS}
+          srcSet={!thing.thumbnail_url ? `${placeholderS} 1x, ${placeholderM} 2x, ${placeholderL} 3x` : undefined}
+          alt={thing.headline}
+          className="thing-card-image"
+        />
       </Link>
       <div className="thing-card-body">
-        <ThingTags thing={thing} isOwner={isOwner} showType={false} />
-        <p className="thing-card-meta">
-          {new Date(thing.created).toLocaleDateString('en-GB')}
-        </p>
         <h3 className="thing-card-headline">
           <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
         </h3>
@@ -134,30 +137,35 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         )}
         <div className="thing-card-info">
           <div className="thing-card-info-row">
-            <span className="thing-card-info-label">Type</span>
+            <IconTicket size="m" aria-hidden="true" />
+            <span className="thing-card-info-label">Type.</span>
             <span>{TYPE_LABELS[thing.type] || thing.type}</span>
           </div>
           {thing.fee && (
             <div className="thing-card-info-row">
-              <span className="thing-card-info-label">Price</span>
+              <IconEuroSign size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Price.</span>
               <span>{thing.fee} €</span>
             </div>
           )}
           {thing.availability && (
             <div className="thing-card-info-row">
-              <span className="thing-card-info-label">Availability</span>
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Availability.</span>
               <span>{AVAILABILITY_LABELS[thing.availability] || thing.availability}</span>
             </div>
           )}
           {thing.location && (
             <div className="thing-card-info-row">
-              <span className="thing-card-info-label">Location</span>
+              <IconLocation size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Location.</span>
               <span>{thing.location}</span>
             </div>
           )}
           {thing.condition && (
             <div className="thing-card-info-row">
-              <span className="thing-card-info-label">Condition</span>
+              <IconShield size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Condition.</span>
               <span>{CONDITION_LABELS[thing.condition] || thing.condition}</span>
             </div>
           )}
@@ -225,6 +233,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </div>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
-    </Card>
+    </div>
   );
 }

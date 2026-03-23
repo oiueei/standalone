@@ -4,7 +4,9 @@ import { Button, Notification, Tag } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
-import placeholderImg from '../assets/image-m.png';
+import placeholderM from '../assets/image-m.png';
+import placeholderL from '../assets/image-l.png';
+import placeholderXL from '../assets/image-xl.png';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
@@ -72,7 +74,8 @@ export default function UserPage() {
 
       <div className="user-profile-header">
         <img
-          src={user.hero_url || user.thumbnail_url || placeholderImg}
+          src={user.hero_url || user.thumbnail_url || placeholderM}
+          srcSet={!(user.hero_url || user.thumbnail_url) ? `${placeholderM} 1x, ${placeholderL} 2x, ${placeholderXL} 3x` : undefined}
           alt={user.name || 'Profile'}
           className="user-hero-img"
         />

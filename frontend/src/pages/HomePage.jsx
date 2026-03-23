@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button, Notification } from 'hds-react';
+import { Button, Hero, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingLinkbox from '../components/ThingLinkbox';
-import placeholderImg from '../assets/image-m.png';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -111,25 +110,31 @@ export default function HomePage() {
 
   return (
     <div className="page-container">
-      <img
-        src={user.hero_url || placeholderImg}
-        alt={user.name || user.email}
-        className="hero-image"
-      />
-      <h1 className="page-title">Hello, {user.name || user.email}</h1>
-      {user.headline && <p>{user.headline}</p>}
-
-      <div className="button-row-wide" style={{ marginBottom: 'var(--spacing-l)' }}>
-        <Link to="/collections/new">
-          <Button>Create collection</Button>
-        </Link>
-        <Link to="/me/edit">
-          <Button variant="secondary">Edit profile</Button>
-        </Link>
-        <Link to="/my-bookings">
-          <Button variant="secondary">My requests</Button>
-        </Link>
-      </div>
+      <Hero
+        variant="noImage"
+        theme={{
+          'content': '""',
+          '--background-color': 'var(--color-copper)',
+          '--color': 'var(--color-black-90)',
+          '--koros-color': '#f5f5f5',
+          '--koros-height': '34px',
+        }}
+        koros="wave"
+      >
+        <Hero.Title>Hello, {user.name || user.email}</Hero.Title>
+        {user.headline && <Hero.Text>{user.headline}</Hero.Text>}
+        <div className="button-row-wide">
+          <Link to="/collections/new">
+            <Button>Create collection</Button>
+          </Link>
+          <Link to="/me/edit">
+            <Button variant="secondary">Edit profile</Button>
+          </Link>
+          <Link to="/my-bookings">
+            <Button variant="secondary">My requests</Button>
+          </Link>
+        </div>
+      </Hero>
 
       <h2>My collections</h2>
       {myCollections === null ? (

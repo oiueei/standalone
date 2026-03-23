@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Button, Linkbox, Notification } from 'hds-react';
+import { Button, Hero, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingLinkbox from '../components/ThingLinkbox';
-import placeholderImg from '../assets/image-m.png';
 
 export default function CollectionPage() {
   const { code } = useParams();
@@ -64,16 +63,23 @@ export default function CollectionPage() {
 
   return (
     <div className="page-container">
-      {!showWelcome && (
-        <BackLink to="/" label="Home" />
-      )}
-      <img
-        src={collection.hero_url || collection.thumbnail_url || placeholderImg}
-        alt={collection.headline}
-        className="hero-image"
-      />
-      <h1 className="page-title">{collection.headline}</h1>
-      {collection.description && <p>{collection.description}</p>}
+      <Hero
+        variant="noImage"
+        theme={{
+          'content': '""',
+          '--background-color': 'var(--color-copper)',
+          '--color': 'var(--color-black-90)',
+          '--koros-color': '#f5f5f5',
+          '--koros-height': '34px',
+        }}
+        koros="wave"
+      >
+        {!showWelcome && (
+          <BackLink to="/" label="Home" />
+        )}
+        <Hero.Title>{collection.headline}</Hero.Title>
+        {collection.description && <Hero.Text>{collection.description}</Hero.Text>}
+      </Hero>
       {isOwner && (
         <p><strong>Status:</strong> {collection.status}</p>
       )}

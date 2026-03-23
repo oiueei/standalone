@@ -71,7 +71,7 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `ThingSerializer` | code, type, owner, created, headline, description, thumbnail/url, pictures/urls, status, faqs, fee, availability, location, condition, deal, available, pending_booking, pending_questions, collection_code, collection_headline | Full read representation. `pending_booking` returns first PENDING booking code. `collection_code/headline` from first associated collection. |
+| `ThingSerializer` | code, type, owner, owner_name, created, headline, description, thumbnail/url, pictures/urls, status, faqs, fee, availability, location, condition, deal, available, pending_booking, pending_questions, collection_code, collection_headline | Full read representation. `owner_name` returns owner's name (falls back to email). `pending_booking` returns first PENDING booking code. `collection_code/headline` from first associated collection. |
 | `ThingCreateSerializer` | type, headline, description, thumbnail, pictures, fee, availability, location, condition | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`, `ImageIdListField`. `location` uses `SafeHeadlineField(max_length=32)`. |
 | `ThingUpdateSerializer` | type, headline, description, thumbnail, pictures, status (read-only), fee, availability, location, condition, available | Same validation fields. `status` is read-only (changed by booking flow, not direct edit). |
 

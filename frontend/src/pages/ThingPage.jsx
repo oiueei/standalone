@@ -4,16 +4,23 @@ import {
   Button,
   Fieldset,
   Highlight,
+  IconCalendar,
+  IconEuroSign,
+  IconLocation,
+  IconShield,
+  IconTicket,
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, TYPE_LABELS, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
-import placeholderImg from '../assets/image-s.png';
+import placeholderS from '../assets/image-s.png';
+import placeholderM from '../assets/image-m.png';
+import placeholderL from '../assets/image-l.png';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -227,45 +234,58 @@ export default function ThingPage() {
 
       <div className="form-grid">
         <img
-          src={thing.thumbnail_url || placeholderImg}
+          src={thing.thumbnail_url || placeholderS}
+          srcSet={!thing.thumbnail_url ? `${placeholderS} 1x, ${placeholderM} 2x, ${placeholderL} 3x` : undefined}
           alt={thing.headline}
           className="detail-image"
         />
 
-        <ThingTags thing={thing} isOwner={isOwner} />
+        <ThingTags thing={thing} isOwner={isOwner} showType={false} />
+
+        <p className="thing-card-meta">
+          {new Date(thing.created).toLocaleDateString('en-GB')}
+          {thing.owner_name && ` — ${thing.owner_name}`}
+        </p>
 
         <h1 className="page-title">{thing.headline}</h1>
 
         {thing.description && <p>{thing.description}</p>}
 
-        <dl className="summary-grid">
-          <dt><strong>Created</strong></dt>
-          <dd>{new Date(thing.created).toLocaleDateString('en-GB')}</dd>
+        <div className="thing-card-info">
+          <div className="thing-card-info-row">
+            <IconTicket size="m" aria-hidden="true" />
+            <span className="thing-card-info-label">Type.</span>
+            <span>{TYPE_LABELS[thing.type] || thing.type}</span>
+          </div>
           {thing.fee && (
-            <>
-              <dt><strong>Price</strong></dt>
-              <dd>{thing.fee} EUR</dd>
-            </>
+            <div className="thing-card-info-row">
+              <IconEuroSign size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Price.</span>
+              <span>{thing.fee} €</span>
+            </div>
           )}
           {thing.availability && (
-            <>
-              <dt><strong>Availability</strong></dt>
-              <dd>{AVAILABILITY_LABELS[thing.availability] || thing.availability}</dd>
-            </>
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Availability.</span>
+              <span>{AVAILABILITY_LABELS[thing.availability] || thing.availability}</span>
+            </div>
           )}
           {thing.location && (
-            <>
-              <dt><strong>Location</strong></dt>
-              <dd>{thing.location}</dd>
-            </>
+            <div className="thing-card-info-row">
+              <IconLocation size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Location.</span>
+              <span>{thing.location}</span>
+            </div>
           )}
           {thing.condition && (
-            <>
-              <dt><strong>Condition</strong></dt>
-              <dd>{CONDITION_LABELS[thing.condition] || thing.condition}</dd>
-            </>
+            <div className="thing-card-info-row">
+              <IconShield size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">Condition.</span>
+              <span>{CONDITION_LABELS[thing.condition] || thing.condition}</span>
+            </div>
           )}
-        </dl>
+        </div>
 
         {thing.pictures_urls && thing.pictures_urls.length > 0 && (
           <div>

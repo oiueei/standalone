@@ -18,7 +18,6 @@ body {
 
 .page-title {
   font-size: 2rem;
-  margin-bottom: 1.5rem;
   font-weight: 700;
 }
 
@@ -32,7 +31,8 @@ div[class*="Linkbox-module_linkbox"] {
 
 .thing-card {
   width: 100%;
-  padding: 0 !important;
+  background: #fff;
+  border-radius: 2px;
   overflow: hidden;
 }
 
@@ -88,9 +88,17 @@ div[class*="Linkbox-module_linkbox"] {
 
 .thing-card-info-row {
   display: flex;
+  align-items: center;
   gap: var(--spacing-xs);
   font-size: 1.125rem;
   line-height: 28px;
+}
+
+.thing-card-info-row svg {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .thing-card-info-label {
@@ -128,13 +136,13 @@ div[class*="Linkbox-module_linkbox"] {
   gap: 1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .things-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 430px) {
+@media (max-width: 576px) {
   .things-grid {
     grid-template-columns: 1fr;
   }
@@ -163,8 +171,23 @@ div[class*="Linkbox-module_linkbox"] {
   gap: var(--spacing-m);
 }
 
+[class*="hds-hero__container"] {
+  margin-left: 0 !important;
+}
+
+.back-link {
+  display: inline-block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
 .section-mt {
-  margin-top: var(--spacing-m);
+  margin-top: 0;
+  margin-bottom: var(--spacing-m);
 }
 
 .hero-image {
@@ -174,6 +197,7 @@ div[class*="Linkbox-module_linkbox"] {
   border-radius: 8px;
   margin-bottom: var(--spacing-m);
 }
+
 
 .detail-image {
   max-width: 400px;

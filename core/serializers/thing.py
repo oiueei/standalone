@@ -16,6 +16,7 @@ class ThingSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     pictures_urls = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
+    owner_name = serializers.SerializerMethodField()
     faqs = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
     pending_booking = serializers.SerializerMethodField()
@@ -29,6 +30,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "code",
             "type",
             "owner",
+            "owner_name",
             "created",
             "headline",
             "description",
@@ -56,6 +58,9 @@ class ThingSerializer(serializers.ModelSerializer):
             "faqs",
             "deal",
         ]
+
+    def get_owner_name(self, obj):
+        return obj.owner.name or obj.owner.email
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail)

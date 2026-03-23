@@ -93,7 +93,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Unavailable** tag (owner only, `available === false`): red background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
-- Displays thumbnail (or placeholder), headline, description, creation date, fee (when present), and info rows for type, availability, location, and condition (when present).
+- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), and condition (`IconShield`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
 - **Owner bookings display** (date-based/order types only): fetches `GET /api/v1/things/{code}/calendar/` on mount. Shows future confirmed and pending bookings with requester name, date ranges, and status. The active pending booking (matching `thing.pending_booking`) is marked with `*`.
 - **"Edit" button** (owner only): links to edit page (collection context or standalone).
 - **"Remove from collection" button** (owner only, collection context): calls `POST /api/v1/collections/{code}/remove-thing/` and notifies parent via `onRemoveFromCollection`. The thing is not deleted, only unlinked.
