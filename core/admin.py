@@ -54,7 +54,7 @@ class RSVPAdmin(admin.ModelAdmin):
 
 @admin.register(Theeeme)
 class TheeemeAdmin(admin.ModelAdmin):
-    list_display = ["code", "name"]
+    list_display = ["code", "name", "color_01", "color_02", "color_03", "color_04", "color_05"]
     search_fields = ["code", "name"]
 
 

@@ -13,27 +13,25 @@ from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
 def default_theeeme(db):
     """Create the default theeemes for all tests."""
     hds, _ = Theeeme.objects.get_or_create(
-        code="HDS000",
+        code="BU331",
         defaults={
-            "name": "B4s1C0",
-            "color_01": "0072C6",
-            "color_02": "00D7A7",
-            "color_03": "FFC61E",
-            "color_04": "FD4F00",
-            "color_05": "9FC9EB",
-            "color_06": "F5F5F5",
+            "name": "Bussi",
+            "color_01": "bus",
+            "color_02": "suomenlinna-light",
+            "color_03": "copper",
+            "color_04": "black",
+            "color_05": "white",
         },
     )
     Theeeme.objects.get_or_create(
         code="JMPA01",
         defaults={
-            "name": "BAR_CEL_ONA",
-            "color_01": "FFCA2C",
-            "color_02": "CB4E22",
-            "color_03": "827F2A",
-            "color_04": "2B9A9E",
-            "color_05": "4F3B28",
-            "color_06": "FFF2EB",
+            "name": "JMPA01",
+            "color_01": "metro",
+            "color_02": "gold",
+            "color_03": "tram",
+            "color_04": "black",
+            "color_05": "white",
         },
     )
     return hds

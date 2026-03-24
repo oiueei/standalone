@@ -17,6 +17,19 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const [bookingAction, setBookingAction] = useState(false);
 
   const isOwner = thing.owner === userCode;
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+  } : undefined;
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
@@ -188,15 +201,15 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         <div className="thing-card-buttons">
           {isOwner && (
             <Link to={editPath} style={{ display: 'contents' }}>
-              <Button variant="secondary" fullWidth>Edit</Button>
+              <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
             </Link>
           )}
           {isOwner && thing.pending_booking && (
             <>
-              <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')}>
+              <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
                 Confirm hold
               </Button>
-              <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')}>
+              <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
                 Cancel hold
               </Button>
             </>
@@ -205,6 +218,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             <Button
               variant="secondary"
               fullWidth
+              style={btnSecondaryStyle}
               onClick={async () => {
                 try {
                   const res = await apiFetch(`/api/v1/collections/${collectionCode}/remove-thing/`, {
@@ -225,6 +239,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             <Button
               fullWidth
               disabled={buttonDisabled}
+              style={btnStyle}
               onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
             >
               {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}

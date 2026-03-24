@@ -7,6 +7,7 @@ import {
   NumberInput,
   Button,
   Dialog,
+  Koros,
 } from 'hds-react';
 import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_OPTIONS, AVAILABILITY_LABELS, CONDITION_OPTIONS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
@@ -18,6 +19,13 @@ export default function EditThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
 
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
@@ -150,9 +158,25 @@ export default function EditThingPage() {
   }
 
   return (
-    <div className="page-container">
-      <BackLink to={returnPath} label={returnLabel} />
-      <h1 className="page-title">Edit thing</h1>
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to={returnPath} label={returnLabel} />
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
+        <h1 className="page-title-xl">Edit thing</h1>
       <div className="form-grid">
         <Select
           id="edit-thing-type"
@@ -231,11 +255,17 @@ export default function EditThingPage() {
           </>
         )}
       </div>
-      <div className="button-row section-mt">
-        <Button disabled={submitting || deleting} onClick={handleSubmit}>
+      <div className="form-actions">
+        <Button fullWidth disabled={submitting || deleting} onClick={handleSubmit} style={btnStyle}>
           {submitting ? 'Saving...' : 'Save'}
         </Button>
-        <Button variant="danger" disabled={submitting || deleting} onClick={() => setConfirmDelete(true)}>
+        <Button variant="secondary" fullWidth disabled={submitting || deleting} onClick={() => setConfirmDelete(true)} style={{
+          '--border-color': 'var(--color-error)',
+          '--color': 'var(--color-error)',
+          '--background-color-hover': 'var(--color-error)',
+          '--color-hover': 'var(--color-white)',
+          marginTop: 'var(--spacing-s)',
+        }}>
           {deleting ? 'Deleting...' : 'Delete'}
         </Button>
       </div>
@@ -261,6 +291,7 @@ export default function EditThingPage() {
           </Button>
         </Dialog.ActionButtons>
       </Dialog>
+      </div>
     </div>
   );
 }

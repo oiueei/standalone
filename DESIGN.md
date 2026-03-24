@@ -124,6 +124,30 @@ This principle has concrete design consequences:
 
 ---
 
+## 10. Koros Wave Pattern and Theeeme Color System
+
+All pages use a consistent `form-hero` + `Koros` layout pattern. The HDS Hero component is not used; instead, a custom `form-hero` section provides the page header, followed by an HDS `Koros` component (type `"basic"`, 20px height) that creates a wave transition into the page content.
+
+### Layout Structure
+
+Every page follows this structure: a full-width `form-hero` with theeeme-driven background colour, containing a `form-hero-content` block (max-width 1248px) for the title, description, and back link. Below the hero, the `Koros` wave bridges into a `page-container` (max-width 1248px) for the main content.
+
+### Theeeme Color Roles
+
+Each theeeme defines five colours used consistently across the interface:
+
+| Token | Role |
+|-------|------|
+| `color_01` | Primary buttons |
+| `color_02` | Page background and Koros fill |
+| `color_03` | Hero background |
+| `color_04` | Hero text colour (title, description, back-link) via the `--hero-text-color` CSS custom property |
+| `color_05` | Button label colour |
+
+This system ensures that every user's experience is visually coherent: changing a theeeme recolours the entire interface — hero, koros, background, and buttons — in one step.
+
+---
+
 ## Using These Guidelines in Practice
 
 When asked to design or review a view, apply this checklist:
@@ -137,3 +161,4 @@ When asked to design or review a view, apply this checklist:
 7. Is it performant on modest hardware?
 8. Will it hold up in other languages?
 9. Does it collect only the data it strictly needs?
+10. Does it use the form-hero + Koros layout with theeeme colours?

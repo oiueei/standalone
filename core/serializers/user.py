@@ -22,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
         queryset=Theeeme.objects.all(),
         required=False,
     )
+    theeeme_colors = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -40,6 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
             "hero",
             "hero_url",
             "theeeme",
+            "theeeme_colors",
         ]
         read_only_fields = [
             "code",
@@ -66,6 +68,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_things(self, obj):
         return list(obj.owned_things.values_list("code", flat=True))
+
+    def get_theeeme_colors(self, obj):
+        t = obj.theeeme
+        if not t:
+            return None
+        return {
+            "color_01": t.color_01,
+            "color_02": t.color_02,
+            "color_03": t.color_03,
+            "color_04": t.color_04,
+            "color_05": t.color_05,
+        }
 
 
 class UserPublicSerializer(serializers.ModelSerializer):

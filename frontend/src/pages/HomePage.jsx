@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button, Hero, Notification } from 'hds-react';
+import { Button, Koros, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingLinkbox from '../components/ThingLinkbox';
@@ -27,6 +27,7 @@ export default function HomePage() {
         if (res.ok) {
           const data = await res.json();
           if (data.code) localStorage.setItem('userCode', data.code);
+          if (data.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.theeeme_colors));
           setUser(data);
         }
       } catch {
@@ -108,33 +109,51 @@ export default function HomePage() {
     ...(invitedThings || []),
   ].sort((a, b) => new Date(b.created) - new Date(a.created));
 
+  const tc = user.theeeme_colors || {};
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+  } : undefined;
+
   return (
-    <div className="page-container">
-      <Hero
-        variant="noImage"
-        theme={{
-          'content': '""',
-          '--background-color': 'var(--color-copper)',
-          '--color': 'var(--color-black-90)',
-          '--koros-color': '#f5f5f5',
-          '--koros-height': '34px',
-        }}
-        koros="wave"
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <Hero.Title>Hello, {user.name || user.email}</Hero.Title>
-        {user.headline && <Hero.Text>{user.headline}</Hero.Text>}
-        <div className="button-row-wide">
-          <Link to="/collections/new">
-            <Button>Create collection</Button>
-          </Link>
-          <Link to="/me/edit">
-            <Button variant="secondary">Edit profile</Button>
-          </Link>
-          <Link to="/my-bookings">
-            <Button variant="secondary">My requests</Button>
-          </Link>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <h1 className="form-hero-title" style={{ paddingTop: 'var(--spacing-xl)' }}>Hello, {user.name || user.email}</h1>
+          {user.headline && <p className="form-hero-text">{user.headline}</p>}
+          <div className="button-row-wide">
+            <Link to="/collections/new">
+              <Button style={btnStyle}>Create collection</Button>
+            </Link>
+            <Link to="/me/edit">
+              <Button variant="secondary" style={btnSecondaryStyle}>Edit profile</Button>
+            </Link>
+            <Link to="/my-bookings">
+              <Button variant="secondary" style={btnSecondaryStyle}>My requests</Button>
+            </Link>
+          </div>
         </div>
-      </Hero>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
 
       <h2>My collections</h2>
       {myCollections === null ? (
@@ -192,6 +211,7 @@ export default function HomePage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

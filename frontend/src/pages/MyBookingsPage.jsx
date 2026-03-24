@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button, Notification, Tag } from 'hds-react';
+import { Button, Notification, Tag, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import { TYPE_LABELS, TAG_THEMES } from '../constants/things';
 import BackLink from '../components/BackLink';
@@ -87,10 +87,28 @@ export default function MyBookingsPage() {
     return <LoadingSpinner />;
   }
 
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+
   return (
-    <div className="page-container">
-      <BackLink to="/" label="Home" />
-      <h1 className="page-title">My requests</h1>
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to="/" label="Home" />
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
+        <h1 className="page-title-xl">My requests</h1>
 
       {bookings.length === 0 ? (
         <p>You have no booking requests yet.</p>
@@ -138,6 +156,7 @@ export default function MyBookingsPage() {
       )}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
     </div>
   );
 }

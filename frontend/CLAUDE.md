@@ -32,6 +32,35 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 
 ---
 
+## Page Layout Pattern
+
+All pages use a consistent `form-hero` + `Koros` layout (the HDS Hero component is not used):
+
+```
+form-page
+├── form-hero          (full-width, theeeme color_03 background)
+│   ├── form-hero-content  (max-width 1248px, text color from --hero-text-color CSS var using theeeme color_04)
+│   │   └── [back link, title, description]
+│   └── Koros          (HDS Koros component, type="basic", 20px height, fill = theeeme color_02)
+└── page-container     (max-width 1248px, page content)
+```
+
+### Theeeme Color Roles
+
+| Token | Role |
+|-------|------|
+| `color_01` | Primary buttons |
+| `color_02` | Page background + Koros fill |
+| `color_03` | Hero background |
+| `color_04` | Hero text color (title, description, back-link) via `--hero-text-color` |
+| `color_05` | Button label color |
+
+All buttons across the app use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
+
+Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCollectionPage, EditProfilePage, ManageInvitesPage, MyBookingsPage, EditThingPage, ThingPage, WelcomePage, RequestThingPage.
+
+---
+
 ## Pages
 
 ### LoginPage (`src/pages/LoginPage.jsx`)
@@ -95,6 +124,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
 - Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), and condition (`IconShield`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
 - **Owner bookings display** (date-based/order types only): fetches `GET /api/v1/things/{code}/calendar/` on mount. Shows future confirmed and pending bookings with requester name, date ranges, and status. The active pending booking (matching `thing.pending_booking`) is marked with `*`.
+- **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
 - **"Edit" button** (owner only): links to edit page (collection context or standalone).
 - **"Remove from collection" button** (owner only, collection context): calls `POST /api/v1/collections/{code}/remove-thing/` and notifies parent via `onRemoveFromCollection`. The thing is not deleted, only unlinked.
 - **Accept/Reject buttons** (owner only): When `thing.pending_booking` exists (PENDING booking code from serializer):
@@ -175,7 +205,7 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
 - Simple form with h1 title + `form-grid` layout (same fields as AddThingPage, including conditional availability/location/condition fields for `DETAIL_TYPES`).
 - Pre-populates all fields from the existing thing.
-- "Save" and "Delete" buttons below the form. Delete has confirmation dialog.
+- "Save" button (primary, full width) and "Delete" button (secondary with error color, full width) below the form. Delete has confirmation dialog.
 - On success: navigates back to collection or home.
 
 ### EditProfilePage (`src/pages/EditProfilePage.jsx`)
@@ -183,7 +213,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API).
+  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API, shows theeeme `name` field as label).
   - "Save" button below the form.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.

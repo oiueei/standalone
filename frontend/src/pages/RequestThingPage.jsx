@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Button, DateInput, NumberInput } from 'hds-react';
+import { Button, DateInput, Koros, NumberInput } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
@@ -123,11 +123,41 @@ export default function RequestThingPage() {
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
 
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+  } : undefined;
+
   return (
-    <div className="page-container">
-      <BackLink to={backPath} label={backLabel} />
-      <h2>Hold: {thing.headline}</h2>
-      {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to={backPath} label={backLabel} />
+          <h1 className="form-hero-title">Hold: {thing.headline}</h1>
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
+      {thing.fee && <p style={{ paddingTop: 'var(--spacing-l)' }}><strong>Price:</strong> {thing.fee} EUR</p>}
 
       {isDateBased && (
         <div className="summary-grid section-mt">
@@ -194,15 +224,16 @@ export default function RequestThingPage() {
       )}
 
       <div className="button-row section-mt">
-        <Button variant="secondary" onClick={() => navigate(backPath)}>
+        <Button variant="secondary" onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
           Cancel
         </Button>
-        <Button disabled={submitting} onClick={handleSubmit}>
+        <Button disabled={submitting} onClick={handleSubmit} style={btnStyle}>
           {submitting ? 'Sending...' : 'Hold'}
         </Button>
       </div>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
     </div>
   );
 }

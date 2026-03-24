@@ -9,6 +9,7 @@ import {
   IconLocation,
   IconShield,
   IconTicket,
+  Koros,
   Notification,
   TextArea,
 } from 'hds-react';
@@ -228,9 +229,39 @@ export default function ThingPage() {
     }
   };
 
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+  } : undefined;
+
   return (
-    <div className="page-container">
-      <BackLink to={backPath} label={backLabel} />
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to={backPath} label={backLabel} />
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
 
       <div className="form-grid">
         <img
@@ -307,7 +338,7 @@ export default function ThingPage() {
         {isOwner && (
           <div className="button-row">
             <Link to={editPath}>
-              <Button>Edit</Button>
+              <Button style={btnSecondaryStyle} variant="secondary">Edit</Button>
             </Link>
           </div>
         )}
@@ -317,13 +348,15 @@ export default function ThingPage() {
             <Button
               disabled={bookingAction}
               onClick={() => handleBookingAction('accept')}
+              style={btnStyle}
             >
               Confirm hold
             </Button>
             <Button
-              variant="danger"
+              variant="secondary"
               disabled={bookingAction}
               onClick={() => handleBookingAction('reject')}
+              style={btnSecondaryStyle}
             >
               Cancel hold
             </Button>
@@ -335,6 +368,7 @@ export default function ThingPage() {
           <Button
             className="fit-content"
             disabled={buttonDisabled}
+            style={btnStyle}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
             {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
@@ -375,12 +409,14 @@ export default function ThingPage() {
                             className="fit-content"
                             disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
                             onClick={() => handleAnswer(faq.code)}
+                            style={btnStyle}
                           >
                             {answerSubmitting[faq.code] ? 'Sending...' : 'Reply'}
                           </Button>
                           <Button
                             variant="secondary"
                             onClick={() => handleToggleVisibility(faq)}
+                            style={btnSecondaryStyle}
                           >
                             {faq.is_visible === false ? 'Show' : 'Hide'}
                           </Button>
@@ -398,6 +434,7 @@ export default function ThingPage() {
                       <Button
                         variant="secondary"
                         onClick={() => handleToggleVisibility(faq)}
+                        style={btnSecondaryStyle}
                       >
                         {faq.is_visible === false ? 'Show' : 'Hide'}
                       </Button>
@@ -428,6 +465,7 @@ export default function ThingPage() {
               className="fit-content"
               disabled={faqSubmitting || !faqQuestion.trim()}
               onClick={handleAskQuestion}
+              style={btnStyle}
             >
               {faqSubmitting ? 'Sending...' : 'Send question'}
             </Button>
@@ -436,6 +474,7 @@ export default function ThingPage() {
       </div>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
     </div>
   );
 }

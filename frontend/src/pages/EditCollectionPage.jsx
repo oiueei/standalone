@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { TextInput, TextArea, Select, Button } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -96,10 +96,34 @@ export default function EditCollectionPage() {
     return <LoadingSpinner />;
   }
 
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
+
   return (
-    <div className="page-container">
-      <BackLink to={`/collections/${code}`} label={headline || 'Collection'} />
-      <h1 className="page-title">Edit collection</h1>
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to={`/collections/${code}`} label={headline || 'Collection'} />
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
+        <h1 className="page-title-xl">Edit collection</h1>
       <div className="form-grid">
         <TextInput
           id="edit-collection-headline"
@@ -131,11 +155,12 @@ export default function EditCollectionPage() {
         />
       </div>
       <div className="section-mt">
-        <Button disabled={submitting} onClick={handleSubmit}>
+        <Button disabled={submitting} onClick={handleSubmit} style={btnStyle}>
           {submitting ? 'Saving...' : 'Save'}
         </Button>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
     </div>
   );
 }

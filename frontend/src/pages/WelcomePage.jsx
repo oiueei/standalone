@@ -1,24 +1,55 @@
 import { Link } from 'react-router-dom';
-import { Button } from 'hds-react';
+import { Button, Koros } from 'hds-react';
 import BackLink from '../components/BackLink';
 
 export default function WelcomePage() {
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+  } : undefined;
+
   return (
-    <div className="page-container">
-      <BackLink to="/" label="Home" />
-      <h1 className="page-title">Welcome to OIUEEI!</h1>
-      <p>
-        OIUEEI is an open-source web application that lets people share their belongings with
-        friends and others around. Users can create collections (wishlists, gift lists, items for
-        sale) and share them with friends who can then reserve items or ask questions.
-      </p>
-      <div className="button-row section-mt">
-        <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
-          <Button>Create collection</Button>
-        </Link>
-        <Link to="/me/edit" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
-          <Button variant="secondary">Edit profile</Button>
-        </Link>
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to="/" label="Home" />
+          <h1 className="form-hero-title">Welcome to OIUEEI!</h1>
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
+        <p style={{ paddingTop: 'var(--spacing-l)' }}>
+          OIUEEI is an open-source web application that lets people share their belongings with
+          friends and others around. Users can create collections (wishlists, gift lists, items for
+          sale) and share them with friends who can then reserve items or ask questions.
+        </p>
+        <div className="button-row section-mt">
+          <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
+            <Button style={btnStyle}>Create collection</Button>
+          </Link>
+          <Link to="/me/edit" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
+            <Button variant="secondary" style={btnSecondaryStyle}>Edit profile</Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

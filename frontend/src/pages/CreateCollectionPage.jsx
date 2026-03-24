@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TextInput, TextArea, Button } from 'hds-react';
+import { TextInput, TextArea, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -11,6 +11,7 @@ export default function CreateCollectionPage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || 'Home';
   const userCode = localStorage.getItem('userCode');
+  const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
 
   useEffect(() => {
     if (!userCode) {
@@ -61,33 +62,60 @@ export default function CreateCollectionPage() {
   };
 
   return (
-    <div className="page-container">
-      <BackLink to={backPath} label={backLabel} />
-      <h1 className="page-title">Create collection</h1>
-      <div className="form-grid">
-        <TextInput
-          id="create-collection-headline"
-          label="Title"
-          value={headline}
-          onChange={(e) => setHeadline(e.target.value)}
-          required
-          invalid={!!errors.headline}
-          errorText={errors.headline}
-          helperText={`${headline.length}/64`}
-        />
-        <TextArea
-          id="create-collection-description"
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+    <div
+      className="form-page"
+      style={theeemeColors.color_02 ? { backgroundColor: `var(--color-${theeemeColors.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={theeemeColors.color_03 ? { backgroundColor: `var(--color-${theeemeColors.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={theeemeColors.color_04 ? { '--hero-text-color': `var(--color-${theeemeColors.color_04})` } : undefined}>
+          <BackLink to={backPath} label={backLabel} />
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
         />
       </div>
-      <div className="section-mt">
-        <Button disabled={submitting} onClick={handleSubmit}>
-          {submitting ? 'Creating...' : 'Create'}
-        </Button>
+      <div className="page-container">
+        <h1 className="page-title-xl">Create collection</h1>
+        <div className="form-grid">
+          <TextInput
+            id="create-collection-headline"
+            label="Title"
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+            required
+            invalid={!!errors.headline}
+            errorText={errors.headline}
+            helperText={`${headline.length}/64`}
+          />
+          <TextArea
+            id="create-collection-description"
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <div className="form-actions">
+          <Button
+            fullWidth
+            disabled={submitting}
+            onClick={handleSubmit}
+            style={theeemeColors.color_01 ? {
+              '--background-color': `var(--color-${theeemeColors.color_01})`,
+              '--background-color-hover': `var(--color-${theeemeColors.color_01}-dark)`,
+              '--color': theeemeColors.color_05 ? `var(--color-${theeemeColors.color_05})` : 'var(--color-white)',
+              '--border-color': `var(--color-${theeemeColors.color_01})`,
+            } : undefined}
+          >
+            {submitting ? 'Creating...' : 'Create'}
+          </Button>
+        </div>
+        <Toast toast={toast} onClose={() => setToast(null)} />
       </div>
-      <Toast toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

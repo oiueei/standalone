@@ -49,7 +49,7 @@ class User(AbstractBaseUser):
         to_field="code",
         db_column="user_theeeme",
         related_name="users",
-        default="HDS000",
+        default="BU331",
     )
 
     # Required for Django auth

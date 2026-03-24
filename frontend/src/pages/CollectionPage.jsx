@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Button, Hero, Linkbox, Notification } from 'hds-react';
+import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -60,39 +60,56 @@ export default function CollectionPage() {
   }
 
   const isOwner = localStorage.getItem('userCode') === collection.owner;
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+  } : undefined;
 
   return (
-    <div className="page-container">
-      <Hero
-        variant="noImage"
-        theme={{
-          'content': '""',
-          '--background-color': 'var(--color-copper)',
-          '--color': 'var(--color-black-90)',
-          '--koros-color': '#f5f5f5',
-          '--koros-height': '34px',
-        }}
-        koros="wave"
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        {!showWelcome && (
-          <BackLink to="/" label="Home" />
-        )}
-        <Hero.Title>{collection.headline}</Hero.Title>
-        {collection.description && <Hero.Text>{collection.description}</Hero.Text>}
-        {isOwner && (
-          <div className="button-row-wide">
-            <Link to={`/collections/${code}/edit`}>
-              <Button>Edit collection</Button>
-            </Link>
-            <Link to={`/collections/${code}/add-thing`}>
-              <Button variant="secondary">Add thing</Button>
-            </Link>
-            <Link to={`/collections/${code}/invites`}>
-              <Button variant="secondary">Manage guests</Button>
-            </Link>
-          </div>
-        )}
-      </Hero>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          {!showWelcome && (
+            <BackLink to="/" label="Home" />
+          )}
+          <h1 className="form-hero-title">{collection.headline}</h1>
+          {collection.description && <p className="form-hero-text">{collection.description}</p>}
+          {isOwner && (
+            <div className="button-row-wide">
+              <Link to={`/collections/${code}/edit`}>
+                <Button style={btnStyle}>Edit collection</Button>
+              </Link>
+              <Link to={`/collections/${code}/add-thing`}>
+                <Button variant="secondary" style={btnSecondaryStyle}>Add thing</Button>
+              </Link>
+              <Link to={`/collections/${code}/invites`}>
+                <Button variant="secondary" style={btnSecondaryStyle}>Manage guests</Button>
+              </Link>
+            </div>
+          )}
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type="basic"
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
       {!isOwner && collection.status === 'INACTIVE' && (
         <Notification label="Notice" type="info" style={{ marginBottom: 'var(--spacing-m)' }}>
           This collection is currently inactive. Reservations are paused.
@@ -149,6 +166,7 @@ export default function CollectionPage() {
         </div>
       )}
 
+      </div>
     </div>
   );
 }

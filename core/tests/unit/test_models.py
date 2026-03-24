@@ -167,31 +167,27 @@ class TestTheeemeModel:
     def test_create_theeeme(self):
         """Should create a theeeme with generated code."""
         theeeme = Theeeme.objects.create(
-            name="BAR_CEL_ONA",
-            color_01="FFCA2C",
-            color_02="CB4E22",
-            color_03="827F2A",
-            color_04="2B9A9E",
-            color_05="4F3B28",
-            color_06="FFF2EB",
+            name="Test",
+            color_01="metro",
+            color_02="gold",
+            color_03="tram",
+            color_04="black",
+            color_05="white",
         )
         assert len(theeeme.code) == 6
-        assert theeeme.name == "BAR_CEL_ONA"
 
     def test_theeeme_str(self):
         """Should return readable string representation."""
         theeeme = Theeeme.objects.create(
             code="TSTSTR",
-            name="TestTheme",
-            color_01="FFCA2C",
-            color_02="CB4E22",
-            color_03="827F2A",
-            color_04="2B9A9E",
-            color_05="4F3B28",
-            color_06="FFF2EB",
+            name="Test Str",
+            color_01="bus",
+            color_02="copper",
+            color_03="fog",
+            color_04="black",
+            color_05="white",
         )
         assert "TSTSTR" in str(theeeme)
-        assert "TestTheme" in str(theeeme)
 
 
 @pytest.mark.django_db

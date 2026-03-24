@@ -20,7 +20,7 @@ The `User` model represents a person who can own collections, be invited to othe
 | `headline` | CharField(64) | No | Short bio/tagline |
 | `thumbnail` | CharField(16) | No | Cloudinary image ID for avatar |
 | `hero` | CharField(16) | No | Cloudinary image ID for banner |
-| `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: HDS000 / B4s1C0) |
+| `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: Bussi / Bussi) |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |
@@ -64,9 +64,9 @@ Users authenticate via magic link (passwordless). The `UserManager` handles user
 
 ### Theeeme Relationship
 
-- Users have a FK to Theeeme with `on_delete=PROTECT` and `default="HDS000"`
+- Users have a FK to Theeeme with `on_delete=PROTECT` and `default="Bussi"`
 - This prevents deleting a Theeeme that is in use
-- Default Theeeme is "B4s1C0" (code: HDS000)
+- Default Theeeme is "Bussi" (code: Bussi)
 
 ---
 
@@ -124,20 +124,20 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 
 ## Theeeme
 
-The `Theeeme` model represents a colour palette for customising collections. Each theeeme has 6 colours.
+The `Theeeme` model represents a colour palette for customising collections. Each theeeme has a name and 5 colours.
 
 ### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
-| `name` | CharField(16) | **Yes** | Name of the theeeme |
-| `color_01` through `color_06` | CharField(6) | **Yes** | Hex colour codes (without #) |
+| `name` | CharField(16) | No | Display name of the theeeme (default: `""`) |
+| `color_01` through `color_05` | CharField(32) | **Yes** | HDS colour token names (e.g. "bus", "coat-of-arms-medium-light") |
 
 ### Business Rules
 
 1. **Each user has a theeeme** - Users are personalised with a `theeeme` FK.
-2. **Default theeeme is B4s1C0** (code: HDS000).
+2. **Default theeeme is Bussi** (code: Bussi).
 3. **Protected deletion** - Theeemes cannot be deleted if any user references them (`on_delete=PROTECT`).
 
 ---

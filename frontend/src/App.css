@@ -5,20 +5,78 @@
 }
 
 body {
-  font-family: HelsinkiGrotesk, Arial, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f5f5f5;
-  color: #1a1a1a;
+  font-family: var(--font-default), Arial, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--color-black-5);
+  color: var(--color-black-90);
 }
 
 .page-container {
-  max-width: 1200px;
+  max-width: 1248px;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: var(--spacing-s);
 }
 
 .page-title {
-  font-size: 2rem;
+  font-size: var(--fontsize-heading-l);
   font-weight: 700;
+  line-height: var(--lineheight-m);
+}
+
+.page-title-xl {
+  font-size: var(--fontsize-heading-xl-mobile);
+  font-weight: 400;
+  line-height: var(--lineheight-s);
+  letter-spacing: -0.8px;
+  padding-top: var(--spacing-l);
+}
+
+.form-hero {
+  background-color: var(--color-black);
+  position: relative;
+  overflow: hidden;
+}
+
+.form-hero-content {
+  max-width: 1248px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-s) var(--spacing-xl);
+}
+
+.form-hero-content .back-link {
+  color: var(--hero-text-color, var(--color-black-90));
+}
+
+.form-hero-title {
+  font-size: var(--fontsize-heading-xl-mobile);
+  font-weight: 500;
+  line-height: var(--lineheight-s);
+  letter-spacing: -0.8px;
+  color: var(--hero-text-color, var(--color-black-90));
+  padding: var(--spacing-s) 0;
+}
+
+.form-hero-text {
+  font-size: var(--fontsize-body-l);
+  line-height: var(--lineheight-l);
+  color: var(--hero-text-color, var(--color-black-90));
+  padding-bottom: var(--spacing-s);
+}
+
+.form-hero-koros {
+  fill: var(--color-black-5);
+}
+
+.form-hero-koros svg {
+  height: 20px;
+}
+
+.form-page {
+  min-height: 100vh;
+  background-color: var(--color-black-5);
+}
+
+.form-actions {
+  padding: var(--spacing-l) 0;
 }
 
 div[class*="Linkbox-module_linkbox"] {
@@ -152,7 +210,12 @@ div[class*="Linkbox-module_linkbox"] {
 /* Utility classes */
 .form-grid {
   display: grid;
-  gap: var(--spacing-m);
+  gap: var(--spacing-s);
+  margin-top: var(--spacing-xl);
+}
+
+.form-grid > div[class*="Select-module"] {
+  max-width: 100%;
 }
 
 .summary-grid {
@@ -171,9 +234,6 @@ div[class*="Linkbox-module_linkbox"] {
   gap: var(--spacing-m);
 }
 
-[class*="hds-hero__container"] {
-  margin-left: 0 !important;
-}
 
 .back-link {
   display: inline-block;
