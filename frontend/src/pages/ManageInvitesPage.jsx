@@ -143,7 +143,7 @@ export default function ManageInvitesPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type="basic"
+          type={localStorage.getItem('koro') || 'basic'}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

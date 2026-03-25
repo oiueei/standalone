@@ -75,7 +75,7 @@ export default function CreateCollectionPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type="basic"
+          type={localStorage.getItem('koro') || 'basic'}
           style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
         />
       </div>

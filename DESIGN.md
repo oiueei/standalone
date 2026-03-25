@@ -126,7 +126,7 @@ This principle has concrete design consequences:
 
 ## 10. Koros Wave Pattern and Theeeme Color System
 
-All pages use a consistent `form-hero` + `Koros` layout pattern. The HDS Hero component is not used; instead, a custom `form-hero` section provides the page header, followed by an HDS `Koros` component (type `"basic"`, 20px height) that creates a wave transition into the page content.
+All pages use a consistent `form-hero` + `Koros` layout pattern. The HDS Hero component is not used; instead, a custom `form-hero` section provides the page header, followed by an HDS `Koros` component (60px height) that creates a wave transition into the page content. Each user can choose their preferred Koros wave type (basic, beat, calm, pulse, vibration, or wave) via the `koro` field on their profile. The chosen type is stored in `localStorage` and applied across all pages.
 
 ### Layout Structure
 
@@ -144,7 +144,7 @@ Each theeeme defines five colours used consistently across the interface:
 | `color_04` | Hero text colour (title, description, back-link) via the `--hero-text-color` CSS custom property |
 | `color_05` | Button label colour |
 
-This system ensures that every user's experience is visually coherent: changing a theeeme recolours the entire interface — hero, koros, background, and buttons — in one step.
+This system ensures that every user's experience is visually coherent: changing a theeeme recolours the entire interface — hero, koros, background, and buttons — in one step. The koro wave type adds a further layer of personalisation, letting each user choose the wave motif that best suits their taste.
 
 ---
 

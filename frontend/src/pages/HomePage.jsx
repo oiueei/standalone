@@ -8,8 +8,6 @@ import ThingLinkbox from '../components/ThingLinkbox';
 export default function HomePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [myCollections, setMyCollections] = useState(null);
-  const [invitedCollections, setInvitedCollections] = useState(null);
   const [myThings, setMyThings] = useState(null);
   const [invitedThings, setInvitedThings] = useState(null);
   const [error, setError] = useState('');
@@ -28,31 +26,12 @@ export default function HomePage() {
           const data = await res.json();
           if (data.code) localStorage.setItem('userCode', data.code);
           if (data.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.theeeme_colors));
+          if (data.koro) localStorage.setItem('koro', data.koro);
           setUser(data);
         }
       } catch {
         setError('Connection error.');
       }
-    };
-
-    const fetchMyCollections = async () => {
-      try {
-        const res = await apiFetch('/api/v1/collections/');
-        if (res.ok) {
-          const data = await res.json();
-          setMyCollections(data.results);
-        }
-      } catch { /* silently fail */ }
-    };
-
-    const fetchInvitedCollections = async () => {
-      try {
-        const res = await apiFetch('/api/v1/invited-collections/');
-        if (res.ok) {
-          const data = await res.json();
-          setInvitedCollections(data);
-        }
-      } catch { /* silently fail */ }
     };
 
     const fetchMyThings = async () => {
@@ -76,8 +55,6 @@ export default function HomePage() {
     };
 
     fetchMe();
-    fetchMyCollections();
-    fetchInvitedCollections();
     fetchMyThings();
     fetchInvitedThings();
   }, [navigate]);
@@ -135,12 +112,13 @@ export default function HomePage() {
         <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
           <h1 className="form-hero-title" style={{ paddingTop: 'var(--spacing-xl)' }}>Hello, {user.name || user.email}</h1>
           {user.headline && <p className="form-hero-text">{user.headline}</p>}
+          <div className="spacer-m" />
           <div className="button-row-wide">
             <Link to="/collections/new">
               <Button style={btnStyle}>Create collection</Button>
             </Link>
-            <Link to="/me/edit">
-              <Button variant="secondary" style={btnSecondaryStyle}>Edit profile</Button>
+            <Link to="/me">
+              <Button variant="secondary" style={btnSecondaryStyle}>My profile</Button>
             </Link>
             <Link to="/my-bookings">
               <Button variant="secondary" style={btnSecondaryStyle}>My requests</Button>
@@ -149,49 +127,11 @@ export default function HomePage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type="basic"
+          type={user.koro || 'basic'}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
       <div className="page-container">
-
-      <h2>My collections</h2>
-      {myCollections === null ? (
-        <p className="text-muted">Loading collections...</p>
-      ) : myCollections.length === 0 ? (
-        <p>You have no collections yet. <Link to="/collections/new">Create your first collection</Link> to get started.</p>
-      ) : (
-        <ul>
-          {myCollections.map((c) => (
-            <li key={c.code}>
-              <Link to={`/collections/${c.code}`}>
-                <strong>{c.headline}</strong>
-              </Link>
-              {' — '}
-              {c.status} · {c.things.length} things · {c.invites.length} guests
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <h2>Shared with me</h2>
-      {invitedCollections === null ? (
-        <p className="text-muted">Loading collections...</p>
-      ) : invitedCollections.length === 0 ? (
-        <p>No one has shared a collection with you yet.</p>
-      ) : (
-        <ul>
-          {invitedCollections.map((c) => (
-            <li key={c.code}>
-              <Link to={`/collections/${c.code}`}>
-                <strong>{c.headline}</strong>
-              </Link>
-              {' — '}
-              {c.status} · {c.things.length} things · {c.invites.length} guests
-            </li>
-          ))}
-        </ul>
-      )}
 
       <h2>All things</h2>
       {myThings === null || invitedThings === null ? (

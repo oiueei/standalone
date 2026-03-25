@@ -67,7 +67,7 @@ body {
 }
 
 .form-hero-koros svg {
-  height: 20px;
+  height: 60px;
 }
 
 .form-page {
@@ -135,6 +135,10 @@ div[class*="Linkbox-module_linkbox"] {
   font-size: 1.125rem;
   line-height: 28px;
   color: var(--color-black-90);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .thing-card-info {
@@ -207,11 +211,41 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.collections-grid div[class*="Linkbox-module_linkbox"] {
+  max-width: 100%;
+}
+
+@media (max-width: 576px) {
+  .collections-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Spacers */
+.spacer-xs { height: var(--spacing-xs); margin: 0; padding: 0; }
+.spacer-s  { height: var(--spacing-s);  margin: 0; padding: 0; }
+.spacer-m  { height: var(--spacing-m);  margin: 0; padding: 0; }
+.spacer-l  { height: var(--spacing-l);  margin: 0; padding: 0; }
+.spacer-xl { height: var(--spacing-xl); margin: 0; padding: 0; }
+
 /* Utility classes */
 .form-grid {
   display: grid;
   gap: var(--spacing-s);
   margin-top: var(--spacing-xl);
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.form-grid > * {
+  min-width: 0;
 }
 
 .form-grid > div[class*="Select-module"] {
@@ -279,6 +313,17 @@ div[class*="Linkbox-module_linkbox"] {
 .faq-grid {
   display: grid;
   gap: var(--spacing-xs);
+}
+
+.faq-grid figure[class*="Highlight-module"] {
+  margin: 0;
+}
+
+figure[class*="Highlight-module_highlight"] {
+  width: 100% !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .faq-actions {

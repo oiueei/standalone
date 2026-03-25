@@ -152,14 +152,13 @@ export default function RequestThingPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type="basic"
+          type={localStorage.getItem('koro') || 'basic'}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
-      <div className="page-container">
-      {thing.fee && <p style={{ paddingTop: 'var(--spacing-l)' }}><strong>Price:</strong> {thing.fee} EUR</p>}
-
-      {isDateBased && (
+      <div className="spacer-xl" />      <div className="page-container">
+      {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
+      <div className="spacer-m" />      {isDateBased && (
         <div className="summary-grid section-mt">
           <DateInput
             id="request-start-date"

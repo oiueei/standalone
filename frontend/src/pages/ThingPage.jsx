@@ -257,7 +257,7 @@ export default function ThingPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type="basic"
+          type={localStorage.getItem('koro') || 'basic'}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
@@ -366,9 +366,8 @@ export default function ThingPage() {
         {/* Reservation button for invited users */}
         {showButton && (
           <Button
-            className="fit-content"
             disabled={buttonDisabled}
-            style={btnStyle}
+            style={{ ...btnStyle, width: '100%' }}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
             {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
@@ -392,45 +391,25 @@ export default function ThingPage() {
                   text={faq.question}
                   reference={faq.answer || undefined}
                 />
-                <div style={{ padding: '0 var(--spacing-m) var(--spacing-m)' }}>
-                  {!faq.answer && (
-                    isOwner && (
-                      <div className="summary-grid">
-                        <TextArea
-                          id={`faq-reply-${faq.code}`}
-                          label="Reply"
-                          value={answerTexts[faq.code] || ''}
-                          onChange={(e) =>
-                            setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
-                          }
-                        />
-                        <div className="faq-actions">
-                          <Button
-                            className="fit-content"
-                            disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
-                            onClick={() => handleAnswer(faq.code)}
-                            style={btnStyle}
-                          >
-                            {answerSubmitting[faq.code] ? 'Sending...' : 'Reply'}
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            onClick={() => handleToggleVisibility(faq)}
-                            style={btnSecondaryStyle}
-                          >
-                            {faq.is_visible === false ? 'Show' : 'Hide'}
-                          </Button>
-                          {faq.is_visible === false && (
-                            <span className="faq-meta">
-                              (Hidden)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  )}
-                  {faq.answer && isOwner && (
+                {!faq.answer && isOwner && (
+                  <div className="summary-grid">
+                    <TextArea
+                      id={`faq-reply-${faq.code}`}
+                      label="Reply"
+                      value={answerTexts[faq.code] || ''}
+                      onChange={(e) =>
+                        setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
+                      }
+                    />
                     <div className="faq-actions">
+                      <Button
+                        className="fit-content"
+                        disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
+                        onClick={() => handleAnswer(faq.code)}
+                        style={btnStyle}
+                      >
+                        {answerSubmitting[faq.code] ? 'Sending...' : 'Reply'}
+                      </Button>
                       <Button
                         variant="secondary"
                         onClick={() => handleToggleVisibility(faq)}
@@ -444,8 +423,24 @@ export default function ThingPage() {
                         </span>
                       )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+                {faq.answer && isOwner && (
+                  <div className="faq-actions">
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleToggleVisibility(faq)}
+                      style={btnSecondaryStyle}
+                    >
+                      {faq.is_visible === false ? 'Show' : 'Hide'}
+                    </Button>
+                    {faq.is_visible === false && (
+                      <span className="faq-meta">
+                        (Hidden)
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -462,10 +457,9 @@ export default function ThingPage() {
               placeholder="Write your question here..."
             />
             <Button
-              className="fit-content"
               disabled={faqSubmitting || !faqQuestion.trim()}
               onClick={handleAskQuestion}
-              style={btnStyle}
+              style={{ ...btnStyle, width: '100%' }}
             >
               {faqSubmitting ? 'Sending...' : 'Send question'}
             </Button>

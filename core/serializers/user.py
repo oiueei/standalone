@@ -40,6 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
             "thumbnail_url",
             "hero",
             "hero_url",
+            "koro",
             "theeeme",
             "theeeme_colors",
         ]
@@ -126,5 +127,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "headline",
             "thumbnail",
             "hero",
+            "koro",
             "theeeme",
         ]

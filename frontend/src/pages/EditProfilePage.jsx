@@ -17,6 +17,7 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
+  const [koro, setKoro] = useState('basic');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
   const [errors, setErrors] = useState({});
@@ -40,6 +41,7 @@ export default function EditProfilePage() {
           const data = await profileRes.json();
           setName(data.name || '');
           setHeadline(data.headline || '');
+          setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
         } else {
           setToast({ type: 'error', message: 'Error loading profile.' });
@@ -74,6 +76,7 @@ export default function EditProfilePage() {
     const body = {
       name: name.trim(),
       headline: headline.trim(),
+      koro,
     };
     if (theeeme) body.theeeme = theeeme;
 
@@ -116,7 +119,7 @@ export default function EditProfilePage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type="basic"
+          type={localStorage.getItem('koro') || 'basic'}
           style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
         />
       </div>
@@ -154,6 +157,24 @@ export default function EditProfilePage() {
               }}
             />
           )}
+          <Select
+            id="edit-profile-koro"
+            texts={{ label: 'Koro' }}
+            options={[
+              { label: 'Basic', value: 'basic' },
+              { label: 'Beat', value: 'beat' },
+              { label: 'Calm', value: 'calm' },
+              { label: 'Pulse', value: 'pulse' },
+              { label: 'Vibration', value: 'vibration' },
+              { label: 'Wave', value: 'wave' },
+            ]}
+            value={koro}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setKoro(selectedOptions[0].value);
+              }
+            }}
+          />
         </div>
         <div className="form-actions">
           <Button

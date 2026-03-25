@@ -6,6 +6,7 @@ import {
   TextArea,
   NumberInput,
   Button,
+  Koros,
 } from 'hds-react';
 import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_OPTIONS, AVAILABILITY_LABELS, CONDITION_OPTIONS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
@@ -102,11 +103,37 @@ export default function AddThingPage() {
     }
   };
 
-  return (
-    <div className="page-container">
-      <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
+  // Theeeme colors from localStorage (set by HomePage on login)
+  const tc = (() => {
+    try { return JSON.parse(localStorage.getItem('theeemeColors')) || {}; } catch { return {}; }
+  })();
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
 
-      <h1 className="page-title">Add thing</h1>
+  return (
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type={localStorage.getItem('koro') || 'basic'}
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">
+        <h1 className="page-title-xl">Add thing</h1>
       <div className="form-grid">
           <Select
             id="add-thing-type"
@@ -134,6 +161,7 @@ export default function AddThingPage() {
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            helperText={`${description.length}/256`}
           />
           <TextInput
             id="add-thing-pictures"
@@ -164,6 +192,14 @@ export default function AddThingPage() {
                 onChange={(sel) => sel.length > 0 && setAvailability(sel[0].value)}
                 clearable
               />
+              <Select
+                id="add-thing-condition"
+                texts={{ label: 'Condition' }}
+                options={CONDITION_OPTIONS}
+                value={condition}
+                onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
+                clearable
+              />
               <TextInput
                 id="add-thing-location"
                 label="Location"
@@ -173,25 +209,18 @@ export default function AddThingPage() {
                 invalid={!!errors.location}
                 errorText={errors.location}
               />
-              <Select
-                id="add-thing-condition"
-                texts={{ label: 'Condition' }}
-                options={CONDITION_OPTIONS}
-                value={condition}
-                onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
-                clearable
-              />
             </>
           )}
       </div>
 
       <div className="section-mt">
-        <Button disabled={submitting} onClick={handleSubmit}>
+        <Button style={{ ...btnStyle, width: '100%' }} disabled={submitting} onClick={handleSubmit}>
           {submitting ? 'Creating...' : 'Create'}
         </Button>
       </div>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
     </div>
   );
 }

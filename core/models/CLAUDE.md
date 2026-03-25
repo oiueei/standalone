@@ -20,7 +20,8 @@ The `User` model represents a person who can own collections, be invited to othe
 | `headline` | CharField(64) | No | Short bio/tagline |
 | `thumbnail` | CharField(16) | No | Cloudinary image ID for avatar |
 | `hero` | CharField(16) | No | Cloudinary image ID for banner |
-| `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: Bussi / Bussi) |
+| `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
+| `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |

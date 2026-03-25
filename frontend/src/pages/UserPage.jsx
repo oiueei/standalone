@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Button, Notification, Tag } from 'hds-react';
+import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
-import placeholderM from '../assets/image-m.png';
-import placeholderL from '../assets/image-l.png';
-import placeholderXL from '../assets/image-xl.png';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [myCollections, setMyCollections] = useState(null);
+  const [invitedCollections, setInvitedCollections] = useState(null);
   const [error, setError] = useState('');
 
   const userCode = paramCode || localStorage.getItem('userCode');
+  const isOwnProfile = !paramCode || paramCode === localStorage.getItem('userCode');
 
   useEffect(() => {
     if (!localStorage.getItem('userCode')) {
@@ -52,7 +52,18 @@ export default function UserPage() {
       }
     };
     fetchUser();
-  }, [userCode, navigate]);
+
+    if (isOwnProfile) {
+      apiFetch('/api/v1/collections/')
+        .then((res) => res.ok ? res.json() : Promise.reject())
+        .then((data) => setMyCollections(data.results))
+        .catch(() => {});
+      apiFetch('/api/v1/invited-collections/')
+        .then((res) => res.ok ? res.json() : Promise.reject())
+        .then((data) => setInvitedCollections(data))
+        .catch(() => {});
+    }
+  }, [userCode, isOwnProfile, navigate]);
 
   if (error) {
     return (
@@ -66,51 +77,100 @@ export default function UserPage() {
     return <LoadingSpinner />;
   }
 
-  const isOwnProfile = !paramCode || paramCode === localStorage.getItem('userCode');
+  // Use theeeme colors from user data (own profile) or localStorage (other profiles)
+  const tc = user.theeeme_colors || (() => {
+    try { return JSON.parse(localStorage.getItem('theeemeColors')) || {}; } catch { return {}; }
+  })();
+  const btnStyle = tc.color_01 ? {
+    '--background-color': `var(--color-${tc.color_01})`,
+    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
+    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+  } : undefined;
 
   return (
-    <div className="page-container">
-      <BackLink to="/" label="Home" />
-
-      <div className="user-profile-header">
-        <img
-          src={user.hero_url || user.thumbnail_url || placeholderM}
-          srcSet={!(user.hero_url || user.thumbnail_url) ? `${placeholderM} 1x, ${placeholderL} 2x, ${placeholderXL} 3x` : undefined}
-          alt={user.name || 'Profile'}
-          className="user-hero-img"
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <BackLink to="/" label="Home" />
+          <h1 className="form-hero-title">{user.name || user.email}</h1>
+          {user.headline && <p className="form-hero-text">{user.headline}</p>}
+          {user.created && (
+            <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)', opacity: 0.7 }}>
+              Member since {new Date(user.created).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+            </p>
+          )}
+          {isOwnProfile && (
+            <div style={{ paddingBottom: 'var(--spacing-s)' }}>
+              <Link to="/me/edit">
+                <Button style={btnStyle}>Edit profile</Button>
+              </Link>
+            </div>
+          )}
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type={localStorage.getItem('koro') || 'basic'}
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
+      <div className="page-container">
+        {isOwnProfile && (
+          <>
+            <h2>My collections</h2>
+            {myCollections === null ? (
+              <p className="text-muted">Loading collections...</p>
+            ) : myCollections.length === 0 ? (
+              <p>You have no collections yet. <Link to="/collections/new">Create your first collection</Link> to get started.</p>
+            ) : (
+              <div className="collections-grid">
+                {myCollections.map((c) => (
+                  <Linkbox
+                    key={c.code}
+                    href={`/collections/${c.code}`}
+                    onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
+                    heading={c.headline}
+                    text={`${c.status} · ${c.things.length} things · ${c.invites.length} guests`}
+                    linkAriaLabel={`View ${c.headline}`}
+                    linkboxAriaLabel={c.headline}
+                    border
+                    size="small"
+                  />
+                ))}
+              </div>
+            )}
 
-      {user.thumbnail_url && (
-        <img
-          src={user.thumbnail_url}
-          alt={user.name || 'Avatar'}
-          className="user-avatar"
-        />
-      )}
-
-      <h1 className="page-title">{user.name || user.email}</h1>
-      {user.headline && <p className="user-headline">{user.headline}</p>}
-
-      {isOwnProfile && (
-        <div className="section-mt">
-          <Tag>{user.email}</Tag>
-        </div>
-      )}
-
-      {user.created && (
-        <p className="user-meta">
-          Member since {new Date(user.created).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
-        </p>
-      )}
-
-      {isOwnProfile && (
-        <div className="section-mt">
-          <Link to="/me/edit">
-            <Button>Edit profile</Button>
-          </Link>
-        </div>
-      )}
+            <h2>Shared with me</h2>
+            {invitedCollections === null ? (
+              <p className="text-muted">Loading collections...</p>
+            ) : invitedCollections.length === 0 ? (
+              <p>No one has shared a collection with you yet.</p>
+            ) : (
+              <div className="collections-grid">
+                {invitedCollections.map((c) => (
+                  <Linkbox
+                    key={c.code}
+                    href={`/collections/${c.code}`}
+                    onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
+                    heading={c.headline}
+                    text={`${c.status} · ${c.things.length} things · ${c.invites.length} guests`}
+                    linkAriaLabel={`View ${c.headline}`}
+                    linkboxAriaLabel={c.headline}
+                    border
+                    size="small"
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

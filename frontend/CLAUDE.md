@@ -41,7 +41,7 @@ form-page
 ├── form-hero          (full-width, theeeme color_03 background)
 │   ├── form-hero-content  (max-width 1248px, text color from --hero-text-color CSS var using theeeme color_04)
 │   │   └── [back link, title, description]
-│   └── Koros          (HDS Koros component, type="basic", 20px height, fill = theeeme color_02)
+│   └── Koros          (HDS Koros component, type from user.koro preference, 60px height, fill = theeeme color_02)
 └── page-container     (max-width 1248px, page content)
 ```
 
@@ -57,7 +57,7 @@ form-page
 
 All buttons across the app use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
 
-Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCollectionPage, EditProfilePage, ManageInvitesPage, MyBookingsPage, EditThingPage, ThingPage, WelcomePage, RequestThingPage.
+Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCollectionPage, EditProfilePage, ManageInvitesPage, MyBookingsPage, EditThingPage, ThingPage, WelcomePage, RequestThingPage, UserPage.
 
 ---
 
@@ -88,12 +88,11 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 
 ### HomePage (`src/pages/HomePage.jsx`)
 
-- **APIs:** `GET /api/v1/auth/me/`, `GET /api/v1/collections/`, `GET /api/v1/invited-collections/`, `GET /api/v1/things/`, `GET /api/v1/invited-things/` (authenticated via HttpOnly cookies)
+- **APIs:** `GET /api/v1/auth/me/`, `GET /api/v1/things/`, `GET /api/v1/invited-things/` (authenticated via HttpOnly cookies)
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - On 401/403: clears `userCode` and redirects to `/login`.
-- Stores `userCode` in `localStorage` on successful fetch.
-- Displays greeting, "Create collection" button linking to `/collections/new`, "Edit profile" button linking to `/me/edit`, and "My requests" button linking to `/my-bookings`.
-- Shows inline lists of own collections and invited collections (headline, status, thing count, invite count) with links to `/collections/{code}`.
+- Stores `userCode`, `theeemeColors`, and `koro` in `localStorage` on successful fetch.
+- Displays greeting, "Create collection" button linking to `/collections/new`, "My profile" button linking to `/me`, and "My requests" button linking to `/my-bookings`.
 - Lists all things (own + invited) using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=768px, 1 at <=430px), sorted by creation date descending.
 
 ### CollectionPage (`src/pages/CollectionPage.jsx`)
@@ -213,7 +212,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API, shows theeeme `name` field as label).
+  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API, shows theeeme `name` field as label), `Select` for koro (basic, beat, calm, pulse, vibration, wave).
   - "Save" button below the form.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.
@@ -252,8 +251,9 @@ Detail page for a thing with full information and FAQs section.
 - Also serves as `/me` route: when no `userCode` param, fetches `/api/v1/auth/me/` to resolve own code.
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
-- Displays hero image, avatar, user name (or email fallback), headline, email tag (own profile only), and "Member since" date.
-- Own profile shows "Edit profile" button.
+- Uses the standard `form-hero` + `Koros` layout with theeeme colors (own profile uses `theeeme_colors` from API, other profiles fall back to localStorage).
+- Displays user name (or email fallback) and headline in the hero. Below the Koros: email tag (own profile only), "Member since" date, and "Edit profile" button (own profile only).
+- Own profile shows themed "Edit profile" button.
 
 ---
 

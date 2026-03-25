@@ -13,7 +13,7 @@ from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
 def default_theeeme(db):
     """Create the default theeemes for all tests."""
     hds, _ = Theeeme.objects.get_or_create(
-        code="BU331",
+        code="BUU331",
         defaults={
             "name": "Bussi",
             "color_01": "bus",

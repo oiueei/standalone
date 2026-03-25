@@ -90,6 +90,8 @@ export default function CollectionPage() {
           <h1 className="form-hero-title">{collection.headline}</h1>
           {collection.description && <p className="form-hero-text">{collection.description}</p>}
           {isOwner && (
+            <>
+            <div className="spacer-m"></div>
             <div className="button-row-wide">
               <Link to={`/collections/${code}/edit`}>
                 <Button style={btnStyle}>Edit collection</Button>
@@ -101,11 +103,12 @@ export default function CollectionPage() {
                 <Button variant="secondary" style={btnSecondaryStyle}>Manage guests</Button>
               </Link>
             </div>
+            </>
           )}
         </div>
         <Koros
           className="form-hero-koros"
-          type="basic"
+          type={localStorage.getItem('koro') || 'basic'}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

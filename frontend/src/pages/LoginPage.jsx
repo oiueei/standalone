@@ -57,6 +57,7 @@ export default function LoginPage() {
             required
             className="section-mt"
           />
+          <div className="spacer-m"></div> 
           <div className="section-mt">
             <Button type="submit" disabled={loading}>
               {loading ? 'Sending...' : 'Sign in'}
