@@ -13,6 +13,7 @@ export default function CollectionPage() {
   const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite);
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
+  useEffect(() => { document.title = collection ? `${collection.headline} — OIUEEI` : 'Collection — OIUEEI'; }, [collection]);
 
   useEffect(() => {
     if (location.state?.fromInvite) {
@@ -96,7 +97,7 @@ export default function CollectionPage() {
               <Link to={`/collections/${code}/edit`}>
                 <Button style={btnStyle}>Edit collection</Button>
               </Link>
-              <Link to={`/collections/${code}/add-thing`}>
+              <Link to={`/collections/${code}/add`}>
                 <Button variant="secondary" style={btnSecondaryStyle}>Add thing</Button>
               </Link>
               <Link to={`/collections/${code}/invites`}>
@@ -138,8 +139,9 @@ export default function CollectionPage() {
       )}
 
       <h2>Things</h2>
+      <div className="spacer-m" />
       {collection.things.length === 0 ? (
-        <p>No things in this collection yet.{isOwner && <> <Link to={`/collections/${code}/add-thing`}>Add one</Link>.</>}</p>
+        <p>No things in this collection yet.{isOwner && <> <Link to={`/collections/${code}/add`}>Add one</Link>.</>}</p>
       ) : (
         <div className="things-grid">
           {[...collection.things].sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (

@@ -228,11 +228,13 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 /* Spacers */
-.spacer-xs { height: var(--spacing-xs); margin: 0; padding: 0; }
-.spacer-s  { height: var(--spacing-s);  margin: 0; padding: 0; }
-.spacer-m  { height: var(--spacing-m);  margin: 0; padding: 0; }
-.spacer-l  { height: var(--spacing-l);  margin: 0; padding: 0; }
-.spacer-xl { height: var(--spacing-xl); margin: 0; padding: 0; }
+.spacer-xxxs { height: var(--spacing-3-xs); margin: 0; padding: 0; background-color: rgba(111,0,111,.5); }
+.spacer-xxs { height: var(--spacing-2-xs); margin: 0; padding: 0; background-color: rgba(111,0,255,.5); }
+.spacer-xs { height: var(--spacing-xs); margin: 0; padding: 0; background-color: rgba(255,255,0,.5); }
+.spacer-s  { height: var(--spacing-s);  margin: 0; padding: 0; background-color: rgba(255,0,255,.5); }
+.spacer-m  { height: var(--spacing-m);  margin: 0; padding: 0; background-color: rgba(0,255,255,.5); }
+.spacer-l  { height: var(--spacing-l);  margin: 0; padding: 0; background-color: rgba(255,111,0,.5); }
+.spacer-xl { height: var(--spacing-xl); margin: 0; padding: 0; background-color: rgba(0,111,255,.5); }
 
 /* Utility classes */
 .form-grid {

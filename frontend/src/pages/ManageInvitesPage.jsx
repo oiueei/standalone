@@ -24,6 +24,7 @@ export default function ManageInvitesPage() {
     '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
   } : undefined;
 
+  useEffect(() => { document.title = collectionHeadline ? `Guests — ${collectionHeadline} — OIUEEI` : 'Guests — OIUEEI'; }, [collectionHeadline]);
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);

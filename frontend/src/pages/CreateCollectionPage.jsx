@@ -7,6 +7,7 @@ import Toast from '../components/Toast';
 
 export default function CreateCollectionPage() {
   const navigate = useNavigate();
+  useEffect(() => { document.title = 'New collection — OIUEEI'; }, []);
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || 'Home';
@@ -97,6 +98,7 @@ export default function CreateCollectionPage() {
             label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            helperText={`${description.length}/256`}
           />
         </div>
         <div className="form-actions">

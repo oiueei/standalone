@@ -7,6 +7,7 @@ import ThingLinkbox from '../components/ThingLinkbox';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  useEffect(() => { document.title = 'Home — OIUEEI'; }, []);
   const [user, setUser] = useState(null);
   const [myThings, setMyThings] = useState(null);
   const [invitedThings, setInvitedThings] = useState(null);
@@ -112,7 +113,6 @@ export default function HomePage() {
         <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
           <h1 className="form-hero-title" style={{ paddingTop: 'var(--spacing-xl)' }}>Hello, {user.name || user.email}</h1>
           {user.headline && <p className="form-hero-text">{user.headline}</p>}
-          <div className="spacer-m" />
           <div className="button-row-wide">
             <Link to="/collections/new">
               <Button style={btnStyle}>Create collection</Button>
@@ -134,6 +134,7 @@ export default function HomePage() {
       <div className="page-container">
 
       <h2>All things</h2>
+      <div className="spacer-m" />
       {myThings === null || invitedThings === null ? (
         <p className="text-muted">Loading things...</p>
       ) : allThings.length === 0 ? (

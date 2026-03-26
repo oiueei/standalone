@@ -27,6 +27,7 @@ export default function EditThingPage() {
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
+  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit thing — OIUEEI'; }, [headline]);
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
   const [headline, setHeadline] = useState('');
@@ -204,6 +205,7 @@ export default function EditThingPage() {
           label="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          helperText={`${description.length}/256`}
         />
         <TextInput
           id="edit-thing-pictures"
@@ -211,6 +213,7 @@ export default function EditThingPage() {
           value={pictures}
           onChange={(e) => setPictures(e.target.value)}
         />
+        <div className="spacer-xxxs" />
         {FEE_TYPES.includes(thingType) && (
           <NumberInput
             id="edit-thing-fee"
@@ -225,6 +228,9 @@ export default function EditThingPage() {
             errorText={errors.fee}
           />
         )}
+        {FEE_TYPES.includes(thingType) && DETAIL_TYPES.includes(thingType) && (
+          <div className="spacer-xxxs" />
+        )}
         {DETAIL_TYPES.includes(thingType) && (
           <>
             <Select
@@ -232,9 +238,10 @@ export default function EditThingPage() {
               texts={{ label: 'Availability' }}
               options={AVAILABILITY_OPTIONS}
               value={availability}
-              onChange={(sel) => sel.length > 0 && setAvailability(sel[0].value)}
+              onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
               clearable
             />
+            <div className="spacer-xxxs" />
             <TextInput
               id="edit-thing-location"
               label="Location"
@@ -249,7 +256,7 @@ export default function EditThingPage() {
               texts={{ label: 'Condition' }}
               options={CONDITION_OPTIONS}
               value={condition}
-              onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
+              onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
               clearable
             />
           </>
@@ -260,10 +267,10 @@ export default function EditThingPage() {
           {submitting ? 'Saving...' : 'Save'}
         </Button>
         <Button variant="secondary" fullWidth disabled={submitting || deleting} onClick={() => setConfirmDelete(true)} style={{
-          '--border-color': 'var(--color-error)',
-          '--color': 'var(--color-error)',
-          '--background-color-hover': 'var(--color-error)',
-          '--color-hover': 'var(--color-white)',
+          '--border-color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
+          '--color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
+          '--background-color-hover': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
+          '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
           marginTop: 'var(--spacing-s)',
         }}>
           {deleting ? 'Deleting...' : 'Delete'}

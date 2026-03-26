@@ -95,6 +95,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "code",
             "name",
             "headline",
+            "created",
             "thumbnail",
             "thumbnail_url",
             "hero",

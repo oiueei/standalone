@@ -5,6 +5,7 @@ import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 
 export default function WelcomePage() {
+  useEffect(() => { document.title = 'Welcome — OIUEEI'; }, []);
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
@@ -38,7 +39,9 @@ export default function WelcomePage() {
       >
         <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
           <BackLink to="/" label="Home" />
-          {userName && <h1  className="form-hero-title">Hello, {userName}<br/>Welcome to OIUEEI!</h1>}
+          <div className="spacer-m" />
+          {userName && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>Hello, {userName}</p>}
+          <h1 className="form-hero-title">Welcome to OIUEEI!</h1>
           <div className="button-row" style={{ paddingBottom: 'var(--spacing-s)' }}>
             <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
               <Button style={btnStyle}>Create collection</Button>
@@ -54,7 +57,6 @@ export default function WelcomePage() {
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
-      <div className="spacer-xl" />
       <div className="page-container">
         <p>
           OIUEEI is an open-source web application that lets people share their belongings with

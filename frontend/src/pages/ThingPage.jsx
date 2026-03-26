@@ -31,6 +31,7 @@ export default function ThingPage() {
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
+  useEffect(() => { document.title = thing ? `${thing.headline} — OIUEEI` : 'Thing — OIUEEI'; }, [thing]);
 
   // Reservation state
   const [submitting, setSubmitting] = useState(false);
@@ -337,8 +338,8 @@ export default function ThingPage() {
         {/* Owner actions */}
         {isOwner && (
           <div className="button-row">
-            <Link to={editPath}>
-              <Button style={btnSecondaryStyle} variant="secondary">Edit</Button>
+            <Link to={editPath} style={{ display: 'contents' }}>
+              <Button style={{ ...btnStyle, width: '100%' }}>Edit</Button>
             </Link>
           </div>
         )}
@@ -375,7 +376,9 @@ export default function ThingPage() {
         )}
 
         {/* FAQs Section */}
+        <div className="spacer-m" />
         <hr />
+        <div className="spacer-m" />
         <h2>Questions or comments?</h2>
 
         {faqs.length === 0 ? (
@@ -392,6 +395,8 @@ export default function ThingPage() {
                   reference={faq.answer || undefined}
                 />
                 {!faq.answer && isOwner && (
+                  <>
+                  <div className="spacer-m" />
                   <div className="summary-grid">
                     <TextArea
                       id={`faq-reply-${faq.code}`}
@@ -401,9 +406,10 @@ export default function ThingPage() {
                         setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
                       }
                     />
-                    <div className="faq-actions">
+                    <div className="spacer-m" />
+                    <div className="faq-actions" style={{ flexDirection: 'column', width: '100%' }}>
                       <Button
-                        className="fit-content"
+                        fullWidth
                         disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
                         onClick={() => handleAnswer(faq.code)}
                         style={btnStyle}
@@ -412,6 +418,7 @@ export default function ThingPage() {
                       </Button>
                       <Button
                         variant="secondary"
+                        fullWidth
                         onClick={() => handleToggleVisibility(faq)}
                         style={btnSecondaryStyle}
                       >
@@ -424,6 +431,7 @@ export default function ThingPage() {
                       )}
                     </div>
                   </div>
+                  </>
                 )}
                 {faq.answer && isOwner && (
                   <div className="faq-actions">
@@ -447,6 +455,7 @@ export default function ThingPage() {
         )}
 
 
+        <div className="spacer-m" />
         {!isOwner && (
           <div className="summary-grid section-mt">
             <TextArea

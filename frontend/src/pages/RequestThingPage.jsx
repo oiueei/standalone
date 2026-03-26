@@ -27,6 +27,7 @@ export default function RequestThingPage() {
   }, [userCode, navigate]);
 
   const [thing, setThing] = useState(null);
+  useEffect(() => { document.title = thing ? `Hold ${thing.headline} — OIUEEI` : 'Hold — OIUEEI'; }, [thing]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
@@ -156,7 +157,7 @@ export default function RequestThingPage() {
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
-      <div className="spacer-xl" />      <div className="page-container">
+      <div className="page-container">
       {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
       <div className="spacer-m" />      {isDateBased && (
         <div className="summary-grid section-mt">
@@ -176,6 +177,7 @@ export default function RequestThingPage() {
             isDateDisabledBy={isDateBlocked}
             malformedDateErrorText="Date overlaps with another booking."
           />
+          <div className="spacer-xxxs" />
           <DateInput
             id="request-end-date"
             label="End"
@@ -211,6 +213,7 @@ export default function RequestThingPage() {
             maxDate={MAX_DATE}
             dateOutsideRangeErrorText={RANGE_ERROR}
           />
+          <div className="spacer-xxxs" /> 
           <NumberInput
             id="request-quantity"
             label="Quantity"
@@ -222,12 +225,13 @@ export default function RequestThingPage() {
         </div>
       )}
 
-      <div className="button-row section-mt">
-        <Button variant="secondary" onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
-          Cancel
-        </Button>
-        <Button disabled={submitting} onClick={handleSubmit} style={btnStyle}>
+      <div className="spacer-xs" />
+      <div className="form-grid">
+        <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>
           {submitting ? 'Sending...' : 'Hold'}
+        </Button>
+        <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
+          Cancel
         </Button>
       </div>
 

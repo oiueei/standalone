@@ -19,7 +19,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
 | `/collections/:code/edit` | `EditCollectionPage` | Edit a collection |
 | `/collections/:code/invites` | `ManageInvitesPage` | Manage collection invites |
-| `/collections/:code/add-thing` | `AddThingPage` | Add a thing to a collection |
+| `/collections/:code/add` | `AddThingPage` | Add a thing to a collection |
 | `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context) |
 | `/collections/:code/things/:thingCode/edit` | `EditThingPage` | Edit a thing (from collection context) |
 | `/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (standalone) |
@@ -29,6 +29,12 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
+
+---
+
+## Page Titles
+
+Every page sets `document.title` via `useEffect` for meaningful browser tab titles and bookmarks. Dynamic pages (CollectionPage, ThingPage, UserPage, etc.) update the title when data loads. Format: `{Page context} — OIUEEI`.
 
 ---
 
@@ -66,6 +72,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 ### LoginPage (`src/pages/LoginPage.jsx`)
 
 - **API:** `POST /api/v1/auth/request-link/` with `{ email }` and CSRF token
+- Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (if available from a previous session).
 - Sends a magic link to the provided email address.
 - After submission, replaces the form with a `Notification` component:
   - `success` — Unified message displayed (backend returns 200 regardless of email existence for anti-enumeration)
@@ -252,8 +259,9 @@ Detail page for a thing with full information and FAQs section.
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors (own profile uses `theeeme_colors` from API, other profiles fall back to localStorage).
-- Displays user name (or email fallback) and headline in the hero. Below the Koros: email tag (own profile only), "Member since" date, and "Edit profile" button (own profile only).
-- Own profile shows themed "Edit profile" button.
+- Hero follows the WelcomePage pattern: BackLink, spacer, headline as Heading M subtitle, name as h1 title, "Member since" date.
+- **Own profile:** shows "Edit profile" button in the hero, "My collections" and "Shared with me" sections below.
+- **Other profiles:** shows "Collections in common" section with shared collections (where both users are connected as owner/invite) as HDS Linkbox components.
 
 ---
 

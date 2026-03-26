@@ -5,6 +5,7 @@ import { Button, Notification } from 'hds-react';
 export default function VerifyPage() {
   const { code } = useParams();
   const navigate = useNavigate();
+  useEffect(() => { document.title = 'Verifying — OIUEEI'; }, []);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 

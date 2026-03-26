@@ -15,6 +15,7 @@ export default function EditCollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
+  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit collection — OIUEEI'; }, [headline]);
 
   const [loading, setLoading] = useState(true);
   const [headline, setHeadline] = useState('');
@@ -140,6 +141,7 @@ export default function EditCollectionPage() {
           label="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          helperText={`${description.length}/256`}
         />
         <Select
           id="edit-collection-status"
@@ -154,7 +156,7 @@ export default function EditCollectionPage() {
           }}
         />
       </div>
-      <div className="section-mt">
+      <div className="form-actions">
         <Button disabled={submitting} onClick={handleSubmit} style={{ ...btnStyle, width: '100%' }}>
           {submitting ? 'Saving...' : 'Save'}
         </Button>

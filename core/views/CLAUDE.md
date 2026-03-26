@@ -158,7 +158,7 @@ This provides IDOR protection — users can only see profiles of people connecte
 | **Endpoint** | `GET /api/v1/users/{user_code}/` |
 | **Permission** | `IsAuthenticated` + `can_view_user()` |
 
-Returns user profile. Own profile returns full data (`UserSerializer`), other profiles return public data (`UserPublicSerializer`).
+Returns user profile. Own profile returns full data (`UserSerializer`), other profiles return public data (`UserPublicSerializer`) plus a `shared_collections` array (collections where both users are connected as owner/invite) with `code` and `headline` for each.
 
 | | |
 |---|---|

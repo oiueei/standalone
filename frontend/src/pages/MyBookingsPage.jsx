@@ -29,6 +29,7 @@ export default function MyBookingsPage() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
   const [cancelling, setCancelling] = useState(null);
+  useEffect(() => { document.title = 'My requests — OIUEEI'; }, []);
 
   useEffect(() => {
     const userCode = localStorage.getItem('userCode');

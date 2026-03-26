@@ -41,7 +41,7 @@ function App() {
         <Route path="/collections/:code" element={<CollectionPage />} />
         <Route path="/collections/:code/edit" element={<EditCollectionPage />} />
         <Route path="/collections/:code/invites" element={<ManageInvitesPage />} />
-        <Route path="/collections/:code/add-thing" element={<AddThingPage />} />
+        <Route path="/collections/:code/add" element={<AddThingPage />} />
         <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
         <Route path="/collections/:code/things/:thingCode/edit" element={<EditThingPage />} />
         <Route path="/collections/:code/things/:thingCode/request" element={<RequestThingPage />} />

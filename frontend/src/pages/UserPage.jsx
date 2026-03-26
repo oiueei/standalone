@@ -15,6 +15,7 @@ export default function UserPage() {
 
   const userCode = paramCode || localStorage.getItem('userCode');
   const isOwnProfile = !paramCode || paramCode === localStorage.getItem('userCode');
+  useEffect(() => { document.title = user ? `${user.name || 'Profile'} — OIUEEI` : 'Profile — OIUEEI'; }, [user]);
 
   useEffect(() => {
     if (!localStorage.getItem('userCode')) {
@@ -99,8 +100,9 @@ export default function UserPage() {
       >
         <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
           <BackLink to="/" label="Home" />
+          <div className="spacer-m" />
+          {user.headline && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>{user.headline}</p>}
           <h1 className="form-hero-title">{user.name || user.email}</h1>
-          {user.headline && <p className="form-hero-text">{user.headline}</p>}
           {user.created && (
             <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)', opacity: 0.7 }}>
               Member since {new Date(user.created).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
@@ -121,9 +123,31 @@ export default function UserPage() {
         />
       </div>
       <div className="page-container">
+        {!isOwnProfile && user.shared_collections && user.shared_collections.length > 0 && (
+          <>
+            <h2>Collections in common</h2>
+            <div className="spacer-m" />
+            <div className="collections-grid">
+              {user.shared_collections.map((c) => (
+                <Linkbox
+                  key={c.code}
+                  href={`/collections/${c.code}`}
+                  onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
+                  heading={c.headline}
+                  linkAriaLabel={`View ${c.headline}`}
+                  linkboxAriaLabel={c.headline}
+                  border
+                  size="small"
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         {isOwnProfile && (
           <>
             <h2>My collections</h2>
+            <div className="spacer-m" />
             {myCollections === null ? (
               <p className="text-muted">Loading collections...</p>
             ) : myCollections.length === 0 ? (
@@ -146,7 +170,9 @@ export default function UserPage() {
               </div>
             )}
 
+            <div className="spacer-xl" />
             <h2>Shared with me</h2>
+            <div className="spacer-m" />
             {invitedCollections === null ? (
               <p className="text-muted">Loading collections...</p>
             ) : invitedCollections.length === 0 ? (

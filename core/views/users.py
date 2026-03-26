@@ -62,10 +62,25 @@ class UserDetailView(APIView):
         # If viewing own profile, return full data
         if request.user.code == user_code:
             serializer = UserSerializer(user)
-        else:
-            serializer = UserPublicSerializer(user)
+            return Response(serializer.data)
 
-        return Response(serializer.data)
+        serializer = UserPublicSerializer(user)
+        data = serializer.data
+
+        # Find shared collections (where both users are owner or invited)
+        viewer = request.user.code
+        # Collections owned by viewer where target is invited
+        shared_qs = Collection.objects.filter(
+            owner_id=viewer, invites__code=user_code
+        ).values("code", "headline")
+        # Collections owned by target where viewer is invited
+        shared_qs2 = Collection.objects.filter(
+            owner_id=user_code, invites__code=viewer
+        ).values("code", "headline")
+        shared = list(shared_qs.union(shared_qs2))
+        data["shared_collections"] = shared
+
+        return Response(data)
 
     def put(self, request, user_code):
         # Can only update own profile

@@ -18,6 +18,7 @@ export default function AddThingPage() {
   const navigate = useNavigate();
 
   const userCode = localStorage.getItem('userCode');
+  useEffect(() => { document.title = 'Add thing — OIUEEI'; }, []);
 
   useEffect(() => {
     if (!userCode) {
@@ -169,6 +170,7 @@ export default function AddThingPage() {
             value={pictures}
             onChange={(e) => setPictures(e.target.value)}
           />
+          <div className="spacer-xxxs" />
           {FEE_TYPES.includes(type) && (
             <NumberInput
               id="add-thing-fee"
@@ -182,6 +184,9 @@ export default function AddThingPage() {
               errorText={errors.fee}
             />
           )}
+          {FEE_TYPES.includes(type) && DETAIL_TYPES.includes(type) && (
+            <div className="spacer-xxxs" />
+          )}
           {DETAIL_TYPES.includes(type) && (
             <>
               <Select
@@ -189,15 +194,16 @@ export default function AddThingPage() {
                 texts={{ label: 'Availability' }}
                 options={AVAILABILITY_OPTIONS}
                 value={availability}
-                onChange={(sel) => sel.length > 0 && setAvailability(sel[0].value)}
+                onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
                 clearable
               />
+              <div className="spacer-xxxs" />
               <Select
                 id="add-thing-condition"
                 texts={{ label: 'Condition' }}
                 options={CONDITION_OPTIONS}
                 value={condition}
-                onChange={(sel) => sel.length > 0 && setCondition(sel[0].value)}
+                onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
                 clearable
               />
               <TextInput
@@ -213,7 +219,7 @@ export default function AddThingPage() {
           )}
       </div>
 
-      <div className="section-mt">
+      <div className="form-actions">
         <Button style={{ ...btnStyle, width: '100%' }} disabled={submitting} onClick={handleSubmit}>
           {submitting ? 'Creating...' : 'Create'}
         </Button>

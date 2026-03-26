@@ -8,6 +8,7 @@ import Toast from '../components/Toast';
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
+  useEffect(() => { document.title = 'Edit profile — OIUEEI'; }, []);
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || 'Home';

@@ -65,9 +65,9 @@ Users authenticate via magic link (passwordless). The `UserManager` handles user
 
 ### Theeeme Relationship
 
-- Users have a FK to Theeeme with `on_delete=PROTECT` and `default="Bussi"`
+- Users have a FK to Theeeme with `on_delete=PROTECT` and `default="BUU331"`
 - This prevents deleting a Theeeme that is in use
-- Default Theeeme is "Bussi" (code: Bussi)
+- Default Theeeme is "Bussi" (code: BUU331)
 
 ---
 
