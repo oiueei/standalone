@@ -48,6 +48,5 @@ export const CONDITION_LABELS = Object.fromEntries(
 export const TAG_THEMES = {
   taken: { '--tag-background': '#fff4e5', '--tag-color': '#b54708' },
   inactive: { '--tag-background': '#e8e8e8', '--tag-color': '#525252' },
-  unavailable: { '--tag-background': '#f5e6e6', '--tag-color': '#b01038' },
   pending: { '--tag-background': '#fff4e5', '--tag-color': '#b54708' },
 };

@@ -11,9 +11,6 @@ export default function ThingTags({ thing, isOwner, showType = true }) {
       {isOwner && thing.status === 'INACTIVE' && (
         <Tag theme={TAG_THEMES.inactive}>Inactive</Tag>
       )}
-      {isOwner && !thing.available && (
-        <Tag theme={TAG_THEMES.unavailable}>Unavailable</Tag>
-      )}
       {isOwner && thing.pending_questions > 0 && (
         <Tag theme={TAG_THEMES.pending}>Pending questions</Tag>
       )}

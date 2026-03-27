@@ -12,14 +12,10 @@ class Thing(models.Model):
     """
     An item in a collection (gift, sale, order, rent, lend, or share).
 
-    Visibility (available):
-    - True: Visible to owner AND all collection invites
-    - False: Visible ONLY to owner (hidden from invites)
-
     Reservation status (status):
-    - ACTIVE: Available for reservation
-    - TAKEN: Awaiting owner confirmation (not available for new requests)
-    - INACTIVE: No longer available (completed or disabled)
+    - ACTIVE: Visible to all invited users, available for reservation
+    - TAKEN: Visible to guests, awaiting owner confirmation (not available for new requests)
+    - INACTIVE: Hidden from guests, not available for reservation
     """
 
     TYPE_CHOICES = [
@@ -78,7 +74,6 @@ class Thing(models.Model):
         related_name="deals",
         db_table="thing_deals",
     )
-    available = models.BooleanField(default=True)
 
     class Meta:
         app_label = "core"
@@ -92,27 +87,22 @@ class Thing(models.Model):
         return self.owner_id == user_code
 
     def reserve(self, user_code):
-        """Reserve this thing for a user."""
+        """Add a user to the deal M2M (tracks who has reserved)."""
         from core.models import User
 
         try:
             user = User.objects.get(code=user_code)
             self.deal.add(user)
-            self.available = False
-            self.save(update_fields=["available"])
         except User.DoesNotExist:
             pass
 
     def release(self, user_code):
-        """Release a user's reservation."""
+        """Remove a user from the deal M2M."""
         from core.models import User
 
         try:
             user = User.objects.get(code=user_code)
             self.deal.remove(user)
-            if not self.deal.exists():
-                self.available = True
-            self.save(update_fields=["available"])
         except User.DoesNotExist:
             pass
 
@@ -122,20 +112,22 @@ class Thing(models.Model):
 
         Visibility rules:
         - Owner can always view their own things
-        - Invited users can only view if available=True
+        - Invited users can only view ACTIVE or TAKEN things (not INACTIVE)
 
         Args:
             user_code: The user_code to check
 
         Returns:
-            True if user is owner, or is invited and thing is available
+            True if user is owner, or is invited and thing is not INACTIVE
         """
         if self.is_owner(user_code):
             return True
 
-        # If thing is not available, only owner can see it
-        if not self.available:
+        # INACTIVE things are only visible to the owner
+        if self.status == "INACTIVE":
             return False
 
-        # Check if thing is in any collection where user is invited
-        return self.collections.filter(invites__code=user_code).exists()
+        # Check if thing is in any active collection where user is invited
+        return self.collections.filter(
+            invites__code=user_code, status="ACTIVE"
+        ).exists()

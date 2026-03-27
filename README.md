@@ -77,7 +77,7 @@ core/
 |-------|---------|
 | **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords |
 | **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme` |
-| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING. `available` controls visibility, `status` controls reservation state (ACTIVE/TAKEN/INACTIVE) |
+| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE) |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 hex colours) for customising collections |
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |

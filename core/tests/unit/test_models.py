@@ -369,10 +369,9 @@ class TestThingModel:
         assert len(thing.code) == 6
         assert thing.type == "GIFT_THING"
         assert thing.status == "ACTIVE"
-        assert thing.available is True
 
     def test_reserve(self):
-        """Should reserve thing for user."""
+        """Should add user to deal M2M."""
         user = self._create_user()
         User.objects.create(code="USR001", email="usr001@example.com")
         thing = Thing.objects.create(
@@ -381,21 +380,18 @@ class TestThingModel:
         )
         thing.reserve("USR001")
         assert thing.deal.filter(code="USR001").exists()
-        assert thing.available is False
 
     def test_release(self):
-        """Should release reservation."""
+        """Should remove user from deal M2M."""
         user = self._create_user()
         reserver = User.objects.create(code="USR001", email="usr001@example.com")
         thing = Thing.objects.create(
             owner=user,
             headline="My Thing",
-            available=False,
         )
         thing.deal.add(reserver)
         thing.release("USR001")
         assert not thing.deal.filter(code="USR001").exists()
-        assert thing.available is True
 
 
 @pytest.mark.django_db
@@ -689,14 +685,13 @@ class TestThingModelEdgeCases:
         thing = Thing.objects.create(owner=user, headline="My Thing")
         thing.reserve("NOCODE")
         assert thing.deal.count() == 0
-        assert thing.available is True
 
     def test_release_nonexistent_user(self):
         """Releasing nonexistent user should silently pass."""
         user = self._create_user()
-        thing = Thing.objects.create(owner=user, headline="My Thing", available=False)
+        thing = Thing.objects.create(owner=user, headline="My Thing")
         thing.release("NOCODE")
-        assert thing.available is False
+        assert thing.deal.count() == 0
 
 
 @pytest.mark.django_db

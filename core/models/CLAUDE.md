@@ -300,23 +300,21 @@ The `Thing` model represents an item in a collection.
 | `location` | CharField(32) | No | Free-text location. Only for GIFT/SELL/LEND/SHARE types. |
 | `condition` | CharField(12) | No | Condition: NEW, GOOD, FAIR, USED, WELL_USED, ALMOST_JUNK. Only for GIFT/SELL/LEND/SHARE types. |
 | `deal` | ManyToManyField(User) | No | Users who have reserved |
-| `available` | BooleanField | No | Visibility flag (default: True) |
 
-### Visibility vs Reservation Status
+### Status
 
-| Field | Purpose | Values |
-|-------|---------|--------|
-| `available` | **Visibility control** | `True` = visible to owner + invites, `False` = visible only to owner |
-| `status` | **Reservation state** | `ACTIVE` = can be reserved, `TAKEN` = pending confirmation, `INACTIVE` = no longer available |
-
-These fields are **independent**.
+| Value | Visibility | Reservation |
+|-------|-----------|-------------|
+| `ACTIVE` | Visible to owner + invited users | Available for new requests |
+| `TAKEN` | Visible to owner + invited users | Pending confirmation, no new requests |
+| `INACTIVE` | Visible to owner only | Not available for reservation |
 
 ### Methods
 
 - `is_owner(user_code)` - Check if user is the owner (`self.owner_id == user_code`)
-- `can_view(user_code)` - Check if user can view. Returns `False` if `self.available` is `False` (unless user is owner). Uses efficient query: `self.collections.filter(invites__code=user_code).exists()`
-- `reserve(user_code)` - Add user to `deal` M2M and set `available=False`. Does NOT change `status` (status is managed by the booking service)
-- `release(user_code)` - Remove user from `deal` M2M. Only restores `available=True` if no deals remain (`if not self.deal.exists()`)
+- `can_view(user_code)` - Check if user can view. Returns `False` if status is `INACTIVE` (unless user is owner) or if the collection is INACTIVE. Uses query: `self.collections.filter(invites__code=user_code, status='ACTIVE').exists()`
+- `reserve(user_code)` - Add user to `deal` M2M. Does NOT change `status` (status is managed by the booking service)
+- `release(user_code)` - Remove user from `deal` M2M.
 
 ### Reverse Relations
 

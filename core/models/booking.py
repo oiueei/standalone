@@ -18,7 +18,7 @@ from core.utils import generate_id
 # Thing types that require dates for booking
 DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "SHARE_THING"]
 
-# Thing types where the thing becomes unavailable after acceptance
+# Thing types where the thing becomes INACTIVE after acceptance
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]
 
 # Thing types that can be ordered repeatedly (always available)
@@ -34,7 +34,7 @@ class BookingPeriod(models.Model):
     For LEND/RENT/SHARE: start_date and end_date required
 
     The thing_type field determines behavior on acceptance:
-    - GIFT/SELL: thing.status -> INACTIVE, thing.available -> False
+    - GIFT/SELL: thing.status -> INACTIVE
     - ORDER: thing stays ACTIVE (can be ordered again)
     - LEND/RENT/SHARE: thing stays ACTIVE (date-based availability)
     """

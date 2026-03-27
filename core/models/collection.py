@@ -102,5 +102,12 @@ class Collection(models.Model):
         return self.invites.filter(code=user_code).exists()
 
     def can_view(self, user_code):
-        """Check if the given user can view this collection."""
-        return self.is_owner(user_code) or self.is_invited(user_code)
+        """Check if the given user can view this collection.
+
+        Inactive collections are only visible to their owner.
+        """
+        if self.is_owner(user_code):
+            return True
+        if self.status == "INACTIVE":
+            return False
+        return self.is_invited(user_code)

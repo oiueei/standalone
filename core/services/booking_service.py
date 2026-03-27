@@ -30,15 +30,14 @@ def accept_booking(booking):
     """Accept a booking and update the Thing if it's single-use.
 
     Wrapped in transaction.atomic with select_for_update to prevent race
-    conditions when updating both BookingPeriod status and Thing status/availability.
+    conditions when updating both BookingPeriod status and Thing status.
     """
     with transaction.atomic():
         booking.accept()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
         if booking.thing_type in SINGLE_USE_TYPES:
             thing.status = "INACTIVE"
-            thing.available = False
-            thing.save(update_fields=["status", "available"])
+            thing.save(update_fields=["status"])
             thing.deal.add(booking.requester_code)
     return thing
 

@@ -15,10 +15,9 @@ export default function EditCollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
-  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit collection — OIUEEI'; }, [headline]);
-
   const [loading, setLoading] = useState(true);
   const [headline, setHeadline] = useState('');
+  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit collection — OIUEEI'; }, [headline]);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [status, setStatus] = useState('ACTIVE');

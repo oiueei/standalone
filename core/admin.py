@@ -36,7 +36,7 @@ class ThingAdmin(admin.ModelAdmin):
         "status",
     ]
     search_fields = ["code", "headline"]
-    list_filter = ["type", "status", "available"]
+    list_filter = ["type", "status"]
 
 
 @admin.register(FAQ)

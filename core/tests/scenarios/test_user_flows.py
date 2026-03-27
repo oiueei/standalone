@@ -207,7 +207,6 @@ class TestShareCollectionFlow:
         # Step 8: Verify thing is now INACTIVE and friend is in deal
         thing.refresh_from_db()
         assert thing.status == "INACTIVE"
-        assert thing.available is False
         assert thing.deal.filter(code=friend.code).exists()
 
 
@@ -478,6 +477,6 @@ class TestCompleteUserJourney:
         response = client.get(f"/api/v1/things/{thing_codes[2]}/")
         assert charlie.code in response.data["deal"]
 
-        # Blanket still available
+        # Blanket still active (date-based things remain ACTIVE after booking)
         response = client.get(f"/api/v1/things/{thing_codes[1]}/")
-        assert response.data["available"] is True
+        assert response.data["status"] == "ACTIVE"

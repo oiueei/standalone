@@ -150,17 +150,17 @@ export default function UserPage() {
             <div className="spacer-m" />
             {myCollections === null ? (
               <p className="text-muted">Loading collections...</p>
-            ) : myCollections.length === 0 ? (
-              <p>You have no collections yet. <Link to="/collections/new">Create your first collection</Link> to get started.</p>
+            ) : myCollections.filter((c) => c.status === 'ACTIVE').length === 0 ? (
+              <p>You have no active collections yet. <Link to="/collections/new">Create your first collection</Link> to get started.</p>
             ) : (
               <div className="collections-grid">
-                {myCollections.map((c) => (
+                {myCollections.filter((c) => c.status === 'ACTIVE').map((c) => (
                   <Linkbox
                     key={c.code}
                     href={`/collections/${c.code}`}
                     onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
                     heading={c.headline}
-                    text={`${c.status} · ${c.things.length} things · ${c.invites.length} guests`}
+                    text={`${c.things.length} things · ${c.invites.length} guests`}
                     linkAriaLabel={`View ${c.headline}`}
                     linkboxAriaLabel={c.headline}
                     border
@@ -168,6 +168,29 @@ export default function UserPage() {
                   />
                 ))}
               </div>
+            )}
+
+            {myCollections !== null && myCollections.filter((c) => c.status === 'INACTIVE').length > 0 && (
+              <>
+                <div className="spacer-xl" />
+                <h2>Inactive collections</h2>
+                <div className="spacer-m" />
+                <div className="collections-grid">
+                  {myCollections.filter((c) => c.status === 'INACTIVE').map((c) => (
+                    <Linkbox
+                      key={c.code}
+                      href={`/collections/${c.code}`}
+                      onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
+                      heading={c.headline}
+                      text={`${c.things.length} things · ${c.invites.length} guests`}
+                      linkAriaLabel={`View ${c.headline}`}
+                      linkboxAriaLabel={c.headline}
+                      border
+                      size="small"
+                    />
+                  ))}
+                </div>
+              </>
             )}
 
             <div className="spacer-xl" />
@@ -185,7 +208,7 @@ export default function UserPage() {
                     href={`/collections/${c.code}`}
                     onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
                     heading={c.headline}
-                    text={`${c.status} · ${c.things.length} things · ${c.invites.length} guests`}
+                    text={`${c.things.length} things · ${c.invites.length} guests`}
                     linkAriaLabel={`View ${c.headline}`}
                     linkboxAriaLabel={c.headline}
                     border

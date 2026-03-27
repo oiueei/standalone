@@ -38,8 +38,9 @@ export default function LoginPage() {
     }
   };
 
+  const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white' };
   const tc = (() => {
-    try { return JSON.parse(localStorage.getItem('theeemeColors')) || {}; } catch { return {}; }
+    try { return JSON.parse(localStorage.getItem('theeemeColors')) || DEFAULT_COLORS; } catch { return DEFAULT_COLORS; }
   })();
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,

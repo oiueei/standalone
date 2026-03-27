@@ -321,7 +321,7 @@ class InvitedCollectionsView(APIView):
 
     def get(self, request):
         invited_collections = _optimise_collection_queryset(
-            request.user.invited_to_collections.all()
+            request.user.invited_to_collections.filter(status="ACTIVE")
         )
         serializer = CollectionSerializer(
             invited_collections, many=True, context={"request": request}

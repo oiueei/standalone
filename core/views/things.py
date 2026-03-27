@@ -5,6 +5,7 @@ Thing views for OIUEEI.
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -54,7 +55,7 @@ class ThingViewSet(ModelViewSet):
         return ThingSerializer
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy"):
+        if self.action in ("update", "partial_update", "destroy", "activate", "hide"):
             return [IsAuthenticated(), IsThingOwner()]
         return [IsAuthenticated()]
 
@@ -107,6 +108,25 @@ class ThingViewSet(ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @action(detail=True, methods=["post"], url_path="activate")
+    def activate(self, request, code=None):
+        thing = self.get_object()
+        if thing.status != "INACTIVE":
+            return Response({"error": "Thing is not inactive."}, status=status.HTTP_400_BAD_REQUEST)
+        thing.status = "ACTIVE"
+        thing.save(update_fields=["status"])
+        thing.deal.clear()
+        return Response(ThingSerializer(thing).data)
+
+    @action(detail=True, methods=["post"], url_path="hide")
+    def hide(self, request, code=None):
+        thing = self.get_object()
+        if thing.status != "ACTIVE":
+            return Response({"error": "Only active things can be hidden."}, status=status.HTTP_400_BAD_REQUEST)
+        thing.status = "INACTIVE"
+        thing.save(update_fields=["status"])
+        return Response(ThingSerializer(thing).data)
+
 
 class InvitedThingsView(ListAPIView):
     """
@@ -120,7 +140,10 @@ class InvitedThingsView(ListAPIView):
 
     def get_queryset(self):
         return (
-            Thing.objects.filter(collections__invites=self.request.user, available=True)
+            Thing.objects.filter(
+                collections__invites=self.request.user,
+                collections__status="ACTIVE",
+            ).exclude(status="INACTIVE")
             .select_related("owner")
             .prefetch_related(
                 "collections",
