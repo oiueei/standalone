@@ -1,0 +1,11 @@
+{
+  "name": "oiueei",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "heroku-postbuild": "cd frontend && yarn install && yarn build"
+  }
+}

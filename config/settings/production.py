@@ -50,6 +50,9 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@oiueei.com")
 
 # Static files with WhiteNoise
+# React build output (frontend/dist/) is included so collectstatic picks it up
+STATICFILES_DIRS = [BASE_DIR / "frontend" / "dist"]  # noqa: F405
+
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
 
 # Security headers (CSP + Permissions-Policy)
