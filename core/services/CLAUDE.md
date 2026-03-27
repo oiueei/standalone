@@ -15,7 +15,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 | Function | Input | Behaviour |
 |----------|-------|-----------|
 | `cancel_booking(booking)` | `BookingPeriod` instance | Calls `booking.cancel()`. For single-use types (GIFT, SELL), restores thing to `ACTIVE`. Returns thing. |
-| `accept_booking(booking)` | `BookingPeriod` instance | Calls `booking.accept()`. For single-use types, sets thing to `INACTIVE` + `available=False` and adds requester to `deal` M2M. Returns thing. |
+| `accept_booking(booking)` | `BookingPeriod` instance | Calls `booking.accept()`. For single-use types, sets thing to `INACTIVE` and adds requester to `deal` M2M. Returns thing. |
 | `reject_booking(booking)` | `BookingPeriod` instance | Calls `booking.reject()`. For single-use types, restores thing to `ACTIVE`. Returns thing. |
 
 #### Patterns
@@ -36,6 +36,7 @@ All outbound emails are composed and sent from this module. Views call these fun
 |----------|---------|-----------|
 | `send_magic_link_email(email, magic_link)` | User requests login | The user |
 | `send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link)` | Guest submits a hold request | Thing owner |
+| `send_booking_confirmation_email(requester, thing, booking)` | Guest submits a hold request | Requester (confirmation of what was requested) |
 | `send_booking_decision_email(booking, thing, accepted)` | Owner accepts or rejects a booking | Requester |
 | `send_collection_invite_email(inviter_name, collection_headline, email, accept_link, reject_link)` | Owner invites a user to a collection | Invitee |
 | `send_invite_rejected_email(invitee_name, collection_headline, owner_email)` | Invitee declines a collection invitation | Collection owner |

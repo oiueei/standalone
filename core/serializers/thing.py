@@ -20,6 +20,7 @@ class ThingSerializer(serializers.ModelSerializer):
     faqs = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
     pending_booking = serializers.SerializerMethodField()
+    my_pending_booking = serializers.SerializerMethodField()
     pending_questions = serializers.SerializerMethodField()
     collection_code = serializers.SerializerMethodField()
     collection_headline = serializers.SerializerMethodField()
@@ -45,8 +46,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "location",
             "condition",
             "deal",
-            "available",
             "pending_booking",
+            "my_pending_booking",
             "pending_questions",
             "collection_code",
             "collection_headline",
@@ -75,6 +76,17 @@ class ThingSerializer(serializers.ModelSerializer):
             return bookings[0].code if bookings else None
         booking = BookingPeriod.objects.filter(
             thing_code=obj,
+            status="PENDING",
+        ).first()
+        return booking.code if booking else None
+
+    def get_my_pending_booking(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        booking = BookingPeriod.objects.filter(
+            thing_code=obj,
+            requester_code=request.user,
             status="PENDING",
         ).first()
         return booking.code if booking else None
@@ -155,6 +167,5 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "available",
         ]
         read_only_fields = ["status"]

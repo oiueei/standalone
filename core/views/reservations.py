@@ -19,7 +19,7 @@ from rest_framework.views import APIView
 from core.models import RSVP, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
 from core.serializers.booking import ThingOrderSerializer, ThingRequestWithDatesSerializer
-from core.services.email_service import send_booking_request_email
+from core.services.email_service import send_booking_confirmation_email, send_booking_request_email
 
 
 class ThingRequestView(APIView):
@@ -213,3 +213,4 @@ class ThingRequestView(APIView):
         reject_link = f"{base_url}/{rsvp_reject.code}"
 
         send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link)
+        send_booking_confirmation_email(requester, thing, booking)

@@ -627,6 +627,37 @@ class TestThingViews:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "Cannot request your own thing"
 
+    def test_my_pending_booking_field(self, user, user2, thing, collection):
+        """my_pending_booking should return own PENDING booking code, null for others."""
+        from core.models.booking import BookingPeriod
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        collection.add_invite(user2.code)
+
+        # Create a PENDING booking for user2
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+        )
+
+        # Requester sees their own booking code
+        client2 = APIClient()
+        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+        response = client2.get(f"/api/v1/things/{thing.code}/")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["my_pending_booking"] == booking.code
+
+        # Owner sees null (it's not their booking request)
+        owner_client = APIClient()
+        owner_client.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user).access_token}")
+        response = owner_client.get(f"/api/v1/things/{thing.code}/")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["my_pending_booking"] is None
+
 
 @pytest.mark.django_db
 class TestFAQViews:
@@ -1075,7 +1106,6 @@ class TestReservationViews:
         thing.refresh_from_db()
         booking.refresh_from_db()
         assert thing.status == "INACTIVE"
-        assert thing.available is False
         assert thing.deal.filter(code=user2.code).exists()
         assert booking.status == "ACCEPTED"
 
@@ -1171,12 +1201,13 @@ class TestReservationViews:
 
 
 @pytest.mark.django_db
-class TestThingAvailabilityVisibility:
-    """Tests for available visibility rules.
+class TestThingStatusVisibility:
+    """Tests for thing status visibility rules.
 
-    available controls visibility:
-    - True: Visible to owner AND all invites
-    - False: Visible ONLY to owner (hidden from invites)
+    Status controls visibility:
+    - ACTIVE: Visible to owner AND invited users, available for reservation
+    - TAKEN: Visible to owner AND invited users, not available for new reservation
+    - INACTIVE: Visible ONLY to owner (hidden from guests)
     """
 
     def _get_client_for_user(self, user):
@@ -1189,98 +1220,85 @@ class TestThingAvailabilityVisibility:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
         return client
 
-    def test_hidden_thing_visible_to_owner(self, authenticated_client, thing):
-        """Owner can view their thing even when available=False."""
-        thing.available = False
+    def test_inactive_thing_visible_to_owner(self, authenticated_client, thing):
+        """Owner can view their thing even when INACTIVE."""
+        thing.status = "INACTIVE"
         thing.save()
 
         response = authenticated_client.get(f"/api/v1/things/{thing.code}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code"] == thing.code
 
-    def test_hidden_thing_not_visible_to_invited_user(self, user, user2, thing, collection):
-        """Invited user cannot view thing when available=False."""
-        # Invite user2 to collection
+    def test_inactive_thing_not_visible_to_invited_user(self, user, user2, thing, collection):
+        """Invited user cannot view INACTIVE things."""
         collection.add_invite(user2.code)
 
-        # Hide the thing
-        thing.available = False
+        thing.status = "INACTIVE"
         thing.save()
 
         client2 = self._get_client_for_user(user2)
         response = client2.get(f"/api/v1/things/{thing.code}/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_visible_thing_visible_to_invited_user(self, user, user2, thing, collection):
-        """Invited user can view thing when available=True."""
-        # Invite user2 to collection
+    def test_active_thing_visible_to_invited_user(self, user, user2, thing, collection):
+        """Invited user can view ACTIVE things."""
         collection.add_invite(user2.code)
-
-        # Ensure thing is visible
-        thing.available = True
-        thing.save()
 
         client2 = self._get_client_for_user(user2)
         response = client2.get(f"/api/v1/things/{thing.code}/")
         assert response.status_code == status.HTTP_200_OK
 
-    def test_invited_things_excludes_hidden(self, user, user2, thing, collection):
-        """Invited things endpoint should exclude hidden things."""
+    def test_invited_things_excludes_inactive(self, user, user2, thing, collection):
+        """Invited things endpoint should exclude INACTIVE things."""
         from core.models import Thing
 
-        # Invite user2 to collection
         collection.add_invite(user2.code)
 
-        # Create a second thing that is hidden
-        hidden_thing = Thing.objects.create(
-            code="HIDDN1",
+        inactive_thing = Thing.objects.create(
+            code="INACT1",
             type="GIFT_THING",
             owner=user,
-            headline="Hidden Thing",
-            available=False,
+            headline="Inactive Thing",
+            status="INACTIVE",
         )
-        collection.add_thing(hidden_thing.code)
+        collection.add_thing(inactive_thing.code)
 
         client2 = self._get_client_for_user(user2)
         response = client2.get("/api/v1/invited-things/")
         assert response.status_code == status.HTTP_200_OK
 
-        # Should only see the visible thing, not the hidden one
         thing_codes = [t["code"] for t in response.data["results"]]
         assert thing.code in thing_codes
-        assert hidden_thing.code not in thing_codes
+        assert inactive_thing.code not in thing_codes
 
-    def test_owner_sees_all_things_in_own_list(self, authenticated_client, user, collection):
-        """Owner's thing list includes hidden things."""
+    def test_owner_sees_all_things_including_inactive(self, authenticated_client, user, collection):
+        """Owner's thing list includes INACTIVE things."""
         from core.models import Thing
 
-        # Create hidden thing
-        hidden_thing = Thing.objects.create(
-            code="HIDDN2",
+        inactive_thing = Thing.objects.create(
+            code="INACT2",
             type="GIFT_THING",
             owner=user,
-            headline="Owner Hidden Thing",
-            available=False,
+            headline="Owner Inactive Thing",
+            status="INACTIVE",
         )
 
         response = authenticated_client.get("/api/v1/things/")
         assert response.status_code == status.HTTP_200_OK
 
-        # Owner should see all their things including hidden
         thing_codes = [t["code"] for t in response.data["results"]]
-        assert hidden_thing.code in thing_codes
+        assert inactive_thing.code in thing_codes
 
-    def test_can_view_method_respects_thing_available(self, user, user2, thing, collection):
-        """Thing.can_view() respects available flag."""
+    def test_can_view_method_respects_thing_status(self, user, user2, thing, collection):
+        """Thing.can_view() respects status field."""
         collection.add_invite(user2.code)
 
-        # When visible, invited user can view
-        thing.available = True
-        thing.save()
+        # ACTIVE: invited user can view
+        assert thing.status == "ACTIVE"
         assert thing.can_view(user2.code) is True
 
-        # When hidden, invited user cannot view
-        thing.available = False
+        # INACTIVE: invited user cannot view
+        thing.status = "INACTIVE"
         thing.save()
         assert thing.can_view(user2.code) is False
 

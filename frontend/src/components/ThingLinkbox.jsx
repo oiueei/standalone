@@ -9,7 +9,7 @@ import placeholderS from '../assets/image-s.png';
 import placeholderM from '../assets/image-m.png';
 import placeholderL from '../assets/image-l.png';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionInactive, onDelete, onRemoveFromCollection, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, onDelete, onRemoveFromCollection, onUpdateThing }) {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [requested, setRequested] = useState(false);
@@ -63,7 +63,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       });
       if (res.ok) {
         setRequested(true);
-        setToast({ type: 'success', message: 'Request sent.' });
+        setToast({ type: 'success', message: 'Hold requested — you\'ll hear back soon.' });
       } else if (res.status === 400) {
         const data = await res.json();
         setToast({ type: 'error', message: data.detail || 'Invalid request.' });
@@ -74,6 +74,32 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleHide = async () => {
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/hide/`, { method: 'POST' });
+      if (res.ok) {
+        onUpdateThing(thing.code, { status: 'INACTIVE' });
+      } else {
+        setToast({ type: 'error', message: 'Error hiding thing.' });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Connection error.' });
+    }
+  };
+
+  const handleActivate = async () => {
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/activate/`, { method: 'POST' });
+      if (res.ok) {
+        onUpdateThing(thing.code, { status: 'ACTIVE', deal: [] });
+      } else {
+        setToast({ type: 'error', message: 'Error reactivating thing.' });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Connection error.' });
     }
   };
 
@@ -116,12 +142,19 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     }
   };
 
-  const showButton = !isOwner && thing.status !== 'INACTIVE' && !collectionInactive;
+  const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
   const editPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}/edit`
     : `/things/${thing.code}/edit`;
+
+  const deletePath = collectionCode
+    ? `/collections/${collectionCode}/things/${thing.code}/delete`
+    : `/things/${thing.code}/delete`;
+
+  const deleteBackPath = collectionCode ? `/collections/${collectionCode}` : '/';
+  const deleteBackLabel = collectionCode ? (collectionHeadline || 'Collection') : 'Home';
 
   const thingPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}`
@@ -199,41 +232,46 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           </ul>
         )}
         <div className="thing-card-buttons">
-          {isOwner && (
-            <Link to={editPath} style={{ display: 'contents' }}>
-              <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
-            </Link>
+          {isOwner && thing.status === 'ACTIVE' && (
+            <>
+              <Link to={editPath} style={{ display: 'contents' }}>
+                <Button fullWidth style={btnStyle}>Edit</Button>
+              </Link>
+              <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
+                Hide
+              </Button>
+            </>
           )}
-          {isOwner && thing.pending_booking && (
+          {isOwner && thing.status === 'TAKEN' && (
             <>
               <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
                 Confirm hold
               </Button>
+              <Link to={editPath} style={{ display: 'contents' }}>
+                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
+              </Link>
               <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
                 Cancel hold
               </Button>
             </>
           )}
-          {isOwner && collectionCode && onRemoveFromCollection && (
-            <Button
-              variant="secondary"
-              fullWidth
-              style={btnSecondaryStyle}
-              onClick={async () => {
-                try {
-                  const res = await apiFetch(`/api/v1/collections/${collectionCode}/remove-thing/`, {
-                    method: 'POST',
-                    body: JSON.stringify({ thing_code: thing.code }),
-                  });
-                  if (res.ok) onRemoveFromCollection(thing.code);
-                  else setToast({ type: 'error', message: 'Error removing thing.' });
-                } catch {
-                  setToast({ type: 'error', message: 'Connection error.' });
-                }
-              }}
-            >
-              Remove from collection
-            </Button>
+          {isOwner && thing.status === 'INACTIVE' && (
+            <>
+              <Button fullWidth onClick={handleActivate} style={btnStyle}>
+                Reactivate
+              </Button>
+              <Link to={editPath} style={{ display: 'contents' }}>
+                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
+              </Link>
+              <Button
+                variant="secondary"
+                fullWidth
+                style={btnSecondaryStyle}
+                onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}
+              >
+                Delete
+              </Button>
+            </>
           )}
           {showButton && (
             <Button
@@ -242,7 +280,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               style={btnStyle}
               onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
             >
-              {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
+              {submitting ? 'Sending...' : (requested || thing.my_pending_booking) ? 'Waiting for confirmation' : thing.status === 'TAKEN' ? 'Reserved' : 'Hold'}
             </Button>
           )}
         </div>

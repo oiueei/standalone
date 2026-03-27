@@ -190,6 +190,65 @@ def send_collection_revoke_email(owner_name, collection_headline, email):
     )
 
 
+def send_booking_confirmation_email(requester, thing, booking):
+    """Send booking confirmation email to the requester."""
+    from django.conf import settings
+
+    safe_headline = escape(thing.headline)
+    owner_name = thing.owner.name or thing.owner.email
+    safe_owner = escape(owner_name)
+
+    base_url = settings.MAGIC_LINK_BASE_URL.rsplit("/", 1)[0]
+    collection = thing.collections.first()
+    if collection:
+        thing_url = f"{base_url}/collections/{collection.code}/things/{thing.code}"
+    else:
+        thing_url = f"{base_url}/things/{thing.code}"
+    safe_collection = escape(collection.headline) if collection else None
+
+    if booking.start_date and booking.end_date:
+        safe_start = escape(str(booking.start_date))
+        safe_end = escape(str(booking.end_date))
+        message = (
+            f"You've put a hold on '{thing.headline}' from {booking.start_date} to {booking.end_date}. "
+            f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
+        )
+        html_extra = f"<p>Dates: {safe_start} — {safe_end}</p>"
+    elif booking.delivery_date:
+        safe_quantity = escape(str(booking.quantity))
+        safe_delivery = escape(str(booking.delivery_date))
+        message = (
+            f"You've requested {booking.quantity}x '{thing.headline}' for {booking.delivery_date}. "
+            f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
+        )
+        html_extra = f"<p>Quantity: {safe_quantity}</p><p>Delivery: {safe_delivery}</p>"
+    else:
+        message = (
+            f"You've put a hold on '{thing.headline}'. "
+            f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
+        )
+        html_extra = ""
+
+    collection_line = f"<p>Part of: <strong>{safe_collection}</strong></p>" if safe_collection else ""
+
+    send_mail(
+        subject="Hold request sent",
+        message=message,
+        from_email=None,
+        recipient_list=[requester.email],
+        html_message=f"""
+            <html>
+            <p>You've put a hold on:</p>
+            <p><strong>{safe_headline}</strong></p>
+            {collection_line}
+            {html_extra}
+            <p>We've let <strong>{safe_owner}</strong> know — they'll get back to you soon.</p>
+            <p><a href="{thing_url}">View thing</a></p>
+            </html>
+            """,
+    )
+
+
 def send_faq_question_email(questioner_name, thing, question, owner_email):
     """Send FAQ question notification email to thing owner."""
     from django.conf import settings

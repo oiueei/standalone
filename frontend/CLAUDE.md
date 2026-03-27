@@ -26,6 +26,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/things/:thingCode/edit` | `EditThingPage` | Edit a thing (standalone) |
 | `/collections/:code/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (collection context) |
 | `/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (standalone) |
+| `/collections/:code/things/:thingCode/delete` | `DeleteThingPage` | Confirm and delete a thing (collection context) |
+| `/things/:thingCode/delete` | `DeleteThingPage` | Confirm and delete a thing (standalone) |
+| `/collections/:code/invites/remove` | `RemoveGuestPage` | Confirm and remove a guest from a collection |
 | `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
@@ -63,7 +66,7 @@ form-page
 
 All buttons across the app use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
 
-Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCollectionPage, EditProfilePage, ManageInvitesPage, MyBookingsPage, EditThingPage, ThingPage, WelcomePage, RequestThingPage, UserPage.
+Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCollectionPage, EditProfilePage, ManageInvitesPage, MyBookingsPage, EditThingPage, ThingPage, WelcomePage, RequestThingPage, DeleteThingPage, RemoveGuestPage, UserPage.
 
 ---
 
@@ -100,7 +103,8 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - On 401/403: clears `userCode` and redirects to `/login`.
 - Stores `userCode`, `theeemeColors`, and `koro` in `localStorage` on successful fetch.
 - Displays greeting, "Create collection" button linking to `/collections/new`, "My profile" button linking to `/me`, and "My requests" button linking to `/my-bookings`.
-- Lists all things (own + invited) using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=768px, 1 at <=430px), sorted by creation date descending.
+- **Things section**: lists all non-inactive own and invited things using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=768px, 1 at <=430px), sorted by creation date descending.
+- **Inactive things section**: shown only to the owner, below the Things section, when at least one own inactive thing exists. Lists all own `INACTIVE` things using the same `ThingLinkbox` component (invited things are never inactive for guests).
 
 ### CollectionPage (`src/pages/CollectionPage.jsx`)
 
@@ -113,9 +117,9 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **"Add thing" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
 - **"Manage guests" button** visible only to collection owner, links to `/collections/{code}/invites`.
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
-- **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is not the owner, a `Notification` informs them "This collection is currently inactive. Reservations are paused." Hold buttons are hidden.
-- **Things grid**: responsive 3-column layout (2 columns at <=768px, 1 column at <=430px).
-- Passes `collectionHeadline` and `collectionInactive` to each `ThingLinkbox` for back navigation context and reservation gating.
+- **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is the owner, a `Notification` informs them "This collection is inactive. It is not visible to guests." Guests cannot access inactive collections (backend returns 403).
+- **Things section**: shows all non-inactive things for both owners and guests (responsive 3-column grid).
+- **Inactive things section**: shown only to the owner, below the Things section, when at least one inactive thing exists. Lists all `INACTIVE` things using the same `ThingLinkbox` component.
 
 ### ThingLinkbox (`src/components/ThingLinkbox.jsx`)
 
@@ -126,22 +130,18 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
-  - **Unavailable** tag (owner only, `available === false`): red background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
 - Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), and condition (`IconShield`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
 - **Owner bookings display** (date-based/order types only): fetches `GET /api/v1/things/{code}/calendar/` on mount. Shows future confirmed and pending bookings with requester name, date ranges, and status. The active pending booking (matching `thing.pending_booking`) is marked with `*`.
 - **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
-- **"Edit" button** (owner only): links to edit page (collection context or standalone).
-- **"Remove from collection" button** (owner only, collection context): calls `POST /api/v1/collections/{code}/remove-thing/` and notifies parent via `onRemoveFromCollection`. The thing is not deleted, only unlinked.
-- **Accept/Reject buttons** (owner only): When `thing.pending_booking` exists (PENDING booking code from serializer):
-  - "Accept" → `POST /api/v1/bookings/{code}/accept/` → updates thing locally, finds next pending booking from local state, shows success toast.
-  - "Reject" → `POST /api/v1/bookings/{code}/reject/` → updates thing locally, finds next pending booking from local state, shows success toast.
-  - Both buttons are disabled while a booking action is in progress.
-- **Reservation button** logic:
-  - Owner's own things: no button (compares `thing.owner` with `userCode`).
+- **Owner button matrix** (based on `thing.status`):
+  - `ACTIVE`: "Edit" (primary, links to edit page), "Hide" (secondary, calls `POST /api/v1/things/{code}/hide/`, sets status INACTIVE locally).
+  - `TAKEN`: "Confirm hold" (primary, calls `/accept/`), "Edit" (secondary), "Cancel hold" (secondary, calls `/reject/`). Both booking actions disabled while in progress.
+  - `INACTIVE`: "Reactivate" (primary, calls `POST /api/v1/things/{code}/activate/`), "Edit" (secondary), "Delete" (secondary, navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`).
+- **Reservation button** logic (non-owners only):
   - `ACTIVE`: enabled "Hold" button.
-  - `TAKEN`: disabled "Hold" button.
-  - `INACTIVE`: no button.
+  - `TAKEN`: disabled button. Label is "Waiting for confirmation" if `thing.my_pending_booking` (or local `requested` state) is set, otherwise "Reserved".
+  - `INACTIVE`: not shown (guests cannot see INACTIVE things).
 - **Reservation request** adapts to thing type:
   - `GIFT_THING`, `SELL_THING` — button submits directly via `POST /api/v1/things/{code}/request/`, no extra fields.
   - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button navigates to `RequestThingPage` for date selection.
@@ -155,10 +155,10 @@ Detail page for a thing with full information and FAQs section.
 - **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/faq/` (FAQs), `POST /api/v1/things/{thingCode}/faq/` (ask question), `POST /api/v1/faq/{faqCode}/answer/` (answer), `POST /api/v1/faq/{faqCode}/hide/` and `/show/` (toggle visibility)
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
 - Redirects to `/login` if no `userCode` in `localStorage`.
-- **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Unavailable, Pending questions).
+- **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Pending questions).
 - Displays thumbnail, headline, description, creation date, fee, availability, location, condition, and photo gallery (`pictures_urls`).
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
-- **Owner actions:** "Edit" button links to edit page. Accept/Reject buttons when `pending_booking` exists.
+- **Owner actions:** Same button matrix as ThingLinkbox (Edit+Hide for ACTIVE, ConfirmHold+Edit+CancelHold for TAKEN, Reactivate+Edit+Delete for INACTIVE). Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
 - **Reservation:** Non-owners see "Hold" button. GIFT/SELL types submit directly; date-based and order types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
@@ -177,7 +177,29 @@ Detail page for a thing with full information and FAQs section.
   - `ORDER_THING` — `DateInput` for delivery date + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates fetched from calendar API.
 - **Buttons**: Cancel (navigates back) + Hold (submits request).
-- On success: navigates back to collection page or thing page.
+- On success: shows an inline HDS `Notification` ("You're all set! We've let the owner know — they'll get back to you soon.") with a "Back to {backLabel}" button. Does not navigate automatically.
+- On error: toast notification (top-right, auto-close).
+
+### DeleteThingPage (`src/pages/DeleteThingPage.jsx`)
+
+- **API:** `GET /api/v1/things/{thingCode}/` (to display headline), `DELETE /api/v1/things/{thingCode}/` (to confirm delete)
+- Accessible from `/collections/:code/things/:thingCode/delete` or `/things/:thingCode/delete`.
+- Redirects to `/login` if no `userCode` in `localStorage`.
+- **Back link**: uses `location.state.backPath` and `location.state.backLabel` passed from ThingLinkbox, ThingPage, or EditThingPage.
+- **Page title**: `Delete: {thing.headline}` in the hero.
+- **Buttons**: Delete (primary, theeeme `btnStyle`) + Cancel (secondary, navigates back). No form fields.
+- On success: navigates to `backPath`.
+- On error: toast notification (top-right, auto-close).
+
+### RemoveGuestPage (`src/pages/RemoveGuestPage.jsx`)
+
+- **API:** `DELETE /api/v1/collections/{code}/invite/` with `{ user_code: guestCode }` body
+- Accessible from `/collections/:code/invites/remove`.
+- Redirects to `/login` if no `userCode` in `localStorage`. Redirects to invites page if `guestCode` state is missing.
+- **State**: receives `{ guestCode, guestName, backLabel }` from `ManageInvitesPage`.
+- **Page title**: `Remove: {guestName}` in the hero. Back link always goes to `/collections/:code/invites`.
+- **Buttons**: Remove (primary, theeeme `btnStyle`) + Cancel (secondary, navigates back).
+- On success: navigates to `/collections/:code/invites`.
 - On error: toast notification (top-right, auto-close).
 
 ### MyBookingsPage (`src/pages/MyBookingsPage.jsx`)
@@ -211,7 +233,7 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
 - Simple form with h1 title + `form-grid` layout (same fields as AddThingPage, including conditional availability/location/condition fields for `DETAIL_TYPES`).
 - Pre-populates all fields from the existing thing.
-- "Save" button (primary, full width) and "Delete" button (secondary with error color, full width) below the form. Delete has confirmation dialog.
+- "Save" button (primary, full width) and "Delete" button (secondary, full width) below the form. Delete navigates to `DeleteThingPage` with `{ state: { backPath: returnPath, backLabel: returnLabel } }`.
 - On success: navigates back to collection or home.
 
 ### EditProfilePage (`src/pages/EditProfilePage.jsx`)
@@ -231,7 +253,8 @@ Detail page for a thing with full information and FAQs section.
 - Simple page with h1 title:
   - Lists current invites by name/email. Pending invites show "Pending" label with "Resend" and "Remove" buttons. Owner sees "Remove" button per accepted invite.
   - Owner sees email input + "Invite" button below the guest list.
-- Each invite/remove/resend is an immediate API call (no final submit). Resend cleans up old RSVPs and creates fresh ones.
+- Resend is an immediate API call. Remove navigates to `RemoveGuestPage` with `{ state: { guestCode, guestName, backLabel } }`.
+- Resend cleans up old RSVPs and creates fresh ones.
 
 ### EditCollectionPage (`src/pages/EditCollectionPage.jsx`)
 
@@ -260,7 +283,7 @@ Detail page for a thing with full information and FAQs section.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors (own profile uses `theeeme_colors` from API, other profiles fall back to localStorage).
 - Hero follows the WelcomePage pattern: BackLink, spacer, headline as Heading M subtitle, name as h1 title, "Member since" date.
-- **Own profile:** shows "Edit profile" button in the hero, "My collections" and "Shared with me" sections below.
+- **Own profile:** shows "Edit profile" button in the hero, "My collections" (ACTIVE), "Inactive collections" (INACTIVE, only shown if any exist), and "Shared with me" sections below.
 - **Other profiles:** shows "Collections in common" section with shared collections (where both users are connected as owner/invite) as HDS Linkbox components.
 
 ---
@@ -289,7 +312,7 @@ Central source of truth for thing type definitions:
 - `DETAIL_TYPES` — Types with availability/location/condition fields (`GIFT_THING`, `SELL_THING`, `LEND_THING`, `SHARE_THING`).
 - `AVAILABILITY_OPTIONS` / `AVAILABILITY_LABELS` — Options and display labels for thing availability (Immediate, Next week, End of month, Next month).
 - `CONDITION_OPTIONS` / `CONDITION_LABELS` — Options and display labels for thing condition (New, Good condition, Fair, Used, Well used, Almost junk).
-- `TAG_THEMES` — Theme objects for status tags (taken, inactive, unavailable, pending).
+- `TAG_THEMES` — Theme objects for status tags (taken, inactive, pending).
 
 ---
 

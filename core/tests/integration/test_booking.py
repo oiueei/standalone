@@ -805,7 +805,6 @@ class TestSingleUseThingCompleteFlow:
         # Verify thing is now INACTIVE
         thing.refresh_from_db()
         assert thing.status == "INACTIVE"
-        assert thing.available is False
         assert thing.deal.filter(code=user2.code).exists()
 
         # Verify booking is ACCEPTED
@@ -867,7 +866,7 @@ class TestSingleUseThingCompleteFlow:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "Thing is not available for reservation"
 
-    def test_thing_available_again_after_reject(self, api_client, user, user2, thing, collection):
+    def test_thing_active_again_after_reject(self, api_client, user, user2, thing, collection):
         """After rejection, another user can request the thing."""
         from core.models import RSVP, User
 
@@ -1165,12 +1164,14 @@ class TestDateBasedThingCompleteFlow:
         assert response.status_code == status.HTTP_200_OK
         booking_code = response.data["booking_code"]
 
-        # Verify email sent to owner with dates
-        assert len(mail.outbox) == 1
+        # Verify two emails sent: request to owner + confirmation to requester
+        assert len(mail.outbox) == 2
         owner_email = mail.outbox[0]
         assert user.email in owner_email.to
         assert str(start) in owner_email.body
         assert str(end) in owner_email.body
+        confirmation_email = mail.outbox[1]
+        assert user2.email in confirmation_email.to
 
         # Step 2: Owner accepts via RSVP
         mail.outbox.clear()
@@ -1350,6 +1351,56 @@ class TestDateBasedThingCompleteFlow:
         )
 
         assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+class TestBookingConfirmationEmail:
+    """Tests for confirmation email sent to requester on booking request."""
+
+    def test_booking_request_sends_two_emails(self, user, user2, thing, collection):
+        """Both owner request email and requester confirmation email should be sent."""
+        from django.core import mail
+
+        collection.add_invite(user2.code)
+
+        client2 = get_client_for_user(user2)
+        response = client2.post(f"/api/v1/things/{thing.code}/request/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(mail.outbox) == 2
+
+        # First email goes to owner with accept/reject links
+        owner_email = mail.outbox[0]
+        assert user.email in owner_email.to
+
+        # Second email goes to requester as confirmation
+        confirmation_email = mail.outbox[1]
+        assert user2.email in confirmation_email.to
+        assert thing.headline in confirmation_email.body
+
+    def test_booking_confirmation_email_includes_thing_details(
+        self, user, user2, lend_thing, collection
+    ):
+        """Confirmation email should include thing name and dates for date-based types."""
+        from django.core import mail
+
+        collection.add_invite(user2.code)
+
+        client2 = get_client_for_user(user2)
+        start = date.today() + timedelta(days=3)
+        end = date.today() + timedelta(days=6)
+        response = client2.post(
+            f"/api/v1/things/{lend_thing.code}/request/",
+            {"start_date": str(start), "end_date": str(end)},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        confirmation_email = mail.outbox[1]
+        assert user2.email in confirmation_email.to
+        assert lend_thing.headline in confirmation_email.body
+        assert str(start) in confirmation_email.body
+        assert str(end) in confirmation_email.body
 
 
 @pytest.mark.django_db

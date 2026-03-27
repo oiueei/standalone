@@ -16,6 +16,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     owner = serializers.CharField(source="owner_id")
     thumbnail_url = serializers.SerializerMethodField()
     pending_booking = serializers.SerializerMethodField()
+    my_pending_booking = serializers.SerializerMethodField()
     pending_questions = serializers.SerializerMethodField()
 
     class Meta:
@@ -31,9 +32,9 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "available",
             "thumbnail_url",
             "pending_booking",
+            "my_pending_booking",
             "pending_questions",
             "created",
         ]
@@ -48,6 +49,17 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             return bookings[0].code if bookings else None
         booking = BookingPeriod.objects.filter(
             thing_code=obj,
+            status="PENDING",
+        ).first()
+        return booking.code if booking else None
+
+    def get_my_pending_booking(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        booking = BookingPeriod.objects.filter(
+            thing_code=obj,
+            requester_code=request.user,
             status="PENDING",
         ).first()
         return booking.code if booking else None
@@ -105,8 +117,8 @@ class CollectionSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         things = obj.things.all()
         if request and not obj.is_owner(request.user.code):
-            things = things.filter(available=True)
-        return CollectionThingSummarySerializer(things, many=True).data
+            things = things.exclude(status="INACTIVE")
+        return CollectionThingSummarySerializer(things, many=True, context=self.context).data
 
     def get_pending_invites(self, obj):
         rsvps = RSVP.objects.filter(

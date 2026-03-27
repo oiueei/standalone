@@ -114,9 +114,9 @@ export default function CollectionPage() {
         />
       </div>
       <div className="page-container">
-      {!isOwner && collection.status === 'INACTIVE' && (
+      {isOwner && collection.status === 'INACTIVE' && (
         <Notification label="Notice" type="info" style={{ marginBottom: 'var(--spacing-m)' }}>
-          This collection is currently inactive. Reservations are paused.
+          This collection is inactive. It is not visible to guests.
         </Notification>
       )}
 
@@ -140,18 +140,17 @@ export default function CollectionPage() {
 
       <h2>Things</h2>
       <div className="spacer-m" />
-      {collection.things.length === 0 ? (
+      {collection.things.filter((t) => t.status !== 'INACTIVE').length === 0 ? (
         <p>No things in this collection yet.{isOwner && <> <Link to={`/collections/${code}/add`}>Add one</Link>.</>}</p>
       ) : (
         <div className="things-grid">
-          {[...collection.things].sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
+          {[...collection.things].filter((t) => t.status !== 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
             <ThingLinkbox
               key={thing.code}
               thing={thing}
               userCode={localStorage.getItem('userCode')}
               collectionCode={code}
               collectionHeadline={collection.headline}
-              collectionInactive={collection.status === 'INACTIVE'}
               onDelete={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),
@@ -169,6 +168,39 @@ export default function CollectionPage() {
             />
           ))}
         </div>
+      )}
+
+      {isOwner && collection.things.some((t) => t.status === 'INACTIVE') && (
+        <>
+          <div className="spacer-l" />
+          <h2>Inactive things</h2>
+          <div className="spacer-m" />
+          <div className="things-grid">
+            {[...collection.things].filter((t) => t.status === 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
+              <ThingLinkbox
+                key={thing.code}
+                thing={thing}
+                userCode={localStorage.getItem('userCode')}
+                collectionCode={code}
+                collectionHeadline={collection.headline}
+                onDelete={(thingCode) => setCollection((prev) => ({
+                  ...prev,
+                  things: prev.things.filter((t) => t.code !== thingCode),
+                }))}
+                onRemoveFromCollection={(thingCode) => setCollection((prev) => ({
+                  ...prev,
+                  things: prev.things.filter((t) => t.code !== thingCode),
+                }))}
+                onUpdateThing={(thingCode, updates) => setCollection((prev) => ({
+                  ...prev,
+                  things: prev.things.map((t) =>
+                    t.code === thingCode ? { ...t, ...updates } : t
+                  ),
+                }))}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       </div>

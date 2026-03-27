@@ -6,7 +6,6 @@ import {
   TextArea,
   NumberInput,
   Button,
-  Dialog,
   Koros,
 } from 'hds-react';
 import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_OPTIONS, AVAILABILITY_LABELS, CONDITION_OPTIONS, CONDITION_LABELS } from '../constants/things';
@@ -27,10 +26,10 @@ export default function EditThingPage() {
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
-  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit thing — OIUEEI'; }, [headline]);
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
   const [headline, setHeadline] = useState('');
+  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit thing — OIUEEI'; }, [headline]);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [pictures, setPictures] = useState('');
@@ -40,8 +39,6 @@ export default function EditThingPage() {
   const [condition, setCondition] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [toast, setToast] = useState(null);
   const [thingCollectionCode, setThingCollectionCode] = useState(code || '');
   const [thingCollectionHeadline, setThingCollectionHeadline] = useState('');
@@ -132,25 +129,6 @@ export default function EditThingPage() {
       setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setDeleting(true);
-    setToast(null);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thingCode}/`, {
-        method: 'DELETE',
-      });
-      if (res.ok || res.status === 204) {
-        navigate(returnPath);
-      } else {
-        setToast({ type: 'error', message: 'Error deleting thing.' });
-      }
-    } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -263,41 +241,25 @@ export default function EditThingPage() {
         )}
       </div>
       <div className="form-actions">
-        <Button fullWidth disabled={submitting || deleting} onClick={handleSubmit} style={btnStyle}>
+        <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>
           {submitting ? 'Saving...' : 'Save'}
         </Button>
-        <Button variant="secondary" fullWidth disabled={submitting || deleting} onClick={() => setConfirmDelete(true)} style={{
+        <Button variant="secondary" fullWidth disabled={submitting} onClick={() => {
+          const deletePath = thingCollectionCode
+            ? `/collections/${thingCollectionCode}/things/${thingCode}/delete`
+            : `/things/${thingCode}/delete`;
+          navigate(deletePath, { state: { backPath: returnPath, backLabel: returnLabel } });
+        }} style={{
           '--border-color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
           '--color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
           '--background-color-hover': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
           '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
           marginTop: 'var(--spacing-s)',
         }}>
-          {deleting ? 'Deleting...' : 'Delete'}
+          Delete
         </Button>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
-      <Dialog
-        id="confirm-delete-thing"
-        aria-labelledby="confirm-delete-thing-header"
-        isOpen={confirmDelete}
-        close={() => setConfirmDelete(false)}
-        closeButtonLabelText="Cancel"
-        theme={{ '--accent-line-color': 'var(--color-error)' }}
-      >
-        <Dialog.Header id="confirm-delete-thing-header" title="Delete thing?" />
-        <Dialog.Content>
-          <p>This action cannot be undone. Are you sure you want to delete this thing?</p>
-        </Dialog.Content>
-        <Dialog.ActionButtons>
-          <Button variant="danger" onClick={() => { setConfirmDelete(false); handleDelete(); }}>
-            Delete
-          </Button>
-          <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
-            Cancel
-          </Button>
-        </Dialog.ActionButtons>
-      </Dialog>
       </div>
     </div>
   );

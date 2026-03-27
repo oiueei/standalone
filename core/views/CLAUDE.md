@@ -186,6 +186,8 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 | `update` | `PUT /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
 | `partial_update` | `PATCH /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
 | `destroy` | `DELETE /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
+| `activate` | `POST /api/v1/things/{code}/activate/` | `IsAuthenticated` + `IsThingOwner` |
+| `hide` | `POST /api/v1/things/{code}/hide/` | `IsAuthenticated` + `IsThingOwner` |
 
 **Serializers:**
 - Create: `ThingCreateSerializer`
@@ -194,9 +196,13 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 **Queryset:** Own things only (`Thing.objects.filter(owner=request.user)`), ordered by `-created`.
 
-**Retrieve:** Uses `thing.can_view(user_code)` — owner or invited to a collection containing the thing.
+**Retrieve:** Uses `thing.can_view(user_code)` — owner, or invited to an ACTIVE collection containing the thing (INACTIVE things are only visible to their owner).
 
 **Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and belongs to the user — returns 400 on invalid or non-owned collection. If valid, the thing is automatically added to it.
+
+**`activate` action:** Sets `status = 'ACTIVE'`. Returns 400 if thing is not INACTIVE.
+
+**`hide` action:** Sets `status = 'INACTIVE'` (owner hides the thing manually). Returns 400 if thing is not ACTIVE (cannot hide a TAKEN thing — cancel the hold first).
 
 ### InvitedThingsView
 
@@ -206,7 +212,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 | **Permission** | `IsAuthenticated` |
 | **Pagination** | `StandardResultsPagination` |
 
-Lists things from collections where the current user is invited. Only returns things with `available=True`. Uses `.distinct()` to avoid duplicates.
+Lists things from collections where the current user is invited. Only returns ACTIVE or TAKEN things (excludes INACTIVE). Only returns things from ACTIVE collections. Uses `.distinct()` to avoid duplicates.
 
 ---
 
@@ -238,7 +244,7 @@ Lists things from collections where the current user is invited. Only returns th
 
 **Queryset:** Own collections only, ordered by `-created`. List and retrieve actions use the module-level `_optimise_collection_queryset()` helper for `select_related`/`prefetch_related` optimisation (also reused by `InvitedCollectionsView`).
 
-**Retrieve:** Uses `collection.can_view(user_code)` — owner or in invites M2M. The `CollectionSerializer.things` field filters out unavailable things (`available=False`) for non-owners, so invited users only see things they can access.
+**Retrieve:** Uses `collection.can_view(user_code)` — owner, or invited user if collection is ACTIVE (INACTIVE collections are only visible to their owner). The `CollectionSerializer.things` field excludes INACTIVE things for non-owners.
 
 **Add thing:** Validates thing exists, belongs to user, and is not already in collection.
 
@@ -278,7 +284,7 @@ Removes a user from the collection's invite list. If the invite is still pending
 | **Endpoint** | `GET /api/v1/invited-collections/` |
 | **Permission** | `IsAuthenticated` |
 
-Lists collections where the current user is in the invites M2M. Not paginated.
+Lists ACTIVE collections where the current user is in the invites M2M. INACTIVE collections are excluded — they are only visible to their owner. Not paginated.
 
 ---
 
@@ -477,7 +483,7 @@ Creates a reservation/booking request. Routes based on thing type:
 1. Validates owner email in the parent `post()` method (shared across all type handlers).
 2. Creates `BookingPeriod` with status `PENDING`.
 3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `_send_booking_email()`.
-4. Sends booking request email to owner with accept/reject links.
+4. Sends booking request email to owner with accept/reject links, and a confirmation email to the requester ("Hold request sent").
 
 **INACTIVE collection enforcement:**
 If all collections containing the thing are INACTIVE, the request is blocked with 400 "This collection is currently inactive".
@@ -543,7 +549,7 @@ If all collections containing the thing are INACTIVE, the request is blocked wit
 
 - All views use `get_object_or_404` for consistent 404 responses.
 - `ThingViewSet` and `CollectionViewSet` use DRF `ModelViewSet` with `DefaultRouter`.
-- `ThingUpdateSerializer` has `status` as read-only to prevent direct status manipulation. `type` is editable.
+- `ThingUpdateSerializer` has `status` as read-only to prevent direct status manipulation. `type` is editable. Use `POST /api/v1/things/{code}/activate/` to set status ACTIVE (from INACTIVE), and `POST /api/v1/things/{code}/hide/` to set status INACTIVE (from ACTIVE only).
 - `ThingSerializer` and `CollectionThingSummarySerializer` include `pending_booking` (first PENDING booking code, or null) and `pending_questions` (count of unanswered FAQs).
 - Accept/reject actions can be performed via the unified RSVP endpoint (`VerifyLinkView`) for email links, or via authenticated `BookingActionView` endpoints for in-app use. Both paths reuse the same `accept_booking()`/`reject_booking()` service functions.
 - All email links use RSVP codes as intermediaries to avoid exposing real object codes in URLs.

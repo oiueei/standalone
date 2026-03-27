@@ -82,10 +82,12 @@ export default function HomePage() {
     return <LoadingSpinner />;
   }
 
-  const allThings = [
-    ...(myThings || []),
-    ...(invitedThings || []),
+  const activeThings = [
+    ...(myThings || []).filter((t) => t.status !== 'INACTIVE'),
+    ...(invitedThings || []).filter((t) => t.status !== 'INACTIVE'),
   ].sort((a, b) => new Date(b.created) - new Date(a.created));
+
+  const inactiveMyThings = [...(myThings || [])].filter((t) => t.status === 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created));
 
   const tc = user.theeeme_colors || {};
   const btnStyle = tc.color_01 ? {
@@ -137,11 +139,11 @@ export default function HomePage() {
       <div className="spacer-m" />
       {myThings === null || invitedThings === null ? (
         <p className="text-muted">Loading things...</p>
-      ) : allThings.length === 0 ? (
+      ) : activeThings.length === 0 ? (
         <p>No things yet. Add things to your collections to see them here.</p>
       ) : (
         <div className="things-grid">
-          {allThings.map((thing) => (
+          {activeThings.map((thing) => (
             <ThingLinkbox
               key={thing.code}
               thing={thing}
@@ -151,6 +153,25 @@ export default function HomePage() {
             />
           ))}
         </div>
+      )}
+
+      {inactiveMyThings.length > 0 && (
+        <>
+          <div className="spacer-l" />
+          <h2>Inactive things</h2>
+          <div className="spacer-m" />
+          <div className="things-grid">
+            {inactiveMyThings.map((thing) => (
+              <ThingLinkbox
+                key={thing.code}
+                thing={thing}
+                userCode={localStorage.getItem('userCode')}
+                onDelete={deleteThing}
+                onUpdateThing={updateThing}
+              />
+            ))}
+          </div>
+        </>
       )}
       </div>
     </div>

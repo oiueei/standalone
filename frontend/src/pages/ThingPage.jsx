@@ -111,6 +111,10 @@ export default function ThingPage() {
     ? `/collections/${code}/things/${thing.code}/request`
     : `/things/${thing.code}/request`;
 
+  const deletePath = code
+    ? `/collections/${code}/things/${thing.code}/delete`
+    : `/things/${thing.code}/delete`;
+
   const handleRequest = async () => {
     setSubmitting(true);
     setToast(null);
@@ -121,7 +125,7 @@ export default function ThingPage() {
       });
       if (res.ok) {
         setRequested(true);
-        setToast({ type: 'success', message: 'Request sent.' });
+        setToast({ type: 'success', message: 'Hold requested — you\'ll hear back soon.' });
       } else if (res.status === 400) {
         const data = await res.json();
         setToast({ type: 'error', message: data.detail || 'Invalid request.' });
@@ -132,6 +136,34 @@ export default function ThingPage() {
       setToast({ type: 'error', message: 'Connection error.' });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleHide = async () => {
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/hide/`, { method: 'POST' });
+      if (res.ok) {
+        setThing((prev) => ({ ...prev, status: 'INACTIVE' }));
+        setToast({ type: 'success', message: 'Thing hidden.' });
+      } else {
+        setToast({ type: 'error', message: 'Error hiding thing.' });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Connection error.' });
+    }
+  };
+
+  const handleActivate = async () => {
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/activate/`, { method: 'POST' });
+      if (res.ok) {
+        setThing((prev) => ({ ...prev, status: 'ACTIVE', deal: [] }));
+        setToast({ type: 'success', message: 'Thing reactivated.' });
+      } else {
+        setToast({ type: 'error', message: 'Error reactivating thing.' });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Connection error.' });
     }
   };
 
@@ -336,15 +368,18 @@ export default function ThingPage() {
         )}
 
         {/* Owner actions */}
-        {isOwner && (
+        {isOwner && thing.status === 'ACTIVE' && (
           <div className="button-row">
             <Link to={editPath} style={{ display: 'contents' }}>
               <Button style={{ ...btnStyle, width: '100%' }}>Edit</Button>
             </Link>
+            <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }} onClick={handleHide}>
+              Hide
+            </Button>
           </div>
         )}
 
-        {isOwner && thing.pending_booking && (
+        {isOwner && thing.status === 'TAKEN' && (
           <div className="button-row">
             <Button
               disabled={bookingAction}
@@ -353,6 +388,9 @@ export default function ThingPage() {
             >
               Confirm hold
             </Button>
+            <Link to={editPath} style={{ display: 'contents' }}>
+              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>Edit</Button>
+            </Link>
             <Button
               variant="secondary"
               disabled={bookingAction}
@@ -364,6 +402,24 @@ export default function ThingPage() {
           </div>
         )}
 
+        {isOwner && thing.status === 'INACTIVE' && (
+          <div className="button-row">
+            <Button style={{ ...btnStyle, width: '100%' }} onClick={handleActivate}>
+              Reactivate
+            </Button>
+            <Link to={editPath} style={{ display: 'contents' }}>
+              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>Edit</Button>
+            </Link>
+            <Button
+              variant="secondary"
+              style={{ '--border-color': 'var(--color-error)', '--color': 'var(--color-error)', width: '100%' }}
+              onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}
+            >
+              Delete
+            </Button>
+          </div>
+        )}
+
         {/* Reservation button for invited users */}
         {showButton && (
           <Button
@@ -371,7 +427,7 @@ export default function ThingPage() {
             style={{ ...btnStyle, width: '100%' }}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
-            {submitting ? 'Sending...' : requested ? 'Requested' : 'Hold'}
+            {submitting ? 'Sending...' : (requested || thing.my_pending_booking) ? 'Waiting for confirmation' : thing.status === 'TAKEN' ? 'Reserved' : 'Hold'}
           </Button>
         )}
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { TextInput, Button, Dialog, Koros } from 'hds-react';
+import { TextInput, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -24,16 +24,15 @@ export default function ManageInvitesPage() {
     '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
   } : undefined;
 
-  useEffect(() => { document.title = collectionHeadline ? `Guests — ${collectionHeadline} — OIUEEI` : 'Guests — OIUEEI'; }, [collectionHeadline]);
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
   const [collectionHeadline, setCollectionHeadline] = useState('');
+  useEffect(() => { document.title = collectionHeadline ? `Guests — ${collectionHeadline} — OIUEEI` : 'Guests — OIUEEI'; }, [collectionHeadline]);
   const [isOwner, setIsOwner] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const [confirmRemove, setConfirmRemove] = useState(null);
   const [resending, setResending] = useState(null);
 
   useEffect(() => {
@@ -62,27 +61,6 @@ export default function ManageInvitesPage() {
     };
     fetchCollection();
   }, [userCode, code, navigate]);
-
-  const handleRemove = async (userCode, isPending = false) => {
-    try {
-      const res = await apiFetch(`/api/v1/collections/${code}/invite/`, {
-        method: 'DELETE',
-        body: JSON.stringify({ user_code: userCode }),
-      });
-      if (res.ok) {
-        if (isPending) {
-          setPendingInvites((prev) => prev.filter((inv) => inv.code !== userCode));
-        } else {
-          setInvites((prev) => prev.filter((inv) => inv.code !== userCode));
-        }
-        setToast({ type: 'success', message: 'Guest removed.' });
-      } else {
-        setToast({ type: 'error', message: 'Error removing guest.' });
-      }
-    } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
-    }
-  };
 
   const handleResend = async (email) => {
     setResending(email);
@@ -161,7 +139,9 @@ export default function ManageInvitesPage() {
               {isOwner && (
                 <Button
                   variant="danger"
-                  onClick={() => setConfirmRemove({ code: invite.code, name: invite.name || invite.email, isPending: false })}
+                  onClick={() => navigate(`/collections/${code}/invites/remove`, {
+                    state: { guestCode: invite.code, guestName: invite.name || invite.email, backLabel: collectionHeadline || 'Guests' },
+                  })}
                 >
                   Remove
                 </Button>
@@ -183,7 +163,9 @@ export default function ManageInvitesPage() {
                   </Button>
                   <Button
                     variant="danger"
-                    onClick={() => setConfirmRemove({ code: pending.code, name: pending.email, isPending: true })}
+                    onClick={() => navigate(`/collections/${code}/invites/remove`, {
+                      state: { guestCode: pending.code, guestName: pending.email, backLabel: collectionHeadline || 'Guests' },
+                    })}
                   >
                     Remove
                   </Button>
@@ -216,27 +198,6 @@ export default function ManageInvitesPage() {
       )}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
-      <Dialog
-        id="confirm-remove-guest"
-        aria-labelledby="confirm-remove-guest-header"
-        isOpen={!!confirmRemove}
-        close={() => setConfirmRemove(null)}
-        closeButtonLabelText="Cancel"
-        theme={{ '--accent-line-color': 'var(--color-error)' }}
-      >
-        <Dialog.Header id="confirm-remove-guest-header" title="Remove guest?" />
-        <Dialog.Content>
-          <p>Are you sure you want to remove <strong>{confirmRemove?.name}</strong> from this collection?</p>
-        </Dialog.Content>
-        <Dialog.ActionButtons>
-          <Button variant="danger" onClick={() => { const { code: c, isPending } = confirmRemove; setConfirmRemove(null); handleRemove(c, isPending); }}>
-            Remove
-          </Button>
-          <Button variant="secondary" onClick={() => setConfirmRemove(null)}>
-            Cancel
-          </Button>
-        </Dialog.ActionButtons>
-      </Dialog>
       </div>
     </div>
   );

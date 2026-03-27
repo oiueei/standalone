@@ -270,6 +270,17 @@ div[class*="Linkbox-module_linkbox"] {
   gap: var(--spacing-m);
 }
 
+@media (max-width: 768px) {
+  .button-row-wide {
+    flex-direction: column;
+  }
+  .button-row-wide > a,
+  .button-row-wide > a button,
+  .button-row-wide > button {
+    width: 100%;
+  }
+}
+
 
 .back-link {
   display: inline-block;

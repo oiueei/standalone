@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Button, DateInput, Koros, NumberInput } from 'hds-react';
+import { Button, DateInput, Koros, Notification, NumberInput } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
@@ -36,6 +36,7 @@ export default function RequestThingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
   const [toast, setToast] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (!userCode) return;
@@ -94,7 +95,7 @@ export default function RequestThingPage() {
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        navigate(backPath);
+        setSuccess(true);
       } else if (res.status === 400) {
         const data = await res.json();
         let message = data.detail;
@@ -158,6 +159,18 @@ export default function RequestThingPage() {
         />
       </div>
       <div className="page-container">
+      {success ? (
+        <>
+          <Notification label="You're all set!" type="success">
+            We've let the owner know — they'll get back to you soon.
+          </Notification>
+          <div className="spacer-m" />
+          <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
+            Back to {backLabel}
+          </Button>
+        </>
+      ) : (
+      <>
       {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
       <div className="spacer-m" />      {isDateBased && (
         <div className="summary-grid section-mt">
@@ -236,6 +249,8 @@ export default function RequestThingPage() {
       </div>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
+      </>
+      )}
       </div>
     </div>
   );
