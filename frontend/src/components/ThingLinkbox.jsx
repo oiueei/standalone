@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, TYPE_LABELS, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
@@ -15,6 +15,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const [requested, setRequested] = useState(false);
   const [toast, setToast] = useState(null);
   const [bookingAction, setBookingAction] = useState(false);
+  const [activePendingCode, setActivePendingCode] = useState(thing.pending_booking);
 
   const isOwner = thing.owner === userCode;
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
@@ -37,21 +38,24 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    if (!isOwner || (!isDateBased && !isOrder)) return;
+    if (!isOwner || (!isDateBased && !isOrder && thing.status !== 'TAKEN')) return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const future = data.filter((b) => {
+          if (!b.end_date && !b.delivery_date) return true; // GIFT/SELL: no dates, always current
           const d = new Date(b.end_date || b.delivery_date);
           d.setHours(0, 0, 0, 0);
           return d >= today;
         });
+        const firstPending = future.find((b) => b.status === 'PENDING');
         setBookings(future);
+        setActivePendingCode(firstPending?.code || null);
       })
       .catch(() => {});
-  }, [thing.code, isOwner, isDateBased, isOrder]);
+  }, [thing.code, thing.status, isOwner, isDateBased, isOrder]);
 
   const handleRequest = async () => {
     setSubmitting(true);
@@ -103,33 +107,44 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     }
   };
 
-  const handleBookingAction = async (action) => {
-    setBookingAction(true);
+  const handleBookingAction = async (action, bookingCode) => {
+    const code = bookingCode || activePendingCode;
+    setBookingAction(code);
     try {
-      const res = await apiFetch(`/api/v1/bookings/${thing.pending_booking}/${action}/`, {
-        method: 'POST',
-      });
+      const res = await apiFetch(`/api/v1/bookings/${code}/${action}/`, { method: 'POST' });
       if (res.ok) {
-        if (action === 'accept') {
-          const acceptedCode = thing.pending_booking;
-          setBookings((prev) => {
-            const updated = prev.map((b) =>
-              b.code === acceptedCode ? { ...b, status: 'ACCEPTED' } : b
-            );
-            const nextPending = updated.find((b) => b.code !== acceptedCode && b.status === 'PENDING');
-            onUpdateThing(thing.code, { status: 'INACTIVE', pending_booking: nextPending ? nextPending.code : null });
-            return updated;
-          });
-          setToast({ type: 'success', message: 'Hold confirmed.' });
-        } else {
-          const rejectedCode = thing.pending_booking;
-          setBookings((prev) => {
-            const remaining = prev.filter((b) => b.code !== rejectedCode);
+        if (needsPage) {
+          // Date-based / order: thing stays ACTIVE, update bookings list and active pending pointer
+          if (action === 'accept') {
+            const updated = bookings.map((b) => b.code === code ? { ...b, status: 'ACCEPTED' } : b);
+            const nextPending = updated.find((b) => b.code !== code && b.status === 'PENDING');
+            setBookings(updated);
+            setActivePendingCode(nextPending?.code || null);
+            onUpdateThing(thing.code, { pending_booking: nextPending?.code || null });
+          } else {
+            const remaining = bookings.filter((b) => b.code !== code);
             const nextPending = remaining.find((b) => b.status === 'PENDING');
-            onUpdateThing(thing.code, { status: 'ACTIVE', pending_booking: nextPending ? nextPending.code : null });
-            return remaining;
-          });
-          setToast({ type: 'success', message: 'Hold cancelled.' });
+            setBookings(remaining);
+            setActivePendingCode(nextPending?.code || null);
+            onUpdateThing(thing.code, { pending_booking: nextPending?.code || null });
+          }
+          setToast({ type: 'success', message: action === 'accept' ? 'Hold confirmed.' : 'Hold cancelled.' });
+        } else {
+          // GIFT / SELL: thing status changes
+          if (action === 'accept') {
+            const updated = bookings.map((b) => b.code === code ? { ...b, status: 'ACCEPTED' } : b);
+            const nextPending = updated.find((b) => b.code !== code && b.status === 'PENDING');
+            setBookings(updated);
+            setActivePendingCode(nextPending?.code || null);
+            onUpdateThing(thing.code, { status: 'INACTIVE', pending_booking: nextPending?.code || null });
+          } else {
+            const remaining = bookings.filter((b) => b.code !== code);
+            const nextPending = remaining.find((b) => b.status === 'PENDING');
+            setBookings(remaining);
+            setActivePendingCode(nextPending?.code || null);
+            onUpdateThing(thing.code, { status: 'ACTIVE', pending_booking: nextPending?.code || null });
+          }
+          setToast({ type: 'success', message: action === 'accept' ? 'Hold confirmed.' : 'Hold cancelled.' });
         }
       } else {
         const data = await res.json().catch(() => ({}));
@@ -138,7 +153,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     } catch {
       setToast({ type: 'error', message: 'Connection error.' });
     } finally {
-      setBookingAction(false);
+      setBookingAction(null);
     }
   };
 
@@ -216,30 +231,54 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             </div>
           )}
         </div>
-        {isOwner && bookings.length > 0 && (
-          <ul className="thing-card-bookings">
-            {bookings.map((b) => (
-              <li key={b.code}>
-                {b.requester_name && <strong>{b.requester_name}: </strong>}
-                {b.start_date && b.end_date && <>{b.start_date} — {b.end_date}</>}
-                {b.delivery_date && <>{b.delivery_date}, qty {b.quantity}</>}
-                {' '}
-                <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)', fontWeight: b.code === thing.pending_booking ? 'bold' : 'normal' }}>
-                  ({b.status === 'ACCEPTED' ? 'Confirmed' : 'Pending'}){b.code === thing.pending_booking ? ' *' : ''}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        {isOwner && bookings.length > 0 && (() => {
+          const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
+          return (
+            <ul className="thing-card-bookings">
+              {bookings.map((b) => {
+                const isActive = b.code === activePendingCode;
+                const showStar = isActive && pendingCount > 1;
+                return (
+                  <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
+                    {b.requester_name && <>{b.requester_name}. </>}
+                    {b.created && <>{new Date(b.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. </>}
+                    {b.start_date && b.end_date && <>{b.start_date} – {b.end_date}</>}
+                    {b.delivery_date && <>{b.delivery_date}, qty {b.quantity}</>}
+                    {' '}
+                    <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
+                      ({b.status === 'ACCEPTED' ? 'Confirmed' : 'Pending'}){showStar ? ' *' : ''}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        })()}
         <div className="thing-card-buttons">
           {isOwner && thing.status === 'ACTIVE' && (
             <>
+              {needsPage && activePendingCode && (
+                <>
+                  <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
+                    Confirm hold
+                  </Button>
+                  <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
+                    Cancel hold
+                  </Button>
+                </>
+              )}
               <Link to={editPath} style={{ display: 'contents' }}>
-                <Button fullWidth style={btnStyle}>Edit</Button>
+                {needsPage && activePendingCode ? (
+                  <Button fullWidth variant="secondary" style={btnSecondaryStyle}>Edit</Button>
+                ) : (
+                  <Button fullWidth style={btnStyle}>Edit</Button>
+                )}
               </Link>
-              <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
-                Hide
-              </Button>
+              {!bookings.some((b) => b.status === 'PENDING') && (
+                <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
+                  Hide
+                </Button>
+              )}
             </>
           )}
           {isOwner && thing.status === 'TAKEN' && (
@@ -247,12 +286,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
                 Confirm hold
               </Button>
-              <Link to={editPath} style={{ display: 'contents' }}>
-                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
-              </Link>
               <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
                 Cancel hold
               </Button>
+              <Link to={editPath} style={{ display: 'contents' }}>
+                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
+              </Link>
             </>
           )}
           {isOwner && thing.status === 'INACTIVE' && (
@@ -280,7 +319,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               style={btnStyle}
               onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
             >
-              {submitting ? 'Sending...' : (requested || thing.my_pending_booking) ? 'Waiting for confirmation' : thing.status === 'TAKEN' ? 'Reserved' : 'Hold'}
+              {submitting ? 'Sending...' : buttonDisabled ? 'Waiting for confirmation' : 'Hold'}
             </Button>
           )}
         </div>

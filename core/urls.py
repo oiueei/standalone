@@ -17,7 +17,7 @@ from .views.booking import (
     OwnerBookingsView,
     ThingCalendarView,
 )
-from .views.collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
+from .views.collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView, MyPendingInvitationsView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
@@ -52,6 +52,11 @@ urlpatterns = [
         "invited-collections/",
         InvitedCollectionsView.as_view(),
         name="invited-collections",
+    ),
+    path(
+        "my-invitations/",
+        MyPendingInvitationsView.as_view(),
+        name="my-invitations",
     ),
     path(
         "collections/<str:collection_code>/invite/",

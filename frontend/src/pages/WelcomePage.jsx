@@ -5,7 +5,10 @@ import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 
 export default function WelcomePage() {
-  useEffect(() => { document.title = 'Welcome — OIUEEI'; }, []);
+  useEffect(() => {
+    document.title = 'Welcome — OIUEEI';
+    localStorage.setItem('seenWelcome', 'true');
+  }, []);
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
@@ -42,12 +45,12 @@ export default function WelcomePage() {
           <div className="spacer-m" />
           {userName && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>Hello, {userName}</p>}
           <h1 className="form-hero-title">Welcome to OIUEEI!</h1>
-          <div className="button-row" style={{ paddingBottom: 'var(--spacing-s)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-s)', paddingBottom: 'var(--spacing-s)' }}>
             <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
-              <Button style={btnStyle}>Create collection</Button>
+              <Button style={{ ...btnStyle, width: '100%' }}>Create collection</Button>
             </Link>
             <Link to="/me/edit" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
-              <Button variant="secondary" style={btnSecondaryStyle}>Edit profile</Button>
+              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>Edit profile</Button>
             </Link>
           </div>
         </div>

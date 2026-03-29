@@ -10,7 +10,7 @@ export default function CollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite);
+  const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite && !localStorage.getItem('seenWelcome'));
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
   useEffect(() => { document.title = collection ? `${collection.headline} — OIUEEI` : 'Collection — OIUEEI'; }, [collection]);
@@ -90,6 +90,11 @@ export default function CollectionPage() {
           )}
           <h1 className="form-hero-title">{collection.headline}</h1>
           {collection.description && <p className="form-hero-text">{collection.description}</p>}
+          {!isOwner && collection.owner_name && (
+            <p className="form-hero-text" style={{ opacity: 0.75, fontSize: 'var(--fontsize-body-m)' }}>
+              <strong>Owner.</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
+            </p>
+          )}
           {isOwner && (
             <>
             <div className="spacer-m"></div>
@@ -135,6 +140,7 @@ export default function CollectionPage() {
           linkboxAriaLabel="Welcome to OIUEEI!"
           border
         />
+        <div className="spacer-l" />
         </div>
       )}
 

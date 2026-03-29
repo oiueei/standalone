@@ -148,6 +148,14 @@ This system ensures that every user's experience is visually coherent: changing 
 
 ---
 
+## 11. Icons Are Always Black
+
+HDS icons must always render in the default black (`--color-black-90`). Never colour icons blue, red, or any other brand or semantic colour. If an icon is disabled or inactive, use `--color-black-40`. Colour must never be used to convey meaning through an icon alone — use labels, status tags, or contextual placement instead.
+
+**When adding icons to a view:** do not set a custom colour on them unless the intent is to show a disabled/faded state using `--color-black-40`.
+
+---
+
 ## Using These Guidelines in Practice
 
 When asked to design or review a view, apply this checklist:
@@ -162,3 +170,4 @@ When asked to design or review a view, apply this checklist:
 8. Will it hold up in other languages?
 9. Does it collect only the data it strictly needs?
 10. Does it use the form-hero + Koros layout with theeeme colours?
+11. Are all icons black (or `--color-black-40` when disabled)?

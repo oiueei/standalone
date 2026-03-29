@@ -39,6 +39,8 @@ export default function VerifyPage() {
           setSuccess('The hold has been rejected.');
         } else if (res.ok && data.user) {
           if (data.user?.code) localStorage.setItem('userCode', data.user.code);
+          if (data.user?.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.user.theeeme_colors));
+          if (data.user?.koro) localStorage.setItem('koro', data.user.koro);
           if (data.invited_collection) {
             navigate(`/collections/${data.invited_collection}`, { state: { fromInvite: true } });
           } else {

@@ -286,6 +286,15 @@ Removes a user from the collection's invite list. If the invite is still pending
 
 Lists ACTIVE collections where the current user is in the invites M2M. INACTIVE collections are excluded — they are only visible to their owner. Not paginated.
 
+### MyPendingInvitationsView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/my-invitations/` |
+| **Permission** | `IsAuthenticated` |
+
+Lists pending collection invitations (not yet accepted) for the current user. Returns `COLLECTION_INVITE` RSVPs for the user, joined with the collection and its owner. For each invitation returns: `accept_code`, `reject_code`, `collection_code`, `collection_headline`, `owner_name`. Used to display in-app invitation notifications on the HomePage.
+
 ---
 
 ## FAQ Views (`core/views/faq.py`)

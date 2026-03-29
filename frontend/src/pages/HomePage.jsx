@@ -11,6 +11,7 @@ export default function HomePage() {
   const [user, setUser] = useState(null);
   const [myThings, setMyThings] = useState(null);
   const [invitedThings, setInvitedThings] = useState(null);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function HomePage() {
           if (data.code) localStorage.setItem('userCode', data.code);
           if (data.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.theeeme_colors));
           if (data.koro) localStorage.setItem('koro', data.koro);
+          localStorage.setItem('seenWelcome', 'true');
           setUser(data);
         }
       } catch {
@@ -55,9 +57,20 @@ export default function HomePage() {
       } catch { /* silently fail */ }
     };
 
+    const fetchPendingInvitations = async () => {
+      try {
+        const res = await apiFetch('/api/v1/my-invitations/');
+        if (res.ok) {
+          const data = await res.json();
+          setPendingInvitations(data);
+        }
+      } catch { /* silently fail */ }
+    };
+
     fetchMe();
     fetchMyThings();
     fetchInvitedThings();
+    fetchPendingInvitations();
   }, [navigate]);
 
   const updateThing = (thingCode, updates) => {
@@ -68,6 +81,10 @@ export default function HomePage() {
   const deleteThing = (thingCode) => {
     setMyThings((prev) => prev && prev.filter((t) => t.code !== thingCode));
     setInvitedThings((prev) => prev && prev.filter((t) => t.code !== thingCode));
+  };
+
+  const dismissInvitation = (acceptCode) => {
+    setPendingInvitations((prev) => prev.filter((inv) => inv.accept_code !== acceptCode));
   };
 
   if (error) {
@@ -134,6 +151,29 @@ export default function HomePage() {
         />
       </div>
       <div className="page-container">
+
+      {pendingInvitations.length > 0 && (
+        <>
+          {pendingInvitations.map((inv) => (
+            <Notification
+              key={inv.accept_code}
+              label={`${inv.owner_name} has invited you to view`}
+              type="info"
+              dismissible
+              closeButtonLabelText="Dismiss"
+              onClose={() => dismissInvitation(inv.accept_code)}
+              style={{ marginBottom: 'var(--spacing-s)' }}
+            >
+              <strong>{inv.collection_headline}</strong>
+              <div style={{ marginTop: 'var(--spacing-xs)', display: 'flex', gap: 'var(--spacing-s)', flexWrap: 'wrap' }}>
+                <Link to={`/verify/${inv.accept_code}`}>Accept invitation</Link>
+                <Link to={`/verify/${inv.reject_code}`}>Decline invitation</Link>
+              </div>
+            </Notification>
+          ))}
+          <div className="spacer-m" />
+        </>
+      )}
 
       <h2>All things</h2>
       <div className="spacer-m" />

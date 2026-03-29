@@ -72,6 +72,7 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
         model = BookingPeriod
         fields = [
             "code",
+            "created",
             "requester_code",
             "requester_name",
             "start_date",

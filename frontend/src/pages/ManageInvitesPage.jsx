@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { TextInput, Button, Koros } from 'hds-react';
+import { TextInput, Button, Koros, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
+import TooltipButton from '../components/TooltipButton';
 
 export default function ManageInvitesPage() {
   const { code } = useParams();
@@ -119,6 +120,7 @@ export default function ManageInvitesPage() {
       >
         <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
           <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
+          <h1 className="form-hero-title">Manage guests</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -127,56 +129,74 @@ export default function ManageInvitesPage() {
         />
       </div>
       <div className="page-container">
-        <h1 className="page-title-xl">Manage guests</h1>
+        <div className="spacer-m" />
 
       {invites.length === 0 && pendingInvites.length === 0 ? (
         <p>No guests.</p>
-      ) : (
-        <ul className="invite-list">
-          {invites.map((invite) => (
-            <li key={invite.code} className="invite-row">
-              <span>{invite.name || invite.code} ({invite.email})</span>
-              {isOwner && (
-                <Button
-                  variant="danger"
+      ) : (() => {
+        const tableRows = [
+          ...invites.map((inv) => ({
+            _id: inv.code,
+            guest: inv.name ? `${inv.name} (${inv.email})` : inv.email,
+            status: 'Accepted',
+            _isPending: false,
+            _email: inv.email,
+            _code: inv.code,
+            _name: inv.name || inv.email,
+          })),
+          ...pendingInvites.map((p) => ({
+            _id: p.code || `pending-${p.email}`,
+            guest: p.email,
+            status: 'Pending',
+            _isPending: true,
+            _email: p.email,
+            _code: p.code,
+            _name: p.email,
+          })),
+        ];
+        const cols = [
+          { key: 'guest', headerName: 'Guest' },
+          { key: 'status', headerName: 'Status' },
+          ...(isOwner ? [{
+            key: '_actions',
+            headerName: '',
+            transform: (row) => (
+              <div style={{ display: 'flex', gap: 'var(--spacing-xs)', alignItems: 'center', justifyContent: 'flex-end' }}>
+                {row._isPending && (
+                  <TooltipButton
+                    tooltip="Resend invitation to this guest"
+                    onClick={() => handleResend(row._email)}
+                    disabled={resending === row._email}
+                  >
+                    <IconEnvelope aria-hidden />
+                  </TooltipButton>
+                )}
+                <TooltipButton
+                  tooltip="Remove guest from this collection"
                   onClick={() => navigate(`/collections/${code}/invites/remove`, {
-                    state: { guestCode: invite.code, guestName: invite.name || invite.email, backLabel: collectionHeadline || 'Guests' },
+                    state: { guestCode: row._code, guestName: row._name, backLabel: collectionHeadline || 'Guests' },
                   })}
                 >
-                  Remove
-                </Button>
-              )}
-            </li>
-          ))}
-          {pendingInvites.map((pending) => (
-            <li key={pending.code || pending.email} className="invite-row">
-              <span>{pending.email} <em className="text-muted">Pending</em></span>
-              {isOwner && (
-                <div className="button-row">
-                  <Button
-                    variant="secondary"
-                    style={btnSecondaryStyle}
-                    disabled={resending === pending.email}
-                    onClick={() => handleResend(pending.email)}
-                  >
-                    {resending === pending.email ? 'Sending...' : 'Resend'}
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => navigate(`/collections/${code}/invites/remove`, {
-                      state: { guestCode: pending.code, guestName: pending.email, backLabel: collectionHeadline || 'Guests' },
-                    })}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+                  <IconCrossCircle aria-hidden />
+                </TooltipButton>
+              </div>
+            ),
+          }] : []),
+        ];
+        return (
+          <Table
+            cols={cols}
+            rows={tableRows}
+            indexKey="_id"
+            renderIndexCol={false}
+            theme={tc.color_03 ? { '--header-background-color': `var(--color-${tc.color_03})` } : undefined}
+          />
+        );
+      })()}
 
       {isOwner && (
+        <>
+        <div className="spacer-xl" />
         <div className="form-grid section-mt">
           <TextInput
             id="manage-invites-email"
@@ -189,12 +209,12 @@ export default function ManageInvitesPage() {
           <Button
             disabled={inviteLoading || !inviteEmail.trim()}
             onClick={handleInvite}
-            className="fit-content"
-            style={btnStyle}
+            style={{ ...btnStyle, width: '100%' }}
           >
             {inviteLoading ? 'Sending...' : 'Invite'}
           </Button>
         </div>
+        </>
       )}
 
       <Toast toast={toast} onClose={() => setToast(null)} />

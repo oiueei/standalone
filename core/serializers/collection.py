@@ -83,6 +83,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     hero_url = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
+    owner_name = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
     invites = CollectionInviteSummarySerializer(many=True, read_only=True)
     pending_invites = serializers.SerializerMethodField()
@@ -92,6 +93,7 @@ class CollectionSerializer(serializers.ModelSerializer):
         fields = [
             "code",
             "owner",
+            "owner_name",
             "created",
             "headline",
             "description",
@@ -112,6 +114,9 @@ class CollectionSerializer(serializers.ModelSerializer):
             "invites",
             "pending_invites",
         ]
+
+    def get_owner_name(self, obj):
+        return obj.owner.name or obj.owner.email
 
     def get_things(self, obj):
         request = self.context.get("request")

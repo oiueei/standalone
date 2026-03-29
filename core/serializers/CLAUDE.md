@@ -79,7 +79,7 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `CollectionSerializer` | code, owner, created, headline, description, thumbnail/url, hero/url, status, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
+| `CollectionSerializer` | code, owner, owner_name, created, headline, description, thumbnail/url, hero/url, status, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
 | `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, thumbnail_url, pending_booking, my_pending_booking, pending_questions, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
 | `CollectionCreateSerializer` | headline, description, thumbnail, hero | Input for collection creation. |
@@ -95,7 +95,7 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 |------------|--------|-------|
 | `BookingPeriodSerializer` | code, created, thing_code, thing_headline, thing_type, requester_code, requester_name, requester_email, owner_code, start_date, end_date, delivery_date, quantity, status | Full booking for owner view. Uses `source` to traverse FK relations. |
 | `BookingPeriodCalendarSerializer` | start_date, end_date, status | Minimal calendar view for guests (no requester info). |
-| `BookingPeriodOwnerCalendarSerializer` | code, requester_code, requester_name, start_date, end_date, delivery_date, quantity, status | Owner calendar view with requester details. `requester_name` falls back to email. |
+| `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, delivery_date, quantity, status | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. |
 | `ThingRequestWithDatesSerializer` | start_date, end_date | Plain `Serializer` for LEND/RENT/SHARE requests. Validates start >= today, end >= start. |
 | `ThingOrderSerializer` | delivery_date, quantity (1-99) | Plain `Serializer` for ORDER requests. Validates delivery >= today. |
 | `MyBookingSerializer` | code, created, thing_code, thing_headline, thing_type, owner_code, owner_name, start_date, end_date, delivery_date, quantity, status | Requester's own booking view. `owner_name` falls back to email. |

@@ -327,3 +327,44 @@ class InvitedCollectionsView(APIView):
             invited_collections, many=True, context={"request": request}
         )
         return Response(serializer.data)
+
+
+class MyPendingInvitationsView(APIView):
+    """
+    GET /api/v1/my-invitations/
+    List pending (not yet accepted) collection invitations for the current user.
+    Returns accept + reject RSVP codes, collection headline and owner name.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        accept_rsvps = (
+            RSVP.objects.filter(user_code=request.user, action="COLLECTION_INVITE")
+            .select_related("user_code")
+        )
+
+        result = []
+        for accept_rsvp in accept_rsvps:
+            try:
+                collection = Collection.objects.select_related("owner").get(
+                    code=accept_rsvp.target_code
+                )
+            except Collection.DoesNotExist:
+                continue
+
+            reject_rsvp = RSVP.objects.filter(
+                user_code=request.user,
+                action="COLLECTION_REJECT",
+                target_code=accept_rsvp.target_code,
+            ).first()
+
+            result.append({
+                "accept_code": accept_rsvp.code,
+                "reject_code": reject_rsvp.code if reject_rsvp else None,
+                "collection_code": collection.code,
+                "collection_headline": collection.headline,
+                "owner_name": collection.owner.name or collection.owner.email,
+            })
+
+        return Response(result)

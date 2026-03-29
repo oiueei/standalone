@@ -109,7 +109,7 @@ export default function UserPage() {
             </p>
           )}
           {isOwnProfile && (
-            <div style={{ paddingBottom: 'var(--spacing-s)' }}>
+            <div className="button-row-wide" style={{ paddingBottom: 'var(--spacing-s)' }}>
               <Link to="/me/edit">
                 <Button style={btnStyle}>Edit profile</Button>
               </Link>

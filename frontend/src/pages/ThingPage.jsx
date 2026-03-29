@@ -380,8 +380,9 @@ export default function ThingPage() {
         )}
 
         {isOwner && thing.status === 'TAKEN' && (
-          <div className="button-row">
+          <div className="button-col">
             <Button
+              fullWidth
               disabled={bookingAction}
               onClick={() => handleBookingAction('accept')}
               style={btnStyle}
@@ -389,9 +390,10 @@ export default function ThingPage() {
               Confirm hold
             </Button>
             <Link to={editPath} style={{ display: 'contents' }}>
-              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>Edit</Button>
+              <Button fullWidth variant="secondary" style={btnSecondaryStyle}>Edit</Button>
             </Link>
             <Button
+              fullWidth
               variant="secondary"
               disabled={bookingAction}
               onClick={() => handleBookingAction('reject')}
@@ -423,11 +425,12 @@ export default function ThingPage() {
         {/* Reservation button for invited users */}
         {showButton && (
           <Button
+            fullWidth
             disabled={buttonDisabled}
-            style={{ ...btnStyle, width: '100%' }}
+            style={btnStyle}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
-            {submitting ? 'Sending...' : (requested || thing.my_pending_booking) ? 'Waiting for confirmation' : thing.status === 'TAKEN' ? 'Reserved' : 'Hold'}
+            {submitting ? 'Sending...' : buttonDisabled ? 'Waiting for confirmation' : 'Hold'}
           </Button>
         )}
 
