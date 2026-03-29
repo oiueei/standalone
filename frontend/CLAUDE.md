@@ -116,7 +116,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - Displays hero image (`hero_url`, falls back to `thumbnail_url`, then `image-m` placeholder), collection headline, description, and status.
 - **Things** are rendered using the `ThingLinkbox` component (see below).
 - **"Edit collection" button** visible only to collection owner, links to `/collections/{code}/edit`.
-- **"Add thing" button** visible only to collection owner, links to `/collections/{code}/add-thing`.
+- **"Add thing" button** visible only to collection owner, links to `/collections/{code}/add`.
 - **"Manage guests" button** visible only to collection owner, links to `/collections/{code}/invites`.
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`) AND `seenWelcome` is not set in `localStorage` (first-time users only). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
 - **Owner attribution**: guests see "Owner. {name}" below the description in the hero, linking to `/{owner_code}` (the owner's public profile). Uses `owner_name` from `CollectionSerializer`.

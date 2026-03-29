@@ -13,7 +13,7 @@ class Thing(models.Model):
     An item in a collection (gift, sale, order, rent, lend, or share).
 
     Reservation status (status):
-    - ACTIVE: Visible to all invited users, available for reservation
+    - ACTIVE: Visible to owner + invited users, available for reservation
     - TAKEN: Visible to guests, awaiting owner confirmation (not available for new requests)
     - INACTIVE: Hidden from guests, not available for reservation
     """

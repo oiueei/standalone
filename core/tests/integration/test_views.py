@@ -170,6 +170,28 @@ class TestUserViews:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["name"] == "Lala"
 
+    def test_update_own_profile_koro(self, authenticated_client, user):
+        """Should update koro preference and persist it."""
+        response = authenticated_client.put(
+            f"/api/v1/users/{user.code}/",
+            {"koro": "wave"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["koro"] == "wave"
+
+        user.refresh_from_db()
+        assert user.koro == "wave"
+
+    def test_update_own_profile_koro_invalid(self, authenticated_client, user):
+        """Should reject invalid koro values."""
+        response = authenticated_client.put(
+            f"/api/v1/users/{user.code}/",
+            {"koro": "invalid_koro"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_update_other_profile(self, authenticated_client, user2):
         """Should reject updating other user's profile."""
         response = authenticated_client.put(
@@ -627,6 +649,68 @@ class TestThingViews:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "Cannot request your own thing"
 
+    def test_hide_thing(self, authenticated_client, thing):
+        """Owner can hide an ACTIVE thing (sets status to INACTIVE)."""
+        assert thing.status == "ACTIVE"
+
+        response = authenticated_client.post(f"/api/v1/things/{thing.code}/hide/")
+
+        assert response.status_code == status.HTTP_200_OK
+        thing.refresh_from_db()
+        assert thing.status == "INACTIVE"
+
+    def test_hide_thing_denied_for_non_owner(self, user, user2, thing, collection):
+        """Non-owner cannot hide a thing."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        collection.add_invite(user2.code)
+        client2 = APIClient()
+        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+
+        response = client2.post(f"/api/v1/things/{thing.code}/hide/")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_hide_thing_requires_active_status(self, authenticated_client, thing):
+        """Cannot hide a TAKEN thing — must cancel the hold first."""
+        thing.status = "TAKEN"
+        thing.save()
+
+        response = authenticated_client.post(f"/api/v1/things/{thing.code}/hide/")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_activate_thing(self, authenticated_client, thing):
+        """Owner can reactivate an INACTIVE thing (sets status to ACTIVE)."""
+        thing.status = "INACTIVE"
+        thing.save()
+
+        response = authenticated_client.post(f"/api/v1/things/{thing.code}/activate/")
+
+        assert response.status_code == status.HTTP_200_OK
+        thing.refresh_from_db()
+        assert thing.status == "ACTIVE"
+
+    def test_activate_thing_denied_for_non_owner(self, user, user2, thing, collection):
+        """Non-owner cannot activate a thing."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        thing.status = "INACTIVE"
+        thing.save()
+        collection.add_invite(user2.code)
+        client2 = APIClient()
+        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+
+        response = client2.post(f"/api/v1/things/{thing.code}/activate/")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_activate_thing_requires_inactive_status(self, authenticated_client, thing):
+        """Cannot activate an already ACTIVE thing."""
+        assert thing.status == "ACTIVE"
+
+        response = authenticated_client.post(f"/api/v1/things/{thing.code}/activate/")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_my_pending_booking_field(self, user, user2, thing, collection):
         """my_pending_booking should return own PENDING booking code, null for others."""
         from core.models.booking import BookingPeriod
@@ -1031,7 +1115,7 @@ class TestReservationViews:
         return client
 
     def test_request_reservation(self, user, user2, thing, collection):
-        """Should create a booking request and change thing status to TAKEN."""
+        """Should create a booking request, change thing status to TAKEN, and send two emails."""
         # Invite user2 to collection
         collection.add_invite(user2.code)
 
@@ -1045,6 +1129,15 @@ class TestReservationViews:
         # Verify thing status changed to TAKEN
         thing.refresh_from_db()
         assert thing.status == "TAKEN"
+
+        # Verify both emails sent: owner request + requester confirmation
+        from django.core import mail
+
+        assert len(mail.outbox) == 2
+        owner_email = mail.outbox[0]
+        confirmation_email = mail.outbox[1]
+        assert owner_email.to == [user.email]
+        assert confirmation_email.to == [user2.email]
 
     def test_request_reservation_denied_for_owner(self, authenticated_client, thing):
         """Should deny owner from requesting their own thing."""

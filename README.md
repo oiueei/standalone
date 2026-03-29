@@ -270,7 +270,7 @@ python manage.py expire_bookings
 
 ## Default Data
 
-- Default Theeeme: "B4s1C0" (code: HDS000)
+- Default Theeeme: "Bussi" (code: BUU331)
 
 ## Important Notes
 
