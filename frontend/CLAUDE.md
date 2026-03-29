@@ -162,7 +162,13 @@ Detail page for a thing with full information and FAQs section.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Pending questions).
 - Displays thumbnail, headline, description, creation date, fee, availability, location, condition, and photo gallery (`pictures_urls`).
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
-- **Owner actions:** Same button matrix as ThingLinkbox (Edit+Hide for ACTIVE, ConfirmHold+Edit+CancelHold for TAKEN, Reactivate+Edit+Delete for INACTIVE). Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
+- **Owner bookings display**: fetches `GET /api/v1/things/{thingCode}/calendar/` for date-based/order types and for any TAKEN thing (GIFT/SELL). Same logic as ThingLinkbox: filters past bookings, syncs `activePendingCode` to the first PENDING from the calendar, shows bookings list with requester name, request date, date ranges/delivery info, and status. Active pending booking is bold; starred when multiple pending exist.
+- **Owner actions:** Full parity with ThingLinkbox button matrix:
+  - `ACTIVE` (no pending): "Edit" (**primary**) + "Hide" (secondary, suppressed when pending bookings exist).
+  - `ACTIVE` (date-based/order with pending): "Confirm hold" + "Cancel hold" + "Edit" (secondary).
+  - `TAKEN`: "Confirm hold" (primary) → "Cancel hold" (secondary) → "Edit" (secondary). `activePendingCode` advances to next pending after each action.
+  - `INACTIVE`: "Reactivate" (primary) + "Edit" (secondary) + "Delete" (secondary).
+  - Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
 - **Reservation:** Non-owners see "Hold" button. GIFT/SELL types submit directly; date-based and order types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).

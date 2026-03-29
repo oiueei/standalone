@@ -15,6 +15,8 @@ import {
 } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, TYPE_LABELS, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
 import { apiFetch } from '../services/api';
+
+const isDateType = (type) => DATE_TYPES.includes(type);
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingTags from '../components/ThingTags';
@@ -37,6 +39,8 @@ export default function ThingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [requested, setRequested] = useState(false);
   const [bookingAction, setBookingAction] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [activePendingCode, setActivePendingCode] = useState(null);
 
   // FAQ state
   const [faqs, setFaqs] = useState([]);
@@ -82,6 +86,29 @@ export default function ThingPage() {
     fetchFaqs();
   }, [userCode, thingCode, navigate]);
 
+  useEffect(() => {
+    if (!thing || !userCode || thing.owner !== userCode) return;
+    const isDateBased = isDateType(thing.type);
+    const isOrder = thing.type === ORDER_TYPE;
+    if (!isDateBased && !isOrder && thing.status !== 'TAKEN') return;
+    apiFetch(`/api/v1/things/${thing.code}/calendar/`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const future = data.filter((b) => {
+          if (!b.end_date && !b.delivery_date) return true;
+          const d = new Date(b.end_date || b.delivery_date);
+          d.setHours(0, 0, 0, 0);
+          return d >= today;
+        });
+        const firstPending = future.find((b) => b.status === 'PENDING');
+        setBookings(future);
+        setActivePendingCode(firstPending?.code || null);
+      })
+      .catch(() => {});
+  }, [thing, userCode]);
+
   if (error) {
     return (
       <div className="page-container">
@@ -95,7 +122,10 @@ export default function ThingPage() {
   }
 
   const isOwner = thing.owner === userCode;
-  const needsPage = DATE_TYPES.includes(thing.type) || thing.type === ORDER_TYPE;
+  const isDateBased = isDateType(thing.type);
+  const isOrder = thing.type === ORDER_TYPE;
+  const needsPage = isDateBased || isOrder;
+  const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
@@ -168,19 +198,41 @@ export default function ThingPage() {
   };
 
   const handleBookingAction = async (action) => {
+    const code = activePendingCode;
     setBookingAction(true);
     try {
-      const res = await apiFetch(`/api/v1/bookings/${thing.pending_booking}/${action}/`, {
-        method: 'POST',
-      });
+      const res = await apiFetch(`/api/v1/bookings/${code}/${action}/`, { method: 'POST' });
       if (res.ok) {
-        if (action === 'accept') {
-          setThing((prev) => ({ ...prev, status: 'INACTIVE', pending_booking: null }));
-          setToast({ type: 'success', message: 'Hold confirmed.' });
+        const isDateBased = isDateType(thing.type);
+        const isOrder = thing.type === ORDER_TYPE;
+        if (isDateBased || isOrder) {
+          if (action === 'accept') {
+            const updated = bookings.map((b) => b.code === code ? { ...b, status: 'ACCEPTED' } : b);
+            const nextPending = updated.find((b) => b.code !== code && b.status === 'PENDING');
+            setBookings(updated);
+            setActivePendingCode(nextPending?.code || null);
+          } else {
+            const remaining = bookings.filter((b) => b.code !== code);
+            const nextPending = remaining.find((b) => b.status === 'PENDING');
+            setBookings(remaining);
+            setActivePendingCode(nextPending?.code || null);
+          }
         } else {
-          setThing((prev) => ({ ...prev, status: 'ACTIVE', pending_booking: null }));
-          setToast({ type: 'success', message: 'Hold cancelled.' });
+          if (action === 'accept') {
+            const updated = bookings.map((b) => b.code === code ? { ...b, status: 'ACCEPTED' } : b);
+            const nextPending = updated.find((b) => b.code !== code && b.status === 'PENDING');
+            setBookings(updated);
+            setActivePendingCode(nextPending?.code || null);
+            setThing((prev) => ({ ...prev, status: 'INACTIVE', pending_booking: nextPending?.code || null }));
+          } else {
+            const remaining = bookings.filter((b) => b.code !== code);
+            const nextPending = remaining.find((b) => b.status === 'PENDING');
+            setBookings(remaining);
+            setActivePendingCode(nextPending?.code || null);
+            setThing((prev) => ({ ...prev, status: 'ACTIVE', pending_booking: nextPending?.code || null }));
+          }
         }
+        setToast({ type: 'success', message: action === 'accept' ? 'Hold confirmed.' : 'Hold cancelled.' });
       } else {
         const data = await res.json().catch(() => ({}));
         setToast({ type: 'error', message: data.error || `Error ${action === 'accept' ? 'confirming' : 'cancelling'} hold.` });
@@ -367,40 +419,68 @@ export default function ThingPage() {
           </div>
         )}
 
+        {/* Owner bookings list */}
+        {isOwner && bookings.length > 0 && (() => {
+          const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
+          return (
+            <ul className="thing-card-bookings">
+              {bookings.map((b) => {
+                const isActive = b.code === activePendingCode;
+                const showStar = isActive && pendingCount > 1;
+                return (
+                  <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
+                    {b.requester_name && <>{b.requester_name}. </>}
+                    {b.created && <>{new Date(b.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. </>}
+                    {b.start_date && b.end_date && <>{b.start_date} – {b.end_date}</>}
+                    {b.delivery_date && <>{b.delivery_date}, qty {b.quantity}</>}
+                    {' '}
+                    <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
+                      ({b.status === 'ACCEPTED' ? 'Confirmed' : 'Pending'}){showStar ? ' *' : ''}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        })()}
+
         {/* Owner actions */}
         {isOwner && thing.status === 'ACTIVE' && (
-          <div className="button-row">
+          <div className="button-col">
+            {needsPage && activePendingCode && (
+              <>
+                <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+                  Confirm hold
+                </Button>
+                <Button fullWidth variant="secondary" disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
+                  Cancel hold
+                </Button>
+              </>
+            )}
             <Link to={editPath} style={{ display: 'contents' }}>
-              <Button style={{ ...btnStyle, width: '100%' }}>Edit</Button>
+              {needsPage && activePendingCode ? (
+                <Button fullWidth variant="secondary" style={btnSecondaryStyle}>Edit</Button>
+              ) : (
+                <Button fullWidth style={btnStyle}>Edit</Button>
+              )}
             </Link>
-            <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }} onClick={handleHide}>
-              Hide
-            </Button>
+            {!hasPendingBookings && (
+              <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={handleHide}>Hide</Button>
+            )}
           </div>
         )}
 
         {isOwner && thing.status === 'TAKEN' && (
           <div className="button-col">
-            <Button
-              fullWidth
-              disabled={bookingAction}
-              onClick={() => handleBookingAction('accept')}
-              style={btnStyle}
-            >
+            <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
               Confirm hold
+            </Button>
+            <Button fullWidth variant="secondary" disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
+              Cancel hold
             </Button>
             <Link to={editPath} style={{ display: 'contents' }}>
               <Button fullWidth variant="secondary" style={btnSecondaryStyle}>Edit</Button>
             </Link>
-            <Button
-              fullWidth
-              variant="secondary"
-              disabled={bookingAction}
-              onClick={() => handleBookingAction('reject')}
-              style={btnSecondaryStyle}
-            >
-              Cancel hold
-            </Button>
           </div>
         )}
 
