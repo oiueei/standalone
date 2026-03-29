@@ -112,6 +112,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating user profile."""
 
+    name = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
     headline = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     hero = ImageIdField()

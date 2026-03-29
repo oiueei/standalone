@@ -53,10 +53,13 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@oiueei.com")
 # React build output (frontend/dist/) is included so collectstatic picks it up
 STATICFILES_DIRS = [BASE_DIR / "frontend" / "dist"]  # noqa: F405
 
-MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
-
-# Security headers (CSP + Permissions-Policy)
-MIDDLEWARE.insert(2, "core.middleware.SecurityHeadersMiddleware")  # noqa: F405
+# SecurityHeadersMiddleware must be inserted BEFORE WhiteNoiseMiddleware.
+# WhiteNoise short-circuits the middleware chain for static files (including the
+# React SPA's index.html), so any middleware inserted after it never runs for
+# those responses. CSP and Permissions-Policy headers would be missing from the
+# app shell if the order were reversed.
+MIDDLEWARE.insert(1, "core.middleware.SecurityHeadersMiddleware")  # noqa: F405
+MIDDLEWARE.insert(2, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

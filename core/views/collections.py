@@ -227,11 +227,9 @@ class CollectionInviteView(APIView):
         )
 
         # Send invitation email with accept and reject links
-        magic_link_base = getattr(
-            settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/magic-link"
-        )
-        accept_link = f"{magic_link_base}/{accept_rsvp.code}"
-        reject_link = f"{magic_link_base}/{reject_rsvp.code}"
+        rsvp_base = getattr(settings, "RSVP_BASE_URL", "http://localhost:3000/rsvp")
+        accept_link = f"{rsvp_base}/{accept_rsvp.code}"
+        reject_link = f"{rsvp_base}/{reject_rsvp.code}"
 
         send_collection_invite_email(
             request.user.name or request.user.email,

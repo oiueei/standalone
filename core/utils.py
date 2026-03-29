@@ -15,10 +15,16 @@ def generate_id():
 
 
 def get_client_ip(request):
-    """Get client IP address from request."""
+    """Get client IP address from request.
+
+    On Heroku (and similar proxies), the real client IP is the last value
+    appended by the load balancer — not the first, which is attacker-controlled.
+    Taking the rightmost IP prevents X-Forwarded-For spoofing that would otherwise
+    bypass IP-based rate limiting.
+    """
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        return x_forwarded_for.split(",")[0].strip()
+        return x_forwarded_for.split(",")[-1].strip()
     return request.META.get("REMOTE_ADDR", "unknown")
 
 
