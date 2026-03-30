@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, DateInput, Koros, Notification, NumberInput } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
@@ -10,15 +11,15 @@ const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0);
 const MAX_DATE = new Date(TODAY);
 MAX_DATE.setDate(MAX_DATE.getDate() + 90);
-const RANGE_ERROR = 'Date must be between today and 90 days from today.';
 
 export default function RequestThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const userCode = localStorage.getItem('userCode');
   const backPath = location.state?.backPath || '/';
-  const backLabel = location.state?.backLabel || 'Back';
+  const backLabel = location.state?.backLabel || t('common.back');
 
   useEffect(() => {
     if (!userCode) {
@@ -27,7 +28,7 @@ export default function RequestThingPage() {
   }, [userCode, navigate]);
 
   const [thing, setThing] = useState(null);
-  useEffect(() => { document.title = thing ? `Hold ${thing.headline} — OIUEEI` : 'Hold — OIUEEI'; }, [thing]);
+  useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
@@ -81,7 +82,7 @@ export default function RequestThingPage() {
     } else if (isOrder) {
       if (!deliveryDate || quantity < 1) return;
       if (quantity > 99) {
-        setToast({ type: 'error', message: 'Maximum quantity allowed is 99.' });
+        setToast({ type: 'error', message: t('request.maxQuantity') });
         return;
       }
       body = { delivery_date: deliveryDate, quantity };
@@ -102,19 +103,19 @@ export default function RequestThingPage() {
         if (!message) {
           const errors = Object.values(data).flat();
           if (errors.some((e) => String(e).includes('99'))) {
-            message = 'Maximum quantity allowed is 99.';
+            message = t('request.maxQuantity');
           } else {
-            message = errors.join(' ') || 'Invalid request.';
+            message = errors.join(' ') || t('thingPage.invalidRequest');
           }
         }
         setToast({ type: 'error', message });
       } else if (res.status === 409) {
-        setToast({ type: 'error', message: 'Date overlaps with another booking.' });
+        setToast({ type: 'error', message: t('request.dateOverlap') });
       } else {
-        setToast({ type: 'error', message: 'Error sending request.' });
+        setToast({ type: 'error', message: t('request.errorSending') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -129,14 +130,15 @@ export default function RequestThingPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   return (
@@ -148,9 +150,9 @@ export default function RequestThingPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <BackLink to={backPath} label={backLabel} />
-          <h1 className="form-hero-title">Hold: {thing.headline}</h1>
+          <h1 className="form-hero-title">{t('request.pageTitle', { headline: thing.headline })}</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -161,51 +163,51 @@ export default function RequestThingPage() {
       <div className="page-container">
       {success ? (
         <>
-          <Notification label="You're all set!" type="success">
-            We've let the owner know — they'll get back to you soon.
+          <Notification label={t('request.successLabel')} type="success">
+            {t('request.successMessage')}
           </Notification>
           <div className="spacer-m" />
           <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
-            Back to {backLabel}
+            {t('request.backTo', { label: backLabel })}
           </Button>
         </>
       ) : (
       <>
-      {thing.fee && <p><strong>Price:</strong> {thing.fee} EUR</p>}
+      {thing.fee && <p><strong>{t('request.priceLabel')}</strong> {t('request.priceValue', { fee: thing.fee })}</p>}
       <div className="spacer-m" />      {isDateBased && (
         <div className="summary-grid section-mt">
           <DateInput
             id="request-start-date"
-            label="Start"
+            label={t('request.startLabel')}
             value={startDate}
             onChange={(value) => setStartDate(value)}
             dateFormat="yyyy-MM-dd"
             language="en"
             required
             invalid={attempted && !startDate}
-            errorText={attempted && !startDate ? 'Start date is required.' : undefined}
+            errorText={attempted && !startDate ? t('request.startRequired') : undefined}
             minDate={TODAY}
             maxDate={MAX_DATE}
-            dateOutsideRangeErrorText={RANGE_ERROR}
+            dateOutsideRangeErrorText={t('request.dateRange')}
             isDateDisabledBy={isDateBlocked}
-            malformedDateErrorText="Date overlaps with another booking."
+            malformedDateErrorText={t('request.dateOverlap')}
           />
           <div className="spacer-xxxs" />
           <DateInput
             id="request-end-date"
-            label="End"
+            label={t('request.endLabel')}
             value={endDate}
             onChange={(value) => setEndDate(value)}
             dateFormat="yyyy-MM-dd"
             language="en"
             required
             invalid={attempted && !endDate}
-            errorText={attempted && !endDate ? 'End date is required.' : undefined}
+            errorText={attempted && !endDate ? t('request.endRequired') : undefined}
             minDate={TODAY}
             maxDate={MAX_DATE}
-            dateOutsideRangeErrorText={RANGE_ERROR}
+            dateOutsideRangeErrorText={t('request.dateRange')}
             isDateDisabledBy={isDateBlocked}
-            malformedDateErrorText="Date overlaps with another booking."
+            malformedDateErrorText={t('request.dateOverlap')}
           />
         </div>
       )}
@@ -214,22 +216,22 @@ export default function RequestThingPage() {
         <div className="summary-grid section-mt">
           <DateInput
             id="request-delivery-date"
-            label="Delivery"
+            label={t('request.deliveryLabel')}
             value={deliveryDate}
             onChange={(value) => setDeliveryDate(value)}
             dateFormat="yyyy-MM-dd"
             language="en"
             required
             invalid={attempted && !deliveryDate}
-            errorText={attempted && !deliveryDate ? 'Delivery date is required.' : undefined}
+            errorText={attempted && !deliveryDate ? t('request.deliveryRequired') : undefined}
             minDate={TODAY}
             maxDate={MAX_DATE}
-            dateOutsideRangeErrorText={RANGE_ERROR}
+            dateOutsideRangeErrorText={t('request.dateRange')}
           />
-          <div className="spacer-xxxs" /> 
+          <div className="spacer-xxxs" />
           <NumberInput
             id="request-quantity"
-            label="Quantity"
+            label={t('request.quantityLabel')}
             value={quantity}
             onChange={(e) => setQuantity(Number(e.target.value))}
             min={1}
@@ -241,10 +243,10 @@ export default function RequestThingPage() {
       <div className="spacer-xs" />
       <div className="form-grid">
         <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>
-          {submitting ? 'Sending...' : 'Hold'}
+          {submitting ? t('common.sending') : t('thingCard.hold')}
         </Button>
         <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
-          Cancel
+          {t('common.cancel')}
         </Button>
       </div>
 

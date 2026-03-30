@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 
 export default function RemoveGuestPage() {
+  const { t } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const userCode = localStorage.getItem('userCode');
   const backPath = `/collections/${code}/invites`;
-  const backLabel = location.state?.backLabel || 'Guests';
+  const backLabel = location.state?.backLabel || t('removeGuest.guests');
   const guestCode = location.state?.guestCode;
   const guestName = location.state?.guestName || 'this guest';
 
@@ -21,8 +23,8 @@ export default function RemoveGuestPage() {
   }, [userCode, guestCode, navigate, backPath]);
 
   useEffect(() => {
-    document.title = 'Remove guest — OIUEEI';
-  }, []);
+    document.title = t('titles.removeGuest');
+  }, [t]);
 
   const [removing, setRemoving] = useState(false);
   const [toast, setToast] = useState(null);
@@ -38,10 +40,10 @@ export default function RemoveGuestPage() {
       if (res.ok) {
         navigate(backPath);
       } else {
-        setToast({ type: 'error', message: 'Error removing guest.' });
+        setToast({ type: 'error', message: t('removeGuest.errorRemoving') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setRemoving(false);
     }
@@ -51,14 +53,15 @@ export default function RemoveGuestPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   return (
@@ -70,9 +73,9 @@ export default function RemoveGuestPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <BackLink to={backPath} label={backLabel} />
-          <h1 className="form-hero-title">Remove: {guestName}</h1>
+          <h1 className="form-hero-title">{t('removeGuest.pageTitle', { name: guestName })}</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -81,14 +84,14 @@ export default function RemoveGuestPage() {
         />
       </div>
       <div className="page-container">
-        <p>This will remove <strong>{guestName}</strong> from the collection. They will lose access immediately.</p>
+        <p dangerouslySetInnerHTML={{ __html: t('removeGuest.warning', { name: guestName }) }} />
         <div className="spacer-xs" />
         <div className="form-grid">
           <Button fullWidth disabled={removing} onClick={handleRemove} style={btnStyle}>
-            {removing ? 'Removing...' : 'Remove'}
+            {removing ? t('common.removing') : t('common.remove')}
           </Button>
           <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
         <Toast toast={toast} onClose={() => setToast(null)} />

@@ -125,7 +125,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 
 ## Theeeme
 
-The `Theeeme` model represents a colour palette for customising collections. Each theeeme has a name and 5 colours.
+The `Theeeme` model represents a colour palette for customising collections. Each theeeme has a name and 6 colours.
 
 ### Fields
 
@@ -133,7 +133,7 @@ The `Theeeme` model represents a colour palette for customising collections. Eac
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
 | `name` | CharField(16) | No | Display name of the theeeme (default: `""`) |
-| `color_01` through `color_05` | CharField(32) | **Yes** | HDS colour token names (e.g. "bus", "coat-of-arms-medium-light") |
+| `color_01` through `color_06` | CharField(32) | **Yes** | HDS colour token names (e.g. "bus", "coat-of-arms-medium-light") |
 
 ### Business Rules
 

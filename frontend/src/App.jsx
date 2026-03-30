@@ -1,3 +1,4 @@
+import './i18n';
 import 'hds-design-tokens';
 import 'hds-core/lib/base.css';
 import './fonts/oiueei-fonts.css';

@@ -79,7 +79,7 @@ core/
 | **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme` |
 | **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE) |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
-| **Theeeme** | Colour palettes (6 hex colours) for customising collections |
+| **Theeeme** | Colour palettes (6 HDS colour token names) for customising collections |
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
 | **BookingPeriod** | Unified booking model for all thing types (72h expiry). FKs to Thing, User (requester), User (owner) |
 
@@ -189,8 +189,12 @@ cd frontend
 npm install
 npm run dev  # Starts on http://localhost:3000
 
-# Run tests
+# Run backend tests
 pytest -v --cov=core --cov-fail-under=80
+
+# Run frontend tests (smoke + accessibility)
+cd frontend
+npm test
 
 # Linting
 black .
@@ -281,6 +285,42 @@ python manage.py expire_bookings
   This is required to access `/oiueei-admin/`. Regular users authenticate via magic link and don't need passwords.
 
 - **Booking expiration** - PENDING bookings expire after 72 hours. Run `python manage.py expire_bookings` periodically (Heroku Scheduler recommended).
+
+## Accessibility
+
+OIUEEI targets [WCAG 2.1 AA](https://www.w3.org/TR/WCAG21/) as a minimum across all views. This commitment is structural, not aspirational — accessibility decisions are embedded in the design system, the theeeme colour palettes, and the component library.
+
+### Theeeme Colour Contrast
+
+Every theeeme palette has been verified for WCAG contrast compliance across all six colour roles (koros section, primary and secondary buttons, body text). The table below summarises the results:
+
+| Compliance | Theeemes |
+|------------|----------|
+| AAA for all colour roles | Bussi, Kupari, Engel, Hopea, Suomenlinna, B&W |
+| AAA for all roles except AA for normal text in koros section | Vaakuna, Metro, Supra |
+| AAA for all roles except AA for normal text in primary button | Kesa, Sumu |
+| AAA for all roles except AA for normal text in koros section and primary button | Kulta |
+
+All theeemes meet AA or higher for every colour combination. No theeeme falls below AA for any role.
+
+### HDS Accessibility Foundation
+
+All UI components are sourced from the [Helsinki Design System](https://hds.hel.fi/), which is WCAG 2.1 AA audited. HDS provides accessible form controls (labels, error states, focus indicators), keyboard navigation, and screen reader support out of the box. Custom components follow HDS visual conventions and accessibility patterns.
+
+### Implemented Measures
+
+- **Semantic HTML** — proper heading hierarchy (`h1` for page titles, `h2` for sections), form elements with associated labels via HDS components
+- **Decorative icons** — all HDS icons in info rows use `aria-hidden="true"` to avoid screen reader noise
+- **Live regions** — toast notifications use `aria-live="polite"` for non-intrusive screen reader announcements
+- **Accessible tooltips** — `TooltipButton` provides `aria-label` for icon-only actions
+- **Image alt text** — thing thumbnails and gallery images include meaningful `alt` attributes derived from headlines
+- **Page titles** — every page sets `document.title` via `useEffect` for meaningful browser tab titles and screen reader orientation
+- **Language attribute** — `<html lang="en">` is set on the document root
+- **Internationalisation** — all UI strings are externalised via `react-i18next`, enabling future translations and ensuring layouts accommodate variable string lengths
+
+### Validation
+
+Main pages are validated with [axe DevTools](https://www.deque.com/axe/devtools/) to detect WCAG violations. Automated accessibility checks are integrated into the frontend test suite via `jest-axe`.
 
 ## Acknowledgements
 

@@ -1,7 +1,8 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, TYPE_LABELS, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -10,6 +11,7 @@ import placeholderM from '../assets/image-m.png';
 import placeholderL from '../assets/image-l.png';
 
 export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, onDelete, onRemoveFromCollection, onUpdateThing }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [requested, setRequested] = useState(false);
@@ -22,14 +24,15 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
@@ -67,15 +70,15 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       });
       if (res.ok) {
         setRequested(true);
-        setToast({ type: 'success', message: 'Hold requested — you\'ll hear back soon.' });
+        setToast({ type: 'success', message: t('thingPage.holdRequested') });
       } else if (res.status === 400) {
         const data = await res.json();
-        setToast({ type: 'error', message: data.detail || 'Invalid request.' });
+        setToast({ type: 'error', message: data.detail || t('thingPage.invalidRequest') });
       } else {
-        setToast({ type: 'error', message: 'Error sending request.' });
+        setToast({ type: 'error', message: t('thingPage.errorSendingRequest') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -87,10 +90,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       if (res.ok) {
         onUpdateThing(thing.code, { status: 'INACTIVE' });
       } else {
-        setToast({ type: 'error', message: 'Error hiding thing.' });
+        setToast({ type: 'error', message: t('thingPage.errorHidingThing') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     }
   };
 
@@ -100,10 +103,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       if (res.ok) {
         onUpdateThing(thing.code, { status: 'ACTIVE', deal: [] });
       } else {
-        setToast({ type: 'error', message: 'Error reactivating thing.' });
+        setToast({ type: 'error', message: t('thingPage.errorReactivatingThing') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     }
   };
 
@@ -128,7 +131,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             setActivePendingCode(nextPending?.code || null);
             onUpdateThing(thing.code, { pending_booking: nextPending?.code || null });
           }
-          setToast({ type: 'success', message: action === 'accept' ? 'Hold confirmed.' : 'Hold cancelled.' });
+          setToast({ type: 'success', message: action === 'accept' ? t('thingPage.holdConfirmed') : t('thingPage.holdCancelled') });
         } else {
           // GIFT / SELL: thing status changes
           if (action === 'accept') {
@@ -144,14 +147,14 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             setActivePendingCode(nextPending?.code || null);
             onUpdateThing(thing.code, { status: 'ACTIVE', pending_booking: nextPending?.code || null });
           }
-          setToast({ type: 'success', message: action === 'accept' ? 'Hold confirmed.' : 'Hold cancelled.' });
+          setToast({ type: 'success', message: action === 'accept' ? t('thingPage.holdConfirmed') : t('thingPage.holdCancelled') });
         }
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.error || `Error ${action === 'accept' ? 'confirming' : 'cancelling'} hold.` });
+        setToast({ type: 'error', message: data.error || (action === 'accept' ? t('thingPage.errorConfirmingHold') : t('thingPage.errorCancellingHold')) });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setBookingAction(null);
     }
@@ -169,7 +172,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     : `/things/${thing.code}/delete`;
 
   const deleteBackPath = collectionCode ? `/collections/${collectionCode}` : '/';
-  const deleteBackLabel = collectionCode ? (collectionHeadline || 'Collection') : 'Home';
+  const deleteBackLabel = collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home');
 
   const thingPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}`
@@ -199,35 +202,35 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         <div className="thing-card-info">
           <div className="thing-card-info-row">
             <IconTicket size="m" aria-hidden="true" />
-            <span className="thing-card-info-label">Type.</span>
-            <span>{TYPE_LABELS[thing.type] || thing.type}</span>
+            <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
+            <span>{t('types.' + thing.type)}</span>
           </div>
           {thing.fee && (
             <div className="thing-card-info-row">
               <IconEuroSign size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Price.</span>
+              <span className="thing-card-info-label">{t('thingPage.priceLabel')}</span>
               <span>{thing.fee} €</span>
             </div>
           )}
           {thing.availability && (
             <div className="thing-card-info-row">
               <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Availability.</span>
-              <span>{AVAILABILITY_LABELS[thing.availability] || thing.availability}</span>
+              <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
+              <span>{t('availability.' + thing.availability)}</span>
             </div>
           )}
           {thing.location && (
             <div className="thing-card-info-row">
               <IconLocation size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Location.</span>
+              <span className="thing-card-info-label">{t('thingPage.locationLabel')}</span>
               <span>{thing.location}</span>
             </div>
           )}
           {thing.condition && (
             <div className="thing-card-info-row">
               <IconShield size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Condition.</span>
-              <span>{CONDITION_LABELS[thing.condition] || thing.condition}</span>
+              <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
+              <span>{t('condition.' + thing.condition)}</span>
             </div>
           )}
         </div>
@@ -243,10 +246,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                     {b.requester_name && <>{b.requester_name}. </>}
                     {b.created && <>{new Date(b.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. </>}
                     {b.start_date && b.end_date && <>{b.start_date} – {b.end_date}</>}
-                    {b.delivery_date && <>{b.delivery_date}, qty {b.quantity}</>}
+                    {b.delivery_date && <>{b.delivery_date}, {t('thingCard.qty')} {b.quantity}</>}
                     {' '}
                     <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
-                      ({b.status === 'ACCEPTED' ? 'Confirmed' : 'Pending'}){showStar ? ' *' : ''}
+                      ({b.status === 'ACCEPTED' ? t('thingCard.confirmed') : t('thingCard.pending')}){showStar ? ' *' : ''}
                     </span>
                   </li>
                 );
@@ -260,23 +263,23 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               {needsPage && activePendingCode && (
                 <>
                   <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
-                    Confirm hold
+                    {t('thingCard.confirmHold')}
                   </Button>
                   <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
-                    Cancel hold
+                    {t('thingCard.cancelHold')}
                   </Button>
                 </>
               )}
               <Link to={editPath} style={{ display: 'contents' }}>
                 {needsPage && activePendingCode ? (
-                  <Button fullWidth variant="secondary" style={btnSecondaryStyle}>Edit</Button>
+                  <Button fullWidth variant="secondary" style={btnSecondaryStyle}>{t('common.edit')}</Button>
                 ) : (
-                  <Button fullWidth style={btnStyle}>Edit</Button>
+                  <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
                 )}
               </Link>
               {!bookings.some((b) => b.status === 'PENDING') && (
                 <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
-                  Hide
+                  {t('thingPage.hide')}
                 </Button>
               )}
             </>
@@ -284,23 +287,23 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           {isOwner && thing.status === 'TAKEN' && (
             <>
               <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                Confirm hold
+                {t('thingCard.confirmHold')}
               </Button>
               <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-                Cancel hold
+                {t('thingCard.cancelHold')}
               </Button>
               <Link to={editPath} style={{ display: 'contents' }}>
-                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
+                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>{t('common.edit')}</Button>
               </Link>
             </>
           )}
           {isOwner && thing.status === 'INACTIVE' && (
             <>
               <Button fullWidth onClick={handleActivate} style={btnStyle}>
-                Reactivate
+                {t('thingCard.reactivate')}
               </Button>
               <Link to={editPath} style={{ display: 'contents' }}>
-                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>Edit</Button>
+                <Button variant="secondary" fullWidth style={btnSecondaryStyle}>{t('common.edit')}</Button>
               </Link>
               <Button
                 variant="secondary"
@@ -308,7 +311,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 style={btnSecondaryStyle}
                 onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}
               >
-                Delete
+                {t('common.delete')}
               </Button>
             </>
           )}
@@ -317,9 +320,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               fullWidth
               disabled={buttonDisabled}
               style={btnStyle}
-              onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || 'Collection') : 'Home' } }) : handleRequest}
+              onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
-              {submitting ? 'Sending...' : buttonDisabled ? 'Waiting for confirmation' : 'Hold'}
+              {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : t('thingCard.hold')}
             </Button>
           )}
         </div>

@@ -20,6 +20,7 @@ class Theeeme(models.Model):
     color_03 = models.CharField(max_length=32)
     color_04 = models.CharField(max_length=32)
     color_05 = models.CharField(max_length=32)
+    color_06 = models.CharField(max_length=32)
 
     class Meta:
         app_label = "core"

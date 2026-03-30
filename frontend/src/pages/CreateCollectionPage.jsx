@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 
 export default function CreateCollectionPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  useEffect(() => { document.title = 'New collection — OIUEEI'; }, []);
+  useEffect(() => { document.title = t('titles.newCollection'); }, [t]);
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
-  const backLabel = location.state?.backLabel || 'Home';
+  const backLabel = location.state?.backLabel || t('common.home');
   const userCode = localStorage.getItem('userCode');
   const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
 
@@ -28,8 +30,8 @@ export default function CreateCollectionPage() {
 
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'Title is required.';
-    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
+    if (!headline.trim()) newErrors.headline = t('createCollection.titleRequired');
+    if (headline.length > 64) newErrors.headline = t('createCollection.maxHeadline');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -52,11 +54,11 @@ export default function CreateCollectionPage() {
         navigate(`/collections/${data.code}`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error creating collection.';
+        const message = data.detail || Object.values(data).flat().join(' ') || t('createCollection.errorCreating');
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -71,7 +73,7 @@ export default function CreateCollectionPage() {
         className="form-hero"
         style={theeemeColors.color_03 ? { backgroundColor: `var(--color-${theeemeColors.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={theeemeColors.color_04 ? { '--hero-text-color': `var(--color-${theeemeColors.color_04})` } : undefined}>
+        <div className="form-hero-content" style={theeemeColors.color_05 ? { '--hero-text-color': `var(--color-${theeemeColors.color_05})` } : undefined}>
           <BackLink to={backPath} label={backLabel} />
         </div>
         <Koros
@@ -81,11 +83,11 @@ export default function CreateCollectionPage() {
         />
       </div>
       <div className="page-container">
-        <h1 className="page-title-xl">Create collection</h1>
+        <h1 className="page-title-xl">{t('createCollection.pageTitle')}</h1>
         <div className="form-grid">
           <TextInput
             id="create-collection-headline"
-            label="Title"
+            label={t('createCollection.titleLabel')}
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
             required
@@ -95,7 +97,7 @@ export default function CreateCollectionPage() {
           />
           <TextArea
             id="create-collection-description"
-            label="Description"
+            label={t('createCollection.descriptionLabel')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
@@ -109,11 +111,11 @@ export default function CreateCollectionPage() {
             style={theeemeColors.color_01 ? {
               '--background-color': `var(--color-${theeemeColors.color_01})`,
               '--background-color-hover': `var(--color-${theeemeColors.color_01}-dark)`,
-              '--color': theeemeColors.color_05 ? `var(--color-${theeemeColors.color_05})` : 'var(--color-white)',
+              '--color': theeemeColors.color_06 ? `var(--color-${theeemeColors.color_06})` : 'var(--color-white)',
               '--border-color': `var(--color-${theeemeColors.color_01})`,
             } : undefined}
           >
-            {submitting ? 'Creating...' : 'Create'}
+            {submitting ? t('common.creating') : t('common.create')}
           </Button>
         </div>
         <Toast toast={toast} onClose={() => setToast(null)} />

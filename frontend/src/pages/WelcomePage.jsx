@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Koros } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 
 export default function WelcomePage() {
+  const { t } = useTranslation();
   useEffect(() => {
-    document.title = 'Welcome — OIUEEI';
+    document.title = t('titles.welcome');
     localStorage.setItem('seenWelcome', 'true');
-  }, []);
+  }, [t]);
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
@@ -21,14 +23,15 @@ export default function WelcomePage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   return (
@@ -40,17 +43,17 @@ export default function WelcomePage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <BackLink to="/" label="Home" />
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <BackLink to="/" label={t('common.home')} />
           <div className="spacer-m" />
-          {userName && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>Hello, {userName}</p>}
-          <h1 className="form-hero-title">Welcome to OIUEEI!</h1>
+          {userName && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>{t('welcome.greeting', { name: userName })}</p>}
+          <h1 className="form-hero-title">{t('welcome.pageTitle')}</h1>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-s)', paddingBottom: 'var(--spacing-s)' }}>
-            <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
-              <Button style={{ ...btnStyle, width: '100%' }}>Create collection</Button>
+            <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: t('welcome.pageTitle') }}>
+              <Button style={{ ...btnStyle, width: '100%' }}>{t('welcome.createCollection')}</Button>
             </Link>
-            <Link to="/me/edit" state={{ backPath: '/welcome', backLabel: 'Welcome' }}>
-              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>Edit profile</Button>
+            <Link to="/me/edit" state={{ backPath: '/welcome', backLabel: t('welcome.pageTitle') }}>
+              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>{t('welcome.editProfile')}</Button>
             </Link>
           </div>
         </div>
@@ -62,9 +65,7 @@ export default function WelcomePage() {
       </div>
       <div className="page-container">
         <p>
-          OIUEEI is an open-source web application that lets people share their belongings with
-          friends and others around. Users can create collections (wishlists, gift lists, items for
-          sale) and share them with friends who can then reserve items or ask questions.
+          {t('welcome.description')}
         </p>
       </div>
     </div>

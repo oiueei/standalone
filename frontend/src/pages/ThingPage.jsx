@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   Fieldset,
@@ -13,7 +14,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, TYPE_LABELS, AVAILABILITY_LABELS, CONDITION_LABELS } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -28,12 +29,13 @@ import placeholderL from '../assets/image-l.png';
 export default function ThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const userCode = localStorage.getItem('userCode');
 
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
-  useEffect(() => { document.title = thing ? `${thing.headline} — OIUEEI` : 'Thing — OIUEEI'; }, [thing]);
+  useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
   // Reservation state
   const [submitting, setSubmitting] = useState(false);
@@ -61,14 +63,14 @@ export default function ThingPage() {
         if (res.ok) {
           setThing(await res.json());
         } else if (res.status === 403) {
-          setError('You do not have permission to view this thing.');
+          setError(t('thingPage.noPermission'));
         } else if (res.status === 404) {
-          setError('Thing not found.');
+          setError(t('thingPage.notFound'));
         } else {
-          setError('Error loading thing.');
+          setError(t('thingPage.errorLoading'));
         }
       } catch {
-        setError('Connection error.');
+        setError(t('common.connectionError'));
       }
     };
 
@@ -84,7 +86,7 @@ export default function ThingPage() {
 
     fetchThing();
     fetchFaqs();
-  }, [userCode, thingCode, navigate]);
+  }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
     if (!thing || !userCode || thing.owner !== userCode) return;
@@ -112,7 +114,7 @@ export default function ThingPage() {
   if (error) {
     return (
       <div className="page-container">
-        <Notification label="Error" type="error">{error}</Notification>
+        <Notification label={t('common.error')} type="error">{error}</Notification>
       </div>
     );
   }
@@ -135,7 +137,7 @@ export default function ThingPage() {
 
   const collectionCode = code || thing.collection_code;
   const backPath = collectionCode ? `/collections/${collectionCode}` : '/';
-  const backLabel = thing.collection_headline || (collectionCode ? 'Collection' : 'Home');
+  const backLabel = thing.collection_headline || (collectionCode ? t('common.collection') : t('common.home'));
 
   const requestPath = code
     ? `/collections/${code}/things/${thing.code}/request`
@@ -155,15 +157,15 @@ export default function ThingPage() {
       });
       if (res.ok) {
         setRequested(true);
-        setToast({ type: 'success', message: 'Hold requested — you\'ll hear back soon.' });
+        setToast({ type: 'success', message: t('thingPage.holdRequested') });
       } else if (res.status === 400) {
         const data = await res.json();
-        setToast({ type: 'error', message: data.detail || 'Invalid request.' });
+        setToast({ type: 'error', message: data.detail || t('thingPage.invalidRequest') });
       } else {
-        setToast({ type: 'error', message: 'Error sending request.' });
+        setToast({ type: 'error', message: t('thingPage.errorSendingRequest') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -174,12 +176,12 @@ export default function ThingPage() {
       const res = await apiFetch(`/api/v1/things/${thing.code}/hide/`, { method: 'POST' });
       if (res.ok) {
         setThing((prev) => ({ ...prev, status: 'INACTIVE' }));
-        setToast({ type: 'success', message: 'Thing hidden.' });
+        setToast({ type: 'success', message: t('thingPage.thingHidden') });
       } else {
-        setToast({ type: 'error', message: 'Error hiding thing.' });
+        setToast({ type: 'error', message: t('thingPage.errorHidingThing') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     }
   };
 
@@ -188,12 +190,12 @@ export default function ThingPage() {
       const res = await apiFetch(`/api/v1/things/${thing.code}/activate/`, { method: 'POST' });
       if (res.ok) {
         setThing((prev) => ({ ...prev, status: 'ACTIVE', deal: [] }));
-        setToast({ type: 'success', message: 'Thing reactivated.' });
+        setToast({ type: 'success', message: t('thingPage.thingReactivated') });
       } else {
-        setToast({ type: 'error', message: 'Error reactivating thing.' });
+        setToast({ type: 'error', message: t('thingPage.errorReactivatingThing') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     }
   };
 
@@ -232,13 +234,13 @@ export default function ThingPage() {
             setThing((prev) => ({ ...prev, status: 'ACTIVE', pending_booking: nextPending?.code || null }));
           }
         }
-        setToast({ type: 'success', message: action === 'accept' ? 'Hold confirmed.' : 'Hold cancelled.' });
+        setToast({ type: 'success', message: action === 'accept' ? t('thingPage.holdConfirmed') : t('thingPage.holdCancelled') });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.error || `Error ${action === 'accept' ? 'confirming' : 'cancelling'} hold.` });
+        setToast({ type: 'error', message: data.error || (action === 'accept' ? t('thingPage.errorConfirmingHold') : t('thingPage.errorCancellingHold')) });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setBookingAction(false);
     }
@@ -257,13 +259,13 @@ export default function ThingPage() {
         const newFaq = await res.json();
         setFaqs((prev) => [...prev, newFaq]);
         setFaqQuestion('');
-        setToast({ type: 'success', message: 'Question sent.' });
+        setToast({ type: 'success', message: t('thingPage.questionSent') });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || 'Error sending question.' });
+        setToast({ type: 'error', message: data.detail || t('thingPage.errorSendingQuestion') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setFaqSubmitting(false);
     }
@@ -283,13 +285,13 @@ export default function ThingPage() {
         const updated = await res.json();
         setFaqs((prev) => prev.map((f) => (f.code === faqCode ? { ...f, ...updated } : f)));
         setAnswerTexts((prev) => ({ ...prev, [faqCode]: '' }));
-        setToast({ type: 'success', message: 'Answer sent.' });
+        setToast({ type: 'success', message: t('thingPage.answerSent') });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || 'Error sending answer.' });
+        setToast({ type: 'error', message: data.detail || t('thingPage.errorSendingAnswer') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setAnswerSubmitting((prev) => ({ ...prev, [faqCode]: false }));
     }
@@ -307,10 +309,10 @@ export default function ThingPage() {
           prev.map((f) => (f.code === faq.code ? { ...f, is_visible: !faq.is_visible } : f))
         );
       } else {
-        setToast({ type: 'error', message: `Error ${action === 'hide' ? 'hiding' : 'showing'} the question.` });
+        setToast({ type: 'error', message: action === 'hide' ? t('thingPage.errorHidingQuestion') : t('thingPage.errorShowingQuestion') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     }
   };
 
@@ -318,14 +320,15 @@ export default function ThingPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   return (
@@ -337,7 +340,7 @@ export default function ThingPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <BackLink to={backPath} label={backLabel} />
         </div>
         <Koros
@@ -370,42 +373,42 @@ export default function ThingPage() {
         <div className="thing-card-info">
           <div className="thing-card-info-row">
             <IconTicket size="m" aria-hidden="true" />
-            <span className="thing-card-info-label">Type.</span>
-            <span>{TYPE_LABELS[thing.type] || thing.type}</span>
+            <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
+            <span>{t('types.' + thing.type)}</span>
           </div>
           {thing.fee && (
             <div className="thing-card-info-row">
               <IconEuroSign size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Price.</span>
+              <span className="thing-card-info-label">{t('thingPage.priceLabel')}</span>
               <span>{thing.fee} €</span>
             </div>
           )}
           {thing.availability && (
             <div className="thing-card-info-row">
               <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Availability.</span>
-              <span>{AVAILABILITY_LABELS[thing.availability] || thing.availability}</span>
+              <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
+              <span>{t('availability.' + thing.availability)}</span>
             </div>
           )}
           {thing.location && (
             <div className="thing-card-info-row">
               <IconLocation size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Location.</span>
+              <span className="thing-card-info-label">{t('thingPage.locationLabel')}</span>
               <span>{thing.location}</span>
             </div>
           )}
           {thing.condition && (
             <div className="thing-card-info-row">
               <IconShield size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">Condition.</span>
-              <span>{CONDITION_LABELS[thing.condition] || thing.condition}</span>
+              <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
+              <span>{t('condition.' + thing.condition)}</span>
             </div>
           )}
         </div>
 
         {thing.pictures_urls && thing.pictures_urls.length > 0 && (
           <div>
-            <h2>Photos</h2>
+            <h2>{t('thingPage.photos')}</h2>
             <div className="gallery-row">
               {thing.pictures_urls.map((url, i) => (
                 <img
@@ -432,10 +435,10 @@ export default function ThingPage() {
                     {b.requester_name && <>{b.requester_name}. </>}
                     {b.created && <>{new Date(b.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. </>}
                     {b.start_date && b.end_date && <>{b.start_date} – {b.end_date}</>}
-                    {b.delivery_date && <>{b.delivery_date}, qty {b.quantity}</>}
+                    {b.delivery_date && <>{b.delivery_date}, {t('thingCard.qty')} {b.quantity}</>}
                     {' '}
                     <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
-                      ({b.status === 'ACCEPTED' ? 'Confirmed' : 'Pending'}){showStar ? ' *' : ''}
+                      ({b.status === 'ACCEPTED' ? t('thingCard.confirmed') : t('thingCard.pending')}){showStar ? ' *' : ''}
                     </span>
                   </li>
                 );
@@ -450,22 +453,22 @@ export default function ThingPage() {
             {needsPage && activePendingCode && (
               <>
                 <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                  Confirm hold
+                  {t('thingCard.confirmHold')}
                 </Button>
                 <Button fullWidth variant="secondary" disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-                  Cancel hold
+                  {t('thingCard.cancelHold')}
                 </Button>
               </>
             )}
             <Link to={editPath} style={{ display: 'contents' }}>
               {needsPage && activePendingCode ? (
-                <Button fullWidth variant="secondary" style={btnSecondaryStyle}>Edit</Button>
+                <Button fullWidth variant="secondary" style={btnSecondaryStyle}>{t('common.edit')}</Button>
               ) : (
-                <Button fullWidth style={btnStyle}>Edit</Button>
+                <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
               )}
             </Link>
             {!hasPendingBookings && (
-              <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={handleHide}>Hide</Button>
+              <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={handleHide}>{t('thingPage.hide')}</Button>
             )}
           </div>
         )}
@@ -473,13 +476,13 @@ export default function ThingPage() {
         {isOwner && thing.status === 'TAKEN' && (
           <div className="button-col">
             <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-              Confirm hold
+              {t('thingCard.confirmHold')}
             </Button>
             <Button fullWidth variant="secondary" disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-              Cancel hold
+              {t('thingCard.cancelHold')}
             </Button>
             <Link to={editPath} style={{ display: 'contents' }}>
-              <Button fullWidth variant="secondary" style={btnSecondaryStyle}>Edit</Button>
+              <Button fullWidth variant="secondary" style={btnSecondaryStyle}>{t('common.edit')}</Button>
             </Link>
           </div>
         )}
@@ -487,17 +490,17 @@ export default function ThingPage() {
         {isOwner && thing.status === 'INACTIVE' && (
           <div className="button-row">
             <Button style={{ ...btnStyle, width: '100%' }} onClick={handleActivate}>
-              Reactivate
+              {t('thingCard.reactivate')}
             </Button>
             <Link to={editPath} style={{ display: 'contents' }}>
-              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>Edit</Button>
+              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>{t('common.edit')}</Button>
             </Link>
             <Button
               variant="secondary"
               style={{ '--border-color': 'var(--color-error)', '--color': 'var(--color-error)', width: '100%' }}
               onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}
             >
-              Delete
+              {t('common.delete')}
             </Button>
           </div>
         )}
@@ -510,7 +513,7 @@ export default function ThingPage() {
             style={btnStyle}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
-            {submitting ? 'Sending...' : buttonDisabled ? 'Waiting for confirmation' : 'Hold'}
+            {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : t('thingCard.hold')}
           </Button>
         )}
 
@@ -518,10 +521,10 @@ export default function ThingPage() {
         <div className="spacer-m" />
         <hr />
         <div className="spacer-m" />
-        <h2>Questions or comments?</h2>
+        <h2>{t('thingPage.faqHeading')}</h2>
 
         {faqs.length === 0 ? (
-          <p>No questions yet.</p>
+          <p>{t('thingPage.noQuestions')}</p>
         ) : (
           <div className="faq-grid">
             {faqs.map((faq) => (
@@ -539,7 +542,7 @@ export default function ThingPage() {
                   <div className="summary-grid">
                     <TextArea
                       id={`faq-reply-${faq.code}`}
-                      label="Reply"
+                      label={t('thingPage.replyLabel')}
                       value={answerTexts[faq.code] || ''}
                       onChange={(e) =>
                         setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
@@ -553,7 +556,7 @@ export default function ThingPage() {
                         onClick={() => handleAnswer(faq.code)}
                         style={btnStyle}
                       >
-                        {answerSubmitting[faq.code] ? 'Sending...' : 'Reply'}
+                        {answerSubmitting[faq.code] ? t('common.sending') : t('thingPage.replyLabel')}
                       </Button>
                       <Button
                         variant="secondary"
@@ -561,11 +564,11 @@ export default function ThingPage() {
                         onClick={() => handleToggleVisibility(faq)}
                         style={btnSecondaryStyle}
                       >
-                        {faq.is_visible === false ? 'Show' : 'Hide'}
+                        {faq.is_visible === false ? t('thingPage.show') : t('thingPage.hide')}
                       </Button>
                       {faq.is_visible === false && (
                         <span className="faq-meta">
-                          (Hidden)
+                          {t('thingPage.hidden')}
                         </span>
                       )}
                     </div>
@@ -579,11 +582,11 @@ export default function ThingPage() {
                       onClick={() => handleToggleVisibility(faq)}
                       style={btnSecondaryStyle}
                     >
-                      {faq.is_visible === false ? 'Show' : 'Hide'}
+                      {faq.is_visible === false ? t('thingPage.show') : t('thingPage.hide')}
                     </Button>
                     {faq.is_visible === false && (
                       <span className="faq-meta">
-                        (Hidden)
+                        {t('thingPage.hidden')}
                       </span>
                     )}
                   </div>
@@ -599,17 +602,17 @@ export default function ThingPage() {
           <div className="summary-grid section-mt">
             <TextArea
               id="thing-faq-question"
-              label="Question"
+              label={t('thingPage.faqLabel')}
               value={faqQuestion}
               onChange={(e) => setFaqQuestion(e.target.value)}
-              placeholder="Write your question here..."
+              placeholder={t('thingPage.faqPlaceholder')}
             />
             <Button
               disabled={faqSubmitting || !faqQuestion.trim()}
               onClick={handleAskQuestion}
               style={{ ...btnStyle, width: '100%' }}
             >
-              {faqSubmitting ? 'Sending...' : 'Send question'}
+              {faqSubmitting ? t('common.sending') : t('thingPage.sendQuestion')}
             </Button>
           </div>
         )}

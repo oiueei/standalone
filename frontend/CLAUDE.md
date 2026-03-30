@@ -1,6 +1,6 @@
 # OIUEEI Frontend Documentation
 
-React frontend using HDS (Helsinki Design System) from npm with OIUEEI customization layer (fonts, colors, icons). Vite dev server on `localhost:3000`. All API requests are proxied to the Django backend on `localhost:8000`. All UI strings are in British English.
+React frontend using HDS (Helsinki Design System) from npm with OIUEEI customization layer (fonts, colors, icons). Vite dev server on `localhost:3000`. All API requests are proxied to the Django backend on `localhost:8000`. All UI strings are externalised via `react-i18next` (British English, `src/i18n/locales/en.json`).
 
 ---
 
@@ -58,11 +58,12 @@ form-page
 
 | Token | Role |
 |-------|------|
-| `color_01` | Primary buttons |
-| `color_02` | Page background + Koros fill |
-| `color_03` | Hero background |
-| `color_04` | Hero text color (title, description, back-link) via `--hero-text-color` |
-| `color_05` | Button label color |
+| `color_01` | Primary button background + secondary button border |
+| `color_02` | Body background + secondary button background + Koros SVG fill |
+| `color_03` | Koros section background |
+| `color_04` | Body text + secondary button text |
+| `color_05` | Koros text (title, description, back-link) via `--hero-text-color` |
+| `color_06` | Primary button text |
 
 All buttons across the app use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
 
@@ -313,16 +314,38 @@ Detail page for a thing with full information and FAQs section.
 
 ### Constants (`src/constants/things.js`)
 
-Central source of truth for thing type definitions:
-- `TYPE_OPTIONS` — Array of `{ label, value }` for Select dropdowns.
-- `TYPE_LABELS` — Map from type value to display label.
+Central source of truth for thing type definitions. Display labels are handled by i18n — use `t('types.GIFT_THING')` etc.
+- `TYPE_VALUES` — Array of type value strings (no labels — labels come from i18n).
 - `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`).
 - `ORDER_TYPE` — `ORDER_THING` constant.
 - `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`, `ORDER_THING`).
 - `DETAIL_TYPES` — Types with availability/location/condition fields (`GIFT_THING`, `SELL_THING`, `LEND_THING`, `SHARE_THING`).
-- `AVAILABILITY_OPTIONS` / `AVAILABILITY_LABELS` — Options and display labels for thing availability (Immediate, Next week, End of month, Next month).
-- `CONDITION_OPTIONS` / `CONDITION_LABELS` — Options and display labels for thing condition (New, Good condition, Fair, Used, Well used, Almost junk).
+- `AVAILABILITY_VALUES` — Array of availability value strings (labels from i18n).
+- `CONDITION_VALUES` — Array of condition value strings (labels from i18n).
 - `TAG_THEMES` — Theme objects for status tags (taken, inactive, pending).
+
+---
+
+## Internationalisation (i18n)
+
+All UI strings are externalised via `react-i18next`. No hardcoded strings in components.
+
+- **Setup:** `src/i18n/index.js` initialises i18next with English as the default and fallback language.
+- **Locale files:** `src/i18n/locales/en.json` — single JSON file with ~280 strings organised by namespace (common, titles, login, verify, home, collectionPage, thingPage, types, availability, condition, etc.).
+- **Usage:** every page and component imports `useTranslation` and calls `t('namespace.key')`. Select options are built inline: `TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))`.
+- **Initialisation:** `import './i18n'` in `App.jsx` (before HDS imports).
+
+---
+
+## Testing
+
+Smoke tests and automated accessibility checks using vitest + testing-library + jest-axe.
+
+- **Run tests:** `npm test` (single run) or `npm run test:watch` (watch mode).
+- **Config:** `vite.config.js` — `test` block with jsdom environment, `src/test/setup.js` as setup file.
+- **Setup:** `src/test/setup.js` — imports `@testing-library/jest-dom`, initialises i18n mock, provides `localStorage`, `CSS.supports`, and `ResizeObserver` polyfills for jsdom.
+- **Smoke tests:** `src/test/smoke.test.jsx` — renders every page component with mocked API responses and runs `jest-axe` to detect WCAG violations. Covers 16 pages.
+- **i18n mock:** `src/test/i18n-mock.js` — initialises i18next with the real `en.json` for test rendering.
 
 ---
 

@@ -1,29 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Select, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
-const STATUS_OPTIONS = [
-  { label: 'Active', value: 'ACTIVE' },
-  { label: 'Inactive', value: 'INACTIVE' },
-];
-
 export default function EditCollectionPage() {
+  const { t } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
   const [loading, setLoading] = useState(true);
   const [headline, setHeadline] = useState('');
-  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit collection — OIUEEI'; }, [headline]);
+  useEffect(() => { document.title = headline ? t('titles.editCollection', { headline }) : t('titles.editCollectionDefault'); }, [headline, t]);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+
+  const STATUS_OPTIONS = [
+    { label: t('editCollection.statusActive'), value: 'ACTIVE' },
+    { label: t('editCollection.statusInactive'), value: 'INACTIVE' },
+  ];
 
   useEffect(() => {
     if (!userCode) {
@@ -42,21 +44,21 @@ export default function EditCollectionPage() {
           setThumbnail(data.thumbnail || '');
           setStatus(data.status || 'ACTIVE');
         } else {
-          setToast({ type: 'error', message: 'Error loading collection.' });
+          setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
       } catch {
-        setToast({ type: 'error', message: 'Connection error.' });
+        setToast({ type: 'error', message: t('common.connectionError') });
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [userCode, code, navigate]);
+  }, [userCode, code, navigate, t]);
 
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'Title is required.';
-    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
+    if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
+    if (headline.length > 64) newErrors.headline = t('editCollection.maxHeadline');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -82,11 +84,11 @@ export default function EditCollectionPage() {
         navigate(`/collections/${code}`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error saving.';
+        const message = data.detail || Object.values(data).flat().join(' ') || t('editCollection.errorSaving');
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -100,7 +102,7 @@ export default function EditCollectionPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
@@ -113,8 +115,8 @@ export default function EditCollectionPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <BackLink to={`/collections/${code}`} label={headline || 'Collection'} />
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <BackLink to={`/collections/${code}`} label={headline || t('common.collection')} />
         </div>
         <Koros
           className="form-hero-koros"
@@ -123,11 +125,11 @@ export default function EditCollectionPage() {
         />
       </div>
       <div className="page-container">
-        <h1 className="page-title-xl">Edit collection</h1>
+        <h1 className="page-title-xl">{t('editCollection.pageTitle')}</h1>
       <div className="form-grid">
         <TextInput
           id="edit-collection-headline"
-          label="Title"
+          label={t('editCollection.titleLabel')}
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
           required
@@ -137,15 +139,15 @@ export default function EditCollectionPage() {
         />
         <TextArea
           id="edit-collection-description"
-          label="Description"
+          label={t('editCollection.descriptionLabel')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/256`}
         />
         <Select
           id="edit-collection-status"
-          texts={{ label: 'Status' }}
-          helper="Inactive collections are visible to guests but reservations are paused."
+          texts={{ label: t('editCollection.statusLabel') }}
+          helper={t('editCollection.statusHelper')}
           options={STATUS_OPTIONS}
           value={status}
           onChange={(selectedOptions) => {
@@ -157,7 +159,7 @@ export default function EditCollectionPage() {
       </div>
       <div className="form-actions">
         <Button disabled={submitting} onClick={handleSubmit} style={{ ...btnStyle, width: '100%' }}>
-          {submitting ? 'Saving...' : 'Save'}
+          {submitting ? t('common.saving') : t('common.save')}
         </Button>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />

@@ -1,20 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Notification, Tag, Koros, Table, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
-import { TYPE_LABELS, TAG_THEMES } from '../constants/things';
+import { TAG_THEMES } from '../constants/things';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
-
-const STATUS_LABELS = {
-  PENDING: 'Pending',
-  ACCEPTED: 'Confirmed',
-  REJECTED: 'Rejected',
-  CANCELLED: 'Cancelled',
-  EXPIRED: 'Expired',
-};
 
 const STATUS_THEMES = {
   PENDING: TAG_THEMES.pending,
@@ -26,11 +19,20 @@ const STATUS_THEMES = {
 
 export default function MyBookingsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
   const [cancelling, setCancelling] = useState(null);
-  useEffect(() => { document.title = 'My requests — OIUEEI'; }, []);
+  useEffect(() => { document.title = t('titles.myBookings'); }, [t]);
+
+  const STATUS_LABELS = {
+    PENDING: t('myBookings.statusPending'),
+    ACCEPTED: t('myBookings.statusConfirmed'),
+    REJECTED: t('myBookings.statusRejected'),
+    CANCELLED: t('myBookings.statusCancelled'),
+    EXPIRED: t('myBookings.statusExpired'),
+  };
 
   useEffect(() => {
     const userCode = localStorage.getItem('userCode');
@@ -46,14 +48,14 @@ export default function MyBookingsPage() {
           const data = await res.json();
           setBookings(data.results);
         } else {
-          setError('Error loading bookings.');
+          setError(t('myBookings.errorLoading'));
         }
       } catch {
-        setError('Connection error.');
+        setError(t('common.connectionError'));
       }
     };
     fetchBookings();
-  }, [navigate]);
+  }, [navigate, t]);
 
   const handleCancel = async (bookingCode) => {
     setCancelling(bookingCode);
@@ -65,13 +67,13 @@ export default function MyBookingsPage() {
         setBookings((prev) =>
           prev.map((b) => b.code === bookingCode ? { ...b, status: 'CANCELLED' } : b)
         );
-        setToast({ type: 'success', message: 'Request cancelled.' });
+        setToast({ type: 'success', message: t('myBookings.requestCancelled') });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.error || 'Error cancelling request.' });
+        setToast({ type: 'error', message: data.error || t('myBookings.errorCancelling') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setCancelling(null);
     }
@@ -80,7 +82,7 @@ export default function MyBookingsPage() {
   if (error) {
     return (
       <div className="page-container">
-        <Notification label="Error" type="error">{error}</Notification>
+        <Notification label={t('common.error')} type="error">{error}</Notification>
       </div>
     );
   }
@@ -119,14 +121,14 @@ export default function MyBookingsPage() {
             </p>
           )}
           <p style={{ margin: 'var(--spacing-2-xs) 0 0', fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-50)' }}>
-            Requested {new Date(row._created).toLocaleDateString('en-GB')}
+            {t('myBookings.requested', { date: new Date(row._created).toLocaleDateString('en-GB') })}
           </p>
           <p style={{ margin: 'var(--spacing-2-xs) 0 0', fontSize: 'var(--fontsize-body-s)' }}>
             {row._startDate && row._endDate
               ? `${row._startDate} — ${row._endDate}`
               : row._deliveryDate
-              ? `Delivery ${row._deliveryDate}, qty ${row._quantity}`
-              : <span style={{ color: 'var(--color-black-40)' }}>—</span>}
+              ? t('myBookings.delivery', { date: row._deliveryDate, quantity: row._quantity })
+              : <span style={{ color: 'var(--color-black-40)' }}>{t('myBookings.noDates')}</span>}
           </p>
         </div>
       ),
@@ -136,7 +138,7 @@ export default function MyBookingsPage() {
       headerName: 'Status',
       transform: (row) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2-xs)' }}>
-          <Tag>{TYPE_LABELS[row._type] || row._type}</Tag>
+          <Tag>{t('types.' + row._type)}</Tag>
           <Tag theme={STATUS_THEMES[row._status]}>{STATUS_LABELS[row._status] || row._status}</Tag>
         </div>
       ),
@@ -146,7 +148,7 @@ export default function MyBookingsPage() {
       headerName: '',
       transform: (row) => row._status === 'PENDING' ? (
         <TooltipButton
-          tooltip="Cancel this booking request"
+          tooltip={t('myBookings.cancelTooltip')}
           onClick={() => handleCancel(row._code)}
           disabled={cancelling === row._code}
         >
@@ -165,9 +167,9 @@ export default function MyBookingsPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <BackLink to="/" label="Home" />
-          <h1 className="form-hero-title">My requests</h1>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <BackLink to="/" label={t('common.home')} />
+          <h1 className="form-hero-title">{t('myBookings.pageTitle')}</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -179,7 +181,7 @@ export default function MyBookingsPage() {
         <div className="spacer-m" />
 
         {bookings.length === 0 ? (
-          <p>You have no booking requests yet.</p>
+          <p>{t('myBookings.noBookings')}</p>
         ) : (
           <>
             {(() => {
@@ -187,17 +189,17 @@ export default function MyBookingsPage() {
               const otherRows = rows.filter((r) => r._status !== 'PENDING');
               return (
                 <>
-                  <h2>Pending</h2>
+                  <h2>{t('myBookings.statusPending')}</h2>
                   <div className="spacer-s" />
                   {pendingRows.length === 0 ? (
-                    <p className="text-muted">No pending requests.</p>
+                    <p className="text-muted">{t('myBookings.noPending')}</p>
                   ) : (
                     <Table cols={cols} rows={pendingRows} indexKey="_id" renderIndexCol={false} dense theme={tc.color_03 ? { '--header-background-color': `var(--color-${tc.color_03})` } : undefined} />
                   )}
                   {otherRows.length > 0 && (
                     <>
                       <div className="spacer-xl" />
-                      <h2>Confirmed</h2>
+                      <h2>{t('myBookings.statusConfirmed')}</h2>
                       <div className="spacer-s" />
                       <Table cols={cols} rows={otherRows} indexKey="_id" renderIndexCol={false} dense theme={tc.color_03 ? { '--header-background-color': `var(--color-${tc.color_03})` } : undefined} />
                     </>

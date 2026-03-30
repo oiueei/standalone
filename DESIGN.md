@@ -134,17 +134,18 @@ Every page follows this structure: a full-width `form-hero` with theeeme-driven 
 
 ### Theeeme Color Roles
 
-Each theeeme defines five colours used consistently across the interface:
+Each theeeme defines six colours used consistently across the interface:
 
 | Token | Role |
 |-------|------|
-| `color_01` | Primary buttons |
-| `color_02` | Page background and Koros fill |
-| `color_03` | Hero background |
-| `color_04` | Hero text colour (title, description, back-link) via the `--hero-text-color` CSS custom property |
-| `color_05` | Button label colour |
+| `color_01` | Primary button background + secondary button border |
+| `color_02` | Body background + secondary button background + Koros SVG fill |
+| `color_03` | Koros section background |
+| `color_04` | Body text + secondary button text |
+| `color_05` | Koros text (title, description, back-link) via the `--hero-text-color` CSS custom property |
+| `color_06` | Primary button text |
 
-This system ensures that every user's experience is visually coherent: changing a theeeme recolours the entire interface — hero, koros, background, and buttons — in one step. The koro wave type adds a further layer of personalisation, letting each user choose the wave motif that best suits their taste.
+This system ensures that every user's experience is visually coherent: changing a theeeme recolours the entire interface — koros, background, buttons, and text — in one step. The koro wave type adds a further layer of personalisation, letting each user choose the wave motif that best suits their taste.
 
 ---
 

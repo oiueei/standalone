@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TextInput, Button, Koros, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
@@ -10,26 +11,28 @@ import TooltipButton from '../components/TooltipButton';
 export default function ManageInvitesPage() {
   const { code } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const userCode = localStorage.getItem('userCode');
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
   const [collectionHeadline, setCollectionHeadline] = useState('');
-  useEffect(() => { document.title = collectionHeadline ? `Guests — ${collectionHeadline} — OIUEEI` : 'Guests — OIUEEI'; }, [collectionHeadline]);
+  useEffect(() => { document.title = collectionHeadline ? t('titles.guests', { headline: collectionHeadline }) : t('titles.guestsDefault'); }, [collectionHeadline, t]);
   const [isOwner, setIsOwner] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
@@ -52,16 +55,16 @@ export default function ManageInvitesPage() {
           setCollectionHeadline(data.headline || '');
           setIsOwner(localStorage.getItem('userCode') === data.owner);
         } else {
-          setToast({ type: 'error', message: 'Error loading collection.' });
+          setToast({ type: 'error', message: t('manageInvites.errorLoading') });
         }
       } catch {
-        setToast({ type: 'error', message: 'Connection error.' });
+        setToast({ type: 'error', message: t('common.connectionError') });
       } finally {
         setLoading(false);
       }
     };
     fetchCollection();
-  }, [userCode, code, navigate]);
+  }, [userCode, code, navigate, t]);
 
   const handleResend = async (email) => {
     setResending(email);
@@ -71,12 +74,12 @@ export default function ManageInvitesPage() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
-        setToast({ type: 'success', message: 'Invitation resent.' });
+        setToast({ type: 'success', message: t('manageInvites.invitationResent') });
       } else {
-        setToast({ type: 'error', message: 'Error resending invitation.' });
+        setToast({ type: 'error', message: t('manageInvites.errorResending') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setResending(null);
     }
@@ -93,13 +96,13 @@ export default function ManageInvitesPage() {
       if (res.ok) {
         setPendingInvites((prev) => [...prev, { email: inviteEmail.trim() }]);
         setInviteEmail('');
-        setToast({ type: 'success', message: 'Invitation sent.' });
+        setToast({ type: 'success', message: t('manageInvites.invitationSent') });
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || 'Error sending invitation.' });
+        setToast({ type: 'error', message: data.detail || t('manageInvites.errorSending') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setInviteLoading(false);
     }
@@ -118,9 +121,9 @@ export default function ManageInvitesPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
-          <h1 className="form-hero-title">Manage guests</h1>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <BackLink to={`/collections/${code}`} label={collectionHeadline || t('common.collection')} />
+          <h1 className="form-hero-title">{t('manageInvites.pageTitle')}</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -132,13 +135,13 @@ export default function ManageInvitesPage() {
         <div className="spacer-m" />
 
       {invites.length === 0 && pendingInvites.length === 0 ? (
-        <p>No guests.</p>
+        <p>{t('manageInvites.noGuests')}</p>
       ) : (() => {
         const tableRows = [
           ...invites.map((inv) => ({
             _id: inv.code,
             guest: inv.name ? `${inv.name} (${inv.email})` : inv.email,
-            status: 'Accepted',
+            status: t('manageInvites.accepted'),
             _isPending: false,
             _email: inv.email,
             _code: inv.code,
@@ -147,7 +150,7 @@ export default function ManageInvitesPage() {
           ...pendingInvites.map((p) => ({
             _id: p.code || `pending-${p.email}`,
             guest: p.email,
-            status: 'Pending',
+            status: t('manageInvites.pending'),
             _isPending: true,
             _email: p.email,
             _code: p.code,
@@ -164,7 +167,7 @@ export default function ManageInvitesPage() {
               <div style={{ display: 'flex', gap: 'var(--spacing-xs)', alignItems: 'center', justifyContent: 'flex-end' }}>
                 {row._isPending && (
                   <TooltipButton
-                    tooltip="Resend invitation to this guest"
+                    tooltip={t('manageInvites.resendTooltip')}
                     onClick={() => handleResend(row._email)}
                     disabled={resending === row._email}
                   >
@@ -172,7 +175,7 @@ export default function ManageInvitesPage() {
                   </TooltipButton>
                 )}
                 <TooltipButton
-                  tooltip="Remove guest from this collection"
+                  tooltip={t('manageInvites.removeTooltip')}
                   onClick={() => navigate(`/collections/${code}/invites/remove`, {
                     state: { guestCode: row._code, guestName: row._name, backLabel: collectionHeadline || 'Guests' },
                   })}
@@ -200,18 +203,18 @@ export default function ManageInvitesPage() {
         <div className="form-grid section-mt">
           <TextInput
             id="manage-invites-email"
-            label="Guest email"
+            label={t('manageInvites.emailLabel')}
             type="email"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="user@email.com"
+            placeholder={t('manageInvites.emailPlaceholder')}
           />
           <Button
             disabled={inviteLoading || !inviteEmail.trim()}
             onClick={handleInvite}
             style={{ ...btnStyle, width: '100%' }}
           >
-            {inviteLoading ? 'Sending...' : 'Invite'}
+            {inviteLoading ? t('common.sending') : t('manageInvites.invite')}
           </Button>
         </div>
         </>

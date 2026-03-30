@@ -80,6 +80,7 @@ class UserSerializer(serializers.ModelSerializer):
             "color_03": t.color_03,
             "color_04": t.color_04,
             "color_05": t.color_05,
+            "color_06": t.color_06,
         }
 
 

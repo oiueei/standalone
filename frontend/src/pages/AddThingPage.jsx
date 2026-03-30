@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Select,
   TextInput,
@@ -8,17 +9,18 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_OPTIONS, AVAILABILITY_LABELS, CONDITION_OPTIONS, CONDITION_LABELS } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 
 export default function AddThingPage() {
+  const { t } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
 
   const userCode = localStorage.getItem('userCode');
-  useEffect(() => { document.title = 'Add thing — OIUEEI'; }, []);
+  useEffect(() => { document.title = t('titles.addThing'); }, [t]);
 
   useEffect(() => {
     if (!userCode) {
@@ -50,13 +52,13 @@ export default function AddThingPage() {
 
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'Title is required.';
-    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
-    if (thumbnail.length > 16) newErrors.thumbnail = 'Maximum 16 characters.';
+    if (!headline.trim()) newErrors.headline = t('addThing.titleRequired');
+    if (headline.length > 64) newErrors.headline = t('addThing.maxHeadline');
+    if (thumbnail.length > 16) newErrors.thumbnail = t('addThing.maxThumbnail');
     if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
-      newErrors.fee = 'Price is required for this type.';
+      newErrors.fee = t('addThing.priceRequired');
     }
-    if (location.length > 32) newErrors.location = 'Maximum 32 characters.';
+    if (location.length > 32) newErrors.location = t('addThing.maxLocation');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -94,11 +96,11 @@ export default function AddThingPage() {
         navigate(`/collections/${code}`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error creating thing.';
+        const message = data.detail || Object.values(data).flat().join(' ') || t('addThing.errorCreating');
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -111,7 +113,7 @@ export default function AddThingPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
@@ -124,8 +126,8 @@ export default function AddThingPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <BackLink to={`/collections/${code}`} label={collectionHeadline || 'Collection'} />
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <BackLink to={`/collections/${code}`} label={collectionHeadline || t('common.collection')} />
         </div>
         <Koros
           className="form-hero-koros"
@@ -134,12 +136,12 @@ export default function AddThingPage() {
         />
       </div>
       <div className="page-container">
-        <h1 className="page-title-xl">Add thing</h1>
+        <h1 className="page-title-xl">{t('addThing.pageTitle')}</h1>
       <div className="form-grid">
           <Select
             id="add-thing-type"
-            texts={{ label: 'Type' }}
-            options={TYPE_OPTIONS}
+            texts={{ label: t('addThing.typeLabel') }}
+            options={TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))}
             value={type}
             onChange={(selectedOptions) => {
               if (selectedOptions.length > 0) {
@@ -149,7 +151,7 @@ export default function AddThingPage() {
           />
           <TextInput
             id="add-thing-headline"
-            label="Title"
+            label={t('addThing.titleLabel')}
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
             required
@@ -159,14 +161,14 @@ export default function AddThingPage() {
           />
           <TextArea
             id="add-thing-description"
-            label="Description"
+            label={t('addThing.descriptionLabel')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
           />
           <TextInput
             id="add-thing-pictures"
-            label="Photos (comma-separated IDs)"
+            label={t('addThing.photosLabel')}
             value={pictures}
             onChange={(e) => setPictures(e.target.value)}
           />
@@ -174,7 +176,7 @@ export default function AddThingPage() {
           {FEE_TYPES.includes(type) && (
             <NumberInput
               id="add-thing-fee"
-              label="Price"
+              label={t('addThing.priceLabel')}
               value={fee === '' ? '' : Number(fee)}
               onChange={(e) => setFee(e.target.value)}
               min={0}
@@ -191,8 +193,8 @@ export default function AddThingPage() {
             <>
               <Select
                 id="add-thing-availability"
-                texts={{ label: 'Availability' }}
-                options={AVAILABILITY_OPTIONS}
+                texts={{ label: t('addThing.availabilityLabel') }}
+                options={AVAILABILITY_VALUES.map(v => ({ label: t('availability.' + v), value: v }))}
                 value={availability}
                 onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
                 clearable
@@ -200,15 +202,15 @@ export default function AddThingPage() {
               <div className="spacer-xxxs" />
               <Select
                 id="add-thing-condition"
-                texts={{ label: 'Condition' }}
-                options={CONDITION_OPTIONS}
+                texts={{ label: t('addThing.conditionLabel') }}
+                options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}
                 value={condition}
                 onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
                 clearable
               />
               <TextInput
                 id="add-thing-location"
-                label="Location"
+                label={t('addThing.locationLabel')}
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 helperText={`${location.length}/32`}
@@ -221,7 +223,7 @@ export default function AddThingPage() {
 
       <div className="form-actions">
         <Button style={{ ...btnStyle, width: '100%' }} disabled={submitting} onClick={handleSubmit}>
-          {submitting ? 'Creating...' : 'Create'}
+          {submitting ? t('common.creating') : t('common.create')}
         </Button>
       </div>
 

@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Notification, Koros } from 'hds-react';
 
-const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white' };
+const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white', color_06: 'white' };
 
 export default function VerifyPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  useEffect(() => { document.title = 'Verifying — OIUEEI'; }, []);
+  const { t } = useTranslation();
+  useEffect(() => { document.title = t('titles.verify'); }, [t]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [title, setTitle] = useState('');
@@ -19,7 +21,7 @@ export default function VerifyPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
@@ -29,14 +31,14 @@ export default function VerifyPage() {
         const res = await fetch(`/api/v1/auth/verify/${code}/`);
         const data = await res.json();
         if (res.ok && data.action === 'COLLECTION_REJECT') {
-          setTitle('Declined');
-          setSuccess('Invitation declined. The collection owner has been notified.');
+          setTitle(t('verify.declined'));
+          setSuccess(t('verify.invitationDeclined'));
         } else if (res.ok && data.action === 'BOOKING_ACCEPT') {
-          setTitle('Confirmed!');
-          setSuccess('The hold has been confirmed!');
+          setTitle(t('verify.confirmed'));
+          setSuccess(t('verify.holdConfirmed'));
         } else if (res.ok && data.action === 'BOOKING_REJECT') {
-          setTitle('Rejected');
-          setSuccess('The hold has been rejected.');
+          setTitle(t('verify.rejected'));
+          setSuccess(t('verify.holdRejected'));
         } else if (res.ok && data.user) {
           if (data.user?.code) localStorage.setItem('userCode', data.user.code);
           if (data.user?.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.user.theeeme_colors));
@@ -47,14 +49,14 @@ export default function VerifyPage() {
             navigate('/');
           }
         } else {
-          setError(data.error || 'Invalid or expired link.');
+          setError(data.error || t('verify.invalidOrExpired'));
         }
       } catch {
-        setError('Connection error.');
+        setError(t('common.connectionError'));
       }
     };
     verify();
-  }, [code, navigate]);
+  }, [code, navigate, t]);
 
   if (success) {
     return (
@@ -66,11 +68,11 @@ export default function VerifyPage() {
           className="form-hero"
           style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
         >
-          <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+          <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
             <h1 className="form-hero-title">{title}</h1>
             <div className="section-mt">
               <Link to={isLoggedIn ? '/' : '/login'}>
-                <Button style={btnStyle}>{isLoggedIn ? 'Go to homepage' : 'Go to login'}</Button>
+                <Button style={btnStyle}>{isLoggedIn ? t('verify.goToHomepage') : t('verify.goToLogin')}</Button>
               </Link>
             </div>
           </div>
@@ -81,7 +83,7 @@ export default function VerifyPage() {
           />
         </div>
         <div className="page-container">
-          <Notification label="Done" type="success">
+          <Notification label={t('common.done')} type="success">
             {success}
           </Notification>
         </div>
@@ -99,11 +101,11 @@ export default function VerifyPage() {
           className="form-hero"
           style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
         >
-          <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-            <h1 className="form-hero-title">Oops</h1>
+          <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+            <h1 className="form-hero-title">{t('verify.oops')}</h1>
             <div className="section-mt">
               <Link to={isLoggedIn ? '/' : '/login'}>
-                <Button style={btnStyle}>{isLoggedIn ? 'Go to homepage' : 'Go to login'}</Button>
+                <Button style={btnStyle}>{isLoggedIn ? t('verify.goToHomepage') : t('verify.goToLogin')}</Button>
               </Link>
             </div>
           </div>
@@ -114,11 +116,11 @@ export default function VerifyPage() {
           />
         </div>
         <div className="page-container">
-          <Notification label="Error" type="error">
+          <Notification label={t('common.error')} type="error">
             {error}
           </Notification>
           <p className="section-mt">
-            If your link has expired, ask the person who invited you to send a new one, or request a new magic link.
+            {t('verify.expiredHelp')}
           </p>
         </div>
       </div>
@@ -134,8 +136,8 @@ export default function VerifyPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <h1 className="form-hero-title">Verifying…</h1>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <h1 className="form-hero-title">{t('verify.verifying')}</h1>
         </div>
         <Koros
           className="form-hero-koros"

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
 
 export default function LoginPage() {
-  useEffect(() => { document.title = 'Sign in — OIUEEI'; }, []);
+  const { t } = useTranslation();
+  useEffect(() => { document.title = t('titles.login'); }, [t]);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null); // 'success' | 'alert' | 'error'
@@ -25,27 +27,27 @@ export default function LoginPage() {
       const data = await res.json();
       if (res.ok) {
         setStatus('success');
-        setMessage(data.message || 'If this email is registered, a magic link has been sent.');
+        setMessage(data.message || t('login.magicLinkSent'));
       } else {
         setStatus('error');
-        setMessage(data.error || data.detail || 'Error sending link.');
+        setMessage(data.error || data.detail || t('login.errorSendingLink'));
       }
     } catch {
       setStatus('error');
-      setMessage('Connection error.');
+      setMessage(t('common.connectionError'));
     } finally {
       setLoading(false);
     }
   };
 
-  const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white' };
+  const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white', color_06: 'white' };
   const tc = (() => {
     try { return JSON.parse(localStorage.getItem('theeemeColors')) || DEFAULT_COLORS; } catch { return DEFAULT_COLORS; }
   })();
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
@@ -58,8 +60,8 @@ export default function LoginPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <h1 className="form-hero-title">OIUEEI</h1>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <h1 className="form-hero-title">{t('login.title')}</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -69,16 +71,16 @@ export default function LoginPage() {
       </div>
       <div className="page-container">
         {status ? (
-          <Notification label={status === 'success' ? 'Sent' : status === 'alert' ? 'Warning' : 'Error'} type={status}>
+          <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
             {message}
           </Notification>
         ) : (
           <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
             <TextInput
               id="login-email"
-              label="Email"
+              label={t('login.emailLabel')}
               type="email"
-              placeholder="you@email.com"
+              placeholder={t('login.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -87,7 +89,7 @@ export default function LoginPage() {
             <div className="spacer-m"></div>
             <div className="section-mt">
               <Button type="submit" fullWidth disabled={loading} style={btnStyle}>
-                {loading ? 'Sending...' : 'Sign in'}
+                {loading ? t('common.sending') : t('login.signIn')}
               </Button>
             </div>
           </form>

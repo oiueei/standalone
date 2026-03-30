@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
@@ -8,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [myCollections, setMyCollections] = useState(null);
   const [invitedCollections, setInvitedCollections] = useState(null);
@@ -15,7 +17,7 @@ export default function UserPage() {
 
   const userCode = paramCode || localStorage.getItem('userCode');
   const isOwnProfile = !paramCode || paramCode === localStorage.getItem('userCode');
-  useEffect(() => { document.title = user ? `${user.name || 'Profile'} — OIUEEI` : 'Profile — OIUEEI'; }, [user]);
+  useEffect(() => { document.title = user ? t('titles.user', { name: user.name || 'Profile' }) : t('titles.user', { name: 'Profile' }); }, [user, t]);
 
   useEffect(() => {
     if (!localStorage.getItem('userCode')) {
@@ -31,7 +33,7 @@ export default function UserPage() {
           if (data.code) localStorage.setItem('userCode', data.code);
           setUser(data);
         })
-        .catch(() => setError('Error loading profile.'));
+        .catch(() => setError(t('userPage.errorLoading')));
       return;
     }
 
@@ -42,14 +44,14 @@ export default function UserPage() {
           const data = await res.json();
           setUser(data);
         } else if (res.status === 403) {
-          setError('You do not have permission to view this profile.');
+          setError(t('userPage.noPermission'));
         } else if (res.status === 404) {
-          setError('User not found.');
+          setError(t('userPage.notFound'));
         } else {
-          setError('Error loading profile.');
+          setError(t('userPage.errorLoading'));
         }
       } catch {
-        setError('Connection error.');
+        setError(t('common.connectionError'));
       }
     };
     fetchUser();
@@ -64,12 +66,12 @@ export default function UserPage() {
         .then((data) => setInvitedCollections(data))
         .catch(() => {});
     }
-  }, [userCode, isOwnProfile, navigate]);
+  }, [userCode, isOwnProfile, navigate, t]);
 
   if (error) {
     return (
       <div className="page-container">
-        <Notification label="Error" type="error">{error}</Notification>
+        <Notification label={t('common.error')} type="error">{error}</Notification>
       </div>
     );
   }
@@ -85,7 +87,7 @@ export default function UserPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
@@ -98,20 +100,20 @@ export default function UserPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <BackLink to="/" label="Home" />
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <BackLink to="/" label={t('common.home')} />
           <div className="spacer-m" />
           {user.headline && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>{user.headline}</p>}
           <h1 className="form-hero-title">{user.name || user.email}</h1>
           {user.created && (
             <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)', opacity: 0.7 }}>
-              Member since {new Date(user.created).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+              {t('userPage.memberSince', { date: new Date(user.created).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) })}
             </p>
           )}
           {isOwnProfile && (
             <div className="button-row-wide" style={{ paddingBottom: 'var(--spacing-s)' }}>
               <Link to="/me/edit">
-                <Button style={btnStyle}>Edit profile</Button>
+                <Button style={btnStyle}>{t('userPage.editProfile')}</Button>
               </Link>
             </div>
           )}
@@ -125,7 +127,7 @@ export default function UserPage() {
       <div className="page-container">
         {!isOwnProfile && user.shared_collections && user.shared_collections.length > 0 && (
           <>
-            <h2>Collections in common</h2>
+            <h2>{t('userPage.collectionsInCommon')}</h2>
             <div className="spacer-m" />
             <div className="collections-grid">
               {user.shared_collections.map((c) => (
@@ -134,7 +136,7 @@ export default function UserPage() {
                   href={`/collections/${c.code}`}
                   onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
                   heading={c.headline}
-                  linkAriaLabel={`View ${c.headline}`}
+                  linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                   linkboxAriaLabel={c.headline}
                   border
                   size="small"
@@ -146,12 +148,12 @@ export default function UserPage() {
 
         {isOwnProfile && (
           <>
-            <h2>My collections</h2>
+            <h2>{t('userPage.myCollections')}</h2>
             <div className="spacer-m" />
             {myCollections === null ? (
-              <p className="text-muted">Loading collections...</p>
+              <p className="text-muted">{t('userPage.loadingCollections')}</p>
             ) : myCollections.filter((c) => c.status === 'ACTIVE').length === 0 ? (
-              <p>You have no active collections yet. <Link to="/collections/new">Create your first collection</Link> to get started.</p>
+              <p>{t('userPage.noCollections')} <Link to="/collections/new">{t('userPage.createFirst')}</Link> {t('userPage.toGetStarted')}</p>
             ) : (
               <div className="collections-grid">
                 {myCollections.filter((c) => c.status === 'ACTIVE').map((c) => (
@@ -160,8 +162,8 @@ export default function UserPage() {
                     href={`/collections/${c.code}`}
                     onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
                     heading={c.headline}
-                    text={`${c.things.length} things · ${c.invites.length} guests`}
-                    linkAriaLabel={`View ${c.headline}`}
+                    text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
+                    linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                     linkboxAriaLabel={c.headline}
                     border
                     size="small"
@@ -173,7 +175,7 @@ export default function UserPage() {
             {myCollections !== null && myCollections.filter((c) => c.status === 'INACTIVE').length > 0 && (
               <>
                 <div className="spacer-xl" />
-                <h2>Inactive collections</h2>
+                <h2>{t('userPage.inactiveCollections')}</h2>
                 <div className="spacer-m" />
                 <div className="collections-grid">
                   {myCollections.filter((c) => c.status === 'INACTIVE').map((c) => (
@@ -182,8 +184,8 @@ export default function UserPage() {
                       href={`/collections/${c.code}`}
                       onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
                       heading={c.headline}
-                      text={`${c.things.length} things · ${c.invites.length} guests`}
-                      linkAriaLabel={`View ${c.headline}`}
+                      text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
+                      linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                       linkboxAriaLabel={c.headline}
                       border
                       size="small"
@@ -194,12 +196,12 @@ export default function UserPage() {
             )}
 
             <div className="spacer-xl" />
-            <h2>Shared with me</h2>
+            <h2>{t('userPage.sharedWithMe')}</h2>
             <div className="spacer-m" />
             {invitedCollections === null ? (
-              <p className="text-muted">Loading collections...</p>
+              <p className="text-muted">{t('userPage.loadingCollections')}</p>
             ) : invitedCollections.length === 0 ? (
-              <p>No one has shared a collection with you yet.</p>
+              <p>{t('userPage.noShared')}</p>
             ) : (
               <div className="collections-grid">
                 {invitedCollections.map((c) => (
@@ -208,8 +210,8 @@ export default function UserPage() {
                     href={`/collections/${c.code}`}
                     onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
                     heading={c.headline}
-                    text={`${c.things.length} things · ${c.invites.length} guests`}
-                    linkAriaLabel={`View ${c.headline}`}
+                    text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
+                    linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                     linkboxAriaLabel={c.headline}
                     border
                     size="small"

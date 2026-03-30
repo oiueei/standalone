@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
@@ -10,10 +11,11 @@ export default function CollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite && !localStorage.getItem('seenWelcome'));
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
-  useEffect(() => { document.title = collection ? `${collection.headline} — OIUEEI` : 'Collection — OIUEEI'; }, [collection]);
+  useEffect(() => { document.title = collection ? t('titles.collection', { headline: collection.headline }) : t('titles.collectionDefault'); }, [collection, t]);
 
   useEffect(() => {
     if (location.state?.fromInvite) {
@@ -35,23 +37,23 @@ export default function CollectionPage() {
           const data = await res.json();
           setCollection(data);
         } else if (res.status === 403) {
-          setError('You do not have permission to view this collection.');
+          setError(t('collectionPage.noPermission'));
         } else if (res.status === 404) {
-          setError('Collection not found.');
+          setError(t('collectionPage.notFound'));
         } else {
-          setError('Error loading collection.');
+          setError(t('collectionPage.errorLoading'));
         }
       } catch {
-        setError('Connection error.');
+        setError(t('common.connectionError'));
       }
     };
     fetchCollection();
-  }, [code, navigate]);
+  }, [code, navigate, t]);
 
   if (error) {
     return (
       <div className="page-container">
-        <Notification label="Error" type="error">{error}</Notification>
+        <Notification label={t('common.error')} type="error">{error}</Notification>
       </div>
     );
   }
@@ -65,14 +67,15 @@ export default function CollectionPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   return (
@@ -84,15 +87,15 @@ export default function CollectionPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           {!showWelcome && (
-            <BackLink to="/" label="Home" />
+            <BackLink to="/" label={t('common.home')} />
           )}
           <h1 className="form-hero-title">{collection.headline}</h1>
           {collection.description && <p className="form-hero-text">{collection.description}</p>}
           {!isOwner && collection.owner_name && (
             <p className="form-hero-text" style={{ opacity: 0.75, fontSize: 'var(--fontsize-body-m)' }}>
-              <strong>Owner.</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
+              <strong>{t('collectionPage.owner')}</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
             </p>
           )}
           {isOwner && (
@@ -100,13 +103,13 @@ export default function CollectionPage() {
             <div className="spacer-m"></div>
             <div className="button-row-wide">
               <Link to={`/collections/${code}/edit`}>
-                <Button style={btnStyle}>Edit collection</Button>
+                <Button style={btnStyle}>{t('collectionPage.editCollection')}</Button>
               </Link>
               <Link to={`/collections/${code}/add`}>
-                <Button variant="secondary" style={btnSecondaryStyle}>Add thing</Button>
+                <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.addThing')}</Button>
               </Link>
               <Link to={`/collections/${code}/invites`}>
-                <Button variant="secondary" style={btnSecondaryStyle}>Manage guests</Button>
+                <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.manageGuests')}</Button>
               </Link>
             </div>
             </>
@@ -120,8 +123,8 @@ export default function CollectionPage() {
       </div>
       <div className="page-container">
       {isOwner && collection.status === 'INACTIVE' && (
-        <Notification label="Notice" type="info" style={{ marginBottom: 'var(--spacing-m)' }}>
-          This collection is inactive. It is not visible to guests.
+        <Notification label={t('common.notice')} type="info" style={{ marginBottom: 'var(--spacing-m)' }}>
+          {t('collectionPage.inactiveNotice')}
         </Notification>
       )}
 
@@ -134,20 +137,20 @@ export default function CollectionPage() {
             setShowWelcome(false);
             navigate('/welcome', { state: { collectionHeadline: collection.headline } });
           }}
-          heading="Welcome to OIUEEI!"
-          text="Want to know more? Click here!"
-          linkAriaLabel="Go to Welcome"
-          linkboxAriaLabel="Welcome to OIUEEI!"
+          heading={t('collectionPage.welcomeHeading')}
+          text={t('collectionPage.welcomeText')}
+          linkAriaLabel={t('collectionPage.welcomeAriaLabel')}
+          linkboxAriaLabel={t('collectionPage.welcomeHeading')}
           border
         />
         <div className="spacer-l" />
         </div>
       )}
 
-      <h2>Things</h2>
+      <h2>{t('collectionPage.things')}</h2>
       <div className="spacer-m" />
       {collection.things.filter((t) => t.status !== 'INACTIVE').length === 0 ? (
-        <p>No things in this collection yet.{isOwner && <> <Link to={`/collections/${code}/add`}>Add one</Link>.</>}</p>
+        <p>{t('collectionPage.noThings')}{isOwner && <> <Link to={`/collections/${code}/add`}>{t('collectionPage.addOne')}</Link>.</>}</p>
       ) : (
         <div className="things-grid">
           {[...collection.things].filter((t) => t.status !== 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
@@ -179,7 +182,7 @@ export default function CollectionPage() {
       {isOwner && collection.things.some((t) => t.status === 'INACTIVE') && (
         <>
           <div className="spacer-l" />
-          <h2>Inactive things</h2>
+          <h2>{t('collectionPage.inactiveThings')}</h2>
           <div className="spacer-m" />
           <div className="things-grid">
             {[...collection.things].filter((t) => t.status === 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (

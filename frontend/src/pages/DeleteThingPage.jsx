@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 
 export default function DeleteThingPage() {
+  const { t } = useTranslation();
   const { thingCode } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const userCode = localStorage.getItem('userCode');
   const backPath = location.state?.backPath || '/';
-  const backLabel = location.state?.backLabel || 'Back';
+  const backLabel = location.state?.backLabel || t('common.back');
 
   useEffect(() => {
     if (!userCode) navigate('/login');
@@ -22,8 +24,8 @@ export default function DeleteThingPage() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    document.title = thing ? `Delete ${thing.headline} — OIUEEI` : 'Delete thing — OIUEEI';
-  }, [thing]);
+    document.title = thing ? t('titles.deleteThing', { headline: thing.headline }) : t('titles.deleteThingDefault');
+  }, [thing, t]);
 
   useEffect(() => {
     if (!userCode) return;
@@ -41,10 +43,10 @@ export default function DeleteThingPage() {
       if (res.ok || res.status === 204) {
         navigate(backPath);
       } else {
-        setToast({ type: 'error', message: 'Error deleting thing.' });
+        setToast({ type: 'error', message: t('deleteThing.errorDeleting') });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setDeleting(false);
     }
@@ -56,14 +58,15 @@ export default function DeleteThingPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   return (
@@ -75,9 +78,9 @@ export default function DeleteThingPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <BackLink to={backPath} label={backLabel} />
-          <h1 className="form-hero-title">Delete: {thing.headline}</h1>
+          <h1 className="form-hero-title">{t('deleteThing.pageTitle', { headline: thing.headline })}</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -86,14 +89,14 @@ export default function DeleteThingPage() {
         />
       </div>
       <div className="page-container">
-        <p>This action cannot be undone.</p>
+        <p>{t('deleteThing.warning')}</p>
         <div className="spacer-xs" />
         <div className="form-grid">
           <Button fullWidth disabled={deleting} onClick={handleDelete} style={btnStyle}>
-            {deleting ? 'Deleting...' : 'Delete'}
+            {deleting ? t('common.deleting') : t('common.delete')}
           </Button>
           <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
         <Toast toast={toast} onClose={() => setToast(null)} />

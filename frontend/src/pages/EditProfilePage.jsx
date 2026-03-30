@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Select, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
@@ -7,11 +8,12 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 export default function EditProfilePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  useEffect(() => { document.title = 'Edit profile — OIUEEI'; }, []);
+  useEffect(() => { document.title = t('titles.editProfile'); }, [t]);
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
-  const backLabel = location.state?.backLabel || 'Home';
+  const backLabel = location.state?.backLabel || t('common.home');
   const userCode = localStorage.getItem('userCode');
   const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
 
@@ -45,7 +47,7 @@ export default function EditProfilePage() {
           setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
         } else {
-          setToast({ type: 'error', message: 'Error loading profile.' });
+          setToast({ type: 'error', message: t('editProfile.errorLoading') });
         }
 
         if (theemesRes.ok) {
@@ -53,18 +55,18 @@ export default function EditProfilePage() {
           setTheeemes(Array.isArray(data) ? data : data.results || []);
         }
       } catch {
-        setToast({ type: 'error', message: 'Connection error.' });
+        setToast({ type: 'error', message: t('common.connectionError') });
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [userCode, navigate]);
+  }, [userCode, navigate, t]);
 
   const validate = () => {
     const newErrors = {};
-    if (name.length > 32) newErrors.name = 'Maximum 32 characters.';
-    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
+    if (name.length > 32) newErrors.name = t('editProfile.maxName');
+    if (headline.length > 64) newErrors.headline = t('editProfile.maxBio');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -90,11 +92,11 @@ export default function EditProfilePage() {
         navigate('/');
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error saving.';
+        const message = data.detail || Object.values(data).flat().join(' ') || t('editProfile.errorSaving');
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -104,7 +106,7 @@ export default function EditProfilePage() {
     return <LoadingSpinner />;
   }
 
-  const theeemeOptions = theeemes.map((t) => ({ label: t.name || t.code, value: t.code }));
+  const theeemeOptions = theeemes.map((th) => ({ label: th.name || th.code, value: th.code }));
 
   return (
     <div
@@ -115,7 +117,7 @@ export default function EditProfilePage() {
         className="form-hero"
         style={theeemeColors.color_03 ? { backgroundColor: `var(--color-${theeemeColors.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={theeemeColors.color_04 ? { '--hero-text-color': `var(--color-${theeemeColors.color_04})` } : undefined}>
+        <div className="form-hero-content" style={theeemeColors.color_05 ? { '--hero-text-color': `var(--color-${theeemeColors.color_05})` } : undefined}>
           <BackLink to={backPath} label={backLabel} />
         </div>
         <Koros
@@ -125,11 +127,11 @@ export default function EditProfilePage() {
         />
       </div>
       <div className="page-container">
-        <h1 className="page-title-xl">Edit profile</h1>
+        <h1 className="page-title-xl">{t('editProfile.pageTitle')}</h1>
         <div className="form-grid">
           <TextInput
             id="edit-profile-name"
-            label="Name"
+            label={t('editProfile.nameLabel')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             invalid={!!errors.name}
@@ -138,7 +140,7 @@ export default function EditProfilePage() {
           />
           <TextArea
             id="edit-profile-headline"
-            label="Bio"
+            label={t('editProfile.bioLabel')}
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
             invalid={!!errors.headline}
@@ -148,7 +150,7 @@ export default function EditProfilePage() {
           {theeemeOptions.length > 0 && (
             <Select
               id="edit-profile-theeeme"
-              texts={{ label: 'Theeeme' }}
+              texts={{ label: t('editProfile.theeemeLabel') }}
               options={theeemeOptions}
               value={theeeme}
               onChange={(selectedOptions) => {
@@ -160,15 +162,8 @@ export default function EditProfilePage() {
           )}
           <Select
             id="edit-profile-koro"
-            texts={{ label: 'Koro' }}
-            options={[
-              { label: 'Basic', value: 'basic' },
-              { label: 'Beat', value: 'beat' },
-              { label: 'Calm', value: 'calm' },
-              { label: 'Pulse', value: 'pulse' },
-              { label: 'Vibration', value: 'vibration' },
-              { label: 'Wave', value: 'wave' },
-            ]}
+            texts={{ label: t('editProfile.koroLabel') }}
+            options={['basic', 'beat', 'calm', 'pulse', 'vibration', 'wave'].map(k => ({ label: t('koro.' + k), value: k }))}
             value={koro}
             onChange={(selectedOptions) => {
               if (selectedOptions.length > 0) {
@@ -185,11 +180,11 @@ export default function EditProfilePage() {
             style={theeemeColors.color_01 ? {
               '--background-color': `var(--color-${theeemeColors.color_01})`,
               '--background-color-hover': `var(--color-${theeemeColors.color_01}-dark)`,
-              '--color': theeemeColors.color_05 ? `var(--color-${theeemeColors.color_05})` : 'var(--color-white)',
+              '--color': theeemeColors.color_06 ? `var(--color-${theeemeColors.color_06})` : 'var(--color-white)',
               '--border-color': `var(--color-${theeemeColors.color_01})`,
             } : undefined}
           >
-            {submitting ? 'Saving...' : 'Save'}
+            {submitting ? t('common.saving') : t('common.save')}
           </Button>
         </div>
         <Toast toast={toast} onClose={() => setToast(null)} />

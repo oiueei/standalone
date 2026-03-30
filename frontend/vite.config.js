@@ -5,6 +5,12 @@ import path from 'path'
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   base: mode === 'production' ? '/static/' : '/',
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.js',
+    css: false,
+  },
   resolve: {
     alias: {
       'react': path.resolve(__dirname, 'node_modules/react'),

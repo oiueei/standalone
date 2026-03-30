@@ -63,7 +63,7 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, thumbnail/url, hero/url, koro, theeeme | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. |
+| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, thumbnail/url, hero/url, koro, theeeme, theeeme_colors | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. `theeeme_colors` returns a dict with `color_01`–`color_06` HDS token names (or null if no theeeme). |
 | `UserPublicSerializer` | code, name, headline, created, thumbnail/url, hero/url | Limited public profile. No email, no collections. `created` allows "Member since" display. |
 | `UserUpdateSerializer` | name, headline, thumbnail, hero, koro, theeeme | PUT/PATCH input. Uses `SafeHeadlineField` and `ImageIdField`. `koro` accepts: basic, beat, calm, pulse, vibration, wave. |
 

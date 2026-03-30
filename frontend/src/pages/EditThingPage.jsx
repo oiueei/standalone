@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Select,
   TextInput,
@@ -8,13 +9,14 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_OPTIONS, TYPE_LABELS, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_OPTIONS, AVAILABILITY_LABELS, CONDITION_OPTIONS, CONDITION_LABELS } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 export default function EditThingPage() {
+  const { t } = useTranslation();
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
@@ -22,14 +24,14 @@ export default function EditThingPage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
 
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
   const [headline, setHeadline] = useState('');
-  useEffect(() => { document.title = headline ? `Edit ${headline} — OIUEEI` : 'Edit thing — OIUEEI'; }, [headline]);
+  useEffect(() => { document.title = headline ? t('titles.editThing', { headline }) : t('titles.editThingDefault'); }, [headline, t]);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [pictures, setPictures] = useState('');
@@ -65,10 +67,10 @@ export default function EditThingPage() {
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
-          setToast({ type: 'error', message: 'Error loading thing.' });
+          setToast({ type: 'error', message: t('editThing.errorLoading') });
         }
       } catch {
-        setToast({ type: 'error', message: 'Connection error.' });
+        setToast({ type: 'error', message: t('common.connectionError') });
       } finally {
         setLoading(false);
       }
@@ -77,16 +79,16 @@ export default function EditThingPage() {
   }, [userCode, thingCode, navigate]);
 
   const returnPath = thingCollectionCode ? `/collections/${thingCollectionCode}` : '/';
-  const returnLabel = thingCollectionHeadline || (thingCollectionCode ? 'Collection' : 'Home');
+  const returnLabel = thingCollectionHeadline || (thingCollectionCode ? t('common.collection') : t('common.home'));
 
   const validate = () => {
     const newErrors = {};
-    if (!headline.trim()) newErrors.headline = 'Title is required.';
-    if (headline.length > 64) newErrors.headline = 'Maximum 64 characters.';
+    if (!headline.trim()) newErrors.headline = t('addThing.titleRequired');
+    if (headline.length > 64) newErrors.headline = t('addThing.maxHeadline');
     if (FEE_TYPES.includes(thingType) && (fee === '' || fee === undefined)) {
-      newErrors.fee = 'Price is required for this type.';
+      newErrors.fee = t('addThing.priceRequired');
     }
-    if (location.length > 32) newErrors.location = 'Maximum 32 characters.';
+    if (location.length > 32) newErrors.location = t('addThing.maxLocation');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -122,11 +124,11 @@ export default function EditThingPage() {
         navigate(returnPath);
       } else {
         const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || 'Error saving.';
+        const message = data.detail || Object.values(data).flat().join(' ') || t('editThing.errorSaving');
         setToast({ type: 'error', message });
       }
     } catch {
-      setToast({ type: 'error', message: 'Connection error.' });
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +147,7 @@ export default function EditThingPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <BackLink to={returnPath} label={returnLabel} />
         </div>
         <Koros
@@ -155,12 +157,12 @@ export default function EditThingPage() {
         />
       </div>
       <div className="page-container">
-        <h1 className="page-title-xl">Edit thing</h1>
+        <h1 className="page-title-xl">{t('editThing.pageTitle')}</h1>
       <div className="form-grid">
         <Select
           id="edit-thing-type"
-          texts={{ label: 'Type' }}
-          options={TYPE_OPTIONS}
+          texts={{ label: t('addThing.typeLabel') }}
+          options={TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))}
           value={thingType}
           onChange={(selectedOptions) => {
             if (selectedOptions.length > 0) {
@@ -170,7 +172,7 @@ export default function EditThingPage() {
         />
         <TextInput
           id="edit-thing-headline"
-          label="Title"
+          label={t('addThing.titleLabel')}
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
           required
@@ -180,14 +182,14 @@ export default function EditThingPage() {
         />
         <TextArea
           id="edit-thing-description"
-          label="Description"
+          label={t('addThing.descriptionLabel')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/256`}
         />
         <TextInput
           id="edit-thing-pictures"
-          label="Photos (comma-separated IDs)"
+          label={t('addThing.photosLabel')}
           value={pictures}
           onChange={(e) => setPictures(e.target.value)}
         />
@@ -195,7 +197,7 @@ export default function EditThingPage() {
         {FEE_TYPES.includes(thingType) && (
           <NumberInput
             id="edit-thing-fee"
-            label="Price"
+            label={t('addThing.priceLabel')}
             value={fee === '' ? '' : Number(fee)}
             onChange={(e) => setFee(e.target.value)}
             min={0}
@@ -213,8 +215,8 @@ export default function EditThingPage() {
           <>
             <Select
               id="edit-thing-availability"
-              texts={{ label: 'Availability' }}
-              options={AVAILABILITY_OPTIONS}
+              texts={{ label: t('addThing.availabilityLabel') }}
+              options={AVAILABILITY_VALUES.map(v => ({ label: t('availability.' + v), value: v }))}
               value={availability}
               onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
               clearable
@@ -222,7 +224,7 @@ export default function EditThingPage() {
             <div className="spacer-xxxs" />
             <TextInput
               id="edit-thing-location"
-              label="Location"
+              label={t('addThing.locationLabel')}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               helperText={`${location.length}/32`}
@@ -231,8 +233,8 @@ export default function EditThingPage() {
             />
             <Select
               id="edit-thing-condition"
-              texts={{ label: 'Condition' }}
-              options={CONDITION_OPTIONS}
+              texts={{ label: t('addThing.conditionLabel') }}
+              options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}
               value={condition}
               onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
               clearable
@@ -242,7 +244,7 @@ export default function EditThingPage() {
       </div>
       <div className="form-actions">
         <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>
-          {submitting ? 'Saving...' : 'Save'}
+          {submitting ? t('common.saving') : t('common.save')}
         </Button>
         <Button variant="secondary" fullWidth disabled={submitting} onClick={() => {
           const deletePath = thingCollectionCode
@@ -250,13 +252,14 @@ export default function EditThingPage() {
             : `/things/${thingCode}/delete`;
           navigate(deletePath, { state: { backPath: returnPath, backLabel: returnLabel } });
         }} style={{
+          '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
           '--border-color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
-          '--color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
+          '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
           '--background-color-hover': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
-          '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+          '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
           marginTop: 'var(--spacing-s)',
         }}>
-          Delete
+          {t('common.delete')}
         </Button>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />

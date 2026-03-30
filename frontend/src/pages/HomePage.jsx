@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button, Koros, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -7,7 +8,8 @@ import ThingLinkbox from '../components/ThingLinkbox';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  useEffect(() => { document.title = 'Home — OIUEEI'; }, []);
+  const { t } = useTranslation();
+  useEffect(() => { document.title = t('titles.home'); }, [t]);
   const [user, setUser] = useState(null);
   const [myThings, setMyThings] = useState(null);
   const [invitedThings, setInvitedThings] = useState(null);
@@ -33,7 +35,7 @@ export default function HomePage() {
           setUser(data);
         }
       } catch {
-        setError('Connection error.');
+        setError(t('common.connectionError'));
       }
     };
 
@@ -71,7 +73,7 @@ export default function HomePage() {
     fetchMyThings();
     fetchInvitedThings();
     fetchPendingInvitations();
-  }, [navigate]);
+  }, [navigate, t]);
 
   const updateThing = (thingCode, updates) => {
     setMyThings((prev) => prev && prev.map((t) => t.code === thingCode ? { ...t, ...updates } : t));
@@ -90,7 +92,7 @@ export default function HomePage() {
   if (error) {
     return (
       <div className="page-container">
-        <Notification label="Error" type="error">{error}</Notification>
+        <Notification label={t('common.error')} type="error">{error}</Notification>
       </div>
     );
   }
@@ -110,14 +112,15 @@ export default function HomePage() {
   const btnStyle = tc.color_01 ? {
     '--background-color': `var(--color-${tc.color_01})`,
     '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_05 ? `var(--color-${tc.color_05})` : 'var(--color-white)',
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
   return (
@@ -129,18 +132,18 @@ export default function HomePage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_04})` } : undefined}>
-          <h1 className="form-hero-title" style={{ paddingTop: 'var(--spacing-xl)' }}>Hello, {user.name || user.email}</h1>
+        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <h1 className="form-hero-title" style={{ paddingTop: 'var(--spacing-xl)' }}>{t('home.greeting', { name: user.name || user.email })}</h1>
           {user.headline && <p className="form-hero-text">{user.headline}</p>}
           <div className="button-row-wide">
             <Link to="/collections/new">
-              <Button style={btnStyle}>Create collection</Button>
+              <Button style={btnStyle}>{t('home.createCollection')}</Button>
             </Link>
             <Link to="/me">
-              <Button variant="secondary" style={btnSecondaryStyle}>My profile</Button>
+              <Button variant="secondary" style={btnSecondaryStyle}>{t('home.myProfile')}</Button>
             </Link>
             <Link to="/my-bookings">
-              <Button variant="secondary" style={btnSecondaryStyle}>My requests</Button>
+              <Button variant="secondary" style={btnSecondaryStyle}>{t('home.myRequests')}</Button>
             </Link>
           </div>
         </div>
@@ -157,17 +160,17 @@ export default function HomePage() {
           {pendingInvitations.map((inv) => (
             <Notification
               key={inv.accept_code}
-              label={`${inv.owner_name} has invited you to view`}
+              label={t('home.invitedBy', { name: inv.owner_name })}
               type="info"
               dismissible
-              closeButtonLabelText="Dismiss"
+              closeButtonLabelText={t('home.dismiss')}
               onClose={() => dismissInvitation(inv.accept_code)}
               style={{ marginBottom: 'var(--spacing-s)' }}
             >
               <strong>{inv.collection_headline}</strong>
               <div style={{ marginTop: 'var(--spacing-xs)', display: 'flex', gap: 'var(--spacing-s)', flexWrap: 'wrap' }}>
-                <Link to={`/verify/${inv.accept_code}`}>Accept invitation</Link>
-                <Link to={`/verify/${inv.reject_code}`}>Decline invitation</Link>
+                <Link to={`/verify/${inv.accept_code}`}>{t('home.acceptInvitation')}</Link>
+                <Link to={`/verify/${inv.reject_code}`}>{t('home.declineInvitation')}</Link>
               </div>
             </Notification>
           ))}
@@ -175,12 +178,12 @@ export default function HomePage() {
         </>
       )}
 
-      <h2>All things</h2>
+      <h2>{t('home.allThings')}</h2>
       <div className="spacer-m" />
       {myThings === null || invitedThings === null ? (
-        <p className="text-muted">Loading things...</p>
+        <p className="text-muted">{t('home.loadingThings')}</p>
       ) : activeThings.length === 0 ? (
-        <p>No things yet. Add things to your collections to see them here.</p>
+        <p>{t('home.noThings')}</p>
       ) : (
         <div className="things-grid">
           {activeThings.map((thing) => (
@@ -198,7 +201,7 @@ export default function HomePage() {
       {inactiveMyThings.length > 0 && (
         <>
           <div className="spacer-l" />
-          <h2>Inactive things</h2>
+          <h2>{t('home.inactiveThings')}</h2>
           <div className="spacer-m" />
           <div className="things-grid">
             {inactiveMyThings.map((thing) => (
