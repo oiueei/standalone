@@ -13,12 +13,13 @@ from core.utils import generate_id
 class UserManager(BaseUserManager):
     """Custom manager for User model."""
 
-    def create_user(self, email, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
         """Create and return a regular user."""
         if not email:
             raise ValueError("Email is required")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
