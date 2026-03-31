@@ -172,6 +172,10 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 
 **Note:** Reservation accept/reject actions can be performed via RSVP links sent by email or via authenticated API endpoints (`/bookings/{code}/accept/` and `/bookings/{code}/reject/`). Requesters can cancel their own pending bookings via `/bookings/{code}/cancel/`. Email links use RSVP codes as intermediaries to avoid exposing real codes in URLs.
 
+## Deploying to Heroku
+
+See [HEROKU.md](HEROKU.md) for a complete step-by-step guide covering buildpacks, config vars, font setup, and the deployment branch workflow.
+
 ## Development
 
 ```bash

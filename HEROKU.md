@@ -1,0 +1,177 @@
+# Deploying OIUEEI to Heroku
+
+This guide covers deploying OIUEEI on a single Heroku Dyno. Django serves both the API and the React SPA — React is compiled during the build phase and served as static files via WhiteNoise.
+
+## Architecture
+
+```
+Build phase (runs once on each deploy):
+  Node buildpack  → npm run build → frontend/dist/
+  Python buildpack → collectstatic → copies frontend/dist/ to staticfiles/
+
+Runtime (single gunicorn process):
+  /api/*      → Django REST Framework
+  /static/*   → WhiteNoise serves JS, CSS, fonts
+  /*          → Django serves index.html → React Router handles routing
+```
+
+## Prerequisites
+
+- [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed and logged in
+- A Heroku account
+
+## Font Notice
+
+The GraebenbachTRIAL typeface used in this project is **not included in this repository** — the licence does not permit redistribution. The font files (`frontend/src/fonts/*.otf`) are listed in `.gitignore`.
+
+You have two options before deploying:
+
+**Option A — Use the official trial font**
+Download GraebenbachTRIAL directly from the type foundry:
+https://camelot-typefaces.com/graebenbach
+
+Place the `.otf` files in `frontend/src/fonts/`. They will be picked up by Vite during the build.
+
+**Option B — Use a different typeface**
+Edit `frontend/src/fonts/oiueei-fonts.css` and replace the `@font-face` declarations with your chosen font. Make sure to update the `font-family` name if it differs from `HelsinkiGrotesk`.
+
+> In either case, the app will work without fonts — browsers will fall back to system fonts. Fonts only affect visual appearance.
+
+## Deployment Branch
+
+Because font files must be present for the build but cannot be committed to the public repository, we recommend using a dedicated deployment branch:
+
+```bash
+git checkout -b deploy-heroku
+# add your font files to frontend/src/fonts/
+git add frontend/src/fonts/
+git commit -m "Add fonts for deployment"
+```
+
+Use this branch exclusively for Heroku deploys. Keep `development` clean for GitHub.
+
+When you have new changes to deploy:
+
+```bash
+git checkout deploy-heroku
+git merge development
+git push heroku deploy-heroku:main
+git checkout development
+```
+
+## Step-by-step Setup
+
+### 1. Create the Heroku app
+
+Create the app via the [Heroku Dashboard](https://dashboard.heroku.com/) (recommended if you want to choose the Europe region) or via CLI:
+
+```bash
+heroku create your-app-name
+```
+
+Then link your local repo to the app:
+
+```bash
+heroku git:remote -a your-app-name
+```
+
+### 2. Add buildpacks
+
+Order matters — Node must run before Python so the React build happens before `collectstatic`.
+
+```bash
+heroku buildpacks:add heroku/nodejs -a your-app-name
+heroku buildpacks:add heroku/python -a your-app-name
+```
+
+### 3. Add PostgreSQL
+
+```bash
+heroku addons:create heroku-postgresql:essential-0 -a your-app-name
+```
+
+This automatically sets the `DATABASE_URL` config var.
+
+### 4. Set config vars
+
+Generate a secure secret key first:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(50))"
+```
+
+Then set all required variables (replace `your-app-name` and the values as appropriate):
+
+```bash
+heroku config:set \
+  DJANGO_SETTINGS_MODULE=config.settings.production \
+  DJANGO_SECRET_KEY='<your generated key>' \
+  DJANGO_ALLOWED_HOSTS='your-app-name.herokuapp.com' \
+  CSRF_TRUSTED_ORIGINS='https://your-app-name.herokuapp.com' \
+  MAGIC_LINK_BASE_URL='https://your-app-name.herokuapp.com/verify' \
+  RSVP_BASE_URL='https://your-app-name.herokuapp.com/rsvp' \
+  DEFAULT_FROM_EMAIL='noreply@your-domain.com' \
+  EMAIL_HOST_PASSWORD='<your SMTP API key>' \
+  NPM_CONFIG_PRODUCTION=false \
+  -a your-app-name
+```
+
+> **Note:** Heroku sometimes appends a random suffix to the hostname (e.g. `your-app-name-a1b2c3d4.herokuapp.com`). Check the exact URL after the first deploy and update `DJANGO_ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` if needed.
+
+### 5. Deploy
+
+```bash
+git push heroku deploy-heroku:main
+```
+
+### 6. Run migrations
+
+The `Procfile` release command runs migrations automatically on each deploy. If for any reason you need to run them manually:
+
+```bash
+heroku run "python manage.py migrate --noinput" -a your-app-name
+```
+
+### 7. Create a superuser (optional)
+
+Required to access the Django admin at `/oiueei-admin/`:
+
+```bash
+heroku run "python manage.py createsuperuser" -a your-app-name
+```
+
+### 8. Open the app
+
+```bash
+heroku open -a your-app-name
+```
+
+## Email
+
+OIUEEI requires email to send magic links. Configure your SMTP provider via the following vars (defaults to SendGrid):
+
+| Variable | Description |
+|----------|-------------|
+| `EMAIL_HOST` | SMTP host (default: `smtp.sendgrid.net`) |
+| `EMAIL_PORT` | SMTP port (default: `587`) |
+| `EMAIL_HOST_USER` | SMTP username (default: `apikey`) |
+| `EMAIL_HOST_PASSWORD` | SMTP password or API key |
+| `DEFAULT_FROM_EMAIL` | Sender address |
+
+## Booking Expiration
+
+Pending bookings expire after 72 hours. Run the cleanup command periodically using [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler):
+
+```
+python manage.py expire_bookings
+```
+
+## Troubleshooting
+
+**Bad Request (400)** — Check `DJANGO_ALLOWED_HOSTS`. The actual Heroku hostname may include a random suffix. Run `heroku open -a your-app-name` to confirm the exact URL.
+
+**Build fails on collectstatic** — Font files may be missing. See the Font Notice section above.
+
+**Release command fails (migrate)** — `DATABASE_URL` may not be set. Verify with `heroku config -a your-app-name` and ensure the Postgres add-on was created.
+
+**App works but fonts look wrong** — Font files were not included in the build. See Option A or Option B in the Font Notice section.
