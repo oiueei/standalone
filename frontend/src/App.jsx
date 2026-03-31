@@ -5,6 +5,7 @@ import './fonts/oiueei-fonts.css';
 import './styles/oiueei-theme.css';
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import i18n from './i18n';
 import LoginPage from './pages/LoginPage';
 import VerifyPage from './pages/VerifyPage';
 import HomePage from './pages/HomePage';
@@ -28,6 +29,13 @@ import './App.css';
 function App() {
   useEffect(() => {
     fetch('/api/v1/auth/me/', { credentials: 'same-origin' }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = i18n.language;
+    const handleLangChange = (lng) => { document.documentElement.lang = lng; };
+    i18n.on('languageChanged', handleLangChange);
+    return () => i18n.off('languageChanged', handleLangChange);
   }, []);
 
   return (
