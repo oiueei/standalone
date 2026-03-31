@@ -34,4 +34,4 @@ def spa_index(request):
 
 
 # Catch-all: serve React SPA for all routes not handled above
-urlpatterns += [re_path(r"^(?!static/|api/|oiueei-admin/).*", spa_index)]
+urlpatterns += [re_path(r"^(?!static/|api/|oiueei-admin).*", spa_index)]
