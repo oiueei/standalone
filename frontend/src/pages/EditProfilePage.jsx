@@ -91,9 +91,7 @@ export default function EditProfilePage() {
       if (res.ok) {
         navigate('/');
       } else {
-        const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || t('editProfile.errorSaving');
-        setToast({ type: 'error', message });
+        setToast({ type: 'error', message: t('editProfile.errorSaving') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

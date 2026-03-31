@@ -159,8 +159,7 @@ export default function ThingPage() {
         setRequested(true);
         setToast({ type: 'success', message: t('thingPage.holdRequested') });
       } else if (res.status === 400) {
-        const data = await res.json();
-        setToast({ type: 'error', message: data.detail || t('thingPage.invalidRequest') });
+        setToast({ type: 'error', message: t('thingPage.invalidRequest') });
       } else {
         setToast({ type: 'error', message: t('thingPage.errorSendingRequest') });
       }
@@ -236,8 +235,7 @@ export default function ThingPage() {
         }
         setToast({ type: 'success', message: action === 'accept' ? t('thingPage.holdConfirmed') : t('thingPage.holdCancelled') });
       } else {
-        const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.error || (action === 'accept' ? t('thingPage.errorConfirmingHold') : t('thingPage.errorCancellingHold')) });
+        setToast({ type: 'error', message: action === 'accept' ? t('thingPage.errorConfirmingHold') : t('thingPage.errorCancellingHold') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -261,8 +259,7 @@ export default function ThingPage() {
         setFaqQuestion('');
         setToast({ type: 'success', message: t('thingPage.questionSent') });
       } else {
-        const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || t('thingPage.errorSendingQuestion') });
+        setToast({ type: 'error', message: t('thingPage.errorSendingQuestion') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -287,8 +284,7 @@ export default function ThingPage() {
         setAnswerTexts((prev) => ({ ...prev, [faqCode]: '' }));
         setToast({ type: 'success', message: t('thingPage.answerSent') });
       } else {
-        const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || t('thingPage.errorSendingAnswer') });
+        setToast({ type: 'error', message: t('thingPage.errorSendingAnswer') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -497,7 +493,7 @@ export default function ThingPage() {
             </Link>
             <Button
               variant="secondary"
-              style={{ '--border-color': 'var(--color-error)', '--color': 'var(--color-error)', width: '100%' }}
+              style={{ ...btnSecondaryStyle, width: '100%' }}
               onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}
             >
               {t('common.delete')}

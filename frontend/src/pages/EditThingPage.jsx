@@ -123,9 +123,7 @@ export default function EditThingPage() {
       if (res.ok) {
         navigate(returnPath);
       } else {
-        const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || t('editThing.errorSaving');
-        setToast({ type: 'error', message });
+        setToast({ type: 'error', message: t('editThing.errorSaving') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -193,7 +191,7 @@ export default function EditThingPage() {
           value={pictures}
           onChange={(e) => setPictures(e.target.value)}
         />
-        <div className="spacer-xxxs" />
+        <div className="spacer-xxxx" />
         {FEE_TYPES.includes(thingType) && (
           <NumberInput
             id="edit-thing-fee"
@@ -209,7 +207,7 @@ export default function EditThingPage() {
           />
         )}
         {FEE_TYPES.includes(thingType) && DETAIL_TYPES.includes(thingType) && (
-          <div className="spacer-xxxs" />
+          <div className="spacer-xxxx" />
         )}
         {DETAIL_TYPES.includes(thingType) && (
           <>
@@ -221,7 +219,14 @@ export default function EditThingPage() {
               onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
               clearable
             />
-            <div className="spacer-xxxs" />
+            <Select
+              id="edit-thing-condition"
+              texts={{ label: t('addThing.conditionLabel') }}
+              options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}
+              value={condition}
+              onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
+              clearable
+            />
             <TextInput
               id="edit-thing-location"
               label={t('addThing.locationLabel')}
@@ -230,14 +235,6 @@ export default function EditThingPage() {
               helperText={`${location.length}/32`}
               invalid={!!errors.location}
               errorText={errors.location}
-            />
-            <Select
-              id="edit-thing-condition"
-              texts={{ label: t('addThing.conditionLabel') }}
-              options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}
-              value={condition}
-              onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
-              clearable
             />
           </>
         )}

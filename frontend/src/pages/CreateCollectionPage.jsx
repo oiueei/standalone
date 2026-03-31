@@ -53,9 +53,7 @@ export default function CreateCollectionPage() {
         const data = await res.json();
         navigate(`/collections/${data.code}`);
       } else {
-        const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || t('createCollection.errorCreating');
-        setToast({ type: 'error', message });
+        setToast({ type: 'error', message: t('createCollection.errorCreating') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

@@ -49,7 +49,7 @@ export default function VerifyPage() {
             navigate('/');
           }
         } else {
-          setError(data.error || t('verify.invalidOrExpired'));
+          setError(t('verify.invalidOrExpired'));
         }
       } catch {
         setError(t('common.connectionError'));
@@ -70,7 +70,7 @@ export default function VerifyPage() {
         >
           <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
             <h1 className="form-hero-title">{title}</h1>
-            <div className="section-mt">
+            <div>
               <Link to={isLoggedIn ? '/' : '/login'}>
                 <Button style={btnStyle}>{isLoggedIn ? t('verify.goToHomepage') : t('verify.goToLogin')}</Button>
               </Link>
@@ -103,7 +103,7 @@ export default function VerifyPage() {
         >
           <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
             <h1 className="form-hero-title">{t('verify.oops')}</h1>
-            <div className="section-mt">
+            <div>
               <Link to={isLoggedIn ? '/' : '/login'}>
                 <Button style={btnStyle}>{isLoggedIn ? t('verify.goToHomepage') : t('verify.goToLogin')}</Button>
               </Link>

@@ -83,9 +83,7 @@ export default function EditCollectionPage() {
       if (res.ok) {
         navigate(`/collections/${code}`);
       } else {
-        const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || t('editCollection.errorSaving');
-        setToast({ type: 'error', message });
+        setToast({ type: 'error', message: t('editCollection.errorSaving') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

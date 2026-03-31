@@ -95,9 +95,7 @@ export default function AddThingPage() {
       if (res.ok) {
         navigate(`/collections/${code}`);
       } else {
-        const data = await res.json().catch(() => ({}));
-        const message = data.detail || Object.values(data).flat().join(' ') || t('addThing.errorCreating');
-        setToast({ type: 'error', message });
+        setToast({ type: 'error', message: t('addThing.errorCreating') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -172,7 +170,7 @@ export default function AddThingPage() {
             value={pictures}
             onChange={(e) => setPictures(e.target.value)}
           />
-          <div className="spacer-xxxs" />
+          <div className="spacer-xxxx" />
           {FEE_TYPES.includes(type) && (
             <NumberInput
               id="add-thing-fee"
@@ -187,7 +185,7 @@ export default function AddThingPage() {
             />
           )}
           {FEE_TYPES.includes(type) && DETAIL_TYPES.includes(type) && (
-            <div className="spacer-xxxs" />
+            <div className="spacer-xxxx" />
           )}
           {DETAIL_TYPES.includes(type) && (
             <>
@@ -199,7 +197,6 @@ export default function AddThingPage() {
                 onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
                 clearable
               />
-              <div className="spacer-xxxs" />
               <Select
                 id="add-thing-condition"
                 texts={{ label: t('addThing.conditionLabel') }}

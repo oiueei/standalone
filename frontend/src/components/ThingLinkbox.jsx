@@ -72,8 +72,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         setRequested(true);
         setToast({ type: 'success', message: t('thingPage.holdRequested') });
       } else if (res.status === 400) {
-        const data = await res.json();
-        setToast({ type: 'error', message: data.detail || t('thingPage.invalidRequest') });
+        setToast({ type: 'error', message: t('thingPage.invalidRequest') });
       } else {
         setToast({ type: 'error', message: t('thingPage.errorSendingRequest') });
       }
@@ -150,8 +149,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           setToast({ type: 'success', message: action === 'accept' ? t('thingPage.holdConfirmed') : t('thingPage.holdCancelled') });
         }
       } else {
-        const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.error || (action === 'accept' ? t('thingPage.errorConfirmingHold') : t('thingPage.errorCancellingHold')) });
+        setToast({ type: 'error', message: action === 'accept' ? t('thingPage.errorConfirmingHold') : t('thingPage.errorCancellingHold') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

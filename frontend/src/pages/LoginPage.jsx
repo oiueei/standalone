@@ -24,13 +24,12 @@ export default function LoginPage() {
         },
         body: JSON.stringify({ email }),
       });
-      const data = await res.json();
       if (res.ok) {
         setStatus('success');
-        setMessage(data.message || t('login.magicLinkSent'));
+        setMessage(t('login.magicLinkSent'));
       } else {
         setStatus('error');
-        setMessage(data.error || data.detail || t('login.errorSendingLink'));
+        setMessage(t('login.errorSendingLink'));
       }
     } catch {
       setStatus('error');
@@ -86,8 +85,7 @@ export default function LoginPage() {
               required
               className="section-mt"
             />
-            <div className="spacer-m"></div>
-            <div className="section-mt">
+            <div>
               <Button type="submit" fullWidth disabled={loading} style={btnStyle}>
                 {loading ? t('common.sending') : t('login.signIn')}
               </Button>

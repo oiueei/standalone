@@ -69,8 +69,7 @@ export default function MyBookingsPage() {
         );
         setToast({ type: 'success', message: t('myBookings.requestCancelled') });
       } else {
-        const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.error || t('myBookings.errorCancelling') });
+        setToast({ type: 'error', message: t('myBookings.errorCancelling') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -178,7 +177,6 @@ export default function MyBookingsPage() {
         />
       </div>
       <div className="page-container">
-        <div className="spacer-m" />
 
         {bookings.length === 0 ? (
           <p>{t('myBookings.noBookings')}</p>

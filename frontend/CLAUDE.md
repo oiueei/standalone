@@ -330,8 +330,10 @@ Central source of truth for thing type definitions. Display labels are handled b
 
 All UI strings are externalised via `react-i18next`. No hardcoded strings in components.
 
-- **Setup:** `src/i18n/index.js` initialises i18next with English as the default and fallback language.
-- **Locale files:** `src/i18n/locales/en.json` — single JSON file with ~280 strings organised by namespace (common, titles, login, verify, home, collectionPage, thingPage, types, availability, condition, etc.).
+- **Setup:** `src/i18n/index.js` initialises i18next with `i18next-browser-languagedetector`, which reads `navigator.language` on every load (no cache) and falls back to `en` for unsupported languages.
+- **Supported languages:** English (`en`), Spanish (`es`), Catalan (`ca`), Brazilian Portuguese (`pt-BR`), European Portuguese (`pt-PT`), Basque (`eu`), Galician (`gl`).
+- **Locale files:** `src/i18n/locales/{lang}.json` — one JSON file per language with ~280 strings organised by namespace (common, titles, login, verify, home, collectionPage, thingPage, types, availability, condition, etc.).
+- **`html[lang]`:** updated dynamically in `App.jsx` via `i18n.on('languageChanged', ...)`.
 - **Usage:** every page and component imports `useTranslation` and calls `t('namespace.key')`. Select options are built inline: `TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))`.
 - **Initialisation:** `import './i18n'` in `App.jsx` (before HDS imports).
 

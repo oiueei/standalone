@@ -98,8 +98,7 @@ export default function ManageInvitesPage() {
         setInviteEmail('');
         setToast({ type: 'success', message: t('manageInvites.invitationSent') });
       } else {
-        const data = await res.json().catch(() => ({}));
-        setToast({ type: 'error', message: data.detail || t('manageInvites.errorSending') });
+        setToast({ type: 'error', message: t('manageInvites.errorSending') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -132,8 +131,6 @@ export default function ManageInvitesPage() {
         />
       </div>
       <div className="page-container">
-        <div className="spacer-m" />
-
       {invites.length === 0 && pendingInvites.length === 0 ? (
         <p>{t('manageInvites.noGuests')}</p>
       ) : (() => {

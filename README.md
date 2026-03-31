@@ -315,8 +315,8 @@ All UI components are sourced from the [Helsinki Design System](https://hds.hel.
 - **Accessible tooltips** — `TooltipButton` provides `aria-label` for icon-only actions
 - **Image alt text** — thing thumbnails and gallery images include meaningful `alt` attributes derived from headlines
 - **Page titles** — every page sets `document.title` via `useEffect` for meaningful browser tab titles and screen reader orientation
-- **Language attribute** — `<html lang="en">` is set on the document root
-- **Internationalisation** — all UI strings are externalised via `react-i18next`, enabling future translations and ensuring layouts accommodate variable string lengths
+- **Language attribute** — `<html lang>` is set dynamically on the document root via `i18n.on('languageChanged', ...)` in `App.jsx`
+- **Internationalisation** — all UI strings are externalised via `react-i18next` with automatic browser language detection (`i18next-browser-languagedetector`). Supported: English, Spanish, Catalan, Brazilian Portuguese, European Portuguese, Basque, Galician
 
 ### Validation
 
