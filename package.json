@@ -6,6 +6,6 @@
     "node": ">=20"
   },
   "scripts": {
-    "heroku-postbuild": "cd frontend && yarn install && yarn build"
+    "heroku-postbuild": "cd frontend && npm install && npm run build"
   }
 }
