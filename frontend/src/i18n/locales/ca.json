@@ -180,17 +180,15 @@
     "uploading": "Carregant…",
     "uploadError": "Error en carregar. Torna-ho a intentar.",
     "thumbnailLabel": "Miniatura",
-    "heroLabel": "Imatge de portada",
-    "photosLabel": "Fotos",
     "remove": "Eliminar",
-    "replaceLabel": "Substituir imatge"
+    "addFile": "Afegir imatge",
+    "acceptHint": "Només fitxers d'imatge."
   },
   "addThing": {
     "pageTitle": "Afegir article",
     "typeLabel": "Tipus",
     "titleLabel": "Títol",
     "descriptionLabel": "Descripció",
-    "photosLabel": "Fotos",
     "priceLabel": "Preu",
     "availabilityLabel": "Disponibilitat",
     "conditionLabel": "Estat",

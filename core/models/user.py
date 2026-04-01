@@ -52,7 +52,6 @@ class User(AbstractBaseUser):
     last_activity = models.DateField(default=date.today)
     headline = models.CharField(max_length=64, blank=True, default="")
     thumbnail = models.CharField(max_length=255, blank=True, default="")
-    hero = models.CharField(max_length=255, blank=True, default="")
     koro = models.CharField(max_length=9, choices=KORO_CHOICES, default="basic")
     theeeme = models.ForeignKey(
         "Theeeme",

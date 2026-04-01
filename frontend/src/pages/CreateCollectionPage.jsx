@@ -5,6 +5,7 @@ import { TextInput, TextArea, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
+import ImageUpload from '../components/ImageUpload';
 
 export default function CreateCollectionPage() {
   const { t } = useTranslation();
@@ -24,6 +25,7 @@ export default function CreateCollectionPage() {
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
+  const [thumbnail, setThumbnail] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -43,6 +45,7 @@ export default function CreateCollectionPage() {
 
     const body = { headline: headline.trim() };
     if (description.trim()) body.description = description.trim();
+    if (thumbnail) body.thumbnail = thumbnail;
 
     try {
       const res = await apiFetch('/api/v1/collections/', {
@@ -99,6 +102,13 @@ export default function CreateCollectionPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
+          />
+          <ImageUpload
+            id="create-collection-thumbnail"
+            label={t('upload.thumbnailLabel')}
+            value={thumbnail}
+            onChange={setThumbnail}
+            folder="oiueei/collections"
           />
         </div>
         <div className="form-actions">

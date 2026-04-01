@@ -19,7 +19,6 @@ The `User` model represents a person who can own collections, be invited to othe
 | `last_activity` | DateField | Auto | Date of last login/activity |
 | `headline` | CharField(64) | No | Short bio/tagline |
 | `thumbnail` | CharField(255) | No | Cloudinary image ID for avatar |
-| `hero` | CharField(255) | No | Cloudinary image ID for banner |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `is_active` | BooleanField | Auto | Default True |
@@ -30,7 +29,7 @@ The `User` model represents a person who can own collections, be invited to othe
 
 1. **Email is mandatory and unique** - A user must have an email address, and no two users can share the same email. This is enforced at the database level with `unique=True`.
 
-2. **Optional profile fields** - The `headline`, `thumbnail`, and `hero` fields are optional and default to empty strings.
+2. **Optional profile fields** - The `headline` and `thumbnail` fields are optional and default to empty strings.
 
 3. **Relationships via FK/M2M** - Owned collections are accessed via `user.owned_collections.all()` (Collection FK reverse). Invited collections via `user.invited_to_collections.all()` (Collection M2M reverse). Owned things via `user.owned_things.all()` (Thing FK reverse).
 
@@ -85,7 +84,6 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `headline` | CharField(64) | **Yes** | Title of the collection |
 | `description` | CharField(256) | No | Description of the collection |
 | `thumbnail` | CharField(255) | No | Cloudinary image ID for thumbnail |
-| `hero` | CharField(255) | No | Cloudinary image ID for banner |
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
@@ -293,7 +291,6 @@ The `Thing` model represents an item in a collection.
 | `headline` | CharField(64) | **Yes** | Title of the thing |
 | `description` | CharField(256) | No | Description of the thing |
 | `thumbnail` | CharField(255) | No | Cloudinary image ID for thumbnail |
-| `pictures` | JSONField | No | Array of Cloudinary image IDs |
 | `status` | CharField(8) | No | Status: ACTIVE, TAKEN, INACTIVE |
 | `fee` | DecimalField | No | Price/fee (for SELL/RENT types) |
 | `availability` | CharField(12) | No | Availability: IMMEDIATE, NEXT_WEEK, END_OF_MONTH, NEXT_MONTH. Only for GIFT/SELL/LEND/SHARE types. |

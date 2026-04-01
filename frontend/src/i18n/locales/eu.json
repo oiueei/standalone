@@ -180,17 +180,15 @@
     "uploading": "Kargatzen…",
     "uploadError": "Kargatzean errore bat gertatu da. Saiatu berriro.",
     "thumbnailLabel": "Miniatura",
-    "heroLabel": "Azaleko irudia",
-    "photosLabel": "Argazkiak",
     "remove": "Ezabatu",
-    "replaceLabel": "Irudia ordezkatu"
+    "addFile": "Irudia gehitu",
+    "acceptHint": "Irudi fitxategiak soilik."
   },
   "addThing": {
     "pageTitle": "Gauza gehitu",
     "typeLabel": "Mota",
     "titleLabel": "Izenburua",
     "descriptionLabel": "Deskribapena",
-    "photosLabel": "Argazkiak",
     "priceLabel": "Prezioa",
     "availabilityLabel": "Erabilgarritasuna",
     "conditionLabel": "Egoera",

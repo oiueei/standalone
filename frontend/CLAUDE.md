@@ -114,7 +114,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **API:** `GET /api/v1/collections/{code}/`
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Handles 403 (not authorised) and 404 (not found) with specific error messages.
-- Displays hero image (`hero_url`, falls back to `thumbnail_url`, then `image-m` placeholder), collection headline, description, and status.
+- Displays collection headline, description, and status. Shows `thumbnail_url` in the card if present.
 - **Things** are rendered using the `ThingLinkbox` component (see below).
 - **"Edit collection" button** visible only to collection owner, links to `/collections/{code}/edit`.
 - **"Add thing" button** visible only to collection owner, links to `/collections/{code}/add`.
@@ -161,7 +161,7 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Pending questions).
-- Displays thumbnail, headline, description, creation date, fee, availability, location, condition, and photo gallery (`pictures_urls`).
+- Displays thumbnail (if present), headline, description, creation date, fee, availability, location, and condition.
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
 - **Owner bookings display**: fetches `GET /api/v1/things/{thingCode}/calendar/` for date-based/order types and for any TAKEN thing (GIFT/SELL). Same logic as ThingLinkbox: filters past bookings, syncs `activePendingCode` to the first PENDING from the calendar, shows bookings list with requester name, request date, date ranges/delivery info, and status. Active pending booking is bold; starred when multiple pending exist.
 - **Owner actions:** Full parity with ThingLinkbox button matrix:
@@ -233,7 +233,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type, `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` for pictures (comma-separated IDs), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition.
+  - `Select` for thing type, `TextInput` for headline (required, max 64), `TextArea` for description, `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -242,8 +242,7 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save, `DELETE /api/v1/things/{thingCode}/` to delete
 - Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
-- Simple form with h1 title + `form-grid` layout (same fields as AddThingPage, including conditional availability/location/condition fields for `DETAIL_TYPES`).
-- Pre-populates all fields from the existing thing.
+- Same fields as AddThingPage (type, headline, description, fee, availability/location/condition for `DETAIL_TYPES`, `ImageUpload` for thumbnail last). Pre-populates all fields including existing `thumbnail_url` for preview.
 - "Save" button (primary, full width) and "Delete" button (secondary, full width) below the form. Delete navigates to `DeleteThingPage` with `{ state: { backPath: returnPath, backLabel: returnLabel } }`.
 - On success: navigates back to collection or home.
 
@@ -252,7 +251,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API, shows theeeme `name` field as label), `Select` for koro (basic, beat, calm, pulse, vibration, wave).
+  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API, shows theeeme `name` field as label), `Select` for koro (basic, beat, calm, pulse, vibration, wave), `ImageUpload` for thumbnail (last, folder `oiueei/users`).
   - "Save" button below the form.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.
@@ -272,9 +271,9 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `ImageUpload` for thumbnail (last, folder `oiueei/collections`).
   - "Save" button below the form.
-- Pre-populates all fields from the existing collection.
+- Pre-populates all fields including existing `thumbnail_url` for preview.
 - On success: navigates to `/collections/{code}`.
 
 ### CreateCollectionPage (`src/pages/CreateCollectionPage.jsx`)
@@ -282,7 +281,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description.
+  - `TextInput` for headline (required), `TextArea` for description, `ImageUpload` for thumbnail (last, folder `oiueei/collections`).
   - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 
@@ -311,8 +310,7 @@ Detail page for a thing with full information and FAQs section.
 - **`Toast`** (`src/components/Toast.jsx`) — Reusable toast notification wrapping HDS `Notification`. Props: `toast` (`{ type, message }`), `onClose`. Renders at `position="top-right"` with auto-close.
 - **`LoadingSpinner`** (`src/components/LoadingSpinner.jsx`) — Wrapper around HDS `LoadingSpinner` component.
 - **`ThingTags`** (`src/components/ThingTags.jsx`) — Shared tag row for thing type, status, availability, and pending questions. Props: `thing`, `isOwner`. Uses `TAG_THEMES` from constants.
-- **`ImageUpload`** (`src/components/ImageUpload.jsx`) — Single-image upload using HDS `FileInput`. Gets a short-lived Cloudinary signature from `POST /api/v1/upload/signature/`, uploads the file directly to Cloudinary, and calls `onChange(publicId)`. Shows a preview of the current image when `currentUrl` is provided. Props: `id`, `label`, `value` (public_id), `onChange`, `currentUrl`, `folder` (Cloudinary folder, default `oiueei/users`), `helperText`. Used in EditProfilePage, EditCollectionPage, EditThingPage, AddThingPage.
-- **`MultiImageUpload`** (`src/components/MultiImageUpload.jsx`) — Multiple-image upload using HDS `FileInput` with `multiple`. Uploads all selected files in parallel to Cloudinary and calls `onChange(publicIds[])`. Shows a grid of existing image previews when `currentUrls` is provided. Selecting new files replaces the current array. Props: `id`, `label`, `value` (string[]), `onChange`, `currentUrls` (string[]), `folder` (default `oiueei/things`). Used in AddThingPage and EditThingPage for the `pictures` gallery.
+- **`ImageUpload`** (`src/components/ImageUpload.jsx`) — Single-image upload using HDS `FileInput`. Gets a short-lived Cloudinary signature from `POST /api/v1/upload/signature/`, resizes images client-side to max 1216px, uploads directly to Cloudinary, and calls `onChange(publicId)`. Shows a preview with a Remove button when an image is present; the FileInput is hidden while a preview exists. Button label and accept hint are translated via i18n. Button colours follow the current theeeme. Props: `id`, `label`, `value` (public_id), `onChange`, `currentUrl`, `folder` (Cloudinary folder, default `oiueei/users`), `helperText`. Used in CreateCollectionPage, EditCollectionPage, EditProfilePage, AddThingPage, EditThingPage.
 
 ### Constants (`src/constants/things.js`)
 

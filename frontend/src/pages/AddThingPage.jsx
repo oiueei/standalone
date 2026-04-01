@@ -160,14 +160,6 @@ export default function AddThingPage() {
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
           />
-          <ImageUpload
-            id="add-thing-thumbnail"
-            label={t('upload.thumbnailLabel')}
-            value={thumbnail}
-            onChange={setThumbnail}
-            folder="oiueei/things"
-          />
-          <div className="spacer-xxxx" />
           {FEE_TYPES.includes(type) && (
             <NumberInput
               id="add-thing-fee"
@@ -213,6 +205,13 @@ export default function AddThingPage() {
               />
             </>
           )}
+          <ImageUpload
+            id="add-thing-thumbnail"
+            label={t('upload.thumbnailLabel')}
+            value={thumbnail}
+            onChange={setThumbnail}
+            folder="oiueei/things"
+          />
       </div>
 
       <div className="form-actions">

@@ -12,7 +12,6 @@ const MOCK_USER = {
   name: 'Test User',
   headline: '',
   thumbnail: '',
-  hero: '',
   koro: 'basic',
   theeeme_colors: {
     color_01: 'bus',
@@ -32,7 +31,6 @@ const MOCK_COLLECTION = {
   owner: 'ABC123',
   owner_name: 'Test User',
   thumbnail_url: '',
-  hero_url: '',
   things: [],
   invites: [],
 };

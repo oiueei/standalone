@@ -19,8 +19,6 @@ export default function EditCollectionPage() {
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const [hero, setHero] = useState('');
-  const [heroUrl, setHeroUrl] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -47,8 +45,6 @@ export default function EditCollectionPage() {
           setDescription(data.description || '');
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
-          setHero(data.hero || '');
-          setHeroUrl(data.hero_url || '');
           setStatus(data.status || 'ACTIVE');
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
@@ -79,7 +75,6 @@ export default function EditCollectionPage() {
       headline: headline.trim(),
       description: description.trim(),
       thumbnail: thumbnail || '',
-      hero: hero || '',
       status,
     };
 
@@ -150,22 +145,6 @@ export default function EditCollectionPage() {
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/256`}
         />
-        <ImageUpload
-          id="edit-collection-thumbnail"
-          label={t('upload.thumbnailLabel')}
-          value={thumbnail}
-          onChange={setThumbnail}
-          currentUrl={thumbnailUrl}
-          folder="oiueei/collections"
-        />
-        <ImageUpload
-          id="edit-collection-hero"
-          label={t('upload.heroLabel')}
-          value={hero}
-          onChange={setHero}
-          currentUrl={heroUrl}
-          folder="oiueei/collections"
-        />
         <Select
           id="edit-collection-status"
           texts={{ label: t('editCollection.statusLabel') }}
@@ -177,6 +156,14 @@ export default function EditCollectionPage() {
               setStatus(selectedOptions[0].value);
             }
           }}
+        />
+        <ImageUpload
+          id="edit-collection-thumbnail"
+          label={t('upload.thumbnailLabel')}
+          value={thumbnail}
+          onChange={setThumbnail}
+          currentUrl={thumbnailUrl}
+          folder="oiueei/collections"
         />
       </div>
       <div className="form-actions">

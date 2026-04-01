@@ -31,7 +31,6 @@ class Collection(models.Model):
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
     thumbnail = models.CharField(max_length=255, blank=True, default="")
-    hero = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
     things = models.ManyToManyField(
         "Thing",

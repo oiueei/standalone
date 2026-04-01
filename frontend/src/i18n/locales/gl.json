@@ -180,17 +180,15 @@
     "uploading": "Cargando…",
     "uploadError": "Erro ao cargar. Téntao de novo.",
     "thumbnailLabel": "Miniatura",
-    "heroLabel": "Imaxe de portada",
-    "photosLabel": "Fotos",
     "remove": "Eliminar",
-    "replaceLabel": "Substituír imaxe"
+    "addFile": "Engadir imaxe",
+    "acceptHint": "Só ficheiros de imaxe."
   },
   "addThing": {
     "pageTitle": "Engadir artigo",
     "typeLabel": "Tipo",
     "titleLabel": "Título",
     "descriptionLabel": "Descrición",
-    "photosLabel": "Fotos",
     "priceLabel": "Prezo",
     "availabilityLabel": "Dispoñibilidade",
     "conditionLabel": "Estado",

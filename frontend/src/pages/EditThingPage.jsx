@@ -181,15 +181,6 @@ export default function EditThingPage() {
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/256`}
         />
-        <ImageUpload
-          id="edit-thing-thumbnail"
-          label={t('upload.thumbnailLabel')}
-          value={thumbnail}
-          onChange={setThumbnail}
-          currentUrl={thumbnailUrl}
-          folder="oiueei/things"
-        />
-        <div className="spacer-xxxx" />
         {FEE_TYPES.includes(thingType) && (
           <NumberInput
             id="edit-thing-fee"
@@ -236,6 +227,14 @@ export default function EditThingPage() {
             />
           </>
         )}
+        <ImageUpload
+          id="edit-thing-thumbnail"
+          label={t('upload.thumbnailLabel')}
+          value={thumbnail}
+          onChange={setThumbnail}
+          currentUrl={thumbnailUrl}
+          folder="oiueei/things"
+        />
       </div>
       <div className="form-actions">
         <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>

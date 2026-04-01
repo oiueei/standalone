@@ -23,8 +23,6 @@ export default function EditProfilePage() {
   const [headline, setHeadline] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const [hero, setHero] = useState('');
-  const [heroUrl, setHeroUrl] = useState('');
   const [koro, setKoro] = useState('basic');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
@@ -51,8 +49,6 @@ export default function EditProfilePage() {
           setHeadline(data.headline || '');
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
-          setHero(data.hero || '');
-          setHeroUrl(data.hero_url || '');
           setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
         } else {
@@ -89,7 +85,6 @@ export default function EditProfilePage() {
       name: name.trim(),
       headline: headline.trim(),
       thumbnail: thumbnail || '',
-      hero: hero || '',
       koro,
     };
     if (theeeme) body.theeeme = theeeme;
@@ -156,22 +151,6 @@ export default function EditProfilePage() {
             errorText={errors.headline}
             helperText={`${headline.length}/64`}
           />
-          <ImageUpload
-            id="edit-profile-thumbnail"
-            label={t('upload.thumbnailLabel')}
-            value={thumbnail}
-            onChange={setThumbnail}
-            currentUrl={thumbnailUrl}
-            folder="oiueei/users"
-          />
-          <ImageUpload
-            id="edit-profile-hero"
-            label={t('upload.heroLabel')}
-            value={hero}
-            onChange={setHero}
-            currentUrl={heroUrl}
-            folder="oiueei/users"
-          />
           {theeemeOptions.length > 0 && (
             <Select
               id="edit-profile-theeeme"
@@ -195,6 +174,14 @@ export default function EditProfilePage() {
                 setKoro(selectedOptions[0].value);
               }
             }}
+          />
+          <ImageUpload
+            id="edit-profile-thumbnail"
+            label={t('upload.thumbnailLabel')}
+            value={thumbnail}
+            onChange={setThumbnail}
+            currentUrl={thumbnailUrl}
+            folder="oiueei/users"
           />
         </div>
         <div className="form-actions">

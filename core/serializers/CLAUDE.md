@@ -26,11 +26,10 @@ All user-facing text inputs use custom validator fields to prevent XSS:
 | `SafeHeadlineField` | Rejects HTML tags (regex) | Headlines, FAQ questions, location |
 | `SafeTextField` | Rejects HTML tags (regex) | Descriptions, FAQ answers |
 | `ImageIdField` | Alphanumeric + `_-./` only, no leading/trailing/double slashes | Cloudinary public_ids including folder paths (e.g. `oiueei/things/abc123`) |
-| `ImageIdListField` | List of validated image IDs | Thing `pictures` field (defined in `core/serializers/thing.py`) |
 
 ### Cloudinary Image URLs
 
-Read serializers expose `thumbnail_url` / `hero_url` / `pictures_urls` as `SerializerMethodField`s that call `core.utils.cloudinary_url()` to convert stored image IDs into full Cloudinary URLs. The raw IDs are also exposed (e.g. `thumbnail`, `hero`) for edit forms.
+Read serializers expose `thumbnail_url` as a `SerializerMethodField` that calls `core.utils.cloudinary_url()` to convert stored image IDs into full Cloudinary URLs. The raw ID is also exposed (e.g. `thumbnail`) for edit forms.
 
 ### Prefetch-Aware Computed Fields
 
@@ -63,27 +62,27 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, thumbnail/url, hero/url, koro, theeeme, theeeme_colors | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. `theeeme_colors` returns a dict with `color_01`–`color_06` HDS token names (or null if no theeeme). |
-| `UserPublicSerializer` | code, name, headline, created, thumbnail/url, hero/url | Limited public profile. No email, no collections. `created` allows "Member since" display. |
-| `UserUpdateSerializer` | name, headline, thumbnail, hero, koro, theeeme | PUT/PATCH input. Uses `SafeHeadlineField` and `ImageIdField`. `koro` accepts: basic, beat, calm, pulse, vibration, wave. |
+| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, thumbnail/url, koro, theeeme, theeeme_colors | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. `theeeme_colors` returns a dict with `color_01`–`color_06` HDS token names (or null if no theeeme). |
+| `UserPublicSerializer` | code, name, headline, created, thumbnail/url | Limited public profile. No email, no collections. `created` allows "Member since" display. |
+| `UserUpdateSerializer` | name, headline, thumbnail, koro, theeeme | PUT/PATCH input. Uses `SafeHeadlineField` and `ImageIdField`. `koro` accepts: basic, beat, calm, pulse, vibration, wave. |
 
 ### `thing.py`
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `ThingSerializer` | code, type, owner, owner_name, created, headline, description, thumbnail/url, pictures/urls, status, faqs, fee, availability, location, condition, deal, pending_booking, my_pending_booking, pending_questions, collection_code, collection_headline | Full read representation. `owner_name` returns owner's name (falls back to email). `pending_booking` returns first PENDING booking code (owner use). `my_pending_booking` returns the requesting user's own PENDING booking code (or null) — used by guests to distinguish "Reserved" vs "Waiting for confirmation". `collection_code/headline` from first associated collection. |
-| `ThingCreateSerializer` | type, headline, description, thumbnail, pictures, fee, availability, location, condition | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`, `ImageIdListField`. `location` uses `SafeHeadlineField(max_length=32)`. |
-| `ThingUpdateSerializer` | type, headline, description, thumbnail, pictures, status (read-only), fee, availability, location, condition | Same validation fields. `status` is read-only (changed by booking flow or dedicated activate/hide endpoints). |
+| `ThingSerializer` | code, type, owner, owner_name, created, headline, description, thumbnail/url, status, faqs, fee, availability, location, condition, deal, pending_booking, my_pending_booking, pending_questions, collection_code, collection_headline | Full read representation. `owner_name` returns owner's name (falls back to email). `pending_booking` returns first PENDING booking code (owner use). `my_pending_booking` returns the requesting user's own PENDING booking code (or null) — used by guests to distinguish "Reserved" vs "Waiting for confirmation". `collection_code/headline` from first associated collection. |
+| `ThingCreateSerializer` | type, headline, description, thumbnail, fee, availability, location, condition | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`. `location` uses `SafeHeadlineField(max_length=32)`. |
+| `ThingUpdateSerializer` | type, headline, description, thumbnail, status (read-only), fee, availability, location, condition | Same validation fields. `status` is read-only (changed by booking flow or dedicated activate/hide endpoints). |
 
 ### `collection.py`
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `CollectionSerializer` | code, owner, owner_name, created, headline, description, thumbnail/url, hero/url, status, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
+| `CollectionSerializer` | code, owner, owner_name, created, headline, description, thumbnail/url, status, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
 | `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, thumbnail_url, pending_booking, my_pending_booking, pending_questions, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
-| `CollectionCreateSerializer` | headline, description, thumbnail, hero | Input for collection creation. |
-| `CollectionUpdateSerializer` | headline, description, thumbnail, hero, status | Input for collection updates. |
+| `CollectionCreateSerializer` | headline, description, thumbnail | Input for collection creation. |
+| `CollectionUpdateSerializer` | headline, description, thumbnail, status | Input for collection updates. |
 | `CollectionInviteSerializer` | email | Input for inviting a user. |
 | `CollectionAddThingSerializer` | thing_code | Input for adding a thing to a collection. |
 | `CollectionRemoveThingSerializer` | thing_code | Input for removing a thing from a collection. |

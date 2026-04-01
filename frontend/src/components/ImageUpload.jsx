@@ -49,6 +49,7 @@ function resizeIfNeeded(file) {
  */
 export default function ImageUpload({ id, label, value, onChange, currentUrl, folder = 'oiueei/users', helperText }) {
   const { t, i18n } = useTranslation();
+  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
@@ -103,8 +104,15 @@ export default function ImageUpload({ id, label, value, onChange, currentUrl, fo
     }
   };
 
+  const wrapperStyle = tc.color_01 ? {
+    '--upload-border': `var(--color-${tc.color_01})`,
+    '--upload-color': tc.color_04 ? `var(--color-${tc.color_04})` : `var(--color-${tc.color_01})`,
+    '--upload-bg-hover': `var(--color-${tc.color_01})`,
+    '--upload-color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
+  } : {};
+
   return (
-    <div className="image-upload">
+    <div className="image-upload" style={wrapperStyle}>
       {previewUrl && (
         <div className="image-upload-preview">
           <img src={previewUrl} alt="" />
@@ -129,22 +137,8 @@ export default function ImageUpload({ id, label, value, onChange, currentUrl, fo
           onChange={handleFiles}
           disabled={uploading}
           language={hdsLang(i18n.language)}
-          helperText={uploading ? t('upload.uploading') : (helperText || undefined)}
-          errorText={error || undefined}
-          invalid={!!error}
-        />
-      )}
-      {previewUrl && (
-        <FileInput
-          key={`${fileInputKey}-replace`}
-          id={`${id}-replace`}
-          label={t('upload.replaceLabel')}
-          accept="image/*"
-          multiple={false}
-          onChange={handleFiles}
-          disabled={uploading}
-          language={hdsLang(i18n.language)}
-          helperText={uploading ? t('upload.uploading') : undefined}
+          buttonLabel={t('upload.addFile')}
+          helperText={uploading ? t('upload.uploading') : (helperText || t('upload.acceptHint'))}
           errorText={error || undefined}
           invalid={!!error}
         />

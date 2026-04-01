@@ -13,7 +13,6 @@ class UserSerializer(serializers.ModelSerializer):
     """Full user serializer for authenticated user."""
 
     thumbnail_url = serializers.SerializerMethodField()
-    hero_url = serializers.SerializerMethodField()
     own_collections = serializers.SerializerMethodField()
     invited_collections = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
@@ -38,8 +37,6 @@ class UserSerializer(serializers.ModelSerializer):
             "headline",
             "thumbnail",
             "thumbnail_url",
-            "hero",
-            "hero_url",
             "koro",
             "theeeme",
             "theeeme_colors",
@@ -57,9 +54,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail)
-
-    def get_hero_url(self, obj):
-        return cloudinary_url(obj.hero)
 
     def get_own_collections(self, obj):
         return list(obj.owned_collections.values_list("code", flat=True))
@@ -88,7 +82,6 @@ class UserPublicSerializer(serializers.ModelSerializer):
     """Public user profile serializer (limited fields)."""
 
     thumbnail_url = serializers.SerializerMethodField()
-    hero_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -99,15 +92,10 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "created",
             "thumbnail",
             "thumbnail_url",
-            "hero",
-            "hero_url",
         ]
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail)
-
-    def get_hero_url(self, obj):
-        return cloudinary_url(obj.hero)
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -116,7 +104,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     name = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
     headline = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
     thumbnail = ImageIdField()
-    hero = ImageIdField()
     theeeme = serializers.SlugRelatedField(
         slug_field="code",
         queryset=Theeeme.objects.all(),
@@ -129,7 +116,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "name",
             "headline",
             "thumbnail",
-            "hero",
             "koro",
             "theeeme",
         ]

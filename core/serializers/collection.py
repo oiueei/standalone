@@ -81,7 +81,6 @@ class CollectionSerializer(serializers.ModelSerializer):
     """Full collection serializer."""
 
     thumbnail_url = serializers.SerializerMethodField()
-    hero_url = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
     owner_name = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
@@ -99,8 +98,6 @@ class CollectionSerializer(serializers.ModelSerializer):
             "description",
             "thumbnail",
             "thumbnail_url",
-            "hero",
-            "hero_url",
             "status",
             "things",
             "invites",
@@ -135,9 +132,6 @@ class CollectionSerializer(serializers.ModelSerializer):
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail)
 
-    def get_hero_url(self, obj):
-        return cloudinary_url(obj.hero)
-
 
 class CollectionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a collection."""
@@ -145,7 +139,6 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
-    hero = ImageIdField()
 
     class Meta:
         model = Collection
@@ -153,7 +146,6 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "thumbnail",
-            "hero",
         ]
 
 
@@ -163,7 +155,6 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64, required=False)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
-    hero = ImageIdField()
 
     class Meta:
         model = Collection
@@ -171,7 +162,6 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "thumbnail",
-            "hero",
             "status",
         ]
 

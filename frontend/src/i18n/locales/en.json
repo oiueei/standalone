@@ -180,17 +180,15 @@
     "uploading": "Uploading…",
     "uploadError": "Upload failed. Please try again.",
     "thumbnailLabel": "Thumbnail",
-    "heroLabel": "Banner image",
-    "photosLabel": "Photos",
     "remove": "Remove",
-    "replaceLabel": "Replace image"
+    "addFile": "Add a file",
+    "acceptHint": "Only image files."
   },
   "addThing": {
     "pageTitle": "Add thing",
     "typeLabel": "Type",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
-    "photosLabel": "Photos",
     "priceLabel": "Price",
     "availabilityLabel": "Availability",
     "conditionLabel": "Condition",

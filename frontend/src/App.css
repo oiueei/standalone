@@ -476,6 +476,19 @@ figure[class*="Highlight-module_highlight"] {
   gap: var(--spacing-s);
 }
 
+/* Make the HDS FileInput button fill the available width and follow theeeme colors */
+.image-upload div:has(> input[type="file"]) {
+  display: block;
+  width: 100%;
+}
+.image-upload button[aria-hidden="true"] {
+  width: 100%;
+  --border-color: var(--upload-border);
+  --color: var(--upload-color);
+  --background-color-hover: var(--upload-bg-hover);
+  --color-hover: var(--upload-color-hover);
+}
+
 .image-upload-preview img {
   max-width: 160px;
   max-height: 160px;
