@@ -22,9 +22,6 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
-import placeholderS from '../assets/image-s.png';
-import placeholderM from '../assets/image-m.png';
-import placeholderL from '../assets/image-l.png';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -348,12 +345,13 @@ export default function ThingPage() {
       <div className="page-container">
 
       <div className="form-grid">
-        <img
-          src={thing.thumbnail_url || placeholderS}
-          srcSet={!thing.thumbnail_url ? `${placeholderS} 1x, ${placeholderM} 2x, ${placeholderL} 3x` : undefined}
-          alt={thing.headline}
-          className="detail-image"
-        />
+        {thing.thumbnail_url && (
+          <img
+            src={thing.thumbnail_url}
+            alt={thing.headline}
+            className="detail-image"
+          />
+        )}
 
         <ThingTags thing={thing} isOwner={isOwner} showType={false} />
 

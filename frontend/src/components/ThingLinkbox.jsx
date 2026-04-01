@@ -6,9 +6,6 @@ import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
-import placeholderS from '../assets/image-s.png';
-import placeholderM from '../assets/image-m.png';
-import placeholderL from '../assets/image-l.png';
 
 export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, onDelete, onRemoveFromCollection, onUpdateThing }) {
   const { t } = useTranslation();
@@ -182,14 +179,15 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
 
   return (
     <div className="thing-card">
-      <Link to={thingPath}>
-        <img
-          src={thing.thumbnail_url || placeholderS}
-          srcSet={!thing.thumbnail_url ? `${placeholderS} 1x, ${placeholderM} 2x, ${placeholderL} 3x` : undefined}
-          alt={thing.headline}
-          className="thing-card-image"
-        />
-      </Link>
+      {thing.thumbnail_url && (
+        <Link to={thingPath}>
+          <img
+            src={thing.thumbnail_url}
+            alt={thing.headline}
+            className="thing-card-image"
+          />
+        </Link>
+      )}
       <div className="thing-card-body">
         <h3 className="thing-card-headline">
           <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
