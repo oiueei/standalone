@@ -15,7 +15,6 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
-import MultiImageUpload from '../components/MultiImageUpload';
 
 export default function EditThingPage() {
   const { t } = useTranslation();
@@ -37,8 +36,6 @@ export default function EditThingPage() {
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const [pictures, setPictures] = useState([]);
-  const [picturesUrls, setPicturesUrls] = useState([]);
   const [fee, setFee] = useState('');
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
@@ -64,8 +61,6 @@ export default function EditThingPage() {
           setDescription(data.description || '');
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
-          setPictures(data.pictures || []);
-          setPicturesUrls(data.pictures_urls || []);
           setFee(data.fee != null ? data.fee : '');
           setAvailability(data.availability || '');
           setLocation(data.location || '');
@@ -107,7 +102,6 @@ export default function EditThingPage() {
     const body = { type: thingType, headline: headline.trim() };
     body.description = description.trim() || '';
     body.thumbnail = thumbnail || '';
-    body.pictures = pictures;
     if (FEE_TYPES.includes(thingType) && fee !== '') {
       body.fee = fee;
     }
@@ -193,14 +187,6 @@ export default function EditThingPage() {
           value={thumbnail}
           onChange={setThumbnail}
           currentUrl={thumbnailUrl}
-          folder="oiueei/things"
-        />
-        <MultiImageUpload
-          id="edit-thing-pictures"
-          label={t('upload.photosLabel')}
-          value={pictures}
-          onChange={setPictures}
-          currentUrls={picturesUrls}
           folder="oiueei/things"
         />
         <div className="spacer-xxxx" />

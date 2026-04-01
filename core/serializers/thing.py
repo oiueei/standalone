@@ -7,14 +7,13 @@ from rest_framework import serializers
 from core.models import Thing
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
-from core.validators import ImageIdField, SafeHeadlineField, SafeTextField, validate_image_id
+from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
 
 class ThingSerializer(serializers.ModelSerializer):
     """Full thing serializer."""
 
     thumbnail_url = serializers.SerializerMethodField()
-    pictures_urls = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
     owner_name = serializers.SerializerMethodField()
     faqs = serializers.SerializerMethodField()
@@ -37,8 +36,6 @@ class ThingSerializer(serializers.ModelSerializer):
             "description",
             "thumbnail",
             "thumbnail_url",
-            "pictures",
-            "pictures_urls",
             "status",
             "faqs",
             "fee",
@@ -65,9 +62,6 @@ class ThingSerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail)
-
-    def get_pictures_urls(self, obj):
-        return [cloudinary_url(pic_id) for pic_id in obj.pictures if pic_id]
 
     def get_pending_booking(self, obj):
         # Use prefetched _pending_bookings if available, otherwise query
@@ -111,23 +105,12 @@ class ThingSerializer(serializers.ModelSerializer):
         return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
 
 
-class ImageIdListField(serializers.ListField):
-    """A list field that validates each item as a Cloudinary public_id."""
-
-    child = serializers.CharField(max_length=255, allow_blank=True)
-
-    def to_internal_value(self, data):
-        value = super().to_internal_value(data)
-        return [validate_image_id(item) if item else item for item in value]
-
-
 class ThingCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a thing."""
 
     headline = SafeHeadlineField(max_length=64)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
-    pictures = ImageIdListField(required=False)
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
 
     class Meta:
@@ -137,7 +120,6 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "thumbnail",
-            "pictures",
             "fee",
             "availability",
             "location",
@@ -151,7 +133,6 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64, required=False)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
-    pictures = ImageIdListField(required=False)
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
 
     class Meta:
@@ -161,7 +142,6 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "thumbnail",
-            "pictures",
             "status",
             "fee",
             "availability",

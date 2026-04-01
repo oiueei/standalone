@@ -50,7 +50,6 @@ const MOCK_THING = {
   location: '',
   condition: '',
   thumbnail_url: '',
-  pictures_urls: [],
   pending_questions: 0,
   my_pending_booking: null,
   pending_booking: null,

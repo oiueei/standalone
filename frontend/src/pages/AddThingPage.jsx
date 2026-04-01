@@ -14,7 +14,6 @@ import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
-import MultiImageUpload from '../components/MultiImageUpload';
 
 export default function AddThingPage() {
   const { t } = useTranslation();
@@ -35,7 +34,6 @@ export default function AddThingPage() {
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [pictures, setPictures] = useState([]);
   const [fee, setFee] = useState('');
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
@@ -76,7 +74,6 @@ export default function AddThingPage() {
     };
     if (thumbnail) body.thumbnail = thumbnail;
     if (description.trim()) body.description = description.trim();
-    if (pictures.length > 0) body.pictures = pictures;
     if (FEE_TYPES.includes(type) && fee !== '') {
       body.fee = fee;
     }
@@ -168,13 +165,6 @@ export default function AddThingPage() {
             label={t('upload.thumbnailLabel')}
             value={thumbnail}
             onChange={setThumbnail}
-            folder="oiueei/things"
-          />
-          <MultiImageUpload
-            id="add-thing-pictures"
-            label={t('upload.photosLabel')}
-            value={pictures}
-            onChange={setPictures}
             folder="oiueei/things"
           />
           <div className="spacer-xxxx" />

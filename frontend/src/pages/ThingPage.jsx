@@ -402,21 +402,6 @@ export default function ThingPage() {
           )}
         </div>
 
-        {thing.pictures_urls && thing.pictures_urls.length > 0 && (
-          <div>
-            <h2>{t('thingPage.photos')}</h2>
-            <div className="gallery-row">
-              {thing.pictures_urls.map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  alt={`${thing.headline} photo ${i + 1}`}
-                  className="gallery-image"
-                />
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Owner bookings list */}
         {isOwner && bookings.length > 0 && (() => {
