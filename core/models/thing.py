@@ -61,7 +61,7 @@ class Thing(models.Model):
     created = models.DateTimeField(default=timezone.now)
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
-    thumbnail = models.CharField(max_length=16, blank=True, default="")
+    thumbnail = models.CharField(max_length=255, blank=True, default="")
     pictures = models.JSONField(default=list, blank=True)  # Array of image IDs
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

@@ -18,8 +18,8 @@ The `User` model represents a person who can own collections, be invited to othe
 | `created` | DateField | Auto | Date the user was created |
 | `last_activity` | DateField | Auto | Date of last login/activity |
 | `headline` | CharField(64) | No | Short bio/tagline |
-| `thumbnail` | CharField(16) | No | Cloudinary image ID for avatar |
-| `hero` | CharField(16) | No | Cloudinary image ID for banner |
+| `thumbnail` | CharField(255) | No | Cloudinary image ID for avatar |
+| `hero` | CharField(255) | No | Cloudinary image ID for banner |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `is_active` | BooleanField | Auto | Default True |
@@ -84,8 +84,8 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `created` | DateTimeField | Auto | Timestamp when collection was created |
 | `headline` | CharField(64) | **Yes** | Title of the collection |
 | `description` | CharField(256) | No | Description of the collection |
-| `thumbnail` | CharField(16) | No | Cloudinary image ID for thumbnail |
-| `hero` | CharField(16) | No | Cloudinary image ID for banner |
+| `thumbnail` | CharField(255) | No | Cloudinary image ID for thumbnail |
+| `hero` | CharField(255) | No | Cloudinary image ID for banner |
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
@@ -292,7 +292,7 @@ The `Thing` model represents an item in a collection.
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |
 | `description` | CharField(256) | No | Description of the thing |
-| `thumbnail` | CharField(16) | No | Cloudinary image ID for thumbnail |
+| `thumbnail` | CharField(255) | No | Cloudinary image ID for thumbnail |
 | `pictures` | JSONField | No | Array of Cloudinary image IDs |
 | `status` | CharField(8) | No | Status: ACTIVE, TAKEN, INACTIVE |
 | `fee` | DecimalField | No | Price/fee (for SELL/RENT types) |
