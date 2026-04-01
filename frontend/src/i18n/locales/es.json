@@ -176,19 +176,25 @@
     "backTo": "Volver a {{label}}",
     "errorSending": "Error al enviar la solicitud."
   },
+  "upload": {
+    "uploading": "Cargando…",
+    "uploadError": "Error al cargar. Inténtalo de nuevo.",
+    "thumbnailLabel": "Miniatura",
+    "heroLabel": "Imagen de portada",
+    "photosLabel": "Fotos"
+  },
   "addThing": {
     "pageTitle": "Añadir artículo",
     "typeLabel": "Tipo",
     "titleLabel": "Título",
     "descriptionLabel": "Descripción",
-    "photosLabel": "Fotos (IDs separados por comas)",
+    "photosLabel": "Fotos",
     "priceLabel": "Precio",
     "availabilityLabel": "Disponibilidad",
     "conditionLabel": "Estado",
     "locationLabel": "Ubicación",
     "titleRequired": "El título es obligatorio.",
     "maxHeadline": "Máximo 64 caracteres.",
-    "maxThumbnail": "Máximo 16 caracteres.",
     "priceRequired": "El precio es obligatorio para este tipo.",
     "maxLocation": "Máximo 32 caracteres.",
     "errorCreating": "Error al crear el artículo."

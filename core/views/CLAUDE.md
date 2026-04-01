@@ -365,6 +365,43 @@ Shows a previously hidden FAQ.
 
 ---
 
+## Upload Views (`core/views/upload.py`)
+
+### CloudinarySignatureView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/upload/signature/` |
+| **Permission** | `IsAuthenticated` |
+
+Generates a short-lived Cloudinary signed upload signature so the frontend can upload images directly to Cloudinary without routing the binary data through Django.
+
+**Request body:**
+```json
+{ "folder": "oiueei/things" }
+```
+
+Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`. Any other value falls back to `oiueei/users`.
+
+**Response:**
+```json
+{
+    "signature": "abc123...",
+    "timestamp": 1234567890,
+    "api_key": "...",
+    "cloud_name": "hixm8hed8",
+    "folder": "oiueei/things"
+}
+```
+
+**Frontend upload flow:**
+1. Call this endpoint to get a signature.
+2. POST the image file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/image/upload` with the signature parameters.
+3. Cloudinary returns a `public_id` (e.g. `oiueei/things/abc123`).
+4. Save the `public_id` to the relevant Django model field (`thumbnail`, `hero`, or append to `pictures`).
+
+---
+
 ## Theeeme Views (`core/views/theeemes.py`)
 
 ### TheeemeListView
@@ -572,6 +609,6 @@ Business logic is extracted into `core/services/`:
 
 ### Utilities
 
-- `core/utils.py`: `generate_id()`, `get_client_ip()`, `cloudinary_url()`
+- `core/utils.py`: `generate_id()`, `get_client_ip()`, `cloudinary_url()` — `cloudinary_url(public_id)` now uses the Cloudinary Python SDK (`cloudinary.utils.cloudinary_url`) with `fetch_format=auto` and `quality=auto`, replacing the previous hardcoded URL template.
 - `core/validators.py`: `ImageIdField`, `SafeHeadlineField`, `SafeTextField`, `validate_image_id()`, `validate_headline()`
 - `core/pagination.py`: `StandardResultsPagination` (max 100 items)

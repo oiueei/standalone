@@ -29,8 +29,10 @@ def get_client_ip(request):
 
 
 def cloudinary_url(image_id):
-    """Build Cloudinary URL from image ID."""
+    """Build Cloudinary URL from a stored public_id."""
     if not image_id:
         return None
-    cloud_name = getattr(settings, "CLOUDINARY_CLOUD_NAME", "oiueei")
-    return f"https://res.cloudinary.com/{cloud_name}/image/upload/v1676535186/oiueei/{image_id}.png"
+    import cloudinary.utils
+
+    url, _ = cloudinary.utils.cloudinary_url(image_id, fetch_format="auto", quality="auto")
+    return url

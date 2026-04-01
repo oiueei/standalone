@@ -311,6 +311,8 @@ Detail page for a thing with full information and FAQs section.
 - **`Toast`** (`src/components/Toast.jsx`) — Reusable toast notification wrapping HDS `Notification`. Props: `toast` (`{ type, message }`), `onClose`. Renders at `position="top-right"` with auto-close.
 - **`LoadingSpinner`** (`src/components/LoadingSpinner.jsx`) — Wrapper around HDS `LoadingSpinner` component.
 - **`ThingTags`** (`src/components/ThingTags.jsx`) — Shared tag row for thing type, status, availability, and pending questions. Props: `thing`, `isOwner`. Uses `TAG_THEMES` from constants.
+- **`ImageUpload`** (`src/components/ImageUpload.jsx`) — Single-image upload using HDS `FileInput`. Gets a short-lived Cloudinary signature from `POST /api/v1/upload/signature/`, uploads the file directly to Cloudinary, and calls `onChange(publicId)`. Shows a preview of the current image when `currentUrl` is provided. Props: `id`, `label`, `value` (public_id), `onChange`, `currentUrl`, `folder` (Cloudinary folder, default `oiueei/users`), `helperText`. Used in EditProfilePage, EditCollectionPage, EditThingPage, AddThingPage.
+- **`MultiImageUpload`** (`src/components/MultiImageUpload.jsx`) — Multiple-image upload using HDS `FileInput` with `multiple`. Uploads all selected files in parallel to Cloudinary and calls `onChange(publicIds[])`. Shows a grid of existing image previews when `currentUrls` is provided. Selecting new files replaces the current array. Props: `id`, `label`, `value` (string[]), `onChange`, `currentUrls` (string[]), `folder` (default `oiueei/things`). Used in AddThingPage and EditThingPage for the `pictures` gallery.
 
 ### Constants (`src/constants/things.js`)
 

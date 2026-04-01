@@ -176,19 +176,25 @@
     "backTo": "Back to {{label}}",
     "errorSending": "Error sending request."
   },
+  "upload": {
+    "uploading": "Uploading…",
+    "uploadError": "Upload failed. Please try again.",
+    "thumbnailLabel": "Thumbnail",
+    "heroLabel": "Banner image",
+    "photosLabel": "Photos"
+  },
   "addThing": {
     "pageTitle": "Add thing",
     "typeLabel": "Type",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
-    "photosLabel": "Photos (comma-separated IDs)",
+    "photosLabel": "Photos",
     "priceLabel": "Price",
     "availabilityLabel": "Availability",
     "conditionLabel": "Condition",
     "locationLabel": "Location",
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters.",
-    "maxThumbnail": "Maximum 16 characters.",
     "priceRequired": "Price is required for this type.",
     "maxLocation": "Maximum 32 characters.",
     "errorCreating": "Error creating thing."

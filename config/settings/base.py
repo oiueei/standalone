@@ -179,8 +179,12 @@ RSVP_BASE_URL = os.environ.get(
 )
 
 
-# Cloudinary settings
-CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME", "oiueei")
+# Cloudinary — the SDK reads CLOUDINARY_URL automatically on import.
+# CLOUDINARY_URL format: cloudinary://api_key:api_secret@cloud_name
+import cloudinary
+
+cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL", ""))
+CLOUDINARY_CLOUD_NAME = cloudinary.config().cloud_name or ""
 
 
 # Security Headers

@@ -6,6 +6,7 @@ import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
+import ImageUpload from '../components/ImageUpload';
 
 export default function EditProfilePage() {
   const { t } = useTranslation();
@@ -20,6 +21,10 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
+  const [thumbnail, setThumbnail] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [hero, setHero] = useState('');
+  const [heroUrl, setHeroUrl] = useState('');
   const [koro, setKoro] = useState('basic');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
@@ -44,6 +49,10 @@ export default function EditProfilePage() {
           const data = await profileRes.json();
           setName(data.name || '');
           setHeadline(data.headline || '');
+          setThumbnail(data.thumbnail || '');
+          setThumbnailUrl(data.thumbnail_url || '');
+          setHero(data.hero || '');
+          setHeroUrl(data.hero_url || '');
           setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
         } else {
@@ -79,6 +88,8 @@ export default function EditProfilePage() {
     const body = {
       name: name.trim(),
       headline: headline.trim(),
+      thumbnail: thumbnail || '',
+      hero: hero || '',
       koro,
     };
     if (theeeme) body.theeeme = theeeme;
@@ -144,6 +155,22 @@ export default function EditProfilePage() {
             invalid={!!errors.headline}
             errorText={errors.headline}
             helperText={`${headline.length}/64`}
+          />
+          <ImageUpload
+            id="edit-profile-thumbnail"
+            label={t('upload.thumbnailLabel')}
+            value={thumbnail}
+            onChange={setThumbnail}
+            currentUrl={thumbnailUrl}
+            folder="oiueei/users"
+          />
+          <ImageUpload
+            id="edit-profile-hero"
+            label={t('upload.heroLabel')}
+            value={hero}
+            onChange={setHero}
+            currentUrl={heroUrl}
+            folder="oiueei/users"
           />
           {theeemeOptions.length > 0 && (
             <Select

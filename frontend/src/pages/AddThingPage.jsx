@@ -13,6 +13,8 @@ import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VA
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
+import ImageUpload from '../components/ImageUpload';
+import MultiImageUpload from '../components/MultiImageUpload';
 
 export default function AddThingPage() {
   const { t } = useTranslation();
@@ -33,7 +35,7 @@ export default function AddThingPage() {
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [pictures, setPictures] = useState('');
+  const [pictures, setPictures] = useState([]);
   const [fee, setFee] = useState('');
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
@@ -54,7 +56,6 @@ export default function AddThingPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('addThing.titleRequired');
     if (headline.length > 64) newErrors.headline = t('addThing.maxHeadline');
-    if (thumbnail.length > 16) newErrors.thumbnail = t('addThing.maxThumbnail');
     if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
       newErrors.fee = t('addThing.priceRequired');
     }
@@ -73,11 +74,9 @@ export default function AddThingPage() {
       headline: headline.trim(),
       collection_code: code,
     };
-    if (thumbnail.trim()) body.thumbnail = thumbnail.trim();
+    if (thumbnail) body.thumbnail = thumbnail;
     if (description.trim()) body.description = description.trim();
-    if (pictures.trim()) {
-      body.pictures = pictures.split(',').map((s) => s.trim()).filter(Boolean);
-    }
+    if (pictures.length > 0) body.pictures = pictures;
     if (FEE_TYPES.includes(type) && fee !== '') {
       body.fee = fee;
     }
@@ -164,11 +163,19 @@ export default function AddThingPage() {
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
           />
-          <TextInput
+          <ImageUpload
+            id="add-thing-thumbnail"
+            label={t('upload.thumbnailLabel')}
+            value={thumbnail}
+            onChange={setThumbnail}
+            folder="oiueei/things"
+          />
+          <MultiImageUpload
             id="add-thing-pictures"
-            label={t('addThing.photosLabel')}
+            label={t('upload.photosLabel')}
             value={pictures}
-            onChange={(e) => setPictures(e.target.value)}
+            onChange={setPictures}
+            folder="oiueei/things"
           />
           <div className="spacer-xxxx" />
           {FEE_TYPES.includes(type) && (

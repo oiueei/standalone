@@ -176,19 +176,25 @@
     "backTo": "Voltar para {{label}}",
     "errorSending": "Erro ao enviar o pedido."
   },
+  "upload": {
+    "uploading": "A carregar…",
+    "uploadError": "Erro ao carregar. Tente novamente.",
+    "thumbnailLabel": "Miniatura",
+    "heroLabel": "Imagem de capa",
+    "photosLabel": "Fotos"
+  },
   "addThing": {
     "pageTitle": "Adicionar artigo",
     "typeLabel": "Tipo",
     "titleLabel": "Título",
     "descriptionLabel": "Descrição",
-    "photosLabel": "Fotos (IDs separados por vírgulas)",
+    "photosLabel": "Fotos",
     "priceLabel": "Preço",
     "availabilityLabel": "Disponibilidade",
     "conditionLabel": "Estado",
     "locationLabel": "Localização",
     "titleRequired": "O título é obrigatório.",
     "maxHeadline": "Máximo 64 caracteres.",
-    "maxThumbnail": "Máximo 16 caracteres.",
     "priceRequired": "O preço é obrigatório para este tipo.",
     "maxLocation": "Máximo 32 caracteres.",
     "errorCreating": "Erro ao criar o artigo."

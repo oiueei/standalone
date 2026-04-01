@@ -176,19 +176,25 @@
     "backTo": "Tornar a {{label}}",
     "errorSending": "Error en enviar la sol·licitud."
   },
+  "upload": {
+    "uploading": "Carregant…",
+    "uploadError": "Error en carregar. Torna-ho a intentar.",
+    "thumbnailLabel": "Miniatura",
+    "heroLabel": "Imatge de portada",
+    "photosLabel": "Fotos"
+  },
   "addThing": {
     "pageTitle": "Afegir article",
     "typeLabel": "Tipus",
     "titleLabel": "Títol",
     "descriptionLabel": "Descripció",
-    "photosLabel": "Fotos (IDs separats per comes)",
+    "photosLabel": "Fotos",
     "priceLabel": "Preu",
     "availabilityLabel": "Disponibilitat",
     "conditionLabel": "Estat",
     "locationLabel": "Ubicació",
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters.",
-    "maxThumbnail": "Màxim 16 caràcters.",
     "priceRequired": "El preu és obligatori per a aquest tipus.",
     "maxLocation": "Màxim 32 caràcters.",
     "errorCreating": "Error en crear l'article."

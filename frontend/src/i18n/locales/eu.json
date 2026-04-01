@@ -176,19 +176,25 @@
     "backTo": "Itzuli {{label}}-ra",
     "errorSending": "Errorea eskaera bidaltzean."
   },
+  "upload": {
+    "uploading": "Kargatzen…",
+    "uploadError": "Kargatzean errore bat gertatu da. Saiatu berriro.",
+    "thumbnailLabel": "Miniatura",
+    "heroLabel": "Azaleko irudia",
+    "photosLabel": "Argazkiak"
+  },
   "addThing": {
     "pageTitle": "Gauza gehitu",
     "typeLabel": "Mota",
     "titleLabel": "Izenburua",
     "descriptionLabel": "Deskribapena",
-    "photosLabel": "Argazkiak (IDak komaz bereizita)",
+    "photosLabel": "Argazkiak",
     "priceLabel": "Prezioa",
     "availabilityLabel": "Erabilgarritasuna",
     "conditionLabel": "Egoera",
     "locationLabel": "Kokapena",
     "titleRequired": "Izenburua beharrezkoa da.",
     "maxHeadline": "Gehienez 64 karaktere.",
-    "maxThumbnail": "Gehienez 16 karaktere.",
     "priceRequired": "Prezioa beharrezkoa da mota honentzat.",
     "maxLocation": "Gehienez 32 karaktere.",
     "errorCreating": "Errorea gauza sortzen."

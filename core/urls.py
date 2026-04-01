@@ -22,6 +22,7 @@ from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQ
 from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
+from .views.upload import CloudinarySignatureView
 from .views.users import UserDetailView
 
 
@@ -63,6 +64,8 @@ urlpatterns = [
         CollectionInviteView.as_view(),
         name="collection-invite",
     ),
+    # Upload
+    path("upload/signature/", CloudinarySignatureView.as_view(), name="upload-signature"),
     # Theeemes
     path("theeemes/", TheeemeListView.as_view(), name="theeeme-list"),
     # Things (non-viewset)

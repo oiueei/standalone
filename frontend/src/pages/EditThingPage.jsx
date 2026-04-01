@@ -14,6 +14,8 @@ import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
+import ImageUpload from '../components/ImageUpload';
+import MultiImageUpload from '../components/MultiImageUpload';
 
 export default function EditThingPage() {
   const { t } = useTranslation();
@@ -34,7 +36,9 @@ export default function EditThingPage() {
   useEffect(() => { document.title = headline ? t('titles.editThing', { headline }) : t('titles.editThingDefault'); }, [headline, t]);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [pictures, setPictures] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [pictures, setPictures] = useState([]);
+  const [picturesUrls, setPicturesUrls] = useState([]);
   const [fee, setFee] = useState('');
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
@@ -59,7 +63,9 @@ export default function EditThingPage() {
           setHeadline(data.headline || '');
           setDescription(data.description || '');
           setThumbnail(data.thumbnail || '');
-          setPictures((data.pictures || []).join(', '));
+          setThumbnailUrl(data.thumbnail_url || '');
+          setPictures(data.pictures || []);
+          setPicturesUrls(data.pictures_urls || []);
           setFee(data.fee != null ? data.fee : '');
           setAvailability(data.availability || '');
           setLocation(data.location || '');
@@ -100,12 +106,8 @@ export default function EditThingPage() {
 
     const body = { type: thingType, headline: headline.trim() };
     body.description = description.trim() || '';
-    body.thumbnail = thumbnail.trim() || '';
-    if (pictures.trim()) {
-      body.pictures = pictures.split(',').map((s) => s.trim()).filter(Boolean);
-    } else {
-      body.pictures = [];
-    }
+    body.thumbnail = thumbnail || '';
+    body.pictures = pictures;
     if (FEE_TYPES.includes(thingType) && fee !== '') {
       body.fee = fee;
     }
@@ -185,11 +187,21 @@ export default function EditThingPage() {
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/256`}
         />
-        <TextInput
+        <ImageUpload
+          id="edit-thing-thumbnail"
+          label={t('upload.thumbnailLabel')}
+          value={thumbnail}
+          onChange={setThumbnail}
+          currentUrl={thumbnailUrl}
+          folder="oiueei/things"
+        />
+        <MultiImageUpload
           id="edit-thing-pictures"
-          label={t('addThing.photosLabel')}
+          label={t('upload.photosLabel')}
           value={pictures}
-          onChange={(e) => setPictures(e.target.value)}
+          onChange={setPictures}
+          currentUrls={picturesUrls}
+          folder="oiueei/things"
         />
         <div className="spacer-xxxx" />
         {FEE_TYPES.includes(thingType) && (
