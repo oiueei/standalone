@@ -25,7 +25,7 @@ All user-facing text inputs use custom validator fields to prevent XSS:
 |-------|-----------|----------|
 | `SafeHeadlineField` | Rejects HTML tags (regex) | Headlines, FAQ questions, location |
 | `SafeTextField` | Rejects HTML tags (regex) | Descriptions, FAQ answers |
-| `ImageIdField` | Alphanumeric + `_-` only | Cloudinary image IDs (prevents path traversal) |
+| `ImageIdField` | Alphanumeric + `_-./` only, no leading/trailing/double slashes | Cloudinary public_ids including folder paths (e.g. `oiueei/things/abc123`) |
 | `ImageIdListField` | List of validated image IDs | Thing `pictures` field (defined in `core/serializers/thing.py`) |
 
 ### Cloudinary Image URLs

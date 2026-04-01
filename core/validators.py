@@ -13,27 +13,33 @@ from rest_framework import serializers
 
 def validate_image_id(value):
     """
-    Validate that an image ID contains only safe characters.
+    Validate that a Cloudinary public_id contains only safe characters.
 
-    Only allows letters, numbers, underscores, and hyphens.
-    This prevents path traversal and injection attacks.
+    Allows letters, numbers, underscores, hyphens, and forward slashes
+    (needed for folder-prefixed public_ids such as oiueei/things/abc123).
+    Rejects double slashes, leading/trailing slashes, and any other characters
+    to prevent path traversal and injection attacks.
     """
-    if value and not re.match(r"^[a-zA-Z0-9_-]+$", value):
-        raise serializers.ValidationError(
-            "Image ID can only contain letters, numbers, underscores, and hyphens."
-        )
+    if value:
+        if not re.match(r"^[a-zA-Z0-9_/.-]+$", value):
+            raise serializers.ValidationError(
+                "Image ID can only contain letters, numbers, underscores, hyphens, dots, and forward slashes."
+            )
+        if "//" in value or value.startswith("/") or value.endswith("/"):
+            raise serializers.ValidationError("Image ID contains invalid slash usage.")
     return value
 
 
 class ImageIdField(serializers.CharField):
     """
-    A CharField that validates image IDs to be alphanumeric only.
+    A CharField that validates Cloudinary public_ids.
 
-    Prevents injection attacks through Cloudinary image IDs.
+    Accepts folder-prefixed IDs (e.g. oiueei/things/abc123) as well as
+    plain IDs. Prevents path traversal and injection attacks.
     """
 
     def __init__(self, **kwargs):
-        kwargs.setdefault("max_length", 16)
+        kwargs.setdefault("max_length", 255)
         kwargs.setdefault("required", False)
         kwargs.setdefault("allow_blank", True)
         super().__init__(**kwargs)
