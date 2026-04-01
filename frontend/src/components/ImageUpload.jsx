@@ -3,6 +3,12 @@ import { FileInput } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../services/api';
 
+// HDS only supports fi, sv, en — everything else falls back to en
+function hdsLang(lang) {
+  if (lang === 'fi' || lang === 'sv') return lang;
+  return 'en';
+}
+
 const MAX_PX = 1216;
 
 function resizeIfNeeded(file) {
@@ -40,7 +46,7 @@ function resizeIfNeeded(file) {
  *   helperText  – optional helper text shown below the input
  */
 export default function ImageUpload({ id, label, value, onChange, currentUrl, folder = 'oiueei/users', helperText }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
@@ -49,6 +55,7 @@ export default function ImageUpload({ id, label, value, onChange, currentUrl, fo
     if (!files || files.length === 0) return;
     const file = await resizeIfNeeded(files[0]);
 
+    setFileInputKey((k) => k + 1); // reset immediately so HDS file list never shows
     setUploading(true);
     setError(null);
 
@@ -75,7 +82,6 @@ export default function ImageUpload({ id, label, value, onChange, currentUrl, fo
       const data = await uploadRes.json();
 
       onChange(data.public_id);
-      setFileInputKey((k) => k + 1);
     } catch {
       setError(t('upload.uploadError'));
     } finally {
@@ -98,6 +104,7 @@ export default function ImageUpload({ id, label, value, onChange, currentUrl, fo
         multiple={false}
         onChange={handleFiles}
         disabled={uploading}
+        language={hdsLang(i18n.language)}
         helperText={uploading ? t('upload.uploading') : (helperText || undefined)}
         errorText={error || undefined}
         invalid={!!error}
