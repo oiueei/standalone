@@ -146,6 +146,56 @@ heroku run python manage.py createsuperuser -a your-app-name
 heroku open -a your-app-name
 ```
 
+## Custom Domain & SSL
+
+### 1. Add domains to Heroku
+
+```bash
+heroku domains:add your-domain.com -a your-app-name
+heroku domains:add www.your-domain.com -a your-app-name
+```
+
+Note the DNS targets returned for each domain — you will need them for your DNS provider.
+
+### 2. Configure DNS
+
+**For `www.your-domain.com`** — add a CNAME record pointing to the DNS target Heroku gave you:
+
+| Type  | Host | Value |
+|-------|------|-------|
+| CNAME | www  | `<dns-target-from-heroku>` |
+
+**For the root `your-domain.com`** — most DNS providers do not allow a CNAME on the root (`@`). Use your provider's domain forwarding / redirect feature to forward `your-domain.com` → `https://www.your-domain.com`.
+
+> Example (IONOS): Go to Domains → your domain → Domain Forwarding. Set source to `your-domain.com`, destination to `https://www.your-domain.com`, type HTTP redirect (301).
+
+### 3. Enable Automated Certificate Management (SSL)
+
+```bash
+heroku certs:auto:enable -a your-app-name
+```
+
+After DNS propagates (up to 48 h), Heroku will issue a free TLS certificate for your domain. Check status with:
+
+```bash
+heroku domains -a your-app-name
+```
+
+Look for `Cert issued` next to your domains.
+
+### 4. Update config vars
+
+```bash
+heroku config:set \
+  DJANGO_ALLOWED_HOSTS='www.your-domain.com,your-app-name.herokuapp.com' \
+  CSRF_TRUSTED_ORIGINS='https://www.your-domain.com,https://your-app-name.herokuapp.com' \
+  MAGIC_LINK_BASE_URL='https://www.your-domain.com/verify' \
+  RSVP_BASE_URL='https://www.your-domain.com/rsvp' \
+  -a your-app-name
+```
+
+> **Note:** The root domain (`your-domain.com`) will show "Failing - Incorrect DNS Settings" in `heroku domains` because Heroku verifies via DNS CNAME, which cannot be set on the root. This is expected — your DNS provider's redirect will forward users from `your-domain.com` to `https://www.your-domain.com` transparently.
+
 ## Email
 
 OIUEEI requires email to send magic links. Configure your SMTP provider via the following vars (defaults to SendGrid):
@@ -175,3 +225,5 @@ python manage.py expire_bookings
 **Release command fails (migrate)** — `DATABASE_URL` may not be set. Verify with `heroku config -a your-app-name` and ensure the Postgres add-on was created.
 
 **App works but fonts look wrong** — Font files were not included in the build. See Option A or Option B in the Font Notice section.
+
+**`ERR_SSL_UNRECOGNIZED_NAME_ALERT` on custom domain** — SSL cert not yet issued. Run `heroku certs:auto:enable -a your-app-name` and wait for DNS propagation. Check with `heroku domains -a your-app-name`.
