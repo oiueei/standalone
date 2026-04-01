@@ -3,8 +3,32 @@ import { FileInput } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../services/api';
 
+const MAX_PX = 1216;
+
+function resizeIfNeeded(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      if (img.width <= MAX_PX && img.height <= MAX_PX) {
+        resolve(file);
+        return;
+      }
+      const scale = MAX_PX / Math.max(img.width, img.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: file.type })), file.type);
+    };
+    img.src = url;
+  });
+}
+
 /**
  * Single-image upload component backed by Cloudinary direct upload.
+ * Images wider or taller than 1216 px are resized on the client before upload.
  *
  * Props:
  *   id          – HTML id for the FileInput
@@ -23,7 +47,7 @@ export default function ImageUpload({ id, label, value, onChange, currentUrl, fo
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
-    const file = files[0];
+    const file = await resizeIfNeeded(files[0]);
 
     setUploading(true);
     setError(null);
