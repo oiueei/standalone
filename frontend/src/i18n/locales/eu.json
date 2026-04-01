@@ -181,7 +181,9 @@
     "uploadError": "Kargatzean errore bat gertatu da. Saiatu berriro.",
     "thumbnailLabel": "Miniatura",
     "heroLabel": "Azaleko irudia",
-    "photosLabel": "Argazkiak"
+    "photosLabel": "Argazkiak",
+    "remove": "Ezabatu",
+    "replaceLabel": "Irudia ordezkatu"
   },
   "addThing": {
     "pageTitle": "Gauza gehitu",

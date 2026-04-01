@@ -181,7 +181,9 @@
     "uploadError": "Error en carregar. Torna-ho a intentar.",
     "thumbnailLabel": "Miniatura",
     "heroLabel": "Imatge de portada",
-    "photosLabel": "Fotos"
+    "photosLabel": "Fotos",
+    "remove": "Eliminar",
+    "replaceLabel": "Substituir imatge"
   },
   "addThing": {
     "pageTitle": "Afegir article",

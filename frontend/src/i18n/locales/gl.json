@@ -181,7 +181,9 @@
     "uploadError": "Erro ao cargar. Téntao de novo.",
     "thumbnailLabel": "Miniatura",
     "heroLabel": "Imaxe de portada",
-    "photosLabel": "Fotos"
+    "photosLabel": "Fotos",
+    "remove": "Eliminar",
+    "replaceLabel": "Substituír imaxe"
   },
   "addThing": {
     "pageTitle": "Engadir artigo",

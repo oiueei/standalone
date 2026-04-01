@@ -181,7 +181,9 @@
     "uploadError": "Erro ao carregar. Tente novamente.",
     "thumbnailLabel": "Miniatura",
     "heroLabel": "Imagem de capa",
-    "photosLabel": "Fotos"
+    "photosLabel": "Fotos",
+    "remove": "Remover",
+    "replaceLabel": "Substituir imagem"
   },
   "addThing": {
     "pageTitle": "Adicionar item",
