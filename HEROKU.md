@@ -137,7 +137,7 @@ heroku run "python manage.py migrate --noinput" -a your-app-name
 Required to access the Django admin at `/oiueei-admin/`:
 
 ```bash
-heroku run "python manage.py createsuperuser" -a your-app-name
+heroku run python manage.py createsuperuser -a your-app-name
 ```
 
 ### 8. Open the app
