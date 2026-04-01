@@ -38,6 +38,7 @@ We are not an enterprise product. We are not a trendy tech startup. We are somet
 - **Clever** — solve problems elegantly. A good solution should feel obvious in hindsight.
 - **Elegant** — clean layouts, generous whitespace, considered typography. Beauty through restraint.
 - **Grounded** — avoid visual trends that prioritise novelty over usability. Timeless over fashionable.
+- **Human** — beyond visibility and convenience, OIUEEI must foster emotional connections, honour the cultural meaning of each group, and strengthen the bonds between its members.
 
 **When designing a new view:** ask what can be removed. If a UI element cannot be justified, it should not be there.
 
