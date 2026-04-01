@@ -129,7 +129,7 @@ git push heroku deploy-heroku:main
 The `Procfile` release command runs migrations automatically on each deploy. If for any reason you need to run them manually:
 
 ```bash
-heroku run "python manage.py migrate --noinput" -a your-app-name
+heroku run python manage.py migrate -a your-app-name
 ```
 
 ### 7. Create a superuser (optional)
