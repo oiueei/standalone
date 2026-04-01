@@ -112,9 +112,9 @@ class ThingSerializer(serializers.ModelSerializer):
 
 
 class ImageIdListField(serializers.ListField):
-    """A list field that validates each item as an image ID."""
+    """A list field that validates each item as a Cloudinary public_id."""
 
-    child = serializers.CharField(max_length=16, allow_blank=True)
+    child = serializers.CharField(max_length=255, allow_blank=True)
 
     def to_internal_value(self, data):
         value = super().to_internal_value(data)
