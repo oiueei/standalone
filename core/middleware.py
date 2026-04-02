@@ -15,10 +15,10 @@ class SecurityHeadersMiddleware:
             "default-src 'self'; "
             "script-src 'self'; "
             "style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data: https://res.cloudinary.com; "
+            "img-src 'self'  blob: https://res.cloudinary.com; "
             "font-src 'self' data:; "
-            "connect-src 'self'; "
-            "frame-ancestors 'none'"
+            "connect-src 'self' https://api.cloudinary.com https://res.cloudinary.com; "
+            "frame-ancestors 'none'; "
         )
         response["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
         return response
