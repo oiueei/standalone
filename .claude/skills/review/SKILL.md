@@ -264,4 +264,8 @@ Then audit `frontend/src/` with fresh eyes, imagining you are a first-time user.
 
 End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one."*
 
-After all four sessions are complete and `/ship` has been run, remind the user to bump the version tag on Heroku.
+After all four sessions are complete and `/ship` has been run, remind the user to bump the version tag on GitHub:
+```
+git tag v0.X.0
+git push origin v0.X.0
+```
