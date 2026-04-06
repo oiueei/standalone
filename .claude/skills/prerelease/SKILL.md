@@ -1,6 +1,6 @@
 ---
-name: review
-description: Pre-release code review in four independent role-play sessions. Invoke as `/review code`, `/review frontend`, `/review security`, or `/review design`. Each session produces a phased plan; the user decides what to implement. Finish each session with `/ship` then `/clear` before starting the next.
+name: prerelease
+description: Pre-release review in four independent role-play sessions. Invoke as `/prerelease code`, `/prerelease frontend`, `/prerelease security`, or `/prerelease design`. Each session produces a phased plan; the user decides what to implement. Finish each session with `/ship` then `/clear` before starting the next.
 disable-model-invocation: true
 ---
 
@@ -9,10 +9,10 @@ disable-model-invocation: true
 ## Full Workflow (for reference)
 
 ```
-/review code       → Senior Developer Lead        → /ship → /clear
-/review frontend   → Senior Frontend Developer    → /ship → /clear
-/review security   → VP of Security & Trust       → /ship → /clear
-/review design     → Product Designer Lead        → /ship → /clear → tag release
+/prerelease code       → Senior Developer Lead        → /ship → /clear
+/prerelease frontend   → Senior Frontend Developer    → /ship → /clear
+/prerelease security   → VP of Security & Trust       → /ship → /clear
+/prerelease design     → Product Designer Lead        → /ship → /clear → tag release
 ```
 
 ---
@@ -80,7 +80,7 @@ Present a phased plan using this structure:
 - [issue] — [rationale for deferring]
 ```
 
-End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear` to reset context before starting `/review frontend`."*
+End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear` to reset context before starting `/prerelease frontend`."*
 
 ---
 
@@ -137,7 +137,7 @@ You are a Senior Frontend Developer specialised in React and design systems. You
 - [issue] — [rationale]
 ```
 
-End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear` to reset context before starting `/review security`."*
+End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear` to reset context before starting `/prerelease security`."*
 
 ---
 
@@ -205,7 +205,7 @@ Read `README.md`, all `CLAUDE.md` files, and then audit:
 - [issue] — [rationale]
 ```
 
-End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear` to reset context before starting `/review design`."*
+End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear` to reset context before starting `/prerelease design`."*
 
 ---
 
@@ -262,7 +262,7 @@ Then audit `frontend/src/` with fresh eyes, imagining you are a first-time user.
 - [issue] — [rationale]
 ```
 
-End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one."*
+End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear`."*
 
 After all four sessions are complete and `/ship` has been run, remind the user to bump the version tag on GitHub:
 ```
