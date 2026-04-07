@@ -67,6 +67,18 @@ export default function WelcomePage() {
         <p>
           {t('welcome.description')}
         </p>
+        <div className="spacer-xl" />
+        <h2>{t('welcome.whoUsesTitle')}</h2>
+        <div className="spacer-s" />
+        <p>{t('welcome.personaMarc')}</p>
+        <div className="spacer-s" />
+        <p>{t('welcome.personaSophie')}</p>
+        <div className="spacer-s" />
+        <p>{t('welcome.personaTomas')}</p>
+        <div className="spacer-s" />
+        <p>{t('welcome.personaLeena')}</p>
+        <div className="spacer-s" />
+        <p>{t('welcome.personaJames')}</p>
       </div>
     </div>
   );

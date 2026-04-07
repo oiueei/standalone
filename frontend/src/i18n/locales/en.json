@@ -50,7 +50,8 @@
     "removeGuest": "Remove guest — OIUEEI",
     "guests": "Guests — {{headline}} — OIUEEI",
     "guestsDefault": "Guests — OIUEEI",
-    "user": "{{name}} — OIUEEI"
+    "user": "{{name}} — OIUEEI",
+    "notFound": "Page not found — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -58,7 +59,8 @@
     "emailPlaceholder": "you@email.com",
     "signIn": "Sign in",
     "magicLinkSent": "If this email is registered, a magic link has been sent.",
-    "errorSendingLink": "Error sending link."
+    "errorSendingLink": "Error sending link.",
+    "description": "What is OIUEEI? An open-source web application for people to share their belongings with friends and others around. Users can create collections (wishlists, gift lists, items for sale) and share them with friends who can then reserve items or ask questions."
   },
   "verify": {
     "declined": "Declined",
@@ -227,7 +229,7 @@
     "statusLabel": "Status",
     "statusActive": "Active",
     "statusInactive": "Inactive",
-    "statusHelper": "Inactive collections are visible to guests but reservations are paused.",
+    "statusHelper": "Inactive collections are not visible to guests.",
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters.",
     "errorLoading": "Error loading collection.",
@@ -246,7 +248,13 @@
     "pageTitle": "Welcome to OIUEEI!",
     "description": "OIUEEI is an open-source web application that lets people share their belongings with friends and others around. Users can create collections (wishlists, gift lists, items for sale) and share them with friends who can then reserve items or ask questions.",
     "createCollection": "Create collection",
-    "editProfile": "Edit profile"
+    "editProfile": "Edit profile",
+    "whoUsesTitle": "Who uses OIUEEI?",
+    "personaMarc": "Marc is the maker—he bakes custom cakes for birthdays, weddings, and the occasional divorce party. His collection holds every flavour, size, and finish he offers, so clients can browse, choose, and place their order without a single back-and-forth message. He is very busy.",
+    "personaSophie": "Sophie is the downsizer—her kids have grown up and left behind a mountain of good stuff. She created a collection for the garage sale, shared it with the neighbourhood, and sold everything in a weekend. She is very relieved.",
+    "personaTomas": "Tomás is the dealer—he buys and sells vintage furniture, and his collection is his moving showroom. New pieces go in the moment he finds them, sold pieces come out the moment they're gone. His regulars check in just to see what's new. He is very hard to keep up with.",
+    "personaLeena": "Leena is the coordinator—her building shares a van, a pressure washer, and an industrial drill. She manages the calendar, tracks who has what, and makes sure everything comes back in one piece. She is very organised.",
+    "personaJames": "James is the relocator—he's moving to a smaller flat and needs to find good homes for the things that won't fit. His collection went out to friends, then to friends of friends. Almost everything is gone. He is very grateful."
   },
   "myBookings": {
     "pageTitle": "My requests",
@@ -263,7 +271,8 @@
     "statusConfirmed": "Confirmed",
     "statusRejected": "Rejected",
     "statusCancelled": "Cancelled",
-    "statusExpired": "Expired"
+    "statusExpired": "Expired",
+    "pastRequests": "Past requests"
   },
   "manageInvites": {
     "pageTitle": "Manage guests",
@@ -283,7 +292,7 @@
   },
   "removeGuest": {
     "pageTitle": "Remove: {{name}}",
-    "warning": "This will remove <strong>{{name}}</strong> from the collection. They will lose access immediately.",
+    "warning": "This will remove <0>{{name}}</0> from the collection. They will lose access immediately.",
     "guests": "Guests",
     "errorRemoving": "Error removing guest."
   },
@@ -303,7 +312,8 @@
     "noShared": "No one has shared a collection with you yet.",
     "noPermission": "You do not have permission to view this profile.",
     "notFound": "User not found.",
-    "errorLoading": "Error loading profile."
+    "errorLoading": "Error loading profile.",
+    "logout": "Log out"
   },
   "koro": {
     "basic": "Basic",
@@ -334,5 +344,9 @@
     "USED": "Used",
     "WELL_USED": "Well used",
     "ALMOST_JUNK": "Almost junk"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The page you're looking for doesn't exist."
   }
 }

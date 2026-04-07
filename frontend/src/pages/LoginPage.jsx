@@ -69,6 +69,7 @@ export default function LoginPage() {
         />
       </div>
       <div className="page-container">
+        <p className="section-mt" style={{ maxWidth: '400px' }}>{t('login.description')}</p>
         {status ? (
           <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
             {message}

@@ -50,7 +50,8 @@
     "removeGuest": "Remover convidado — OIUEEI",
     "guests": "Convidados — {{headline}} — OIUEEI",
     "guestsDefault": "Convidados — OIUEEI",
-    "user": "{{name}} — OIUEEI"
+    "user": "{{name}} — OIUEEI",
+    "notFound": "Página não encontrada — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -58,7 +59,8 @@
     "emailPlaceholder": "voce@email.com",
     "signIn": "Entrar",
     "magicLinkSent": "Se este endereço estiver registado, enviámos-lhe uma ligação mágica.",
-    "errorSendingLink": "Erro ao enviar a ligação."
+    "errorSendingLink": "Erro ao enviar a ligação.",
+    "description": "O que é o OIUEEI? Uma aplicação web de código aberto para que as pessoas partilhem os seus bens com amigos e outras pessoas. Os utilizadores podem criar coleções (listas de desejos, listas de presentes, artigos à venda) e partilhá-las com amigos que podem reservar artigos ou fazer perguntas."
   },
   "verify": {
     "declined": "Recusado",
@@ -227,7 +229,7 @@
     "statusLabel": "Estado",
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
-    "statusHelper": "As coleções inactivas são visíveis para os convidados, mas as reservas estão pausadas.",
+    "statusHelper": "As coleções inactivas não são visíveis para os convidados.",
     "titleRequired": "O título é obrigatório.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorLoading": "Erro ao carregar a coleção.",
@@ -246,7 +248,13 @@
     "pageTitle": "Bem-vindo ao OIUEEI!",
     "description": "O OIUEEI é uma aplicação web de código aberto que permite às pessoas partilhar os seus bens com amigos e outras pessoas. Os utilizadores podem criar coleções (listas de desejos, listas de presentes, artigos à venda) e partilhá-las com amigos que podem reservar artigos ou fazer perguntas.",
     "createCollection": "Criar coleção",
-    "editProfile": "Editar perfil"
+    "editProfile": "Editar perfil",
+    "whoUsesTitle": "Quem utiliza o OIUEEI?",
+    "personaMarc": "Marc é o pasteleiro—faz bolos por medida para aniversários, casamentos e a ocasional festa de divórcio. A sua coleção tem todos os sabores, tamanhos e acabamentos que oferece, para que os clientes possam escolher e fazer a encomenda sem uma única mensagem. Está muito ocupado.",
+    "personaSophie": "Sophie é a que está a esvaziar a casa—os seus filhos cresceram e deixaram para trás uma montanha de coisas boas. Criou uma coleção para a venda de garagem, partilhou com a vizinhança e vendeu tudo num fim de semana. Está muito aliviada.",
+    "personaTomas": "Tomás é o antiquário—compra e vende móveis vintage, e a sua coleção é a sua montra ambulante. Peças novas entram no momento em que as encontra, peças vendidas saem no momento em que se vão. Os seus clientes habituais passam só para ver o que há de novo. É muito difícil acompanhá-lo.",
+    "personaLeena": "Leena é a coordenadora—no seu prédio partilham uma carrinha, uma máquina de pressão e um berbequim industrial. Ela gere o calendário, controla quem tem o quê e assegura-se de que tudo volta inteiro. É muito organizada.",
+    "personaJames": "James é o que se muda—vai para um apartamento mais pequeno e precisa de encontrar bons lares para as coisas que não cabem. A sua coleção chegou a amigos, e depois a amigos de amigos. Quase tudo já foi. Está muito grato."
   },
   "myBookings": {
     "pageTitle": "Os meus pedidos",
@@ -263,7 +271,8 @@
     "statusConfirmed": "Confirmada",
     "statusRejected": "Rejeitada",
     "statusCancelled": "Cancelada",
-    "statusExpired": "Expirada"
+    "statusExpired": "Expirada",
+    "pastRequests": "Pedidos anteriores"
   },
   "manageInvites": {
     "pageTitle": "Gerir convidados",
@@ -283,7 +292,7 @@
   },
   "removeGuest": {
     "pageTitle": "Remover: {{name}}",
-    "warning": "Isto vai remover <strong>{{name}}</strong> da coleção. Perderá o acesso imediatamente.",
+    "warning": "Isto vai remover <0>{{name}}</0> da coleção. Perderá o acesso imediatamente.",
     "guests": "Convidados",
     "errorRemoving": "Erro ao remover o convidado."
   },
@@ -303,7 +312,8 @@
     "noShared": "Ainda ninguém partilhou uma coleção consigo.",
     "noPermission": "Não tem permissão para ver este perfil.",
     "notFound": "Utilizador não encontrado.",
-    "errorLoading": "Erro ao carregar o perfil."
+    "errorLoading": "Erro ao carregar o perfil.",
+    "logout": "Terminar sessão"
   },
   "koro": {
     "basic": "Básico",
@@ -334,5 +344,9 @@
     "USED": "Usado",
     "WELL_USED": "Bem usado",
     "ALMOST_JUNK": "Quase inutilizável"
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "message": "A página que procura não existe."
   }
 }

@@ -32,6 +32,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
+| `*` | `NotFoundPage` | 404 page for unknown routes |
 
 ---
 
@@ -77,6 +78,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 
 - **API:** `POST /api/v1/auth/request-link/` with `{ email }` and CSRF token
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (if available from a previous session).
+- Shows a brief description of OIUEEI above the form (`login.description` i18n key).
 - Sends a magic link to the provided email address.
 - After submission, replaces the form with a `Notification` component:
   - `success` — Unified message displayed (backend returns 200 regardless of email existence for anti-enumeration)
@@ -96,6 +98,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - Static informational page about OIUEEI.
 - `← Home` link navigates to `/`.
 - **Action buttons:** "Create collection" links to `/collections/new` and "Edit profile" links to `/me/edit`, both passing `{ state: { backPath: '/welcome', backLabel: 'Welcome' } }` for return navigation.
+- **Personas section:** below the description, shows "Who uses OIUEEI?" heading with five persona stories (Marc, Sophie, Tomás, Leena, James) illustrating different use cases.
 - Sets `seenWelcome = 'true'` in `localStorage` on mount, permanently suppressing the Welcome Linkbox on `CollectionPage` for this browser.
 
 ### HomePage (`src/pages/HomePage.jsx`)
@@ -219,8 +222,14 @@ Detail page for a thing with full information and FAQs section.
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Lists all booking requests made by the current user.
 - Each booking card shows: thing type tag, status tag (Pending/Confirmed/Rejected/Cancelled/Expired), thing headline (linked to thing page), owner name, dates/quantity, and creation date.
-- PENDING bookings show a "Cancel request" button.
+- PENDING bookings show a "Cancel request" button. Non-pending bookings are grouped under "Past requests".
 - Accessible from HomePage via "My requests" button.
+
+### NotFoundPage (`src/pages/NotFoundPage.jsx`)
+
+- Catch-all 404 page for unknown routes.
+- Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (or defaults).
+- Shows a "Page not found" title and message with a button to go home or login.
 
 ### LogoutPage (`src/pages/LogoutPage.jsx`)
 
@@ -293,7 +302,7 @@ Detail page for a thing with full information and FAQs section.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors (own profile uses `theeeme_colors` from API, other profiles fall back to localStorage).
 - Hero follows the WelcomePage pattern: BackLink, spacer, headline as Heading M subtitle, name as h1 title, "Member since" date.
-- **Own profile:** shows "Edit profile" button in the hero, "My collections" (ACTIVE), "Inactive collections" (INACTIVE, only shown if any exist), and "Shared with me" sections below.
+- **Own profile:** shows "Edit profile" and "Log out" buttons in the hero, "My collections" (ACTIVE), "Inactive collections" (INACTIVE, only shown if any exist), and "Shared with me" sections below.
 - **Other profiles:** shows "Collections in common" section with shared collections (where both users are connected as owner/invite) as HDS Linkbox components.
 
 ---
@@ -346,7 +355,7 @@ Smoke tests and automated accessibility checks using vitest + testing-library + 
 - **Run tests:** `npm test` (single run) or `npm run test:watch` (watch mode).
 - **Config:** `vite.config.js` — `test` block with jsdom environment, `src/test/setup.js` as setup file.
 - **Setup:** `src/test/setup.js` — imports `@testing-library/jest-dom`, initialises i18n mock, provides `localStorage`, `CSS.supports`, and `ResizeObserver` polyfills for jsdom.
-- **Smoke tests:** `src/test/smoke.test.jsx` — renders every page component with mocked API responses and runs `jest-axe` to detect WCAG violations. Covers 16 pages.
+- **Smoke tests:** `src/test/smoke.test.jsx` — renders every page component with mocked API responses and runs `jest-axe` to detect WCAG violations. Covers 17 pages.
 - **i18n mock:** `src/test/i18n-mock.js` — initialises i18next with the real `en.json` for test rendering.
 
 ---

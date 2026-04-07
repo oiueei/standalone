@@ -19,7 +19,7 @@ const STATUS_THEMES = {
 
 export default function MyBookingsPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [bookings, setBookings] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
@@ -120,13 +120,13 @@ export default function MyBookingsPage() {
             </p>
           )}
           <p style={{ margin: 'var(--spacing-2-xs) 0 0', fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-50)' }}>
-            {t('myBookings.requested', { date: new Date(row._created).toLocaleDateString('en-GB') })}
+            {t('myBookings.requested', { date: new Date(row._created).toLocaleDateString(i18n.language) })}
           </p>
           <p style={{ margin: 'var(--spacing-2-xs) 0 0', fontSize: 'var(--fontsize-body-s)' }}>
             {row._startDate && row._endDate
-              ? `${row._startDate} — ${row._endDate}`
+              ? `${new Date(row._startDate).toLocaleDateString(i18n.language)} — ${new Date(row._endDate).toLocaleDateString(i18n.language)}`
               : row._deliveryDate
-              ? t('myBookings.delivery', { date: row._deliveryDate, quantity: row._quantity })
+              ? t('myBookings.delivery', { date: new Date(row._deliveryDate).toLocaleDateString(i18n.language), quantity: row._quantity })
               : <span style={{ color: 'var(--color-black-40)' }}>{t('myBookings.noDates')}</span>}
           </p>
         </div>
@@ -197,7 +197,7 @@ export default function MyBookingsPage() {
                   {otherRows.length > 0 && (
                     <>
                       <div className="spacer-xl" />
-                      <h2>{t('myBookings.statusConfirmed')}</h2>
+                      <h2>{t('myBookings.pastRequests')}</h2>
                       <div className="spacer-s" />
                       <Table cols={cols} rows={otherRows} indexKey="_id" renderIndexCol={false} dense theme={tc.color_03 ? { '--header-background-color': `var(--color-${tc.color_03})` } : undefined} />
                     </>

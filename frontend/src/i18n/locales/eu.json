@@ -50,7 +50,8 @@
     "removeGuest": "Gonbidatua kendu — OIUEEI",
     "guests": "Gonbidatuak — {{headline}} — OIUEEI",
     "guestsDefault": "Gonbidatuak — OIUEEI",
-    "user": "{{name}} — OIUEEI"
+    "user": "{{name}} — OIUEEI",
+    "notFound": "Orrialdea ez da aurkitu — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -58,7 +59,8 @@
     "emailPlaceholder": "zu@email.com",
     "signIn": "Hasi saioa",
     "magicLinkSent": "Helbide hau erregistratuta badago, esteka magiko bat bidali da.",
-    "errorSendingLink": "Errorea esteka bidaltzean."
+    "errorSendingLink": "Errorea esteka bidaltzean.",
+    "description": "Zer da OIUEEI? Kode irekiko web-aplikazio bat jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko. Erabiltzaileek bildumak sor ditzakete (desio-zerrendak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten."
   },
   "verify": {
     "declined": "Ukatua",
@@ -227,7 +229,7 @@
     "statusLabel": "Egoera",
     "statusActive": "Aktiboa",
     "statusInactive": "Inaktiboa",
-    "statusHelper": "Bilduma inaktiboak gonbidatuei ikusgai egoten dira, baina erreserbak gelditu egiten dira.",
+    "statusHelper": "Bilduma inaktiboak ez dira gonbidatuei ikusgai.",
     "titleRequired": "Izenburua beharrezkoa da.",
     "maxHeadline": "Gehienez 64 karaktere.",
     "errorLoading": "Errorea bilduma kargatzean.",
@@ -246,7 +248,13 @@
     "pageTitle": "Ongi etorri OIUEEIra!",
     "description": "OIUEEI kode irekiko web-aplikazio bat da, jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko aukera ematen duena. Erabiltzaileek bildumak sor ditzakete (desio-zerrendak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten.",
     "createCollection": "Bilduma sortu",
-    "editProfile": "Profila editatu"
+    "editProfile": "Profila editatu",
+    "whoUsesTitle": "Nork erabiltzen du OIUEEI?",
+    "personaMarc": "Marc gozogilea da—urtebetetze, eztei eta noizbehinkako dibortzio-festarako pastelak egiten ditu neurrira. Bere bildumak eskaintzen dituen zapore, tamaina eta akabera guztiak ditu, bezeroek arakatu, aukeratu eta eskaera egin dezaten mezu bakar bat bidali gabe. Oso lanpetuta dago.",
+    "personaSophie": "Sophie etxea hustzen ari da—bere seme-alabak hazi dira eta gauza onen mendi bat utzi dute atzean. Garajeko salmentarako bilduma bat sortu zuen, auzoarekin partekatu eta dena saldu zuen asteburu batean. Oso lasaituta dago.",
+    "personaTomas": "Tomás bitxiteria-saltzailea da—altzari zaharrak erosten eta saltzen ditu, eta bere bilduma bere erakusleiho ibiltaria da. Pieza berriak aurkitzen dituen unean sartzen dira, salduak joan bezain laster ateratzen dira. Bere bezero ohikoak noizean behin pasatzen dira berria zer dagoen ikustera. Oso zaila da haren erritmoa jarraitzea.",
+    "personaLeena": "Leena koordinatzailea da—bere eraikinean furgoneta bat, garbigailu bat eta taladro industrial bat partekatzen dituzte. Berak egutegia kudeatzen du, nork zer duen kontrolatzen du eta dena pieza bakarrean itzultzen dela ziurtatzen du. Oso antolatua da.",
+    "personaJames": "James aldatzen ari da—pisu txikiago batera doa eta kabitzen ez diren gauzentzat etxe onak aurkitu behar ditu. Bere bilduma lagunei iritsi zitzaien, eta gero lagunen lagunei. Ia dena desagertu da. Oso eskertsua dago."
   },
   "myBookings": {
     "pageTitle": "Nire eskaerak",
@@ -263,7 +271,8 @@
     "statusConfirmed": "Baieztatuta",
     "statusRejected": "Baztertua",
     "statusCancelled": "Bertan behera",
-    "statusExpired": "Iraungita"
+    "statusExpired": "Iraungita",
+    "pastRequests": "Aurreko eskaerak"
   },
   "manageInvites": {
     "pageTitle": "Gonbidatuak kudeatu",
@@ -283,7 +292,7 @@
   },
   "removeGuest": {
     "pageTitle": "Kendu: {{name}}",
-    "warning": "<strong>{{name}}</strong> bilduma honetatik kenduko da. Berehala galduko du sarbidea.",
+    "warning": "<0>{{name}}</0> bilduma honetatik kenduko da. Berehala galduko du sarbidea.",
     "guests": "Gonbidatuak",
     "errorRemoving": "Errorea gonbidatua kentzen."
   },
@@ -303,7 +312,8 @@
     "noShared": "Oraindik ez du inork bilduma zurekin partekatu.",
     "noPermission": "Ez duzu baimen hau profila ikusteko.",
     "notFound": "Erabiltzailea ez da aurkitu.",
-    "errorLoading": "Errorea profila kargatzean."
+    "errorLoading": "Errorea profila kargatzean.",
+    "logout": "Saioa itxi"
   },
   "koro": {
     "basic": "Oinarrizkoa",
@@ -334,5 +344,9 @@
     "USED": "Erabilia",
     "WELL_USED": "Ondo erabilia",
     "ALMOST_JUNK": "Ia hondatuta"
+  },
+  "notFound": {
+    "title": "Orrialdea ez da aurkitu",
+    "message": "Bilatzen ari zaren orrialdea ez da existitzen."
   }
 }

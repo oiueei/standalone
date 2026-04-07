@@ -8,7 +8,7 @@ import ThingTags from './ThingTags';
 import Toast from './Toast';
 
 export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, onDelete, onRemoveFromCollection, onUpdateThing }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [requested, setRequested] = useState(false);
@@ -240,9 +240,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 return (
                   <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
                     {b.requester_name && <>{b.requester_name}. </>}
-                    {b.created && <>{new Date(b.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}. </>}
-                    {b.start_date && b.end_date && <>{b.start_date} – {b.end_date}</>}
-                    {b.delivery_date && <>{b.delivery_date}, {t('thingCard.qty')} {b.quantity}</>}
+                    {b.created && <>{new Date(b.created).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}. </>}
+                    {b.start_date && b.end_date && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
+                    {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
                     {' '}
                     <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
                       ({b.status === 'ACCEPTED' ? t('thingCard.confirmed') : t('thingCard.pending')}){showStar ? ' *' : ''}

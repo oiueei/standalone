@@ -50,7 +50,8 @@
     "removeGuest": "Treure convidat — OIUEEI",
     "guests": "Convidats — {{headline}} — OIUEEI",
     "guestsDefault": "Convidats — OIUEEI",
-    "user": "{{name}} — OIUEEI"
+    "user": "{{name}} — OIUEEI",
+    "notFound": "Pàgina no trobada — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -58,7 +59,8 @@
     "emailPlaceholder": "tu@correu.com",
     "signIn": "Entrar",
     "magicLinkSent": "Si aquest correu està registrat, t'hem enviat un enllaç màgic.",
-    "errorSendingLink": "Error en enviar l'enllaç."
+    "errorSendingLink": "Error en enviar l'enllaç.",
+    "description": "Què és OIUEEI? Una aplicació web de codi obert perquè les persones comparteixin les seves pertinences amb amics i altres persones. Els usuaris poden crear col·leccions (llistes de desitjos, llistes de regals, articles en venda) i compartir-les amb amics que poden reservar articles o fer preguntes."
   },
   "verify": {
     "declined": "Rebutjat",
@@ -227,7 +229,7 @@
     "statusLabel": "Estat",
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
-    "statusHelper": "Les col·leccions inactives són visibles per als convidats però les reserves estan pausades.",
+    "statusHelper": "Les col·leccions inactives no són visibles per als convidats.",
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters.",
     "errorLoading": "Error en carregar la col·lecció.",
@@ -246,7 +248,13 @@
     "pageTitle": "Benvingut a OIUEEI!",
     "description": "OIUEEI és una aplicació web de codi obert que permet a les persones compartir les seves pertinences amb amics i altres persones. Els usuaris poden crear col·leccions (llistes de desitjos, llistes de regals, articles en venda) i compartir-les amb amics que poden reservar articles o fer preguntes.",
     "createCollection": "Crear col·lecció",
-    "editProfile": "Editar perfil"
+    "editProfile": "Editar perfil",
+    "whoUsesTitle": "Qui fa servir OIUEEI?",
+    "personaMarc": "Marc és el pastisser—fa pastissos a mida per a aniversaris, casaments i algun que altre divorci. La seva col·lecció té tots els sabors, mides i acabats que ofereix, perquè els clients puguin triar i fer la comanda sense cap missatge d'anada i tornada. Està molt ocupat.",
+    "personaSophie": "Sophie és la que buida la casa—els seus fills ja han crescut i han deixat enrere una muntanya de coses bones. Va crear una col·lecció per a la venda de garatge, la va compartir amb el veïnat i ho va vendre tot en un cap de setmana. Està molt alleujada.",
+    "personaTomas": "Tomàs és l'antiquari—compra i ven mobles vintage, i la seva col·lecció és el seu aparador ambulant. Les peces noves entren en el moment que les troba, les venudes surten en el moment que marxen. Els seus clients habituals es passen per veure què hi ha de nou. És molt difícil seguir-li el ritme.",
+    "personaLeena": "Leena és la coordinadora—al seu edifici comparteixen una furgoneta, una hidrolimpiadora i un trepant industrial. Ella gestiona el calendari, controla qui té què i s'assegura que tot torni d'una peça. És molt organitzada.",
+    "personaJames": "James és el que es muda—es trasllada a un pis més petit i necessita trobar un bon lloc per a les coses que no hi caben. La seva col·lecció va arribar a amics, i després a amics d'amics. Ja gairebé no queda res. Està molt agraït."
   },
   "myBookings": {
     "pageTitle": "Les meves sol·licituds",
@@ -263,7 +271,8 @@
     "statusConfirmed": "Confirmada",
     "statusRejected": "Rebutjada",
     "statusCancelled": "Cancel·lada",
-    "statusExpired": "Caducada"
+    "statusExpired": "Caducada",
+    "pastRequests": "Sol·licituds anteriors"
   },
   "manageInvites": {
     "pageTitle": "Gestionar convidats",
@@ -283,7 +292,7 @@
   },
   "removeGuest": {
     "pageTitle": "Treure: {{name}}",
-    "warning": "Això treurà a <strong>{{name}}</strong> de la col·lecció. Perdrà l'accés immediatament.",
+    "warning": "Això treurà a <0>{{name}}</0> de la col·lecció. Perdrà l'accés immediatament.",
     "guests": "Convidats",
     "errorRemoving": "Error en treure el convidat."
   },
@@ -303,7 +312,8 @@
     "noShared": "Encara ningú ha compartit una col·lecció amb tu.",
     "noPermission": "No tens permís per veure aquest perfil.",
     "notFound": "Usuari no trobat.",
-    "errorLoading": "Error en carregar el perfil."
+    "errorLoading": "Error en carregar el perfil.",
+    "logout": "Tancar sessió"
   },
   "koro": {
     "basic": "Bàsic",
@@ -334,5 +344,9 @@
     "USED": "Usat",
     "WELL_USED": "Molt usat",
     "ALMOST_JUNK": "Quasi per llençar"
+  },
+  "notFound": {
+    "title": "Pàgina no trobada",
+    "message": "La pàgina que busques no existeix."
   }
 }

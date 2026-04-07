@@ -120,6 +120,7 @@ import ThingPage from '../pages/ThingPage';
 import EditThingPage from '../pages/EditThingPage';
 import RequestThingPage from '../pages/RequestThingPage';
 import UserPage from '../pages/UserPage';
+import NotFoundPage from '../pages/NotFoundPage';
 
 // ── Setup ──────────────────────────────────────────────────────────────
 beforeEach(() => {
@@ -218,3 +219,5 @@ smokeAndAxe('VerifyPage', VerifyPage, {
 });
 
 smokeAndAxe('LogoutPage', LogoutPage);
+
+smokeAndAxe('NotFoundPage', NotFoundPage);

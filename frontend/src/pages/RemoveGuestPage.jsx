@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
@@ -84,7 +84,7 @@ export default function RemoveGuestPage() {
         />
       </div>
       <div className="page-container">
-        <p dangerouslySetInnerHTML={{ __html: t('removeGuest.warning', { name: guestName }) }} />
+        <p><Trans i18nKey="removeGuest.warning" values={{ name: guestName }} components={[<strong key="0" />]} /></p>
         <div className="spacer-xs" />
         <div className="form-grid">
           <Button fullWidth disabled={removing} onClick={handleRemove} style={btnStyle}>

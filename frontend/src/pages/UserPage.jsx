@@ -9,7 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
   const [myCollections, setMyCollections] = useState(null);
   const [invitedCollections, setInvitedCollections] = useState(null);
@@ -90,6 +90,13 @@ export default function UserPage() {
     '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': `var(--color-${tc.color_04})`,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
+  } : undefined;
 
   return (
     <div
@@ -107,13 +114,16 @@ export default function UserPage() {
           <h1 className="form-hero-title">{user.name || user.email}</h1>
           {user.created && (
             <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)', opacity: 0.7 }}>
-              {t('userPage.memberSince', { date: new Date(user.created).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) })}
+              {t('userPage.memberSince', { date: new Date(user.created).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' }) })}
             </p>
           )}
           {isOwnProfile && (
             <div className="button-row-wide" style={{ paddingBottom: 'var(--spacing-s)' }}>
               <Link to="/me/edit">
                 <Button style={btnStyle}>{t('userPage.editProfile')}</Button>
+              </Link>
+              <Link to="/logout">
+                <Button variant="secondary" style={btnSecondaryStyle}>{t('userPage.logout')}</Button>
               </Link>
             </div>
           )}
