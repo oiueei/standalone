@@ -23,6 +23,7 @@ from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
 from .views.upload import CloudinarySignatureView
+from .views.hue import HueLightsView, HueSetRefreshTokenView, HueStopView, HueTriggerView
 from .views.users import UserDetailView
 
 
@@ -96,6 +97,11 @@ urlpatterns = [
         BookingCancelView.as_view(),
         name="booking-cancel",
     ),
+    # Hue easter egg
+    path("hue/trigger/", HueTriggerView.as_view(), name="hue-trigger"),
+    path("hue/stop/", HueStopView.as_view(), name="hue-stop"),
+    path("hue/lights/", HueLightsView.as_view(), name="hue-lights"),
+    path("hue/set-refresh-token/", HueSetRefreshTokenView.as_view(), name="hue-set-refresh-token"),
     # FAQ
     path("things/<str:thing_code>/faq/", ThingFAQListView.as_view(), name="thing-faq-list"),
     path("faq/<str:faq_code>/", FAQDetailView.as_view(), name="faq-detail"),
