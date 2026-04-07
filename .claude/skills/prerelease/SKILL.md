@@ -37,8 +37,9 @@ Before evaluating anything else, check whether we are honouring this principle. 
 HDS evolves. When HDS releases improvements to components we use, we must absorb those updates — this is non-negotiable. This is precisely why **frontend tests are critical**: if an HDS package upgrade breaks something on our side, our Vitest suite must catch it before it reaches production.
 
 As part of this review:
-- Check the current version of `@hds` packages in `frontend/package.json`
-- Flag any packages that appear significantly behind the latest HDS releases
+- Check the current version of `hds-react`, `hds-core`, and `hds-design-tokens` in `frontend/package.json`
+- Run `npm show hds-react version` (and same for `hds-core`, `hds-design-tokens`) to get the latest published version
+- If any package is behind, flag it as a Phase A issue and upgrade it — then run `npm test` to catch breaking changes
 - Verify that test coverage is sufficient to safely absorb future HDS upgrades
 
 ### What to review
@@ -77,6 +78,16 @@ As part of this review:
 - Components with no Vitest coverage
 - Missing tests for user interaction flows
 - Tests that would break if an HDS component's API changed — are these in place?
+
+**i18n key parity**
+- Compare all locale files in `src/i18n/locales/` against `en.json` (the source of truth)
+- Any key present in `en.json` but missing in another language is a silent bug — flag each gap
+- Run: `for f in src/i18n/locales/*.json; do echo "=== $f ==="; node -e "const en=require('./src/i18n/locales/en.json'),f=require('$f');Object.keys(en).filter(k=>!(k in f)).forEach(k=>console.log('MISSING:',k))"; done` or equivalent
+
+**Bundle size**
+- Run `npm run build` and inspect the Vite output
+- Flag any chunk exceeding 200 kB (gzipped) — investigate what is driving the size
+- Identify any large dependency that is imported in the main chunk but could be lazy-loaded
 
 ### Output format
 
