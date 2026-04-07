@@ -127,14 +127,14 @@ class TestThingSerializer:
             code="THNG01",
             owner=user,
             headline="My Thing",
-            pictures=["pic1", "pic2"],
+            thumbnail="oiueei/things/pic1",
         )
         serializer = ThingSerializer(thing)
         data = serializer.data
 
         assert data["code"] == "THNG01"
         assert data["headline"] == "My Thing"
-        assert len(data["pictures_urls"]) == 2
+        assert "thumbnail_url" in data
 
     def test_serialize_thing_with_collection(self):
         """Should include collection_code and collection_headline."""

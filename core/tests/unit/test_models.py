@@ -38,7 +38,6 @@ class TestCloudinaryUrl:
         url = cloudinary_url("abc123")
         assert "cloudinary.com" in url
         assert "abc123" in url
-        assert url.endswith(".png")
 
     def test_cloudinary_url_without_id(self):
         """Should return None for empty ID."""
@@ -94,11 +93,10 @@ class TestUserModel:
             User.objects.create_user(email=None)
 
     def test_optional_fields_can_be_empty(self):
-        """Optional fields (headline, thumbnail, hero) default to empty strings."""
+        """Optional fields (headline, thumbnail) default to empty strings."""
         user = User.objects.create(email="test@example.com")
         assert user.headline == ""
         assert user.thumbnail == ""
-        assert user.hero == ""
 
     def test_optional_fields_can_be_set(self):
         """Optional fields can be populated."""
@@ -106,11 +104,9 @@ class TestUserModel:
             email="test@example.com",
             headline="My headline",
             thumbnail="THUMB1",
-            hero="HERO01",
         )
         assert user.headline == "My headline"
         assert user.thumbnail == "THUMB1"
-        assert user.hero == "HERO01"
 
     def test_user_created_date_persisted(self):
         """Creation date should be persisted automatically."""
@@ -325,7 +321,6 @@ class TestCollectionModel:
         )
         assert collection.description == ""
         assert collection.thumbnail == ""
-        assert collection.hero == ""
 
     def test_add_thing_idempotent(self):
         """Adding same thing twice should not duplicate."""

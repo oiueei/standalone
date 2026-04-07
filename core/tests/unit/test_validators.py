@@ -73,9 +73,9 @@ class TestImageIdField:
         assert field.to_internal_value("abc123") == "abc123"
 
     def test_max_length_default(self):
-        """Should have default max_length of 16."""
+        """Should have default max_length of 255 (folder-prefixed Cloudinary IDs)."""
         field = ImageIdField()
-        assert field.max_length == 16
+        assert field.max_length == 255
 
     def test_not_required_by_default(self):
         """Should not be required by default."""

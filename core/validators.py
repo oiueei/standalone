@@ -27,6 +27,8 @@ def validate_image_id(value):
             )
         if "//" in value or value.startswith("/") or value.endswith("/"):
             raise serializers.ValidationError("Image ID contains invalid slash usage.")
+        if ".." in value:
+            raise serializers.ValidationError("Image ID contains path traversal sequence.")
     return value
 
 
