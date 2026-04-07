@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
 
@@ -70,6 +70,15 @@ export default function LoginPage() {
       </div>
       <div className="page-container">
         <p className="section-mt" style={{ maxWidth: '400px' }}>{t('login.description')}</p>
+        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
+          <Trans
+            i18nKey="login.openSource"
+            components={[
+              <span key="0" />,
+              <a key="1" href="https://github.com/oiueei/oiueei" target="_blank" rel="noopener noreferrer" />,
+            ]}
+          />
+        </p>
         {status ? (
           <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
             {message}

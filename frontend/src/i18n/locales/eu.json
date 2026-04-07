@@ -60,7 +60,8 @@
     "signIn": "Hasi saioa",
     "magicLinkSent": "Helbide hau erregistratuta badago, esteka magiko bat bidali da.",
     "errorSendingLink": "Errorea esteka bidaltzean.",
-    "description": "Zer da OIUEEI? Kode irekiko web-aplikazio bat jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko. Erabiltzaileek bildumak sor ditzakete (desio-zerrendak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten."
+    "description": "Zer da OIUEEI? Kode irekiko web-aplikazio bat jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko. Erabiltzaileek bildumak sor ditzakete (desio-zerrendak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten.",
+    "openSource": "OIUEEI kode irekikoa da. Proiektua <1>GitHub</1>-en aurki dezakezu. Sarbidea eskatu edo lagundu nahi baduzu, jar zaitez harremanetan."
   },
   "verify": {
     "declined": "Ukatua",

@@ -60,7 +60,8 @@
     "signIn": "Entrar",
     "magicLinkSent": "Se este correo está rexistrado, enviámosche unha ligazón máxica.",
     "errorSendingLink": "Erro ao enviar a ligazón.",
-    "description": "Que é OIUEEI? Unha aplicación web de código aberto para que as persoas compartan as súas pertenzas con amigos e outras persoas. Os usuarios poden crear coleccións (listas de desexos, listas de agasallos, artigos á venda) e compartilas con amigos que poden reservar artigos ou facer preguntas."
+    "description": "Que é OIUEEI? Unha aplicación web de código aberto para que as persoas compartan as súas pertenzas con amigos e outras persoas. Os usuarios poden crear coleccións (listas de desexos, listas de agasallos, artigos á venda) e compartilas con amigos que poden reservar artigos ou facer preguntas.",
+    "openSource": "OIUEEI é de código aberto. Podes atopar o proxecto en <1>GitHub</1>. Se queres solicitar acceso ou colaborar, ponte en contacto."
   },
   "verify": {
     "declined": "Rexeitado",

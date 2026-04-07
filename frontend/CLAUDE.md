@@ -78,7 +78,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 
 - **API:** `POST /api/v1/auth/request-link/` with `{ email }` and CSRF token
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (if available from a previous session).
-- Shows a brief description of OIUEEI above the form (`login.description` i18n key).
+- Shows a brief description of OIUEEI above the form (`login.description` i18n key).\n- Shows an open source paragraph with a link to the GitHub repository (`login.openSource` i18n key, rendered via `Trans` for the inline link).
 - Sends a magic link to the provided email address.
 - After submission, replaces the form with a `Notification` component:
   - `success` — Unified message displayed (backend returns 200 regardless of email existence for anti-enumeration)
