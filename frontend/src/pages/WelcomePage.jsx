@@ -48,12 +48,12 @@ export default function WelcomePage() {
           <div className="spacer-m" />
           {userName && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>{t('welcome.greeting', { name: userName })}</p>}
           <h1 className="form-hero-title">{t('welcome.pageTitle')}</h1>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-s)', paddingBottom: 'var(--spacing-s)' }}>
+          <div className="button-row-wide" style={{ paddingBottom: 'var(--spacing-s)' }}>
             <Link to="/collections/new" state={{ backPath: '/welcome', backLabel: t('welcome.pageTitle') }}>
-              <Button style={{ ...btnStyle, width: '100%' }}>{t('welcome.createCollection')}</Button>
+              <Button style={btnStyle}>{t('welcome.createCollection')}</Button>
             </Link>
             <Link to="/me/edit" state={{ backPath: '/welcome', backLabel: t('welcome.pageTitle') }}>
-              <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>{t('welcome.editProfile')}</Button>
+              <Button variant="secondary" style={btnSecondaryStyle}>{t('welcome.editProfile')}</Button>
             </Link>
           </div>
         </div>

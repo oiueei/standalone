@@ -183,7 +183,7 @@ RSVP_BASE_URL = os.environ.get(
 # CLOUDINARY_URL format: cloudinary://api_key:api_secret@cloud_name
 import cloudinary
 
-cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL", ""))
+cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL", ""), secure=True)
 CLOUDINARY_CLOUD_NAME = cloudinary.config().cloud_name or ""
 
 
