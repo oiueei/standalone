@@ -4,8 +4,9 @@ import 'hds-core/lib/base.css';
 import './fonts/oiueei-fonts.css';
 import './styles/oiueei-theme.css';
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import i18n from './i18n';
+import { initAnalytics, track } from './services/analytics';
 import LoginPage from './pages/LoginPage';
 import VerifyPage from './pages/VerifyPage';
 import HomePage from './pages/HomePage';
@@ -24,10 +25,20 @@ import DeleteThingPage from './pages/DeleteThingPage';
 import RemoveGuestPage from './pages/RemoveGuestPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import WelcomePage from './pages/WelcomePage';
+import NotFoundPage from './pages/NotFoundPage';
 import './App.css';
+
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    track('page_view', { path: location.pathname });
+  }, [location.pathname]);
+  return null;
+}
 
 function App() {
   useEffect(() => {
+    initAnalytics();
     fetch('/api/v1/auth/me/', { credentials: 'same-origin' }).catch(() => {});
   }, []);
 
@@ -40,6 +51,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -65,6 +77,7 @@ function App() {
         <Route path="/my-bookings" element={<MyBookingsPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/:userCode" element={<UserPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
