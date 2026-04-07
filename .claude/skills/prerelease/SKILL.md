@@ -181,6 +181,22 @@ Then evaluate against these dimensions:
 **Documentation alignment**
 - Anything in `README.md` or any `CLAUDE.md` that contradicts the actual code
 
+**Migration safety**
+- Run `python manage.py showmigrations` and list any unapplied migrations
+- Review every migration file created since the last tag for:
+  - Dropping a column or table without a prior data migration
+  - Adding a `NOT NULL` field without a `default` (will fail on existing rows)
+  - Renaming a field or model without a `RenameField`/`RenameModel` operation (Django creates drop+add, losing data)
+  - Any `RunPython` that is not idempotent (safe to run twice)
+  - Missing `atomic = False` on migrations that use `CREATE INDEX CONCURRENTLY` or other long-running ops
+- Flag any of the above as Phase A — a bad migration runs automatically on Heroku deploy via the `release` command and cannot be easily rolled back
+
+**Dependency vulnerabilities**
+- Run `pip-audit -r requirements/production.txt` (install with `pip install pip-audit` if not present)
+- Any vulnerability with a known fix available is Phase A
+- Any vulnerability with no fix is Phase B (document the risk and monitor)
+- If `pip-audit` is not available, fall back to `safety check -r requirements/production.txt`
+
 ### Output format
 
 Present a phased plan using this structure:
