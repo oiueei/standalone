@@ -46,3 +46,6 @@ frontend/src/fonts/*.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+# Internal docs (not for public repo)
+TECHNICAL_DEBT.md
