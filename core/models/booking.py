@@ -10,7 +10,7 @@ This model handles all reservation scenarios:
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from core.utils import generate_id
@@ -169,12 +169,36 @@ class BookingPeriod(models.Model):
     def expire_old_pending(cls):
         """
         Expire all PENDING bookings that have passed the expiry time.
-        Useful for batch processing/cleanup.
+
+        For single-use types (GIFT/SELL), also restores the Thing to ACTIVE —
+        the thing was set to TAKEN when the booking was created, and would
+        otherwise remain stuck in TAKEN indefinitely after expiry.
         """
+        # Lazy import to avoid circular dependency (Thing imports BookingPeriod)
+        from core.models.thing import Thing  # noqa: PLC0415
+
         expiry_hours = getattr(settings, "BOOKING_EXPIRY_HOURS", 72)
         cutoff_time = timezone.now() - timedelta(hours=expiry_hours)
-        expired_count = cls.objects.filter(
-            status="PENDING",
-            created__lt=cutoff_time,
-        ).update(status="EXPIRED")
+
+        with transaction.atomic():
+            # Collect thing codes for single-use bookings that are about to expire
+            single_use_thing_codes = list(
+                cls.objects.filter(
+                    status="PENDING",
+                    thing_type__in=SINGLE_USE_TYPES,
+                    created__lt=cutoff_time,
+                ).values_list("thing_code_id", flat=True)
+            )
+
+            if single_use_thing_codes:
+                Thing.objects.filter(
+                    code__in=single_use_thing_codes,
+                    status="TAKEN",
+                ).update(status="ACTIVE")
+
+            expired_count = cls.objects.filter(
+                status="PENDING",
+                created__lt=cutoff_time,
+            ).update(status="EXPIRED")
+
         return expired_count

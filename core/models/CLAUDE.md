@@ -272,7 +272,7 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 
 - `has_overlap(thing_code, start_date, end_date, exclude_booking_code)` - Check for date conflicts
 - `get_blocked_periods(thing_code)` - Get all PENDING/ACCEPTED bookings
-- `expire_old_pending()` - Batch expire stale PENDING bookings (used by `manage.py expire_bookings`)
+- `expire_old_pending()` - Batch expire stale PENDING bookings (used by `manage.py expire_bookings`). For single-use types (GIFT/SELL), also restores the Thing to `ACTIVE` within the same transaction — prevents things getting permanently stuck in `TAKEN` after booking expiry.
 
 ---
 

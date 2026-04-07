@@ -1465,6 +1465,35 @@ class TestExpireOldPending:
         booking.refresh_from_db()
         assert booking.status == "ACCEPTED"
 
+    def test_expire_old_pending_restores_gift_thing_to_active(self, user, user2, collection):
+        """Expiring a PENDING booking for a GIFT/SELL thing must restore it to ACTIVE."""
+        gift_thing = Thing.objects.create(
+            code="GIFT01",
+            type="GIFT_THING",
+            owner=user,
+            headline="Gift Item",
+            status="TAKEN",
+        )
+        collection.add_thing(gift_thing.code)
+        booking = BookingPeriod.objects.create(
+            thing_code=gift_thing,
+            thing_type="GIFT_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            status="PENDING",
+        )
+        booking.created = timezone.now() - timedelta(hours=100)
+        booking.save()
+
+        count = BookingPeriod.expire_old_pending()
+
+        assert count == 1
+        booking.refresh_from_db()
+        assert booking.status == "EXPIRED"
+        gift_thing.refresh_from_db()
+        assert gift_thing.status == "ACTIVE"
+
 
 @pytest.mark.django_db
 class TestBookingActionView:

@@ -208,6 +208,41 @@ OIUEEI requires email to send magic links. Configure your SMTP provider via the 
 | `EMAIL_HOST_PASSWORD` | SMTP password or API key |
 | `DEFAULT_FROM_EMAIL` | Sender address |
 
+## Monitoring (New Relic)
+
+OIUEEI uses the New Relic APM add-on for performance and error monitoring. The `Procfile` wraps gunicorn with `newrelic-admin run-program` so every request and background transaction is instrumented automatically.
+
+### Add the add-on
+
+```bash
+heroku addons:create newrelic:wayne -a your-app-name
+```
+
+This automatically sets `NEW_RELIC_LICENSE_KEY`. Then set the remaining config vars:
+
+```bash
+heroku config:set \
+  NEW_RELIC_CONFIG_FILE=newrelic.ini \
+  NEW_RELIC_LOG=stdout \
+  -a your-app-name
+```
+
+The `newrelic.ini` file in the repository reads the licence key from `NEW_RELIC_LICENSE_KEY` via `%(NEW_RELIC_LICENSE_KEY)s` — no secrets are hardcoded.
+
+### Scheduler Monitor
+
+The Heroku Scheduler Monitor add-on tracks execution of `expire_bookings`:
+
+```bash
+heroku addons:create scheduler-monitor:test -a your-app-name
+```
+
+Recommended monitors to activate in the dashboard:
+- **Monitor Failed Jobs** — alerts on any job failure
+- **Monitor Interrupted Jobs** — alerts if the dyno dies mid-run
+- **Monitor Execution Times** — alerts if the job takes longer than expected
+- **Scheduler Job Skip Detection (Every Day)** — alerts if the job is skipped entirely
+
 ## Booking Expiration
 
 Pending bookings expire after 72 hours. Run the cleanup command periodically using [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler):

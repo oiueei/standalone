@@ -337,26 +337,37 @@ class MyPendingInvitationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        accept_rsvps = (
+        accept_rsvps = list(
             RSVP.objects.filter(user_code=request.user, action="COLLECTION_INVITE")
-            .select_related("user_code")
         )
+
+        if not accept_rsvps:
+            return Response([])
+
+        target_codes = [r.target_code for r in accept_rsvps]
+
+        # Fetch all related collections and reject RSVPs in two queries
+        collections_by_code = {
+            c.code: c
+            for c in Collection.objects.filter(
+                code__in=target_codes
+            ).select_related("owner")
+        }
+        reject_rsvps_by_target = {
+            r.target_code: r
+            for r in RSVP.objects.filter(
+                user_code=request.user,
+                action="COLLECTION_REJECT",
+                target_code__in=target_codes,
+            )
+        }
 
         result = []
         for accept_rsvp in accept_rsvps:
-            try:
-                collection = Collection.objects.select_related("owner").get(
-                    code=accept_rsvp.target_code
-                )
-            except Collection.DoesNotExist:
+            collection = collections_by_code.get(accept_rsvp.target_code)
+            if collection is None:
                 continue
-
-            reject_rsvp = RSVP.objects.filter(
-                user_code=request.user,
-                action="COLLECTION_REJECT",
-                target_code=accept_rsvp.target_code,
-            ).first()
-
+            reject_rsvp = reject_rsvps_by_target.get(accept_rsvp.target_code)
             result.append({
                 "accept_code": accept_rsvp.code,
                 "reject_code": reject_rsvp.code if reject_rsvp else None,
