@@ -354,9 +354,9 @@ Smoke tests and automated accessibility checks using vitest + testing-library + 
 ## Tech Stack
 
 - **React 19** + **Vite 7** + **React Router 7**
-- **hds-react** — Helsinki Design System React components (npm `^4.10.0`)
-- **hds-design-tokens** — HDS CSS custom property tokens (npm `^4.10.0`)
-- **hds-core** — HDS core CSS and base styles (npm `^4.10.0`)
+- **hds-react** — Helsinki Design System React components (npm `^5.0.0`)
+- **hds-design-tokens** — HDS CSS custom property tokens (npm `^5.0.0`)
+- **hds-core** — HDS core CSS and base styles (npm `^5.0.0`)
 
 ## OIUEEI Customization Layer
 

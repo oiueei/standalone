@@ -103,6 +103,8 @@ function renderWithRoute(Component, { path, entry, state } = {}) {
 
 // ── Imports ────────────────────────────────────────────────────────────
 import LoginPage from '../pages/LoginPage';
+import LogoutPage from '../pages/LogoutPage';
+import VerifyPage from '../pages/VerifyPage';
 import WelcomePage from '../pages/WelcomePage';
 import CreateCollectionPage from '../pages/CreateCollectionPage';
 import AddThingPage from '../pages/AddThingPage';
@@ -209,3 +211,10 @@ smokeAndAxe('RemoveGuestPage', RemoveGuestPage, {
   entry: '/collections/COL001/invites/remove',
   state: { guestCode: 'GUE001', guestName: 'Guest User', backLabel: 'Test' },
 });
+
+smokeAndAxe('VerifyPage', VerifyPage, {
+  path: '/verify/:code',
+  entry: '/verify/RSVP01',
+});
+
+smokeAndAxe('LogoutPage', LogoutPage);

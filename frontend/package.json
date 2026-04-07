@@ -12,9 +12,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "hds-core": "^4.10.0",
-    "hds-design-tokens": "^4.10.0",
-    "hds-react": "^4.10.0",
+    "hds-core": "^5.0.0",
+    "hds-design-tokens": "^5.0.0",
+    "hds-react": "^5.0.0",
     "i18next": "^26.0.1",
     "i18next-browser-languagedetector": "^8.2.1",
     "react": "^19.2.0",
