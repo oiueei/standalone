@@ -7,7 +7,7 @@ from rest_framework import serializers
 from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
-from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
+from core.validators import SafeHeadlineField, SafeTextField
 
 
 class CollectionThingSummarySerializer(serializers.ModelSerializer):
@@ -80,7 +80,6 @@ class CollectionInviteSummarySerializer(serializers.ModelSerializer):
 class CollectionSerializer(serializers.ModelSerializer):
     """Full collection serializer."""
 
-    thumbnail_url = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
     owner_name = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
@@ -96,8 +95,6 @@ class CollectionSerializer(serializers.ModelSerializer):
             "created",
             "headline",
             "description",
-            "thumbnail",
-            "thumbnail_url",
             "status",
             "things",
             "invites",
@@ -129,23 +126,17 @@ class CollectionSerializer(serializers.ModelSerializer):
         ).values("user_code_id", "user_email")
         return [{"code": r["user_code_id"], "email": r["user_email"]} for r in rsvps]
 
-    def get_thumbnail_url(self, obj):
-        return cloudinary_url(obj.thumbnail)
-
-
 class CollectionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a collection."""
 
     headline = SafeHeadlineField(max_length=64)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
-    thumbnail = ImageIdField()
 
     class Meta:
         model = Collection
         fields = [
             "headline",
             "description",
-            "thumbnail",
         ]
 
 
@@ -154,14 +145,12 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
 
     headline = SafeHeadlineField(max_length=64, required=False)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
-    thumbnail = ImageIdField()
 
     class Meta:
         model = Collection
         fields = [
             "headline",
             "description",
-            "thumbnail",
             "status",
         ]
 

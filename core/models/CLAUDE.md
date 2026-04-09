@@ -18,7 +18,6 @@ The `User` model represents a person who can own collections, be invited to othe
 | `created` | DateField | Auto | Date the user was created |
 | `last_activity` | DateField | Auto | Date of last login/activity |
 | `headline` | CharField(64) | No | Short bio/tagline |
-| `thumbnail` | CharField(255) | No | Cloudinary image ID for avatar |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `is_active` | BooleanField | Auto | Default True |
@@ -83,7 +82,6 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `created` | DateTimeField | Auto | Timestamp when collection was created |
 | `headline` | CharField(64) | **Yes** | Title of the collection |
 | `description` | CharField(256) | No | Description of the collection |
-| `thumbnail` | CharField(255) | No | Cloudinary image ID for thumbnail |
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |

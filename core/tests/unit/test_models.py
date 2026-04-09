@@ -93,20 +93,17 @@ class TestUserModel:
             User.objects.create_user(email=None)
 
     def test_optional_fields_can_be_empty(self):
-        """Optional fields (headline, thumbnail) default to empty strings."""
+        """Optional fields (headline) default to empty strings."""
         user = User.objects.create(email="test@example.com")
         assert user.headline == ""
-        assert user.thumbnail == ""
 
     def test_optional_fields_can_be_set(self):
         """Optional fields can be populated."""
         user = User.objects.create(
             email="test@example.com",
             headline="My headline",
-            thumbnail="THUMB1",
         )
         assert user.headline == "My headline"
-        assert user.thumbnail == "THUMB1"
 
     def test_user_created_date_persisted(self):
         """Creation date should be persisted automatically."""
@@ -320,7 +317,6 @@ class TestCollectionModel:
             headline="My Collection",
         )
         assert collection.description == ""
-        assert collection.thumbnail == ""
 
     def test_add_thing_idempotent(self):
         """Adding same thing twice should not duplicate."""

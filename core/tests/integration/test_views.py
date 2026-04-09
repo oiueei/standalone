@@ -1423,26 +1423,6 @@ class TestSecurityInputValidation:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["headline"] == "My Wedding List 2024"
 
-    def test_image_id_rejects_path_traversal(self, authenticated_client, user):
-        """Should reject path traversal attempts in image IDs."""
-        response = authenticated_client.put(
-            f"/api/v1/users/{user.code}/",
-            {"thumbnail": "../etc/passwd"},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "thumbnail" in response.data
-
-    def test_image_id_accepts_valid_alphanumeric(self, authenticated_client, user):
-        """Should accept valid alphanumeric image IDs."""
-        response = authenticated_client.put(
-            f"/api/v1/users/{user.code}/",
-            {"thumbnail": "abc123_XYZ"},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["thumbnail"] == "abc123_XYZ"
-
     def test_quantity_max_99(self, user, user2, collection):
         """Should reject order quantity over 99."""
         from datetime import date, timedelta

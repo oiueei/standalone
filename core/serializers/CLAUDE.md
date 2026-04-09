@@ -62,9 +62,9 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, thumbnail/url, koro, theeeme, theeeme_colors | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. `theeeme_colors` returns a dict with `color_01`–`color_06` HDS token names (or null if no theeeme). |
-| `UserPublicSerializer` | code, name, headline, created, thumbnail/url | Limited public profile. No email, no collections. `created` allows "Member since" display. |
-| `UserUpdateSerializer` | name, headline, thumbnail, koro, theeeme | PUT/PATCH input. Uses `SafeHeadlineField` and `ImageIdField`. `koro` accepts: basic, beat, calm, pulse, vibration, wave. |
+| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, koro, theeeme, theeeme_colors | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. `theeeme_colors` returns a dict with `color_01`–`color_06` HDS token names (or null if no theeeme). |
+| `UserPublicSerializer` | code, name, headline, created | Limited public profile. No email, no collections. `created` allows "Member since" display. |
+| `UserUpdateSerializer` | name, headline, koro, theeeme | PUT/PATCH input. Uses `SafeHeadlineField`. `koro` accepts: basic, beat, calm, pulse, vibration, wave. |
 
 ### `thing.py`
 
@@ -78,11 +78,11 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `CollectionSerializer` | code, owner, owner_name, created, headline, description, thumbnail/url, status, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
+| `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
 | `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, thumbnail_url, pending_booking, my_pending_booking, pending_questions, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
-| `CollectionCreateSerializer` | headline, description, thumbnail | Input for collection creation. |
-| `CollectionUpdateSerializer` | headline, description, thumbnail, status | Input for collection updates. |
+| `CollectionCreateSerializer` | headline, description | Input for collection creation. |
+| `CollectionUpdateSerializer` | headline, description, status | Input for collection updates. |
 | `CollectionInviteSerializer` | email | Input for inviting a user. |
 | `CollectionAddThingSerializer` | thing_code | Input for adding a thing to a collection. |
 | `CollectionRemoveThingSerializer` | thing_code | Input for removing a thing from a collection. |
