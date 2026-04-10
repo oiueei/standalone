@@ -31,6 +31,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/collections/:code/invites/remove` | `RemoveGuestPage` | Confirm and remove a guest from a collection |
 | `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
+| `/popin` | `PopInPage` | Open-door onboarding: enter email, get magic link, join onboarding collections |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
 | `*` | `NotFoundPage` | 404 page for unknown routes |
 

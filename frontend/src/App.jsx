@@ -25,6 +25,7 @@ import DeleteThingPage from './pages/DeleteThingPage';
 import RemoveGuestPage from './pages/RemoveGuestPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import WelcomePage from './pages/WelcomePage';
+import PopInPage from './pages/PopInPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './App.css';
 
@@ -76,6 +77,7 @@ function App() {
         <Route path="/things/:thingCode/delete" element={<DeleteThingPage />} />
         <Route path="/my-bookings" element={<MyBookingsPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/popin" element={<PopInPage />} />
         <Route path="/:userCode" element={<UserPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

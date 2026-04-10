@@ -31,6 +31,7 @@ class Collection(models.Model):
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
+    is_onboarding = models.BooleanField(default=False)
     things = models.ManyToManyField(
         "Thing",
         blank=True,

@@ -83,6 +83,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `headline` | CharField(64) | **Yes** | Title of the collection |
 | `description` | CharField(256) | No | Description of the collection |
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
+| `is_onboarding` | BooleanField | No | If True, new users joining via `/popin` are added to this collection (default: False) |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
 

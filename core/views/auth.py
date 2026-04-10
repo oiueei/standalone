@@ -348,6 +348,46 @@ class VerifyLinkView(APIView):
         return self._handle_booking_action(rsvp, accepted=False)
 
 
+class PopInView(APIView):
+    """
+    POST /api/v1/auth/pop-in/
+    Open-door onboarding: get_or_create a user, add them to all is_onboarding
+    collections, and send a magic link. No prior invitation required.
+    """
+
+    permission_classes = [AllowAny]
+
+    @method_decorator(ratelimit(key="ip", rate="5/m", method="POST", block=True))
+    def post(self, request):
+        serializer = RequestLinkSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"].lower()
+        ip = get_client_ip(request)
+
+        user, created = User.objects.get_or_create(email=email)
+
+        onboarding_collections = Collection.objects.filter(is_onboarding=True)
+        for collection in onboarding_collections:
+            collection.invites.add(user)
+
+        rsvp = RSVP.objects.create(user_code=user, user_email=email)
+        magic_link_base = getattr(
+            settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/magic-link"
+        )
+        magic_link = f"{magic_link_base}/{rsvp.code}"
+        send_magic_link_email(email, magic_link)
+
+        security_logger.info(
+            f"Pop-in request for {email} from IP {ip} (new_user={created})"
+        )
+
+        return Response(
+            {"message": "Check your email — we've sent you a magic link to join OIUEEI."},
+            status=status.HTTP_200_OK,
+        )
+
+
 class MeView(APIView):
     """
     GET /api/v1/auth/me/

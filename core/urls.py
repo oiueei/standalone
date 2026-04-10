@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views.auth import LogoutView, MeView, RequestLinkView, TokenRefreshView, VerifyLinkView
+from .views.auth import LogoutView, MeView, PopInView, RequestLinkView, TokenRefreshView, VerifyLinkView
 from .views.booking import (
     BookingActionView,
     BookingCancelView,
@@ -40,6 +40,7 @@ urlpatterns = [
     path("health/", health_check, name="health-check"),
     # Auth & RSVP Actions
     path("auth/request-link/", RequestLinkView.as_view(), name="request-link"),
+    path("auth/pop-in/", PopInView.as_view(), name="pop-in"),
     path("auth/verify/<str:rsvp_code>/", VerifyLinkView.as_view(), name="verify-link"),
     path("auth/me/", MeView.as_view(), name="me"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),

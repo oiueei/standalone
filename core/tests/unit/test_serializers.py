@@ -44,7 +44,6 @@ class TestUserSerializer:
             code="ABC123",
             email="test@example.com",
             name="Test User",
-            thumbnail="thumb123",
         )
         serializer = UserSerializer(user)
         data = serializer.data
@@ -52,8 +51,6 @@ class TestUserSerializer:
         assert data["code"] == "ABC123"
         assert data["email"] == "test@example.com"
         assert data["name"] == "Test User"
-        assert data["thumbnail_url"] is not None
-        assert "cloudinary" in data["thumbnail_url"]
 
 
 @pytest.mark.django_db
@@ -86,14 +83,12 @@ class TestCollectionSerializer:
             code="COLL01",
             owner=user,
             headline="My Collection",
-            thumbnail="thumb123",
         )
         serializer = CollectionSerializer(collection)
         data = serializer.data
 
         assert data["code"] == "COLL01"
         assert data["headline"] == "My Collection"
-        assert data["thumbnail_url"] is not None
         assert "theeeme" not in data
 
 

@@ -103,6 +103,36 @@ Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
 
 ---
 
+### PopInView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/auth/pop-in/` |
+| **Permission** | `AllowAny` |
+| **Rate limit** | 5 requests/minute per IP |
+
+Open-door onboarding. Allows anyone to join OIUEEI without a prior invitation.
+
+**Request body:**
+```json
+{ "email": "user@example.com" }
+```
+
+**Behaviour:**
+1. Validates email via `RequestLinkSerializer`.
+2. `get_or_create` user by email.
+3. Adds user to all `Collection` objects where `is_onboarding=True`.
+4. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
+5. Logs request to `security` logger with IP and whether user is new.
+
+**Responses:**
+| Status | Condition |
+|--------|-----------|
+| 200 | Always (unified message) |
+| 429 | Rate limited |
+
+---
+
 ### MeView
 
 | | |
