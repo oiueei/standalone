@@ -31,7 +31,7 @@ def seed_demo_collections(apps, schema_editor):
         code="l0l0C1",
         defaults={
             "owner": lolo,
-            "headline": "The melancholic world of Heathcliff calls! Lolo's book club invites you!",
+            "headline": "The melancholic Heathcliff calls! Lolo's book club!",
             "description": (
                 "Craving windswept moors and tortured lovers? Dive into English romances like "
                 "Wuthering Heights with Lolo's cosy book club. Borrow classics, share feels over "

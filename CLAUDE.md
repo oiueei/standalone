@@ -9,6 +9,7 @@
 - **Coverage minimum**: 80% enforced by CI
 - **All PKs**: 6-character alphanumeric codes generated via `secrets.choice()` (not auto-increment)
 - **Emails**: All user content escaped via `django.utils.html.escape()`
+- **String length in migrations**: SQLite (local) does NOT enforce `CharField(max_length=N)` at the DB level — PostgreSQL (Heroku/production) does. Always verify that seed data in migrations fits within the model's `max_length` before committing. Key limits: `headline` = 64, `description` = 256, `name` = 32, `email` = 64, `question` = 64, `answer` = 256, `location` = 32.
 
 ## Project Documentation
 
