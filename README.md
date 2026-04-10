@@ -213,6 +213,9 @@ python manage.py migrate
 # Create admin user
 python manage.py createsuperuser
 
+# Seed lala and lele's collections, things, and FAQs (local recovery only — not needed on a fresh install)
+python scripts/seed_lala_lele.py
+
 # Expire stale bookings (run via Heroku Scheduler in production)
 python manage.py expire_bookings
 ```
