@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Koros } from 'hds-react';
+import { TextInput, TextArea, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
-import ImageUpload from '../components/ImageUpload';
+import TheeemeSelector from '../components/TheeemeSelector';
+import KoroSelector from '../components/KoroSelector';
 
 export default function EditProfilePage() {
   const { t } = useTranslation();
@@ -21,8 +22,6 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
-  const [thumbnail, setThumbnail] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [koro, setKoro] = useState('basic');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
@@ -47,8 +46,6 @@ export default function EditProfilePage() {
           const data = await profileRes.json();
           setName(data.name || '');
           setHeadline(data.headline || '');
-          setThumbnail(data.thumbnail || '');
-          setThumbnailUrl(data.thumbnail_url || '');
           setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
         } else {
@@ -84,7 +81,6 @@ export default function EditProfilePage() {
     const body = {
       name: name.trim(),
       headline: headline.trim(),
-      thumbnail: thumbnail || '',
       koro,
     };
     if (theeeme) body.theeeme = theeeme;
@@ -109,8 +105,6 @@ export default function EditProfilePage() {
   if (loading) {
     return <LoadingSpinner />;
   }
-
-  const theeemeOptions = theeemes.map((th) => ({ label: th.name || th.code, value: th.code }));
 
   return (
     <div
@@ -151,38 +145,12 @@ export default function EditProfilePage() {
             errorText={errors.headline}
             helperText={`${headline.length}/64`}
           />
-          {theeemeOptions.length > 0 && (
-            <Select
-              id="edit-profile-theeeme"
-              texts={{ label: t('editProfile.theeemeLabel') }}
-              options={theeemeOptions}
-              value={theeeme}
-              onChange={(selectedOptions) => {
-                if (selectedOptions.length > 0) {
-                  setTheeeme(selectedOptions[0].value);
-                }
-              }}
-            />
-          )}
-          <Select
-            id="edit-profile-koro"
-            texts={{ label: t('editProfile.koroLabel') }}
-            options={['basic', 'beat', 'calm', 'pulse', 'vibration', 'wave'].map(k => ({ label: t('koro.' + k), value: k }))}
-            value={koro}
-            onChange={(selectedOptions) => {
-              if (selectedOptions.length > 0) {
-                setKoro(selectedOptions[0].value);
-              }
-            }}
+          <TheeemeSelector
+            theeemes={theeemes}
+            value={theeeme}
+            onChange={setTheeeme}
           />
-          <ImageUpload
-            id="edit-profile-thumbnail"
-            label={t('upload.thumbnailLabel')}
-            value={thumbnail}
-            onChange={setThumbnail}
-            currentUrl={thumbnailUrl}
-            folder="oiueei/users"
-          />
+          <KoroSelector value={koro} onChange={setKoro} />
         </div>
         <div className="form-actions">
           <Button

@@ -6,7 +6,6 @@ import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
-import ImageUpload from '../components/ImageUpload';
 
 export default function EditCollectionPage() {
   const { t } = useTranslation();
@@ -17,8 +16,6 @@ export default function EditCollectionPage() {
   const [headline, setHeadline] = useState('');
   useEffect(() => { document.title = headline ? t('titles.editCollection', { headline }) : t('titles.editCollectionDefault'); }, [headline, t]);
   const [description, setDescription] = useState('');
-  const [thumbnail, setThumbnail] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -43,8 +40,6 @@ export default function EditCollectionPage() {
           const data = await collectionRes.json();
           setHeadline(data.headline || '');
           setDescription(data.description || '');
-          setThumbnail(data.thumbnail || '');
-          setThumbnailUrl(data.thumbnail_url || '');
           setStatus(data.status || 'ACTIVE');
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
@@ -74,7 +69,6 @@ export default function EditCollectionPage() {
     const body = {
       headline: headline.trim(),
       description: description.trim(),
-      thumbnail: thumbnail || '',
       status,
     };
 
@@ -156,14 +150,6 @@ export default function EditCollectionPage() {
               setStatus(selectedOptions[0].value);
             }
           }}
-        />
-        <ImageUpload
-          id="edit-collection-thumbnail"
-          label={t('upload.thumbnailLabel')}
-          value={thumbnail}
-          onChange={setThumbnail}
-          currentUrl={thumbnailUrl}
-          folder="oiueei/collections"
         />
       </div>
       <div className="form-actions">

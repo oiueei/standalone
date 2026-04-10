@@ -99,7 +99,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - Static informational page about OIUEEI.
 - `← Home` link navigates to `/`.
 - **Action buttons:** "Create collection" links to `/collections/new` and "Edit profile" links to `/me/edit`, both passing `{ state: { backPath: '/welcome', backLabel: 'Welcome' } }` for return navigation.
-- **Personas section:** below the description, shows "Who uses OIUEEI?" heading with five persona stories (Marc, Sophie, Tomás, Leena, James) illustrating different use cases.
+- **Personas section:** below the description, shows "Who uses OIUEEI?" heading with five persona stories (Lala, Lele, Lili, Lolo, Lulu — the demo users) illustrating different use cases. Each persona uses `persona{Name}Title` (bold) + `persona{Name}Body` i18n keys.
 - Sets `seenWelcome = 'true'` in `localStorage` on mount, permanently suppressing the Welcome Linkbox on `CollectionPage` for this browser.
 
 ### HomePage (`src/pages/HomePage.jsx`)
@@ -261,7 +261,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for name, `TextArea` for headline (bio), `Select` for theeeme (from API, shows theeeme `name` field as label), `Select` for koro (basic, beat, calm, pulse, vibration, wave), `ImageUpload` for thumbnail (last, folder `oiueei/users`).
+  - `TextInput` for name, `TextArea` for headline (bio), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid).
   - "Save" button below the form.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.
@@ -281,9 +281,9 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `ImageUpload` for thumbnail (last, folder `oiueei/collections`).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE).
   - "Save" button below the form.
-- Pre-populates all fields including existing `thumbnail_url` for preview.
+- Pre-populates all fields from the current collection data.
 - On success: navigates to `/collections/{code}`.
 
 ### CreateCollectionPage (`src/pages/CreateCollectionPage.jsx`)
@@ -291,7 +291,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `ImageUpload` for thumbnail (last, folder `oiueei/collections`).
+  - `TextInput` for headline (required), `TextArea` for description.
   - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 
@@ -320,7 +320,9 @@ Detail page for a thing with full information and FAQs section.
 - **`Toast`** (`src/components/Toast.jsx`) — Reusable toast notification wrapping HDS `Notification`. Props: `toast` (`{ type, message }`), `onClose`. Renders at `position="top-right"` with auto-close.
 - **`LoadingSpinner`** (`src/components/LoadingSpinner.jsx`) — Wrapper around HDS `LoadingSpinner` component.
 - **`ThingTags`** (`src/components/ThingTags.jsx`) — Shared tag row for thing type, status, availability, and pending questions. Props: `thing`, `isOwner`. Uses `TAG_THEMES` from constants.
-- **`ImageUpload`** (`src/components/ImageUpload.jsx`) — Single-image upload using HDS `FileInput`. Gets a short-lived Cloudinary signature from `POST /api/v1/upload/signature/`, resizes images client-side to max 1216px, uploads directly to Cloudinary, and calls `onChange(publicId)`. Shows a preview with a Remove button when an image is present; the FileInput is hidden while a preview exists. Button label and accept hint are translated via i18n. Button colours follow the current theeeme. Props: `id`, `label`, `value` (public_id), `onChange`, `currentUrl`, `folder` (Cloudinary folder, default `oiueei/users`), `helperText`. Used in CreateCollectionPage, EditCollectionPage, EditProfilePage, AddThingPage, EditThingPage.
+- **`ImageUpload`** (`src/components/ImageUpload.jsx`) — Single-image upload using HDS `FileInput`. Gets a short-lived Cloudinary signature from `POST /api/v1/upload/signature/`, resizes images client-side to max 1216px, uploads directly to Cloudinary, and calls `onChange(publicId)`. Shows a preview with a Remove button when an image is present; the FileInput is hidden while a preview exists. Button label and accept hint are translated via i18n. Button colours follow the current theeeme. Props: `id`, `label`, `value` (public_id), `onChange`, `currentUrl`, `folder` (Cloudinary folder, default `oiueei/users`), `helperText`. Used in AddThingPage, EditThingPage.
+- **`TheeemeSelector`** (`src/components/TheeemeSelector.jsx`) — Visual theeeme picker. Renders a grid of buttons; each button shows three 20 px circular swatches (`color_01`, `color_02`, `color_03`) and the theeeme name, with a checkmark when selected. `aria-pressed` and `aria-label` for accessibility. Props: `theeemes` (array from API), `value` (selected code), `onChange`. Used in EditProfilePage.
+- **`KoroSelector`** (`src/components/KoroSelector.jsx`) — Visual koro picker. Renders a grid of buttons; each button shows a live `<Koros>` SVG preview (white fill on black background, 50 px tall, scaled to fit) and the koro label. Props: `value` (selected type string), `onChange`. Used in EditProfilePage.
 
 ### Constants (`src/constants/things.js`)
 

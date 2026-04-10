@@ -12,4 +12,4 @@ class TheeemeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Theeeme
-        fields = ["code", "name"]
+        fields = ["code", "name", "color_01", "color_02", "color_03", "color_04", "color_05", "color_06"]

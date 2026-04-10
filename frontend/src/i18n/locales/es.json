@@ -251,11 +251,16 @@
     "createCollection": "Crear colección",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "¿Quién usa OIUEEI?",
-    "personaMarc": "Marc es el pastelero—hace tartas a medida para cumpleaños, bodas y alguna que otra fiesta de divorcio. Su colección tiene todos los sabores, tamaños y acabados que ofrece, para que los clientes puedan ojear, elegir y hacer su pedido sin un solo mensaje de ida y vuelta. Está muy ocupado.",
-    "personaSophie": "Sophie es la que vacía la casa—sus hijos ya crecieron y dejaron atrás una montaña de cosas buenas. Creó una colección para la venta de garaje, la compartió con el vecindario y lo vendió todo en un fin de semana. Está muy aliviada.",
-    "personaTomas": "Tomás es el anticuario—compra y vende muebles vintage, y su colección es su escaparate ambulante. Las piezas nuevas entran en cuanto las encuentra, las vendidas salen en cuanto se van. Sus clientes habituales se pasan a ver qué hay de nuevo. Es muy difícil seguirle el ritmo.",
-    "personaLeena": "Leena es la coordinadora—en su edificio comparten una furgoneta, una hidrolimpiadora y un taladro industrial. Ella gestiona el calendario, controla quién tiene qué y se asegura de que todo vuelva de una pieza. Es muy organizada.",
-    "personaJames": "James es el que se muda—se traslada a un piso más pequeño y necesita encontrar un buen hogar para las cosas que no caben. Su colección llegó a amigos, y luego a amigos de amigos. Ya casi no queda nada. Está muy agradecido."
+    "personaLalaTitle": "Lala — The Sabbatical-Taker.",
+    "personaLalaBody": "She's off. Imminently. Leaving behind a flat full of excellent taste and absolutely no desire to haggle. A tenner each, cash, you collect. Simple as that — rather like Lala herself.",
+    "personaLeleTitle": "Lele — The Baker.",
+    "personaLeleBody": "She rises at 5am voluntarily and considers it a treat. Her cakes are architectural achievements; her pistachio buns, frankly, deserve a Michelin star of their own. Natural ingredients only — because your birthday deserves better than a label you can't pronounce.",
+    "personaLiliTitle": "Lili — The Lender.",
+    "personaLiliBody": "Proof that sharing is indeed caring, and that most home projects require a drill you'll use exactly once. Lili has it. Lili will lend it. Lili only asks that you return it clean. Is that really so much to ask?",
+    "personaLoloTitle": "Lolo — The Book Lover.",
+    "personaLoloBody": "She believes every great novel deserves rain, a blanket, and spirited conversation over tea. Her club is a haven for those who like their heroes tortured and their moors windswept. One cannot simply read Wuthering Heights. One must survive it together.",
+    "personaLuluTitle": "Lulu — The Phantom Curator.",
+    "personaLuluBody": "Nobody quite knows where she finds these things. Nobody quite knows where she goes. Her shelf updates weekly with objects that have lived a life — fondue sets, leather cases, silent exercise bikes — all deserving a second chapter. Everything here has a past. Whether you ask about it is entirely up to you."
   },
   "myBookings": {
     "pageTitle": "Mis solicitudes",

@@ -111,4 +111,4 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `TheeemeSerializer` | code, name | Read-only `ModelSerializer` for theme listing. |
+| `TheeemeSerializer` | code, name, color_01–color_06 | Read-only `ModelSerializer` for theme listing. Includes all six HDS colour token names so the frontend can render colour swatches. |

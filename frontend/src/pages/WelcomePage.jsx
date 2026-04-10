@@ -70,15 +70,15 @@ export default function WelcomePage() {
         <div className="spacer-xl" />
         <h2>{t('welcome.whoUsesTitle')}</h2>
         <div className="spacer-s" />
-        <p>{t('welcome.personaMarc')}</p>
-        <div className="spacer-s" />
-        <p>{t('welcome.personaSophie')}</p>
-        <div className="spacer-s" />
-        <p>{t('welcome.personaTomas')}</p>
-        <div className="spacer-s" />
-        <p>{t('welcome.personaLeena')}</p>
-        <div className="spacer-s" />
-        <p>{t('welcome.personaJames')}</p>
+        {['Lala', 'Lele', 'Lili', 'Lolo', 'Lulu'].map((name, i) => (
+          <div key={name}>
+            {i > 0 && <div className="spacer-s" />}
+            <p>
+              <b>{t(`welcome.persona${name}Title`)}</b>{' '}
+              {t(`welcome.persona${name}Body`)}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
