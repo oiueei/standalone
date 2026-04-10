@@ -5,7 +5,7 @@ Integration tests for OIUEEI API views.
 import pytest
 from rest_framework import status
 
-from core.models import RSVP
+from core.models import RSVP, Collection
 
 
 @pytest.mark.django_db
@@ -1656,6 +1656,110 @@ class TestAuthViewEdgeCases:
         )
         response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestPopInView:
+    """Tests for the open-door onboarding endpoint."""
+
+    def _make_onboarding_collection(self, owner, code, headline):
+        """Helper to create an onboarding collection."""
+        return Collection.objects.create(
+            code=code,
+            owner=owner,
+            headline=headline,
+            is_onboarding=True,
+        )
+
+    def test_new_user_is_created_and_added_to_onboarding_collections(self, api_client, user):
+        """New email should create a user and add them to all onboarding collections."""
+        from unittest.mock import patch
+
+        col = self._make_onboarding_collection(user, "ONBD01", "Onboarding Collection")
+
+        with patch("core.views.auth.send_magic_link_email"):
+            response = api_client.post(
+                "/api/v1/auth/pop-in/",
+                {"email": "newperson@example.com"},
+                format="json",
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        from core.models import User as UserModel
+        new_user = UserModel.objects.get(email="newperson@example.com")
+        assert col.invites.filter(code=new_user.code).exists()
+
+    def test_existing_user_is_added_to_onboarding_collections(self, api_client, user):
+        """Existing user should be added to onboarding collections and receive a magic link."""
+        from unittest.mock import patch
+
+        col = self._make_onboarding_collection(user, "ONBD01", "Onboarding Collection")
+
+        with patch("core.views.auth.send_magic_link_email") as mock_email:
+            response = api_client.post(
+                "/api/v1/auth/pop-in/",
+                {"email": user.email},
+                format="json",
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert col.invites.filter(code=user.code).exists()
+        mock_email.assert_called_once()
+
+    def test_magic_link_rsvp_is_created(self, api_client, user):
+        """Should create a MAGIC_LINK RSVP for the user."""
+        from unittest.mock import patch
+
+        with patch("core.views.auth.send_magic_link_email"):
+            api_client.post(
+                "/api/v1/auth/pop-in/",
+                {"email": user.email},
+                format="json",
+            )
+
+        assert RSVP.objects.filter(user_code=user, action="MAGIC_LINK").exists()
+
+    def test_only_onboarding_collections_are_joined(self, api_client, user):
+        """Non-onboarding collections should not be touched."""
+        from unittest.mock import patch
+
+        onboarding_col = self._make_onboarding_collection(user, "ONBD01", "Onboarding")
+        regular_col = Collection.objects.create(
+            code="REGC01", owner=user, headline="Regular", is_onboarding=False
+        )
+
+        with patch("core.views.auth.send_magic_link_email"):
+            api_client.post(
+                "/api/v1/auth/pop-in/",
+                {"email": user.email},
+                format="json",
+            )
+
+        assert onboarding_col.invites.filter(code=user.code).exists()
+        assert not regular_col.invites.filter(code=user.code).exists()
+
+    def test_invalid_email_returns_400(self, api_client):
+        """Should reject invalid email."""
+        response = api_client.post(
+            "/api/v1/auth/pop-in/",
+            {"email": "not-an-email"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_returns_unified_message(self, api_client, user):
+        """Should always return 200 with a message (no user enumeration)."""
+        from unittest.mock import patch
+
+        with patch("core.views.auth.send_magic_link_email"):
+            response = api_client.post(
+                "/api/v1/auth/pop-in/",
+                {"email": "anyone@example.com"},
+                format="json",
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "message" in response.data
 
     def test_booking_rsvp_expired_booking(self, api_client, user, user2, thing):
         """Booking RSVP for expired booking should return 400."""
