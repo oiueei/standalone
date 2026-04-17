@@ -77,7 +77,7 @@ class CollectionViewSet(ModelViewSet):
         return CollectionSerializer
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy", "add_thing", "remove_thing"):
+        if self.action in ("update", "partial_update", "destroy", "remove_thing"):
             return [IsAuthenticated(), IsCollectionOwner()]
         return [IsAuthenticated()]
 
@@ -109,8 +109,18 @@ class CollectionViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="add-thing")
     def add_thing(self, request, code=None):
-        """Add a thing to the collection."""
-        collection = self.get_object()
+        """Add a thing to the collection.
+
+        Owner can always add. Invited users can add their own things
+        in COMMUNITY mode collections.
+        """
+        collection = get_object_or_404(Collection, code=self.kwargs[self.lookup_field])
+
+        if not collection.can_add_thing(request.user.code):
+            return Response(
+                {"error": "You do not have permission to add things to this collection"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         serializer = CollectionAddThingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -142,8 +152,12 @@ class CollectionViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="remove-thing")
     def remove_thing(self, request, code=None):
-        """Remove a thing from the collection (without deleting it)."""
-        collection = self.get_object()
+        """Remove a thing from the collection (without deleting it).
+
+        Owner can remove any thing. In COMMUNITY mode, thing owners
+        can remove their own things.
+        """
+        collection = get_object_or_404(Collection, code=self.kwargs[self.lookup_field])
 
         serializer = CollectionRemoveThingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -156,7 +170,18 @@ class CollectionViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        collection.things.remove(collection.things.get(code=thing_code))
+        thing = collection.things.get(code=thing_code)
+
+        # Collection owner can always remove. In community mode,
+        # thing owners can remove their own things.
+        if not collection.is_owner(request.user.code):
+            if not (collection.is_community() and thing.is_owner(request.user.code)):
+                return Response(
+                    {"error": "You do not have permission to remove this thing"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+        collection.things.remove(thing)
 
         return Response(
             {
@@ -337,9 +362,7 @@ class MyPendingInvitationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        accept_rsvps = list(
-            RSVP.objects.filter(user_code=request.user, action="COLLECTION_INVITE")
-        )
+        accept_rsvps = list(RSVP.objects.filter(user_code=request.user, action="COLLECTION_INVITE"))
 
         if not accept_rsvps:
             return Response([])
@@ -349,9 +372,7 @@ class MyPendingInvitationsView(APIView):
         # Fetch all related collections and reject RSVPs in two queries
         collections_by_code = {
             c.code: c
-            for c in Collection.objects.filter(
-                code__in=target_codes
-            ).select_related("owner")
+            for c in Collection.objects.filter(code__in=target_codes).select_related("owner")
         }
         reject_rsvps_by_target = {
             r.target_code: r
@@ -368,12 +389,14 @@ class MyPendingInvitationsView(APIView):
             if collection is None:
                 continue
             reject_rsvp = reject_rsvps_by_target.get(accept_rsvp.target_code)
-            result.append({
-                "accept_code": accept_rsvp.code,
-                "reject_code": reject_rsvp.code if reject_rsvp else None,
-                "collection_code": collection.code,
-                "collection_headline": collection.headline,
-                "owner_name": collection.owner.name or collection.owner.email,
-            })
+            result.append(
+                {
+                    "accept_code": accept_rsvp.code,
+                    "reject_code": reject_rsvp.code if reject_rsvp else None,
+                    "collection_code": collection.code,
+                    "collection_headline": collection.headline,
+                    "owner_name": collection.owner.name or collection.owner.email,
+                }
+            )
 
         return Response(result)

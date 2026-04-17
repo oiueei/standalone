@@ -104,6 +104,7 @@
     "owner": "Propietari.",
     "noThings": "Aquesta col·lecció encara no té articles.",
     "addOne": "Afegir-ne un",
+    "communityTag": "Comunitària",
     "noPermission": "No tens permís per veure aquesta col·lecció.",
     "notFound": "Col·lecció no trobada.",
     "errorLoading": "Error en carregar la col·lecció."
@@ -231,6 +232,10 @@
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
     "statusHelper": "Les col·leccions inactives no són visibles per als convidats.",
+    "modeLabel": "Mode",
+    "modeProprietary": "Pròpia",
+    "modeCommunity": "Comunitària",
+    "modeHelper": "En mode comunitari, els convidats poden afegir els seus propis articles.",
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters.",
     "errorLoading": "Error en carregar la col·lecció.",
@@ -240,6 +245,10 @@
     "pageTitle": "Crear col·lecció",
     "titleLabel": "Títol",
     "descriptionLabel": "Descripció",
+    "modeLabel": "Mode",
+    "modeProprietary": "Pròpia",
+    "modeCommunity": "Comunitària",
+    "modeHelper": "En mode comunitari, els convidats poden afegir els seus propis articles.",
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters.",
     "errorCreating": "Error en crear la col·lecció."
@@ -354,5 +363,17 @@
   "notFound": {
     "title": "Pàgina no trobada",
     "message": "La pàgina que busques no existeix."
+  },
+  "transfers": {
+    "heading": "Recorregut",
+    "journeyCount_one": "Aquest objecte ha viatjat a {{count}} llar",
+    "journeyCount_other": "Aquest objecte ha viatjat a {{count}} llars",
+    "currentlyWith": "Actualment amb {{name}}",
+    "lentOn": "Prestat el {{date}}",
+    "returnedOn": "Retornat el {{date}}",
+    "to": "a",
+    "noTransfers": "Sense transferències encara.",
+    "homesCount_one": "{{count}} llar",
+    "homesCount_other": "{{count}} llars"
   }
 }

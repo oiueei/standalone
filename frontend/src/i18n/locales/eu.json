@@ -104,6 +104,7 @@
     "owner": "Jabea.",
     "noThings": "Oraindik ez dago gauzerik bilduma honetan.",
     "addOne": "Gehitu bat",
+    "communityTag": "Komunitarioa",
     "noPermission": "Ez duzu baimen hau bilduma ikusteko.",
     "notFound": "Bilduma ez da aurkitu.",
     "errorLoading": "Errorea bilduma kargatzean."
@@ -231,6 +232,10 @@
     "statusActive": "Aktiboa",
     "statusInactive": "Inaktiboa",
     "statusHelper": "Bilduma inaktiboak ez dira gonbidatuei ikusgai.",
+    "modeLabel": "Modua",
+    "modeProprietary": "Jabetzakoa",
+    "modeCommunity": "Komunitarioa",
+    "modeHelper": "Modu komunitarioan, gonbidatuek beren gauzak gehitu ditzakete.",
     "titleRequired": "Izenburua beharrezkoa da.",
     "maxHeadline": "Gehienez 64 karaktere.",
     "errorLoading": "Errorea bilduma kargatzean.",
@@ -240,6 +245,10 @@
     "pageTitle": "Bilduma sortu",
     "titleLabel": "Izenburua",
     "descriptionLabel": "Deskribapena",
+    "modeLabel": "Modua",
+    "modeProprietary": "Jabetzakoa",
+    "modeCommunity": "Komunitarioa",
+    "modeHelper": "Modu komunitarioan, gonbidatuek beren gauzak gehitu ditzakete.",
     "titleRequired": "Izenburua beharrezkoa da.",
     "maxHeadline": "Gehienez 64 karaktere.",
     "errorCreating": "Errorea bilduma sortzen."
@@ -354,5 +363,17 @@
   "notFound": {
     "title": "Orrialdea ez da aurkitu",
     "message": "Bilatzen ari zaren orrialdea ez da existitzen."
+  },
+  "transfers": {
+    "heading": "Ibilbidea",
+    "journeyCount_one": "Objektu honek {{count}} etxera bidaiatu du",
+    "journeyCount_other": "Objektu honek {{count}} etxetara bidaiatu du",
+    "currentlyWith": "Gaur egun {{name}} rekin",
+    "lentOn": "Maileguan {{date}}(e)an",
+    "returnedOn": "Itzulia {{date}}(e)an",
+    "to": "nori",
+    "noTransfers": "Oraindik transferentziarik ez.",
+    "homesCount_one": "{{count}} etxe",
+    "homesCount_other": "{{count}} etxe"
   }
 }

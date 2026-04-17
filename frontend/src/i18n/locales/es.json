@@ -104,6 +104,7 @@
     "owner": "Propietario.",
     "noThings": "Esta colección todavía no tiene artículos.",
     "addOne": "Añadir uno",
+    "communityTag": "Comunitaria",
     "noPermission": "No tienes permiso para ver esta colección.",
     "notFound": "Colección no encontrada.",
     "errorLoading": "Error al cargar la colección."
@@ -231,6 +232,10 @@
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
     "statusHelper": "Las colecciones inactivas no son visibles para los invitados.",
+    "modeLabel": "Modo",
+    "modeProprietary": "Propia",
+    "modeCommunity": "Comunitaria",
+    "modeHelper": "En modo comunitario, los invitados pueden añadir sus propios artículos.",
     "titleRequired": "El título es obligatorio.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorLoading": "Error al cargar la colección.",
@@ -240,6 +245,10 @@
     "pageTitle": "Crear colección",
     "titleLabel": "Título",
     "descriptionLabel": "Descripción",
+    "modeLabel": "Modo",
+    "modeProprietary": "Propia",
+    "modeCommunity": "Comunitaria",
+    "modeHelper": "En modo comunitario, los invitados pueden añadir sus propios artículos.",
     "titleRequired": "El título es obligatorio.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorCreating": "Error al crear la colección."
@@ -354,5 +363,17 @@
   "notFound": {
     "title": "Página no encontrada",
     "message": "La página que buscas no existe."
+  },
+  "transfers": {
+    "heading": "Recorrido",
+    "journeyCount_one": "Este objeto ha viajado a {{count}} hogar",
+    "journeyCount_other": "Este objeto ha viajado a {{count}} hogares",
+    "currentlyWith": "Actualmente con {{name}}",
+    "lentOn": "Prestado el {{date}}",
+    "returnedOn": "Devuelto el {{date}}",
+    "to": "a",
+    "noTransfers": "Sin transferencias aún.",
+    "homesCount_one": "{{count}} hogar",
+    "homesCount_other": "{{count}} hogares"
   }
 }

@@ -23,6 +23,7 @@ class ThingSerializer(serializers.ModelSerializer):
     pending_questions = serializers.SerializerMethodField()
     collection_code = serializers.SerializerMethodField()
     collection_headline = serializers.SerializerMethodField()
+    transfer_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -48,6 +49,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "pending_questions",
             "collection_code",
             "collection_headline",
+            "transfer_count",
         ]
         read_only_fields = [
             "code",
@@ -103,6 +105,11 @@ class ThingSerializer(serializers.ModelSerializer):
     def get_pending_questions(self, obj):
         # Use prefetched faq_set cache if available
         return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
+
+    def get_transfer_count(self, obj):
+        if hasattr(obj, "_transfer_count"):
+            return obj._transfer_count
+        return obj.transfers.count()
 
 
 class ThingCreateSerializer(serializers.ModelSerializer):

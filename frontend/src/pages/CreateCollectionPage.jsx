@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Button, Koros } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -24,7 +24,13 @@ export default function CreateCollectionPage() {
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
+  const [mode, setMode] = useState('PROPRIETARY');
   const [errors, setErrors] = useState({});
+
+  const MODE_OPTIONS = [
+    { label: t('createCollection.modeProprietary'), value: 'PROPRIETARY' },
+    { label: t('createCollection.modeCommunity'), value: 'COMMUNITY' },
+  ];
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -41,7 +47,7 @@ export default function CreateCollectionPage() {
     setSubmitting(true);
     setToast(null);
 
-    const body = { headline: headline.trim() };
+    const body = { headline: headline.trim(), mode };
     if (description.trim()) body.description = description.trim();
     try {
       const res = await apiFetch('/api/v1/collections/', {
@@ -98,6 +104,18 @@ export default function CreateCollectionPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
+          />
+          <Select
+            id="create-collection-mode"
+            texts={{ label: t('createCollection.modeLabel') }}
+            helper={t('createCollection.modeHelper')}
+            options={MODE_OPTIONS}
+            value={mode}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setMode(selectedOptions[0].value);
+              }
+            }}
           />
         </div>
         <div className="form-actions">

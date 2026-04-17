@@ -104,6 +104,7 @@
     "owner": "Proprietário.",
     "noThings": "Esta coleção ainda não tem artigos.",
     "addOne": "Adicionar um",
+    "communityTag": "Comunitária",
     "noPermission": "Não tem permissão para ver esta coleção.",
     "notFound": "Coleção não encontrada.",
     "errorLoading": "Erro ao carregar a coleção."
@@ -231,6 +232,10 @@
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
     "statusHelper": "As coleções inactivas não são visíveis para os convidados.",
+    "modeLabel": "Modo",
+    "modeProprietary": "Própria",
+    "modeCommunity": "Comunitária",
+    "modeHelper": "No modo comunitário, os convidados podem adicionar os seus próprios artigos.",
     "titleRequired": "O título é obrigatório.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorLoading": "Erro ao carregar a coleção.",
@@ -240,6 +245,10 @@
     "pageTitle": "Criar coleção",
     "titleLabel": "Título",
     "descriptionLabel": "Descrição",
+    "modeLabel": "Modo",
+    "modeProprietary": "Própria",
+    "modeCommunity": "Comunitária",
+    "modeHelper": "No modo comunitário, os convidados podem adicionar os seus próprios artigos.",
     "titleRequired": "O título é obrigatório.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorCreating": "Erro ao criar a coleção."
@@ -354,5 +363,17 @@
   "notFound": {
     "title": "Página não encontrada",
     "message": "A página que procura não existe."
+  },
+  "transfers": {
+    "heading": "Percurso",
+    "journeyCount_one": "Este objeto viajou para {{count}} lar",
+    "journeyCount_other": "Este objeto viajou para {{count}} lares",
+    "currentlyWith": "Atualmente com {{name}}",
+    "lentOn": "Emprestado em {{date}}",
+    "returnedOn": "Devolvido em {{date}}",
+    "to": "para",
+    "noTransfers": "Sem transferências ainda.",
+    "homesCount_one": "{{count}} lar",
+    "homesCount_other": "{{count}} lares"
   }
 }

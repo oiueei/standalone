@@ -4,6 +4,7 @@ from .faq import FAQ
 from .rsvp import RSVP
 from .theeeme import Theeeme
 from .thing import Thing
+from .transfer import ThingTransfer
 from .user import User
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "RSVP",
     "Theeeme",
     "BookingPeriod",
+    "ThingTransfer",
 ]

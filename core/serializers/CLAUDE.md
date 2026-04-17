@@ -78,11 +78,11 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
+| `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, mode, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
 | `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, thumbnail_url, pending_booking, my_pending_booking, pending_questions, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
-| `CollectionCreateSerializer` | headline, description | Input for collection creation. |
-| `CollectionUpdateSerializer` | headline, description, status | Input for collection updates. |
+| `CollectionCreateSerializer` | headline, description, mode | Input for collection creation. |
+| `CollectionUpdateSerializer` | headline, description, status, mode | Input for collection updates. |
 | `CollectionInviteSerializer` | email | Input for inviting a user. |
 | `CollectionAddThingSerializer` | thing_code | Input for adding a thing to a collection. |
 | `CollectionRemoveThingSerializer` | thing_code | Input for removing a thing from a collection. |
@@ -112,3 +112,12 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 | Serializer | Fields | Notes |
 |------------|--------|-------|
 | `TheeemeSerializer` | code, name, color_01–color_06 | Read-only `ModelSerializer` for theme listing. Includes all six HDS colour token names so the frontend can render colour swatches. |
+
+### `transfer.py`
+
+| Serializer | Fields | Notes |
+|------------|--------|-------|
+| `ThingTransferSerializer` | code, from_user, to_user, from_user_name, to_user_name, lent_date, returned_date | Individual transfer record. `from_user_name`/`to_user_name` fall back to email if name is blank. |
+| `ThingTransferStatsSerializer` | total_transfers, unique_homes, current_holder, current_holder_name, transfers | Aggregated stats plus full transfer list. `transfers` is a nested list of `ThingTransferSerializer`. `current_holder` is the user code of the most recent unreturned transfer's `to_user`, or null. |
+
+Note: `ThingSerializer` and `CollectionThingSummarySerializer` both include a `transfer_count` computed field that returns the number of transfers for each thing (uses prefetched `_transfer_count` annotation when available, falls back to queryset count).

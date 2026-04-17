@@ -104,6 +104,7 @@
     "owner": "Dono.",
     "noThings": "Esta coleção ainda não tem itens.",
     "addOne": "Adicionar um",
+    "communityTag": "Comunitária",
     "noPermission": "Você não tem permissão para ver esta coleção.",
     "notFound": "Coleção não encontrada.",
     "errorLoading": "Erro ao carregar a coleção."
@@ -231,6 +232,10 @@
     "statusActive": "Ativa",
     "statusInactive": "Inativa",
     "statusHelper": "Coleções inativas não são visíveis para os convidados.",
+    "modeLabel": "Modo",
+    "modeProprietary": "Própria",
+    "modeCommunity": "Comunitária",
+    "modeHelper": "No modo comunitário, os convidados podem adicionar os seus próprios itens.",
     "titleRequired": "O título é obrigatório.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorLoading": "Erro ao carregar a coleção.",
@@ -240,6 +245,10 @@
     "pageTitle": "Criar coleção",
     "titleLabel": "Título",
     "descriptionLabel": "Descrição",
+    "modeLabel": "Modo",
+    "modeProprietary": "Própria",
+    "modeCommunity": "Comunitária",
+    "modeHelper": "No modo comunitário, os convidados podem adicionar os seus próprios itens.",
     "titleRequired": "O título é obrigatório.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorCreating": "Erro ao criar a coleção."
@@ -354,5 +363,17 @@
   "notFound": {
     "title": "Página não encontrada",
     "message": "A página que você procura não existe."
+  },
+  "transfers": {
+    "heading": "Jornada",
+    "journeyCount_one": "Este item viajou para {{count}} lar",
+    "journeyCount_other": "Este item viajou para {{count}} lares",
+    "currentlyWith": "Atualmente com {{name}}",
+    "lentOn": "Emprestado em {{date}}",
+    "returnedOn": "Devolvido em {{date}}",
+    "to": "para",
+    "noTransfers": "Sem transferências ainda.",
+    "homesCount_one": "{{count}} lar",
+    "homesCount_other": "{{count}} lares"
   }
 }

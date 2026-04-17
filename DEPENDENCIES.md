@@ -2,7 +2,7 @@
 
 This document maps every feature to its full dependency chain across the codebase. Its purpose is to make **pruning safe**: when user testing reveals which features matter, this map tells you exactly what to remove (and what to keep) for each one.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-17
 
 ---
 
@@ -56,7 +56,26 @@ Allows users to create lists of things and share them with others via email invi
 | **Depends on** | Core Platform, Things (M2M) |
 | **Depended on by** | Things (visibility via `can_view`), Bookings (inactive collection check), FAQs (visibility) |
 
-### Pruning difficulty: **IMPOSSIBLE** — Collections are the backbone of sharing. Removing them breaks thing visibility, invites, and the entire sharing model.
+### Sub-feature: Community Mode (Mercadillo)
+
+Adds a `mode` field (PROPRIETARY/COMMUNITY) to Collection. In COMMUNITY mode, invited users can add their own things and remove them.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Model** | `core/models/collection.py` | `mode` field, `is_community()`, `can_add_thing()` methods |
+| **Views** | `core/views/collections.py` | `add_thing` uses `can_add_thing()` instead of `IsCollectionOwner`; `remove_thing` allows thing owners in COMMUNITY mode |
+| **Views** | `core/views/things.py` | `perform_create` uses `can_add_thing()` instead of `is_owner()` |
+| **Serializers** | `core/serializers/collection.py` | `mode` field in CollectionSerializer, CollectionCreateSerializer, CollectionUpdateSerializer |
+| **Migration** | `core/migrations/0053_add_collection_mode.py` | Adds `mode` field |
+| **Tests** | `core/tests/unit/test_community_collections.py` | 8 unit tests |
+| **Tests** | `core/tests/integration/test_community_collections.py` | 15 integration tests |
+| **Frontend** | `CollectionPage` | Community `Tag`, "Add thing" button for invitees |
+| **Frontend** | `CreateCollectionPage`, `EditCollectionPage` | Mode `Select` component |
+| **Frontend** | `src/i18n/locales/*.json` | `createCollection.mode*`, `editCollection.mode*`, `collectionPage.communityTag` keys |
+
+**To prune:** Remove `mode` field and helpers from Collection model, revert `add_thing`/`remove_thing` views to `IsCollectionOwner`, revert `perform_create` to `is_owner()`, remove mode Select from create/edit pages, remove community Tag and invitee "Add thing" button from CollectionPage, remove i18n keys, drop migration.
+
+### Pruning difficulty: **IMPOSSIBLE** — Collections are the backbone of sharing. Removing them breaks thing visibility, invites, and the entire sharing model. Community mode sub-feature is **EASY** to prune independently.
 
 ---
 
@@ -243,6 +262,33 @@ Per-user colour palette and koro wave customisation.
 
 ---
 
+## Feature: Transfers (Loan Chain)
+
+Tracks the physical journey of things between users. Shows how many homes an item has visited.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Model** | `core/models/transfer.py` | `ThingTransfer` model |
+| **Serializer** | `core/serializers/transfer.py` | `ThingTransferSerializer`, `ThingTransferStatsSerializer` |
+| **View** | `core/views/transfers.py` | `ThingTransferView` (GET transfers + stats) |
+| **Service** | `core/services/booking_service.py` | `accept_booking()` creates `ThingTransfer` on acceptance **(shared)** |
+| **Command** | `core/management/commands/close_transfers.py` | Daily: close overdue transfers |
+| **URL** | `core/urls.py` | `/api/v1/things/{code}/transfers/` **(shared)** |
+| **Migration** | `core/migrations/0052_create_thingtransfer.py` | Creates `thing_transfers` table |
+| **Frontend** | `src/pages/ThingPage.jsx` | "Journey" section below FAQs **(shared)** |
+| **Frontend** | `src/components/ThingLinkbox.jsx` | "N homes" badge in info rows **(shared)** |
+| **Frontend** | `src/i18n/locales/*.json` | `transfers.*` i18n keys in all 7 locales **(shared)** |
+| **Serializer** | `core/serializers/thing.py` | `transfer_count` field on `ThingSerializer` **(shared)** |
+| **Serializer** | `core/serializers/collection.py` | `transfer_count` field on `CollectionThingSummarySerializer` **(shared)** |
+| **Tests** | `core/tests/unit/test_transfers.py` | Model and command tests |
+| **Tests** | `core/tests/integration/test_transfers.py` | Endpoint tests |
+| **Depends on** | Bookings (creates transfers on accept), Things, Core Platform |
+| **Depended on by** | Nothing (leaf feature) |
+
+### Pruning difficulty: **EASY** — Remove the model, view, serializer, command, migration, and URL route. Remove `transfer_count` from `ThingSerializer` and `CollectionThingSummarySerializer`. Remove the Journey section from `ThingPage` and the homes badge from `ThingLinkbox`. Remove `transfers.*` i18n keys. Remove the `ThingTransfer.objects.create()` call from `accept_booking()`.
+
+---
+
 ## Cross-Cutting: RSVP System
 
 The RSVP model serves multiple features. Here is which actions belong to which feature:
@@ -312,3 +358,4 @@ After user testing, use this priority to decide what to cut:
 | 6 | Remove image uploads if text-only is enough | EASY |
 | 7 | Reduce i18n to single language | HARD |
 | 8 | Replace theeemes with single colour scheme | HARD |
+| 9 | Remove Transfers (Loan Chain) if journey tracking not needed | EASY |

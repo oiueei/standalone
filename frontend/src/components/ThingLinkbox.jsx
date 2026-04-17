@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield } from 'hds-react';
+import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
@@ -227,6 +227,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <IconShield size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
               <span>{t('condition.' + thing.condition)}</span>
+            </div>
+          )}
+          {thing.transfer_count > 0 && (
+            <div className="thing-card-info-row">
+              <IconHome size="m" aria-hidden="true" />
+              <span>{t('transfers.homesCount', { count: thing.transfer_count })}</span>
             </div>
           )}
         </div>

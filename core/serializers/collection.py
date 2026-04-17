@@ -18,6 +18,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     pending_booking = serializers.SerializerMethodField()
     my_pending_booking = serializers.SerializerMethodField()
     pending_questions = serializers.SerializerMethodField()
+    transfer_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -36,6 +37,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "pending_booking",
             "my_pending_booking",
             "pending_questions",
+            "transfer_count",
             "created",
         ]
 
@@ -68,6 +70,11 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         # Use prefetched faq_set cache if available
         return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
 
+    def get_transfer_count(self, obj):
+        if hasattr(obj, "_transfer_count"):
+            return obj._transfer_count
+        return obj.transfers.count()
+
 
 class CollectionInviteSummarySerializer(serializers.ModelSerializer):
     """Lightweight serializer for invited users."""
@@ -96,6 +103,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "status",
+            "mode",
             "things",
             "invites",
             "pending_invites",
@@ -126,6 +134,7 @@ class CollectionSerializer(serializers.ModelSerializer):
         ).values("user_code_id", "user_email")
         return [{"code": r["user_code_id"], "email": r["user_email"]} for r in rsvps]
 
+
 class CollectionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a collection."""
 
@@ -137,6 +146,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         fields = [
             "headline",
             "description",
+            "mode",
         ]
 
 
@@ -152,6 +162,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "status",
+            "mode",
         ]
 
 

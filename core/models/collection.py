@@ -19,6 +19,11 @@ class Collection(models.Model):
         ("INACTIVE", "Inactive"),
     ]
 
+    MODE_CHOICES = [
+        ("PROPRIETARY", "Proprietary"),
+        ("COMMUNITY", "Community"),
+    ]
+
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     owner = models.ForeignKey(
         "User",
@@ -31,6 +36,7 @@ class Collection(models.Model):
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
+    mode = models.CharField(max_length=12, choices=MODE_CHOICES, default="PROPRIETARY")
     is_onboarding = models.BooleanField(default=False)
     things = models.ManyToManyField(
         "Thing",
@@ -99,6 +105,19 @@ class Collection(models.Model):
     def is_invited(self, user_code):
         """Check if the given user is invited."""
         return self.invites.filter(code=user_code).exists()
+
+    def is_community(self):
+        """Check if this is a community collection."""
+        return self.mode == "COMMUNITY"
+
+    def can_add_thing(self, user_code):
+        """Check if the given user can add things to this collection.
+
+        Owner can always add. Invited users can add in COMMUNITY mode.
+        """
+        if self.is_owner(user_code):
+            return True
+        return self.is_community() and self.is_invited(user_code)
 
     def can_view(self, user_code):
         """Check if the given user can view this collection.

@@ -117,6 +117,7 @@
     "owner": "Owner.",
     "noThings": "No things in this collection yet.",
     "addOne": "Add one",
+    "communityTag": "Community",
     "noPermission": "You do not have permission to view this collection.",
     "notFound": "Collection not found.",
     "errorLoading": "Error loading collection."
@@ -244,6 +245,10 @@
     "statusActive": "Active",
     "statusInactive": "Inactive",
     "statusHelper": "Inactive collections are not visible to guests.",
+    "modeLabel": "Mode",
+    "modeProprietary": "Proprietary",
+    "modeCommunity": "Community",
+    "modeHelper": "In community mode, invited users can add their own things.",
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters.",
     "errorLoading": "Error loading collection.",
@@ -253,6 +258,10 @@
     "pageTitle": "Create collection",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
+    "modeLabel": "Mode",
+    "modeProprietary": "Proprietary",
+    "modeCommunity": "Community",
+    "modeHelper": "In community mode, invited users can add their own things.",
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters.",
     "errorCreating": "Error creating collection."
@@ -367,5 +376,17 @@
   "notFound": {
     "title": "Page not found",
     "message": "The page you're looking for doesn't exist."
+  },
+  "transfers": {
+    "heading": "Journey",
+    "journeyCount_one": "This item has travelled to {{count}} home",
+    "journeyCount_other": "This item has travelled to {{count}} homes",
+    "currentlyWith": "Currently with {{name}}",
+    "lentOn": "Lent on {{date}}",
+    "returnedOn": "Returned on {{date}}",
+    "to": "to",
+    "noTransfers": "No transfers yet.",
+    "homesCount_one": "{{count}} home",
+    "homesCount_other": "{{count}} homes"
   }
 }

@@ -83,6 +83,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `headline` | CharField(64) | **Yes** | Title of the collection |
 | `description` | CharField(256) | No | Description of the collection |
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
+| `mode` | CharField(12) | No | Mode: PROPRIETARY (default) or COMMUNITY |
 | `is_onboarding` | BooleanField | No | If True, new users joining via `/popin` are added to this collection (default: False) |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
@@ -93,11 +94,13 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 
 2. **Owner manages all fields** - Only the owner can update the collection's headline, description, images, and status. Enforced via `IsCollectionOwner` DRF permission.
 
-3. **Only owner adds/removes things** - The `add_thing()` and `remove_thing()` methods modify the M2M relationship.
+3. **Adding things** - In PROPRIETARY mode, only the owner can add things. In COMMUNITY mode, any invited user can add their own things. Enforced via `can_add_thing(user_code)`.
 
-4. **Only owner invites/revokes** - The `add_invite()` and `remove_invite()` methods modify the M2M relationship.
+4. **Removing things** - The owner can always remove any thing. In COMMUNITY mode, thing owners can remove their own things.
 
-5. **Visible only to owner and invites** - The `can_view()` method returns True only if the user is the owner or is in `invites`.
+5. **Only owner invites/revokes** - The `add_invite()` and `remove_invite()` methods modify the M2M relationship.
+
+6. **Visible only to owner and invites** - The `can_view()` method returns True only if the user is the owner or is in `invites`.
 
 ### Methods
 
@@ -107,6 +110,8 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 - `remove_invite(user_code)` - Revokes a user's invite via M2M
 - `is_owner(user_code)` - Returns True if user is the owner (`self.owner_id == user_code`)
 - `is_invited(user_code)` - Returns True if user is in invites (`self.invites.filter(code=user_code).exists()`)
+- `is_community()` - Returns True if `mode == "COMMUNITY"`
+- `can_add_thing(user_code)` - Returns True if user is owner, OR if collection is COMMUNITY and user is invited
 - `can_view(user_code)` - Returns True if user is owner OR invited
 
 ### Validations
@@ -317,5 +322,42 @@ The `Thing` model represents an item in a collection.
 - `thing.collections` - Collections containing this thing (Collection.things M2M reverse)
 - `thing.faq_set` - FAQs about this thing (FAQ.thing FK reverse)
 - `thing.bookings` - Bookings for this thing (BookingPeriod.thing_code FK reverse)
+- `thing.transfers` - Transfer history for this thing (ThingTransfer.thing FK reverse)
+
+---
+
+## ThingTransfer
+
+The `ThingTransfer` model tracks the physical journey of a thing between users (the "Loan Chain"). Each record represents one handoff — from one user to another — with optional link to the booking that triggered it.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
+| `thing` | ForeignKey(Thing) | **Yes** | The thing being transferred |
+| `from_user` | ForeignKey(User) | **Yes** | User lending/giving the thing |
+| `to_user` | ForeignKey(User) | **Yes** | User receiving the thing |
+| `booking` | ForeignKey(BookingPeriod) | No | The booking that triggered this transfer (null for manual transfers) |
+| `lent_date` | DateField | **Yes** | Date the thing was handed over |
+| `returned_date` | DateField | No | Date the thing was returned (null = still with `to_user`) |
+| `created` | DateTimeField | Auto | Record creation timestamp |
+
+### Business Rules
+
+1. **Created on booking acceptance** — When `accept_booking()` is called in the booking service, a `ThingTransfer` is automatically created with `from_user` = owner, `to_user` = requester, and `lent_date` = booking's `start_date` (or today for types without dates).
+2. **Closed by management command** — The `close_transfers` daily command sets `returned_date = today` for transfers linked to ACCEPTED bookings whose `end_date` has passed.
+3. **Booking FK uses SET_NULL** — If a booking is deleted, the transfer record survives (the physical handoff happened regardless).
+4. **Ordering** — Default ordering is `-lent_date` (most recent first).
+
+### Key Methods
+
+- `__str__` — Returns `"{thing} {from_user}→{to_user} (active|returned)"`.
+
+### Reverse Relations
+
+- `booking.transfer` — Transfer created from a booking (ThingTransfer.booking FK reverse, related_name `transfer`)
+- `user.transfers_out` — Transfers where user is the lender (ThingTransfer.from_user FK reverse)
+- `user.transfers_in` — Transfers where user is the borrower (ThingTransfer.to_user FK reverse)
 
 For security considerations, view patterns, service layer, and utilities documentation, see [`core/views/CLAUDE.md`](../views/CLAUDE.md).

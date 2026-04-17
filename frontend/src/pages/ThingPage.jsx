@@ -48,6 +48,9 @@ export default function ThingPage() {
   const [answerTexts, setAnswerTexts] = useState({});
   const [answerSubmitting, setAnswerSubmitting] = useState({});
 
+  // Transfer state
+  const [transfers, setTransfers] = useState(null);
+
   useEffect(() => {
     if (!userCode) {
       navigate('/login');
@@ -81,8 +84,18 @@ export default function ThingPage() {
       } catch { /* silently fail */ }
     };
 
+    const fetchTransfers = async () => {
+      try {
+        const res = await apiFetch(`/api/v1/things/${thingCode}/transfers/`);
+        if (res.ok) {
+          setTransfers(await res.json());
+        }
+      } catch { /* silently fail */ }
+    };
+
     fetchThing();
     fetchFaqs();
+    fetchTransfers();
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
@@ -594,6 +607,32 @@ export default function ThingPage() {
               {faqSubmitting ? t('common.sending') : t('thingPage.sendQuestion')}
             </Button>
           </div>
+        )}
+
+        {/* Journey / Transfer history */}
+        {transfers && transfers.total_transfers > 0 && (
+          <>
+            <div className="spacer-m" />
+            <hr />
+            <div className="spacer-m" />
+            <h2>{t('transfers.heading')}</h2>
+            <p>{t('transfers.journeyCount', { count: transfers.unique_homes })}</p>
+            {transfers.current_holder_name && (
+              <p><strong>{t('transfers.currentlyWith', { name: transfers.current_holder_name })}</strong></p>
+            )}
+            <ul className="thing-card-bookings">
+              {transfers.transfers.map((tr) => (
+                <li key={tr.code}>
+                  {tr.from_user_name} {t('transfers.to')} {tr.to_user_name}
+                  {' — '}
+                  {t('transfers.lentOn', { date: new Date(tr.lent_date).toLocaleDateString(i18n.language) })}
+                  {tr.returned_date && (
+                    <> · {t('transfers.returnedOn', { date: new Date(tr.returned_date).toLocaleDateString(i18n.language) })}</>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
 

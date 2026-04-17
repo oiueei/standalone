@@ -17,6 +17,7 @@ export default function EditCollectionPage() {
   useEffect(() => { document.title = headline ? t('titles.editCollection', { headline }) : t('titles.editCollectionDefault'); }, [headline, t]);
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('ACTIVE');
+  const [mode, setMode] = useState('PROPRIETARY');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -24,6 +25,11 @@ export default function EditCollectionPage() {
   const STATUS_OPTIONS = [
     { label: t('editCollection.statusActive'), value: 'ACTIVE' },
     { label: t('editCollection.statusInactive'), value: 'INACTIVE' },
+  ];
+
+  const MODE_OPTIONS = [
+    { label: t('editCollection.modeProprietary'), value: 'PROPRIETARY' },
+    { label: t('editCollection.modeCommunity'), value: 'COMMUNITY' },
   ];
 
   useEffect(() => {
@@ -41,6 +47,7 @@ export default function EditCollectionPage() {
           setHeadline(data.headline || '');
           setDescription(data.description || '');
           setStatus(data.status || 'ACTIVE');
+          setMode(data.mode || 'PROPRIETARY');
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -70,6 +77,7 @@ export default function EditCollectionPage() {
       headline: headline.trim(),
       description: description.trim(),
       status,
+      mode,
     };
 
     try {
@@ -148,6 +156,18 @@ export default function EditCollectionPage() {
           onChange={(selectedOptions) => {
             if (selectedOptions.length > 0) {
               setStatus(selectedOptions[0].value);
+            }
+          }}
+        />
+        <Select
+          id="edit-collection-mode"
+          texts={{ label: t('editCollection.modeLabel') }}
+          helper={t('editCollection.modeHelper')}
+          options={MODE_OPTIONS}
+          value={mode}
+          onChange={(selectedOptions) => {
+            if (selectedOptions.length > 0) {
+              setMode(selectedOptions[0].value);
             }
           }}
         />

@@ -104,6 +104,7 @@
     "owner": "Propietario.",
     "noThings": "Esta colección aínda non ten artigos.",
     "addOne": "Engadir un",
+    "communityTag": "Comunitaria",
     "noPermission": "Non tes permiso para ver esta colección.",
     "notFound": "Colección non atopada.",
     "errorLoading": "Erro ao cargar a colección."
@@ -231,6 +232,10 @@
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
     "statusHelper": "As coleccións inactivas non son visibles para os convidados.",
+    "modeLabel": "Modo",
+    "modeProprietary": "Propia",
+    "modeCommunity": "Comunitaria",
+    "modeHelper": "En modo comunitario, os convidados poden engadir os seus propios artigos.",
     "titleRequired": "O título é obrigatorio.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorLoading": "Erro ao cargar a colección.",
@@ -240,6 +245,10 @@
     "pageTitle": "Crear colección",
     "titleLabel": "Título",
     "descriptionLabel": "Descrición",
+    "modeLabel": "Modo",
+    "modeProprietary": "Propia",
+    "modeCommunity": "Comunitaria",
+    "modeHelper": "En modo comunitario, os convidados poden engadir os seus propios artigos.",
     "titleRequired": "O título é obrigatorio.",
     "maxHeadline": "Máximo 64 caracteres.",
     "errorCreating": "Erro ao crear a colección."
@@ -354,5 +363,17 @@
   "notFound": {
     "title": "Páxina non atopada",
     "message": "A páxina que buscas non existe."
+  },
+  "transfers": {
+    "heading": "Percorrido",
+    "journeyCount_one": "Este obxecto viaxou a {{count}} fogar",
+    "journeyCount_other": "Este obxecto viaxou a {{count}} fogares",
+    "currentlyWith": "Actualmente con {{name}}",
+    "lentOn": "Prestado o {{date}}",
+    "returnedOn": "Devolto o {{date}}",
+    "to": "a",
+    "noTransfers": "Sen transferencias aínda.",
+    "homesCount_one": "{{count}} fogar",
+    "homesCount_other": "{{count}} fogares"
   }
 }

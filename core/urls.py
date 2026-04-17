@@ -9,7 +9,14 @@ from django.http import JsonResponse
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views.auth import LogoutView, MeView, PopInView, RequestLinkView, TokenRefreshView, VerifyLinkView
+from .views.auth import (
+    LogoutView,
+    MeView,
+    PopInView,
+    RequestLinkView,
+    TokenRefreshView,
+    VerifyLinkView,
+)
 from .views.booking import (
     BookingActionView,
     BookingCancelView,
@@ -17,11 +24,17 @@ from .views.booking import (
     OwnerBookingsView,
     ThingCalendarView,
 )
-from .views.collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView, MyPendingInvitationsView
+from .views.collections import (
+    CollectionInviteView,
+    CollectionViewSet,
+    InvitedCollectionsView,
+    MyPendingInvitationsView,
+)
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
+from .views.transfers import ThingTransferView
 from .views.upload import CloudinarySignatureView
 from .views.users import UserDetailView
 
@@ -76,6 +89,11 @@ urlpatterns = [
         "things/<str:thing_code>/calendar/",
         ThingCalendarView.as_view(),
         name="thing-calendar",
+    ),
+    path(
+        "things/<str:thing_code>/transfers/",
+        ThingTransferView.as_view(),
+        name="thing-transfers",
     ),
     # Bookings
     path("my-bookings/", MyBookingsView.as_view(), name="my-bookings"),

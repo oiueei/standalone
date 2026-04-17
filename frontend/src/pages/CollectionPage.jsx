@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Linkbox, Notification } from 'hds-react';
+import { Button, Koros, Linkbox, Notification, Tag } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -91,7 +91,12 @@ export default function CollectionPage() {
           {!showWelcome && (
             <BackLink to="/" label={t('common.home')} />
           )}
-          <h1 className="form-hero-title">{collection.headline}</h1>
+          <h1 className="form-hero-title">
+            {collection.headline}
+            {collection.mode === 'COMMUNITY' && (
+              <>{' '}<Tag theme={{ '--tag-background': 'var(--color-engel)', '--tag-color': 'var(--color-black-90)' }}>{t('collectionPage.communityTag')}</Tag></>
+            )}
+          </h1>
           {collection.description && <p className="form-hero-text">{collection.description}</p>}
           {!isOwner && collection.owner_name && (
             <p className="form-hero-text" style={{ opacity: 0.75, fontSize: 'var(--fontsize-body-m)' }}>
@@ -110,6 +115,16 @@ export default function CollectionPage() {
               </Link>
               <Link to={`/collections/${code}/invites`}>
                 <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.manageGuests')}</Button>
+              </Link>
+            </div>
+            </>
+          )}
+          {!isOwner && collection.mode === 'COMMUNITY' && (
+            <>
+            <div className="spacer-m"></div>
+            <div className="button-row-wide">
+              <Link to={`/collections/${code}/add`}>
+                <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.addThing')}</Button>
               </Link>
             </div>
             </>
@@ -150,7 +165,7 @@ export default function CollectionPage() {
       <h2>{t('collectionPage.things')}</h2>
       <div className="spacer-m" />
       {collection.things.filter((t) => t.status !== 'INACTIVE').length === 0 ? (
-        <p>{t('collectionPage.noThings')}{isOwner && <> <Link to={`/collections/${code}/add`}>{t('collectionPage.addOne')}</Link>.</>}</p>
+        <p>{t('collectionPage.noThings')}{(isOwner || collection.mode === 'COMMUNITY') && <> <Link to={`/collections/${code}/add`}>{t('collectionPage.addOne')}</Link>.</>}</p>
       ) : (
         <div className="things-grid">
           {[...collection.things].filter((t) => t.status !== 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (

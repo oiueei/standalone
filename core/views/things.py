@@ -75,8 +75,10 @@ class ThingViewSet(ModelViewSet):
         if collection_code:
             try:
                 collection = Collection.objects.get(code=collection_code)
-                if not collection.is_owner(self.request.user.code):
-                    self._create_error = "You can only add things to your own collections"
+                if not collection.can_add_thing(self.request.user.code):
+                    self._create_error = (
+                        "You do not have permission to add things to this collection"
+                    )
                     return
             except Collection.DoesNotExist:
                 self._create_error = "Collection not found"
@@ -122,7 +124,9 @@ class ThingViewSet(ModelViewSet):
     def hide(self, request, code=None):
         thing = self.get_object()
         if thing.status != "ACTIVE":
-            return Response({"error": "Only active things can be hidden."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Only active things can be hidden."}, status=status.HTTP_400_BAD_REQUEST
+            )
         thing.status = "INACTIVE"
         thing.save(update_fields=["status"])
         return Response(ThingSerializer(thing).data)
@@ -143,7 +147,8 @@ class InvitedThingsView(ListAPIView):
             Thing.objects.filter(
                 collections__invites=self.request.user,
                 collections__status="ACTIVE",
-            ).exclude(status="INACTIVE")
+            )
+            .exclude(status="INACTIVE")
             .select_related("owner")
             .prefetch_related(
                 "collections",

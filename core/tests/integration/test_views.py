@@ -713,9 +713,10 @@ class TestThingViews:
 
     def test_my_pending_booking_field(self, user, user2, thing, collection):
         """my_pending_booking should return own PENDING booking code, null for others."""
-        from core.models.booking import BookingPeriod
         from rest_framework.test import APIClient
         from rest_framework_simplejwt.tokens import RefreshToken
+
+        from core.models.booking import BookingPeriod
 
         collection.add_invite(user2.code)
 

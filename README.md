@@ -76,7 +76,7 @@ core/
 | Model | Purpose |
 |-------|---------|
 | **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords |
-| **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme` |
+| **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things) |
 | **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE) |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 HDS colour token names) for customising collections |
@@ -127,8 +127,8 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | GET | `/api/v1/collections/{code}/` | View collection (owner or invited) |
 | PUT | `/api/v1/collections/{code}/` | Update collection (owner only) |
 | DELETE | `/api/v1/collections/{code}/` | Delete collection (owner only) |
-| POST | `/api/v1/collections/{code}/add-thing/` | Add thing to collection (owner only) |
-| POST | `/api/v1/collections/{code}/remove-thing/` | Remove thing from collection (owner only) |
+| POST | `/api/v1/collections/{code}/add-thing/` | Add thing to collection (owner; invited users in COMMUNITY mode) |
+| POST | `/api/v1/collections/{code}/remove-thing/` | Remove thing from collection (owner; thing owner in COMMUNITY mode) |
 | POST | `/api/v1/collections/{code}/invite/` | Invite user (owner only, resend-safe) |
 | DELETE | `/api/v1/collections/{code}/invite/` | Remove invitee (owner only) |
 | GET | `/api/v1/invited-collections/` | List collections where invited |
@@ -143,6 +143,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | DELETE | `/api/v1/things/{code}/` | Delete thing (owner only) |
 | POST | `/api/v1/things/{code}/request/` | Request reservation (invited only) |
 | GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE) |
+| GET | `/api/v1/things/{code}/transfers/` | View transfer history and stats (Loan Chain) |
 | GET | `/api/v1/invited-things/` | List things from invited collections |
 
 ### Bookings

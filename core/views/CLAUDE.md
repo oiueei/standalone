@@ -263,8 +263,8 @@ Lists things from collections where the current user is invited. Only returns AC
 | `update` | `PUT /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
 | `partial_update` | `PATCH /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
 | `destroy` | `DELETE /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
-| `add_thing` | `POST /api/v1/collections/{code}/add-thing/` | `IsAuthenticated` + `IsCollectionOwner` |
-| `remove_thing` | `POST /api/v1/collections/{code}/remove-thing/` | `IsAuthenticated` + `IsCollectionOwner` |
+| `add_thing` | `POST /api/v1/collections/{code}/add-thing/` | `IsAuthenticated` + `can_add_thing()` |
+| `remove_thing` | `POST /api/v1/collections/{code}/remove-thing/` | `IsAuthenticated` + owner or thing owner (COMMUNITY) |
 
 **Serializers:**
 - Create: `CollectionCreateSerializer`
@@ -276,9 +276,9 @@ Lists things from collections where the current user is invited. Only returns AC
 
 **Retrieve:** Uses `collection.can_view(user_code)` — owner, or invited user if collection is ACTIVE (INACTIVE collections are only visible to their owner). The `CollectionSerializer.things` field excludes INACTIVE things for non-owners.
 
-**Add thing:** Validates thing exists, belongs to user, and is not already in collection.
+**Add thing:** Uses `collection.can_add_thing(user_code)` — owner can always add; in COMMUNITY mode, invited users can add their own things. Validates thing exists, belongs to user, and is not already in collection.
 
-**Remove thing:** Validates thing is in the collection, removes it from the M2M without deleting the thing itself.
+**Remove thing:** Owner can remove any thing. In COMMUNITY mode, thing owners can remove their own things. Validates thing is in the collection, removes it from the M2M without deleting the thing itself.
 
 ### CollectionInviteView
 
@@ -571,6 +571,54 @@ If all collections containing the thing are INACTIVE, the request is blocked wit
 | 400 | Own thing / already pending / invalid data / collection inactive |
 | 403 | Not authorised to view thing |
 | 409 | Date overlap (date-based only) |
+
+---
+
+## Transfer Views (`core/views/transfers.py`)
+
+### ThingTransferView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/things/{thing_code}/transfers/` |
+| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+
+Returns the transfer history (Loan Chain) and aggregate stats for a thing.
+
+**Response (200):**
+```json
+{
+  "total_transfers": 3,
+  "unique_homes": 4,
+  "current_holder": "ABC123",
+  "current_holder_name": "Lala",
+  "transfers": [
+    {
+      "code": "XYZ789",
+      "from_user": "ABC123",
+      "to_user": "DEF456",
+      "from_user_name": "Lala",
+      "to_user_name": "Lele",
+      "lent_date": "2026-04-01",
+      "returned_date": "2026-04-10"
+    }
+  ]
+}
+```
+
+**Behaviour:**
+1. Looks up thing by `thing_code`. Returns 404 if not found.
+2. Checks `thing.can_view(user_code)`. Returns 403 if not authorised.
+3. Queries all transfers for the thing, ordered by `-lent_date`.
+4. Computes `unique_homes` (distinct user codes across all `from_user` and `to_user` fields).
+5. Computes `current_holder` from the most recent unreturned transfer's `to_user`.
+
+### Management Command: `close_transfers`
+
+Daily command (`python manage.py close_transfers`) that closes overdue transfers:
+- Finds unreturned `ThingTransfer` records linked to `ACCEPTED` bookings whose `end_date < today`.
+- Sets `returned_date = today` via bulk update.
+- Outputs count of closed transfers.
 
 ---
 

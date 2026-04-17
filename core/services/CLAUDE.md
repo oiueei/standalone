@@ -15,7 +15,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 | Function | Input | Behaviour |
 |----------|-------|-----------|
 | `cancel_booking(booking)` | `BookingPeriod` instance | Calls `booking.cancel()`. For single-use types (GIFT, SELL), restores thing to `ACTIVE`. Returns thing. |
-| `accept_booking(booking)` | `BookingPeriod` instance | Calls `booking.accept()`. For single-use types, sets thing to `INACTIVE` and adds requester to `deal` M2M. Returns thing. |
+| `accept_booking(booking)` | `BookingPeriod` instance | Calls `booking.accept()`. For single-use types, sets thing to `INACTIVE` and adds requester to `deal` M2M. Creates a `ThingTransfer` record (from owner to requester, lent_date = start_date or today). Returns thing. |
 | `reject_booking(booking)` | `BookingPeriod` instance | Calls `booking.reject()`. For single-use types, restores thing to `ACTIVE`. Returns thing. |
 
 #### Patterns
