@@ -344,7 +344,8 @@
     "ORDER_THING": "Encomenda",
     "RENT_THING": "Aluguer",
     "LEND_THING": "Empréstimo",
-    "SHARE_THING": "Partilhar"
+    "SHARE_THING": "Partilhar",
+    "EVENT_THING": "Evento"
   },
   "availability": {
     "IMMEDIATE": "Imediata",
@@ -375,5 +376,15 @@
     "noTransfers": "Sem transferências ainda.",
     "homesCount_one": "{{count}} lar",
     "homesCount_other": "{{count}} lares"
+  },
+  "events": {
+    "eventDate": "Data do evento",
+    "attend": "Participar",
+    "attending": "A participar",
+    "leave": "Sair do evento",
+    "attendeeCount_one": "{{count}} participante",
+    "attendeeCount_other": "{{count}} participantes",
+    "noAttendees": "Sem participantes ainda.",
+    "attendeesHeading": "Participantes"
   }
 }

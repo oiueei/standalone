@@ -14,7 +14,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -50,6 +50,11 @@ export default function ThingPage() {
 
   // Transfer state
   const [transfers, setTransfers] = useState(null);
+
+  // Event state
+  const [attendees, setAttendees] = useState(null);
+  const [isAttending, setIsAttending] = useState(false);
+  const [attendSubmitting, setAttendSubmitting] = useState(false);
 
   useEffect(() => {
     if (!userCode) {
@@ -93,10 +98,26 @@ export default function ThingPage() {
       } catch { /* silently fail */ }
     };
 
+    const fetchAttendees = async () => {
+      try {
+        const res = await apiFetch(`/api/v1/things/${thingCode}/attendees/`);
+        if (res.ok) {
+          setAttendees(await res.json());
+        }
+      } catch { /* silently fail */ }
+    };
+
     fetchThing();
     fetchFaqs();
     fetchTransfers();
+    fetchAttendees();
   }, [userCode, thingCode, navigate, t]);
+
+  useEffect(() => {
+    if (thing && thing.type === EVENT_TYPE && thing.deal) {
+      setIsAttending(thing.deal.includes(userCode));
+    }
+  }, [thing, userCode]);
 
   useEffect(() => {
     if (!thing || !userCode || thing.owner !== userCode) return;
@@ -134,6 +155,7 @@ export default function ThingPage() {
   }
 
   const isOwner = thing.owner === userCode;
+  const isEvent = thing.type === EVENT_TYPE;
   const isDateBased = isDateType(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
@@ -251,6 +273,27 @@ export default function ThingPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setBookingAction(false);
+    }
+  };
+
+  const handleAttend = async () => {
+    setAttendSubmitting(true);
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/attend/`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setIsAttending(data.attending);
+        setAttendees((prev) => prev ? { ...prev, attendee_count: data.attendee_count } : prev);
+        // Re-fetch attendees list
+        const atRes = await apiFetch(`/api/v1/things/${thing.code}/attendees/`);
+        if (atRes.ok) setAttendees(await atRes.json());
+      } else {
+        setToast({ type: 'error', message: t('common.connectionError') });
+      }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setAttendSubmitting(false);
     }
   };
 
@@ -411,6 +454,13 @@ export default function ThingPage() {
               <span>{t('condition.' + thing.condition)}</span>
             </div>
           )}
+          {thing.event_date && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('events.eventDate')}</span>
+              <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          )}
         </div>
 
 
@@ -497,8 +547,21 @@ export default function ThingPage() {
           </div>
         )}
 
-        {/* Reservation button for invited users */}
-        {showButton && (
+        {/* Attend button for event things */}
+        {showButton && isEvent && (
+          <Button
+            fullWidth
+            disabled={attendSubmitting}
+            style={isAttending ? btnSecondaryStyle : btnStyle}
+            variant={isAttending ? 'secondary' : 'primary'}
+            onClick={handleAttend}
+          >
+            {isAttending ? t('events.attending') : t('events.attend')}
+          </Button>
+        )}
+
+        {/* Reservation button for non-event invited users */}
+        {showButton && !isEvent && (
           <Button
             fullWidth
             disabled={buttonDisabled}
@@ -507,6 +570,26 @@ export default function ThingPage() {
           >
             {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : t('thingCard.hold')}
           </Button>
+        )}
+
+        {/* Attendees section for event things */}
+        {isEvent && attendees && (
+          <>
+            <div className="spacer-m" />
+            <hr />
+            <div className="spacer-m" />
+            <h2>{t('events.attendeesHeading')}</h2>
+            <p>{t('events.attendeeCount', { count: attendees.attendee_count })}</p>
+            {attendees.attendees.length > 0 ? (
+              <ul className="thing-card-bookings">
+                {attendees.attendees.map((a) => (
+                  <li key={a.code}>{a.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>{t('events.noAttendees')}</p>
+            )}
+          </>
         )}
 
         {/* FAQs Section */}

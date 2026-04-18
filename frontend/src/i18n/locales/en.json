@@ -357,7 +357,8 @@
     "ORDER_THING": "Order",
     "RENT_THING": "Rental",
     "LEND_THING": "Lend",
-    "SHARE_THING": "Share"
+    "SHARE_THING": "Share",
+    "EVENT_THING": "Event"
   },
   "availability": {
     "IMMEDIATE": "Immediate",
@@ -388,5 +389,15 @@
     "noTransfers": "No transfers yet.",
     "homesCount_one": "{{count}} home",
     "homesCount_other": "{{count}} homes"
+  },
+  "events": {
+    "eventDate": "Event date",
+    "attend": "Attend",
+    "attending": "Attending",
+    "leave": "Leave event",
+    "attendeeCount_one": "{{count}} attendee",
+    "attendeeCount_other": "{{count}} attendees",
+    "noAttendees": "No attendees yet.",
+    "attendeesHeading": "Attendees"
   }
 }

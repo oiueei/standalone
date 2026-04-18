@@ -9,7 +9,7 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -40,6 +40,7 @@ export default function EditThingPage() {
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
+  const [eventDate, setEventDate] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -65,6 +66,10 @@ export default function EditThingPage() {
           setAvailability(data.availability || '');
           setLocation(data.location || '');
           setCondition(data.condition || '');
+          if (data.event_date) {
+            const d = new Date(data.event_date);
+            setEventDate(d.toISOString().slice(0, 16));
+          }
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
@@ -109,6 +114,9 @@ export default function EditThingPage() {
       body.availability = availability || '';
       body.location = location.trim();
       body.condition = condition || '';
+    }
+    if (thingType === EVENT_TYPE) {
+      body.event_date = eventDate ? new Date(eventDate).toISOString() : null;
     }
 
     try {
@@ -181,6 +189,15 @@ export default function EditThingPage() {
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/256`}
         />
+        {thingType === EVENT_TYPE && (
+          <TextInput
+            id="edit-thing-event-date"
+            label={t('events.eventDate')}
+            type="datetime-local"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+          />
+        )}
         {FEE_TYPES.includes(thingType) && (
           <NumberInput
             id="edit-thing-fee"

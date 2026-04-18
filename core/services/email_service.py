@@ -229,7 +229,9 @@ def send_booking_confirmation_email(requester, thing, booking):
         )
         html_extra = ""
 
-    collection_line = f"<p>Part of: <strong>{safe_collection}</strong></p>" if safe_collection else ""
+    collection_line = (
+        f"<p>Part of: <strong>{safe_collection}</strong></p>" if safe_collection else ""
+    )
 
     send_mail(
         subject="Hold request sent",
@@ -326,3 +328,35 @@ def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
             </html>
             """,
     )
+
+
+def send_event_announcement_email(
+    owner_name, thing_headline, event_date, collection_headline, emails
+):
+    """Send event announcement email to all collection invitees."""
+    safe_owner = escape(owner_name)
+    safe_headline = escape(thing_headline)
+    safe_collection = escape(collection_headline)
+    date_str = event_date.strftime("%d %B %Y, %H:%M") if event_date else ""
+
+    subject = f"New event: {thing_headline}"
+    plain = f"{owner_name} has created a new event in {collection_headline}: " f"{thing_headline}."
+    if date_str:
+        plain += f" Date: {date_str}."
+
+    html = f"""
+        <html>
+        <p><strong>{safe_owner}</strong> has created a new event in <strong>{safe_collection}</strong>:</p>
+        <p><strong>{safe_headline}</strong></p>
+        {"<p>Date: " + escape(date_str) + "</p>" if date_str else ""}
+        </html>
+        """
+
+    for email in emails:
+        send_mail(
+            subject=subject,
+            message=plain,
+            from_email=None,
+            recipient_list=[email],
+            html_message=html,
+        )

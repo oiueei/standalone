@@ -25,6 +25,7 @@ class Thing(models.Model):
         ("RENT_THING", "Rent Thing"),
         ("LEND_THING", "Lend Thing"),
         ("SHARE_THING", "Share Thing"),
+        ("EVENT_THING", "Event Thing"),
     ]
 
     STATUS_CHOICES = [
@@ -67,6 +68,7 @@ class Thing(models.Model):
     availability = models.CharField(max_length=12, choices=AVAILABILITY_CHOICES, blank=True, default="")
     location = models.CharField(max_length=32, blank=True, default="")
     condition = models.CharField(max_length=12, choices=CONDITION_CHOICES, blank=True, default="")
+    event_date = models.DateTimeField(null=True, blank=True)
     deal = models.ManyToManyField(
         "User",
         blank=True,

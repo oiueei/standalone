@@ -24,6 +24,7 @@ class ThingSerializer(serializers.ModelSerializer):
     collection_code = serializers.SerializerMethodField()
     collection_headline = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
+    attendee_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -43,6 +44,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
+            "event_date",
             "deal",
             "pending_booking",
             "my_pending_booking",
@@ -50,6 +52,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "collection_code",
             "collection_headline",
             "transfer_count",
+            "attendee_count",
         ]
         read_only_fields = [
             "code",
@@ -111,6 +114,11 @@ class ThingSerializer(serializers.ModelSerializer):
             return obj._transfer_count
         return obj.transfers.count()
 
+    def get_attendee_count(self, obj):
+        if obj.type != "EVENT_THING":
+            return None
+        return obj.deal.count()
+
 
 class ThingCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a thing."""
@@ -131,6 +139,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
+            "event_date",
         ]
 
 
@@ -154,5 +163,6 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
+            "event_date",
         ]
         read_only_fields = ["status"]

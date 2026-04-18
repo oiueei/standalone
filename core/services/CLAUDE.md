@@ -44,6 +44,7 @@ All outbound emails are composed and sent from this module. Views call these fun
 | `send_faq_question_email(questioner_name, thing, question, owner_email)` | Guest asks a question on a thing | Thing owner |
 | `send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email)` | Owner answers a FAQ | Questioner |
 | `send_faq_hide_email(owner_name, thing_headline, question, questioner_email)` | Owner hides a FAQ | Questioner |
+| `send_event_announcement_email(owner_name, thing_headline, event_date, collection_headline, emails)` | EVENT_THING created in a collection | All collection invitees (individually) |
 
 #### Patterns
 

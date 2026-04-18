@@ -19,6 +19,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     my_pending_booking = serializers.SerializerMethodField()
     pending_questions = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
+    attendee_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -33,11 +34,13 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
+            "event_date",
             "thumbnail_url",
             "pending_booking",
             "my_pending_booking",
             "pending_questions",
             "transfer_count",
+            "attendee_count",
             "created",
         ]
 
@@ -74,6 +77,11 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         if hasattr(obj, "_transfer_count"):
             return obj._transfer_count
         return obj.transfers.count()
+
+    def get_attendee_count(self, obj):
+        if obj.type != "EVENT_THING":
+            return None
+        return obj.deal.count()
 
 
 class CollectionInviteSummarySerializer(serializers.ModelSerializer):

@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -31,9 +31,19 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     '--background-color-hover': `var(--color-${tc.color_01})`,
     '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
+  const isEvent = thing.type === EVENT_TYPE;
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
+  const [attendSubmitting, setAttendSubmitting] = useState(false);
+  const [isAttending, setIsAttending] = useState(false);
+  const [attendeeCount, setAttendeeCount] = useState(thing.attendee_count || 0);
+
+  useEffect(() => {
+    if (isEvent && thing.deal) {
+      setIsAttending(thing.deal.includes(userCode));
+    }
+  }, [isEvent, thing.deal, userCode]);
 
   const [bookings, setBookings] = useState([]);
 
@@ -155,6 +165,24 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     }
   };
 
+  const handleAttend = async () => {
+    setAttendSubmitting(true);
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/attend/`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setIsAttending(data.attending);
+        setAttendeeCount(data.attendee_count);
+      } else {
+        setToast({ type: 'error', message: t('common.connectionError') });
+      }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setAttendSubmitting(false);
+    }
+  };
+
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
@@ -227,6 +255,19 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <IconShield size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
               <span>{t('condition.' + thing.condition)}</span>
+            </div>
+          )}
+          {thing.event_date && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('events.eventDate')}</span>
+              <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          )}
+          {isEvent && (
+            <div className="thing-card-info-row">
+              <IconHome size="m" aria-hidden="true" />
+              <span>{t('events.attendeeCount', { count: attendeeCount })}</span>
             </div>
           )}
           {thing.transfer_count > 0 && (
@@ -317,7 +358,18 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               </Button>
             </>
           )}
-          {showButton && (
+          {showButton && isEvent && (
+            <Button
+              fullWidth
+              disabled={attendSubmitting}
+              style={isAttending ? btnSecondaryStyle : btnStyle}
+              variant={isAttending ? 'secondary' : 'primary'}
+              onClick={handleAttend}
+            >
+              {isAttending ? t('events.attending') : t('events.attend')}
+            </Button>
+          )}
+          {showButton && !isEvent && (
             <Button
               fullWidth
               disabled={buttonDisabled}

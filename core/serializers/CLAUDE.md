@@ -70,16 +70,16 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `ThingSerializer` | code, type, owner, owner_name, created, headline, description, thumbnail/url, status, faqs, fee, availability, location, condition, deal, pending_booking, my_pending_booking, pending_questions, collection_code, collection_headline | Full read representation. `owner_name` returns owner's name (falls back to email). `pending_booking` returns first PENDING booking code (owner use). `my_pending_booking` returns the requesting user's own PENDING booking code (or null) — used by guests to distinguish "Reserved" vs "Waiting for confirmation". `collection_code/headline` from first associated collection. |
-| `ThingCreateSerializer` | type, headline, description, thumbnail, fee, availability, location, condition | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`. `location` uses `SafeHeadlineField(max_length=32)`. |
-| `ThingUpdateSerializer` | type, headline, description, thumbnail, status (read-only), fee, availability, location, condition | Same validation fields. `status` is read-only (changed by booking flow or dedicated activate/hide endpoints). |
+| `ThingSerializer` | code, type, owner, owner_name, created, headline, description, thumbnail/url, status, faqs, fee, availability, location, condition, event_date, deal, pending_booking, my_pending_booking, pending_questions, collection_code, collection_headline, transfer_count, attendee_count | Full read representation. `owner_name` returns owner's name (falls back to email). `pending_booking` returns first PENDING booking code (owner use). `my_pending_booking` returns the requesting user's own PENDING booking code (or null) — used by guests to distinguish "Reserved" vs "Waiting for confirmation". `collection_code/headline` from first associated collection. `attendee_count` returns deal count for EVENT_THING, null otherwise. |
+| `ThingCreateSerializer` | type, headline, description, thumbnail, fee, availability, location, condition, event_date | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`. `location` uses `SafeHeadlineField(max_length=32)`. |
+| `ThingUpdateSerializer` | type, headline, description, thumbnail, status (read-only), fee, availability, location, condition, event_date | Same validation fields. `status` is read-only (changed by booking flow or dedicated activate/hide endpoints). |
 
 ### `collection.py`
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
 | `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, mode, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
-| `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, thumbnail_url, pending_booking, my_pending_booking, pending_questions, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. Request context is forwarded from `CollectionSerializer.get_things()`. |
+| `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, event_date, thumbnail_url, pending_booking, my_pending_booking, pending_questions, transfer_count, attendee_count, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. `attendee_count` returns deal count for EVENT_THING, null otherwise. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
 | `CollectionCreateSerializer` | headline, description, mode | Input for collection creation. |
 | `CollectionUpdateSerializer` | headline, description, status, mode | Input for collection updates. |

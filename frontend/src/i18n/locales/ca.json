@@ -344,7 +344,8 @@
     "ORDER_THING": "Comanda",
     "RENT_THING": "Lloguer",
     "LEND_THING": "Préstec",
-    "SHARE_THING": "Compartir"
+    "SHARE_THING": "Compartir",
+    "EVENT_THING": "Esdeveniment"
   },
   "availability": {
     "IMMEDIATE": "Immediata",
@@ -375,5 +376,15 @@
     "noTransfers": "Sense transferències encara.",
     "homesCount_one": "{{count}} llar",
     "homesCount_other": "{{count}} llars"
+  },
+  "events": {
+    "eventDate": "Data de l'esdeveniment",
+    "attend": "Assistir",
+    "attending": "Assistint",
+    "leave": "Deixar esdeveniment",
+    "attendeeCount_one": "{{count}} assistent",
+    "attendeeCount_other": "{{count}} assistents",
+    "noAttendees": "Sense assistents encara.",
+    "attendeesHeading": "Assistents"
   }
 }

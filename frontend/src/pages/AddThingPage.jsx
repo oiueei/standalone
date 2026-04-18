@@ -9,7 +9,7 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -38,6 +38,7 @@ export default function AddThingPage() {
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
+  const [eventDate, setEventDate] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -81,6 +82,9 @@ export default function AddThingPage() {
       if (availability) body.availability = availability;
       if (location.trim()) body.location = location.trim();
       if (condition) body.condition = condition;
+    }
+    if (type === EVENT_TYPE && eventDate) {
+      body.event_date = new Date(eventDate).toISOString();
     }
 
     try {
@@ -160,6 +164,15 @@ export default function AddThingPage() {
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
           />
+          {type === EVENT_TYPE && (
+            <TextInput
+              id="add-thing-event-date"
+              label={t('events.eventDate')}
+              type="datetime-local"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+            />
+          )}
           {FEE_TYPES.includes(type) && (
             <NumberInput
               id="add-thing-fee"

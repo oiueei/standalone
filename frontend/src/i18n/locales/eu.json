@@ -344,7 +344,8 @@
     "ORDER_THING": "Enkargua",
     "RENT_THING": "Alokairua",
     "LEND_THING": "Mailegua",
-    "SHARE_THING": "Partekatzeko"
+    "SHARE_THING": "Partekatzeko",
+    "EVENT_THING": "Ekitaldia"
   },
   "availability": {
     "IMMEDIATE": "Berehala",
@@ -375,5 +376,15 @@
     "noTransfers": "Oraindik transferentziarik ez.",
     "homesCount_one": "{{count}} etxe",
     "homesCount_other": "{{count}} etxe"
+  },
+  "events": {
+    "eventDate": "Ekitaldiaren data",
+    "attend": "Bertaratu",
+    "attending": "Bertaratzen",
+    "leave": "Ekitaldia utzi",
+    "attendeeCount_one": "{{count}} bertaratua",
+    "attendeeCount_other": "{{count}} bertaratu",
+    "noAttendees": "Oraindik bertaraturik ez.",
+    "attendeesHeading": "Bertaratuak"
   }
 }

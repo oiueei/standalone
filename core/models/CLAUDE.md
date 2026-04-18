@@ -289,7 +289,7 @@ The `Thing` model represents an item in a collection.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
-| `type` | CharField(16) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING |
+| `type` | CharField(16) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING |
 | `owner` | ForeignKey(User) | **Yes** | Owner of the thing |
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |
@@ -300,7 +300,8 @@ The `Thing` model represents an item in a collection.
 | `availability` | CharField(12) | No | Availability: IMMEDIATE, NEXT_WEEK, END_OF_MONTH, NEXT_MONTH. Only for GIFT/SELL/LEND/SHARE types. |
 | `location` | CharField(32) | No | Free-text location. Only for GIFT/SELL/LEND/SHARE types. |
 | `condition` | CharField(12) | No | Condition: NEW, GOOD, FAIR, USED, WELL_USED, ALMOST_JUNK. Only for GIFT/SELL/LEND/SHARE types. |
-| `deal` | ManyToManyField(User) | No | Users who have reserved |
+| `event_date` | DateTimeField | No | Date/time for EVENT_THING (null for other types) |
+| `deal` | ManyToManyField(User) | No | Users who have reserved. For EVENT_THING: attendees |
 
 ### Status
 

@@ -113,7 +113,32 @@ Each thing type can potentially be pruned independently:
 
 **To remove a type:** update `Thing.THING_TYPES` choices, `BookingPeriod` category lists (`DATE_BASED_TYPES`, `SINGLE_USE_TYPES`, `REPEATABLE_TYPES`), frontend `constants/things.js`, i18n keys, and serializer conditional logic.
 
-### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty).
+### Sub-feature: Events (EVENT_THING)
+
+Adds a new thing type for events. EVENT_THING bypasses BookingPeriod entirely — attendance uses the existing `deal` M2M as a simple toggle (no owner approval needed).
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Model** | `core/models/thing.py` | `EVENT_THING` in TYPE_CHOICES, `event_date` DateTimeField |
+| **Views** | `core/views/events.py` | `EventAttendView` (POST toggle), `EventAttendeesView` (GET list) |
+| **Views** | `core/views/reservations.py` | Reservation guard returns 400 for EVENT_THING |
+| **Views** | `core/views/things.py` | `perform_create` sends announcement email for EVENT_THING |
+| **Serializers** | `core/serializers/thing.py` | `event_date` field, `attendee_count` SerializerMethodField on `ThingSerializer` |
+| **Serializers** | `core/serializers/collection.py` | `event_date`, `attendee_count` on `CollectionThingSummarySerializer` |
+| **Services** | `core/services/email_service.py` | `send_event_announcement_email()` |
+| **URLs** | `core/urls.py` | `things/<code>/attend/`, `things/<code>/attendees/` |
+| **Migration** | `core/migrations/0054_add_event_thing.py` | Adds `event_date` field and EVENT_THING to type choices |
+| **Tests** | `core/tests/unit/test_events.py` | 5 unit tests |
+| **Tests** | `core/tests/integration/test_events.py` | 13 integration tests |
+| **Frontend** | `ThingLinkbox` | Event date + attendee count info rows, attend/attending toggle button |
+| **Frontend** | `ThingPage` | Attendees section, attend/leave button, event date in info rows |
+| **Frontend** | `AddThingPage`, `EditThingPage` | `datetime-local` input for event date |
+| **Frontend** | `src/constants/things.js` | `EVENT_TYPE` constant |
+| **Frontend** | `src/i18n/locales/*.json` | `events.*` i18n keys in all 7 locales |
+
+**To prune:** Remove `EVENT_THING` from TYPE_CHOICES, remove `event_date` field from Thing model (migration needed), delete `core/views/events.py`, remove reservation guard for EVENT_THING, remove announcement email call from `perform_create`, delete `send_event_announcement_email()` from email service, remove attend/attendees URL routes, remove `attendee_count` from serializers, remove `EVENT_TYPE` from constants, remove event-specific UI from ThingLinkbox/ThingPage/AddThingPage/EditThingPage, remove `events.*` i18n keys.
+
+### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events sub-feature is **EASY** to prune independently.
 
 ---
 
@@ -307,7 +332,7 @@ The RSVP model serves multiple features. Here is which actions belong to which f
 
 ## Cross-Cutting: Email Service
 
-All 10 email functions mapped to their feature:
+All 11 email functions mapped to their feature:
 
 | Function | Feature |
 |----------|---------|
@@ -321,6 +346,7 @@ All 10 email functions mapped to their feature:
 | `send_faq_question_email` | FAQs |
 | `send_faq_answer_email` | FAQs |
 | `send_faq_hide_email` | FAQs |
+| `send_event_announcement_email` | Things (Events) |
 
 ---
 
@@ -359,3 +385,4 @@ After user testing, use this priority to decide what to cut:
 | 7 | Reduce i18n to single language | HARD |
 | 8 | Replace theeemes with single colour scheme | HARD |
 | 9 | Remove Transfers (Loan Chain) if journey tracking not needed | EASY |
+| 10 | Remove Events (EVENT_THING) if event features not needed | EASY |

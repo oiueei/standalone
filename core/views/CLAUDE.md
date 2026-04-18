@@ -529,7 +529,7 @@ Rejects a pending booking. Same permission and validation as accept. Calls `reje
 | **Permission** | `IsAuthenticated` + `thing.can_view()` + not owner |
 | **Rate limit** | 10 requests/hour per user |
 
-Creates a reservation/booking request. Routes based on thing type:
+Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THING (these types bypass BookingPeriod). Routes based on thing type:
 
 **Date-based (LEND/RENT/SHARE):**
 - Requires `start_date` and `end_date`.
@@ -612,6 +612,38 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 3. Queries all transfers for the thing, ordered by `-lent_date`.
 4. Computes `unique_homes` (distinct user codes across all `from_user` and `to_user` fields).
 5. Computes `current_holder` from the most recent unreturned transfer's `to_user`.
+
+## Event Views (`core/views/events.py`)
+
+### EventAttendView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/things/{thing_code}/attend/` |
+| **Permission** | `IsAuthenticated` |
+
+Toggles attendance for an EVENT_THING using the `deal` M2M field. Returns 400 for non-event things. Returns 403 for users who cannot view the thing. Owner cannot attend their own event.
+
+**Response:**
+```json
+{ "attending": true, "attendee_count": 5 }
+```
+
+### EventAttendeesView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/things/{thing_code}/attendees/` |
+| **Permission** | `IsAuthenticated` |
+
+Lists attendees for an EVENT_THING. Returns 400 for non-event things. Returns 403 for users who cannot view the thing.
+
+**Response:**
+```json
+{ "attendee_count": 2, "attendees": [{ "code": "ABC123", "name": "User Name" }] }
+```
+
+---
 
 ### Management Command: `close_transfers`
 
