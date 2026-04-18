@@ -358,7 +358,8 @@
     "RENT_THING": "Rental",
     "LEND_THING": "Lend",
     "SHARE_THING": "Share",
-    "EVENT_THING": "Event"
+    "EVENT_THING": "Event",
+    "WISH_THING": "Wish"
   },
   "availability": {
     "IMMEDIATE": "Immediate",
@@ -399,5 +400,13 @@
     "attendeeCount_other": "{{count}} attendees",
     "noAttendees": "No attendees yet.",
     "attendeesHeading": "Attendees"
+  },
+  "wishes": {
+    "offerHelp": "I can help",
+    "helping": "Helping",
+    "helperCount_one": "{{count}} helper",
+    "helperCount_other": "{{count}} helpers",
+    "noHelpers": "No helpers yet.",
+    "helpersHeading": "Helpers"
   }
 }

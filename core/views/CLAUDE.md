@@ -228,7 +228,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 **Retrieve:** Uses `thing.can_view(user_code)` — owner, or invited to an ACTIVE collection containing the thing (INACTIVE things are only visible to their owner).
 
-**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and belongs to the user — returns 400 on invalid or non-owned collection. If valid, the thing is automatically added to it.
+**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING is restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. EVENT_THING sends an announcement email to all collection invitees on creation.
 
 **`activate` action:** Sets `status = 'ACTIVE'`. Returns 400 if thing is not INACTIVE.
 
@@ -641,6 +641,36 @@ Lists attendees for an EVENT_THING. Returns 400 for non-event things. Returns 40
 **Response:**
 ```json
 { "attendee_count": 2, "attendees": [{ "code": "ABC123", "name": "User Name" }] }
+```
+
+## Wish Views (`core/views/wishes.py`)
+
+### WishOfferHelpView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/things/{thing_code}/offer-help/` |
+| **Permission** | `IsAuthenticated` |
+
+Toggles "I can help" for a WISH_THING using the `deal` M2M field. Returns 400 for non-wish things. Returns 403 for users who cannot view the thing. Owner cannot offer help on their own wish.
+
+**Response:**
+```json
+{ "offering": true, "helper_count": 3 }
+```
+
+### WishHelpersView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/things/{thing_code}/helpers/` |
+| **Permission** | `IsAuthenticated` |
+
+Lists helpers for a WISH_THING. Returns 400 for non-wish things. Returns 403 for users who cannot view the thing.
+
+**Response:**
+```json
+{ "helper_count": 2, "helpers": [{ "code": "ABC123", "name": "User Name" }] }
 ```
 
 ---

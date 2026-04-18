@@ -20,6 +20,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     pending_questions = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
     attendee_count = serializers.SerializerMethodField()
+    helper_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -41,6 +42,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "pending_questions",
             "transfer_count",
             "attendee_count",
+            "helper_count",
             "created",
         ]
 
@@ -80,6 +82,11 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
 
     def get_attendee_count(self, obj):
         if obj.type != "EVENT_THING":
+            return None
+        return obj.deal.count()
+
+    def get_helper_count(self, obj):
+        if obj.type != "WISH_THING":
             return None
         return obj.deal.count()
 

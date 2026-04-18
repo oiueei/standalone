@@ -73,6 +73,8 @@ class ThingViewSet(ModelViewSet):
         collection_code = self.request.data.get("collection_code")
         collection = None
 
+        thing_type = serializer.validated_data.get("type", "GIFT_THING")
+
         if collection_code:
             try:
                 collection = Collection.objects.get(code=collection_code)
@@ -83,6 +85,16 @@ class ThingViewSet(ModelViewSet):
                     return
             except Collection.DoesNotExist:
                 self._create_error = "Collection not found"
+                return
+
+            # WISH_THING is only allowed in COMMUNITY collections
+            if thing_type == "WISH_THING" and not collection.is_community():
+                self._create_error = "Wish things can only be created in community collections"
+                return
+        else:
+            # WISH_THING requires a collection
+            if thing_type == "WISH_THING":
+                self._create_error = "Wish things can only be created in community collections"
                 return
 
         thing = Thing.objects.create(

@@ -14,7 +14,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -55,6 +55,11 @@ export default function ThingPage() {
   const [attendees, setAttendees] = useState(null);
   const [isAttending, setIsAttending] = useState(false);
   const [attendSubmitting, setAttendSubmitting] = useState(false);
+
+  // Wish state
+  const [helpers, setHelpers] = useState(null);
+  const [isHelping, setIsHelping] = useState(false);
+  const [helpSubmitting, setHelpSubmitting] = useState(false);
 
   useEffect(() => {
     if (!userCode) {
@@ -107,15 +112,28 @@ export default function ThingPage() {
       } catch { /* silently fail */ }
     };
 
+    const fetchHelpers = async () => {
+      try {
+        const res = await apiFetch(`/api/v1/things/${thingCode}/helpers/`);
+        if (res.ok) {
+          setHelpers(await res.json());
+        }
+      } catch { /* silently fail */ }
+    };
+
     fetchThing();
     fetchFaqs();
     fetchTransfers();
     fetchAttendees();
+    fetchHelpers();
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
     if (thing && thing.type === EVENT_TYPE && thing.deal) {
       setIsAttending(thing.deal.includes(userCode));
+    }
+    if (thing && thing.type === WISH_TYPE && thing.deal) {
+      setIsHelping(thing.deal.includes(userCode));
     }
   }, [thing, userCode]);
 
@@ -156,6 +174,7 @@ export default function ThingPage() {
 
   const isOwner = thing.owner === userCode;
   const isEvent = thing.type === EVENT_TYPE;
+  const isWish = thing.type === WISH_TYPE;
   const isDateBased = isDateType(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
@@ -294,6 +313,27 @@ export default function ThingPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setAttendSubmitting(false);
+    }
+  };
+
+  const handleOfferHelp = async () => {
+    setHelpSubmitting(true);
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/offer-help/`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setIsHelping(data.offering);
+        setHelpers((prev) => prev ? { ...prev, helper_count: data.helper_count } : prev);
+        // Re-fetch helpers list
+        const hlpRes = await apiFetch(`/api/v1/things/${thing.code}/helpers/`);
+        if (hlpRes.ok) setHelpers(await hlpRes.json());
+      } else {
+        setToast({ type: 'error', message: t('common.connectionError') });
+      }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setHelpSubmitting(false);
     }
   };
 
@@ -560,8 +600,21 @@ export default function ThingPage() {
           </Button>
         )}
 
-        {/* Reservation button for non-event invited users */}
-        {showButton && !isEvent && (
+        {/* Offer help button for wish things */}
+        {showButton && isWish && (
+          <Button
+            fullWidth
+            disabled={helpSubmitting}
+            style={isHelping ? btnSecondaryStyle : btnStyle}
+            variant={isHelping ? 'secondary' : 'primary'}
+            onClick={handleOfferHelp}
+          >
+            {isHelping ? t('wishes.helping') : t('wishes.offerHelp')}
+          </Button>
+        )}
+
+        {/* Reservation button for non-event/non-wish invited users */}
+        {showButton && !isEvent && !isWish && (
           <Button
             fullWidth
             disabled={buttonDisabled}
@@ -588,6 +641,26 @@ export default function ThingPage() {
               </ul>
             ) : (
               <p>{t('events.noAttendees')}</p>
+            )}
+          </>
+        )}
+
+        {/* Helpers section for wish things */}
+        {isWish && helpers && (
+          <>
+            <div className="spacer-m" />
+            <hr />
+            <div className="spacer-m" />
+            <h2>{t('wishes.helpersHeading')}</h2>
+            <p>{t('wishes.helperCount', { count: helpers.helper_count })}</p>
+            {helpers.helpers.length > 0 ? (
+              <ul className="thing-card-bookings">
+                {helpers.helpers.map((h) => (
+                  <li key={h.code}>{h.name}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>{t('wishes.noHelpers')}</p>
             )}
           </>
         )}

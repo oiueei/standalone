@@ -345,7 +345,8 @@
     "RENT_THING": "Alokairua",
     "LEND_THING": "Mailegua",
     "SHARE_THING": "Partekatzeko",
-    "EVENT_THING": "Ekitaldia"
+    "EVENT_THING": "Ekitaldia",
+    "WISH_THING": "Nahia"
   },
   "availability": {
     "IMMEDIATE": "Berehala",
@@ -386,5 +387,13 @@
     "attendeeCount_other": "{{count}} bertaratu",
     "noAttendees": "Oraindik bertaraturik ez.",
     "attendeesHeading": "Bertaratuak"
+  },
+  "wishes": {
+    "offerHelp": "Lagundu dezaket",
+    "helping": "Laguntzen",
+    "helperCount_one": "{{count}} laguntzaile",
+    "helperCount_other": "{{count}} laguntzaile",
+    "noHelpers": "Oraindik laguntzailerik ez.",
+    "helpersHeading": "Laguntzaileak"
   }
 }

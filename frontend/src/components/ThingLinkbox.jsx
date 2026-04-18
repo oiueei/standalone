@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -32,18 +32,25 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
   const isEvent = thing.type === EVENT_TYPE;
+  const isWish = thing.type === WISH_TYPE;
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
   const [attendSubmitting, setAttendSubmitting] = useState(false);
   const [isAttending, setIsAttending] = useState(false);
   const [attendeeCount, setAttendeeCount] = useState(thing.attendee_count || 0);
+  const [helpSubmitting, setHelpSubmitting] = useState(false);
+  const [isHelping, setIsHelping] = useState(false);
+  const [helperCount, setHelperCount] = useState(thing.helper_count || 0);
 
   useEffect(() => {
     if (isEvent && thing.deal) {
       setIsAttending(thing.deal.includes(userCode));
     }
-  }, [isEvent, thing.deal, userCode]);
+    if (isWish && thing.deal) {
+      setIsHelping(thing.deal.includes(userCode));
+    }
+  }, [isEvent, isWish, thing.deal, userCode]);
 
   const [bookings, setBookings] = useState([]);
 
@@ -183,6 +190,24 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     }
   };
 
+  const handleOfferHelp = async () => {
+    setHelpSubmitting(true);
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/offer-help/`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setIsHelping(data.offering);
+        setHelperCount(data.helper_count);
+      } else {
+        setToast({ type: 'error', message: t('common.connectionError') });
+      }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setHelpSubmitting(false);
+    }
+  };
+
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
@@ -268,6 +293,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             <div className="thing-card-info-row">
               <IconHome size="m" aria-hidden="true" />
               <span>{t('events.attendeeCount', { count: attendeeCount })}</span>
+            </div>
+          )}
+          {isWish && (
+            <div className="thing-card-info-row">
+              <IconHome size="m" aria-hidden="true" />
+              <span>{t('wishes.helperCount', { count: helperCount })}</span>
             </div>
           )}
           {thing.transfer_count > 0 && (
@@ -369,7 +400,18 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               {isAttending ? t('events.attending') : t('events.attend')}
             </Button>
           )}
-          {showButton && !isEvent && (
+          {showButton && isWish && (
+            <Button
+              fullWidth
+              disabled={helpSubmitting}
+              style={isHelping ? btnSecondaryStyle : btnStyle}
+              variant={isHelping ? 'secondary' : 'primary'}
+              onClick={handleOfferHelp}
+            >
+              {isHelping ? t('wishes.helping') : t('wishes.offerHelp')}
+            </Button>
+          )}
+          {showButton && !isEvent && !isWish && (
             <Button
               fullWidth
               disabled={buttonDisabled}

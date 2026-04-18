@@ -9,7 +9,7 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -30,6 +30,7 @@ export default function AddThingPage() {
   }, [userCode, navigate]);
 
   const [collectionHeadline, setCollectionHeadline] = useState('');
+  const [collectionMode, setCollectionMode] = useState('');
   const [type, setType] = useState('GIFT_THING');
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -47,7 +48,10 @@ export default function AddThingPage() {
     if (!userCode) return;
     apiFetch(`/api/v1/collections/${code}/`)
       .then((res) => (res.ok ? res.json() : {}))
-      .then((data) => setCollectionHeadline(data.headline || ''))
+      .then((data) => {
+        setCollectionHeadline(data.headline || '');
+        setCollectionMode(data.mode || '');
+      })
       .catch(() => {});
   }, [userCode, code]);
 
@@ -139,7 +143,7 @@ export default function AddThingPage() {
           <Select
             id="add-thing-type"
             texts={{ label: t('addThing.typeLabel') }}
-            options={TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))}
+            options={TYPE_VALUES.filter(v => v !== WISH_TYPE || collectionMode === 'COMMUNITY').map(v => ({ label: t('types.' + v), value: v }))}
             value={type}
             onChange={(selectedOptions) => {
               if (selectedOptions.length > 0) {

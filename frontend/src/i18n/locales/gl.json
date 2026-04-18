@@ -345,7 +345,8 @@
     "RENT_THING": "Alugueiro",
     "LEND_THING": "Préstamo",
     "SHARE_THING": "Compartir",
-    "EVENT_THING": "Evento"
+    "EVENT_THING": "Evento",
+    "WISH_THING": "Desexo"
   },
   "availability": {
     "IMMEDIATE": "Inmediata",
@@ -386,5 +387,13 @@
     "attendeeCount_other": "{{count}} asistentes",
     "noAttendees": "Sen asistentes aínda.",
     "attendeesHeading": "Asistentes"
+  },
+  "wishes": {
+    "offerHelp": "Podo axudar",
+    "helping": "Axudando",
+    "helperCount_one": "{{count}} axudante",
+    "helperCount_other": "{{count}} axudantes",
+    "noHelpers": "Sen axudantes aínda.",
+    "helpersHeading": "Axudantes"
   }
 }

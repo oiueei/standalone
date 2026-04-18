@@ -138,7 +138,32 @@ Adds a new thing type for events. EVENT_THING bypasses BookingPeriod entirely �
 
 **To prune:** Remove `EVENT_THING` from TYPE_CHOICES, remove `event_date` field from Thing model (migration needed), delete `core/views/events.py`, remove reservation guard for EVENT_THING, remove announcement email call from `perform_create`, delete `send_event_announcement_email()` from email service, remove attend/attendees URL routes, remove `attendee_count` from serializers, remove `EVENT_TYPE` from constants, remove event-specific UI from ThingLinkbox/ThingPage/AddThingPage/EditThingPage, remove `events.*` i18n keys.
 
-### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events sub-feature is **EASY** to prune independently.
+### Sub-feature: Wishes (WISH_THING)
+
+Adds a new thing type for community wish lists. WISH_THING bypasses BookingPeriod — "I can help" uses the existing `deal` M2M as a simple toggle (no owner approval needed). Restricted to COMMUNITY collections.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Model** | `core/models/thing.py` | `WISH_THING` in TYPE_CHOICES |
+| **Views** | `core/views/wishes.py` | `WishOfferHelpView` (POST toggle), `WishHelpersView` (GET list) |
+| **Views** | `core/views/reservations.py` | Reservation guard returns 400 for WISH_THING |
+| **Views** | `core/views/things.py` | `perform_create` restricts WISH_THING to COMMUNITY collections |
+| **Serializers** | `core/serializers/thing.py` | `helper_count` SerializerMethodField on `ThingSerializer` |
+| **Serializers** | `core/serializers/collection.py` | `helper_count` on `CollectionThingSummarySerializer` |
+| **URLs** | `core/urls.py` | `things/<code>/offer-help/`, `things/<code>/helpers/` |
+| **Migration** | `core/migrations/0055_add_wish_thing.py` | Adds WISH_THING to type choices |
+| **Tests** | `core/tests/unit/test_wishes.py` | 3 unit tests |
+| **Tests** | `core/tests/integration/test_wishes.py` | 15 integration tests |
+| **Frontend** | `ThingLinkbox` | Helper count info row, "I can help"/"Helping" toggle button |
+| **Frontend** | `ThingPage` | Helpers section, offer help/withdraw button |
+| **Frontend** | `AddThingPage` | WISH_THING only shown in type selector for COMMUNITY collections |
+| **Frontend** | `src/constants/things.js` | `WISH_TYPE` constant |
+| **Frontend** | `src/i18n/locales/*.json` | `wishes.*` i18n keys in all 7 locales |
+| **Depends on** | Community Collections (F2) — WISH_THING requires COMMUNITY mode |
+
+**To prune:** Remove `WISH_THING` from TYPE_CHOICES, delete `core/views/wishes.py`, remove reservation guard for WISH_THING, remove COMMUNITY restriction from `perform_create`, remove offer-help/helpers URL routes, remove `helper_count` from serializers, remove `WISH_TYPE` from constants, remove wish-specific UI from ThingLinkbox/ThingPage/AddThingPage, remove `wishes.*` i18n keys.
+
+### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events and Wishes sub-features are **EASY** to prune independently.
 
 ---
 
@@ -386,3 +411,4 @@ After user testing, use this priority to decide what to cut:
 | 8 | Replace theeemes with single colour scheme | HARD |
 | 9 | Remove Transfers (Loan Chain) if journey tracking not needed | EASY |
 | 10 | Remove Events (EVENT_THING) if event features not needed | EASY |
+| 11 | Remove Wishes (WISH_THING) if community wish lists not needed | EASY |

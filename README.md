@@ -77,7 +77,7 @@ core/
 |-------|---------|
 | **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords |
 | **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things) |
-| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). EVENT_THING uses `deal` M2M for attendance instead of bookings |
+| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). EVENT_THING uses `deal` M2M for attendance; WISH_THING uses `deal` M2M for help offers (both bypass bookings). WISH_THING is restricted to COMMUNITY collections |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 HDS colour token names) for customising collections |
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
@@ -146,6 +146,8 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | GET | `/api/v1/things/{code}/transfers/` | View transfer history and stats (Loan Chain) |
 | POST | `/api/v1/things/{code}/attend/` | Toggle attendance for EVENT_THING |
 | GET | `/api/v1/things/{code}/attendees/` | List attendees for EVENT_THING |
+| POST | `/api/v1/things/{code}/offer-help/` | Toggle "I can help" for WISH_THING |
+| GET | `/api/v1/things/{code}/helpers/` | List helpers for WISH_THING |
 | GET | `/api/v1/invited-things/` | List things from invited collections |
 
 ### Bookings

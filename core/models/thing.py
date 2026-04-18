@@ -26,6 +26,7 @@ class Thing(models.Model):
         ("LEND_THING", "Lend Thing"),
         ("SHARE_THING", "Share Thing"),
         ("EVENT_THING", "Event Thing"),
+        ("WISH_THING", "Wish Thing"),
     ]
 
     STATUS_CHOICES = [

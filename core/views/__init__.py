@@ -5,6 +5,7 @@ from .faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListVi
 from .theeemes import TheeemeListView
 from .things import InvitedThingsView, ThingViewSet
 from .events import EventAttendView, EventAttendeesView
+from .wishes import WishOfferHelpView, WishHelpersView
 from .transfers import ThingTransferView
 from .users import UserDetailView
 
@@ -29,4 +30,6 @@ __all__ = [
     "ThingTransferView",
     "EventAttendView",
     "EventAttendeesView",
+    "WishOfferHelpView",
+    "WishHelpersView",
 ]

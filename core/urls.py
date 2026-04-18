@@ -35,6 +35,7 @@ from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
 from .views.events import EventAttendView, EventAttendeesView
+from .views.wishes import WishOfferHelpView, WishHelpersView
 from .views.transfers import ThingTransferView
 from .views.upload import CloudinarySignatureView
 from .views.users import UserDetailView
@@ -105,6 +106,16 @@ urlpatterns = [
         "things/<str:thing_code>/attendees/",
         EventAttendeesView.as_view(),
         name="event-attendees",
+    ),
+    path(
+        "things/<str:thing_code>/offer-help/",
+        WishOfferHelpView.as_view(),
+        name="wish-offer-help",
+    ),
+    path(
+        "things/<str:thing_code>/helpers/",
+        WishHelpersView.as_view(),
+        name="wish-helpers",
     ),
     # Bookings
     path("my-bookings/", MyBookingsView.as_view(), name="my-bookings"),

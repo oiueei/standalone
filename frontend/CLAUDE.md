@@ -136,11 +136,11 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
 
 - **Card**: the component uses HDS `Card` (a `<div>`-based container) instead of `Linkbox`, since it contains interactive elements (buttons, links). The thumbnail and headline are wrapped in `<Link>` components for navigation to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). No `stopPropagation` hacks needed.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
-  - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Event.
+  - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Event, Wish.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
-- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), event date (`IconCalendar`, for EVENT_THING), attendee count (`IconHome`, for EVENT_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — displays "N homes" using `transfers.homesCount` i18n key). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
+- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), event date (`IconCalendar`, for EVENT_THING), attendee count (`IconHome`, for EVENT_THING), helper count (`IconHome`, for WISH_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — displays "N homes" using `transfers.homesCount` i18n key). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
 - **Owner bookings display**: fetches `GET /api/v1/things/{code}/calendar/` on mount for date-based/order types and for any TAKEN thing (GIFT/SELL with a pending request). Shows future pending and confirmed bookings with requester name, request date, date ranges/delivery info, and status. Bookings with no dates (GIFT/SELL) are always shown regardless of date. The active pending booking is tracked in local `activePendingCode` state (initialised from `thing.pending_booking`, then synced to the first PENDING from the calendar on load) and marked bold with `*` when multiple pending exist.
 - **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
 - **Owner button matrix** (based on `thing.status`):
@@ -148,7 +148,8 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `ACTIVE` (date-based/order with pending hold): "Confirm hold" (primary) + "Cancel hold" (secondary) targeting `activePendingCode`, then "Edit" (secondary).
   - `TAKEN`: "Confirm hold" (primary), "Cancel hold" (secondary), "Edit" (secondary). After each accept/cancel, `activePendingCode` advances to the next pending.
   - `INACTIVE`: "Reactivate" (primary, calls `POST /api/v1/things/{code}/activate/`), "Edit" (secondary), "Delete" (secondary, navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`).
-- **Reservation button** logic (non-owners only):
+- **Wish help button** (non-owners, WISH_THING only): "I can help"/"Helping" toggle button. Calls `POST /api/v1/things/{code}/offer-help/`.
+- **Reservation button** logic (non-owners, non-event, non-wish only):
   - `ACTIVE`: enabled "Hold" button.
   - `TAKEN`: disabled button. Label is "Waiting for confirmation" if `thing.my_pending_booking` (or local `requested` state) is set, otherwise "Reserved".
   - `INACTIVE`: not shown (guests cannot see INACTIVE things).
@@ -162,7 +163,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
 
 Detail page for a thing with full information and FAQs section.
 
-- **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/faq/` (FAQs), `POST /api/v1/things/{thingCode}/faq/` (ask question), `POST /api/v1/faq/{faqCode}/answer/` (answer), `POST /api/v1/faq/{faqCode}/hide/` and `/show/` (toggle visibility), `GET /api/v1/things/{thingCode}/transfers/` (transfer history), `GET /api/v1/things/{thingCode}/attendees/` (event attendees), `POST /api/v1/things/{thingCode}/attend/` (toggle attendance)
+- **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/faq/` (FAQs), `POST /api/v1/things/{thingCode}/faq/` (ask question), `POST /api/v1/faq/{faqCode}/answer/` (answer), `POST /api/v1/faq/{faqCode}/hide/` and `/show/` (toggle visibility), `GET /api/v1/things/{thingCode}/transfers/` (transfer history), `GET /api/v1/things/{thingCode}/attendees/` (event attendees), `POST /api/v1/things/{thingCode}/attend/` (toggle attendance), `GET /api/v1/things/{thingCode}/helpers/` (wish helpers), `POST /api/v1/things/{thingCode}/offer-help/` (toggle help offer)
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Pending questions).
@@ -176,7 +177,8 @@ Detail page for a thing with full information and FAQs section.
   - `INACTIVE`: "Reactivate" (primary) + "Edit" (secondary) + "Delete" (secondary).
   - Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
 - **Event attendance:** For EVENT_THING, non-owners see "Attend"/"Attending" toggle button instead of "Hold". Calls `POST /api/v1/things/{code}/attend/`. Attendees section shows list of attendees fetched from `GET /api/v1/things/{code}/attendees/`.
-- **Reservation:** For non-event types, non-owners see "Hold" button. GIFT/SELL types submit directly; date-based and order types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`.
+- **Wish help:** For WISH_THING, non-owners see "I can help"/"Helping" toggle button. Calls `POST /api/v1/things/{code}/offer-help/`. Helpers section shows list of helpers fetched from `GET /api/v1/things/{code}/helpers/`.
+- **Reservation:** For non-event/non-wish types, non-owners see "Hold" button. GIFT/SELL types submit directly; date-based and order types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
   - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
@@ -246,7 +248,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type, `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING only shown when collection is COMMUNITY), `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -332,6 +334,7 @@ Detail page for a thing with full information and FAQs section.
 Central source of truth for thing type definitions. Display labels are handled by i18n — use `t('types.GIFT_THING')` etc.
 - `TYPE_VALUES` — Array of type value strings (no labels — labels come from i18n).
 - `EVENT_TYPE` — `EVENT_THING` constant (used for event-specific UI logic).
+- `WISH_TYPE` — `WISH_THING` constant (used for wish-specific UI logic).
 - `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`).
 - `ORDER_TYPE` — `ORDER_THING` constant.
 - `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`, `ORDER_THING`).
