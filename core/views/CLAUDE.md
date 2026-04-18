@@ -474,7 +474,7 @@ Lists all available theeemes. Returns `code` and `name` for each theeeme via `Th
 | **Endpoint** | `GET /api/v1/things/{thing_code}/calendar/` |
 | **Permission** | `IsAuthenticated` + `thing.can_view()` |
 
-Returns blocked periods for a thing's calendar. Owner sees full details (`BookingPeriodOwnerCalendarSerializer`), guests see only dates and status (`BookingPeriodCalendarSerializer`).
+Returns blocked periods for a thing's calendar. Owner sees full details (`BookingPeriodOwnerCalendarSerializer`), guests see only dates and status (`BookingPeriodCalendarSerializer`). For ASSET_THING, all users who can view the thing see full details (owner calendar serializer) — this enables shared calendar visibility.
 
 ### MyBookingsView
 
@@ -551,7 +551,18 @@ Rejects a pending booking. Same permission and validation as accept. Calls `reje
 
 Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THING (these types bypass BookingPeriod). Routes based on thing type:
 
-**Date-based (LEND/RENT/SHARE):**
+**Hourly (ASSET_THING with booking_unit=HOUR):**
+- Requires `start_date`, `start_time`, and `end_time`.
+- Creates a same-day booking (`start_date == end_date`) with time range.
+- Checks for time-range overlap via `BookingPeriod.has_overlap()` with time params. Returns 409 if conflict.
+- Thing stays `ACTIVE`.
+
+**Request body:**
+```json
+{ "start_date": "2025-06-01", "start_time": "09:00", "end_time": "12:00" }
+```
+
+**Date-based (LEND/RENT/SHARE/ASSET_THING with booking_unit=DAY):**
 - Requires `start_date` and `end_date`.
 - Checks for overlap via `BookingPeriod.has_overlap()`. Returns 409 if conflict.
 - Thing stays `ACTIVE` (multiple bookings for different date ranges allowed).
@@ -632,6 +643,41 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 3. Queries all transfers for the thing, ordered by `-lent_date`.
 4. Computes `unique_homes` (distinct user codes across all `from_user` and `to_user` fields).
 5. Computes `current_holder` from the most recent unreturned transfer's `to_user`.
+
+## Stats Views (`core/views/stats.py`)
+
+### ThingStatsView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/things/{thing_code}/stats/` |
+| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+
+Returns aggregated usage statistics for a thing, based on ACCEPTED bookings. Primarily designed for ASSET_THING but works for any thing type.
+
+**Response (200):**
+```json
+{
+  "total_bookings": 12,
+  "unique_users": 4,
+  "monthly_usage": [
+    {
+      "month": "2026-04",
+      "user_code": "ABC123",
+      "user_name": "Lala",
+      "bookings": 3
+    }
+  ]
+}
+```
+
+**Behaviour:**
+1. Looks up thing by `thing_code`. Returns 404 if not found.
+2. Checks `thing.can_view(user_code)`. Returns 403 if not authorised.
+3. Aggregates ACCEPTED bookings using `TruncMonth` annotation, grouped by month and requester.
+4. Returns total booking count, unique user count, and per-user-per-month breakdown.
+
+---
 
 ## Event Views (`core/views/events.py`)
 

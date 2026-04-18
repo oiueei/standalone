@@ -46,6 +46,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "location",
             "condition",
             "event_date",
+            "booking_unit",
             "deal",
             "pending_booking",
             "my_pending_booking",
@@ -147,6 +148,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "location",
             "condition",
             "event_date",
+            "booking_unit",
         ]
 
 
@@ -171,5 +173,6 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "location",
             "condition",
             "event_date",
+            "booking_unit",
         ]
         read_only_fields = ["status"]

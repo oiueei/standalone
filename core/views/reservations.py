@@ -18,7 +18,11 @@ from rest_framework.views import APIView
 
 from core.models import RSVP, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
-from core.serializers.booking import ThingOrderSerializer, ThingRequestWithDatesSerializer
+from core.serializers.booking import (
+    ThingOrderSerializer,
+    ThingRequestWithDatesSerializer,
+    ThingRequestWithTimesSerializer,
+)
 from core.services.email_service import send_booking_confirmation_email, send_booking_request_email
 
 
@@ -84,7 +88,9 @@ class ThingRequestView(APIView):
             )
 
         # Route based on thing type
-        if thing.type in DATE_BASED_TYPES:
+        if thing.type == "ASSET_THING" and thing.booking_unit == "HOUR":
+            return self._handle_hourly_request(request, thing, owner_email)
+        elif thing.type in DATE_BASED_TYPES:
             return self._handle_date_based_request(request, thing, owner_email)
         elif thing.type in REPEATABLE_TYPES:
             return self._handle_order_request(request, thing, owner_email)
@@ -127,6 +133,56 @@ class ThingRequestView(APIView):
                 "booking_code": booking.code,
                 "start_date": str(start_date),
                 "end_date": str(end_date),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def _handle_hourly_request(self, request, thing, owner_email):
+        """Handle ASSET_THING hourly requests (single day + time range)."""
+        serializer = ThingRequestWithTimesSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        start_date = serializer.validated_data["start_date"]
+        start_time = serializer.validated_data["start_time"]
+        end_time = serializer.validated_data["end_time"]
+
+        with transaction.atomic():
+            Thing.objects.select_for_update().get(code=thing.code)
+
+            if BookingPeriod.has_overlap(
+                thing.code,
+                start_date,
+                start_date,
+                start_time=start_time,
+                end_time=end_time,
+            ):
+                return Response(
+                    {"error": "Selected time overlaps with existing booking"},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            booking = BookingPeriod.objects.create(
+                thing_code=thing,
+                thing_type=thing.type,
+                requester_code=request.user,
+                requester_email=request.user.email,
+                owner_code=thing.owner,
+                start_date=start_date,
+                end_date=start_date,
+                start_time=start_time,
+                end_time=end_time,
+            )
+
+        self._send_booking_email(request.user, thing, booking, owner_email)
+
+        return Response(
+            {
+                "message": "Booking request sent",
+                "booking_code": booking.code,
+                "start_date": str(start_date),
+                "start_time": str(start_time),
+                "end_time": str(end_time),
             },
             status=status.HTTP_200_OK,
         )

@@ -14,7 +14,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, ASSET_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -50,6 +50,9 @@ export default function ThingPage() {
 
   // Transfer state
   const [transfers, setTransfers] = useState(null);
+
+  // Stats state (for ASSET_THING)
+  const [stats, setStats] = useState(null);
 
   // Event state
   const [attendees, setAttendees] = useState(null);
@@ -121,11 +124,21 @@ export default function ThingPage() {
       } catch { /* silently fail */ }
     };
 
+    const fetchStats = async () => {
+      try {
+        const res = await apiFetch(`/api/v1/things/${thingCode}/stats/`);
+        if (res.ok) {
+          setStats(await res.json());
+        }
+      } catch { /* silently fail */ }
+    };
+
     fetchThing();
     fetchFaqs();
     fetchTransfers();
     fetchAttendees();
     fetchHelpers();
+    fetchStats();
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
@@ -138,10 +151,13 @@ export default function ThingPage() {
   }, [thing, userCode]);
 
   useEffect(() => {
-    if (!thing || !userCode || thing.owner !== userCode) return;
+    if (!thing || !userCode) return;
+    const isAssetThing = thing.type === ASSET_TYPE;
+    const ownerView = thing.owner === userCode;
+    if (!ownerView && !isAssetThing) return;
     const isDateBased = isDateType(thing.type);
     const isOrder = thing.type === ORDER_TYPE;
-    if (!isDateBased && !isOrder && thing.status !== 'TAKEN') return;
+    if (ownerView && !isDateBased && !isOrder && thing.status !== 'TAKEN') return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
@@ -175,6 +191,7 @@ export default function ThingPage() {
   const isOwner = thing.owner === userCode;
   const isEvent = thing.type === EVENT_TYPE;
   const isWish = thing.type === WISH_TYPE;
+  const isAsset = thing.type === ASSET_TYPE;
   const isDateBased = isDateType(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
@@ -501,11 +518,18 @@ export default function ThingPage() {
               <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           )}
+          {thing.type === ASSET_TYPE && thing.booking_unit && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('asset.bookingUnit')}</span>
+              <span>{thing.booking_unit === 'HOUR' ? t('asset.unitHour') : t('asset.unitDay')}</span>
+            </div>
+          )}
         </div>
 
 
-        {/* Owner bookings list */}
-        {isOwner && bookings.length > 0 && (() => {
+        {/* Owner / shared-asset bookings list */}
+        {(isOwner || isAsset) && bookings.length > 0 && (() => {
           const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
           return (
             <ul className="thing-card-bookings">
@@ -516,7 +540,12 @@ export default function ThingPage() {
                   <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
                     {b.requester_name && <>{b.requester_name}. </>}
                     {b.created && <>{new Date(b.created).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}. </>}
-                    {b.start_date && b.end_date && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
+                    {b.start_date && b.end_date && (
+                      <>
+                        {new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}
+                        {b.start_time && b.end_time && <> ({b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)})</>}
+                      </>
+                    )}
                     {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
                     {' '}
                     <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
@@ -788,6 +817,41 @@ export default function ThingPage() {
                 </li>
               ))}
             </ul>
+          </>
+        )}
+
+        {/* Usage statistics for ASSET_THING */}
+        {isAsset && stats && (
+          <>
+            <div className="spacer-m" />
+            <hr />
+            <div className="spacer-m" />
+            <h2>{t('asset.statsHeading')}</h2>
+            {stats.total_bookings === 0 ? (
+              <p>{t('asset.noStats')}</p>
+            ) : (
+              <>
+                <p>
+                  {t('asset.totalBookings', { count: stats.total_bookings })}
+                  {' · '}
+                  {t('asset.uniqueUsers', { count: stats.unique_users })}
+                </p>
+                {stats.monthly_usage && stats.monthly_usage.length > 0 && (
+                  <>
+                    <h3>{t('asset.monthlyHeading')}</h3>
+                    <ul className="thing-card-bookings">
+                      {stats.monthly_usage.map((m, i) => (
+                        <li key={i}>
+                          {new Date(m.month).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })}
+                          {' — '}
+                          {m.user_name}: {t('asset.bookingsLabel', { count: m.bookings })}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </>
+            )}
           </>
         )}
       </div>

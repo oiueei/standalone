@@ -351,7 +351,8 @@
     "LEND_THING": "Mailegua",
     "SHARE_THING": "Partekatzeko",
     "EVENT_THING": "Ekitaldia",
-    "WISH_THING": "Nahia"
+    "WISH_THING": "Nahia",
+    "ASSET_THING": "Baliabide partekatua"
   },
   "availability": {
     "IMMEDIATE": "Berehala",
@@ -400,6 +401,22 @@
     "helperCount_other": "{{count}} laguntzaile",
     "noHelpers": "Oraindik laguntzailerik ez.",
     "helpersHeading": "Laguntzaileak"
+  },
+  "asset": {
+    "bookingUnit": "Erreserba-unitatea",
+    "unitDay": "Eguna",
+    "unitHour": "Ordua",
+    "startTime": "Hasiera-ordua",
+    "endTime": "Amaiera-ordua",
+    "statsHeading": "Erabilera-estatistikak",
+    "totalBookings_one": "{{count}} erreserba",
+    "totalBookings_other": "{{count}} erreserba",
+    "uniqueUsers_one": "{{count}} erabiltzaile",
+    "uniqueUsers_other": "{{count}} erabiltzaile",
+    "noStats": "Oraindik erabilera-daturik ez.",
+    "monthlyHeading": "Hileko xehetasuna",
+    "bookingsLabel_one": "{{count}} erreserba",
+    "bookingsLabel_other": "{{count}} erreserba"
   },
   "broadcast": {
     "heading": "Hedapena",

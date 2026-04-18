@@ -351,7 +351,8 @@
     "LEND_THING": "Préstec",
     "SHARE_THING": "Compartir",
     "EVENT_THING": "Esdeveniment",
-    "WISH_THING": "Desig"
+    "WISH_THING": "Desig",
+    "ASSET_THING": "Recurs compartit"
   },
   "availability": {
     "IMMEDIATE": "Immediata",
@@ -400,6 +401,22 @@
     "helperCount_other": "{{count}} ajudants",
     "noHelpers": "Sense ajudants encara.",
     "helpersHeading": "Ajudants"
+  },
+  "asset": {
+    "bookingUnit": "Unitat de reserva",
+    "unitDay": "Dia",
+    "unitHour": "Hora",
+    "startTime": "Hora d'inici",
+    "endTime": "Hora de fi",
+    "statsHeading": "Estadístiques d'ús",
+    "totalBookings_one": "{{count}} reserva",
+    "totalBookings_other": "{{count}} reserves",
+    "uniqueUsers_one": "{{count}} usuari",
+    "uniqueUsers_other": "{{count}} usuaris",
+    "noStats": "Sense dades d'ús encara.",
+    "monthlyHeading": "Desglossament mensual",
+    "bookingsLabel_one": "{{count}} reserva",
+    "bookingsLabel_other": "{{count}} reserves"
   },
   "broadcast": {
     "heading": "Difusió",

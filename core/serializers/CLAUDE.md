@@ -70,16 +70,16 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `ThingSerializer` | code, type, owner, owner_name, created, headline, description, thumbnail/url, status, faqs, fee, availability, location, condition, event_date, deal, pending_booking, my_pending_booking, pending_questions, collection_code, collection_headline, transfer_count, attendee_count, helper_count | Full read representation. `owner_name` returns owner's name (falls back to email). `pending_booking` returns first PENDING booking code (owner use). `my_pending_booking` returns the requesting user's own PENDING booking code (or null) — used by guests to distinguish "Reserved" vs "Waiting for confirmation". `collection_code/headline` from first associated collection. `attendee_count` returns deal count for EVENT_THING, null otherwise. `helper_count` returns deal count for WISH_THING, null otherwise. |
-| `ThingCreateSerializer` | type, headline, description, thumbnail, fee, availability, location, condition, event_date | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`. `location` uses `SafeHeadlineField(max_length=32)`. |
-| `ThingUpdateSerializer` | type, headline, description, thumbnail, status (read-only), fee, availability, location, condition, event_date | Same validation fields. `status` is read-only (changed by booking flow or dedicated activate/hide endpoints). |
+| `ThingSerializer` | code, type, owner, owner_name, created, headline, description, thumbnail/url, status, faqs, fee, availability, location, condition, event_date, booking_unit, deal, pending_booking, my_pending_booking, pending_questions, collection_code, collection_headline, transfer_count, attendee_count, helper_count | Full read representation. `owner_name` returns owner's name (falls back to email). `pending_booking` returns first PENDING booking code (owner use). `my_pending_booking` returns the requesting user's own PENDING booking code (or null) — used by guests to distinguish "Reserved" vs "Waiting for confirmation". `collection_code/headline` from first associated collection. `attendee_count` returns deal count for EVENT_THING, null otherwise. `helper_count` returns deal count for WISH_THING, null otherwise. `booking_unit` is DAY or HOUR for ASSET_THING. |
+| `ThingCreateSerializer` | type, headline, description, thumbnail, fee, availability, location, condition, event_date, booking_unit | Uses `SafeHeadlineField`, `SafeTextField`, `ImageIdField`. `location` uses `SafeHeadlineField(max_length=32)`. |
+| `ThingUpdateSerializer` | type, headline, description, thumbnail, status (read-only), fee, availability, location, condition, event_date, booking_unit | Same validation fields. `status` is read-only (changed by booking flow or dedicated activate/hide endpoints). |
 
 ### `collection.py`
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
 | `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, mode, digest_frequency, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
-| `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, event_date, thumbnail_url, pending_booking, my_pending_booking, pending_questions, transfer_count, attendee_count, helper_count, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. `attendee_count` returns deal count for EVENT_THING, null otherwise. `helper_count` returns deal count for WISH_THING, null otherwise. Request context is forwarded from `CollectionSerializer.get_things()`. |
+| `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, event_date, booking_unit, thumbnail_url, pending_booking, my_pending_booking, pending_questions, transfer_count, attendee_count, helper_count, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. `attendee_count` returns deal count for EVENT_THING, null otherwise. `helper_count` returns deal count for WISH_THING, null otherwise. `booking_unit` is DAY or HOUR for ASSET_THING. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
 | `CollectionCreateSerializer` | headline, description, mode, digest_frequency | Input for collection creation. |
 | `CollectionUpdateSerializer` | headline, description, status, mode, digest_frequency | Input for collection updates. |
@@ -93,12 +93,13 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `BookingPeriodSerializer` | code, created, thing_code, thing_headline, thing_type, requester_code, requester_name, requester_email, owner_code, start_date, end_date, delivery_date, quantity, status | Full booking for owner view. Uses `source` to traverse FK relations. |
-| `BookingPeriodCalendarSerializer` | start_date, end_date, status | Minimal calendar view for guests (no requester info). |
-| `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, delivery_date, quantity, status | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. |
-| `ThingRequestWithDatesSerializer` | start_date, end_date | Plain `Serializer` for LEND/RENT/SHARE requests. Validates start >= today, end >= start. |
+| `BookingPeriodSerializer` | code, created, thing_code, thing_headline, thing_type, requester_code, requester_name, requester_email, owner_code, start_date, end_date, start_time, end_time, delivery_date, quantity, status | Full booking for owner view. Uses `source` to traverse FK relations. `start_time`/`end_time` for hourly ASSET_THING bookings. |
+| `BookingPeriodCalendarSerializer` | start_date, end_date, start_time, end_time, status | Minimal calendar view for guests (no requester info). Includes time fields for hourly bookings. |
+| `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, start_time, end_time, delivery_date, quantity, status | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. Includes time fields for hourly bookings. |
+| `ThingRequestWithDatesSerializer` | start_date, end_date | Plain `Serializer` for LEND/RENT/SHARE/ASSET(DAY) requests. Validates start >= today, end >= start. |
+| `ThingRequestWithTimesSerializer` | start_date, start_time, end_time | Plain `Serializer` for ASSET(HOUR) requests. Validates start_date >= today, end_time > start_time. |
 | `ThingOrderSerializer` | delivery_date, quantity (1-99) | Plain `Serializer` for ORDER requests. Validates delivery >= today. |
-| `MyBookingSerializer` | code, created, thing_code, thing_headline, thing_type, owner_code, owner_name, start_date, end_date, delivery_date, quantity, status | Requester's own booking view. `owner_name` falls back to email. |
+| `MyBookingSerializer` | code, created, thing_code, thing_headline, thing_type, owner_code, owner_name, start_date, end_date, start_time, end_time, delivery_date, quantity, status | Requester's own booking view. `owner_name` falls back to email. Includes time fields for hourly bookings. |
 
 ### `faq.py`
 

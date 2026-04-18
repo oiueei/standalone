@@ -27,6 +27,12 @@ class Thing(models.Model):
         ("SHARE_THING", "Share Thing"),
         ("EVENT_THING", "Event Thing"),
         ("WISH_THING", "Wish Thing"),
+        ("ASSET_THING", "Asset Thing"),
+    ]
+
+    BOOKING_UNIT_CHOICES = [
+        ("DAY", "Day"),
+        ("HOUR", "Hour"),
     ]
 
     STATUS_CHOICES = [
@@ -72,6 +78,9 @@ class Thing(models.Model):
     location = models.CharField(max_length=32, blank=True, default="")
     condition = models.CharField(max_length=12, choices=CONDITION_CHOICES, blank=True, default="")
     event_date = models.DateTimeField(null=True, blank=True)
+    booking_unit = models.CharField(
+        max_length=4, choices=BOOKING_UNIT_CHOICES, blank=True, default=""
+    )
     deal = models.ManyToManyField(
         "User",
         blank=True,

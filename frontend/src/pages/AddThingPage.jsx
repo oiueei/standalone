@@ -9,7 +9,7 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, ASSET_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -40,6 +40,7 @@ export default function AddThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [bookingUnit, setBookingUnit] = useState('DAY');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -89,6 +90,9 @@ export default function AddThingPage() {
     }
     if (type === EVENT_TYPE && eventDate) {
       body.event_date = new Date(eventDate).toISOString();
+    }
+    if (type === ASSET_TYPE) {
+      body.booking_unit = bookingUnit;
     }
 
     try {
@@ -175,6 +179,18 @@ export default function AddThingPage() {
               type="datetime-local"
               value={eventDate}
               onChange={(e) => setEventDate(e.target.value)}
+            />
+          )}
+          {type === ASSET_TYPE && (
+            <Select
+              id="add-thing-booking-unit"
+              texts={{ label: t('asset.bookingUnit') }}
+              options={[
+                { label: t('asset.unitDay'), value: 'DAY' },
+                { label: t('asset.unitHour'), value: 'HOUR' },
+              ]}
+              value={bookingUnit}
+              onChange={(sel) => sel.length > 0 && setBookingUnit(sel[0].value)}
             />
           )}
           {FEE_TYPES.includes(type) && (

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, DateInput, Koros, Notification, NumberInput } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE } from '../constants/things';
+import { Button, DateInput, Koros, Notification, NumberInput, TextInput } from 'hds-react';
+import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -33,6 +33,8 @@ export default function RequestThingPage() {
   const [endDate, setEndDate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -74,9 +76,13 @@ export default function RequestThingPage() {
 
     const isDateBased = thing && DATE_TYPES.includes(thing.type);
     const isOrder = thing && thing.type === ORDER_TYPE;
+    const isHourly = thing && thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR';
 
     let body = {};
-    if (isDateBased) {
+    if (isHourly) {
+      if (!startDate || !startTime || !endTime) return;
+      body = { start_date: startDate, start_time: startTime, end_time: endTime };
+    } else if (isDateBased) {
       if (!startDate || !endDate) return;
       body = { start_date: startDate, end_date: endDate };
     } else if (isOrder) {
@@ -125,6 +131,7 @@ export default function RequestThingPage() {
 
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
+  const isHourly = thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR';
 
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
   const btnStyle = tc.color_01 ? {
@@ -174,7 +181,48 @@ export default function RequestThingPage() {
       ) : (
       <>
       {thing.fee && <p><strong>{t('request.priceLabel')}</strong> {t('request.priceValue', { fee: thing.fee })}</p>}
-      <div className="spacer-m" />      {isDateBased && (
+      <div className="spacer-m" />      {isHourly && (
+        <div className="summary-grid section-mt">
+          <DateInput
+            id="request-start-date"
+            label={t('request.startLabel')}
+            value={startDate}
+            onChange={(value) => setStartDate(value)}
+            dateFormat="yyyy-MM-dd"
+            language="en"
+            required
+            invalid={attempted && !startDate}
+            errorText={attempted && !startDate ? t('request.startRequired') : undefined}
+            minDate={TODAY}
+            maxDate={MAX_DATE}
+            dateOutsideRangeErrorText={t('request.dateRange')}
+            isDateDisabledBy={isDateBlocked}
+          />
+          <div className="spacer-xxxs" />
+          <TextInput
+            id="request-start-time"
+            label={t('asset.startTime')}
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            required
+            invalid={attempted && !startTime}
+            errorText={attempted && !startTime ? t('asset.startTime') : undefined}
+          />
+          <div className="spacer-xxxs" />
+          <TextInput
+            id="request-end-time"
+            label={t('asset.endTime')}
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            required
+            invalid={attempted && !endTime}
+            errorText={attempted && !endTime ? t('asset.endTime') : undefined}
+          />
+        </div>
+      )}
+      {isDateBased && !isHourly && (
         <div className="summary-grid section-mt">
           <DateInput
             id="request-start-date"

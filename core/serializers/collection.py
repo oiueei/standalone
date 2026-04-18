@@ -36,6 +36,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "location",
             "condition",
             "event_date",
+            "booking_unit",
             "thumbnail_url",
             "pending_booking",
             "my_pending_booking",

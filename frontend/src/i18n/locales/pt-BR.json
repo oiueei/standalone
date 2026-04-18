@@ -351,7 +351,8 @@
     "LEND_THING": "Empréstimo",
     "SHARE_THING": "Compartilhar",
     "EVENT_THING": "Evento",
-    "WISH_THING": "Pedido"
+    "WISH_THING": "Pedido",
+    "ASSET_THING": "Recurso compartilhado"
   },
   "availability": {
     "IMMEDIATE": "Imediata",
@@ -400,6 +401,22 @@
     "helperCount_other": "{{count}} ajudantes",
     "noHelpers": "Sem ajudantes ainda.",
     "helpersHeading": "Ajudantes"
+  },
+  "asset": {
+    "bookingUnit": "Unidade de reserva",
+    "unitDay": "Dia",
+    "unitHour": "Hora",
+    "startTime": "Hora de início",
+    "endTime": "Hora de fim",
+    "statsHeading": "Estatísticas de uso",
+    "totalBookings_one": "{{count}} reserva",
+    "totalBookings_other": "{{count}} reservas",
+    "uniqueUsers_one": "{{count}} usuário",
+    "uniqueUsers_other": "{{count}} usuários",
+    "noStats": "Sem dados de uso ainda.",
+    "monthlyHeading": "Detalhamento mensal",
+    "bookingsLabel_one": "{{count}} reserva",
+    "bookingsLabel_other": "{{count}} reservas"
   },
   "broadcast": {
     "heading": "Difusão",

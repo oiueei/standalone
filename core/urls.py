@@ -34,6 +34,7 @@ from .views.collections import (
 from .views.events import EventAttendeesView, EventAttendView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
+from .views.stats import ThingStatsView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
 from .views.transfers import ThingTransferView
@@ -102,6 +103,11 @@ urlpatterns = [
         "things/<str:thing_code>/transfers/",
         ThingTransferView.as_view(),
         name="thing-transfers",
+    ),
+    path(
+        "things/<str:thing_code>/stats/",
+        ThingStatsView.as_view(),
+        name="thing-stats",
     ),
     path(
         "things/<str:thing_code>/attend/",

@@ -2,7 +2,7 @@
 
 This document maps every feature to its full dependency chain across the codebase. Its purpose is to make **pruning safe**: when user testing reveals which features matter, this map tells you exactly what to remove (and what to keep) for each one.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-18
 
 ---
 
@@ -110,6 +110,7 @@ Each thing type can potentially be pruned independently:
 | `RENT_THING` | Date-based, stays ACTIVE | fee, availability, location, condition | Yes |
 | `SHARE_THING` | Date-based, stays ACTIVE | availability, location, condition | Yes |
 | `ORDER_THING` | Repeatable, delivery_date + quantity | fee, delivery_date, quantity | Yes |
+| `ASSET_THING` | Date-based (DAY or HOUR), stays ACTIVE, shared calendar | booking_unit, start_time/end_time (hourly) | Yes (see sub-feature below) |
 
 **To remove a type:** update `Thing.THING_TYPES` choices, `BookingPeriod` category lists (`DATE_BASED_TYPES`, `SINGLE_USE_TYPES`, `REPEATABLE_TYPES`), frontend `constants/things.js`, i18n keys, and serializer conditional logic.
 
@@ -163,7 +164,33 @@ Adds a new thing type for community wish lists. WISH_THING bypasses BookingPerio
 
 **To prune:** Remove `WISH_THING` from TYPE_CHOICES, delete `core/views/wishes.py`, remove reservation guard for WISH_THING, remove COMMUNITY restriction from `perform_create`, remove offer-help/helpers URL routes, remove `helper_count` from serializers, remove `WISH_TYPE` from constants, remove wish-specific UI from ThingLinkbox/ThingPage/AddThingPage, remove `wishes.*` i18n keys.
 
-### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events and Wishes sub-features are **EASY** to prune independently.
+### Sub-feature: Shared Assets (ASSET_THING)
+
+Adds a new thing type for shared resources (meeting rooms, projectors, vehicles). ASSET_THING uses BookingPeriod with either day-based or hourly booking granularity. The calendar is shared — all invitees see full booking details (not just the owner). Includes usage statistics.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Model** | `core/models/thing.py` | `ASSET_THING` in TYPE_CHOICES, `booking_unit` CharField (DAY/HOUR) |
+| **Model** | `core/models/booking.py` | `ASSET_THING` in `DATE_BASED_TYPES`, `start_time`/`end_time` TimeFields on BookingPeriod, `has_overlap()` extended with time params |
+| **Views** | `core/views/reservations.py` | `_handle_hourly_request()` for ASSET_THING with HOUR booking_unit |
+| **Views** | `core/views/booking.py` | Calendar view returns owner serializer to all users for ASSET_THING |
+| **Views** | `core/views/stats.py` | `ThingStatsView` (GET usage stats) |
+| **Serializers** | `core/serializers/thing.py` | `booking_unit` field on ThingSerializer, ThingCreateSerializer, ThingUpdateSerializer |
+| **Serializers** | `core/serializers/collection.py` | `booking_unit` field on CollectionThingSummarySerializer |
+| **Serializers** | `core/serializers/booking.py` | `start_time`/`end_time` on all booking serializers, `ThingRequestWithTimesSerializer` |
+| **URLs** | `core/urls.py` | `things/<code>/stats/` |
+| **Migration** | `core/migrations/0057_add_asset_thing.py` | Adds `booking_unit`, `start_time`, `end_time` fields |
+| **Tests** | `core/tests/integration/test_asset_things.py` | 16 integration tests |
+| **Frontend** | `ThingLinkbox` | Booking unit info row, shared calendar for guests, time display for hourly bookings |
+| **Frontend** | `ThingPage` | Booking unit info row, shared calendar + bookings for guests, usage stats section |
+| **Frontend** | `AddThingPage`, `EditThingPage` | Booking unit Select component |
+| **Frontend** | `RequestThingPage` | Hourly booking form (date + start/end time) |
+| **Frontend** | `src/constants/things.js` | `ASSET_TYPE` constant, `ASSET_THING` in TYPE_VALUES and DATE_TYPES |
+| **Frontend** | `src/i18n/locales/*.json` | `asset.*` i18n keys in all 7 locales |
+
+**To prune:** Remove `ASSET_THING` from TYPE_CHOICES and `DATE_BASED_TYPES`, remove `booking_unit` from Thing model, remove `start_time`/`end_time` from BookingPeriod (migration needed), delete `core/views/stats.py`, remove hourly handler from reservations view, revert calendar view shared access, remove `ThingRequestWithTimesSerializer`, remove `booking_unit`/time fields from serializers, remove stats URL route, remove `ASSET_TYPE` from constants, remove asset-specific UI from ThingLinkbox/ThingPage/AddThingPage/EditThingPage/RequestThingPage, remove `asset.*` i18n keys.
+
+### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events, Wishes, and Assets sub-features are **EASY** to prune independently.
 
 ---
 
@@ -478,3 +505,4 @@ After user testing, use this priority to decide what to cut:
 | 12 | Remove Broadcast if owner messaging not needed | TRIVIAL |
 | 13 | Remove Reminders if automated notifications not needed | TRIVIAL |
 | 14 | Remove Digests if periodic summaries not needed | EASY |
+| 15 | Remove Shared Assets (ASSET_THING) if shared resource booking not needed | EASY |

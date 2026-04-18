@@ -244,8 +244,10 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 | `requester_code` | ForeignKey(User) | **Yes** | User who made the request |
 | `requester_email` | CharField(64) | **Yes** | Email of the requester |
 | `owner_code` | ForeignKey(User) | **Yes** | Owner of the thing |
-| `start_date` | DateField | No | Start date (for LEND/RENT/SHARE) |
-| `end_date` | DateField | No | End date (for LEND/RENT/SHARE) |
+| `start_date` | DateField | No | Start date (for LEND/RENT/SHARE/ASSET) |
+| `end_date` | DateField | No | End date (for LEND/RENT/SHARE/ASSET) |
+| `start_time` | TimeField | No | Start time (for ASSET_THING hourly bookings only) |
+| `end_time` | TimeField | No | End time (for ASSET_THING hourly bookings only) |
 | `delivery_date` | DateField | No | Delivery date (for ORDER_THING) |
 | `quantity` | PositiveIntegerField | No | Quantity ordered (for ORDER_THING) |
 | `status` | CharField(9) | No | Status: PENDING, ACCEPTED, REJECTED, CANCELLED, EXPIRED. Indexed (`db_index=True`) |
@@ -253,7 +255,7 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 ### Thing Type Categories
 
 ```python
-DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "SHARE_THING"]  # Require dates
+DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "SHARE_THING", "ASSET_THING"]  # Require dates
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]  # Thing becomes INACTIVE after acceptance
 REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 ```
@@ -261,7 +263,7 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 ### Business Rules
 
 1. **72h expiry** - PENDING bookings expire after `BOOKING_EXPIRY_HOURS` (default 72h).
-2. **Date-based (LEND/RENT/SHARE)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE.
+2. **Date-based (LEND/RENT/SHARE/ASSET)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE. ASSET_THING with `booking_unit=HOUR` also requires `start_time`/`end_time` and uses same-day booking with time-range overlap detection.
 3. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept.
 4. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
 5. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
@@ -275,7 +277,7 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 
 ### Class Methods
 
-- `has_overlap(thing_code, start_date, end_date, exclude_booking_code)` - Check for date conflicts
+- `has_overlap(thing_code, start_date, end_date, exclude_booking_code, start_time=None, end_time=None)` - Check for date (and optionally time) conflicts. When `start_time`/`end_time` are provided, additionally filters by time-range overlap on bookings that have non-null time fields.
 - `get_blocked_periods(thing_code)` - Get all PENDING/ACCEPTED bookings
 - `expire_old_pending()` - Batch expire stale PENDING bookings (used by `manage.py expire_bookings`). For single-use types (GIFT/SELL), also restores the Thing to `ACTIVE` within the same transaction — prevents things getting permanently stuck in `TAKEN` after booking expiry.
 
@@ -290,7 +292,7 @@ The `Thing` model represents an item in a collection.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
-| `type` | CharField(16) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING |
+| `type` | CharField(16) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING |
 | `owner` | ForeignKey(User) | **Yes** | Owner of the thing |
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |
@@ -302,6 +304,7 @@ The `Thing` model represents an item in a collection.
 | `location` | CharField(32) | No | Free-text location. Only for GIFT/SELL/LEND/SHARE types. |
 | `condition` | CharField(12) | No | Condition: NEW, GOOD, FAIR, USED, WELL_USED, ALMOST_JUNK. Only for GIFT/SELL/LEND/SHARE types. |
 | `event_date` | DateTimeField | No | Date/time for EVENT_THING (null for other types) |
+| `booking_unit` | CharField(4) | No | Booking granularity for ASSET_THING: DAY or HOUR (default: empty) |
 | `deal` | ManyToManyField(User) | No | Users who have reserved. For EVENT_THING: attendees. For WISH_THING: helpers |
 
 ### Status

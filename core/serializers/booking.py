@@ -32,6 +32,8 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "owner_code",
             "start_date",
             "end_date",
+            "start_time",
+            "end_time",
             "delivery_date",
             "quantity",
             "status",
@@ -58,6 +60,8 @@ class BookingPeriodCalendarSerializer(serializers.ModelSerializer):
         fields = [
             "start_date",
             "end_date",
+            "start_time",
+            "end_time",
             "status",
         ]
 
@@ -77,6 +81,8 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
             "requester_name",
             "start_date",
             "end_date",
+            "start_time",
+            "end_time",
             "delivery_date",
             "quantity",
             "status",
@@ -108,6 +114,28 @@ class ThingRequestWithDatesSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     {"end_date": "End date must be on or after start date"}
                 )
+        return data
+
+
+class ThingRequestWithTimesSerializer(serializers.Serializer):
+    """Serializer for ASSET_THING hourly requests (date + start_time + end_time)."""
+
+    start_date = serializers.DateField()
+    start_time = serializers.TimeField()
+    end_time = serializers.TimeField()
+
+    def validate_start_date(self, value):
+        """Validate that start_date is today or in the future."""
+        if value < date.today():
+            raise serializers.ValidationError("Start date must be today or in the future")
+        return value
+
+    def validate(self, data):
+        """Validate that end_time is after start_time."""
+        start_time = data.get("start_time")
+        end_time = data.get("end_time")
+        if start_time and end_time and end_time <= start_time:
+            raise serializers.ValidationError({"end_time": "End time must be after start time"})
         return data
 
 
@@ -144,6 +172,8 @@ class MyBookingSerializer(serializers.ModelSerializer):
             "owner_name",
             "start_date",
             "end_date",
+            "start_time",
+            "end_time",
             "delivery_date",
             "quantity",
             "status",

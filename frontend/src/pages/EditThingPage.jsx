@@ -9,7 +9,7 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, ASSET_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -41,6 +41,7 @@ export default function EditThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [bookingUnit, setBookingUnit] = useState('DAY');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -70,6 +71,7 @@ export default function EditThingPage() {
             const d = new Date(data.event_date);
             setEventDate(d.toISOString().slice(0, 16));
           }
+          if (data.booking_unit) setBookingUnit(data.booking_unit);
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
@@ -117,6 +119,9 @@ export default function EditThingPage() {
     }
     if (thingType === EVENT_TYPE) {
       body.event_date = eventDate ? new Date(eventDate).toISOString() : null;
+    }
+    if (thingType === ASSET_TYPE) {
+      body.booking_unit = bookingUnit;
     }
 
     try {
@@ -196,6 +201,18 @@ export default function EditThingPage() {
             type="datetime-local"
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
+          />
+        )}
+        {thingType === ASSET_TYPE && (
+          <Select
+            id="edit-thing-booking-unit"
+            texts={{ label: t('asset.bookingUnit') }}
+            options={[
+              { label: t('asset.unitDay'), value: 'DAY' },
+              { label: t('asset.unitHour'), value: 'HOUR' },
+            ]}
+            value={bookingUnit}
+            onChange={(sel) => sel.length > 0 && setBookingUnit(sel[0].value)}
           />
         )}
         {FEE_TYPES.includes(thingType) && (

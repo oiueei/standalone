@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, ASSET_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -54,8 +54,13 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
 
   const [bookings, setBookings] = useState([]);
 
+  const isAsset = thing.type === ASSET_TYPE;
+
   useEffect(() => {
-    if (!isOwner || (!isDateBased && !isOrder && thing.status !== 'TAKEN')) return;
+    const shouldFetch = isOwner
+      ? (isDateBased || isOrder || thing.status === 'TAKEN')
+      : isAsset;
+    if (!shouldFetch) return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
@@ -72,7 +77,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         setActivePendingCode(firstPending?.code || null);
       })
       .catch(() => {});
-  }, [thing.code, thing.status, isOwner, isDateBased, isOrder]);
+  }, [thing.code, thing.status, isOwner, isDateBased, isOrder, isAsset]);
 
   const handleRequest = async () => {
     setSubmitting(true);
@@ -289,6 +294,13 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           )}
+          {isAsset && thing.booking_unit && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('asset.bookingUnit')}</span>
+              <span>{thing.booking_unit === 'HOUR' ? t('asset.unitHour') : t('asset.unitDay')}</span>
+            </div>
+          )}
           {isEvent && (
             <div className="thing-card-info-row">
               <IconHome size="m" aria-hidden="true" />
@@ -308,7 +320,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             </div>
           )}
         </div>
-        {isOwner && bookings.length > 0 && (() => {
+        {(isOwner || isAsset) && bookings.length > 0 && (() => {
           const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
           return (
             <ul className="thing-card-bookings">
@@ -319,7 +331,8 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                   <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
                     {b.requester_name && <>{b.requester_name}. </>}
                     {b.created && <>{new Date(b.created).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}. </>}
-                    {b.start_date && b.end_date && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
+                    {b.start_date && b.end_date && !b.start_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
+                    {b.start_date && b.start_time && b.end_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} {b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}</>}
                     {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
                     {' '}
                     <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
