@@ -355,9 +355,67 @@ The RSVP model serves multiple features. Here is which actions belong to which f
 
 ---
 
+## Feature: Broadcast
+
+Allows collection owners to send custom email messages to all invitees.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Views** | `core/views/collections.py` | `CollectionBroadcastView` (POST, rate limited 5/day per user) |
+| **Serializers** | `core/serializers/collection.py` | `CollectionBroadcastSerializer` — SafeHeadlineField(64) for subject, SafeTextField(256) for message |
+| **Services** | `core/services/email_service.py` | `send_broadcast_email()` — uses `EmailMultiAlternatives` with Reply-To header |
+| **URLs** | `core/urls.py` | `collections/<code>/broadcast/` |
+| **Tests** | `core/tests/integration/test_broadcast.py` | 8 integration tests |
+| **Frontend** | `src/pages/CollectionPage.jsx` | Broadcast form (collapsible section for owner when invitees > 0) |
+| **Frontend** | `src/i18n/locales/*.json` | `broadcast.*` i18n keys in all 7 locales |
+| **pip deps** | — | `django_ratelimit` **(shared)** |
+| **Depends on** | Collections |
+| **Depended on by** | Nothing (leaf feature) |
+
+### Pruning difficulty: **TRIVIAL** — Remove view, serializer, email function, URL route, broadcast section from CollectionPage, i18n keys.
+
+---
+
+## Feature: Reminders
+
+Automatic daily reminders for upcoming booking returns, deliveries, and events.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Command** | `core/management/commands/send_reminders.py` | Queries bookings ending tomorrow (return), deliveries due tomorrow, events happening tomorrow |
+| **Services** | `core/services/email_service.py` | `send_return_reminder_email()`, `send_delivery_reminder_email()`, `send_event_reminder_email()` |
+| **Tests** | `core/tests/unit/test_commands.py` | 7 unit tests in `TestSendRemindersCommand` |
+| **Depends on** | Bookings (return/delivery reminders), Things — Events (event reminders) |
+| **Depended on by** | Nothing (leaf feature) |
+
+### Pruning difficulty: **TRIVIAL** — Delete the management command and 3 email functions.
+
+---
+
+## Feature: Digests
+
+Weekly or monthly digest emails summarising new things added to a collection.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Model** | `core/models/collection.py` | `digest_frequency` CharField (NONE/WEEKLY/MONTHLY) |
+| **Command** | `core/management/commands/send_digests.py` | Weekly on Mondays, monthly on 1st — sends digest of new things |
+| **Services** | `core/services/email_service.py` | `send_digest_email()` |
+| **Serializers** | `core/serializers/collection.py` | `digest_frequency` field in CollectionSerializer, CollectionCreateSerializer, CollectionUpdateSerializer |
+| **Migration** | `core/migrations/0056_add_digest_frequency.py` | Adds `digest_frequency` field |
+| **Tests** | `core/tests/unit/test_commands.py` | 5 unit tests in `TestSendDigestsCommand` |
+| **Frontend** | `src/pages/EditCollectionPage.jsx` | Digest frequency Select component |
+| **Frontend** | `src/i18n/locales/*.json` | `editCollection.digest*` i18n keys in all 7 locales |
+| **Depends on** | Collections |
+| **Depended on by** | Nothing (leaf feature) |
+
+### Pruning difficulty: **EASY** — Remove `digest_frequency` field (migration needed), delete command, delete email function, remove Select from EditCollectionPage, remove serializer field, remove i18n keys.
+
+---
+
 ## Cross-Cutting: Email Service
 
-All 11 email functions mapped to their feature:
+All 17 email functions mapped to their feature:
 
 | Function | Feature |
 |----------|---------|
@@ -372,6 +430,11 @@ All 11 email functions mapped to their feature:
 | `send_faq_answer_email` | FAQs |
 | `send_faq_hide_email` | FAQs |
 | `send_event_announcement_email` | Things (Events) |
+| `send_broadcast_email` | Broadcast |
+| `send_return_reminder_email` | Reminders |
+| `send_delivery_reminder_email` | Reminders |
+| `send_event_reminder_email` | Reminders |
+| `send_digest_email` | Digests |
 
 ---
 
@@ -412,3 +475,6 @@ After user testing, use this priority to decide what to cut:
 | 9 | Remove Transfers (Loan Chain) if journey tracking not needed | EASY |
 | 10 | Remove Events (EVENT_THING) if event features not needed | EASY |
 | 11 | Remove Wishes (WISH_THING) if community wish lists not needed | EASY |
+| 12 | Remove Broadcast if owner messaging not needed | TRIVIAL |
+| 13 | Remove Reminders if automated notifications not needed | TRIVIAL |
+| 14 | Remove Digests if periodic summaries not needed | EASY |

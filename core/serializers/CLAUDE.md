@@ -78,15 +78,16 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, mode, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
+| `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, mode, digest_frequency, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
 | `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, event_date, thumbnail_url, pending_booking, my_pending_booking, pending_questions, transfer_count, attendee_count, helper_count, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. `attendee_count` returns deal count for EVENT_THING, null otherwise. `helper_count` returns deal count for WISH_THING, null otherwise. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
-| `CollectionCreateSerializer` | headline, description, mode | Input for collection creation. |
-| `CollectionUpdateSerializer` | headline, description, status, mode | Input for collection updates. |
+| `CollectionCreateSerializer` | headline, description, mode, digest_frequency | Input for collection creation. |
+| `CollectionUpdateSerializer` | headline, description, status, mode, digest_frequency | Input for collection updates. |
 | `CollectionInviteSerializer` | email | Input for inviting a user. |
 | `CollectionAddThingSerializer` | thing_code | Input for adding a thing to a collection. |
 | `CollectionRemoveThingSerializer` | thing_code | Input for removing a thing from a collection. |
 | `CollectionRemoveInviteSerializer` | user_code | Input for removing a user from invites. |
+| `CollectionBroadcastSerializer` | subject, message | Input for broadcasting to invitees. Uses `SafeHeadlineField` (max 64) and `SafeTextField` (max 256). |
 
 ### `booking.py`
 

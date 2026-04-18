@@ -84,6 +84,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `description` | CharField(256) | No | Description of the collection |
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
 | `mode` | CharField(12) | No | Mode: PROPRIETARY (default) or COMMUNITY |
+| `digest_frequency` | CharField(7) | No | Digest email frequency: NONE (default), WEEKLY, or MONTHLY |
 | `is_onboarding` | BooleanField | No | If True, new users joining via `/popin` are added to this collection (default: False) |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |

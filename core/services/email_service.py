@@ -398,3 +398,107 @@ def send_broadcast_email(owner_name, owner_email, collection_headline, subject, 
         )
         msg.attach_alternative(html, "text/html")
         msg.send()
+
+
+def send_digest_email(collection_headline, thing_headlines, emails):
+    """Send a digest email listing new things added to a collection."""
+    safe_collection = escape(collection_headline)
+
+    things_plain = "\n".join(f"  - {h}" for h in thing_headlines)
+    things_html = "".join(f"<li>{escape(h)}</li>" for h in thing_headlines)
+
+    subject = f"What's new in {collection_headline}"
+    plain = (
+        f"New things in {collection_headline}:\n\n"
+        f"{things_plain}\n\n"
+        f"Log in to OIUEEI to see more."
+    )
+    html = f"""
+        <html>
+        <p>New things in <strong>{safe_collection}</strong>:</p>
+        <ul>{things_html}</ul>
+        <p>Log in to OIUEEI to see more.</p>
+        </html>
+        """
+
+    for email in emails:
+        send_mail(
+            subject=subject,
+            message=plain,
+            from_email=None,
+            recipient_list=[email],
+            html_message=html,
+        )
+
+
+def send_return_reminder_email(requester_name, thing_headline, end_date, owner_email):
+    """Remind the owner that a booking ends tomorrow."""
+    safe_requester = escape(requester_name)
+    safe_headline = escape(thing_headline)
+    safe_date = escape(str(end_date))
+
+    send_mail(
+        subject="Reminder: a hold ends tomorrow",
+        message=(f"Reminder: {requester_name}'s hold on '{thing_headline}' " f"ends {end_date}."),
+        from_email=None,
+        recipient_list=[owner_email],
+        html_message=f"""
+            <html>
+            <p>Reminder: <strong>{safe_requester}</strong>'s hold on
+            <strong>{safe_headline}</strong> ends <strong>{safe_date}</strong>.</p>
+            </html>
+            """,
+    )
+
+
+def send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email):
+    """Remind the owner that a delivery is due tomorrow."""
+    safe_requester = escape(requester_name)
+    safe_headline = escape(thing_headline)
+    safe_date = escape(str(delivery_date))
+
+    send_mail(
+        subject="Reminder: a delivery is due tomorrow",
+        message=(
+            f"Reminder: {requester_name}'s order of '{thing_headline}' "
+            f"is due for delivery {delivery_date}."
+        ),
+        from_email=None,
+        recipient_list=[owner_email],
+        html_message=f"""
+            <html>
+            <p>Reminder: <strong>{safe_requester}</strong>'s order of
+            <strong>{safe_headline}</strong> is due for delivery
+            <strong>{safe_date}</strong>.</p>
+            </html>
+            """,
+    )
+
+
+def send_event_reminder_email(owner_name, thing_headline, event_date, emails):
+    """Remind attendees that an event is tomorrow."""
+    safe_owner = escape(owner_name)
+    safe_headline = escape(thing_headline)
+    date_str = event_date.strftime("%d %B %Y, %H:%M") if event_date else ""
+
+    subject = f"Reminder: {thing_headline} is tomorrow"
+    plain = f"Reminder: {thing_headline} by {owner_name} is happening tomorrow."
+    if date_str:
+        plain += f" Date: {date_str}."
+
+    html = f"""
+        <html>
+        <p>Reminder: <strong>{safe_headline}</strong> by
+        <strong>{safe_owner}</strong> is happening tomorrow.</p>
+        {"<p>Date: " + escape(date_str) + "</p>" if date_str else ""}
+        </html>
+        """
+
+    for email in emails:
+        send_mail(
+            subject=subject,
+            message=plain,
+            from_email=None,
+            recipient_list=[email],
+            html_message=html,
+        )

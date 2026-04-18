@@ -325,6 +325,26 @@ Lists ACTIVE collections where the current user is in the invites M2M. INACTIVE 
 
 Lists pending collection invitations (not yet accepted) for the current user. Returns `COLLECTION_INVITE` RSVPs for the user, joined with the collection and its owner. For each invitation returns: `accept_code`, `reject_code`, `collection_code`, `collection_headline`, `owner_name`. Used to display in-app invitation notifications on the HomePage.
 
+### CollectionBroadcastView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/collections/{collection_code}/broadcast/` |
+| **Permission** | `IsAuthenticated` + collection owner |
+| **Rate limit** | 5 requests/day per user |
+
+Sends a broadcast email from the collection owner to all invitees. Validates `subject` (SafeHeadlineField, max 64) and `message` (SafeTextField, max 256) via `CollectionBroadcastSerializer`. Returns 400 if the collection has no invitees. Emails include a `Reply-To` header set to the owner's email so invitees can respond directly.
+
+**Request body:**
+```json
+{ "subject": "Meeting tonight", "message": "Bring snacks please" }
+```
+
+**Response (200):**
+```json
+{ "message": "Broadcast sent", "recipients": 5 }
+```
+
 ---
 
 ## FAQ Views (`core/views/faq.py`)
@@ -682,6 +702,22 @@ Daily command (`python manage.py close_transfers`) that closes overdue transfers
 - Sets `returned_date = today` via bulk update.
 - Outputs count of closed transfers.
 
+### Management Command: `send_reminders`
+
+Daily command (`python manage.py send_reminders`) that sends reminder emails:
+- **Booking return reminders**: ACCEPTED bookings with `end_date = tomorrow` — notifies thing owner.
+- **Delivery reminders**: ACCEPTED bookings with `delivery_date = tomorrow` — notifies thing owner.
+- **Event reminders**: ACTIVE EVENT_THINGs with `event_date` tomorrow — notifies all attendees (via `deal` M2M).
+- Outputs count of reminder emails sent.
+
+### Management Command: `send_digests`
+
+Daily command (`python manage.py send_digests`) that sends digest emails:
+- **Weekly digests**: sent on Mondays for collections with `digest_frequency = "WEEKLY"`. Lists things added in the past 7 days.
+- **Monthly digests**: sent on the 1st of each month for collections with `digest_frequency = "MONTHLY"`. Lists things added in the previous month.
+- Skips collections with no new things or no invitees.
+- Outputs count of digest emails sent.
+
 ---
 
 ## Custom Permissions (`core/permissions.py`)
@@ -718,6 +754,7 @@ Daily command (`python manage.py close_transfers`) that closes overdue transfers
 - `/collections/{code}/invite/` POST — 30 requests per hour per user
 - `/things/{code}/request/` POST — 10 requests per hour per user
 - `/things/{code}/faq/` POST — 20 requests per hour per user
+- `/collections/{code}/broadcast/` POST — 5 requests per day per user
 
 ### Secure Code Practices
 

@@ -65,6 +65,10 @@ core/
   management/
     commands/
       expire_bookings.py  # Batch expire stale PENDING bookings
+      cleanup_rsvps.py    # Delete expired RSVPs (24h+)
+      close_transfers.py  # Close overdue loan transfers
+      send_reminders.py   # Daily booking/delivery/event reminders
+      send_digests.py     # Weekly/monthly digest emails
   tests/
     unit/            # Model, serializer, validator, security tests
     integration/     # View and booking integration tests
@@ -220,6 +224,12 @@ python manage.py createsuperuser
 
 # Expire stale bookings (run via Heroku Scheduler in production)
 python manage.py expire_bookings
+
+# Send return/delivery/event reminders (run daily via Heroku Scheduler)
+python manage.py send_reminders
+
+# Send weekly/monthly digest emails (run daily via Heroku Scheduler)
+python manage.py send_digests
 ```
 
 ## Environment Variables
@@ -257,6 +267,7 @@ python manage.py expire_bookings
 | Rate Limiting | Auth | 5 req/min for magic link, 10 req/min for verify |
 | Rate Limiting | Collection invite | 30 req/hour per user |
 | Rate Limiting | Thing request | 10 req/hour per user |
+| Rate Limiting | Broadcast | 5 req/day per user |
 | Rate Limiting | FAQ question | 20 req/hour per user |
 | Headers | HSTS | 1-year strict transport security with preload |
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |

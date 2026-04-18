@@ -24,6 +24,12 @@ class Collection(models.Model):
         ("COMMUNITY", "Community"),
     ]
 
+    DIGEST_CHOICES = [
+        ("NONE", "None"),
+        ("WEEKLY", "Weekly"),
+        ("MONTHLY", "Monthly"),
+    ]
+
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     owner = models.ForeignKey(
         "User",
@@ -37,6 +43,7 @@ class Collection(models.Model):
     description = models.CharField(max_length=256, blank=True, default="")
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
     mode = models.CharField(max_length=12, choices=MODE_CHOICES, default="PROPRIETARY")
+    digest_frequency = models.CharField(max_length=7, choices=DIGEST_CHOICES, default="NONE")
     is_onboarding = models.BooleanField(default=False)
     things = models.ManyToManyField(
         "Thing",

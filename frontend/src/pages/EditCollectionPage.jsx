@@ -18,6 +18,7 @@ export default function EditCollectionPage() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [mode, setMode] = useState('PROPRIETARY');
+  const [digestFrequency, setDigestFrequency] = useState('NONE');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -30,6 +31,12 @@ export default function EditCollectionPage() {
   const MODE_OPTIONS = [
     { label: t('editCollection.modeProprietary'), value: 'PROPRIETARY' },
     { label: t('editCollection.modeCommunity'), value: 'COMMUNITY' },
+  ];
+
+  const DIGEST_OPTIONS = [
+    { label: t('editCollection.digestNone'), value: 'NONE' },
+    { label: t('editCollection.digestWeekly'), value: 'WEEKLY' },
+    { label: t('editCollection.digestMonthly'), value: 'MONTHLY' },
   ];
 
   useEffect(() => {
@@ -48,6 +55,7 @@ export default function EditCollectionPage() {
           setDescription(data.description || '');
           setStatus(data.status || 'ACTIVE');
           setMode(data.mode || 'PROPRIETARY');
+          setDigestFrequency(data.digest_frequency || 'NONE');
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -78,6 +86,7 @@ export default function EditCollectionPage() {
       description: description.trim(),
       status,
       mode,
+      digest_frequency: digestFrequency,
     };
 
     try {
@@ -168,6 +177,18 @@ export default function EditCollectionPage() {
           onChange={(selectedOptions) => {
             if (selectedOptions.length > 0) {
               setMode(selectedOptions[0].value);
+            }
+          }}
+        />
+        <Select
+          id="edit-collection-digest"
+          texts={{ label: t('editCollection.digestLabel') }}
+          helper={t('editCollection.digestHelper')}
+          options={DIGEST_OPTIONS}
+          value={digestFrequency}
+          onChange={(selectedOptions) => {
+            if (selectedOptions.length > 0) {
+              setDigestFrequency(selectedOptions[0].value);
             }
           }}
         />

@@ -127,6 +127,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`) AND `seenWelcome` is not set in `localStorage` (first-time users only). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
 - **Owner attribution**: guests see "Owner. {name}" below the description in the hero, linking to `/{owner_code}` (the owner's public profile). Uses `owner_name` from `CollectionSerializer`.
 - **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is the owner, a `Notification` informs them "This collection is inactive. It is not visible to guests." Guests cannot access inactive collections (backend returns 403).
+- **Broadcast section**: shown to the owner when the collection has invitees. A "Send a message to guests" button opens an inline form with subject (TextInput, max 64) and message (TextArea, max 256) fields. Submits to `POST /api/v1/collections/{code}/broadcast/`. Shows success/error Notification inline. Closable via "Close" button.
 - **Things section**: shows all non-inactive things for both owners and guests (responsive 3-column grid).
 - **Inactive things section**: shown only to the owner, below the Things section, when at least one inactive thing exists. Lists all `INACTIVE` things using the same `ThingLinkbox` component.
 
@@ -286,7 +287,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Select` for digest frequency (None/Weekly/Monthly).
   - "Save" button below the form.
 - Pre-populates all fields from the current collection data.
 - On success: navigates to `/collections/{code}`.
