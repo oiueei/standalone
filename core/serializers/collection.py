@@ -203,3 +203,10 @@ class CollectionRemoveInviteSerializer(serializers.Serializer):
     """Serializer for removing a user from a collection's invite list."""
 
     user_code = serializers.CharField(max_length=6)
+
+
+class CollectionBroadcastSerializer(serializers.Serializer):
+    """Serializer for broadcasting a message to collection invitees."""
+
+    subject = SafeHeadlineField(max_length=64)
+    message = SafeTextField(max_length=256)

@@ -395,5 +395,14 @@
     "helperCount_other": "{{count}} ayudantes",
     "noHelpers": "Sin ayudantes aún.",
     "helpersHeading": "Ayudantes"
+  },
+  "broadcast": {
+    "heading": "Difusión",
+    "openButton": "Enviar mensaje a los invitados",
+    "subjectLabel": "Asunto",
+    "messageLabel": "Mensaje",
+    "sendButton": "Enviar difusión",
+    "sending": "Enviando...",
+    "sent": "Difusión enviada a {{count}} invitados."
   }
 }

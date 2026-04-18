@@ -88,7 +88,11 @@ class TestSecurityHeadersMiddleware:
 
     def setup_method(self):
         self.factory = RequestFactory()
-        self.middleware = SecurityHeadersMiddleware(get_response=lambda r: __import__("django.http", fromlist=["HttpResponse"]).HttpResponse())
+        self.middleware = SecurityHeadersMiddleware(
+            get_response=lambda r: __import__(
+                "django.http", fromlist=["HttpResponse"]
+            ).HttpResponse()
+        )
 
     def test_csp_header_is_present(self):
         request = self.factory.get("/")

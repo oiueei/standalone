@@ -70,13 +70,13 @@ class UserDetailView(APIView):
         # Find shared collections (where both users are owner or invited)
         viewer = request.user.code
         # Collections owned by viewer where target is invited
-        shared_qs = Collection.objects.filter(
-            owner_id=viewer, invites__code=user_code
-        ).values("code", "headline")
+        shared_qs = Collection.objects.filter(owner_id=viewer, invites__code=user_code).values(
+            "code", "headline"
+        )
         # Collections owned by target where viewer is invited
-        shared_qs2 = Collection.objects.filter(
-            owner_id=user_code, invites__code=viewer
-        ).values("code", "headline")
+        shared_qs2 = Collection.objects.filter(owner_id=user_code, invites__code=viewer).values(
+            "code", "headline"
+        )
         shared = list(shared_qs.union(shared_qs2))
         data["shared_collections"] = shared
 

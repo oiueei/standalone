@@ -408,5 +408,14 @@
     "helperCount_other": "{{count}} helpers",
     "noHelpers": "No helpers yet.",
     "helpersHeading": "Helpers"
+  },
+  "broadcast": {
+    "heading": "Broadcast",
+    "openButton": "Send a message to guests",
+    "subjectLabel": "Subject",
+    "messageLabel": "Message",
+    "sendButton": "Send broadcast",
+    "sending": "Sending...",
+    "sent": "Broadcast sent to {{count}} guests."
   }
 }

@@ -1,13 +1,18 @@
 from .auth import MeView, RequestLinkView, VerifyLinkView
 from .booking import MyBookingsView, OwnerBookingsView, ThingCalendarView
-from .collections import CollectionInviteView, CollectionViewSet, InvitedCollectionsView
+from .collections import (
+    CollectionBroadcastView,
+    CollectionInviteView,
+    CollectionViewSet,
+    InvitedCollectionsView,
+)
+from .events import EventAttendeesView, EventAttendView
 from .faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .theeemes import TheeemeListView
 from .things import InvitedThingsView, ThingViewSet
-from .events import EventAttendView, EventAttendeesView
-from .wishes import WishOfferHelpView, WishHelpersView
 from .transfers import ThingTransferView
 from .users import UserDetailView
+from .wishes import WishHelpersView, WishOfferHelpView
 
 __all__ = [
     "RequestLinkView",
@@ -15,6 +20,7 @@ __all__ = [
     "MeView",
     "UserDetailView",
     "CollectionViewSet",
+    "CollectionBroadcastView",
     "CollectionInviteView",
     "InvitedCollectionsView",
     "ThingViewSet",

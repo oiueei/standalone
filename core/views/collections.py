@@ -19,6 +19,7 @@ from core.models.booking import BookingPeriod
 from core.permissions import IsCollectionOwner
 from core.serializers import (
     CollectionAddThingSerializer,
+    CollectionBroadcastSerializer,
     CollectionCreateSerializer,
     CollectionInviteSerializer,
     CollectionRemoveInviteSerializer,
@@ -26,7 +27,11 @@ from core.serializers import (
     CollectionSerializer,
     CollectionUpdateSerializer,
 )
-from core.services.email_service import send_collection_invite_email, send_collection_revoke_email
+from core.services.email_service import (
+    send_broadcast_email,
+    send_collection_invite_email,
+    send_collection_revoke_email,
+)
 
 
 def _optimise_collection_queryset(queryset):
@@ -400,3 +405,56 @@ class MyPendingInvitationsView(APIView):
             )
 
         return Response(result)
+
+
+class CollectionBroadcastView(APIView):
+    """
+    POST /api/v1/collections/{collection_code}/broadcast/
+    Send a broadcast email from the collection owner to all invitees.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @method_decorator(ratelimit(key="user", rate="5/d", method="POST", block=True))
+    def post(self, request, collection_code):
+        collection = get_object_or_404(Collection, code=collection_code)
+
+        if not collection.is_owner(request.user.code):
+            return Response(
+                {"error": "Only the owner can send broadcasts"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = CollectionBroadcastSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        subject = serializer.validated_data["subject"]
+        message = serializer.validated_data["message"]
+
+        # Gather invitee emails
+        invitee_emails = list(collection.invites.values_list("email", flat=True))
+
+        if not invitee_emails:
+            return Response(
+                {"error": "No invitees to broadcast to"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        owner_name = request.user.name or request.user.email
+
+        send_broadcast_email(
+            owner_name=owner_name,
+            owner_email=request.user.email,
+            collection_headline=collection.headline,
+            subject=subject,
+            message=message,
+            emails=invitee_emails,
+        )
+
+        return Response(
+            {
+                "message": "Broadcast sent",
+                "recipients": len(invitee_emails),
+            },
+            status=status.HTTP_200_OK,
+        )

@@ -28,9 +28,7 @@ def spa_index(request):
         with open(index_path, encoding="utf-8") as f:
             return HttpResponse(f.read(), content_type="text/html")
     except FileNotFoundError:
-        return HttpResponse(
-            "Frontend not built. Run: cd frontend && yarn build", status=503
-        )
+        return HttpResponse("Frontend not built. Run: cd frontend && yarn build", status=503)
 
 
 # Catch-all: serve React SPA for all routes not handled above

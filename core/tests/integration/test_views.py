@@ -666,7 +666,9 @@ class TestThingViews:
 
         collection.add_invite(user2.code)
         client2 = APIClient()
-        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+        client2.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}"
+        )
 
         response = client2.post(f"/api/v1/things/{thing.code}/hide/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -699,7 +701,9 @@ class TestThingViews:
         thing.save()
         collection.add_invite(user2.code)
         client2 = APIClient()
-        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+        client2.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}"
+        )
 
         response = client2.post(f"/api/v1/things/{thing.code}/activate/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -731,14 +735,18 @@ class TestThingViews:
 
         # Requester sees their own booking code
         client2 = APIClient()
-        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+        client2.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}"
+        )
         response = client2.get(f"/api/v1/things/{thing.code}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["my_pending_booking"] == booking.code
 
         # Owner sees null (it's not their booking request)
         owner_client = APIClient()
-        owner_client.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user).access_token}")
+        owner_client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user).access_token}"
+        )
         response = owner_client.get(f"/api/v1/things/{thing.code}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["my_pending_booking"] is None
@@ -1687,6 +1695,7 @@ class TestPopInView:
 
         assert response.status_code == status.HTTP_200_OK
         from core.models import User as UserModel
+
         new_user = UserModel.objects.get(email="newperson@example.com")
         assert col.invites.filter(code=new_user.code).exists()
 

@@ -8,6 +8,7 @@ from .booking import (
 )
 from .collection import (
     CollectionAddThingSerializer,
+    CollectionBroadcastSerializer,
     CollectionCreateSerializer,
     CollectionInviteSerializer,
     CollectionRemoveInviteSerializer,
@@ -32,6 +33,7 @@ __all__ = [
     "CollectionInviteSerializer",
     "CollectionAddThingSerializer",
     "CollectionRemoveInviteSerializer",
+    "CollectionBroadcastSerializer",
     "CollectionRemoveThingSerializer",
     "ThingSerializer",
     "ThingCreateSerializer",

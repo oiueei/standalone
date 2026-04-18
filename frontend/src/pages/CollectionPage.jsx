@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Linkbox, Notification, Tag } from 'hds-react';
+import { Button, Koros, Linkbox, Notification, Tag, TextArea, TextInput } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,6 +15,11 @@ export default function CollectionPage() {
   const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite && !localStorage.getItem('seenWelcome'));
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [broadcastSubject, setBroadcastSubject] = useState('');
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastSending, setBroadcastSending] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState(null);
   useEffect(() => { document.title = collection ? t('titles.collection', { headline: collection.headline }) : t('titles.collectionDefault'); }, [collection, t]);
 
   useEffect(() => {
@@ -61,6 +66,28 @@ export default function CollectionPage() {
   if (!collection) {
     return <LoadingSpinner />;
   }
+
+  const handleBroadcast = async () => {
+    setBroadcastSending(true);
+    setBroadcastResult(null);
+    try {
+      const res = await apiFetch(`/api/v1/collections/${code}/broadcast/`, {
+        method: 'POST',
+        body: JSON.stringify({ subject: broadcastSubject, message: broadcastMessage }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBroadcastResult({ type: 'success', message: t('broadcast.sent', { count: data.recipients }) });
+        setBroadcastSubject('');
+        setBroadcastMessage('');
+      } else {
+        setBroadcastResult({ type: 'error', message: data.error || t('common.error') });
+      }
+    } catch {
+      setBroadcastResult({ type: 'error', message: t('common.connectionError') });
+    }
+    setBroadcastSending(false);
+  };
 
   const isOwner = localStorage.getItem('userCode') === collection.owner;
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
@@ -192,6 +219,61 @@ export default function CollectionPage() {
             />
           ))}
         </div>
+      )}
+
+      {isOwner && collection.invites.length > 0 && (
+        <>
+          <div className="spacer-l" />
+          <h2>{t('broadcast.heading')}</h2>
+          <div className="spacer-m" />
+          {!broadcastOpen ? (
+            <Button variant="secondary" style={btnSecondaryStyle} onClick={() => setBroadcastOpen(true)}>
+              {t('broadcast.openButton')}
+            </Button>
+          ) : (
+            <div className="form-grid">
+              <TextInput
+                id="broadcast-subject"
+                label={t('broadcast.subjectLabel')}
+                value={broadcastSubject}
+                onChange={(e) => setBroadcastSubject(e.target.value)}
+                maxLength={64}
+                required
+              />
+              <TextArea
+                id="broadcast-message"
+                label={t('broadcast.messageLabel')}
+                value={broadcastMessage}
+                onChange={(e) => setBroadcastMessage(e.target.value)}
+                maxLength={256}
+                required
+              />
+              {broadcastResult && (
+                <Notification
+                  label={broadcastResult.type === 'success' ? t('common.sent') : t('common.error')}
+                  type={broadcastResult.type}
+                  style={{ marginBottom: 'var(--spacing-s)' }}
+                  dismissible
+                  onClose={() => setBroadcastResult(null)}
+                >
+                  {broadcastResult.message}
+                </Notification>
+              )}
+              <div className="button-row-wide">
+                <Button
+                  style={btnStyle}
+                  onClick={handleBroadcast}
+                  disabled={broadcastSending || !broadcastSubject.trim() || !broadcastMessage.trim()}
+                >
+                  {broadcastSending ? t('broadcast.sending') : t('broadcast.sendButton')}
+                </Button>
+                <Button variant="secondary" style={btnSecondaryStyle} onClick={() => { setBroadcastOpen(false); setBroadcastResult(null); }}>
+                  {t('common.close')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {isOwner && collection.things.some((t) => t.status === 'INACTIVE') && (

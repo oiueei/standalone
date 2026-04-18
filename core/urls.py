@@ -25,20 +25,21 @@ from .views.booking import (
     ThingCalendarView,
 )
 from .views.collections import (
+    CollectionBroadcastView,
     CollectionInviteView,
     CollectionViewSet,
     InvitedCollectionsView,
     MyPendingInvitationsView,
 )
+from .views.events import EventAttendeesView, EventAttendView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
-from .views.events import EventAttendView, EventAttendeesView
-from .views.wishes import WishOfferHelpView, WishHelpersView
 from .views.transfers import ThingTransferView
 from .views.upload import CloudinarySignatureView
 from .views.users import UserDetailView
+from .views.wishes import WishHelpersView, WishOfferHelpView
 
 
 def health_check(request):
@@ -79,6 +80,11 @@ urlpatterns = [
         "collections/<str:collection_code>/invite/",
         CollectionInviteView.as_view(),
         name="collection-invite",
+    ),
+    path(
+        "collections/<str:collection_code>/broadcast/",
+        CollectionBroadcastView.as_view(),
+        name="collection-broadcast",
     ),
     # Upload
     path("upload/signature/", CloudinarySignatureView.as_view(), name="upload-signature"),
@@ -137,7 +143,7 @@ urlpatterns = [
         BookingCancelView.as_view(),
         name="booking-cancel",
     ),
-# FAQ
+    # FAQ
     path("things/<str:thing_code>/faq/", ThingFAQListView.as_view(), name="thing-faq-list"),
     path("faq/<str:faq_code>/", FAQDetailView.as_view(), name="faq-detail"),
     path("faq/<str:faq_code>/answer/", FAQAnswerView.as_view(), name="faq-answer"),

@@ -5,7 +5,7 @@ All email composition and sending is handled here to avoid
 duplicating email logic across views.
 """
 
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import escape
 
 
@@ -360,3 +360,41 @@ def send_event_announcement_email(
             recipient_list=[email],
             html_message=html,
         )
+
+
+def send_broadcast_email(owner_name, owner_email, collection_headline, subject, message, emails):
+    """Send a broadcast email from a collection owner to all invitees.
+
+    Includes reply-to header so invitees can respond directly to the owner.
+    """
+    safe_owner = escape(owner_name)
+    safe_collection = escape(collection_headline)
+    safe_subject = escape(subject)
+    safe_message = escape(message)
+
+    full_subject = f"[{collection_headline}] {subject}"
+    plain = (
+        f"Message from {owner_name} ({collection_headline}):\n\n"
+        f"{message}\n\n"
+        f"Reply directly to this email to respond to {owner_name}."
+    )
+
+    html = f"""
+        <html>
+        <p><strong>{safe_owner}</strong> sent a message to <strong>{safe_collection}</strong>:</p>
+        <p><strong>{safe_subject}</strong></p>
+        <p>{safe_message}</p>
+        <p><em>Reply directly to this email to respond to {safe_owner}.</em></p>
+        </html>
+        """
+
+    for email in emails:
+        msg = EmailMultiAlternatives(
+            subject=full_subject,
+            body=plain,
+            from_email=None,
+            to=[email],
+            reply_to=[owner_email],
+        )
+        msg.attach_alternative(html, "text/html")
+        msg.send()

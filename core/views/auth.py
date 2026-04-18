@@ -378,9 +378,7 @@ class PopInView(APIView):
         magic_link = f"{magic_link_base}/{rsvp.code}"
         send_magic_link_email(email, magic_link)
 
-        security_logger.info(
-            f"Pop-in request for {email} from IP {ip} (new_user={created})"
-        )
+        security_logger.info(f"Pop-in request for {email} from IP {ip} (new_user={created})")
 
         return Response(
             {"message": "Check your email — we've sent you a magic link to join OIUEEI."},

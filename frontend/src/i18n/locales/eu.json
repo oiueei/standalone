@@ -395,5 +395,14 @@
     "helperCount_other": "{{count}} laguntzaile",
     "noHelpers": "Oraindik laguntzailerik ez.",
     "helpersHeading": "Laguntzaileak"
+  },
+  "broadcast": {
+    "heading": "Hedapena",
+    "openButton": "Mezua bidali gonbidatuei",
+    "subjectLabel": "Gaia",
+    "messageLabel": "Mezua",
+    "sendButton": "Hedapena bidali",
+    "sending": "Bidaltzen...",
+    "sent": "Hedapena {{count}} gonbidaturi bidali da."
   }
 }

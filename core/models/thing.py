@@ -66,7 +66,9 @@ class Thing(models.Model):
     thumbnail = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    availability = models.CharField(max_length=12, choices=AVAILABILITY_CHOICES, blank=True, default="")
+    availability = models.CharField(
+        max_length=12, choices=AVAILABILITY_CHOICES, blank=True, default=""
+    )
     location = models.CharField(max_length=32, blank=True, default="")
     condition = models.CharField(max_length=12, choices=CONDITION_CHOICES, blank=True, default="")
     event_date = models.DateTimeField(null=True, blank=True)
@@ -130,6 +132,4 @@ class Thing(models.Model):
             return False
 
         # Check if thing is in any active collection where user is invited
-        return self.collections.filter(
-            invites__code=user_code, status="ACTIVE"
-        ).exists()
+        return self.collections.filter(invites__code=user_code, status="ACTIVE").exists()
