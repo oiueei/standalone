@@ -352,7 +352,8 @@
     "SHARE_THING": "Compartir",
     "EVENT_THING": "Evento",
     "WISH_THING": "Desexo",
-    "ASSET_THING": "Recurso compartido"
+    "ASSET_THING": "Recurso compartido",
+    "SWAP_THING": "Intercambio"
   },
   "availability": {
     "IMMEDIATE": "Inmediata",
@@ -417,6 +418,17 @@
     "monthlyHeading": "Desglose mensual",
     "bookingsLabel_one": "{{count}} reserva",
     "bookingsLabel_other": "{{count}} reservas"
+  },
+  "swap": {
+    "offerItems": "Seleccionar artigos a ofrecer",
+    "selectItems": "Escolle os teus artigos para intercambiar",
+    "noItemsToOffer": "Non tes artigos para ofrecer nesta colección",
+    "swapButton": "Propoñer intercambio",
+    "offeredItems": "Artigos ofrecidos",
+    "swapAccepted": "Intercambio completado! Os artigos foron intercambiados.",
+    "swapRejected": "Solicitude de intercambio rexeitada.",
+    "enableSwap": "Activar intercambio de artigos",
+    "swapCollection": "Colección de intercambio"
   },
   "broadcast": {
     "heading": "Difusión",

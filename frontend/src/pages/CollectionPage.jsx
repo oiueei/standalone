@@ -123,6 +123,9 @@ export default function CollectionPage() {
             {collection.mode === 'COMMUNITY' && (
               <>{' '}<Tag theme={{ '--tag-background': 'var(--color-engel)', '--tag-color': 'var(--color-black-90)' }}>{t('collectionPage.communityTag')}</Tag></>
             )}
+            {collection.is_swap && (
+              <>{' '}<Tag theme={{ '--tag-background': 'var(--color-coat-of-arms-light)', '--tag-color': 'var(--color-white)' }}>{t('swap.swapCollection')}</Tag></>
+            )}
           </h1>
           {collection.description && <p className="form-hero-text">{collection.description}</p>}
           {!isOwner && collection.owner_name && (

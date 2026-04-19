@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Koros } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Checkbox, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -19,6 +19,7 @@ export default function EditCollectionPage() {
   const [status, setStatus] = useState('ACTIVE');
   const [mode, setMode] = useState('PROPRIETARY');
   const [digestFrequency, setDigestFrequency] = useState('NONE');
+  const [isSwap, setIsSwap] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -56,6 +57,7 @@ export default function EditCollectionPage() {
           setStatus(data.status || 'ACTIVE');
           setMode(data.mode || 'PROPRIETARY');
           setDigestFrequency(data.digest_frequency || 'NONE');
+          setIsSwap(data.is_swap || false);
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -87,6 +89,7 @@ export default function EditCollectionPage() {
       status,
       mode,
       digest_frequency: digestFrequency,
+      is_swap: isSwap && mode === 'COMMUNITY',
     };
 
     try {
@@ -176,10 +179,20 @@ export default function EditCollectionPage() {
           value={mode}
           onChange={(selectedOptions) => {
             if (selectedOptions.length > 0) {
-              setMode(selectedOptions[0].value);
+              const newMode = selectedOptions[0].value;
+              setMode(newMode);
+              if (newMode !== 'COMMUNITY') setIsSwap(false);
             }
           }}
         />
+        {mode === 'COMMUNITY' && (
+          <Checkbox
+            id="edit-collection-swap"
+            label={t('swap.enableSwap')}
+            checked={isSwap}
+            onChange={(e) => setIsSwap(e.target.checked)}
+          />
+        )}
         <Select
           id="edit-collection-digest"
           texts={{ label: t('editCollection.digestLabel') }}

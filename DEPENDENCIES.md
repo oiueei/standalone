@@ -208,7 +208,35 @@ Adds ownership transfer behaviour to SHARE_THING. When a SHARE_THING booking is 
 
 **To prune:** Revert `accept_booking()` SHARE_THING branch, revert `hide` action to simple `IsThingOwner` check, remove SHARE_THING restriction from `perform_create` (keep WISH_THING restriction), remove `collection_owner` from ThingSerializer, remove `SHARE_TYPE` from constants, revert `canHide` logic to simple `isOwner` in ThingLinkbox/ThingPage, remove SHARE_TYPE filter from AddThingPage, remove `collectionOwner` prop from CollectionPage/ThingLinkbox.
 
-### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events, Wishes, Assets, and SHARE_THING transfer sub-features are **EASY** to prune independently.
+### Sub-feature: SWAP_THING Item Swapping
+
+Adds item swapping via swap collections. Collections with `is_swap=True` (COMMUNITY only) only accept SWAP_THING items. Requester offers own things in exchange; on acceptance, all things transfer ownership bilaterally and stay ACTIVE.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Model** | `core/models/collection.py` | `is_swap` BooleanField |
+| **Model** | `core/models/thing.py` | `SWAP_THING` type choice |
+| **Model** | `core/models/booking.py` | `offered_things` M2M on BookingPeriod |
+| **Services** | `core/services/booking_service.py` | `accept_booking()` — SWAP_THING branch: bilateral ownership transfer + ThingTransfer records |
+| **Services** | `core/services/email_service.py` | `send_swap_request_email()`, `send_swap_confirmation_email()` |
+| **Views** | `core/views/things.py` | `perform_create`: swap collection forces SWAP_THING; SWAP_THING requires swap collection |
+| **Views** | `core/views/reservations.py` | `_handle_swap_request()`, `_send_swap_email()` |
+| **Serializers** | `core/serializers/collection.py` | `is_swap` field in CollectionSerializer, CollectionCreateSerializer, CollectionUpdateSerializer |
+| **Serializers** | `core/serializers/booking.py` | `offered_thing_codes`, `offered_thing_headlines` in BookingPeriodSerializer, BookingPeriodOwnerCalendarSerializer, MyBookingSerializer |
+| **Migration** | `core/migrations/0058_add_swap_thing.py` | Adds `is_swap`, `offered_things` M2M, SWAP_THING type |
+| **Tests** | `core/tests/integration/test_swap_things.py` | 18 integration tests |
+| **Frontend** | `ThingLinkbox` | `SWAP_TYPE` import, `isSwap` flag, "Propose swap" button, offered thing headlines in bookings |
+| **Frontend** | `ThingPage` | `SWAP_TYPE` import, `isSwap` flag, "Propose swap" button, offered thing headlines in bookings |
+| **Frontend** | `RequestThingPage` | Swap request UI with multi-select Checkboxes for own things |
+| **Frontend** | `AddThingPage` | Auto-selects SWAP_THING for swap collections, hides type selector |
+| **Frontend** | `CreateCollectionPage`, `EditCollectionPage` | Swap `Checkbox` toggle (COMMUNITY only) |
+| **Frontend** | `CollectionPage` | Swap `Tag` when `is_swap` |
+| **Frontend** | `src/constants/things.js` | `SWAP_TYPE` constant |
+| **Frontend** | `src/i18n/locales/*.json` | `swap.*` and `types.SWAP_THING` keys |
+
+**To prune:** Remove `is_swap` from Collection model, remove `SWAP_THING` from Thing TYPE_CHOICES, remove `offered_things` M2M from BookingPeriod, revert `accept_booking()` SWAP_THING branch, remove swap email functions, remove `_handle_swap_request()` from reservations, remove swap serializer fields, remove `SWAP_TYPE` from frontend constants, remove swap UI from RequestThingPage/AddThingPage/CreateCollectionPage/EditCollectionPage/CollectionPage/ThingLinkbox/ThingPage, remove i18n keys, drop migration.
+
+### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events, Wishes, Assets, SHARE_THING transfer, and SWAP_THING sub-features are **EASY** to prune independently.
 
 ---
 
@@ -500,6 +528,7 @@ Seed migrations that would need updating if features are removed:
 | `0040` | Demo collection-thing links | Collections + Things |
 | `0041` | Demo FAQs | FAQs |
 | `0049`–`0050` | Onboarding collection flags | Collections |
+| `0058` | SWAP_THING: is_swap on Collection, offered_things M2M on BookingPeriod | Things (Swap) |
 
 ---
 
@@ -525,3 +554,4 @@ After user testing, use this priority to decide what to cut:
 | 14 | Remove Digests if periodic summaries not needed | EASY |
 | 15 | Remove Shared Assets (ASSET_THING) if shared resource booking not needed | EASY |
 | 16 | Remove SHARE_THING ownership transfer if sharing not needed | EASY |
+| 17 | Remove SWAP_THING item swapping if swapping not needed | EASY |

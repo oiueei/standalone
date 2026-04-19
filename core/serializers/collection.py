@@ -121,6 +121,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "status",
             "mode",
             "digest_frequency",
+            "is_swap",
             "things",
             "invites",
             "pending_invites",
@@ -165,6 +166,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "description",
             "mode",
             "digest_frequency",
+            "is_swap",
         ]
 
 
@@ -182,6 +184,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "status",
             "mode",
             "digest_frequency",
+            "is_swap",
         ]
 
 

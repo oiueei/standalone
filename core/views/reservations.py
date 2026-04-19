@@ -23,7 +23,12 @@ from core.serializers.booking import (
     ThingRequestWithDatesSerializer,
     ThingRequestWithTimesSerializer,
 )
-from core.services.email_service import send_booking_confirmation_email, send_booking_request_email
+from core.services.email_service import (
+    send_booking_confirmation_email,
+    send_booking_request_email,
+    send_swap_confirmation_email,
+    send_swap_request_email,
+)
 
 
 class ThingRequestView(APIView):
@@ -88,7 +93,9 @@ class ThingRequestView(APIView):
             )
 
         # Route based on thing type
-        if thing.type == "ASSET_THING" and thing.booking_unit == "HOUR":
+        if thing.type == "SWAP_THING":
+            return self._handle_swap_request(request, thing, owner_email)
+        elif thing.type == "ASSET_THING" and thing.booking_unit == "HOUR":
             return self._handle_hourly_request(request, thing, owner_email)
         elif thing.type in DATE_BASED_TYPES:
             return self._handle_date_based_request(request, thing, owner_email)
@@ -263,6 +270,92 @@ class ThingRequestView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+    def _handle_swap_request(self, request, thing, owner_email):
+        """Handle SWAP_THING requests — requester offers their own things in exchange."""
+        offered_codes = request.data.get("offered_thing_codes", [])
+        if not offered_codes or not isinstance(offered_codes, list):
+            return Response(
+                {"error": "You must offer at least one thing to swap"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Find the collection this thing belongs to
+        thing_collection = thing.collections.filter(is_swap=True).first()
+        if not thing_collection:
+            return Response(
+                {"error": "Thing is not in a swap collection"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate all offered things
+        offered_things = []
+        for code in offered_codes:
+            try:
+                offered = Thing.objects.get(code=code)
+            except Thing.DoesNotExist:
+                return Response(
+                    {"error": f"Offered thing {code} not found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if offered.type != "SWAP_THING":
+                return Response(
+                    {"error": f"Offered thing {code} is not a swap thing"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if not offered.is_owner(request.user.code):
+                return Response(
+                    {"error": f"You do not own offered thing {code}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if offered.status != "ACTIVE":
+                return Response(
+                    {"error": f"Offered thing {code} is not active"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if not offered.collections.filter(code=thing_collection.code).exists():
+                return Response(
+                    {"error": f"Offered thing {code} is not in the same collection"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            offered_things.append(offered)
+
+        with transaction.atomic():
+            Thing.objects.select_for_update().get(code=thing.code)
+
+            booking = BookingPeriod.objects.create(
+                thing_code=thing,
+                thing_type=thing.type,
+                requester_code=request.user,
+                requester_email=request.user.email,
+                owner_code=thing.owner,
+            )
+            booking.offered_things.set(offered_things)
+
+        self._send_swap_email(request.user, thing, offered_things, booking, owner_email)
+
+        return Response(
+            {
+                "message": "Swap request sent",
+                "booking_code": booking.code,
+                "offered_thing_codes": [t.code for t in offered_things],
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def _send_swap_email(self, requester, thing, offered_things, booking, owner_email):
+        """Send swap request email to owner with RSVP-protected links."""
+        rsvp_accept = RSVP.create_for_booking("BOOKING_ACCEPT", booking, owner_email)
+        rsvp_reject = RSVP.create_for_booking("BOOKING_REJECT", booking, owner_email)
+
+        base_url = settings.RSVP_BASE_URL
+        accept_link = f"{base_url}/{rsvp_accept.code}"
+        reject_link = f"{base_url}/{rsvp_reject.code}"
+
+        send_swap_request_email(
+            requester, thing, offered_things, owner_email, accept_link, reject_link
+        )
+        send_swap_confirmation_email(requester, thing, offered_things, booking)
 
     def _send_booking_email(self, requester, thing, booking, owner_email):
         """Send booking request email to owner with RSVP-protected links."""

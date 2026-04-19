@@ -94,13 +94,26 @@ class ThingViewSet(ModelViewSet):
                     " in community collections"
                 )
                 return
+
+            # Swap collection: only SWAP_THING allowed
+            if collection.is_swap and thing_type != "SWAP_THING":
+                self._create_error = "Only swap things can be added to a swap collection"
+                return
+
+            # SWAP_THING requires a swap collection
+            if thing_type == "SWAP_THING" and not collection.is_swap:
+                self._create_error = "Swap things can only be created in swap collections"
+                return
         else:
-            # WISH_THING and SHARE_THING require a COMMUNITY collection
+            # WISH_THING, SHARE_THING, and SWAP_THING require specific collections
             if thing_type in ("WISH_THING", "SHARE_THING"):
                 self._create_error = (
                     f"{thing_type.replace('_', ' ').title()}s can only be created"
                     " in community collections"
                 )
+                return
+            if thing_type == "SWAP_THING":
+                self._create_error = "Swap things can only be created in swap collections"
                 return
 
         thing = Thing.objects.create(

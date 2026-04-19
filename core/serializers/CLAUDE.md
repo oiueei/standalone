@@ -78,11 +78,11 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, mode, digest_frequency, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. |
+| `CollectionSerializer` | code, owner, owner_name, created, headline, description, status, mode, digest_frequency, is_swap, things, invites, pending_invites | `things` excludes INACTIVE things for non-owners. `pending_invites` queries RSVP table. `is_swap` indicates swap-only collection. |
 | `CollectionThingSummarySerializer` | code, type, owner, headline, description, status, fee, availability, location, condition, event_date, booking_unit, thumbnail_url, pending_booking, my_pending_booking, pending_questions, transfer_count, attendee_count, helper_count, created | Lightweight thing representation nested inside `CollectionSerializer`. `my_pending_booking` same as in `ThingSerializer`. `attendee_count` returns deal count for EVENT_THING, null otherwise. `helper_count` returns deal count for WISH_THING, null otherwise. `booking_unit` is DAY or HOUR for ASSET_THING. Request context is forwarded from `CollectionSerializer.get_things()`. |
 | `CollectionInviteSummarySerializer` | code, email, name | Lightweight user representation for invite lists. |
-| `CollectionCreateSerializer` | headline, description, mode, digest_frequency | Input for collection creation. |
-| `CollectionUpdateSerializer` | headline, description, status, mode, digest_frequency | Input for collection updates. |
+| `CollectionCreateSerializer` | headline, description, mode, digest_frequency, is_swap | Input for collection creation. `is_swap` only meaningful for COMMUNITY mode. |
+| `CollectionUpdateSerializer` | headline, description, status, mode, digest_frequency, is_swap | Input for collection updates. `is_swap` only meaningful for COMMUNITY mode. |
 | `CollectionInviteSerializer` | email | Input for inviting a user. |
 | `CollectionAddThingSerializer` | thing_code | Input for adding a thing to a collection. |
 | `CollectionRemoveThingSerializer` | thing_code | Input for removing a thing from a collection. |
@@ -93,9 +93,9 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `BookingPeriodSerializer` | code, created, thing_code, thing_headline, thing_type, requester_code, requester_name, requester_email, owner_code, start_date, end_date, start_time, end_time, delivery_date, quantity, status | Full booking for owner view. Uses `source` to traverse FK relations. `start_time`/`end_time` for hourly ASSET_THING bookings. |
+| `BookingPeriodSerializer` | code, created, thing_code, thing_headline, thing_type, requester_code, requester_name, requester_email, owner_code, start_date, end_date, start_time, end_time, delivery_date, quantity, status, offered_thing_codes, offered_thing_headlines | Full booking for owner view. Uses `source` to traverse FK relations. `start_time`/`end_time` for hourly ASSET_THING bookings. `offered_thing_codes`/`offered_thing_headlines` return lists for SWAP_THING bookings, null otherwise. |
 | `BookingPeriodCalendarSerializer` | start_date, end_date, start_time, end_time, status | Minimal calendar view for guests (no requester info). Includes time fields for hourly bookings. |
-| `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, start_time, end_time, delivery_date, quantity, status | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. Includes time fields for hourly bookings. |
+| `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, start_time, end_time, delivery_date, quantity, status, offered_thing_codes, offered_thing_headlines | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. Includes time fields for hourly bookings. `offered_thing_codes`/`offered_thing_headlines` return lists for SWAP_THING bookings, null otherwise. |
 | `ThingRequestWithDatesSerializer` | start_date, end_date | Plain `Serializer` for LEND/RENT/SHARE/ASSET(DAY) requests. Validates start >= today, end >= start. |
 | `ThingRequestWithTimesSerializer` | start_date, start_time, end_time | Plain `Serializer` for ASSET(HOUR) requests. Validates start_date >= today, end_time > start_time. |
 | `ThingOrderSerializer` | delivery_date, quantity (1-99) | Plain `Serializer` for ORDER requests. Validates delivery >= today. |

@@ -28,6 +28,7 @@ class Thing(models.Model):
         ("EVENT_THING", "Event Thing"),
         ("WISH_THING", "Wish Thing"),
         ("ASSET_THING", "Asset Thing"),
+        ("SWAP_THING", "Swap Thing"),
     ]
 
     BOOKING_UNIT_CHOICES = [

@@ -124,6 +124,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **"Add thing" button** visible to collection owner (always) and to invited users in COMMUNITY mode, links to `/collections/{code}/add`.
 - **"Manage guests" button** visible only to collection owner, links to `/collections/{code}/invites`.
 - **Community tag**: when `collection.mode === 'COMMUNITY'`, an HDS `Tag` with "Community" label is shown next to the headline.
+- **Swap tag**: when `collection.is_swap`, an HDS `Tag` with "Swap collection" label is shown next to the headline (in addition to the Community tag).
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`) AND `seenWelcome` is not set in `localStorage` (first-time users only). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
 - **Owner attribution**: guests see "Owner. {name}" below the description in the hero, linking to `/{owner_code}` (the owner's public profile). Uses `owner_name` from `CollectionSerializer`.
 - **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is the owner, a `Notification` informs them "This collection is inactive. It is not visible to guests." Guests cannot access inactive collections (backend returns 403).
@@ -159,6 +160,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `GIFT_THING`, `SELL_THING` — button submits directly via `POST /api/v1/things/{code}/request/`, no extra fields.
   - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button navigates to `RequestThingPage` for date selection.
   - `ORDER_THING` — button navigates to `RequestThingPage` for delivery date and quantity.
+  - `SWAP_THING` — "Propose swap" button navigates to `RequestThingPage` for swap item selection. Owner bookings display shows offered thing headlines for swap requests.
 - **Back navigation**: passes `{ state: { backPath, backLabel } }` to RequestThingPage and ThingPage based on context (collection headline or home).
 
 ### ThingPage (`src/pages/ThingPage.jsx`)
@@ -181,7 +183,7 @@ Detail page for a thing with full information and FAQs section.
   - Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
 - **Event attendance:** For EVENT_THING, non-owners see "Attend"/"Attending" toggle button instead of "Hold". Calls `POST /api/v1/things/{code}/attend/`. Attendees section shows list of attendees fetched from `GET /api/v1/things/{code}/attendees/`.
 - **Wish help:** For WISH_THING, non-owners see "I can help"/"Helping" toggle button. Calls `POST /api/v1/things/{code}/offer-help/`. Helpers section shows list of helpers fetched from `GET /api/v1/things/{code}/helpers/`.
-- **Reservation:** For non-event/non-wish types, non-owners see "Hold" button. GIFT/SELL types submit directly; date-based and order types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`.
+- **Reservation:** For non-event/non-wish types, non-owners see "Hold" button (or "Propose swap" for SWAP_THING). GIFT/SELL types submit directly; date-based, order, and swap types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`. Owner bookings for SWAP_THING display offered thing headlines.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
   - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
@@ -196,11 +198,12 @@ Detail page for a thing with full information and FAQs section.
 - **Back link**: uses `location.state.backPath` and `location.state.backLabel` passed from ThingLinkbox or ThingPage.
 - **Page title**: `Hold: {thing.headline}` with fee display when present.
 - **Form fields** adapt to thing type:
+  - `SWAP_THING` — Fetches user's own SWAP_THING items in the same collection. Shows HDS `Checkbox` per item for multi-select. Submits `{ offered_thing_codes: [...] }`. "Propose swap" button disabled until at least one item selected.
   - `ASSET_THING` with `booking_unit=HOUR` — `DateInput` for date + two `TextInput type="time"` for start/end time.
   - `LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING` (day) — `DateInput` for start and end dates with blocked-date validation.
   - `ORDER_THING` — `DateInput` for delivery date + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates fetched from calendar API.
-- **Buttons**: Cancel (navigates back) + Hold (submits request).
+- **Buttons**: Cancel (navigates back) + Hold/Propose swap (submits request).
 - On success: shows an inline HDS `Notification` ("You're all set! We've let the owner know — they'll get back to you soon.") with a "Back to {backLabel}" button. Does not navigate automatically.
 - On error: toast notification (top-right, auto-close).
 
@@ -252,7 +255,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY), `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -290,7 +293,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Select` for digest frequency (None/Weekly/Monthly).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" (visible only when mode is COMMUNITY, auto-unchecks when mode changes), `Select` for digest frequency (None/Weekly/Monthly).
   - "Save" button below the form.
 - Pre-populates all fields from the current collection data.
 - On success: navigates to `/collections/{code}`.
@@ -300,7 +303,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" (visible only when mode is COMMUNITY, auto-unchecks when mode changes away from COMMUNITY).
   - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 
@@ -340,6 +343,7 @@ Central source of truth for thing type definitions. Display labels are handled b
 - `SHARE_TYPE` — `SHARE_THING` constant (used for share-specific UI logic — hide button restriction after transfer).
 - `EVENT_TYPE` — `EVENT_THING` constant (used for event-specific UI logic).
 - `WISH_TYPE` — `WISH_THING` constant (used for wish-specific UI logic).
+- `SWAP_TYPE` — `SWAP_THING` constant (used for swap-specific UI logic — swap request form, "Propose swap" button).
 - `ASSET_TYPE` — `ASSET_THING` constant (used for asset-specific UI logic).
 - `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING`).
 - `ORDER_TYPE` — `ORDER_THING` constant.

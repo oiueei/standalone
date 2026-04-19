@@ -14,7 +14,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -157,7 +157,8 @@ export default function ThingPage() {
     if (!ownerView && !isAssetThing) return;
     const isDateBased = isDateType(thing.type);
     const isOrder = thing.type === ORDER_TYPE;
-    if (ownerView && !isDateBased && !isOrder && thing.status !== 'TAKEN') return;
+    const isSwapThing = thing.type === SWAP_TYPE;
+    if (ownerView && !isDateBased && !isOrder && !isSwapThing && thing.status !== 'TAKEN') return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
@@ -193,10 +194,11 @@ export default function ThingPage() {
   const isEvent = thing.type === EVENT_TYPE;
   const isWish = thing.type === WISH_TYPE;
   const isShare = thing.type === SHARE_TYPE;
+  const isSwap = thing.type === SWAP_TYPE;
   const isAsset = thing.type === ASSET_TYPE;
   const isDateBased = isDateType(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
-  const needsPage = isDateBased || isOrder;
+  const needsPage = isDateBased || isOrder || isSwap;
   const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
   const canHide = isShare && thing.transfer_count > 0 ? isCollectionOwner : isOwner;
   const showButton = !isOwner && thing.status !== 'INACTIVE';
@@ -550,6 +552,9 @@ export default function ThingPage() {
                       </>
                     )}
                     {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
+                    {b.offered_thing_headlines && b.offered_thing_headlines.length > 0 && (
+                      <><br />{t('swap.offeredItems')}: {b.offered_thing_headlines.join(', ')}</>
+                    )}
                     {' '}
                     <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
                       ({b.status === 'ACCEPTED' ? t('thingCard.confirmed') : t('thingCard.pending')}){showStar ? ' *' : ''}
@@ -653,7 +658,7 @@ export default function ThingPage() {
             style={btnStyle}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
-            {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : t('thingCard.hold')}
+            {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
           </Button>
         )}
 

@@ -365,7 +365,8 @@
     "SHARE_THING": "Share",
     "EVENT_THING": "Event",
     "WISH_THING": "Wish",
-    "ASSET_THING": "Shared asset"
+    "ASSET_THING": "Shared asset",
+    "SWAP_THING": "Swap"
   },
   "availability": {
     "IMMEDIATE": "Immediate",
@@ -430,6 +431,17 @@
     "monthlyHeading": "Monthly breakdown",
     "bookingsLabel_one": "{{count}} booking",
     "bookingsLabel_other": "{{count}} bookings"
+  },
+  "swap": {
+    "offerItems": "Select items to offer",
+    "selectItems": "Choose your items to swap",
+    "noItemsToOffer": "You have no items to offer in this collection",
+    "swapButton": "Propose swap",
+    "offeredItems": "Offered items",
+    "swapAccepted": "Swap completed! Items have been exchanged.",
+    "swapRejected": "Swap request declined.",
+    "enableSwap": "Enable item swapping",
+    "swapCollection": "Swap collection"
   },
   "broadcast": {
     "heading": "Broadcast",

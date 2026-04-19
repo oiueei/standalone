@@ -86,6 +86,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `mode` | CharField(12) | No | Mode: PROPRIETARY (default) or COMMUNITY |
 | `digest_frequency` | CharField(7) | No | Digest email frequency: NONE (default), WEEKLY, or MONTHLY |
 | `is_onboarding` | BooleanField | No | If True, new users joining via `/popin` are added to this collection (default: False) |
+| `is_swap` | BooleanField | No | If True, only SWAP_THING items allowed; enables item swapping (default: False). Only meaningful for COMMUNITY collections. |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
 
@@ -251,6 +252,7 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 | `delivery_date` | DateField | No | Delivery date (for ORDER_THING) |
 | `quantity` | PositiveIntegerField | No | Quantity ordered (for ORDER_THING) |
 | `status` | CharField(9) | No | Status: PENDING, ACCEPTED, REJECTED, CANCELLED, EXPIRED. Indexed (`db_index=True`) |
+| `offered_things` | ManyToManyField(Thing) | No | Things offered by the requester in exchange (SWAP_THING only). Related name: `swap_offers`. |
 
 ### Thing Type Categories
 
@@ -266,8 +268,9 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 2. **Date-based (LEND/RENT/SHARE/ASSET)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE. ASSET_THING with `booking_unit=HOUR` also requires `start_time`/`end_time` and uses same-day booking with time-range overlap detection.
 3. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept.
 4. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
-5. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
-6. **Requester can cancel** - Requesters can cancel their own PENDING bookings. For single-use things, cancellation restores status to ACTIVE.
+5. **Swap (SWAP_THING)**: No dates. Requester offers own things via `offered_things` M2M. On acceptance, requested thing transfers to requester and all offered things transfer to original owner. All things stay ACTIVE. ThingTransfer records created for each thing involved.
+6. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
+7. **Requester can cancel** - Requesters can cancel their own PENDING bookings. For single-use things, cancellation restores status to ACTIVE.
 
 ### Methods
 
@@ -292,7 +295,7 @@ The `Thing` model represents an item in a collection.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
-| `type` | CharField(16) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING |
+| `type` | CharField(16) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING, SWAP_THING |
 | `owner` | ForeignKey(User) | **Yes** | Owner of the thing |
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |
@@ -328,6 +331,7 @@ The `Thing` model represents an item in a collection.
 - `thing.faq_set` - FAQs about this thing (FAQ.thing FK reverse)
 - `thing.bookings` - Bookings for this thing (BookingPeriod.thing_code FK reverse)
 - `thing.transfers` - Transfer history for this thing (ThingTransfer.thing FK reverse)
+- `thing.swap_offers` - Swap bookings where this thing was offered (BookingPeriod.offered_things M2M reverse)
 
 ---
 

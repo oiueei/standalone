@@ -37,6 +37,10 @@ def accept_booking(booking):
 
     For SHARE_THING: transfers ownership to the requester. The thing stays
     ACTIVE so the new owner can continue sharing it.
+
+    For SWAP_THING: bilateral ownership transfer — requested thing goes to
+    requester, all offered things go to the original owner. All things stay
+    ACTIVE. ThingTransfer records are created for each transfer.
     """
     with transaction.atomic():
         booking.accept()
@@ -48,6 +52,21 @@ def accept_booking(booking):
         elif booking.thing_type == "SHARE_THING":
             thing.owner = booking.requester_code
             thing.save(update_fields=["owner"])
+        elif booking.thing_type == "SWAP_THING":
+            # Requested thing → requester
+            thing.owner = booking.requester_code
+            thing.save(update_fields=["owner"])
+            # Offered things → original owner
+            for offered in booking.offered_things.select_for_update():
+                ThingTransfer.objects.create(
+                    thing=offered,
+                    from_user=booking.requester_code,
+                    to_user=booking.owner_code,
+                    booking=booking,
+                    lent_date=date.today(),
+                )
+                offered.owner = booking.owner_code
+                offered.save(update_fields=["owner"])
 
         # Record the transfer (item changing hands)
         ThingTransfer.objects.create(

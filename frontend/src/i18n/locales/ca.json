@@ -352,7 +352,8 @@
     "SHARE_THING": "Compartir",
     "EVENT_THING": "Esdeveniment",
     "WISH_THING": "Desig",
-    "ASSET_THING": "Recurs compartit"
+    "ASSET_THING": "Recurs compartit",
+    "SWAP_THING": "Intercanvi"
   },
   "availability": {
     "IMMEDIATE": "Immediata",
@@ -417,6 +418,17 @@
     "monthlyHeading": "Desglossament mensual",
     "bookingsLabel_one": "{{count}} reserva",
     "bookingsLabel_other": "{{count}} reserves"
+  },
+  "swap": {
+    "offerItems": "Seleccionar articles a oferir",
+    "selectItems": "Tria els teus articles per intercanviar",
+    "noItemsToOffer": "No tens articles per oferir en aquesta col·lecció",
+    "swapButton": "Proposar intercanvi",
+    "offeredItems": "Articles oferts",
+    "swapAccepted": "Intercanvi completat! Els articles han estat intercanviats.",
+    "swapRejected": "Sol·licitud d'intercanvi rebutjada.",
+    "enableSwap": "Activar intercanvi d'articles",
+    "swapCollection": "Col·lecció d'intercanvi"
   },
   "broadcast": {
     "heading": "Difusió",

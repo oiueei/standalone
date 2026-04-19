@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Koros } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Checkbox, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -25,6 +25,7 @@ export default function CreateCollectionPage() {
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
   const [mode, setMode] = useState('PROPRIETARY');
+  const [isSwap, setIsSwap] = useState(false);
   const [errors, setErrors] = useState({});
 
   const MODE_OPTIONS = [
@@ -47,7 +48,7 @@ export default function CreateCollectionPage() {
     setSubmitting(true);
     setToast(null);
 
-    const body = { headline: headline.trim(), mode };
+    const body = { headline: headline.trim(), mode, is_swap: isSwap && mode === 'COMMUNITY' };
     if (description.trim()) body.description = description.trim();
     try {
       const res = await apiFetch('/api/v1/collections/', {
@@ -113,10 +114,20 @@ export default function CreateCollectionPage() {
             value={mode}
             onChange={(selectedOptions) => {
               if (selectedOptions.length > 0) {
-                setMode(selectedOptions[0].value);
+                const newMode = selectedOptions[0].value;
+                setMode(newMode);
+                if (newMode !== 'COMMUNITY') setIsSwap(false);
               }
             }}
           />
+          {mode === 'COMMUNITY' && (
+            <Checkbox
+              id="create-collection-swap"
+              label={t('swap.enableSwap')}
+              checked={isSwap}
+              onChange={(e) => setIsSwap(e.target.checked)}
+            />
+          )}
         </div>
         <div className="form-actions">
           <Button

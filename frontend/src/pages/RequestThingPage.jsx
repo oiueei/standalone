@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, DateInput, Koros, Notification, NumberInput, TextInput } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE } from '../constants/things';
+import { Button, Checkbox, DateInput, Koros, Notification, NumberInput, TextInput } from 'hds-react';
+import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -40,6 +40,8 @@ export default function RequestThingPage() {
   const [blockedPeriods, setBlockedPeriods] = useState([]);
   const [toast, setToast] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [ownSwapThings, setOwnSwapThings] = useState([]);
+  const [selectedOfferings, setSelectedOfferings] = useState([]);
 
   useEffect(() => {
     if (!userCode) return;
@@ -50,6 +52,19 @@ export default function RequestThingPage() {
       })
       .catch(() => {});
   }, [userCode, thingCode, code]);
+
+  useEffect(() => {
+    if (!userCode || !thing || thing.type !== SWAP_TYPE) return;
+    apiFetch('/api/v1/things/')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const items = (data.results || data).filter(
+          (t) => t.type === SWAP_TYPE && t.code !== thingCode && t.status === 'ACTIVE' && t.collection_code === thing.collection_code
+        );
+        setOwnSwapThings(items);
+      })
+      .catch(() => {});
+  }, [userCode, thing, thingCode]);
 
   useEffect(() => {
     if (!userCode || !thing || !DATE_TYPES.includes(thing.type)) return;
@@ -77,9 +92,13 @@ export default function RequestThingPage() {
     const isDateBased = thing && DATE_TYPES.includes(thing.type);
     const isOrder = thing && thing.type === ORDER_TYPE;
     const isHourly = thing && thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR';
+    const isSwap = thing && thing.type === SWAP_TYPE;
 
     let body = {};
-    if (isHourly) {
+    if (isSwap) {
+      if (selectedOfferings.length === 0) return;
+      body = { offered_thing_codes: selectedOfferings };
+    } else if (isHourly) {
       if (!startDate || !startTime || !endTime) return;
       body = { start_date: startDate, start_time: startTime, end_time: endTime };
     } else if (isDateBased) {
@@ -132,6 +151,7 @@ export default function RequestThingPage() {
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const isHourly = thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR';
+  const isSwap = thing.type === SWAP_TYPE;
 
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
   const btnStyle = tc.color_01 ? {
@@ -181,7 +201,37 @@ export default function RequestThingPage() {
       ) : (
       <>
       {thing.fee && <p><strong>{t('request.priceLabel')}</strong> {t('request.priceValue', { fee: thing.fee })}</p>}
-      <div className="spacer-m" />      {isHourly && (
+      <div className="spacer-m" />
+      {isSwap && (
+        <div className="summary-grid section-mt">
+          <h2>{t('swap.offerItems')}</h2>
+          <p>{t('swap.selectItems')}</p>
+          <div className="spacer-xs" />
+          {ownSwapThings.length === 0 ? (
+            <p>{t('swap.noItemsToOffer')}</p>
+          ) : (
+            ownSwapThings.map((item) => (
+              <Checkbox
+                key={item.code}
+                id={`swap-offer-${item.code}`}
+                label={item.headline}
+                checked={selectedOfferings.includes(item.code)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedOfferings((prev) => [...prev, item.code]);
+                  } else {
+                    setSelectedOfferings((prev) => prev.filter((c) => c !== item.code));
+                  }
+                }}
+              />
+            ))
+          )}
+          {attempted && selectedOfferings.length === 0 && (
+            <p style={{ color: 'var(--color-error)' }}>{t('swap.offerItems')}</p>
+          )}
+        </div>
+      )}
+      {isHourly && (
         <div className="summary-grid section-mt">
           <DateInput
             id="request-start-date"
@@ -290,8 +340,8 @@ export default function RequestThingPage() {
 
       <div className="spacer-xs" />
       <div className="form-grid">
-        <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>
-          {submitting ? t('common.sending') : t('thingCard.hold')}
+        <Button fullWidth disabled={submitting || (isSwap && selectedOfferings.length === 0)} onClick={handleSubmit} style={btnStyle}>
+          {submitting ? t('common.sending') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
         </Button>
         <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
           {t('common.cancel')}

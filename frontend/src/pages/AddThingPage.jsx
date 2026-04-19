@@ -9,7 +9,7 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, ASSET_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -31,6 +31,7 @@ export default function AddThingPage() {
 
   const [collectionHeadline, setCollectionHeadline] = useState('');
   const [collectionMode, setCollectionMode] = useState('');
+  const [isSwapCollection, setIsSwapCollection] = useState(false);
   const [type, setType] = useState('GIFT_THING');
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -52,6 +53,10 @@ export default function AddThingPage() {
       .then((data) => {
         setCollectionHeadline(data.headline || '');
         setCollectionMode(data.mode || '');
+        if (data.is_swap) {
+          setIsSwapCollection(true);
+          setType('SWAP_THING');
+        }
       })
       .catch(() => {});
   }, [userCode, code]);
@@ -144,17 +149,19 @@ export default function AddThingPage() {
       <div className="page-container">
         <h1 className="page-title-xl">{t('addThing.pageTitle')}</h1>
       <div className="form-grid">
-          <Select
-            id="add-thing-type"
-            texts={{ label: t('addThing.typeLabel') }}
-            options={TYPE_VALUES.filter(v => (v !== WISH_TYPE && v !== SHARE_TYPE) || collectionMode === 'COMMUNITY').map(v => ({ label: t('types.' + v), value: v }))}
-            value={type}
-            onChange={(selectedOptions) => {
-              if (selectedOptions.length > 0) {
-                setType(selectedOptions[0].value);
-              }
-            }}
-          />
+          {!isSwapCollection && (
+            <Select
+              id="add-thing-type"
+              texts={{ label: t('addThing.typeLabel') }}
+              options={TYPE_VALUES.filter(v => v !== SWAP_TYPE && ((v !== WISH_TYPE && v !== SHARE_TYPE) || collectionMode === 'COMMUNITY')).map(v => ({ label: t('types.' + v), value: v }))}
+              value={type}
+              onChange={(selectedOptions) => {
+                if (selectedOptions.length > 0) {
+                  setType(selectedOptions[0].value);
+                }
+              }}
+            />
+          )}
           <TextInput
             id="add-thing-headline"
             label={t('addThing.titleLabel')}

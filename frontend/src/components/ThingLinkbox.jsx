@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -34,9 +34,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const isEvent = thing.type === EVENT_TYPE;
   const isWish = thing.type === WISH_TYPE;
   const isShare = thing.type === SHARE_TYPE;
+  const isSwap = thing.type === SWAP_TYPE;
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
-  const needsPage = isDateBased || isOrder;
+  const needsPage = isDateBased || isOrder || isSwap;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
   const canHide = isShare && thing.transfer_count > 0 ? isCollectionOwner : isOwner;
   const [attendSubmitting, setAttendSubmitting] = useState(false);
@@ -61,7 +62,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
 
   useEffect(() => {
     const shouldFetch = isOwner
-      ? (isDateBased || isOrder || thing.status === 'TAKEN')
+      ? (isDateBased || isOrder || isSwap || thing.status === 'TAKEN')
       : isAsset;
     if (!shouldFetch) return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)
@@ -80,7 +81,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         setActivePendingCode(firstPending?.code || null);
       })
       .catch(() => {});
-  }, [thing.code, thing.status, isOwner, isDateBased, isOrder, isAsset]);
+  }, [thing.code, thing.status, isOwner, isDateBased, isOrder, isSwap, isAsset]);
 
   const handleRequest = async () => {
     setSubmitting(true);
@@ -337,6 +338,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                     {b.start_date && b.end_date && !b.start_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
                     {b.start_date && b.start_time && b.end_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} {b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}</>}
                     {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
+                    {b.offered_thing_headlines && b.offered_thing_headlines.length > 0 && (
+                      <><br />{t('swap.offeredItems')}: {b.offered_thing_headlines.join(', ')}</>
+                    )}
                     {' '}
                     <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
                       ({b.status === 'ACCEPTED' ? t('thingCard.confirmed') : t('thingCard.pending')}){showStar ? ' *' : ''}
@@ -434,7 +438,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               style={btnStyle}
               onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
-              {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : t('thingCard.hold')}
+              {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
             </Button>
           )}
         </div>

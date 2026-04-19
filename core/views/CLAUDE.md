@@ -228,7 +228,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 **Retrieve:** Uses `thing.can_view(user_code)` — owner, or invited to an ACTIVE collection containing the thing (INACTIVE things are only visible to their owner).
 
-**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING and SHARE_THING are restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. EVENT_THING sends an announcement email to all collection invitees on creation.
+**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING and SHARE_THING are restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. SWAP_THING requires a swap collection (`is_swap=True`) — returns 400 otherwise. Swap collections only accept SWAP_THING — returns 400 for any other type. EVENT_THING sends an announcement email to all collection invitees on creation.
 
 **`activate` action:** Sets `status = 'ACTIVE'`. Returns 400 if thing is not INACTIVE.
 
@@ -581,6 +581,17 @@ Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THIN
 { "delivery_date": "2025-06-01", "quantity": 3 }
 ```
 
+**Swap (SWAP_THING):**
+- Requires `offered_thing_codes` (list of thing codes to offer in exchange).
+- Each offered thing must: be SWAP_THING, be owned by the requester, be ACTIVE, be in the same swap collection.
+- Creates `BookingPeriod` with no dates, links offered things via M2M.
+- Thing stays `ACTIVE`. Sends swap-specific emails via `_send_swap_email()`.
+
+**Request body:**
+```json
+{ "offered_thing_codes": ["THNG01", "THNG02"] }
+```
+
 **Standard (GIFT/SELL):**
 - No extra fields required.
 - Checks for existing pending request from same user. Returns 400 if duplicate.
@@ -589,8 +600,8 @@ Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THIN
 **Common behaviour:**
 1. Validates owner email in the parent `post()` method (shared across all type handlers).
 2. Creates `BookingPeriod` with status `PENDING`.
-3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `_send_booking_email()`.
-4. Sends booking request email to owner with accept/reject links, and a confirmation email to the requester ("Hold request sent").
+3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `_send_booking_email()` (or `_send_swap_email()` for SWAP_THING).
+4. Sends booking request email to owner with accept/reject links, and a confirmation email to the requester ("Hold request sent" / "Swap request sent").
 
 **INACTIVE collection enforcement:**
 If all collections containing the thing are INACTIVE, the request is blocked with 400 "This collection is currently inactive".

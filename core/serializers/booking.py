@@ -17,6 +17,8 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
     requester_code = serializers.CharField(source="requester_code_id")
     requester_name = serializers.CharField(source="requester_code.name", read_only=True)
     owner_code = serializers.CharField(source="owner_code_id")
+    offered_thing_codes = serializers.SerializerMethodField()
+    offered_thing_headlines = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -37,19 +39,19 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "delivery_date",
             "quantity",
             "status",
+            "offered_thing_codes",
+            "offered_thing_headlines",
         ]
-        read_only_fields = [
-            "code",
-            "created",
-            "thing_code",
-            "thing_headline",
-            "thing_type",
-            "requester_code",
-            "requester_name",
-            "requester_email",
-            "owner_code",
-            "status",
-        ]
+
+    def get_offered_thing_codes(self, obj):
+        if obj.thing_type != "SWAP_THING":
+            return None
+        return list(obj.offered_things.values_list("code", flat=True))
+
+    def get_offered_thing_headlines(self, obj):
+        if obj.thing_type != "SWAP_THING":
+            return None
+        return list(obj.offered_things.values_list("headline", flat=True))
 
 
 class BookingPeriodCalendarSerializer(serializers.ModelSerializer):
@@ -71,6 +73,8 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
 
     requester_code = serializers.CharField(source="requester_code_id")
     requester_name = serializers.SerializerMethodField()
+    offered_thing_codes = serializers.SerializerMethodField()
+    offered_thing_headlines = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -86,10 +90,22 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
             "delivery_date",
             "quantity",
             "status",
+            "offered_thing_codes",
+            "offered_thing_headlines",
         ]
 
     def get_requester_name(self, obj):
         return obj.requester_code.name or obj.requester_email
+
+    def get_offered_thing_codes(self, obj):
+        if obj.thing_type != "SWAP_THING":
+            return None
+        return list(obj.offered_things.values_list("code", flat=True))
+
+    def get_offered_thing_headlines(self, obj):
+        if obj.thing_type != "SWAP_THING":
+            return None
+        return list(obj.offered_things.values_list("headline", flat=True))
 
 
 class ThingRequestWithDatesSerializer(serializers.Serializer):
@@ -159,6 +175,8 @@ class MyBookingSerializer(serializers.ModelSerializer):
     thing_headline = serializers.CharField(source="thing_code.headline", read_only=True)
     owner_code = serializers.CharField(source="owner_code_id")
     owner_name = serializers.SerializerMethodField()
+    offered_thing_codes = serializers.SerializerMethodField()
+    offered_thing_headlines = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -177,7 +195,19 @@ class MyBookingSerializer(serializers.ModelSerializer):
             "delivery_date",
             "quantity",
             "status",
+            "offered_thing_codes",
+            "offered_thing_headlines",
         ]
 
     def get_owner_name(self, obj):
         return obj.owner_code.name or obj.owner_code.email
+
+    def get_offered_thing_codes(self, obj):
+        if obj.thing_type != "SWAP_THING":
+            return None
+        return list(obj.offered_things.values_list("code", flat=True))
+
+    def get_offered_thing_headlines(self, obj):
+        if obj.thing_type != "SWAP_THING":
+            return None
+        return list(obj.offered_things.values_list("headline", flat=True))

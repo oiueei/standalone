@@ -352,7 +352,8 @@
     "SHARE_THING": "Partekatzeko",
     "EVENT_THING": "Ekitaldia",
     "WISH_THING": "Nahia",
-    "ASSET_THING": "Baliabide partekatua"
+    "ASSET_THING": "Baliabide partekatua",
+    "SWAP_THING": "Trukea"
   },
   "availability": {
     "IMMEDIATE": "Berehala",
@@ -417,6 +418,17 @@
     "monthlyHeading": "Hileko xehetasuna",
     "bookingsLabel_one": "{{count}} erreserba",
     "bookingsLabel_other": "{{count}} erreserba"
+  },
+  "swap": {
+    "offerItems": "Eskaintzeko artikuluak hautatu",
+    "selectItems": "Aukeratu zure artikuluak trukatzeko",
+    "noItemsToOffer": "Ez duzu artikulurik eskaintzeko bilduma honetan",
+    "swapButton": "Trukea proposatu",
+    "offeredItems": "Eskainitako artikuluak",
+    "swapAccepted": "Trukea osatuta! Artikuluak trukatu dira.",
+    "swapRejected": "Truke-eskaera baztertua.",
+    "enableSwap": "Artikuluen trukea gaitu",
+    "swapCollection": "Truke-bilduma"
   },
   "broadcast": {
     "heading": "Hedapena",

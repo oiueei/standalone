@@ -502,3 +502,68 @@ def send_event_reminder_email(owner_name, thing_headline, event_date, emails):
             recipient_list=[email],
             html_message=html,
         )
+
+
+def send_swap_request_email(
+    requester, thing, offered_things, owner_email, accept_link, reject_link
+):
+    """Send swap request email to owner with offered thing headlines."""
+    requester_name = requester.name or requester.email
+    safe_requester_name = escape(requester_name)
+    safe_headline = escape(thing.headline)
+    offered_names = ", ".join(t.headline for t in offered_things)
+    offered_html = "".join(f"<li>{escape(t.headline)}</li>" for t in offered_things)
+
+    message = (
+        f"{requester_name} wants to swap '{thing.headline}' "
+        f"for: {offered_names}. "
+        f"Confirm swap: {accept_link} | Cancel swap: {reject_link}"
+    )
+
+    send_mail(
+        subject="You have a swap request",
+        message=message,
+        from_email=None,
+        recipient_list=[owner_email],
+        html_message=f"""
+            <html>
+            <p><strong>{safe_requester_name}</strong> wants to swap:</p>
+            <p><strong>{safe_headline}</strong></p>
+            <p>In exchange for:</p>
+            <ul>{offered_html}</ul>
+            <p>
+                <a href="{accept_link}">Confirm swap</a> |
+                <a href="{reject_link}">Cancel swap</a>
+            </p>
+            </html>
+            """,
+    )
+
+
+def send_swap_confirmation_email(requester, thing, offered_things, booking):
+    """Send swap request confirmation to the requester."""
+    safe_headline = escape(thing.headline)
+    offered_names = ", ".join(t.headline for t in offered_things)
+    offered_html = "".join(f"<li>{escape(t.headline)}</li>" for t in offered_things)
+
+    message = (
+        f"Your swap request for '{thing.headline}' "
+        f"(offering: {offered_names}) has been sent. "
+        f"The owner will get back to you soon."
+    )
+
+    send_mail(
+        subject="Swap request sent",
+        message=message,
+        from_email=None,
+        recipient_list=[requester.email],
+        html_message=f"""
+            <html>
+            <p>Your swap request has been sent!</p>
+            <p>You requested: <strong>{safe_headline}</strong></p>
+            <p>You offered:</p>
+            <ul>{offered_html}</ul>
+            <p>The owner will get back to you soon.</p>
+            </html>
+            """,
+    )
