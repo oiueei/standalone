@@ -34,6 +34,9 @@ def accept_booking(booking):
 
     Wrapped in transaction.atomic with select_for_update to prevent race
     conditions when updating both BookingPeriod status and Thing status.
+
+    For SHARE_THING: transfers ownership to the requester. The thing stays
+    ACTIVE so the new owner can continue sharing it.
     """
     with transaction.atomic():
         booking.accept()
@@ -42,6 +45,9 @@ def accept_booking(booking):
             thing.status = "INACTIVE"
             thing.save(update_fields=["status"])
             thing.deal.add(booking.requester_code)
+        elif booking.thing_type == "SHARE_THING":
+            thing.owner = booking.requester_code
+            thing.save(update_fields=["owner"])
 
         # Record the transfer (item changing hands)
         ThingTransfer.objects.create(

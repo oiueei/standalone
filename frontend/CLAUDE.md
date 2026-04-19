@@ -146,7 +146,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
 - **Owner bookings display**: fetches `GET /api/v1/things/{code}/calendar/` on mount for date-based/order types and for any TAKEN thing (GIFT/SELL with a pending request). Shows future pending and confirmed bookings with requester name, request date, date ranges/delivery info, and status. Bookings with no dates (GIFT/SELL) are always shown regardless of date. The active pending booking is tracked in local `activePendingCode` state (initialised from `thing.pending_booking`, then synced to the first PENDING from the calendar on load) and marked bold with `*` when multiple pending exist.
 - **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
 - **Owner button matrix** (based on `thing.status`):
-  - `ACTIVE` (no pending hold): "Edit" (**primary**), "Hide" (secondary). "Hide" is suppressed when pending bookings exist.
+  - `ACTIVE` (no pending hold): "Edit" (**primary**), "Hide" (secondary). "Hide" is suppressed when pending bookings exist. For SHARE_THING after transfer (`transfer_count > 0`), "Hide" is only shown to the collection owner (not the thing owner).
   - `ACTIVE` (date-based/order with pending hold): "Confirm hold" (primary) + "Cancel hold" (secondary) targeting `activePendingCode`, then "Edit" (secondary).
   - `TAKEN`: "Confirm hold" (primary), "Cancel hold" (secondary), "Edit" (secondary). After each accept/cancel, `activePendingCode` advances to the next pending.
   - `INACTIVE`: "Reactivate" (primary, calls `POST /api/v1/things/{code}/activate/`), "Edit" (secondary), "Delete" (secondary, navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`).
@@ -252,7 +252,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type (WISH_THING only shown when collection is COMMUNITY), `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY), `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -337,6 +337,7 @@ Detail page for a thing with full information and FAQs section.
 
 Central source of truth for thing type definitions. Display labels are handled by i18n — use `t('types.GIFT_THING')` etc.
 - `TYPE_VALUES` — Array of type value strings (no labels — labels come from i18n).
+- `SHARE_TYPE` — `SHARE_THING` constant (used for share-specific UI logic — hide button restriction after transfer).
 - `EVENT_TYPE` — `EVENT_THING` constant (used for event-specific UI logic).
 - `WISH_TYPE` — `WISH_THING` constant (used for wish-specific UI logic).
 - `ASSET_TYPE` — `ASSET_THING` constant (used for asset-specific UI logic).

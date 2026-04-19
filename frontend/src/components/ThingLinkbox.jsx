@@ -2,12 +2,12 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, ASSET_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, onDelete, onRemoveFromCollection, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, onDelete, onRemoveFromCollection, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -33,9 +33,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   } : undefined;
   const isEvent = thing.type === EVENT_TYPE;
   const isWish = thing.type === WISH_TYPE;
+  const isShare = thing.type === SHARE_TYPE;
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
+  const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
+  const canHide = isShare && thing.transfer_count > 0 ? isCollectionOwner : isOwner;
   const [attendSubmitting, setAttendSubmitting] = useState(false);
   const [isAttending, setIsAttending] = useState(false);
   const [attendeeCount, setAttendeeCount] = useState(thing.attendee_count || 0);
@@ -364,7 +367,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                   <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
                 )}
               </Link>
-              {!bookings.some((b) => b.status === 'PENDING') && (
+              {!bookings.some((b) => b.status === 'PENDING') && canHide && (
                 <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
                   {t('thingPage.hide')}
                 </Button>

@@ -15,7 +15,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 | Function | Input | Behaviour |
 |----------|-------|-----------|
 | `cancel_booking(booking)` | `BookingPeriod` instance | Calls `booking.cancel()`. For single-use types (GIFT, SELL), restores thing to `ACTIVE`. Returns thing. |
-| `accept_booking(booking)` | `BookingPeriod` instance | Calls `booking.accept()`. For single-use types, sets thing to `INACTIVE` and adds requester to `deal` M2M. Creates a `ThingTransfer` record (from owner to requester, lent_date = start_date or today). Returns thing. |
+| `accept_booking(booking)` | `BookingPeriod` instance | Calls `booking.accept()`. For single-use types, sets thing to `INACTIVE` and adds requester to `deal` M2M. For `SHARE_THING`, transfers ownership to the requester (`thing.owner = booking.requester_code`); thing stays `ACTIVE`. Creates a `ThingTransfer` record (from owner to requester, lent_date = start_date or today). Returns thing. |
 | `reject_booking(booking)` | `BookingPeriod` instance | Calls `booking.reject()`. For single-use types, restores thing to `ACTIVE`. Returns thing. |
 
 #### Patterns
@@ -23,6 +23,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 - **Atomic transactions**: Every function wraps its work in `transaction.atomic()` to ensure `BookingPeriod` and `Thing` are updated together or not at all.
 - **Row-level locking**: Uses `Thing.objects.select_for_update()` to prevent race conditions when two concurrent requests try to modify the same thing's status.
 - **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT, SHARE, ASSET) and repeatable types (ORDER) leave thing status unchanged because multiple bookings can coexist.
+- **SHARE_THING ownership transfer**: On acceptance, `thing.owner` is changed to the requester. The thing stays `ACTIVE` so the new owner can continue sharing it. This enables a chain of ownership transfers within a community collection.
 
 ---
 

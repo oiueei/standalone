@@ -14,7 +14,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, ASSET_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -189,13 +189,16 @@ export default function ThingPage() {
   }
 
   const isOwner = thing.owner === userCode;
+  const isCollectionOwner = thing.collection_owner === userCode;
   const isEvent = thing.type === EVENT_TYPE;
   const isWish = thing.type === WISH_TYPE;
+  const isShare = thing.type === SHARE_TYPE;
   const isAsset = thing.type === ASSET_TYPE;
   const isDateBased = isDateType(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder;
   const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
+  const canHide = isShare && thing.transfer_count > 0 ? isCollectionOwner : isOwner;
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
@@ -578,7 +581,7 @@ export default function ThingPage() {
                 <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
               )}
             </Link>
-            {!hasPendingBookings && (
+            {!hasPendingBookings && canHide && (
               <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={handleHide}>{t('thingPage.hide')}</Button>
             )}
           </div>

@@ -56,7 +56,7 @@ class ThingViewSet(ModelViewSet):
         return ThingSerializer
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy", "activate", "hide"):
+        if self.action in ("update", "partial_update", "destroy", "activate"):
             return [IsAuthenticated(), IsThingOwner()]
         return [IsAuthenticated()]
 
@@ -87,14 +87,20 @@ class ThingViewSet(ModelViewSet):
                 self._create_error = "Collection not found"
                 return
 
-            # WISH_THING is only allowed in COMMUNITY collections
-            if thing_type == "WISH_THING" and not collection.is_community():
-                self._create_error = "Wish things can only be created in community collections"
+            # WISH_THING and SHARE_THING are only allowed in COMMUNITY collections
+            if thing_type in ("WISH_THING", "SHARE_THING") and not collection.is_community():
+                self._create_error = (
+                    f"{thing_type.replace('_', ' ').title()}s can only be created"
+                    " in community collections"
+                )
                 return
         else:
-            # WISH_THING requires a collection
-            if thing_type == "WISH_THING":
-                self._create_error = "Wish things can only be created in community collections"
+            # WISH_THING and SHARE_THING require a COMMUNITY collection
+            if thing_type in ("WISH_THING", "SHARE_THING"):
+                self._create_error = (
+                    f"{thing_type.replace('_', ' ').title()}s can only be created"
+                    " in community collections"
+                )
                 return
 
         thing = Thing.objects.create(
@@ -152,11 +158,30 @@ class ThingViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="hide")
     def hide(self, request, code=None):
-        thing = self.get_object()
+        thing = get_object_or_404(Thing, code=code)
+        is_thing_owner = thing.is_owner(request.user.code)
+        is_collection_owner = thing.collections.filter(owner_id=request.user.code).exists()
+
+        # Must be thing owner or collection owner to hide
+        if not is_thing_owner and not is_collection_owner:
+            return Response(
+                {"error": "You do not have permission to hide this thing."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         if thing.status != "ACTIVE":
             return Response(
                 {"error": "Only active things can be hidden."}, status=status.HTTP_400_BAD_REQUEST
             )
+
+        # SHARE_THING after first transfer: only the collection owner can hide
+        if thing.type == "SHARE_THING" and thing.transfers.exists():
+            if not is_collection_owner:
+                return Response(
+                    {"error": "Only the collection owner can hide a shared thing after transfer."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
         thing.status = "INACTIVE"
         thing.save(update_fields=["status"])
         return Response(ThingSerializer(thing).data)

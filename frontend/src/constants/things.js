@@ -7,6 +7,7 @@ export const TYPE_VALUES = [
   'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING', 'LEND_THING', 'SHARE_THING', 'EVENT_THING', 'WISH_THING', 'ASSET_THING',
 ];
 
+export const SHARE_TYPE = 'SHARE_THING';
 export const EVENT_TYPE = 'EVENT_THING';
 export const WISH_TYPE = 'WISH_THING';
 export const ASSET_TYPE = 'ASSET_THING';

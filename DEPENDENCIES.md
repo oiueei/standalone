@@ -190,7 +190,25 @@ Adds a new thing type for shared resources (meeting rooms, projectors, vehicles)
 
 **To prune:** Remove `ASSET_THING` from TYPE_CHOICES and `DATE_BASED_TYPES`, remove `booking_unit` from Thing model, remove `start_time`/`end_time` from BookingPeriod (migration needed), delete `core/views/stats.py`, remove hourly handler from reservations view, revert calendar view shared access, remove `ThingRequestWithTimesSerializer`, remove `booking_unit`/time fields from serializers, remove stats URL route, remove `ASSET_TYPE` from constants, remove asset-specific UI from ThingLinkbox/ThingPage/AddThingPage/EditThingPage/RequestThingPage, remove `asset.*` i18n keys.
 
-### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events, Wishes, and Assets sub-features are **EASY** to prune independently.
+### Sub-feature: SHARE_THING Ownership Transfer
+
+Adds ownership transfer behaviour to SHARE_THING. When a SHARE_THING booking is accepted, the thing's owner changes to the requester. After the first transfer, only the collection owner can hide the thing (not the current thing owner). SHARE_THING is restricted to COMMUNITY collections.
+
+| Layer | Files | Detail |
+|-------|-------|--------|
+| **Services** | `core/services/booking_service.py` | `accept_booking()` — SHARE_THING branch: transfers `thing.owner` to requester |
+| **Views** | `core/views/things.py` | `hide` action: after first transfer, only collection owner can hide. `perform_create`: SHARE_THING restricted to COMMUNITY collections |
+| **Serializers** | `core/serializers/thing.py` | `collection_owner` field on ThingSerializer |
+| **Tests** | `core/tests/integration/test_share_transfer.py` | 11 integration tests |
+| **Frontend** | `src/constants/things.js` | `SHARE_TYPE` constant |
+| **Frontend** | `ThingLinkbox` | `collectionOwner` prop, `canHide` logic for SHARE_THING |
+| **Frontend** | `ThingPage` | `canHide` logic for SHARE_THING hide button |
+| **Frontend** | `AddThingPage` | SHARE_THING filtered from type selector in PROPRIETARY collections |
+| **Frontend** | `CollectionPage` | Passes `collectionOwner` prop to ThingLinkbox |
+
+**To prune:** Revert `accept_booking()` SHARE_THING branch, revert `hide` action to simple `IsThingOwner` check, remove SHARE_THING restriction from `perform_create` (keep WISH_THING restriction), remove `collection_owner` from ThingSerializer, remove `SHARE_TYPE` from constants, revert `canHide` logic to simple `isOwner` in ThingLinkbox/ThingPage, remove SHARE_TYPE filter from AddThingPage, remove `collectionOwner` prop from CollectionPage/ThingLinkbox.
+
+### Pruning difficulty: **IMPOSSIBLE** — Things are the core entity. But individual *types* can be pruned (MEDIUM difficulty). Events, Wishes, Assets, and SHARE_THING transfer sub-features are **EASY** to prune independently.
 
 ---
 
@@ -506,3 +524,4 @@ After user testing, use this priority to decide what to cut:
 | 13 | Remove Reminders if automated notifications not needed | TRIVIAL |
 | 14 | Remove Digests if periodic summaries not needed | EASY |
 | 15 | Remove Shared Assets (ASSET_THING) if shared resource booking not needed | EASY |
+| 16 | Remove SHARE_THING ownership transfer if sharing not needed | EASY |

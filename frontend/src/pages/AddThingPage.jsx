@@ -9,7 +9,7 @@ import {
   Button,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, ASSET_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -147,7 +147,7 @@ export default function AddThingPage() {
           <Select
             id="add-thing-type"
             texts={{ label: t('addThing.typeLabel') }}
-            options={TYPE_VALUES.filter(v => v !== WISH_TYPE || collectionMode === 'COMMUNITY').map(v => ({ label: t('types.' + v), value: v }))}
+            options={TYPE_VALUES.filter(v => (v !== WISH_TYPE && v !== SHARE_TYPE) || collectionMode === 'COMMUNITY').map(v => ({ label: t('types.' + v), value: v }))}
             value={type}
             onChange={(selectedOptions) => {
               if (selectedOptions.length > 0) {

@@ -228,11 +228,11 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 **Retrieve:** Uses `thing.can_view(user_code)` — owner, or invited to an ACTIVE collection containing the thing (INACTIVE things are only visible to their owner).
 
-**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING is restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. EVENT_THING sends an announcement email to all collection invitees on creation.
+**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING and SHARE_THING are restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. EVENT_THING sends an announcement email to all collection invitees on creation.
 
 **`activate` action:** Sets `status = 'ACTIVE'`. Returns 400 if thing is not INACTIVE.
 
-**`hide` action:** Sets `status = 'INACTIVE'` (owner hides the thing manually). Returns 400 if thing is not ACTIVE (cannot hide a TAKEN thing — cancel the hold first).
+**`hide` action:** Sets `status = 'INACTIVE'`. Thing owner or collection owner can hide. Returns 400 if thing is not ACTIVE (cannot hide a TAKEN thing — cancel the hold first). For SHARE_THING after the first transfer, only the collection owner can hide (returns 403 for the thing owner who is not the collection owner).
 
 ### InvitedThingsView
 

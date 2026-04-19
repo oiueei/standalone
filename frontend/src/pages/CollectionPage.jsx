@@ -202,6 +202,7 @@ export default function CollectionPage() {
               userCode={localStorage.getItem('userCode')}
               collectionCode={code}
               collectionHeadline={collection.headline}
+              collectionOwner={collection.owner}
               onDelete={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),
@@ -289,6 +290,7 @@ export default function CollectionPage() {
                 userCode={localStorage.getItem('userCode')}
                 collectionCode={code}
                 collectionHeadline={collection.headline}
+                collectionOwner={collection.owner}
                 onDelete={(thingCode) => setCollection((prev) => ({
                   ...prev,
                   things: prev.things.filter((t) => t.code !== thingCode),

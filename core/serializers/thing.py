@@ -23,6 +23,7 @@ class ThingSerializer(serializers.ModelSerializer):
     pending_questions = serializers.SerializerMethodField()
     collection_code = serializers.SerializerMethodField()
     collection_headline = serializers.SerializerMethodField()
+    collection_owner = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
     attendee_count = serializers.SerializerMethodField()
     helper_count = serializers.SerializerMethodField()
@@ -53,6 +54,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "pending_questions",
             "collection_code",
             "collection_headline",
+            "collection_owner",
             "transfer_count",
             "attendee_count",
             "helper_count",
@@ -103,6 +105,11 @@ class ThingSerializer(serializers.ModelSerializer):
         collections = obj.collections.all()
         first = collections[0] if collections else None
         return first.headline if first else None
+
+    def get_collection_owner(self, obj):
+        collections = obj.collections.all()
+        first = collections[0] if collections else None
+        return first.owner_id if first else None
 
     def get_faqs(self, obj):
         # Use prefetched faq_set cache if available
