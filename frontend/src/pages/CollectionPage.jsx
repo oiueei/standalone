@@ -130,6 +130,9 @@ export default function CollectionPage() {
             {collection.is_share && (
               <>{' '}<Tag theme={{ '--tag-background': 'var(--color-tram)', '--tag-color': 'var(--color-white)' }}>{t('share.shareCollection')}</Tag></>
             )}
+            {collection.is_minimalist && (
+              <>{' '}<Tag theme={{ '--tag-background': 'var(--color-summer)', '--tag-color': 'var(--color-black-90)' }}>{t('minimalist.albumTag')}</Tag></>
+            )}
           </h1>
           {collection.description && <MarkdownText text={collection.description} className="form-hero-text" />}
           {!isOwner && collection.owner_name && (
@@ -210,6 +213,7 @@ export default function CollectionPage() {
               collectionCode={code}
               collectionHeadline={collection.headline}
               collectionOwner={collection.owner}
+              minimalist={collection.is_minimalist}
               onDelete={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),
@@ -298,6 +302,7 @@ export default function CollectionPage() {
                 collectionCode={code}
                 collectionHeadline={collection.headline}
                 collectionOwner={collection.owner}
+                minimalist={collection.is_minimalist}
                 onDelete={(thingCode) => setCollection((prev) => ({
                   ...prev,
                   things: prev.things.filter((t) => t.code !== thingCode),

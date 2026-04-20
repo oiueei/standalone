@@ -89,6 +89,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `is_swap` | BooleanField | No | If True, only SWAP_THING items allowed; enables item swapping (default: False). Only meaningful for COMMUNITY collections. |
 | `is_share` | BooleanField | No | If True, only SHARE_THING items allowed (default: False). Mutually exclusive with `is_swap`. Only meaningful for COMMUNITY collections. |
 | `newsletter_enabled` | BooleanField | No | If True, sends weekly activity newsletter on Mondays (default: False). Requires `is_share=True`. |
+| `is_minimalist` | BooleanField | No | If True, enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (default: False). Mutually exclusive with `is_swap`. Compatible with `is_share`. |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
 

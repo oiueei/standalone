@@ -22,6 +22,7 @@ export default function EditCollectionPage() {
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
+  const [isMinimalist, setIsMinimalist] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -62,6 +63,7 @@ export default function EditCollectionPage() {
           setIsSwap(data.is_swap || false);
           setIsShare(data.is_share || false);
           setNewsletterEnabled(data.newsletter_enabled || false);
+          setIsMinimalist(data.is_minimalist || false);
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -96,6 +98,7 @@ export default function EditCollectionPage() {
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
+      is_minimalist: isMinimalist,
     };
 
     try {
@@ -187,7 +190,7 @@ export default function EditCollectionPage() {
             if (selectedOptions.length > 0) {
               const newMode = selectedOptions[0].value;
               setMode(newMode);
-              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); }
+              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
             }
           }}
         />
@@ -196,7 +199,7 @@ export default function EditCollectionPage() {
             id="edit-collection-swap"
             label={t('swap.enableSwap')}
             checked={isSwap}
-            onChange={(e) => { setIsSwap(e.target.checked); if (e.target.checked) setIsShare(false); }}
+            onChange={(e) => { setIsSwap(e.target.checked); if (e.target.checked) { setIsShare(false); setIsMinimalist(false); } }}
           />
         )}
         {mode === 'COMMUNITY' && (
@@ -215,6 +218,12 @@ export default function EditCollectionPage() {
             onChange={(e) => setNewsletterEnabled(e.target.checked)}
           />
         )}
+        <Checkbox
+          id="edit-collection-minimalist"
+          label={t('minimalist.enableMinimalist')}
+          checked={isMinimalist}
+          onChange={(e) => { setIsMinimalist(e.target.checked); if (e.target.checked) setIsSwap(false); }}
+        />
         <Select
           id="edit-collection-digest"
           texts={{ label: t('editCollection.digestLabel') }}

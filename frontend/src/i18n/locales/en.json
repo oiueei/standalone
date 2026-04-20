@@ -455,6 +455,11 @@
   "newsletter": {
     "enableNewsletter": "Weekly activity newsletter"
   },
+  "minimalist": {
+    "enableMinimalist": "Album mode (photo-only cards)",
+    "albumTag": "Album",
+    "photoRequired": "Photo (required)"
+  },
   "documents": {
     "heading": "Documents",
     "uploadLabel": "Attachments",

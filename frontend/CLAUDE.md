@@ -125,6 +125,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **"Manage guests" button** visible only to collection owner, links to `/collections/{code}/invites`.
 - **Community tag**: when `collection.mode === 'COMMUNITY'`, an HDS `Tag` with "Community" label is shown next to the headline.
 - **Swap tag**: when `collection.is_swap`, an HDS `Tag` with "Swap collection" label is shown next to the headline (in addition to the Community tag).
+- **Album tag**: when `collection.is_minimalist`, an HDS `Tag` with "Album" label is shown next to the headline.
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`) AND `seenWelcome` is not set in `localStorage` (first-time users only). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
 - **Owner attribution**: guests see "Owner. {name}" below the description in the hero, linking to `/{owner_code}` (the owner's public profile). Uses `owner_name` from `CollectionSerializer`.
 - **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is the owner, a `Notification` informs them "This collection is inactive. It is not visible to guests." Guests cannot access inactive collections (backend returns 403).
@@ -137,6 +138,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPage` and `HomePage`.
 
 - **Card**: the component uses HDS `Card` (a `<div>`-based container) instead of `Linkbox`, since it contains interactive elements (buttons, links). The thumbnail and headline are wrapped in `<Link>` components for navigation to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). No `stopPropagation` hacks needed.
+- **Minimalist mode**: accepts `minimalist` prop. When true, renders a simplified photo-album card: full-width photo, italic caption (headline), and minimal buttons. No description, info rows, or link to ThingPage. Owner sees confirm/cancel hold (if pending), hide/reactivate. Guest sees "Hold" button (direct POST for GIFT/SHARE, navigates to RequestThingPage for SWAP).
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Event, Wish.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
@@ -256,7 +258,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with day checkboxes (Mon–Sun) and time range inputs per window, "Add time window" button. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. When collection `is_minimalist`: filters type selector to GIFT/SHARE/SWAP only, hides fee/availability/location/condition fields, makes ImageUpload label show "Photo (required)", hides DocumentUpload. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with day checkboxes (Mon–Sun) and time range inputs per window, "Add time window" button. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -294,7 +296,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled), `Select` for digest frequency (None/Weekly/Monthly).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled), `Checkbox` for "Minimalist (album)" (always visible; mutually exclusive with swap), `Select` for digest frequency (None/Weekly/Monthly).
   - "Save" button below the form.
 - Pre-populates all fields from the current collection data.
 - On success: navigates to `/collections/{code}`.
@@ -304,7 +306,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled), `Checkbox` for "Minimalist (album)" (always visible; mutually exclusive with swap).
   - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 

@@ -35,6 +35,7 @@ export default function AddThingPage() {
   const [collectionMode, setCollectionMode] = useState('');
   const [isSwapCollection, setIsSwapCollection] = useState(false);
   const [isShareCollection, setIsShareCollection] = useState(false);
+  const [isMinimalistCollection, setIsMinimalistCollection] = useState(false);
   const [type, setType] = useState('GIFT_THING');
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -66,6 +67,9 @@ export default function AddThingPage() {
         if (data.is_share) {
           setIsShareCollection(true);
           setType('SHARE_THING');
+        }
+        if (data.is_minimalist) {
+          setIsMinimalistCollection(true);
         }
       })
       .catch(() => {});
@@ -170,7 +174,12 @@ export default function AddThingPage() {
             <Select
               id="add-thing-type"
               texts={{ label: t('addThing.typeLabel') }}
-              options={TYPE_VALUES.filter(v => v !== SWAP_TYPE && ((v !== WISH_TYPE && v !== SHARE_TYPE) || collectionMode === 'COMMUNITY')).map(v => ({ label: t('types.' + v), value: v }))}
+              options={TYPE_VALUES.filter(v => {
+                if (v === SWAP_TYPE) return false;
+                if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
+                if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
+                return true;
+              }).map(v => ({ label: t('types.' + v), value: v }))}
               value={type}
               onChange={(selectedOptions) => {
                 if (selectedOptions.length > 0) {
@@ -298,7 +307,7 @@ export default function AddThingPage() {
               </Button>
             </>
           )}
-          {FEE_TYPES.includes(type) && (
+          {FEE_TYPES.includes(type) && !isMinimalistCollection && (
             <NumberInput
               id="add-thing-fee"
               label={t('addThing.priceLabel')}
@@ -311,10 +320,10 @@ export default function AddThingPage() {
               errorText={errors.fee}
             />
           )}
-          {FEE_TYPES.includes(type) && DETAIL_TYPES.includes(type) && (
+          {FEE_TYPES.includes(type) && DETAIL_TYPES.includes(type) && !isMinimalistCollection && (
             <div className="spacer-xxxx" />
           )}
-          {DETAIL_TYPES.includes(type) && (
+          {DETAIL_TYPES.includes(type) && !isMinimalistCollection && (
             <>
               <Select
                 id="add-thing-availability"
@@ -345,15 +354,17 @@ export default function AddThingPage() {
           )}
           <ImageUpload
             id="add-thing-thumbnail"
-            label={t('upload.thumbnailLabel')}
+            label={isMinimalistCollection ? t('minimalist.photoRequired') : t('upload.thumbnailLabel')}
             value={thumbnail}
             onChange={setThumbnail}
             folder="oiueei/things"
           />
-          <DocumentUpload
-            documents={documents}
-            onChange={setDocuments}
-          />
+          {!isMinimalistCollection && (
+            <DocumentUpload
+              documents={documents}
+              onChange={setDocuments}
+            />
+          )}
       </div>
 
       <div className="form-actions">

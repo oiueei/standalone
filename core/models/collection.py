@@ -48,6 +48,7 @@ class Collection(models.Model):
     is_swap = models.BooleanField(default=False)
     is_share = models.BooleanField(default=False)
     newsletter_enabled = models.BooleanField(default=False)
+    is_minimalist = models.BooleanField(default=False)
     things = models.ManyToManyField(
         "Thing",
         blank=True,

@@ -125,6 +125,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "is_swap",
             "is_share",
             "newsletter_enabled",
+            "is_minimalist",
             "things",
             "invites",
             "pending_invites",
@@ -172,11 +173,13 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "is_swap",
             "is_share",
             "newsletter_enabled",
+            "is_minimalist",
         ]
 
     def validate(self, attrs):
         is_swap = attrs.get("is_swap", False)
         is_share = attrs.get("is_share", False)
+        is_minimalist = attrs.get("is_minimalist", False)
         newsletter_enabled = attrs.get("newsletter_enabled", False)
         mode = attrs.get("mode", "PROPRIETARY")
         if is_swap and is_share:
@@ -187,6 +190,10 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
         if newsletter_enabled and not is_share:
             raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
+        if is_minimalist and is_swap:
+            raise serializers.ValidationError(
+                "A collection cannot be both minimalist and swap-only."
+            )
         return attrs
 
 
@@ -207,12 +214,14 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "is_swap",
             "is_share",
             "newsletter_enabled",
+            "is_minimalist",
         ]
 
     def validate(self, attrs):
         instance = self.instance
         is_swap = attrs.get("is_swap", instance.is_swap if instance else False)
         is_share = attrs.get("is_share", instance.is_share if instance else False)
+        is_minimalist = attrs.get("is_minimalist", instance.is_minimalist if instance else False)
         newsletter_enabled = attrs.get(
             "newsletter_enabled", instance.newsletter_enabled if instance else False
         )
@@ -225,6 +234,10 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
         if newsletter_enabled and not is_share:
             raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
+        if is_minimalist and is_swap:
+            raise serializers.ValidationError(
+                "A collection cannot be both minimalist and swap-only."
+            )
         return attrs
 
 

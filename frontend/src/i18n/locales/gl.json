@@ -442,6 +442,11 @@
   "newsletter": {
     "enableNewsletter": "Boletín semanal de actividade"
   },
+  "minimalist": {
+    "enableMinimalist": "Modo álbum (tarxetas só con foto)",
+    "albumTag": "Álbum",
+    "photoRequired": "Foto (obrigatoria)"
+  },
   "documents": {
     "heading": "Documentos",
     "uploadLabel": "Anexos",

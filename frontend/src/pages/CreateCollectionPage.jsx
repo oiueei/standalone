@@ -28,6 +28,7 @@ export default function CreateCollectionPage() {
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
+  const [isMinimalist, setIsMinimalist] = useState(false);
   const [errors, setErrors] = useState({});
 
   const MODE_OPTIONS = [
@@ -56,6 +57,7 @@ export default function CreateCollectionPage() {
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
+      is_minimalist: isMinimalist,
     };
     if (description.trim()) body.description = description.trim();
     try {
@@ -124,7 +126,7 @@ export default function CreateCollectionPage() {
               if (selectedOptions.length > 0) {
                 const newMode = selectedOptions[0].value;
                 setMode(newMode);
-                if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); }
+                if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
               }
             }}
           />
@@ -133,7 +135,7 @@ export default function CreateCollectionPage() {
               id="create-collection-swap"
               label={t('swap.enableSwap')}
               checked={isSwap}
-              onChange={(e) => { setIsSwap(e.target.checked); if (e.target.checked) setIsShare(false); }}
+              onChange={(e) => { setIsSwap(e.target.checked); if (e.target.checked) { setIsShare(false); setIsMinimalist(false); } }}
             />
           )}
           {mode === 'COMMUNITY' && (
@@ -152,6 +154,12 @@ export default function CreateCollectionPage() {
               onChange={(e) => setNewsletterEnabled(e.target.checked)}
             />
           )}
+          <Checkbox
+            id="create-collection-minimalist"
+            label={t('minimalist.enableMinimalist')}
+            checked={isMinimalist}
+            onChange={(e) => { setIsMinimalist(e.target.checked); if (e.target.checked) setIsSwap(false); }}
+          />
         </div>
         <div className="form-actions">
           <Button

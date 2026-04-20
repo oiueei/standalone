@@ -442,6 +442,11 @@
   "newsletter": {
     "enableNewsletter": "Butlletí setmanal d'activitat"
   },
+  "minimalist": {
+    "enableMinimalist": "Mode àlbum (targetes només amb foto)",
+    "albumTag": "Àlbum",
+    "photoRequired": "Foto (obligatòria)"
+  },
   "documents": {
     "heading": "Documents",
     "uploadLabel": "Adjunts",

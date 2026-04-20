@@ -442,6 +442,11 @@
   "newsletter": {
     "enableNewsletter": "Asteko jarduera buletina"
   },
+  "minimalist": {
+    "enableMinimalist": "Album modua (argazki-txartelak soilik)",
+    "albumTag": "Albuma",
+    "photoRequired": "Argazkia (beharrezkoa)"
+  },
   "documents": {
     "heading": "Dokumentuak",
     "uploadLabel": "Eranskinak",

@@ -805,3 +805,24 @@ figure[class*="Highlight-module_highlight"] {
 .share-original-owner {
   margin-bottom: var(--spacing-2-xs);
 }
+.thing-card-minimalist {
+  width: 100%;
+  background: #fff;
+  border-radius: 2px;
+  overflow: hidden;
+  text-align: center;
+}
+.thing-card-image-minimalist {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.thing-card-caption {
+  font-style: italic;
+  padding: var(--spacing-xs) var(--spacing-s);
+  margin: 0;
+  text-align: center;
+}
+.thing-card-minimalist .thing-card-buttons {
+  padding: 0 var(--spacing-s) var(--spacing-s);
+}

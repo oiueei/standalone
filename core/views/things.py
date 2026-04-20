@@ -109,6 +109,19 @@ class ThingViewSet(ModelViewSet):
             if collection.is_share and thing_type != "SHARE_THING":
                 self._create_error = "Only share things can be added to a share collection"
                 return
+
+            # Minimalist collection: only GIFT/SHARE/SWAP allowed, thumbnail required
+            if collection.is_minimalist:
+                allowed = ("GIFT_THING", "SHARE_THING", "SWAP_THING")
+                if thing_type not in allowed:
+                    self._create_error = (
+                        "Only gift, share, and swap things can be added"
+                        " to a minimalist collection"
+                    )
+                    return
+                if not serializer.validated_data.get("thumbnail"):
+                    self._create_error = "A photo is required for things in minimalist collections"
+                    return
         else:
             # WISH_THING, SHARE_THING, and SWAP_THING require specific collections
             if thing_type in ("WISH_THING", "SHARE_THING"):
