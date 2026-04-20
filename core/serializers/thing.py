@@ -7,7 +7,32 @@ from rest_framework import serializers
 from core.models import Thing
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
-from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
+from core.validators import ImageIdField, SafeHeadlineField, SafeTextField, validate_image_id
+
+ALLOWED_DOCUMENT_TYPES = {
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "text/markdown",
+}
+
+
+class DocumentSerializer(serializers.Serializer):
+    """Validates a single document entry."""
+
+    public_id = serializers.CharField(max_length=255)
+    filename = serializers.CharField(max_length=255)
+    content_type = serializers.CharField(max_length=100)
+
+    def validate_public_id(self, value):
+        return validate_image_id(value)
+
+    def validate_content_type(self, value):
+        if value not in ALLOWED_DOCUMENT_TYPES:
+            raise serializers.ValidationError(f"File type {value} is not allowed.")
+        return value
 
 
 class ThingSerializer(serializers.ModelSerializer):
@@ -27,6 +52,7 @@ class ThingSerializer(serializers.ModelSerializer):
     transfer_count = serializers.SerializerMethodField()
     attendee_count = serializers.SerializerMethodField()
     helper_count = serializers.SerializerMethodField()
+    document_urls = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -50,6 +76,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "booking_unit",
             "slot_duration",
             "availability_schedule",
+            "documents",
+            "document_urls",
             "deal",
             "pending_booking",
             "my_pending_booking",
@@ -136,6 +164,17 @@ class ThingSerializer(serializers.ModelSerializer):
             return None
         return obj.deal.count()
 
+    def get_document_urls(self, obj):
+        if not obj.documents:
+            return []
+        import cloudinary.utils
+
+        result = []
+        for doc in obj.documents:
+            url, _ = cloudinary.utils.cloudinary_url(doc["public_id"], resource_type="raw")
+            result.append({"filename": doc["filename"], "url": url})
+        return result
+
 
 class ThingCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a thing."""
@@ -144,6 +183,12 @@ class ThingCreateSerializer(serializers.ModelSerializer):
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
+    documents = serializers.ListField(
+        child=serializers.DictField(),
+        max_length=5,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Thing
@@ -160,7 +205,15 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "booking_unit",
             "slot_duration",
             "availability_schedule",
+            "documents",
         ]
+
+    def validate_documents(self, value):
+        if not value:
+            return value
+        serializer = DocumentSerializer(data=value, many=True)
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
 
 
 class ThingUpdateSerializer(serializers.ModelSerializer):
@@ -170,6 +223,12 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
+    documents = serializers.ListField(
+        child=serializers.DictField(),
+        max_length=5,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Thing
@@ -187,5 +246,13 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "booking_unit",
             "slot_duration",
             "availability_schedule",
+            "documents",
         ]
         read_only_fields = ["status"]
+
+    def validate_documents(self, value):
+        if not value:
+            return value
+        serializer = DocumentSerializer(data=value, many=True)
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data

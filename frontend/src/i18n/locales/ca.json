@@ -435,6 +435,15 @@
     "enableShare": "Exclusivament coses tipus SHARE",
     "shareCollection": "Col·lecció compartida"
   },
+  "documents": {
+    "heading": "Documents",
+    "uploadLabel": "Adjunts",
+    "uploadHelper": "PDF, Word, Excel o Markdown. Màx. 1 MB cadascun.",
+    "remove": "Eliminar",
+    "maxFiles": "Màxim 5 documents permesos.",
+    "fileTooLarge": "El fitxer és massa gran. Mida màxima: 1 MB.",
+    "invalidType": "Aquest tipus de fitxer no està permès."
+  },
   "appointment": {
     "slotDuration": "Durada del torn",
     "minutes": "{{count}} min",

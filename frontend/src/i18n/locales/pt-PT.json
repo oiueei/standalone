@@ -435,6 +435,15 @@
     "enableShare": "Exclusivamente coisas tipo SHARE",
     "shareCollection": "Coleção partilhada"
   },
+  "documents": {
+    "heading": "Documentos",
+    "uploadLabel": "Anexos",
+    "uploadHelper": "PDF, Word, Excel ou Markdown. Máx. 1 MB cada.",
+    "remove": "Remover",
+    "maxFiles": "Máximo de 5 documentos permitidos.",
+    "fileTooLarge": "O ficheiro é demasiado grande. Tamanho máximo: 1 MB.",
+    "invalidType": "Este tipo de ficheiro não é permitido."
+  },
   "appointment": {
     "slotDuration": "Duração do horário",
     "minutes": "{{count}} min",

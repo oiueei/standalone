@@ -486,6 +486,19 @@ export default function ThingPage() {
 
         {thing.description && <MarkdownText text={thing.description} />}
 
+        {thing.document_urls && thing.document_urls.length > 0 && (
+          <div className="document-downloads">
+            <h3>{t('documents.heading')}</h3>
+            <ul className="document-list">
+              {thing.document_urls.map((doc, i) => (
+                <li key={i} className="document-list-item">
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer">{doc.filename}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="thing-card-info">
           <div className="thing-card-info-row">
             <IconTicket size="m" aria-hidden="true" />

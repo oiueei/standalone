@@ -16,6 +16,7 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
+import DocumentUpload from '../components/DocumentUpload';
 
 export default function EditThingPage() {
   const { t } = useTranslation();
@@ -45,6 +46,7 @@ export default function EditThingPage() {
   const [bookingUnit, setBookingUnit] = useState('DAY');
   const [slotDuration, setSlotDuration] = useState(30);
   const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
+  const [documents, setDocuments] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -74,6 +76,7 @@ export default function EditThingPage() {
             const d = new Date(data.event_date);
             setEventDate(d.toISOString().slice(0, 16));
           }
+          if (data.documents) setDocuments(data.documents);
           if (data.booking_unit) setBookingUnit(data.booking_unit);
           if (data.slot_duration) setSlotDuration(data.slot_duration);
           if (data.availability_schedule && data.availability_schedule.length > 0) {
@@ -134,6 +137,7 @@ export default function EditThingPage() {
       body.slot_duration = slotDuration;
       body.availability_schedule = scheduleWindows.filter((w) => w.days.length > 0);
     }
+    body.documents = documents.length > 0 ? documents : null;
 
     try {
       const res = await apiFetch(`/api/v1/things/${thingCode}/`, {
@@ -360,6 +364,10 @@ export default function EditThingPage() {
           onChange={setThumbnail}
           currentUrl={thumbnailUrl}
           folder="oiueei/things"
+        />
+        <DocumentUpload
+          documents={documents}
+          onChange={setDocuments}
         />
       </div>
       <div className="form-actions">

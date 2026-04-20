@@ -15,6 +15,7 @@ import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
+import DocumentUpload from '../components/DocumentUpload';
 
 export default function AddThingPage() {
   const { t } = useTranslation();
@@ -46,6 +47,7 @@ export default function AddThingPage() {
   const [bookingUnit, setBookingUnit] = useState('DAY');
   const [slotDuration, setSlotDuration] = useState(30);
   const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
+  const [documents, setDocuments] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -110,6 +112,9 @@ export default function AddThingPage() {
     if (type === APPOINTMENT_TYPE) {
       body.slot_duration = slotDuration;
       body.availability_schedule = scheduleWindows.filter((w) => w.days.length > 0);
+    }
+    if (documents.length > 0) {
+      body.documents = documents;
     }
 
     try {
@@ -344,6 +349,10 @@ export default function AddThingPage() {
             value={thumbnail}
             onChange={setThumbnail}
             folder="oiueei/things"
+          />
+          <DocumentUpload
+            documents={documents}
+            onChange={setDocuments}
           />
       </div>
 

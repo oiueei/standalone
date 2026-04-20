@@ -310,6 +310,7 @@ The `Thing` model represents an item in a collection.
 | `booking_unit` | CharField(4) | No | Booking granularity for ASSET_THING: DAY or HOUR (default: empty) |
 | `slot_duration` | PositiveIntegerField | No | Slot duration in minutes for APPOINTMENT_THING: 15, 30, or 60 |
 | `availability_schedule` | JSONField | No | Weekly availability windows for APPOINTMENT_THING. Format: `[{"days": [1,2,3,4,5], "start_time": "09:00", "end_time": "12:00"}]`. Days are ISO weekday numbers (1=Monday, 7=Sunday). |
+| `documents` | JSONField | No | Attached documents: `[{"public_id": "...", "filename": "...", "content_type": "..."}]`. Max 5. Allowed types: PDF, Word, Excel, Markdown. Max 1 MB each (enforced client-side). Stored in Cloudinary raw uploads. Download links sent via email on booking acceptance. |
 | `deal` | ManyToManyField(User) | No | Users who have reserved. For EVENT_THING: attendees. For WISH_THING: helpers |
 
 ### Status

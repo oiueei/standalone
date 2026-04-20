@@ -76,6 +76,13 @@ def accept_booking(booking):
             booking=booking,
             lent_date=booking.start_date or date.today(),
         )
+
+    # Send document download links to the requester if thing has documents
+    if thing.documents:
+        from core.services.email_service import send_documents_email
+
+        send_documents_email(booking.requester_email, thing.headline, thing.documents)
+
     return thing
 
 

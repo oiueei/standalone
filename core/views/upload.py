@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections"}
+ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections", "oiueei/documents"}
 
 
 class CloudinarySignatureView(APIView):
@@ -41,6 +41,10 @@ class CloudinarySignatureView(APIView):
         if folder not in ALLOWED_FOLDERS:
             folder = "oiueei/users"
 
+        resource_type = request.data.get("resource_type", "image")
+        if resource_type not in ("image", "raw"):
+            resource_type = "image"
+
         timestamp = int(time.time())
         params_to_sign = {"folder": folder, "timestamp": timestamp}
 
@@ -55,5 +59,6 @@ class CloudinarySignatureView(APIView):
                 "api_key": cloudinary.config().api_key,
                 "cloud_name": cloudinary.config().cloud_name,
                 "folder": folder,
+                "resource_type": resource_type,
             }
         )

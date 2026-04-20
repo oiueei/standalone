@@ -428,10 +428,12 @@ Generates a short-lived Cloudinary signed upload signature so the frontend can u
 
 **Request body:**
 ```json
-{ "folder": "oiueei/things" }
+{ "folder": "oiueei/things", "resource_type": "image" }
 ```
 
-Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`. Any other value falls back to `oiueei/users`.
+Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`, `oiueei/documents`. Any other value falls back to `oiueei/users`.
+
+Allowed `resource_type` values: `image` (default), `raw` (for document uploads). Any other value falls back to `image`.
 
 **Response:**
 ```json
@@ -440,13 +442,14 @@ Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`. An
     "timestamp": 1234567890,
     "api_key": "...",
     "cloud_name": "hixm8hed8",
-    "folder": "oiueei/things"
+    "folder": "oiueei/things",
+    "resource_type": "image"
 }
 ```
 
 **Frontend upload flow:**
 1. Call this endpoint to get a signature.
-2. POST the image file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/image/upload` with the signature parameters.
+2. POST the file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/upload` with the signature parameters. Use `image/upload` for images and `raw/upload` for documents.
 3. Cloudinary returns a `public_id` (e.g. `oiueei/things/abc123`).
 4. Save the `public_id` to the relevant Django model field (`thumbnail`, `hero`, or append to `pictures`).
 

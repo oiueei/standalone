@@ -504,6 +504,41 @@ def send_event_reminder_email(owner_name, thing_headline, event_date, emails):
         )
 
 
+def send_documents_email(requester_email, thing_headline, documents):
+    """Send document download links to the requester after booking acceptance."""
+    import cloudinary.utils
+
+    safe_headline = escape(thing_headline)
+
+    doc_links = []
+    for doc in documents:
+        url, _ = cloudinary.utils.cloudinary_url(doc["public_id"], resource_type="raw")
+        doc_links.append({"filename": doc["filename"], "url": url})
+
+    plain_links = "\n".join(f"  - {d['filename']}: {d['url']}" for d in doc_links)
+    html_links = "".join(
+        f'<li><a href="{d["url"]}">{escape(d["filename"])}</a></li>' for d in doc_links
+    )
+
+    send_mail(
+        subject=f"Documents for {thing_headline}",
+        message=(
+            f"Here are the documents for '{thing_headline}':\n\n"
+            f"{plain_links}\n\n"
+            f"Log in to OIUEEI to see more."
+        ),
+        from_email=None,
+        recipient_list=[requester_email],
+        html_message=f"""
+            <html>
+            <p>Here are the documents for <strong>{safe_headline}</strong>:</p>
+            <ul>{html_links}</ul>
+            <p>Log in to OIUEEI to see more.</p>
+            </html>
+            """,
+    )
+
+
 def send_swap_request_email(
     requester, thing, offered_things, owner_email, accept_link, reject_link
 ):

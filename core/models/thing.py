@@ -92,6 +92,12 @@ class Thing(models.Model):
         default=None,
         help_text="Recurring availability windows: [{days: [1-7], start_time, end_time}]",
     )
+    documents = models.JSONField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Attached documents: [{public_id, filename, content_type}]. Max 5.",
+    )
     deal = models.ManyToManyField(
         "User",
         blank=True,
