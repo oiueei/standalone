@@ -739,3 +739,24 @@ figure[class*="Highlight-module_highlight"] {
   gap: var(--spacing-s);
   align-items: end;
 }
+
+/* Markdown text */
+
+.markdown-text ul,
+.markdown-text ol {
+  margin: var(--spacing-2-xs) 0;
+  padding-left: var(--spacing-m);
+}
+
+.markdown-text li {
+  margin-bottom: var(--spacing-2-xs);
+}
+
+.markdown-text a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.markdown-text span {
+  display: block;
+}

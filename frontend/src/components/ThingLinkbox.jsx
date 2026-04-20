@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
+import MarkdownText from './MarkdownText';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
 
@@ -256,7 +257,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
         </h3>
         {thing.description && (
-          <p className="thing-card-description">{thing.description}</p>
+          <MarkdownText text={thing.description} className="thing-card-description" />
         )}
         <div className="thing-card-info">
           <div className="thing-card-info-row">

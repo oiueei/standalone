@@ -5,6 +5,7 @@ import { Button, Koros, Linkbox, Notification, Tag, TextArea, TextInput } from '
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
+import MarkdownText from '../components/MarkdownText';
 import ThingLinkbox from '../components/ThingLinkbox';
 
 export default function CollectionPage() {
@@ -127,7 +128,7 @@ export default function CollectionPage() {
               <>{' '}<Tag theme={{ '--tag-background': 'var(--color-coat-of-arms-light)', '--tag-color': 'var(--color-white)' }}>{t('swap.swapCollection')}</Tag></>
             )}
           </h1>
-          {collection.description && <p className="form-hero-text">{collection.description}</p>}
+          {collection.description && <MarkdownText text={collection.description} className="form-hero-text" />}
           {!isOwner && collection.owner_name && (
             <p className="form-hero-text" style={{ opacity: 0.75, fontSize: 'var(--fontsize-body-m)' }}>
               <strong>{t('collectionPage.owner')}</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>

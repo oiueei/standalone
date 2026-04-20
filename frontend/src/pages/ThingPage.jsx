@@ -22,6 +22,7 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
+import MarkdownText from '../components/MarkdownText';
 import WeeklySchedule from '../components/WeeklySchedule';
 
 export default function ThingPage() {
@@ -483,7 +484,7 @@ export default function ThingPage() {
 
         <h1 className="page-title">{thing.headline}</h1>
 
-        {thing.description && <p>{thing.description}</p>}
+        {thing.description && <MarkdownText text={thing.description} />}
 
         <div className="thing-card-info">
           <div className="thing-card-info-row">
