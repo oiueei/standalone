@@ -33,6 +33,7 @@ export default function AddThingPage() {
   const [collectionHeadline, setCollectionHeadline] = useState('');
   const [collectionMode, setCollectionMode] = useState('');
   const [isSwapCollection, setIsSwapCollection] = useState(false);
+  const [isShareCollection, setIsShareCollection] = useState(false);
   const [type, setType] = useState('GIFT_THING');
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -59,6 +60,10 @@ export default function AddThingPage() {
         if (data.is_swap) {
           setIsSwapCollection(true);
           setType('SWAP_THING');
+        }
+        if (data.is_share) {
+          setIsShareCollection(true);
+          setType('SHARE_THING');
         }
       })
       .catch(() => {});
@@ -156,7 +161,7 @@ export default function AddThingPage() {
       <div className="page-container">
         <h1 className="page-title-xl">{t('addThing.pageTitle')}</h1>
       <div className="form-grid">
-          {!isSwapCollection && (
+          {!isSwapCollection && !isShareCollection && (
             <Select
               id="add-thing-type"
               texts={{ label: t('addThing.typeLabel') }}

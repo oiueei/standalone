@@ -127,6 +127,9 @@ export default function CollectionPage() {
             {collection.is_swap && (
               <>{' '}<Tag theme={{ '--tag-background': 'var(--color-coat-of-arms-light)', '--tag-color': 'var(--color-white)' }}>{t('swap.swapCollection')}</Tag></>
             )}
+            {collection.is_share && (
+              <>{' '}<Tag theme={{ '--tag-background': 'var(--color-tram)', '--tag-color': 'var(--color-white)' }}>{t('share.shareCollection')}</Tag></>
+            )}
           </h1>
           {collection.description && <MarkdownText text={collection.description} className="form-hero-text" />}
           {!isOwner && collection.owner_name && (

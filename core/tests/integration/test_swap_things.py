@@ -94,14 +94,13 @@ class TestSwapCollectionCreation:
         assert res.data["is_swap"] is True
 
     def test_swap_requires_community_mode(self, auth_client_user):
-        """is_swap should be ignored for PROPRIETARY collections."""
+        """is_swap with PROPRIETARY mode should be rejected."""
         res = auth_client_user.post(
             "/api/v1/collections/",
             {"headline": "Prop Swap", "mode": "PROPRIETARY", "is_swap": True},
             format="json",
         )
-        assert res.status_code == 201
-        # Backend should accept but is_swap only meaningful with COMMUNITY
+        assert res.status_code == 400
 
 
 # --- Thing type restriction tests ---

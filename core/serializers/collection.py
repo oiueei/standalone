@@ -123,6 +123,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "mode",
             "digest_frequency",
             "is_swap",
+            "is_share",
             "things",
             "invites",
             "pending_invites",
@@ -168,7 +169,22 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "mode",
             "digest_frequency",
             "is_swap",
+            "is_share",
         ]
+
+    def validate(self, attrs):
+        is_swap = attrs.get("is_swap", False)
+        is_share = attrs.get("is_share", False)
+        mode = attrs.get("mode", "PROPRIETARY")
+        if is_swap and is_share:
+            raise serializers.ValidationError(
+                "A collection cannot be both swap-only and share-only."
+            )
+        if (is_swap or is_share) and mode != "COMMUNITY":
+            raise serializers.ValidationError(
+                "Swap and share modes require COMMUNITY mode."
+            )
+        return attrs
 
 
 class CollectionUpdateSerializer(serializers.ModelSerializer):
@@ -186,7 +202,23 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "mode",
             "digest_frequency",
             "is_swap",
+            "is_share",
         ]
+
+    def validate(self, attrs):
+        instance = self.instance
+        is_swap = attrs.get("is_swap", instance.is_swap if instance else False)
+        is_share = attrs.get("is_share", instance.is_share if instance else False)
+        mode = attrs.get("mode", instance.mode if instance else "PROPRIETARY")
+        if is_swap and is_share:
+            raise serializers.ValidationError(
+                "A collection cannot be both swap-only and share-only."
+            )
+        if (is_swap or is_share) and mode != "COMMUNITY":
+            raise serializers.ValidationError(
+                "Swap and share modes require COMMUNITY mode."
+            )
+        return attrs
 
 
 class CollectionInviteSerializer(serializers.Serializer):

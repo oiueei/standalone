@@ -26,6 +26,7 @@ export default function CreateCollectionPage() {
   const [description, setDescription] = useState('');
   const [mode, setMode] = useState('PROPRIETARY');
   const [isSwap, setIsSwap] = useState(false);
+  const [isShare, setIsShare] = useState(false);
   const [errors, setErrors] = useState({});
 
   const MODE_OPTIONS = [
@@ -48,7 +49,12 @@ export default function CreateCollectionPage() {
     setSubmitting(true);
     setToast(null);
 
-    const body = { headline: headline.trim(), mode, is_swap: isSwap && mode === 'COMMUNITY' };
+    const body = {
+      headline: headline.trim(),
+      mode,
+      is_swap: isSwap && mode === 'COMMUNITY',
+      is_share: isShare && mode === 'COMMUNITY',
+    };
     if (description.trim()) body.description = description.trim();
     try {
       const res = await apiFetch('/api/v1/collections/', {
@@ -116,7 +122,7 @@ export default function CreateCollectionPage() {
               if (selectedOptions.length > 0) {
                 const newMode = selectedOptions[0].value;
                 setMode(newMode);
-                if (newMode !== 'COMMUNITY') setIsSwap(false);
+                if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); }
               }
             }}
           />
@@ -125,7 +131,15 @@ export default function CreateCollectionPage() {
               id="create-collection-swap"
               label={t('swap.enableSwap')}
               checked={isSwap}
-              onChange={(e) => setIsSwap(e.target.checked)}
+              onChange={(e) => { setIsSwap(e.target.checked); if (e.target.checked) setIsShare(false); }}
+            />
+          )}
+          {mode === 'COMMUNITY' && (
+            <Checkbox
+              id="create-collection-share"
+              label={t('share.enableShare')}
+              checked={isShare}
+              onChange={(e) => { setIsShare(e.target.checked); if (e.target.checked) setIsSwap(false); }}
             />
           )}
         </div>

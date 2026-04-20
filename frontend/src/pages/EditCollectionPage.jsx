@@ -20,6 +20,7 @@ export default function EditCollectionPage() {
   const [mode, setMode] = useState('PROPRIETARY');
   const [digestFrequency, setDigestFrequency] = useState('NONE');
   const [isSwap, setIsSwap] = useState(false);
+  const [isShare, setIsShare] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -58,6 +59,7 @@ export default function EditCollectionPage() {
           setMode(data.mode || 'PROPRIETARY');
           setDigestFrequency(data.digest_frequency || 'NONE');
           setIsSwap(data.is_swap || false);
+          setIsShare(data.is_share || false);
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -90,6 +92,7 @@ export default function EditCollectionPage() {
       mode,
       digest_frequency: digestFrequency,
       is_swap: isSwap && mode === 'COMMUNITY',
+      is_share: isShare && mode === 'COMMUNITY',
     };
 
     try {
@@ -181,7 +184,7 @@ export default function EditCollectionPage() {
             if (selectedOptions.length > 0) {
               const newMode = selectedOptions[0].value;
               setMode(newMode);
-              if (newMode !== 'COMMUNITY') setIsSwap(false);
+              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); }
             }
           }}
         />
@@ -190,7 +193,15 @@ export default function EditCollectionPage() {
             id="edit-collection-swap"
             label={t('swap.enableSwap')}
             checked={isSwap}
-            onChange={(e) => setIsSwap(e.target.checked)}
+            onChange={(e) => { setIsSwap(e.target.checked); if (e.target.checked) setIsShare(false); }}
+          />
+        )}
+        {mode === 'COMMUNITY' && (
+          <Checkbox
+            id="edit-collection-share"
+            label={t('share.enableShare')}
+            checked={isShare}
+            onChange={(e) => { setIsShare(e.target.checked); if (e.target.checked) setIsSwap(false); }}
           />
         )}
         <Select

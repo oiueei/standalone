@@ -431,6 +431,10 @@
     "enableSwap": "Artikuluen trukea gaitu",
     "swapCollection": "Truke-bilduma"
   },
+  "share": {
+    "enableShare": "Soilik SHARE motako gauzak",
+    "shareCollection": "Partekatzeko bilduma"
+  },
   "appointment": {
     "slotDuration": "Txandaren iraupena",
     "minutes": "{{count}} min",

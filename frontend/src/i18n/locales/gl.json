@@ -431,6 +431,10 @@
     "enableSwap": "Activar intercambio de artigos",
     "swapCollection": "Colección de intercambio"
   },
+  "share": {
+    "enableShare": "Exclusivamente cousas tipo SHARE",
+    "shareCollection": "Colección compartida"
+  },
   "appointment": {
     "slotDuration": "Duración do turno",
     "minutes": "{{count}} min",

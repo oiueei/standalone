@@ -104,6 +104,11 @@ class ThingViewSet(ModelViewSet):
             if thing_type == "SWAP_THING" and not collection.is_swap:
                 self._create_error = "Swap things can only be created in swap collections"
                 return
+
+            # Share collection: only SHARE_THING allowed
+            if collection.is_share and thing_type != "SHARE_THING":
+                self._create_error = "Only share things can be added to a share collection"
+                return
         else:
             # WISH_THING, SHARE_THING, and SWAP_THING require specific collections
             if thing_type in ("WISH_THING", "SHARE_THING"):

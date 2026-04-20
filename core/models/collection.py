@@ -46,6 +46,7 @@ class Collection(models.Model):
     digest_frequency = models.CharField(max_length=7, choices=DIGEST_CHOICES, default="NONE")
     is_onboarding = models.BooleanField(default=False)
     is_swap = models.BooleanField(default=False)
+    is_share = models.BooleanField(default=False)
     things = models.ManyToManyField(
         "Thing",
         blank=True,

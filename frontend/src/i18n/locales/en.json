@@ -444,6 +444,10 @@
     "enableSwap": "Enable item swapping",
     "swapCollection": "Swap collection"
   },
+  "share": {
+    "enableShare": "Exclusively SHARE things",
+    "shareCollection": "Share collection"
+  },
   "appointment": {
     "slotDuration": "Slot duration",
     "minutes": "{{count}} min",
