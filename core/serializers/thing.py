@@ -48,6 +48,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "condition",
             "event_date",
             "booking_unit",
+            "slot_duration",
+            "availability_schedule",
             "deal",
             "pending_booking",
             "my_pending_booking",
@@ -156,6 +158,8 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "condition",
             "event_date",
             "booking_unit",
+            "slot_duration",
+            "availability_schedule",
         ]
 
 
@@ -181,5 +185,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "condition",
             "event_date",
             "booking_unit",
+            "slot_duration",
+            "availability_schedule",
         ]
         read_only_fields = ["status"]

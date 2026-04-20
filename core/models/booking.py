@@ -16,7 +16,7 @@ from django.utils import timezone
 from core.utils import generate_id
 
 # Thing types that require dates for booking
-DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "SHARE_THING", "ASSET_THING"]
+DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "SHARE_THING", "ASSET_THING", "APPOINTMENT_THING"]
 
 # Thing types where the thing becomes INACTIVE after acceptance
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]
@@ -56,7 +56,7 @@ class BookingPeriod(models.Model):
         db_column="thing_code",
         related_name="bookings",
     )
-    thing_type = models.CharField(max_length=12, default="GIFT_THING")
+    thing_type = models.CharField(max_length=17, default="GIFT_THING")
     requester_code = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,

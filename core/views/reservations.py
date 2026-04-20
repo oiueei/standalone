@@ -95,6 +95,8 @@ class ThingRequestView(APIView):
         # Route based on thing type
         if thing.type == "SWAP_THING":
             return self._handle_swap_request(request, thing, owner_email)
+        elif thing.type == "APPOINTMENT_THING":
+            return self._handle_hourly_request(request, thing, owner_email)
         elif thing.type == "ASSET_THING" and thing.booking_unit == "HOUR":
             return self._handle_hourly_request(request, thing, owner_email)
         elif thing.type in DATE_BASED_TYPES:

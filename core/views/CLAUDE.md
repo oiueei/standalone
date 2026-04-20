@@ -474,7 +474,7 @@ Lists all available theeemes. Returns `code` and `name` for each theeeme via `Th
 | **Endpoint** | `GET /api/v1/things/{thing_code}/calendar/` |
 | **Permission** | `IsAuthenticated` + `thing.can_view()` |
 
-Returns blocked periods for a thing's calendar. Owner sees full details (`BookingPeriodOwnerCalendarSerializer`), guests see only dates and status (`BookingPeriodCalendarSerializer`). For ASSET_THING, all users who can view the thing see full details (owner calendar serializer) — this enables shared calendar visibility.
+Returns blocked periods for a thing's calendar. Owner sees full details (`BookingPeriodOwnerCalendarSerializer`), guests see only dates and status (`BookingPeriodCalendarSerializer`). For ASSET_THING and APPOINTMENT_THING, all users who can view the thing see full details (owner calendar serializer) — this enables shared calendar visibility.
 
 ### MyBookingsView
 
@@ -539,6 +539,47 @@ Rejects a pending booking. Same permission and validation as accept. Calls `reje
 
 ---
 
+## Slots Views (`core/views/slots.py`)
+
+### ThingSlotsView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/things/{thing_code}/slots/` |
+| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+
+Returns a weekly slot grid for APPOINTMENT_THING. Only available for things with `type == "APPOINTMENT_THING"` — returns 400 for other types.
+
+**Query parameters:**
+- `week_start` — Monday of target week (YYYY-MM-DD). Defaults to current week's Monday.
+
+**Response (200):**
+```json
+{
+  "week_start": "2026-04-20",
+  "slot_duration": 30,
+  "days": [
+    {
+      "date": "2026-04-20",
+      "day_of_week": 1,
+      "slots": [
+        {"start_time": "09:00", "end_time": "09:30", "status": "available"},
+        {"start_time": "09:30", "end_time": "10:00", "status": "booked", "requester_name": "Lele"}
+      ]
+    }
+  ]
+}
+```
+
+**Algorithm:**
+1. Reads `availability_schedule` (JSONField) and `slot_duration` from the thing.
+2. For each day Mon–Sun, checks if that ISO weekday appears in any schedule window.
+3. Generates slot start times from window start to window end, stepping by `slot_duration`.
+4. Fetches BookingPeriod records (PENDING + ACCEPTED) for the target week.
+5. Marks each slot as `available`, `pending`, or `booked`. Booked/pending slots include `requester_name`.
+
+---
+
 ## Reservation Views (`core/views/reservations.py`)
 
 ### ThingRequestView
@@ -551,7 +592,7 @@ Rejects a pending booking. Same permission and validation as accept. Calls `reje
 
 Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THING (these types bypass BookingPeriod). Routes based on thing type:
 
-**Hourly (ASSET_THING with booking_unit=HOUR):**
+**Hourly (APPOINTMENT_THING, or ASSET_THING with booking_unit=HOUR):**
 - Requires `start_date`, `start_time`, and `end_time`.
 - Creates a same-day booking (`start_date == end_date`) with time range.
 - Checks for time-range overlap via `BookingPeriod.has_overlap()` with time params. Returns 409 if conflict.

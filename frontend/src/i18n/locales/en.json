@@ -366,7 +366,8 @@
     "EVENT_THING": "Event",
     "WISH_THING": "Wish",
     "ASSET_THING": "Shared asset",
-    "SWAP_THING": "Swap"
+    "SWAP_THING": "Swap",
+    "APPOINTMENT_THING": "Appointment"
   },
   "availability": {
     "IMMEDIATE": "Immediate",
@@ -442,6 +443,34 @@
     "swapRejected": "Swap request declined.",
     "enableSwap": "Enable item swapping",
     "swapCollection": "Swap collection"
+  },
+  "appointment": {
+    "slotDuration": "Slot duration",
+    "minutes": "{{count}} min",
+    "schedule": "Availability schedule",
+    "addWindow": "Add time window",
+    "removeWindow": "Remove",
+    "bookSlot": "Book",
+    "available": "Free",
+    "booked": "Booked",
+    "pending": "Pending",
+    "prevWeek": "← Previous week",
+    "nextWeek": "Next week →",
+    "noSlots": "No slots configured.",
+    "durationLabel": "Duration",
+    "duration15": "15 minutes",
+    "duration30": "30 minutes",
+    "duration60": "1 hour",
+    "days": "Days",
+    "startTime": "From",
+    "endTime": "To",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
   },
   "broadcast": {
     "heading": "Broadcast",

@@ -29,6 +29,7 @@ class Thing(models.Model):
         ("WISH_THING", "Wish Thing"),
         ("ASSET_THING", "Asset Thing"),
         ("SWAP_THING", "Swap Thing"),
+        ("APPOINTMENT_THING", "Appointment Thing"),
     ]
 
     BOOKING_UNIT_CHOICES = [
@@ -59,7 +60,7 @@ class Thing(models.Model):
     ]
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    type = models.CharField(max_length=16, choices=TYPE_CHOICES, default="GIFT_THING")
+    type = models.CharField(max_length=17, choices=TYPE_CHOICES, default="GIFT_THING")
     owner = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,
@@ -81,6 +82,15 @@ class Thing(models.Model):
     event_date = models.DateTimeField(null=True, blank=True)
     booking_unit = models.CharField(
         max_length=4, choices=BOOKING_UNIT_CHOICES, blank=True, default=""
+    )
+    slot_duration = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Slot duration in minutes (15, 30, or 60)"
+    )
+    availability_schedule = models.JSONField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Recurring availability windows: [{days: [1-7], start_time, end_time}]",
     )
     deal = models.ManyToManyField(
         "User",

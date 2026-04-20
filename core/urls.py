@@ -34,6 +34,7 @@ from .views.collections import (
 from .views.events import EventAttendeesView, EventAttendView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.reservations import ThingRequestView
+from .views.slots import ThingSlotsView
 from .views.stats import ThingStatsView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
@@ -98,6 +99,11 @@ urlpatterns = [
         "things/<str:thing_code>/calendar/",
         ThingCalendarView.as_view(),
         name="thing-calendar",
+    ),
+    path(
+        "things/<str:thing_code>/slots/",
+        ThingSlotsView.as_view(),
+        name="thing-slots",
     ),
     path(
         "things/<str:thing_code>/transfers/",

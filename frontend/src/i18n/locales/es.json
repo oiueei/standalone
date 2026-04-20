@@ -353,7 +353,8 @@
     "EVENT_THING": "Evento",
     "WISH_THING": "Deseo",
     "ASSET_THING": "Recurso compartido",
-    "SWAP_THING": "Intercambio"
+    "SWAP_THING": "Intercambio",
+    "APPOINTMENT_THING": "Cita"
   },
   "availability": {
     "IMMEDIATE": "Inmediata",
@@ -429,6 +430,34 @@
     "swapRejected": "Solicitud de intercambio rechazada.",
     "enableSwap": "Activar intercambio de artículos",
     "swapCollection": "Colección de intercambio"
+  },
+  "appointment": {
+    "slotDuration": "Duración del turno",
+    "minutes": "{{count}} min",
+    "schedule": "Horario de disponibilidad",
+    "addWindow": "Añadir franja horaria",
+    "removeWindow": "Eliminar",
+    "bookSlot": "Reservar",
+    "available": "Libre",
+    "booked": "Reservado",
+    "pending": "Pendiente",
+    "prevWeek": "← Semana anterior",
+    "nextWeek": "Semana siguiente →",
+    "noSlots": "No hay turnos configurados.",
+    "durationLabel": "Duración",
+    "duration15": "15 minutos",
+    "duration30": "30 minutos",
+    "duration60": "1 hora",
+    "days": "Días",
+    "startTime": "Desde",
+    "endTime": "Hasta",
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mié",
+    "thu": "Jue",
+    "fri": "Vie",
+    "sat": "Sáb",
+    "sun": "Dom"
   },
   "broadcast": {
     "heading": "Difusión",

@@ -353,7 +353,8 @@
     "EVENT_THING": "Evento",
     "WISH_THING": "Pedido",
     "ASSET_THING": "Recurso compartilhado",
-    "SWAP_THING": "Troca"
+    "SWAP_THING": "Troca",
+    "APPOINTMENT_THING": "Agendamento"
   },
   "availability": {
     "IMMEDIATE": "Imediata",
@@ -429,6 +430,34 @@
     "swapRejected": "Solicitação de troca recusada.",
     "enableSwap": "Ativar troca de itens",
     "swapCollection": "Coleção de troca"
+  },
+  "appointment": {
+    "slotDuration": "Duração do horário",
+    "minutes": "{{count}} min",
+    "schedule": "Agenda de disponibilidade",
+    "addWindow": "Adicionar faixa horária",
+    "removeWindow": "Remover",
+    "bookSlot": "Agendar",
+    "available": "Livre",
+    "booked": "Agendado",
+    "pending": "Pendente",
+    "prevWeek": "← Semana anterior",
+    "nextWeek": "Semana seguinte →",
+    "noSlots": "Nenhum horário configurado.",
+    "durationLabel": "Duração",
+    "duration15": "15 minutos",
+    "duration30": "30 minutos",
+    "duration60": "1 hora",
+    "days": "Dias",
+    "startTime": "Das",
+    "endTime": "Até",
+    "mon": "Seg",
+    "tue": "Ter",
+    "wed": "Qua",
+    "thu": "Qui",
+    "fri": "Sex",
+    "sat": "Sáb",
+    "sun": "Dom"
   },
   "broadcast": {
     "heading": "Difusão",

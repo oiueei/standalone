@@ -353,7 +353,8 @@
     "EVENT_THING": "Esdeveniment",
     "WISH_THING": "Desig",
     "ASSET_THING": "Recurs compartit",
-    "SWAP_THING": "Intercanvi"
+    "SWAP_THING": "Intercanvi",
+    "APPOINTMENT_THING": "Cita"
   },
   "availability": {
     "IMMEDIATE": "Immediata",
@@ -429,6 +430,34 @@
     "swapRejected": "Sol·licitud d'intercanvi rebutjada.",
     "enableSwap": "Activar intercanvi d'articles",
     "swapCollection": "Col·lecció d'intercanvi"
+  },
+  "appointment": {
+    "slotDuration": "Durada del torn",
+    "minutes": "{{count}} min",
+    "schedule": "Horari de disponibilitat",
+    "addWindow": "Afegir franja horària",
+    "removeWindow": "Eliminar",
+    "bookSlot": "Reservar",
+    "available": "Lliure",
+    "booked": "Reservat",
+    "pending": "Pendent",
+    "prevWeek": "← Setmana anterior",
+    "nextWeek": "Setmana següent →",
+    "noSlots": "No hi ha torns configurats.",
+    "durationLabel": "Durada",
+    "duration15": "15 minuts",
+    "duration30": "30 minuts",
+    "duration60": "1 hora",
+    "days": "Dies",
+    "startTime": "Des de",
+    "endTime": "Fins a",
+    "mon": "Dll",
+    "tue": "Dm",
+    "wed": "Dc",
+    "thu": "Dj",
+    "fri": "Dv",
+    "sat": "Ds",
+    "sun": "Dg"
   },
   "broadcast": {
     "heading": "Difusió",

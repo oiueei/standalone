@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -59,11 +59,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const [bookings, setBookings] = useState([]);
 
   const isAsset = thing.type === ASSET_TYPE;
+  const isAppointment = thing.type === APPOINTMENT_TYPE;
 
   useEffect(() => {
     const shouldFetch = isOwner
       ? (isDateBased || isOrder || isSwap || thing.status === 'TAKEN')
-      : isAsset;
+      : (isAsset || isAppointment);
     if (!shouldFetch) return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
@@ -81,7 +82,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         setActivePendingCode(firstPending?.code || null);
       })
       .catch(() => {});
-  }, [thing.code, thing.status, isOwner, isDateBased, isOrder, isSwap, isAsset]);
+  }, [thing.code, thing.status, isOwner, isDateBased, isOrder, isSwap, isAsset, isAppointment]);
 
   const handleRequest = async () => {
     setSubmitting(true);
@@ -305,6 +306,13 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <span>{thing.booking_unit === 'HOUR' ? t('asset.unitHour') : t('asset.unitDay')}</span>
             </div>
           )}
+          {isAppointment && thing.slot_duration && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('appointment.slotDuration')}</span>
+              <span>{t('appointment.minutes', { count: thing.slot_duration })}</span>
+            </div>
+          )}
           {isEvent && (
             <div className="thing-card-info-row">
               <IconHome size="m" aria-hidden="true" />
@@ -324,7 +332,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             </div>
           )}
         </div>
-        {(isOwner || isAsset) && bookings.length > 0 && (() => {
+        {(isOwner || isAsset || isAppointment) && bookings.length > 0 && (() => {
           const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
           return (
             <ul className="thing-card-bookings">

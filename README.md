@@ -81,7 +81,7 @@ core/
 |-------|---------|
 | **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords |
 | **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things). `is_swap` flag enables item swapping (COMMUNITY only) |
-| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING, SWAP_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). EVENT_THING uses `deal` M2M for attendance; WISH_THING uses `deal` M2M for help offers (both bypass bookings). WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. ASSET_THING supports day or hourly booking with shared calendar and usage statistics |
+| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING, SWAP_THING, APPOINTMENT_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). EVENT_THING uses `deal` M2M for attendance; WISH_THING uses `deal` M2M for help offers (both bypass bookings). WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. ASSET_THING supports day or hourly booking with shared calendar and usage statistics. APPOINTMENT_THING supports recurring availability schedules with configurable slot duration (15/30/60 min) and weekly slot view |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 HDS colour token names) for customising collections |
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
@@ -146,13 +146,14 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | PUT | `/api/v1/things/{code}/` | Update thing (owner only) |
 | DELETE | `/api/v1/things/{code}/` | Delete thing (owner only) |
 | POST | `/api/v1/things/{code}/request/` | Request reservation (invited only) |
-| GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE/ASSET) |
+| GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE/ASSET/APPOINTMENT) |
 | GET | `/api/v1/things/{code}/transfers/` | View transfer history and stats (Loan Chain) |
 | GET | `/api/v1/things/{code}/stats/` | View usage statistics (total bookings, unique users, monthly breakdown) |
 | POST | `/api/v1/things/{code}/attend/` | Toggle attendance for EVENT_THING |
 | GET | `/api/v1/things/{code}/attendees/` | List attendees for EVENT_THING |
 | POST | `/api/v1/things/{code}/offer-help/` | Toggle "I can help" for WISH_THING |
 | GET | `/api/v1/things/{code}/helpers/` | List helpers for WISH_THING |
+| GET | `/api/v1/things/{code}/slots/` | Weekly slot grid for APPOINTMENT_THING (available/pending/booked) |
 | GET | `/api/v1/invited-things/` | List things from invited collections |
 
 ### Bookings

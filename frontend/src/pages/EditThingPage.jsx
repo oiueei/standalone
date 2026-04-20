@@ -7,9 +7,10 @@ import {
   TextArea,
   NumberInput,
   Button,
+  Checkbox,
   Koros,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, ASSET_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, ASSET_TYPE, APPOINTMENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -42,6 +43,8 @@ export default function EditThingPage() {
   const [condition, setCondition] = useState('');
   const [eventDate, setEventDate] = useState('');
   const [bookingUnit, setBookingUnit] = useState('DAY');
+  const [slotDuration, setSlotDuration] = useState(30);
+  const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -72,6 +75,10 @@ export default function EditThingPage() {
             setEventDate(d.toISOString().slice(0, 16));
           }
           if (data.booking_unit) setBookingUnit(data.booking_unit);
+          if (data.slot_duration) setSlotDuration(data.slot_duration);
+          if (data.availability_schedule && data.availability_schedule.length > 0) {
+            setScheduleWindows(data.availability_schedule);
+          }
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
@@ -122,6 +129,10 @@ export default function EditThingPage() {
     }
     if (thingType === ASSET_TYPE) {
       body.booking_unit = bookingUnit;
+    }
+    if (thingType === APPOINTMENT_TYPE) {
+      body.slot_duration = slotDuration;
+      body.availability_schedule = scheduleWindows.filter((w) => w.days.length > 0);
     }
 
     try {
@@ -214,6 +225,87 @@ export default function EditThingPage() {
             value={bookingUnit}
             onChange={(sel) => sel.length > 0 && setBookingUnit(sel[0].value)}
           />
+        )}
+        {thingType === APPOINTMENT_TYPE && (
+          <>
+            <Select
+              id="edit-thing-slot-duration"
+              texts={{ label: t('appointment.durationLabel') }}
+              options={[
+                { label: t('appointment.duration15'), value: '15' },
+                { label: t('appointment.duration30'), value: '30' },
+                { label: t('appointment.duration60'), value: '60' },
+              ]}
+              value={String(slotDuration)}
+              onChange={(sel) => sel.length > 0 && setSlotDuration(Number(sel[0].value))}
+            />
+            <h3>{t('appointment.schedule')}</h3>
+            <div className="schedule-windows">
+              {scheduleWindows.map((window, idx) => (
+                <div key={idx} className="schedule-window">
+                  <div className="schedule-days">
+                    {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                      <Checkbox
+                        key={day}
+                        id={`edit-schedule-day-${idx}-${day}`}
+                        label={t('appointment.' + ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][day - 1])}
+                        checked={window.days.includes(day)}
+                        onChange={(e) => {
+                          const updated = [...scheduleWindows];
+                          if (e.target.checked) {
+                            updated[idx] = { ...updated[idx], days: [...updated[idx].days, day].sort() };
+                          } else {
+                            updated[idx] = { ...updated[idx], days: updated[idx].days.filter((d) => d !== day) };
+                          }
+                          setScheduleWindows(updated);
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div className="schedule-times">
+                    <TextInput
+                      id={`edit-schedule-start-${idx}`}
+                      label={t('appointment.startTime')}
+                      type="time"
+                      value={window.start_time}
+                      onChange={(e) => {
+                        const updated = [...scheduleWindows];
+                        updated[idx] = { ...updated[idx], start_time: e.target.value };
+                        setScheduleWindows(updated);
+                      }}
+                    />
+                    <TextInput
+                      id={`edit-schedule-end-${idx}`}
+                      label={t('appointment.endTime')}
+                      type="time"
+                      value={window.end_time}
+                      onChange={(e) => {
+                        const updated = [...scheduleWindows];
+                        updated[idx] = { ...updated[idx], end_time: e.target.value };
+                        setScheduleWindows(updated);
+                      }}
+                    />
+                    {scheduleWindows.length > 1 && (
+                      <Button
+                        variant="secondary"
+                        size="small"
+                        onClick={() => setScheduleWindows(scheduleWindows.filter((_, i) => i !== idx))}
+                      >
+                        {t('appointment.removeWindow')}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={() => setScheduleWindows([...scheduleWindows, { days: [], start_time: '09:00', end_time: '17:00' }])}
+            >
+              {t('appointment.addWindow')}
+            </Button>
+          </>
         )}
         {FEE_TYPES.includes(thingType) && (
           <NumberInput

@@ -142,8 +142,8 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
-- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), event date (`IconCalendar`, for EVENT_THING), booking unit (`IconCalendar`, for ASSET_THING — shows "Day" or "Hour"), attendee count (`IconHome`, for EVENT_THING), helper count (`IconHome`, for WISH_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — displays "N homes" using `transfers.homesCount` i18n key). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
-- **Shared calendar for ASSET_THING**: guests also fetch `GET /api/v1/things/{code}/calendar/` for ASSET_THING and see full booking details (requester name, dates, times). The bookings list is visible to both owners and guests for ASSET_THING. Hourly bookings display time ranges (e.g. "09:00–12:00") alongside dates.
+- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), event date (`IconCalendar`, for EVENT_THING), booking unit (`IconCalendar`, for ASSET_THING — shows "Day" or "Hour"), slot duration (`IconCalendar`, for APPOINTMENT_THING — shows duration in minutes), attendee count (`IconHome`, for EVENT_THING), helper count (`IconHome`, for WISH_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — displays "N homes" using `transfers.homesCount` i18n key). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
+- **Shared calendar for ASSET_THING and APPOINTMENT_THING**: guests also fetch `GET /api/v1/things/{code}/calendar/` for ASSET_THING and APPOINTMENT_THING and see full booking details (requester name, dates, times). The bookings list is visible to both owners and guests for these types. Hourly bookings display time ranges (e.g. "09:00–12:00") alongside dates.
 - **Owner bookings display**: fetches `GET /api/v1/things/{code}/calendar/` on mount for date-based/order types and for any TAKEN thing (GIFT/SELL with a pending request). Shows future pending and confirmed bookings with requester name, request date, date ranges/delivery info, and status. Bookings with no dates (GIFT/SELL) are always shown regardless of date. The active pending booking is tracked in local `activePendingCode` state (initialised from `thing.pending_booking`, then synced to the first PENDING from the calendar on load) and marked bold with `*` when multiple pending exist.
 - **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
 - **Owner button matrix** (based on `thing.status`):
@@ -171,7 +171,8 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Pending questions).
-- Displays thumbnail (if present), headline, description, creation date, fee, availability, location, condition, event date (for EVENT_THING), and booking unit (for ASSET_THING — "Day" or "Hour").
+- Displays thumbnail (if present), headline, description, creation date, fee, availability, location, condition, event date (for EVENT_THING), booking unit (for ASSET_THING — "Day" or "Hour"), and slot duration (for APPOINTMENT_THING).
+- **Weekly schedule**: For APPOINTMENT_THING with `slot_duration`, shows `WeeklySchedule` component below info section. Available slots are clickable for non-owners, navigating to RequestThingPage with pre-filled date/time.
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
 - **Owner bookings display**: fetches `GET /api/v1/things/{thingCode}/calendar/` for date-based/order types and for any TAKEN thing (GIFT/SELL). Same logic as ThingLinkbox: filters past bookings, syncs `activePendingCode` to the first PENDING from the calendar, shows bookings list with requester name, request date, date ranges/delivery info, and status. Active pending booking is bold; starred when multiple pending exist. For ASSET_THING, the bookings list is visible to all users (not just owner). Hourly bookings display time ranges alongside dates.
 - **Usage statistics**: for ASSET_THING, fetches `GET /api/v1/things/{thingCode}/stats/` and displays total bookings, unique users, and a monthly per-user breakdown table. Shown below the Journey/transfers section.
@@ -199,7 +200,7 @@ Detail page for a thing with full information and FAQs section.
 - **Page title**: `Hold: {thing.headline}` with fee display when present.
 - **Form fields** adapt to thing type:
   - `SWAP_THING` — Fetches user's own SWAP_THING items in the same collection. Shows HDS `Checkbox` per item for multi-select. Submits `{ offered_thing_codes: [...] }`. "Propose swap" button disabled until at least one item selected.
-  - `ASSET_THING` with `booking_unit=HOUR` — `DateInput` for date + two `TextInput type="time"` for start/end time.
+  - `APPOINTMENT_THING` or `ASSET_THING` with `booking_unit=HOUR` — `DateInput` for date + two `TextInput type="time"` for start/end time. Accepts pre-filled values from `location.state`: `prefillDate`, `prefillStartTime`, `prefillEndTime` (set by WeeklySchedule slot clicks).
   - `LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING` (day) — `DateInput` for start and end dates with blocked-date validation.
   - `ORDER_THING` — `DateInput` for delivery date + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates fetched from calendar API.
@@ -255,7 +256,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING), `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with day checkboxes (Mon–Sun) and time range inputs per window, "Add time window" button. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -335,6 +336,7 @@ Detail page for a thing with full information and FAQs section.
 - **`ImageUpload`** (`src/components/ImageUpload.jsx`) — Single-image upload using HDS `FileInput`. Gets a short-lived Cloudinary signature from `POST /api/v1/upload/signature/`, resizes images client-side to max 1216px, uploads directly to Cloudinary, and calls `onChange(publicId)`. Shows a preview with a Remove button when an image is present; the FileInput is hidden while a preview exists. Button label and accept hint are translated via i18n. Button colours follow the current theeeme. Props: `id`, `label`, `value` (public_id), `onChange`, `currentUrl`, `folder` (Cloudinary folder, default `oiueei/users`), `helperText`. Used in AddThingPage, EditThingPage.
 - **`TheeemeSelector`** (`src/components/TheeemeSelector.jsx`) — Visual theeeme picker. Renders a grid of buttons; each button shows three 20 px circular swatches (`color_01`, `color_02`, `color_03`) and the theeeme name, with a checkmark when selected. `aria-pressed` and `aria-label` for accessibility. Props: `theeemes` (array from API), `value` (selected code), `onChange`. Used in EditProfilePage.
 - **`KoroSelector`** (`src/components/KoroSelector.jsx`) — Visual koro picker. Renders a grid of buttons; each button shows a live `<Koros>` SVG preview (white fill on black background, 50 px tall, scaled to fit) and the koro label. Props: `value` (selected type string), `onChange`. Used in EditProfilePage.
+- **`WeeklySchedule`** (`src/components/WeeklySchedule.jsx`) — Weekly appointment slot grid for APPOINTMENT_THING. Fetches `GET /api/v1/things/{code}/slots/?week_start=...` and renders an HDS `Table` with time slots as rows and days as columns. Available slots are clickable buttons that navigate to `RequestThingPage` with pre-filled date/time. Booked/pending slots show requester name. Week navigation via prev/next buttons. Props: `thingCode`, `isOwner`, `requestPath`. Used in ThingPage.
 
 ### Constants (`src/constants/things.js`)
 
@@ -344,8 +346,9 @@ Central source of truth for thing type definitions. Display labels are handled b
 - `EVENT_TYPE` — `EVENT_THING` constant (used for event-specific UI logic).
 - `WISH_TYPE` — `WISH_THING` constant (used for wish-specific UI logic).
 - `SWAP_TYPE` — `SWAP_THING` constant (used for swap-specific UI logic — swap request form, "Propose swap" button).
+- `APPOINTMENT_TYPE` — `APPOINTMENT_THING` constant (used for appointment-specific UI logic — weekly schedule table, slot booking).
 - `ASSET_TYPE` — `ASSET_THING` constant (used for asset-specific UI logic).
-- `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING`).
+- `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING`, `APPOINTMENT_THING`).
 - `ORDER_TYPE` — `ORDER_THING` constant.
 - `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`, `ORDER_THING`).
 - `DETAIL_TYPES` — Types with availability/location/condition fields (`GIFT_THING`, `SELL_THING`, `LEND_THING`, `SHARE_THING`).

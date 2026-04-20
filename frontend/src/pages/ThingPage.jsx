@@ -14,7 +14,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -22,6 +22,7 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
+import WeeklySchedule from '../components/WeeklySchedule';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -153,8 +154,9 @@ export default function ThingPage() {
   useEffect(() => {
     if (!thing || !userCode) return;
     const isAssetThing = thing.type === ASSET_TYPE;
+    const isAppointmentThing = thing.type === APPOINTMENT_TYPE;
     const ownerView = thing.owner === userCode;
-    if (!ownerView && !isAssetThing) return;
+    if (!ownerView && !isAssetThing && !isAppointmentThing) return;
     const isDateBased = isDateType(thing.type);
     const isOrder = thing.type === ORDER_TYPE;
     const isSwapThing = thing.type === SWAP_TYPE;
@@ -196,6 +198,7 @@ export default function ThingPage() {
   const isShare = thing.type === SHARE_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
   const isAsset = thing.type === ASSET_TYPE;
+  const isAppointment = thing.type === APPOINTMENT_TYPE;
   const isDateBased = isDateType(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder || isSwap;
@@ -530,11 +533,27 @@ export default function ThingPage() {
               <span>{thing.booking_unit === 'HOUR' ? t('asset.unitHour') : t('asset.unitDay')}</span>
             </div>
           )}
+          {isAppointment && thing.slot_duration && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('appointment.slotDuration')}</span>
+              <span>{t('appointment.minutes', { count: thing.slot_duration })}</span>
+            </div>
+          )}
         </div>
 
+        {/* Weekly schedule for APPOINTMENT_THING */}
+        {isAppointment && thing.slot_duration && (
+          <WeeklySchedule
+            thingCode={thing.code}
+            isOwner={isOwner}
+            requestPath={requestPath}
+          />
+        )}
 
-        {/* Owner / shared-asset bookings list */}
-        {(isOwner || isAsset) && bookings.length > 0 && (() => {
+
+        {/* Owner / shared-asset/appointment bookings list */}
+        {(isOwner || isAsset || isAppointment) && bookings.length > 0 && (() => {
           const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
           return (
             <ul className="thing-card-bookings">

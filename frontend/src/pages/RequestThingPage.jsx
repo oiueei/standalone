@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, DateInput, Koros, Notification, NumberInput, TextInput } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE, SWAP_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -29,12 +29,12 @@ export default function RequestThingPage() {
 
   const [thing, setThing] = useState(null);
   useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState(location.state?.prefillDate || '');
   const [endDate, setEndDate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [startTime, setStartTime] = useState(location.state?.prefillStartTime || '');
+  const [endTime, setEndTime] = useState(location.state?.prefillEndTime || '');
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -91,7 +91,7 @@ export default function RequestThingPage() {
 
     const isDateBased = thing && DATE_TYPES.includes(thing.type);
     const isOrder = thing && thing.type === ORDER_TYPE;
-    const isHourly = thing && thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR';
+    const isHourly = thing && (thing.type === APPOINTMENT_TYPE || (thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR'));
     const isSwap = thing && thing.type === SWAP_TYPE;
 
     let body = {};
@@ -150,7 +150,7 @@ export default function RequestThingPage() {
 
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
-  const isHourly = thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR';
+  const isHourly = thing.type === APPOINTMENT_TYPE || (thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR');
   const isSwap = thing.type === SWAP_TYPE;
 
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');

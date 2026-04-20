@@ -353,7 +353,8 @@
     "EVENT_THING": "Ekitaldia",
     "WISH_THING": "Nahia",
     "ASSET_THING": "Baliabide partekatua",
-    "SWAP_THING": "Trukea"
+    "SWAP_THING": "Trukea",
+    "APPOINTMENT_THING": "Hitzordua"
   },
   "availability": {
     "IMMEDIATE": "Berehala",
@@ -429,6 +430,34 @@
     "swapRejected": "Truke-eskaera baztertua.",
     "enableSwap": "Artikuluen trukea gaitu",
     "swapCollection": "Truke-bilduma"
+  },
+  "appointment": {
+    "slotDuration": "Txandaren iraupena",
+    "minutes": "{{count}} min",
+    "schedule": "Eskuragarritasun-ordutegia",
+    "addWindow": "Ordu-tartea gehitu",
+    "removeWindow": "Kendu",
+    "bookSlot": "Erreserbatu",
+    "available": "Libre",
+    "booked": "Erreserbatuta",
+    "pending": "Zain",
+    "prevWeek": "← Aurreko astea",
+    "nextWeek": "Hurrengo astea →",
+    "noSlots": "Ez dago txandarik konfiguratuta.",
+    "durationLabel": "Iraupena",
+    "duration15": "15 minutu",
+    "duration30": "30 minutu",
+    "duration60": "Ordu 1",
+    "days": "Egunak",
+    "startTime": "Noiztik",
+    "endTime": "Noiz arte",
+    "mon": "Al",
+    "tue": "As",
+    "wed": "Az",
+    "thu": "Og",
+    "fri": "Or",
+    "sat": "Lr",
+    "sun": "Ig"
   },
   "broadcast": {
     "heading": "Hedapena",
