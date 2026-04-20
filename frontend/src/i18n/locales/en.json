@@ -397,7 +397,11 @@
     "to": "to",
     "noTransfers": "No transfers yet.",
     "homesCount_one": "{{count}} home",
-    "homesCount_other": "{{count}} homes"
+    "homesCount_other": "{{count}} homes",
+    "shareHistoryHeading": "Sharing history",
+    "originallySharedBy": "Originally shared by {{name}}",
+    "sharedByCount_one": "Shared by {{count}} person",
+    "sharedByCount_other": "Shared by {{count}} people"
   },
   "events": {
     "eventDate": "Event date",

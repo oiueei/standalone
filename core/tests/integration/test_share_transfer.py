@@ -285,3 +285,87 @@ class TestShareThingSerializer:
         assert response.status_code == 200
         data = response.json()
         assert data["collection_owner"] == user.code
+
+
+@pytest.mark.django_db
+class TestShareTransferStats:
+    """Tests for enhanced transfer stats on SHARE_THING in COMMUNITY collections."""
+
+    def test_transfer_stats_includes_original_owner(
+        self, authenticated_client2, user, user2, share_thing, community_collection
+    ):
+        """Transfer stats should include original_owner for SHARE_THING."""
+        community_collection.invites.add(user2)
+        booking = BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type="SHARE_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=7),
+        )
+        accept_booking(booking)
+
+        # user2 is the new thing owner after transfer, so use their client
+        response = authenticated_client2.get(f"/api/v1/things/{share_thing.code}/transfers/")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["original_owner"] == user.code
+        assert data["original_owner_name"] == user.name
+        assert data["is_share_in_community"] is True
+
+    def test_transfer_stats_non_share_thing(self, authenticated_client, thing):
+        """Non-SHARE things should have is_share_in_community=False."""
+        response = authenticated_client.get(f"/api/v1/things/{thing.code}/transfers/")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["is_share_in_community"] is False
+        assert data["original_owner"] is None
+
+    def test_transfer_stats_chain(
+        self,
+        authenticated_client3,
+        user,
+        user2,
+        user3,
+        share_thing,
+        community_collection,
+    ):
+        """Original owner stays the same through a chain of transfers."""
+        community_collection.invites.add(user2)
+        community_collection.invites.add(user3)
+
+        # First transfer: user -> user2
+        booking1 = BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type="SHARE_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=7),
+        )
+        accept_booking(booking1)
+
+        # Second transfer: user2 -> user3
+        share_thing.refresh_from_db()
+        booking2 = BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type="SHARE_THING",
+            requester_code=user3,
+            requester_email=user3.email,
+            owner_code=user2,
+            start_date=date.today() + timedelta(days=14),
+            end_date=date.today() + timedelta(days=21),
+        )
+        accept_booking(booking2)
+
+        # user3 is the final thing owner after chain, so use their client
+        response = authenticated_client3.get(f"/api/v1/things/{share_thing.code}/transfers/")
+        assert response.status_code == 200
+        data = response.json()
+        # Original owner is still user (the first from_user)
+        assert data["original_owner"] == user.code
+        assert data["unique_homes"] == 3
+        assert data["total_transfers"] == 2

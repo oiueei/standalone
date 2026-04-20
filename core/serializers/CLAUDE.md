@@ -121,6 +121,6 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 | Serializer | Fields | Notes |
 |------------|--------|-------|
 | `ThingTransferSerializer` | code, from_user, to_user, from_user_name, to_user_name, lent_date, returned_date | Individual transfer record. `from_user_name`/`to_user_name` fall back to email if name is blank. |
-| `ThingTransferStatsSerializer` | total_transfers, unique_homes, current_holder, current_holder_name, transfers | Aggregated stats plus full transfer list. `transfers` is a nested list of `ThingTransferSerializer`. `current_holder` is the user code of the most recent unreturned transfer's `to_user`, or null. |
+| `ThingTransferStatsSerializer` | total_transfers, unique_homes, current_holder, current_holder_name, original_owner, original_owner_name, is_share_in_community, transfers | Aggregated stats plus full transfer list. `transfers` is a nested list of `ThingTransferSerializer`. `current_holder` is the user code of the most recent unreturned transfer's `to_user`, or null. `original_owner` is the `from_user` of the oldest transfer (null if no transfers). `is_share_in_community` is True when the thing is a SHARE_THING in a COMMUNITY collection. |
 
 Note: `ThingSerializer` and `CollectionThingSummarySerializer` both include a `transfer_count` computed field that returns the number of transfers for each thing (uses prefetched `_transfer_count` annotation when available, falls back to queryset count).

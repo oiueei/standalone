@@ -384,7 +384,11 @@
     "to": "para",
     "noTransfers": "Sem transferências ainda.",
     "homesCount_one": "{{count}} lar",
-    "homesCount_other": "{{count}} lares"
+    "homesCount_other": "{{count}} lares",
+    "shareHistoryHeading": "Histórico de partilha",
+    "originallySharedBy": "Originalmente partilhado por {{name}}",
+    "sharedByCount_one": "Partilhado por {{count}} pessoa",
+    "sharedByCount_other": "Partilhado por {{count}} pessoas"
   },
   "events": {
     "eventDate": "Data do evento",

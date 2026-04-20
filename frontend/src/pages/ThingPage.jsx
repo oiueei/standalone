@@ -841,23 +841,49 @@ export default function ThingPage() {
             <div className="spacer-m" />
             <hr />
             <div className="spacer-m" />
-            <h2>{t('transfers.heading')}</h2>
-            <p>{t('transfers.journeyCount', { count: transfers.unique_homes })}</p>
-            {transfers.current_holder_name && (
-              <p><strong>{t('transfers.currentlyWith', { name: transfers.current_holder_name })}</strong></p>
+            {transfers.is_share_in_community ? (
+              <>
+                <h2>{t('transfers.shareHistoryHeading')}</h2>
+                {transfers.original_owner_name && (
+                  <p className="share-original-owner">
+                    <strong>{t('transfers.originallySharedBy', { name: transfers.original_owner_name })}</strong>
+                  </p>
+                )}
+                <p>{t('transfers.sharedByCount', { count: transfers.unique_homes })}</p>
+                <div className="share-timeline">
+                  {transfers.transfers.map((tr) => (
+                    <div key={tr.code} className="share-timeline-entry">
+                      <strong>{tr.to_user_name}</strong>
+                      {' — '}
+                      {new Date(tr.lent_date).toLocaleDateString(i18n.language)}
+                      {tr.returned_date && (
+                        <> · {t('transfers.returnedOn', { date: new Date(tr.returned_date).toLocaleDateString(i18n.language) })}</>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <h2>{t('transfers.heading')}</h2>
+                <p>{t('transfers.journeyCount', { count: transfers.unique_homes })}</p>
+                {transfers.current_holder_name && (
+                  <p><strong>{t('transfers.currentlyWith', { name: transfers.current_holder_name })}</strong></p>
+                )}
+                <ul className="thing-card-bookings">
+                  {transfers.transfers.map((tr) => (
+                    <li key={tr.code}>
+                      {tr.from_user_name} {t('transfers.to')} {tr.to_user_name}
+                      {' — '}
+                      {t('transfers.lentOn', { date: new Date(tr.lent_date).toLocaleDateString(i18n.language) })}
+                      {tr.returned_date && (
+                        <> · {t('transfers.returnedOn', { date: new Date(tr.returned_date).toLocaleDateString(i18n.language) })}</>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
-            <ul className="thing-card-bookings">
-              {transfers.transfers.map((tr) => (
-                <li key={tr.code}>
-                  {tr.from_user_name} {t('transfers.to')} {tr.to_user_name}
-                  {' — '}
-                  {t('transfers.lentOn', { date: new Date(tr.lent_date).toLocaleDateString(i18n.language) })}
-                  {tr.returned_date && (
-                    <> · {t('transfers.returnedOn', { date: new Date(tr.returned_date).toLocaleDateString(i18n.language) })}</>
-                  )}
-                </li>
-              ))}
-            </ul>
           </>
         )}
 

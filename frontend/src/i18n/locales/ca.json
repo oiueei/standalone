@@ -384,7 +384,11 @@
     "to": "a",
     "noTransfers": "Sense transferències encara.",
     "homesCount_one": "{{count}} llar",
-    "homesCount_other": "{{count}} llars"
+    "homesCount_other": "{{count}} llars",
+    "shareHistoryHeading": "Historial d'ús compartit",
+    "originallySharedBy": "Compartit originalment per {{name}}",
+    "sharedByCount_one": "Compartit per {{count}} persona",
+    "sharedByCount_other": "Compartit per {{count}} persones"
   },
   "events": {
     "eventDate": "Data de l'esdeveniment",

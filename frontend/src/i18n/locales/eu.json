@@ -384,7 +384,11 @@
     "to": "nori",
     "noTransfers": "Oraindik transferentziarik ez.",
     "homesCount_one": "{{count}} etxe",
-    "homesCount_other": "{{count}} etxe"
+    "homesCount_other": "{{count}} etxe",
+    "shareHistoryHeading": "Partekatzeen historia",
+    "originallySharedBy": "Jatorriz {{name}}(e)k partekatua",
+    "sharedByCount_one": "{{count}} pertsonak partekatua",
+    "sharedByCount_other": "{{count}} pertsonak partekatua"
   },
   "events": {
     "eventDate": "Ekitaldiaren data",

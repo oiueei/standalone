@@ -52,11 +52,24 @@ class ThingTransferView(APIView):
             current_holder = current_transfer.to_user_id
             current_holder_name = current_transfer.to_user.name or current_transfer.to_user.email
 
+        # Original owner = from_user of the oldest transfer
+        oldest = transfers.order_by("lent_date").first()
+        original_owner = oldest.from_user_id if oldest else None
+        original_owner_name = (oldest.from_user.name or oldest.from_user.email) if oldest else None
+
+        # Is this a SHARE_THING in a COMMUNITY collection?
+        is_share_in_community = (
+            thing.type == "SHARE_THING" and thing.collections.filter(mode="COMMUNITY").exists()
+        )
+
         stats_data = {
             "total_transfers": total_transfers,
             "unique_homes": unique_homes,
             "current_holder": current_holder,
             "current_holder_name": current_holder_name,
+            "original_owner": original_owner,
+            "original_owner_name": original_owner_name,
+            "is_share_in_community": is_share_in_community,
             "transfers": transfers,
         }
 

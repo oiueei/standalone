@@ -147,7 +147,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | DELETE | `/api/v1/things/{code}/` | Delete thing (owner only) |
 | POST | `/api/v1/things/{code}/request/` | Request reservation (invited only) |
 | GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE/ASSET/APPOINTMENT) |
-| GET | `/api/v1/things/{code}/transfers/` | View transfer history and stats (Loan Chain) |
+| GET | `/api/v1/things/{code}/transfers/` | View transfer history and stats (Loan Chain). For SHARE_THING in COMMUNITY collections, includes `original_owner`, `original_owner_name`, and `is_share_in_community` fields |
 | GET | `/api/v1/things/{code}/stats/` | View usage statistics (total bookings, unique users, monthly breakdown) |
 | POST | `/api/v1/things/{code}/attend/` | Toggle attendance for EVENT_THING |
 | GET | `/api/v1/things/{code}/attendees/` | List attendees for EVENT_THING |

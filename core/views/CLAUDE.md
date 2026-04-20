@@ -678,6 +678,9 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
   "unique_homes": 4,
   "current_holder": "ABC123",
   "current_holder_name": "Lala",
+  "original_owner": "ABC123",
+  "original_owner_name": "Lala",
+  "is_share_in_community": true,
   "transfers": [
     {
       "code": "XYZ789",
@@ -698,6 +701,8 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 3. Queries all transfers for the thing, ordered by `-lent_date`.
 4. Computes `unique_homes` (distinct user codes across all `from_user` and `to_user` fields).
 5. Computes `current_holder` from the most recent unreturned transfer's `to_user`.
+6. Computes `original_owner` from the `from_user` of the oldest transfer (by `lent_date`). Null if no transfers.
+7. Computes `is_share_in_community`: True when the thing is a `SHARE_THING` and belongs to at least one `COMMUNITY` collection.
 
 ## Stats Views (`core/views/stats.py`)
 

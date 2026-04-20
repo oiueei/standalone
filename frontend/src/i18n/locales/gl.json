@@ -384,7 +384,11 @@
     "to": "a",
     "noTransfers": "Sen transferencias aínda.",
     "homesCount_one": "{{count}} fogar",
-    "homesCount_other": "{{count}} fogares"
+    "homesCount_other": "{{count}} fogares",
+    "shareHistoryHeading": "Historial de uso compartido",
+    "originallySharedBy": "Compartido orixinalmente por {{name}}",
+    "sharedByCount_one": "Compartido por {{count}} persoa",
+    "sharedByCount_other": "Compartido por {{count}} persoas"
   },
   "events": {
     "eventDate": "Data do evento",

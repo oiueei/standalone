@@ -75,9 +75,7 @@ class TestShareCollectionCreation:
         )
         assert res.status_code == 400
 
-    def test_update_to_share_and_swap_rejected(
-        self, authenticated_client, community_collection
-    ):
+    def test_update_to_share_and_swap_rejected(self, authenticated_client, community_collection):
         res = authenticated_client.patch(
             f"/api/v1/collections/{community_collection.code}/",
             {"is_swap": True, "is_share": True},
@@ -90,9 +88,7 @@ class TestShareCollectionCreation:
 class TestShareCollectionTypeRestrictions:
     """Test that share collections only accept SHARE_THING."""
 
-    def test_share_collection_accepts_share_thing(
-        self, authenticated_client, community_collection
-    ):
+    def test_share_collection_accepts_share_thing(self, authenticated_client, community_collection):
         res = authenticated_client.post(
             "/api/v1/things/",
             {
@@ -105,9 +101,7 @@ class TestShareCollectionTypeRestrictions:
         assert res.status_code == 201
         assert res.json()["type"] == "SHARE_THING"
 
-    def test_share_collection_rejects_gift_thing(
-        self, authenticated_client, community_collection
-    ):
+    def test_share_collection_rejects_gift_thing(self, authenticated_client, community_collection):
         res = authenticated_client.post(
             "/api/v1/things/",
             {
@@ -119,9 +113,7 @@ class TestShareCollectionTypeRestrictions:
         )
         assert res.status_code == 400
 
-    def test_share_collection_rejects_swap_thing(
-        self, authenticated_client, community_collection
-    ):
+    def test_share_collection_rejects_swap_thing(self, authenticated_client, community_collection):
         res = authenticated_client.post(
             "/api/v1/things/",
             {
@@ -160,8 +152,6 @@ class TestShareCollectionTypeRestrictions:
     def test_share_flag_visible_in_collection_detail(
         self, authenticated_client, community_collection
     ):
-        res = authenticated_client.get(
-            f"/api/v1/collections/{community_collection.code}/"
-        )
+        res = authenticated_client.get(f"/api/v1/collections/{community_collection.code}/")
         assert res.status_code == 200
         assert res.json()["is_share"] is True

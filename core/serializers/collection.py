@@ -181,9 +181,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
                 "A collection cannot be both swap-only and share-only."
             )
         if (is_swap or is_share) and mode != "COMMUNITY":
-            raise serializers.ValidationError(
-                "Swap and share modes require COMMUNITY mode."
-            )
+            raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
         return attrs
 
 
@@ -215,9 +213,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
                 "A collection cannot be both swap-only and share-only."
             )
         if (is_swap or is_share) and mode != "COMMUNITY":
-            raise serializers.ValidationError(
-                "Swap and share modes require COMMUNITY mode."
-            )
+            raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
         return attrs
 
 

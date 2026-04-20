@@ -189,7 +189,7 @@ Detail page for a thing with full information and FAQs section.
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
   - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
   - **Non-owner:** `Fieldset`-wrapped form to ask a new question.
-- **Journey section** (below FAQs): fetches `GET /api/v1/things/{thingCode}/transfers/` on mount. Shown only when `total_transfers > 0`. Displays journey count (unique homes), current holder name, and a timeline of transfers (from → to, lent date, returned date).
+- **Journey section** (below FAQs): fetches `GET /api/v1/things/{thingCode}/transfers/` on mount. Shown only when `total_transfers > 0`. For SHARE_THING in COMMUNITY collections (`is_share_in_community`): shows "Sharing history" heading, "Originally shared by {name}" block, "Shared by N people" narrative, and a CSS timeline (`.share-timeline`). For other things: displays the standard journey view with journey count (unique homes), current holder name, and a timeline of transfers (from → to, lent date, returned date).
 
 ### RequestThingPage (`src/pages/RequestThingPage.jsx`)
 
