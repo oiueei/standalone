@@ -439,6 +439,9 @@
     "enableShare": "Exclusivamente coisas tipo SHARE",
     "shareCollection": "Coleção partilhada"
   },
+  "newsletter": {
+    "enableNewsletter": "Boletim semanal de atividade"
+  },
   "documents": {
     "heading": "Documentos",
     "uploadLabel": "Anexos",

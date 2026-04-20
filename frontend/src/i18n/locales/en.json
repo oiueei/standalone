@@ -452,6 +452,9 @@
     "enableShare": "Exclusively SHARE things",
     "shareCollection": "Share collection"
   },
+  "newsletter": {
+    "enableNewsletter": "Weekly activity newsletter"
+  },
   "documents": {
     "heading": "Documents",
     "uploadLabel": "Attachments",

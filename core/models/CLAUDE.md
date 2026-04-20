@@ -87,6 +87,8 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `digest_frequency` | CharField(7) | No | Digest email frequency: NONE (default), WEEKLY, or MONTHLY |
 | `is_onboarding` | BooleanField | No | If True, new users joining via `/popin` are added to this collection (default: False) |
 | `is_swap` | BooleanField | No | If True, only SWAP_THING items allowed; enables item swapping (default: False). Only meaningful for COMMUNITY collections. |
+| `is_share` | BooleanField | No | If True, only SHARE_THING items allowed (default: False). Mutually exclusive with `is_swap`. Only meaningful for COMMUNITY collections. |
+| `newsletter_enabled` | BooleanField | No | If True, sends weekly activity newsletter on Mondays (default: False). Requires `is_share=True`. |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
 

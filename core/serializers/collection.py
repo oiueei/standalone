@@ -124,6 +124,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "digest_frequency",
             "is_swap",
             "is_share",
+            "newsletter_enabled",
             "things",
             "invites",
             "pending_invites",
@@ -170,11 +171,13 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "digest_frequency",
             "is_swap",
             "is_share",
+            "newsletter_enabled",
         ]
 
     def validate(self, attrs):
         is_swap = attrs.get("is_swap", False)
         is_share = attrs.get("is_share", False)
+        newsletter_enabled = attrs.get("newsletter_enabled", False)
         mode = attrs.get("mode", "PROPRIETARY")
         if is_swap and is_share:
             raise serializers.ValidationError(
@@ -182,6 +185,8 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             )
         if (is_swap or is_share) and mode != "COMMUNITY":
             raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
+        if newsletter_enabled and not is_share:
+            raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
         return attrs
 
 
@@ -201,12 +206,16 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "digest_frequency",
             "is_swap",
             "is_share",
+            "newsletter_enabled",
         ]
 
     def validate(self, attrs):
         instance = self.instance
         is_swap = attrs.get("is_swap", instance.is_swap if instance else False)
         is_share = attrs.get("is_share", instance.is_share if instance else False)
+        newsletter_enabled = attrs.get(
+            "newsletter_enabled", instance.newsletter_enabled if instance else False
+        )
         mode = attrs.get("mode", instance.mode if instance else "PROPRIETARY")
         if is_swap and is_share:
             raise serializers.ValidationError(
@@ -214,6 +223,8 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             )
         if (is_swap or is_share) and mode != "COMMUNITY":
             raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
+        if newsletter_enabled and not is_share:
+            raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
         return attrs
 
 

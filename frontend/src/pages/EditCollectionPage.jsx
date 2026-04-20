@@ -21,6 +21,7 @@ export default function EditCollectionPage() {
   const [digestFrequency, setDigestFrequency] = useState('NONE');
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
+  const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -60,6 +61,7 @@ export default function EditCollectionPage() {
           setDigestFrequency(data.digest_frequency || 'NONE');
           setIsSwap(data.is_swap || false);
           setIsShare(data.is_share || false);
+          setNewsletterEnabled(data.newsletter_enabled || false);
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -93,6 +95,7 @@ export default function EditCollectionPage() {
       digest_frequency: digestFrequency,
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
+      newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
     };
 
     try {
@@ -184,7 +187,7 @@ export default function EditCollectionPage() {
             if (selectedOptions.length > 0) {
               const newMode = selectedOptions[0].value;
               setMode(newMode);
-              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); }
+              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); }
             }
           }}
         />
@@ -201,7 +204,15 @@ export default function EditCollectionPage() {
             id="edit-collection-share"
             label={t('share.enableShare')}
             checked={isShare}
-            onChange={(e) => { setIsShare(e.target.checked); if (e.target.checked) setIsSwap(false); }}
+            onChange={(e) => { setIsShare(e.target.checked); if (e.target.checked) setIsSwap(false); else setNewsletterEnabled(false); }}
+          />
+        )}
+        {mode === 'COMMUNITY' && isShare && (
+          <Checkbox
+            id="edit-collection-newsletter"
+            label={t('newsletter.enableNewsletter')}
+            checked={newsletterEnabled}
+            onChange={(e) => setNewsletterEnabled(e.target.checked)}
           />
         )}
         <Select

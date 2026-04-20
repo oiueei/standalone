@@ -439,6 +439,9 @@
     "enableShare": "Soilik SHARE motako gauzak",
     "shareCollection": "Partekatzeko bilduma"
   },
+  "newsletter": {
+    "enableNewsletter": "Asteko jarduera buletina"
+  },
   "documents": {
     "heading": "Dokumentuak",
     "uploadLabel": "Eranskinak",

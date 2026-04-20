@@ -539,6 +539,65 @@ def send_documents_email(requester_email, thing_headline, documents):
     )
 
 
+def send_newsletter_email(collection_headline, new_thing_headlines, transfer_entries, emails):
+    """Send a weekly newsletter for share collections.
+
+    Args:
+        collection_headline: The collection name.
+        new_thing_headlines: List of headlines of newly added things.
+        transfer_entries: List of dicts with keys: date, thing, from_name, to_name.
+        emails: List of recipient email addresses.
+    """
+    safe_collection = escape(collection_headline)
+
+    # Block 1: New things
+    if new_thing_headlines:
+        things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)
+        things_html = "".join(f"<li>{escape(h)}</li>" for h in new_thing_headlines)
+        block1_plain = f"New things:\n{things_plain}\n\n"
+        block1_html = f"<h3>New things</h3><ul>{things_html}</ul>"
+    else:
+        block1_plain = ""
+        block1_html = ""
+
+    # Block 2: Ownership changes
+    if transfer_entries:
+        transfers_plain = "\n".join(
+            f"  - {t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
+            for t in transfer_entries
+        )
+        transfers_html = "".join(
+            f"<li>{escape(str(t['date']))} — {escape(t['thing'])}: "
+            f"{escape(t['from_name'])} → {escape(t['to_name'])}</li>"
+            for t in transfer_entries
+        )
+        block2_plain = f"Ownership changes:\n{transfers_plain}\n\n"
+        block2_html = f"<h3>Ownership changes</h3><ul>{transfers_html}</ul>"
+    else:
+        block2_plain = ""
+        block2_html = ""
+
+    subject = f"Weekly newsletter: {collection_headline}"
+    plain = f"Newsletter for {collection_headline}:\n\n{block1_plain}{block2_plain}"
+    html = f"""
+        <html>
+        <p>Newsletter for <strong>{safe_collection}</strong>:</p>
+        {block1_html}
+        {block2_html}
+        <p>Log in to OIUEEI to see more.</p>
+        </html>
+        """
+
+    for email in emails:
+        send_mail(
+            subject=subject,
+            message=plain,
+            from_email=None,
+            recipient_list=[email],
+            html_message=html,
+        )
+
+
 def send_swap_request_email(
     requester, thing, offered_things, owner_email, accept_link, reject_link
 ):

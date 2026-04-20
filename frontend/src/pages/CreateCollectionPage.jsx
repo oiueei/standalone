@@ -27,6 +27,7 @@ export default function CreateCollectionPage() {
   const [mode, setMode] = useState('PROPRIETARY');
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
+  const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [errors, setErrors] = useState({});
 
   const MODE_OPTIONS = [
@@ -54,6 +55,7 @@ export default function CreateCollectionPage() {
       mode,
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
+      newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
     };
     if (description.trim()) body.description = description.trim();
     try {
@@ -122,7 +124,7 @@ export default function CreateCollectionPage() {
               if (selectedOptions.length > 0) {
                 const newMode = selectedOptions[0].value;
                 setMode(newMode);
-                if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); }
+                if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); }
               }
             }}
           />
@@ -139,7 +141,15 @@ export default function CreateCollectionPage() {
               id="create-collection-share"
               label={t('share.enableShare')}
               checked={isShare}
-              onChange={(e) => { setIsShare(e.target.checked); if (e.target.checked) setIsSwap(false); }}
+              onChange={(e) => { setIsShare(e.target.checked); if (e.target.checked) setIsSwap(false); else setNewsletterEnabled(false); }}
+            />
+          )}
+          {mode === 'COMMUNITY' && isShare && (
+            <Checkbox
+              id="create-collection-newsletter"
+              label={t('newsletter.enableNewsletter')}
+              checked={newsletterEnabled}
+              onChange={(e) => setNewsletterEnabled(e.target.checked)}
             />
           )}
         </div>

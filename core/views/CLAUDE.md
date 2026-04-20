@@ -818,9 +818,10 @@ Daily command (`python manage.py send_reminders`) that sends reminder emails:
 
 ### Management Command: `send_digests`
 
-Daily command (`python manage.py send_digests`) that sends digest emails:
+Daily command (`python manage.py send_digests`) that sends digest emails and newsletters:
 - **Weekly digests**: sent on Mondays for collections with `digest_frequency = "WEEKLY"`. Lists things added in the past 7 days.
 - **Monthly digests**: sent on the 1st of each month for collections with `digest_frequency = "MONTHLY"`. Lists things added in the previous month.
+- **Weekly newsletters**: sent on Mondays for share collections with `newsletter_enabled = True`. Includes two blocks: (1) new things added in the past 7 days, (2) ownership changes (ThingTransfer records) in the past 7 days. Skips collections with no activity or no invitees.
 - Skips collections with no new things or no invitees.
 - Outputs count of digest emails sent.
 

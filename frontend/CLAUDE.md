@@ -294,7 +294,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" (visible only when mode is COMMUNITY, auto-unchecks when mode changes), `Select` for digest frequency (None/Weekly/Monthly).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled), `Select` for digest frequency (None/Weekly/Monthly).
   - "Save" button below the form.
 - Pre-populates all fields from the current collection data.
 - On success: navigates to `/collections/{code}`.
@@ -304,7 +304,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" (visible only when mode is COMMUNITY, auto-unchecks when mode changes away from COMMUNITY).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled).
   - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 

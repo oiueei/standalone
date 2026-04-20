@@ -50,6 +50,7 @@ All outbound emails are composed and sent from this module. Views call these fun
 | `send_event_announcement_email(owner_name, thing_headline, event_date, collection_headline, emails)` | EVENT_THING created in a collection | All collection invitees (individually) |
 | `send_broadcast_email(owner_name, owner_email, collection_headline, subject, message, emails)` | Owner sends broadcast to collection | All collection invitees (individually, with Reply-To owner) |
 | `send_digest_email(collection_headline, thing_headlines, emails)` | Daily command (weekly/monthly) | All collection invitees (individually) |
+| `send_newsletter_email(collection_headline, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |
 | `send_return_reminder_email(requester_name, thing_headline, end_date, owner_email)` | Daily command (end_date = tomorrow) | Thing owner |
 | `send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email)` | Daily command (delivery_date = tomorrow) | Thing owner |
 | `send_event_reminder_email(owner_name, thing_headline, event_date, emails)` | Daily command (event_date = tomorrow) | All attendees (individually) |

@@ -439,6 +439,9 @@
     "enableShare": "Exclusivament coses tipus SHARE",
     "shareCollection": "Col·lecció compartida"
   },
+  "newsletter": {
+    "enableNewsletter": "Butlletí setmanal d'activitat"
+  },
   "documents": {
     "heading": "Documents",
     "uploadLabel": "Adjunts",
