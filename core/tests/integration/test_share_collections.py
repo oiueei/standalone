@@ -6,7 +6,7 @@ import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import Collection, Thing
+from core.models import Collection
 
 
 @pytest.fixture
