@@ -383,7 +383,9 @@ class TestSwapAcceptance:
         assert owner_swap_thing.owner == user2
         assert guest_swap_thing.owner == user
         assert guest_swap_thing2.owner == user
-        assert ThingTransfer.objects.count() == 3  # 1 requested + 2 offered
+        assert ThingTransfer.objects.filter(
+            thing__in=[owner_swap_thing, guest_swap_thing, guest_swap_thing2]
+        ).count() == 3  # 1 requested + 2 offered
 
     def test_reject_swap_no_changes(
         self,
@@ -410,7 +412,9 @@ class TestSwapAcceptance:
         guest_swap_thing.refresh_from_db()
         assert owner_swap_thing.owner == user
         assert guest_swap_thing.owner == user2
-        assert ThingTransfer.objects.count() == 0
+        assert ThingTransfer.objects.filter(
+            thing__in=[owner_swap_thing, guest_swap_thing]
+        ).count() == 0
 
 
 # --- Serializer tests ---

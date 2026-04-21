@@ -3,12 +3,25 @@ Integration tests for APPOINTMENT_THING appointment scheduling feature.
 """
 
 import pytest
+from datetime import date, timedelta
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Collection, Thing
 from core.models.booking import BookingPeriod
 from core.services.booking_service import accept_booking
+
+
+def _next_monday():
+    """Return next Monday as a date object (always >= tomorrow)."""
+    today = date.today()
+    days = (8 - today.isoweekday()) % 7 or 7
+    return today + timedelta(days=days)
+
+
+def _next_weekday():
+    """Return next Monday as ISO string — used for booking tests (Mon is always in schedule)."""
+    return _next_monday().isoformat()
 
 
 @pytest.fixture
@@ -97,13 +110,13 @@ class TestSlotsEndpoint:
     """Test the GET /api/v1/things/{code}/slots/ endpoint."""
 
     def test_slots_generates_correct_slots(self, guest_client, appointment_thing):
-        # Use a Monday date
+        monday = _next_monday()
         res = guest_client.get(
-            f"/api/v1/things/{appointment_thing.code}/slots/?week_start=2026-04-20"
+            f"/api/v1/things/{appointment_thing.code}/slots/?week_start={monday.isoformat()}"
         )
         assert res.status_code == 200
         data = res.json()
-        assert data["week_start"] == "2026-04-20"
+        assert data["week_start"] == monday.isoformat()
         assert data["slot_duration"] == 30
         assert len(data["days"]) == 7
 
@@ -124,6 +137,7 @@ class TestSlotsEndpoint:
         assert len(saturday["slots"]) == 0
 
     def test_slots_marks_booked_slots(self, guest_client, user, user2, appointment_thing):
+        monday = _next_monday()
         # Create a booking for Monday 09:00-09:30
         BookingPeriod.objects.create(
             thing_code=appointment_thing,
@@ -131,45 +145,47 @@ class TestSlotsEndpoint:
             requester_code=user2,
             requester_email=user2.email,
             owner_code=user,
-            start_date="2026-04-20",
-            end_date="2026-04-20",
+            start_date=monday,
+            end_date=monday,
             start_time="09:00",
             end_time="09:30",
             status="ACCEPTED",
         )
 
         res = guest_client.get(
-            f"/api/v1/things/{appointment_thing.code}/slots/?week_start=2026-04-20"
+            f"/api/v1/things/{appointment_thing.code}/slots/?week_start={monday.isoformat()}"
         )
         assert res.status_code == 200
-        monday = res.data["days"][0]
-        booked = [s for s in monday["slots"] if s["status"] == "booked"]
-        available = [s for s in monday["slots"] if s["status"] == "available"]
+        monday_slots = res.data["days"][0]
+        booked = [s for s in monday_slots["slots"] if s["status"] == "booked"]
+        available = [s for s in monday_slots["slots"] if s["status"] == "available"]
         assert len(booked) == 1
         assert booked[0]["start_time"] == "09:00"
         assert booked[0]["requester_name"] == "Test User 2"
         assert len(available) == 5
 
     def test_slots_marks_pending_slots(self, guest_client, user, user2, appointment_thing):
+        monday = _next_monday()
+        tuesday = monday + timedelta(days=1)
         BookingPeriod.objects.create(
             thing_code=appointment_thing,
             thing_type="APPOINTMENT_THING",
             requester_code=user2,
             requester_email=user2.email,
             owner_code=user,
-            start_date="2026-04-21",
-            end_date="2026-04-21",
+            start_date=tuesday,
+            end_date=tuesday,
             start_time="14:00",
             end_time="14:30",
             status="PENDING",
         )
 
         res = guest_client.get(
-            f"/api/v1/things/{appointment_thing.code}/slots/?week_start=2026-04-20"
+            f"/api/v1/things/{appointment_thing.code}/slots/?week_start={monday.isoformat()}"
         )
         assert res.status_code == 200
-        tuesday = res.data["days"][1]
-        pending = [s for s in tuesday["slots"] if s["status"] == "pending"]
+        tuesday_slots = res.data["days"][1]
+        pending = [s for s in tuesday_slots["slots"] if s["status"] == "pending"]
         assert len(pending) == 1
         assert pending[0]["start_time"] == "14:00"
 
@@ -213,7 +229,7 @@ class TestAppointmentBooking:
     def test_book_appointment_slot(self, guest_client, appointment_thing):
         res = guest_client.post(
             f"/api/v1/things/{appointment_thing.code}/request/",
-            {"start_date": "2026-04-20", "start_time": "09:00", "end_time": "09:30"},
+            {"start_date": _next_weekday(), "start_time": "09:00", "end_time": "09:30"},
             format="json",
         )
         assert res.status_code == 200
@@ -227,15 +243,15 @@ class TestAppointmentBooking:
             requester_code=user2,
             requester_email=user2.email,
             owner_code=user,
-            start_date="2026-04-20",
-            end_date="2026-04-20",
+            start_date=_next_weekday(),
+            end_date=_next_weekday(),
             start_time="09:00",
             end_time="09:30",
             status="PENDING",
         )
         res = guest_client.post(
             f"/api/v1/things/{appointment_thing.code}/request/",
-            {"start_date": "2026-04-20", "start_time": "09:00", "end_time": "09:30"},
+            {"start_date": _next_weekday(), "start_time": "09:00", "end_time": "09:30"},
             format="json",
         )
         assert res.status_code == 409
@@ -247,15 +263,15 @@ class TestAppointmentBooking:
             requester_code=user2,
             requester_email=user2.email,
             owner_code=user,
-            start_date="2026-04-20",
-            end_date="2026-04-20",
+            start_date=_next_weekday(),
+            end_date=_next_weekday(),
             start_time="09:00",
             end_time="09:30",
             status="PENDING",
         )
         res = guest_client.post(
             f"/api/v1/things/{appointment_thing.code}/request/",
-            {"start_date": "2026-04-20", "start_time": "10:00", "end_time": "10:30"},
+            {"start_date": _next_weekday(), "start_time": "10:00", "end_time": "10:30"},
             format="json",
         )
         assert res.status_code == 200
@@ -263,7 +279,7 @@ class TestAppointmentBooking:
     def test_accept_appointment_booking(self, guest_client, user, user2, appointment_thing):
         res = guest_client.post(
             f"/api/v1/things/{appointment_thing.code}/request/",
-            {"start_date": "2026-04-20", "start_time": "09:00", "end_time": "09:30"},
+            {"start_date": _next_weekday(), "start_time": "09:00", "end_time": "09:30"},
             format="json",
         )
         booking = BookingPeriod.objects.get(code=res.json()["booking_code"])
@@ -286,8 +302,8 @@ class TestAppointmentCalendar:
             requester_code=user2,
             requester_email=user2.email,
             owner_code=user,
-            start_date="2026-04-20",
-            end_date="2026-04-20",
+            start_date=_next_weekday(),
+            end_date=_next_weekday(),
             start_time="09:00",
             end_time="09:30",
             status="ACCEPTED",
