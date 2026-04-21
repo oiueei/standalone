@@ -101,8 +101,8 @@ export default function RequestThingPage() {
   const fromMinutes = (mins) =>
     `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 
-  const halfHourOptions = Array.from({ length: 48 }, (_, i) => {
-    const time = fromMinutes(i * 30);
+  const hourlyOptions = Array.from({ length: 24 }, (_, i) => {
+    const time = fromMinutes(i * 60);
     return { label: time, value: time };
   });
 
@@ -297,6 +297,7 @@ export default function RequestThingPage() {
               <Select
                 id="request-slot"
                 label={t('appointment.selectSlot')}
+                language="en"
                 value={startTime && endTime ? [{ label: `${startTime} – ${endTime}`, value: `${startTime}_${endTime}` }] : []}
                 options={getAvailableSlots(startDate).map((s) => ({ label: s.label, value: `${s.start}_${s.end}` }))}
                 onChange={(selected) => {
@@ -320,8 +321,9 @@ export default function RequestThingPage() {
               <Select
                 id="request-start-time"
                 label={t('asset.startTime')}
+                language="en"
                 value={startTime ? [{ label: startTime, value: startTime }] : []}
-                options={halfHourOptions}
+                options={hourlyOptions}
                 onChange={(sel) => { const v = sel?.length > 0 ? sel[0].value : ''; setStartTime(v); if (endTime && v >= endTime) setEndTime(''); }}
                 invalid={attempted && !startTime}
                 error={attempted && !startTime ? t('asset.startTime') : ''}
@@ -331,8 +333,9 @@ export default function RequestThingPage() {
               <Select
                 id="request-end-time"
                 label={t('asset.endTime')}
+                language="en"
                 value={endTime ? [{ label: endTime, value: endTime }] : []}
-                options={startTime ? halfHourOptions.filter((o) => o.value > startTime) : halfHourOptions}
+                options={startTime ? hourlyOptions.filter((o) => o.value > startTime) : hourlyOptions}
                 onChange={(sel) => { setEndTime(sel?.length > 0 ? sel[0].value : ''); }}
                 invalid={attempted && !endTime}
                 error={attempted && !endTime ? t('asset.endTime') : ''}
