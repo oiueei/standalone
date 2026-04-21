@@ -444,10 +444,16 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                   <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
                 )}
               </Link>
-              {!bookings.some((b) => b.status === 'PENDING') && canHide && (
-                <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
-                  {t('thingPage.hide')}
-                </Button>
+              {!bookings.some((b) => b.status === 'PENDING') && (
+                isCollectionOwner ? (
+                  <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}>
+                    {t('common.delete')}
+                  </Button>
+                ) : canHide ? (
+                  <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
+                    {t('thingPage.hide')}
+                  </Button>
+                ) : null
               )}
             </>
           )}

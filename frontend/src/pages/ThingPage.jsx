@@ -630,8 +630,12 @@ export default function ThingPage() {
                 <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
               )}
             </Link>
-            {!hasPendingBookings && canHide && (
-              <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={handleHide}>{t('thingPage.hide')}</Button>
+            {!hasPendingBookings && (
+              isCollectionOwner ? (
+                <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}>{t('common.delete')}</Button>
+              ) : canHide ? (
+                <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={handleHide}>{t('thingPage.hide')}</Button>
+              ) : null
             )}
           </div>
         )}
