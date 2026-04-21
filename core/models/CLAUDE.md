@@ -260,7 +260,7 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 ### Thing Type Categories
 
 ```python
-DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "SHARE_THING", "ASSET_THING", "APPOINTMENT_THING"]  # Require dates
+DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "ASSET_THING", "APPOINTMENT_THING"]  # Require dates
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]  # Thing becomes INACTIVE after acceptance
 REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 ```
@@ -268,12 +268,13 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 ### Business Rules
 
 1. **72h expiry** - PENDING bookings expire after `BOOKING_EXPIRY_HOURS` (default 72h).
-2. **Date-based (LEND/RENT/SHARE/ASSET/APPOINTMENT)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE. ASSET_THING with `booking_unit=HOUR` and APPOINTMENT_THING also require `start_time`/`end_time` and use same-day booking with time-range overlap detection.
-3. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept.
-4. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
-5. **Swap (SWAP_THING)**: No dates. Requester offers own things via `offered_things` M2M. On acceptance, requested thing transfers to requester and all offered things transfer to original owner. All things stay ACTIVE. ThingTransfer records created for each thing involved.
-6. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
-7. **Requester can cancel** - Requesters can cancel their own PENDING bookings. For single-use things, cancellation restores status to ACTIVE.
+2. **Date-based (LEND/RENT/ASSET/APPOINTMENT)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE. ASSET_THING with `booking_unit=HOUR` and APPOINTMENT_THING also require `start_time`/`end_time` and use same-day booking with time-range overlap detection.
+3. **Share (SHARE_THING)**: NOT date-based. No dates required — permanent ownership transfer on acceptance. Multiple pending requests allowed from different users.
+4. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept.
+5. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
+6. **Swap (SWAP_THING)**: No dates. Requester offers own things via `offered_things` M2M. On acceptance, requested thing transfers to requester and all offered things transfer to original owner. All things stay ACTIVE. ThingTransfer records created for each thing involved.
+7. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
+8. **Requester can cancel** - Requesters can cancel their own PENDING bookings. For single-use things, cancellation restores status to ACTIVE.
 
 ### Methods
 

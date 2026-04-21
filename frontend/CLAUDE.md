@@ -110,7 +110,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - Stores `userCode`, `theeemeColors`, `koro`, and `seenWelcome` in `localStorage` on successful fetch. `seenWelcome` suppresses the first-time Welcome Linkbox on `CollectionPage`.
 - Displays greeting, "Create collection" button linking to `/collections/new`, "My profile" button linking to `/me`, and "My requests" button linking to `/my-bookings`.
 - **Pending invitations**: fetches `GET /api/v1/my-invitations/` on mount. Shows one dismissible HDS `Notification` (type `info`) per pending invite, above the things section. Each notification shows the owner name as label, collection headline in bold, and "Accept invitation" / "Decline invitation" links pointing to `/verify/{accept_code}` and `/verify/{reject_code}`. Dismissed notifications are removed from local state only (RSVP remains until acted on).
-- **Things section**: lists all non-inactive own and invited things using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=992px, 1 at <=576px), sorted by creation date descending.
+- **Things section**: lists all non-inactive own and invited things using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=992px, 1 at <=576px), sorted by creation date descending. Things appearing in both `/things/` and `/invited-things/` are deduplicated by code before rendering.
 - **Inactive things section**: shown only to the owner, below the Things section, when at least one own inactive thing exists. Lists all own `INACTIVE` things using the same `ThingLinkbox` component (invited things are never inactive for guests).
 
 ### CollectionPage (`src/pages/CollectionPage.jsx`)
@@ -163,6 +163,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button navigates to `RequestThingPage` for date selection.
   - `ORDER_THING` — button navigates to `RequestThingPage` for delivery date and quantity.
   - `SWAP_THING` — "Propose swap" button navigates to `RequestThingPage` for swap item selection. Owner bookings display shows offered thing headlines for swap requests.
+  - `APPOINTMENT_THING` — "Hold" button navigates to `ThingPage` (not `RequestThingPage`); booking is done via the `WeeklySchedule` slot grid.
 - **Back navigation**: passes `{ state: { backPath, backLabel } }` to RequestThingPage and ThingPage based on context (collection headline or home).
 
 ### ThingPage (`src/pages/ThingPage.jsx`)
@@ -186,7 +187,7 @@ Detail page for a thing with full information and FAQs section.
   - Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
 - **Event attendance:** For EVENT_THING, non-owners see "Attend"/"Attending" toggle button instead of "Hold". Calls `POST /api/v1/things/{code}/attend/`. Attendees section shows list of attendees fetched from `GET /api/v1/things/{code}/attendees/`.
 - **Wish help:** For WISH_THING, non-owners see "I can help"/"Helping" toggle button. Calls `POST /api/v1/things/{code}/offer-help/`. Helpers section shows list of helpers fetched from `GET /api/v1/things/{code}/helpers/`.
-- **Reservation:** For non-event/non-wish types, non-owners see "Hold" button (or "Propose swap" for SWAP_THING). GIFT/SELL types submit directly; date-based, order, and swap types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`. Owner bookings for SWAP_THING display offered thing headlines.
+- **Reservation:** For non-event/non-wish/non-appointment types, non-owners see "Hold" button (or "Propose swap" for SWAP_THING). GIFT/SELL types submit directly; date-based, order, and swap types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`. Owner bookings for SWAP_THING display offered thing headlines. APPOINTMENT_THING has no "Hold" button — booking is done via `WeeklySchedule` slot clicks.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
   - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
@@ -202,7 +203,8 @@ Detail page for a thing with full information and FAQs section.
 - **Page title**: `Hold: {thing.headline}` with fee display when present.
 - **Form fields** adapt to thing type:
   - `SWAP_THING` — Fetches user's own SWAP_THING items in the same collection. Shows HDS `Checkbox` per item for multi-select. Submits `{ offered_thing_codes: [...] }`. "Propose swap" button disabled until at least one item selected.
-  - `APPOINTMENT_THING` or `ASSET_THING` with `booking_unit=HOUR` — `DateInput` for date + two `TextInput type="time"` for start/end time. Accepts pre-filled values from `location.state`: `prefillDate`, `prefillStartTime`, `prefillEndTime` (set by WeeklySchedule slot clicks).
+  - `APPOINTMENT_THING` — `DateInput` for date (day-of-week filtered against `availability_schedule`) + HDS `Select` showing precomputed 1-hour slots (e.g. "14:00 – 15:00") for the chosen date. Accepts pre-filled values from `location.state`: `prefillDate`, `prefillStartTime`, `prefillEndTime` (set by WeeklySchedule slot clicks).
+  - `ASSET_THING` with `booking_unit=HOUR` — `DateInput` for date + two HDS `Select` components for start/end time (hourly options 00:00–23:00, end filtered to > start). All `Select` components use `language="en"` (required — default is Finnish "fi").
   - `LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING` (day) — `DateInput` for start and end dates with blocked-date validation.
   - `ORDER_THING` — `DateInput` for delivery date + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates fetched from calendar API.
@@ -339,7 +341,7 @@ Detail page for a thing with full information and FAQs section.
 - **`DocumentUpload`** (`src/components/DocumentUpload.jsx`) — Multi-document upload using HDS `FileInput`. Uploads raw files to Cloudinary via `POST /api/v1/upload/signature/` with `resource_type: 'raw'` and `folder: 'oiueei/documents'`. Max 5 documents, max 1 MB each. Accepts PDF, Word, Excel, and Markdown files. Shows uploaded file list with remove buttons. Props: `documents` (array of `{public_id, filename, content_type}`), `onChange`. Used in AddThingPage, EditThingPage.
 - **`TheeemeSelector`** (`src/components/TheeemeSelector.jsx`) — Visual theeeme picker. Renders a grid of buttons; each button shows three 20 px circular swatches (`color_01`, `color_02`, `color_03`) and the theeeme name, with a checkmark when selected. `aria-pressed` and `aria-label` for accessibility. Props: `theeemes` (array from API), `value` (selected code), `onChange`. Used in EditProfilePage.
 - **`KoroSelector`** (`src/components/KoroSelector.jsx`) — Visual koro picker. Renders a grid of buttons; each button shows a live `<Koros>` SVG preview (white fill on black background, 50 px tall, scaled to fit) and the koro label. Props: `value` (selected type string), `onChange`. Used in EditProfilePage.
-- **`WeeklySchedule`** (`src/components/WeeklySchedule.jsx`) — Weekly appointment slot grid for APPOINTMENT_THING. Fetches `GET /api/v1/things/{code}/slots/?week_start=...` and renders an HDS `Table` with time slots as rows and days as columns. Available slots are clickable buttons that navigate to `RequestThingPage` with pre-filled date/time. Booked/pending slots show requester name. Week navigation via prev/next buttons. Props: `thingCode`, `isOwner`, `requestPath`. Used in ThingPage.
+- **`WeeklySchedule`** (`src/components/WeeklySchedule.jsx`) — Weekly appointment slot grid for APPOINTMENT_THING. Fetches `GET /api/v1/things/{code}/slots/?week_start=...` and renders an HDS `Table` with time slots as rows and days as columns. Available slots are clickable buttons that navigate to `RequestThingPage` with pre-filled date/time. Booked/pending slots show "Booked"/"Pending" only — requester names are never shown (privacy by default, regardless of ownership). Week navigation via prev/next buttons. Props: `thingCode`, `isOwner`, `requestPath`. Used in ThingPage.
 
 ### Constants (`src/constants/things.js`)
 
@@ -392,6 +394,10 @@ Smoke tests and automated accessibility checks using vitest + testing-library + 
 - **hds-react** — Helsinki Design System React components (npm `^5.0.0`)
 - **hds-design-tokens** — HDS CSS custom property tokens (npm `^5.0.0`)
 - **hds-core** — HDS core CSS and base styles (npm `^5.0.0`)
+
+### HDS Select quirks (v5)
+
+All `<Select>` components must include `language="en"` — the HDS default is `"fi"` which produces Finnish placeholder text ("Valitse yksi"). Additional API notes: `value` is an array (`[{ label, value }]`), `onChange` receives an array (`(sel) => sel[0].value`), error text uses the `error` prop (string), not `errorText`.
 
 ## OIUEEI Customization Layer
 

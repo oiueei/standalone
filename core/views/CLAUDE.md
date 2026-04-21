@@ -609,9 +609,10 @@ Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THIN
 { "start_date": "2025-06-01", "start_time": "09:00", "end_time": "12:00" }
 ```
 
-**Share (SHARE_THING):**
-- No extra fields — permanent ownership transfer on acceptance.
-- Thing stays `ACTIVE`; multiple pending requests from different users are allowed.
+**Share (SHARE_THING)** — handled by `_handle_share_request()`:
+- NOT date-based — no `start_date`/`end_date` fields.
+- Permanent ownership transfer on acceptance; thing stays `ACTIVE`.
+- Multiple pending requests from different users are allowed.
 - Returns 400 if the requesting user already has a PENDING request for this thing.
 
 **Date-based (LEND/RENT/ASSET_THING with booking_unit=DAY):**
