@@ -305,7 +305,7 @@ export default function RequestThingPage() {
                   }
                 }}
                 invalid={attempted && (!startTime || !endTime)}
-                errorText={attempted && (!startTime || !endTime) ? t('appointment.slotRequired') : undefined}
+                error={attempted && (!startTime || !endTime) ? t('appointment.slotRequired') : ''}
                 disabled={!startDate}
                 placeholder={startDate ? t('appointment.selectSlotPlaceholder') : t('appointment.selectDateFirst')}
               />
