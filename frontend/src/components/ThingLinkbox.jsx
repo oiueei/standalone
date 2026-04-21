@@ -402,7 +402,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           return (
             <ul className="thing-card-bookings">
               {bookings.map((b) => {
-                const isActive = b.code === activePendingCode;
+                const isActive = isOwner && b.code === activePendingCode;
                 const showStar = isActive && pendingCount > 1;
                 return (
                   <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
