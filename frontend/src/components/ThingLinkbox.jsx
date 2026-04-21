@@ -517,7 +517,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               fullWidth
               disabled={buttonDisabled}
               style={btnStyle}
-              onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
+              onClick={isAppointment
+                ? () => navigate(thingPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } })
+                : needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
               {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
             </Button>

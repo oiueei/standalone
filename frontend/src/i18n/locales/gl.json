@@ -482,7 +482,11 @@
     "thu": "Xov",
     "fri": "Ven",
     "sat": "Sáb",
-    "sun": "Dom"
+    "sun": "Dom",
+    "selectSlot": "Franxa horaria",
+    "slotRequired": "Por favor, selecciona unha franxa horaria",
+    "selectSlotPlaceholder": "Selecciona unha franxa",
+    "selectDateFirst": "Selecciona primeiro unha data"
   },
   "broadcast": {
     "heading": "Difusión",

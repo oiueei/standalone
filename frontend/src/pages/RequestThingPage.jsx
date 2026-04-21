@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Checkbox, DateInput, Koros, Notification, NumberInput, TextInput } from 'hds-react';
+import { Button, Checkbox, DateInput, Koros, Notification, NumberInput, Select, TextInput } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
@@ -75,7 +75,7 @@ export default function RequestThingPage() {
   }, [userCode, thingCode, thing]);
 
   const isDateBlocked = (date) => {
-    return blockedPeriods.some((period) => {
+    if (blockedPeriods.some((period) => {
       const start = new Date(period.start_date);
       const end = new Date(period.end_date);
       start.setHours(0, 0, 0, 0);
@@ -83,7 +83,45 @@ export default function RequestThingPage() {
       const d = new Date(date);
       d.setHours(0, 0, 0, 0);
       return d >= start && d <= end;
-    });
+    })) return true;
+    if (thing && thing.type === APPOINTMENT_TYPE && thing.availability_schedule?.length) {
+      const scheduledDays = [...new Set(thing.availability_schedule.flatMap((w) => w.days))];
+      const jsDay = new Date(date).getDay();
+      const isoDay = jsDay === 0 ? 7 : jsDay;
+      return !scheduledDays.includes(isoDay);
+    }
+    return false;
+  };
+
+  const toMinutes = (timeStr) => {
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const fromMinutes = (mins) =>
+    `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+
+  const getAvailableSlots = (date) => {
+    if (!thing || !date || thing.type !== APPOINTMENT_TYPE || !thing.availability_schedule?.length) return [];
+    const jsDay = new Date(date).getDay();
+    const isoDay = jsDay === 0 ? 7 : jsDay;
+    const duration = thing.slot_duration || 60;
+    const slots = [];
+    for (const window of thing.availability_schedule) {
+      if (!window.days.includes(isoDay)) continue;
+      const start = toMinutes(window.start_time);
+      const end = toMinutes(window.end_time);
+      for (let m = start; m + duration <= end; m += duration) {
+        const slotStart = fromMinutes(m);
+        const slotEnd = fromMinutes(m + duration);
+        const taken = blockedPeriods.some((p) => {
+          if (p.start_date !== date) return false;
+          return toMinutes(p.start_time.slice(0, 5)) < m + duration && toMinutes(p.end_time.slice(0, 5)) > m;
+        });
+        if (!taken) slots.push({ label: `${slotStart} – ${slotEnd}`, start: slotStart, end: slotEnd });
+      }
+    }
+    return slots;
   };
 
   const handleSubmit = async () => {
@@ -237,7 +275,7 @@ export default function RequestThingPage() {
             id="request-start-date"
             label={t('request.startLabel')}
             value={startDate}
-            onChange={(value) => setStartDate(value)}
+            onChange={(value) => { setStartDate(value); setStartTime(''); setEndTime(''); }}
             dateFormat="yyyy-MM-dd"
             language="en"
             required
@@ -249,27 +287,51 @@ export default function RequestThingPage() {
             isDateDisabledBy={isDateBlocked}
           />
           <div className="spacer-xxxs" />
-          <TextInput
-            id="request-start-time"
-            label={t('asset.startTime')}
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            required
-            invalid={attempted && !startTime}
-            errorText={attempted && !startTime ? t('asset.startTime') : undefined}
-          />
-          <div className="spacer-xxxs" />
-          <TextInput
-            id="request-end-time"
-            label={t('asset.endTime')}
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            required
-            invalid={attempted && !endTime}
-            errorText={attempted && !endTime ? t('asset.endTime') : undefined}
-          />
+          {thing?.type === APPOINTMENT_TYPE ? (
+            <>
+              <Select
+                id="request-slot"
+                label={t('appointment.selectSlot')}
+                value={startTime && endTime ? [{ label: `${startTime} – ${endTime}`, value: `${startTime}_${endTime}` }] : []}
+                options={getAvailableSlots(startDate).map((s) => ({ label: s.label, value: `${s.start}_${s.end}` }))}
+                onChange={(selected) => {
+                  if (selected?.value) {
+                    const [s, e] = selected.value.split('_');
+                    setStartTime(s);
+                    setEndTime(e);
+                  }
+                }}
+                invalid={attempted && (!startTime || !endTime)}
+                error={attempted && (!startTime || !endTime) ? t('appointment.slotRequired') : undefined}
+                disabled={!startDate}
+                placeholder={startDate ? t('appointment.selectSlotPlaceholder') : t('appointment.selectDateFirst')}
+              />
+            </>
+          ) : (
+            <>
+              <TextInput
+                id="request-start-time"
+                label={t('asset.startTime')}
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                required
+                invalid={attempted && !startTime}
+                errorText={attempted && !startTime ? t('asset.startTime') : undefined}
+              />
+              <div className="spacer-xxxs" />
+              <TextInput
+                id="request-end-time"
+                label={t('asset.endTime')}
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                required
+                invalid={attempted && !endTime}
+                errorText={attempted && !endTime ? t('asset.endTime') : undefined}
+              />
+            </>
+          )}
         </div>
       )}
       {isDateBased && !isHourly && (

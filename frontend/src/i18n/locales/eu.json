@@ -482,7 +482,11 @@
     "thu": "Og",
     "fri": "Or",
     "sat": "Lr",
-    "sun": "Ig"
+    "sun": "Ig",
+    "selectSlot": "Ordu-tartea",
+    "slotRequired": "Hautatu ordu-tarte bat",
+    "selectSlotPlaceholder": "Hautatu tarte bat",
+    "selectDateFirst": "Hautatu lehenik data bat"
   },
   "broadcast": {
     "heading": "Hedapena",

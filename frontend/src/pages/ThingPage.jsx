@@ -700,8 +700,8 @@ export default function ThingPage() {
           </Button>
         )}
 
-        {/* Reservation button for non-event/non-wish invited users */}
-        {showButton && !isEvent && !isWish && (
+        {/* Reservation button for non-event/non-wish/non-appointment invited users */}
+        {showButton && !isEvent && !isWish && !isAppointment && (
           <Button
             fullWidth
             disabled={buttonDisabled}

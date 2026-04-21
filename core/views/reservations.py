@@ -180,7 +180,7 @@ class ThingRequestView(APIView):
         )
 
     def _handle_hourly_request(self, request, thing, owner_email):
-        """Handle ASSET_THING hourly requests (single day + time range)."""
+        """Handle hourly requests (APPOINTMENT_THING + ASSET_THING hourly). Validates schedule for appointments."""
         serializer = ThingRequestWithTimesSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -188,6 +188,36 @@ class ThingRequestView(APIView):
         start_date = serializer.validated_data["start_date"]
         start_time = serializer.validated_data["start_time"]
         end_time = serializer.validated_data["end_time"]
+
+        if thing.type == "APPOINTMENT_THING" and thing.availability_schedule:
+            day_of_week = start_date.isoweekday()
+            window = next(
+                (w for w in thing.availability_schedule if day_of_week in w.get("days", [])),
+                None,
+            )
+            if window is None:
+                return Response(
+                    {"error": "No availability on the selected day"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            from datetime import datetime as _dt
+
+            w_start = _dt.strptime(window["start_time"], "%H:%M").time()
+            w_end = _dt.strptime(window["end_time"], "%H:%M").time()
+            if start_time < w_start or end_time > w_end:
+                return Response(
+                    {"error": f"Selected time must be between {window['start_time']} and {window['end_time']}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if thing.slot_duration:
+                from datetime import timedelta
+
+                duration = (_dt.combine(start_date, end_time) - _dt.combine(start_date, start_time)).seconds // 60
+                if duration != thing.slot_duration:
+                    return Response(
+                        {"error": f"Slot must be exactly {thing.slot_duration} minutes"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
         with transaction.atomic():
             Thing.objects.select_for_update().get(code=thing.code)

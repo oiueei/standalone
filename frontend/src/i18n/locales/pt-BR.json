@@ -482,7 +482,11 @@
     "thu": "Qui",
     "fri": "Sex",
     "sat": "Sáb",
-    "sun": "Dom"
+    "sun": "Dom",
+    "selectSlot": "Horário",
+    "slotRequired": "Por favor, selecione um horário",
+    "selectSlotPlaceholder": "Selecione um horário",
+    "selectDateFirst": "Selecione primeiro uma data"
   },
   "broadcast": {
     "heading": "Difusão",

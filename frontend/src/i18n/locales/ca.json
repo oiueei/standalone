@@ -482,7 +482,11 @@
     "thu": "Dj",
     "fri": "Dv",
     "sat": "Ds",
-    "sun": "Dg"
+    "sun": "Dg",
+    "selectSlot": "Franja horària",
+    "slotRequired": "Si us plau, selecciona una franja horària",
+    "selectSlotPlaceholder": "Selecciona una franja",
+    "selectDateFirst": "Primer selecciona una data"
   },
   "broadcast": {
     "heading": "Difusió",

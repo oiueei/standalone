@@ -482,7 +482,11 @@
     "thu": "Jue",
     "fri": "Vie",
     "sat": "Sáb",
-    "sun": "Dom"
+    "sun": "Dom",
+    "selectSlot": "Franja horaria",
+    "slotRequired": "Por favor, selecciona una franja horaria",
+    "selectSlotPlaceholder": "Selecciona una franja",
+    "selectDateFirst": "Selecciona primero una fecha"
   },
   "broadcast": {
     "heading": "Difusión",

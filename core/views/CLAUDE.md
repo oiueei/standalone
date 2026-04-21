@@ -600,6 +600,7 @@ Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THIN
 **Hourly (APPOINTMENT_THING, or ASSET_THING with booking_unit=HOUR):**
 - Requires `start_date`, `start_time`, and `end_time`.
 - Creates a same-day booking (`start_date == end_date`) with time range.
+- For APPOINTMENT_THING: validates that the requested day of week appears in `availability_schedule`; validates that the time window is within the schedule block; validates that the duration matches `slot_duration`. Returns 400 if any check fails.
 - Checks for time-range overlap via `BookingPeriod.has_overlap()` with time params. Returns 409 if conflict.
 - Thing stays `ACTIVE`.
 

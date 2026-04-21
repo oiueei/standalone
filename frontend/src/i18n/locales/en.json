@@ -495,7 +495,11 @@
     "thu": "Thu",
     "fri": "Fri",
     "sat": "Sat",
-    "sun": "Sun"
+    "sun": "Sun",
+    "selectSlot": "Time slot",
+    "slotRequired": "Please select a time slot",
+    "selectSlotPlaceholder": "Select a slot",
+    "selectDateFirst": "Select a date first"
   },
   "broadcast": {
     "heading": "Broadcast",
