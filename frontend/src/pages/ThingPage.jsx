@@ -109,24 +109,6 @@ export default function ThingPage() {
       } catch { /* silently fail */ }
     };
 
-    const fetchAttendees = async () => {
-      try {
-        const res = await apiFetch(`/api/v1/things/${thingCode}/attendees/`);
-        if (res.ok) {
-          setAttendees(await res.json());
-        }
-      } catch { /* silently fail */ }
-    };
-
-    const fetchHelpers = async () => {
-      try {
-        const res = await apiFetch(`/api/v1/things/${thingCode}/helpers/`);
-        if (res.ok) {
-          setHelpers(await res.json());
-        }
-      } catch { /* silently fail */ }
-    };
-
     const fetchStats = async () => {
       try {
         const res = await apiFetch(`/api/v1/things/${thingCode}/stats/`);
@@ -139,17 +121,24 @@ export default function ThingPage() {
     fetchThing();
     fetchFaqs();
     fetchTransfers();
-    fetchAttendees();
-    fetchHelpers();
     fetchStats();
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
-    if (thing && thing.type === EVENT_TYPE && thing.deal) {
-      setIsAttending(thing.deal.includes(userCode));
+    if (!thing) return;
+    if (thing.type === EVENT_TYPE) {
+      if (thing.deal) setIsAttending(thing.deal.includes(userCode));
+      apiFetch(`/api/v1/things/${thing.code}/attendees/`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => { if (data) setAttendees(data); })
+        .catch(() => {});
     }
-    if (thing && thing.type === WISH_TYPE && thing.deal) {
-      setIsHelping(thing.deal.includes(userCode));
+    if (thing.type === WISH_TYPE) {
+      if (thing.deal) setIsHelping(thing.deal.includes(userCode));
+      apiFetch(`/api/v1/things/${thing.code}/helpers/`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => { if (data) setHelpers(data); })
+        .catch(() => {});
     }
   }, [thing, userCode]);
 
