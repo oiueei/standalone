@@ -383,12 +383,12 @@
     "returnedOn": "Itzulia {{date}}(e)an",
     "to": "nori",
     "noTransfers": "Oraindik transferentziarik ez.",
-    "homesCount_one": "{{count}} etxe",
-    "homesCount_other": "{{count}} etxe",
     "shareHistoryHeading": "Partekatzeen historia",
     "originallySharedBy": "Jatorriz {{name}}(e)k partekatua",
     "sharedByCount_one": "{{count}} pertsonak partekatua",
-    "sharedByCount_other": "{{count}} pertsonak partekatua"
+    "sharedByCount_other": "{{count}} pertsonak partekatua",
+    "changesCount_one": "{{count}} aldaketa",
+    "changesCount_other": "{{count}} aldaketa"
   },
   "events": {
     "eventDate": "Ekitaldiaren data",

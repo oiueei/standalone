@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import Thing, User
+from core.services.email_service import send_event_attend_email
 
 
 class EventAttendView(APIView):
@@ -48,6 +49,15 @@ class EventAttendView(APIView):
         else:
             thing.deal.add(request.user)
             attending = True
+
+        attendee_name = request.user.name or request.user.email
+        send_event_attend_email(
+            attendee_name=attendee_name,
+            thing_headline=thing.headline,
+            event_date=thing.event_date,
+            owner_email=thing.owner.email,
+            attending=attending,
+        )
 
         return Response(
             {

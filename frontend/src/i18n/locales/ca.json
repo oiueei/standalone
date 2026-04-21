@@ -383,12 +383,12 @@
     "returnedOn": "Retornat el {{date}}",
     "to": "a",
     "noTransfers": "Sense transferències encara.",
-    "homesCount_one": "{{count}} llar",
-    "homesCount_other": "{{count}} llars",
     "shareHistoryHeading": "Historial d'ús compartit",
     "originallySharedBy": "Compartit originalment per {{name}}",
     "sharedByCount_one": "Compartit per {{count}} persona",
-    "sharedByCount_other": "Compartit per {{count}} persones"
+    "sharedByCount_other": "Compartit per {{count}} persones",
+    "changesCount_one": "{{count}} canvi",
+    "changesCount_other": "{{count}} canvis"
   },
   "events": {
     "eventDate": "Data de l'esdeveniment",

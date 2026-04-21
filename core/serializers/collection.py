@@ -21,6 +21,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     transfer_count = serializers.SerializerMethodField()
     attendee_count = serializers.SerializerMethodField()
     helper_count = serializers.SerializerMethodField()
+    deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
 
     class Meta:
         model = Thing
@@ -45,6 +46,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "transfer_count",
             "attendee_count",
             "helper_count",
+            "deal",
             "created",
         ]
 

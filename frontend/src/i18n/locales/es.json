@@ -383,12 +383,12 @@
     "returnedOn": "Devuelto el {{date}}",
     "to": "a",
     "noTransfers": "Sin transferencias aún.",
-    "homesCount_one": "{{count}} hogar",
-    "homesCount_other": "{{count}} hogares",
+    "changesCount_one": "{{count}} cambio",
     "shareHistoryHeading": "Historial de uso compartido",
     "originallySharedBy": "Compartido originalmente por {{name}}",
     "sharedByCount_one": "Compartido por {{count}} persona",
-    "sharedByCount_other": "Compartido por {{count}} personas"
+    "sharedByCount_other": "Compartido por {{count}} personas",
+    "changesCount_other": "{{count}} cambios"
   },
   "events": {
     "eventDate": "Fecha del evento",

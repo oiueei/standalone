@@ -42,6 +42,7 @@ def _optimise_collection_queryset(queryset):
             "things",
             queryset=Thing.objects.select_related("owner").prefetch_related(
                 "faq_set",
+                "deal",
                 Prefetch(
                     "bookings",
                     queryset=BookingPeriod.objects.filter(status="PENDING"),

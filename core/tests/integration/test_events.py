@@ -6,6 +6,7 @@ import pytest
 from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+from unittest.mock import patch
 
 from core.models import Collection, Thing, User
 
@@ -174,3 +175,46 @@ class TestEventSerializer:
         res = s["owner_client"].get(f"/api/v1/things/{gift.code}/")
         assert res.status_code == 200
         assert res.data["attendee_count"] is None
+
+
+class TestEventAttendEmail:
+    def test_email_sent_on_attend(self, event_setup):
+        s = event_setup
+        with patch("core.views.events.send_event_attend_email") as mock_email:
+            s["invitee_client"].post(f"/api/v1/things/{s['event'].code}/attend/")
+        mock_email.assert_called_once_with(
+            attendee_name="Invitee",
+            thing_headline="Reading Session",
+            event_date=s["event"].event_date,
+            owner_email="owner@test.com",
+            attending=True,
+        )
+
+    def test_email_sent_on_cancel_attendance(self, event_setup):
+        s = event_setup
+        s["invitee_client"].post(f"/api/v1/things/{s['event'].code}/attend/")
+        with patch("core.views.events.send_event_attend_email") as mock_email:
+            s["invitee_client"].post(f"/api/v1/things/{s['event'].code}/attend/")
+        mock_email.assert_called_once_with(
+            attendee_name="Invitee",
+            thing_headline="Reading Session",
+            event_date=s["event"].event_date,
+            owner_email="owner@test.com",
+            attending=False,
+        )
+
+    def test_email_uses_email_when_no_name(self, event_setup):
+        s = event_setup
+        nameless = User.objects.create(code="EVNM01", email="nameless@test.com", name="")
+        s["collection"].invites.add(nameless)
+        client = APIClient()
+        client.force_authenticate(user=nameless)
+        with patch("core.views.events.send_event_attend_email") as mock_email:
+            client.post(f"/api/v1/things/{s['event'].code}/attend/")
+        mock_email.assert_called_once_with(
+            attendee_name="nameless@test.com",
+            thing_headline="Reading Session",
+            event_date=s["event"].event_date,
+            owner_email="owner@test.com",
+            attending=True,
+        )

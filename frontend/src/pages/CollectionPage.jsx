@@ -205,7 +205,11 @@ export default function CollectionPage() {
         <p>{t('collectionPage.noThings')}{(isOwner || collection.mode === 'COMMUNITY') && <> <Link to={`/collections/${code}/add`}>{t('collectionPage.addOne')}</Link>.</>}</p>
       ) : (
         <div className="things-grid">
-          {[...collection.things].filter((t) => t.status !== 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
+          {[...collection.things].filter((t) => t.status !== 'INACTIVE').sort((a, b) => {
+            const allEvents = collection.things.every((t) => t.type === 'EVENT_THING');
+            if (allEvents) return new Date(a.event_date) - new Date(b.event_date);
+            return new Date(b.created) - new Date(a.created);
+          }).map((thing) => (
             <ThingLinkbox
               key={thing.code}
               thing={thing}
@@ -294,7 +298,11 @@ export default function CollectionPage() {
           <h2>{t('collectionPage.inactiveThings')}</h2>
           <div className="spacer-m" />
           <div className="things-grid">
-            {[...collection.things].filter((t) => t.status === 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created)).map((thing) => (
+            {[...collection.things].filter((t) => t.status === 'INACTIVE').sort((a, b) => {
+              const allEvents = collection.things.every((t) => t.type === 'EVENT_THING');
+              if (allEvents) return new Date(a.event_date) - new Date(b.event_date);
+              return new Date(b.created) - new Date(a.created);
+            }).map((thing) => (
               <ThingLinkbox
                 key={thing.code}
                 thing={thing}

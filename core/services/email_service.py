@@ -661,3 +661,36 @@ def send_swap_confirmation_email(requester, thing, offered_things, booking):
             </html>
             """,
     )
+
+
+def send_event_attend_email(attendee_name, thing_headline, event_date, owner_email, attending):
+    """Notify the event owner when someone attends or cancels attendance."""
+    safe_attendee = escape(attendee_name)
+    safe_headline = escape(thing_headline)
+    date_str = event_date.strftime("%d %B %Y, %H:%M") if event_date else ""
+
+    if attending:
+        subject = f"{attendee_name} is attending: {thing_headline}"
+        plain = f"{attendee_name} has signed up for your event: {thing_headline}."
+        action_html = f"<strong>{safe_attendee}</strong> has signed up for your event."
+    else:
+        subject = f"{attendee_name} cancelled attendance: {thing_headline}"
+        plain = f"{attendee_name} has cancelled their attendance for: {thing_headline}."
+        action_html = f"<strong>{safe_attendee}</strong> has cancelled their attendance."
+
+    if date_str:
+        plain += f" Date: {date_str}."
+
+    send_mail(
+        subject=subject,
+        message=plain,
+        from_email=None,
+        recipient_list=[owner_email],
+        html_message=f"""
+            <html>
+            <p>{action_html}</p>
+            <p>Event: <strong>{safe_headline}</strong></p>
+            {"<p>Date: " + escape(date_str) + "</p>" if date_str else ""}
+            </html>
+            """,
+    )
