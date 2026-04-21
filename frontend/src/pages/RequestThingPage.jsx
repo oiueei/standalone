@@ -101,6 +101,11 @@ export default function RequestThingPage() {
   const fromMinutes = (mins) =>
     `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
 
+  const halfHourOptions = Array.from({ length: 48 }, (_, i) => {
+    const time = fromMinutes(i * 30);
+    return { label: time, value: time };
+  });
+
   const getAvailableSlots = (date) => {
     if (!thing || !date || thing.type !== APPOINTMENT_TYPE || !thing.availability_schedule?.length) return [];
     const jsDay = new Date(date).getDay();
@@ -312,26 +317,26 @@ export default function RequestThingPage() {
             </>
           ) : (
             <>
-              <TextInput
+              <Select
                 id="request-start-time"
                 label={t('asset.startTime')}
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
+                value={startTime ? [{ label: startTime, value: startTime }] : []}
+                options={halfHourOptions}
+                onChange={(sel) => { const v = sel?.length > 0 ? sel[0].value : ''; setStartTime(v); if (endTime && v >= endTime) setEndTime(''); }}
                 invalid={attempted && !startTime}
-                errorText={attempted && !startTime ? t('asset.startTime') : undefined}
+                error={attempted && !startTime ? t('asset.startTime') : ''}
               />
               <div className="spacer-xxxs" />
-              <TextInput
+              <Select
                 id="request-end-time"
                 label={t('asset.endTime')}
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
+                value={endTime ? [{ label: endTime, value: endTime }] : []}
+                options={startTime ? halfHourOptions.filter((o) => o.value > startTime) : halfHourOptions}
+                onChange={(sel) => { setEndTime(sel?.length > 0 ? sel[0].value : ''); }}
                 invalid={attempted && !endTime}
-                errorText={attempted && !endTime ? t('asset.endTime') : undefined}
+                error={attempted && !endTime ? t('asset.endTime') : ''}
+                disabled={!startTime}
+                placeholder={startTime ? t('appointment.selectSlotPlaceholder') : t('appointment.selectDateFirst')}
               />
             </>
           )}
