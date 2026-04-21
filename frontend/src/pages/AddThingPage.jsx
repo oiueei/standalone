@@ -172,6 +172,7 @@ export default function AddThingPage() {
       <div className="form-grid">
           {!isSwapCollection && !isShareCollection && (
             <Select
+                language="en"
               id="add-thing-type"
               texts={{ label: t('addThing.typeLabel') }}
               options={TYPE_VALUES.filter(v => {
@@ -216,6 +217,7 @@ export default function AddThingPage() {
           )}
           {type === ASSET_TYPE && (
             <Select
+                language="en"
               id="add-thing-booking-unit"
               texts={{ label: t('asset.bookingUnit') }}
               options={[
@@ -229,6 +231,7 @@ export default function AddThingPage() {
           {type === APPOINTMENT_TYPE && (
             <>
               <Select
+                language="en"
                 id="add-thing-slot-duration"
                 texts={{ label: t('appointment.durationLabel') }}
                 options={[
@@ -326,6 +329,7 @@ export default function AddThingPage() {
           {DETAIL_TYPES.includes(type) && !isMinimalistCollection && (
             <>
               <Select
+                language="en"
                 id="add-thing-availability"
                 texts={{ label: t('addThing.availabilityLabel') }}
                 options={AVAILABILITY_VALUES.map(v => ({ label: t('availability.' + v), value: v }))}
@@ -334,6 +338,7 @@ export default function AddThingPage() {
                 clearable
               />
               <Select
+                language="en"
                 id="add-thing-condition"
                 texts={{ label: t('addThing.conditionLabel') }}
                 options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}

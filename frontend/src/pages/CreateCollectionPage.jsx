@@ -117,6 +117,7 @@ export default function CreateCollectionPage() {
             helperText={`${description.length}/256`}
           />
           <Select
+                language="en"
             id="create-collection-mode"
             texts={{ label: t('createCollection.modeLabel') }}
             helper={t('createCollection.modeHelper')}

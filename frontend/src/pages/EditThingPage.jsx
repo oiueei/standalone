@@ -182,6 +182,7 @@ export default function EditThingPage() {
         <h1 className="page-title-xl">{t('editThing.pageTitle')}</h1>
       <div className="form-grid">
         <Select
+                language="en"
           id="edit-thing-type"
           texts={{ label: t('addThing.typeLabel') }}
           options={TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))}
@@ -220,6 +221,7 @@ export default function EditThingPage() {
         )}
         {thingType === ASSET_TYPE && (
           <Select
+                language="en"
             id="edit-thing-booking-unit"
             texts={{ label: t('asset.bookingUnit') }}
             options={[
@@ -233,6 +235,7 @@ export default function EditThingPage() {
         {thingType === APPOINTMENT_TYPE && (
           <>
             <Select
+                language="en"
               id="edit-thing-slot-duration"
               texts={{ label: t('appointment.durationLabel') }}
               options={[
@@ -331,6 +334,7 @@ export default function EditThingPage() {
         {DETAIL_TYPES.includes(thingType) && (
           <>
             <Select
+                language="en"
               id="edit-thing-availability"
               texts={{ label: t('addThing.availabilityLabel') }}
               options={AVAILABILITY_VALUES.map(v => ({ label: t('availability.' + v), value: v }))}
@@ -339,6 +343,7 @@ export default function EditThingPage() {
               clearable
             />
             <Select
+                language="en"
               id="edit-thing-condition"
               texts={{ label: t('addThing.conditionLabel') }}
               options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}

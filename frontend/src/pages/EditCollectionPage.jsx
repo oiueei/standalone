@@ -169,6 +169,7 @@ export default function EditCollectionPage() {
           helperText={`${description.length}/256`}
         />
         <Select
+                language="en"
           id="edit-collection-status"
           texts={{ label: t('editCollection.statusLabel') }}
           helper={t('editCollection.statusHelper')}
@@ -181,6 +182,7 @@ export default function EditCollectionPage() {
           }}
         />
         <Select
+                language="en"
           id="edit-collection-mode"
           texts={{ label: t('editCollection.modeLabel') }}
           helper={t('editCollection.modeHelper')}
@@ -225,6 +227,7 @@ export default function EditCollectionPage() {
           onChange={(e) => { setIsMinimalist(e.target.checked); if (e.target.checked) setIsSwap(false); }}
         />
         <Select
+                language="en"
           id="edit-collection-digest"
           texts={{ label: t('editCollection.digestLabel') }}
           helper={t('editCollection.digestHelper')}
