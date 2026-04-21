@@ -490,16 +490,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               )}
             </>
           )}
-          {isCollectionOwner && !isOwner && (
-            <Button
-              variant="secondary"
-              fullWidth
-              style={btnSecondaryStyle}
-              onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}
-            >
-              {t('common.delete')}
-            </Button>
-          )}
           {showButton && isEvent && (
             <Button
               fullWidth
@@ -530,6 +520,16 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
               {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+            </Button>
+          )}
+          {isCollectionOwner && !isOwner && (
+            <Button
+              variant="secondary"
+              fullWidth
+              style={btnSecondaryStyle}
+              onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}
+            >
+              {t('common.delete')}
             </Button>
           )}
         </div>

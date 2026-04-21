@@ -674,18 +674,6 @@ export default function ThingPage() {
           </div>
         )}
 
-        {isCollectionOwner && !isOwner && (
-          <div className="button-row">
-            <Button
-              variant="secondary"
-              style={{ ...btnSecondaryStyle, width: '100%' }}
-              onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}
-            >
-              {t('common.delete')}
-            </Button>
-          </div>
-        )}
-
         {/* Attend button for event things */}
         {showButton && isEvent && (
           <Button
@@ -722,6 +710,18 @@ export default function ThingPage() {
           >
             {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
           </Button>
+        )}
+
+        {isCollectionOwner && !isOwner && (
+          <div className="button-row">
+            <Button
+              variant="secondary"
+              style={{ ...btnSecondaryStyle, width: '100%' }}
+              onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}
+            >
+              {t('common.delete')}
+            </Button>
+          </div>
         )}
 
         {/* Attendees section for event things */}
