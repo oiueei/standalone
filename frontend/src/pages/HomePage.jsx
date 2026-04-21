@@ -104,7 +104,8 @@ export default function HomePage() {
   const activeThings = [
     ...(myThings || []).filter((t) => t.status !== 'INACTIVE'),
     ...(invitedThings || []).filter((t) => t.status !== 'INACTIVE'),
-  ].sort((a, b) => new Date(b.created) - new Date(a.created));
+  ].filter((t, i, arr) => arr.findIndex((x) => x.code === t.code) === i)
+   .sort((a, b) => new Date(b.created) - new Date(a.created));
 
   const inactiveMyThings = [...(myThings || [])].filter((t) => t.status === 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created));
 
