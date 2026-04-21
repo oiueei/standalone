@@ -37,7 +37,8 @@ class ThingRequestView(APIView):
     Request a reservation/booking for a thing.
 
     All thing types now use BookingPeriod:
-    - LEND/RENT/SHARE: requires start_date and end_date
+    - LEND/RENT: requires start_date and end_date
+    - SHARE: no dates — permanent ownership transfer on acceptance, thing stays ACTIVE
     - ORDER: requires delivery_date and quantity
     - GIFT/SELL: no extra fields required
     """
@@ -99,6 +100,8 @@ class ThingRequestView(APIView):
             return self._handle_hourly_request(request, thing, owner_email)
         elif thing.type == "ASSET_THING" and thing.booking_unit == "HOUR":
             return self._handle_hourly_request(request, thing, owner_email)
+        elif thing.type == "SHARE_THING":
+            return self._handle_share_request(request, thing, owner_email)
         elif thing.type in DATE_BASED_TYPES:
             return self._handle_date_based_request(request, thing, owner_email)
         elif thing.type in REPEATABLE_TYPES:
@@ -106,8 +109,38 @@ class ThingRequestView(APIView):
         else:
             return self._handle_standard_request(request, thing, owner_email)
 
+    def _handle_share_request(self, request, thing, owner_email):
+        """Handle SHARE_THING — no dates, permanent transfer on acceptance, thing stays ACTIVE."""
+        with transaction.atomic():
+            Thing.objects.select_for_update().get(code=thing.code)
+
+            if BookingPeriod.objects.filter(
+                thing_code=thing,
+                requester_code=request.user,
+                status="PENDING",
+            ).exists():
+                return Response(
+                    {"error": "You already have a pending request for this thing"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            booking = BookingPeriod.objects.create(
+                thing_code=thing,
+                thing_type=thing.type,
+                requester_code=request.user,
+                requester_email=request.user.email,
+                owner_code=thing.owner,
+            )
+
+        self._send_booking_email(request.user, thing, booking, owner_email)
+
+        return Response(
+            {"message": "Booking request sent", "booking_code": booking.code},
+            status=status.HTTP_200_OK,
+        )
+
     def _handle_date_based_request(self, request, thing, owner_email):
-        """Handle LEND/RENT/SHARE requests with date-based booking."""
+        """Handle LEND/RENT requests with date-based booking."""
         serializer = ThingRequestWithDatesSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

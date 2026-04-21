@@ -4,7 +4,8 @@ BookingPeriod model - unified reservation/booking model for all thing types.
 This model handles all reservation scenarios:
 - GIFT_THING, SELL_THING: Single-use reservations (no dates, thing becomes INACTIVE)
 - ORDER_THING: Repeatable orders (delivery_date + quantity, thing stays ACTIVE)
-- LEND_THING, RENT_THING, SHARE_THING: Date-based bookings (start/end dates, thing stays ACTIVE)
+- LEND_THING, RENT_THING: Date-based bookings (start/end dates, thing stays ACTIVE on return)
+- SHARE_THING: No dates — permanent ownership transfer on acceptance, thing stays ACTIVE
 """
 
 from datetime import timedelta
@@ -16,7 +17,7 @@ from django.utils import timezone
 from core.utils import generate_id
 
 # Thing types that require dates for booking
-DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "SHARE_THING", "ASSET_THING", "APPOINTMENT_THING"]
+DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "ASSET_THING", "APPOINTMENT_THING"]
 
 # Thing types where the thing becomes INACTIVE after acceptance
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]

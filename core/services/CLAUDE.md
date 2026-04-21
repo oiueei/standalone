@@ -22,7 +22,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 
 - **Atomic transactions**: Every function wraps its work in `transaction.atomic()` to ensure `BookingPeriod` and `Thing` are updated together or not at all.
 - **Row-level locking**: Uses `Thing.objects.select_for_update()` to prevent race conditions when two concurrent requests try to modify the same thing's status.
-- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT, SHARE, ASSET) and repeatable types (ORDER) leave thing status unchanged because multiple bookings can coexist.
+- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT, ASSET), SHARE_THING, and repeatable types (ORDER) leave thing status unchanged because multiple bookings can coexist.
 - **SHARE_THING ownership transfer**: On acceptance, `thing.owner` is changed to the requester. The thing stays `ACTIVE` so the new owner can continue sharing it. This enables a chain of ownership transfers within a community collection.
 - **SWAP_THING bilateral transfer**: On acceptance, the requested thing transfers to the requester, and all offered things transfer to the original owner. All things stay `ACTIVE`. `ThingTransfer` records are created for every thing involved (requested + offered).
 - **Document delivery on acceptance**: After any booking acceptance, if the thing has `documents`, `send_documents_email()` is called to send download links to the requester.
@@ -54,6 +54,7 @@ All outbound emails are composed and sent from this module. Views call these fun
 | `send_return_reminder_email(requester_name, thing_headline, end_date, owner_email)` | Daily command (end_date = tomorrow) | Thing owner |
 | `send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email)` | Daily command (delivery_date = tomorrow) | Thing owner |
 | `send_event_reminder_email(owner_name, thing_headline, event_date, emails)` | Daily command (event_date = tomorrow) | All attendees (individually) |
+| `send_event_attend_email(attendee_name, thing_headline, event_date, owner_email, attending)` | Attendee toggles attendance on EVENT_THING | Event owner. `attending=True` → "signed up" message; `attending=False` → "cancelled" message. |
 | `send_documents_email(requester_email, thing_headline, documents)` | Booking accepted for thing with documents | Requester (download links to Cloudinary raw URLs) |
 | `send_swap_request_email(requester, thing, offered_things, owner_email, accept_link, reject_link)` | Guest proposes a swap | Thing owner (lists offered thing headlines, accept/reject links) |
 | `send_swap_confirmation_email(requester, thing, offered_things, booking)` | Guest proposes a swap | Requester (confirmation of swap proposal) |

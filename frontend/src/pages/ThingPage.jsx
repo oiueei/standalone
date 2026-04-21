@@ -208,7 +208,7 @@ export default function ThingPage() {
   const canHide = isOwner;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
   const showButton = !isOwner && thing.status !== 'INACTIVE';
-  const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
+  const buttonDisabled = thing.status === 'TAKEN' || submitting || requested || (isShare && !!thing.my_pending_booking);
 
   const editPath = code
     ? `/collections/${code}/things/${thing.code}/edit`

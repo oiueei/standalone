@@ -12,7 +12,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-  const [requested, setRequested] = useState(false);
+  const [requested, setRequested] = useState(
+    thing.type === 'SHARE_THING' && !!thing.my_pending_booking
+  );
   const [toast, setToast] = useState(null);
   const [bookingAction, setBookingAction] = useState(false);
   const [activePendingCode, setActivePendingCode] = useState(thing.pending_booking);
