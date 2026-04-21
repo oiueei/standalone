@@ -1,4 +1,4 @@
-# OIUEEI — Release Notes F01–F15
+# OIUEEI — Release Notes F01–F17
 
 > **Estado**: En tests manuales. Commits adicionales desde 2026-04-21.  
 > **Rama**: `development`  
@@ -153,6 +153,21 @@ En esta tanda hemos construido el núcleo de la economía colaborativa de OIUEEI
 - **Frontend**: checkbox en CreateCollectionPage/EditCollectionPage. Selector de tipo oculto en AddThingPage.
 - **Tests**: `test_minimalist.py` (132 líneas).
 
+### F16 — APPOINTMENT_THING UX completo + seed Lolo (`a32abef`, `a3db47b`, migration `0068`)
+- **Backend**: validación de schedule en `_handle_hourly_request`: día de semana obligatorio en `availability_schedule`, franja horaria dentro del bloque, duración exacta igual a `slot_duration`. Devuelve 400 si cualquier check falla.
+- **Frontend — DateInput**: los días fuera de `availability_schedule` quedan bloqueados en el calendario. La navegación semanal de `WeeklySchedule` es el punto de entrada principal para reservar.
+- **Frontend — slot Select**: reemplaza los dos `TextInput type="time"`. Muestra solo los slots válidos para el día elegido (ej. "14:00 – 15:00", "15:00 – 16:00"…). Slots ya ocupados o parcialmente bloqueados se excluyen.
+- **ThingLinkbox**: el botón "Hold" en APPOINTMENT_THING navega a `ThingPage` (donde está el `WeeklySchedule`), no a `RequestThingPage` directamente.
+- **Privacidad en WeeklySchedule**: los slots solo muestran "Booked" / "Pending" — sin nombre del solicitante para nadie.
+- **Privacidad en listas de bookings**: negrita y asterisco (active pending) solo para owners; nombre del solicitante solo para owners.
+- **Seed migration 0068**: colección COMMUNITY `l0l0C2` de Lolo (dulcimer). APPOINTMENT_THING `lltl29`, slot 60 min, mar/mié/jue 14:00–18:00. Invitados: lala, lele, lili, lulu.
+
+### F17 — ASSET_THING horario con Select + seed Lala (`f2ead99`, `5b28f0b`, migration `0069`)
+- **Frontend — time Selects**: dos HDS `Select` (00:00–23:00, intervalos de 1 hora) para start/end time en ASSET_THING horario. Reemplaza los `TextInput type="time"` anteriores. El end time filtra opciones para que sean > start time.
+- **HDS Select `language="en"`**: añadido en todos los `<Select>` del proyecto (AddThingPage, EditThingPage, CreateCollectionPage, EditCollectionPage, RequestThingPage). Sin este flag el componente muestra placeholder en finés ("Valitse yksi").
+- **HomePage**: deduplicación de things por código — evita duplicados cuando un thing aparece tanto en `/things/` como en `/invited-things/`.
+- **Seed migration 0069**: colección COMMUNITY `La1aC2` de Lala (vanlife). ASSET_THING `lltl30` (Volkswagen ID. Buzz), `booking_unit=HOUR`. Invitados: lele, lili, lolo, lulu.
+
 ---
 
 ## Cobertura de tests
@@ -174,8 +189,13 @@ En esta tanda hemos construido el núcleo de la economía colaborativa de OIUEEI
 | Share Collections | `test_share_collections.py` | 167 |
 | Newsletter | `test_newsletter.py` | 248 |
 | Minimalist | `test_minimalist.py` | 132 |
+| Appointments (F16 backend) | `test_appointments.py` | 301 (⚠️ 4 tests con fecha hardcodeada "2026-04-20" ya pasada — fallando) |
 
 **Total estimado: ~3.400 líneas de nuevos tests de integración.** Cobertura mínima del 80% enforced por CI.
+
+⚠️ **Tests fallando pre-existentes (6 total)**:
+- 4 en `test_appointments.py`: fechas hardcodeadas en el pasado ("2026-04-20"). Solución: cambiar a `date.today() + timedelta(days=N)`.
+- 2 en `test_swap_things.py`: conteo de ThingTransfer contaminado por la migración 0066. Solución: aislar el queryset del test.
 
 ### Frontend
 - **`smoke.test.jsx`**: 17 páginas renderizadas con checks de accesibilidad axe.
@@ -286,6 +306,27 @@ En esta tanda hemos construido el núcleo de la economía colaborativa de OIUEEI
 4. Intenta añadir una LEND_THING → bloqueado.
 5. Intenta añadir una thing sin foto → bloqueado.
 
+### 15. APPOINTMENT_THING con horario (F16) — seed: colección `l0l0C2` de Lolo
+**Pasos iniciales:**
+1. Inicia sesión como Lele → entra a la colección "Dulcimer Sessions" de Lolo.
+2. Abre el APPOINTMENT_THING "Dulcimer lesson" → verifica la cuadrícula semanal.
+3. Intenta navegar a una semana con slots en martes/miércoles/jueves → haz click en un slot disponible.
+4. Se rellena automáticamente la fecha/hora en RequestThingPage → envía solicitud.
+5. En el calendario, el slot queda "Pending". Inicia sesión como Lolo → acepta → queda "Booked".
+6. Intenta reservar el mismo slot desde otro usuario → bloqueado.
+7. Intenta reservar un sábado (no en schedule) → DateInput bloquea el día.
+8. Verifica que el slot no muestra nombre del solicitante a nadie.
+
+### 16. ASSET_THING por horas con Select (F17) — seed: colección `La1aC2` de Lala
+**Pasos iniciales:**
+1. Inicia sesión como Lele → entra a la colección "Vanlife" de Lala.
+2. Abre el ASSET_THING "Volkswagen ID. Buzz" → verifica que aparece el calendario de bookings.
+3. Haz click en "Hold" → RequestThingPage muestra dos Select (start/end time, hora en hora).
+4. Selecciona fecha + 09:00–11:00 → envía solicitud.
+5. Intenta reservar 10:00–12:00 el mismo día → 409 solapamiento.
+6. Reserva 12:00–14:00 el mismo día → OK.
+7. Verifica que ambos Selects muestran placeholder en inglés (no "Valitse yksi").
+
 ---
 
 ## Mejoras durante tests manuales (2026-04-21)
@@ -300,6 +341,22 @@ En esta tanda hemos construido el núcleo de la economía colaborativa de OIUEEI
 - **Asistentes reformateados**: icono cambiado a `IconGroup` (HDS), label "Attendees:" en bold a la izquierda, número plain a la derecha — mismo patrón que el resto de filas de info.
 - Aplicado en `ThingLinkbox.jsx` y `ThingPage.jsx`.
 
+### M04 — Revisión de permisos para ocultar y borrar things (`9f8caf3`, `849dc98`)
+- El dueño de la **colección** puede borrar cualquier thing de ella (no solo sus propias). El botón "Delete" aparece para el collection owner aunque el thing pertenezca a otro usuario.
+- El dueño de la **colección** ve "Delete" en lugar de "Hide" para things activos que no son suyos.
+- El dueño del **thing** solo puede borrar si `transfer_count === 0` (el objeto nunca ha cambiado de manos).
+- Aplicado en `ThingLinkbox.jsx`, `ThingPage.jsx` y la vista `destroy` del backend.
+
+### M05 — SHARE_THING sin fechas (`8743bf5`)
+- SHARE_THING ya no pasa por el flujo date-based. No requiere `start_date` / `end_date`.
+- Nueva función interna `_handle_share_request()` en `reservations.py`: permite múltiples solicitudes pendientes simultáneas de distintos usuarios, bloquea duplicados del mismo usuario.
+- `DATE_BASED_TYPES` actualizado para excluir SHARE_THING.
+- El botón de reserva en ThingLinkbox / ThingPage navega directamente a RequestThingPage (sin campos de fecha).
+
+### M06 — Orden consistente de botones (`0ef8bf8`)
+- Botón primario siempre a la izquierda del secundario en todas las páginas.
+- Corregido en ThingLinkbox, ThingPage, RequestThingPage, DeleteThingPage y RemoveGuestPage.
+
 ### M03 — Email al owner cuando alguien se apunta o desapunta de un evento
 - Nueva función `send_event_attend_email()` en `email_service.py`.
 - Asunto y cuerpo distintos según `attending=True` ("signed up") o `attending=False` ("cancelled").
@@ -312,7 +369,8 @@ En esta tanda hemos construido el núcleo de la economía colaborativa de OIUEEI
 
 ## Notas antes del push
 
-- ✅ Migraciones del `0052` al `0064` sin huecos.
-- ✅ 16 tests de eventos pasando (13 originales + 3 nuevos de email).
-- ⚠️ Los seeds actuales (Lili/Lolo/Lulu) usan los tipos de things clásicos y SHARE_THING básico. Hay que crear nuevos seeds completos antes de tests exhaustivos → ver `SEED_PLAN_F01_F15.md`.
+- ✅ Migraciones del `0052` al `0069` sin huecos.
+- ✅ Seeds completos: lala/lele/lili/lolo/lulu cubren todos los tipos de things F01–F17 (APPOINTMENT, ASSET hourly, SHARE, SWAP, EVENT, WISH, GIFT).
+- ⚠️ 6 tests pre-existentes fallando: 4 en `test_appointments.py` (fechas pasadas), 2 en `test_swap_things.py` (contaminación de ThingTransfer). Pendiente de fix.
 - ⚠️ Los tests de frontend son solo smoke. No hay tests funcionales por componente.
+- ⚠️ HDS v5: `Empty string passed to getElementById()` en consola — bug interno de `useSelectStorage`, no parcheable sin modificar la librería.
