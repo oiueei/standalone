@@ -325,6 +325,7 @@ export default function RequestThingPage() {
                 onChange={(sel) => { const v = sel?.length > 0 ? sel[0].value : ''; setStartTime(v); if (endTime && v >= endTime) setEndTime(''); }}
                 invalid={attempted && !startTime}
                 error={attempted && !startTime ? t('asset.startTime') : ''}
+                placeholder={t('asset.selectTimePlaceholder')}
               />
               <div className="spacer-xxxs" />
               <Select
@@ -336,7 +337,7 @@ export default function RequestThingPage() {
                 invalid={attempted && !endTime}
                 error={attempted && !endTime ? t('asset.endTime') : ''}
                 disabled={!startTime}
-                placeholder={startTime ? t('appointment.selectSlotPlaceholder') : t('appointment.selectDateFirst')}
+                placeholder={t('asset.selectTimePlaceholder')}
               />
             </>
           )}

@@ -422,7 +422,8 @@
     "noStats": "Sen datos de uso aínda.",
     "monthlyHeading": "Desglose mensual",
     "bookingsLabel_one": "{{count}} reserva",
-    "bookingsLabel_other": "{{count}} reservas"
+    "bookingsLabel_other": "{{count}} reservas",
+    "selectTimePlaceholder": "Selecciona unha hora"
   },
   "swap": {
     "offerItems": "Seleccionar artigos a ofrecer",

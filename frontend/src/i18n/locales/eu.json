@@ -422,7 +422,8 @@
     "noStats": "Oraindik erabilera-daturik ez.",
     "monthlyHeading": "Hileko xehetasuna",
     "bookingsLabel_one": "{{count}} erreserba",
-    "bookingsLabel_other": "{{count}} erreserba"
+    "bookingsLabel_other": "{{count}} erreserba",
+    "selectTimePlaceholder": "Hautatu ordu bat"
   },
   "swap": {
     "offerItems": "Eskaintzeko artikuluak hautatu",

@@ -435,7 +435,8 @@
     "noStats": "No usage data yet.",
     "monthlyHeading": "Monthly breakdown",
     "bookingsLabel_one": "{{count}} booking",
-    "bookingsLabel_other": "{{count}} bookings"
+    "bookingsLabel_other": "{{count}} bookings",
+    "selectTimePlaceholder": "Select a time"
   },
   "swap": {
     "offerItems": "Select items to offer",
