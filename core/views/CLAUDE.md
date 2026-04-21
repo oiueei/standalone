@@ -215,7 +215,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 | `retrieve` | `GET /api/v1/things/{code}/` | `IsAuthenticated` + `can_view()` |
 | `update` | `PUT /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
 | `partial_update` | `PATCH /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
-| `destroy` | `DELETE /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
+| `destroy` | `DELETE /api/v1/things/{code}/` | `IsAuthenticated` + `_can_delete()` |
 | `activate` | `POST /api/v1/things/{code}/activate/` | `IsAuthenticated` + `IsThingOwner` |
 | `hide` | `POST /api/v1/things/{code}/hide/` | `IsAuthenticated` + `IsThingOwner` |
 
@@ -232,7 +232,9 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 **`activate` action:** Sets `status = 'ACTIVE'`. Returns 400 if thing is not INACTIVE.
 
-**`hide` action:** Sets `status = 'INACTIVE'`. Thing owner or collection owner can hide. Returns 400 if thing is not ACTIVE (cannot hide a TAKEN thing — cancel the hold first). For SHARE_THING after the first transfer, only the collection owner can hide (returns 403 for the thing owner who is not the collection owner).
+**`hide` action:** Sets `status = 'INACTIVE'`. Only the current thing owner (`thing.owner`) can hide — returns 403 for everyone else. Returns 400 if thing is not ACTIVE (cannot hide a TAKEN thing — cancel the hold first).
+
+**`destroy` action (`_can_delete()`):** Permanent deletion (the thing and all related data). Two cases grant permission: (1) the user owns any collection containing the thing (collection owner can always delete); (2) the user is the current thing owner AND no `ThingTransfer` records exist (thing has never changed hands). Returns 403 otherwise. Frontend shows the Delete button for the collection owner regardless of thing status; for the thing owner, Delete is only shown when `transfer_count === 0` (for SHARE_THING) — otherwise the button is hidden.
 
 ### InvitedThingsView
 
@@ -748,7 +750,7 @@ Returns aggregated usage statistics for a thing, based on ACCEPTED bookings. Pri
 | **Endpoint** | `POST /api/v1/things/{thing_code}/attend/` |
 | **Permission** | `IsAuthenticated` |
 
-Toggles attendance for an EVENT_THING using the `deal` M2M field. Returns 400 for non-event things. Returns 403 for users who cannot view the thing. Owner cannot attend their own event.
+Toggles attendance for an EVENT_THING using the `deal` M2M field. Returns 400 for non-event things. Returns 403 for users who cannot view the thing. Owner cannot attend their own event. After every toggle, sends an email to the event owner via `send_event_attend_email()` — "signed up" when `attending=True`, "cancelled" when `attending=False`. Attendee name falls back to email when `user.name` is empty.
 
 **Response:**
 ```json

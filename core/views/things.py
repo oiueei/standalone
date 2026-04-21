@@ -56,14 +56,23 @@ class ThingViewSet(ModelViewSet):
         return ThingSerializer
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy", "activate"):
+        if self.action in ("update", "partial_update", "activate"):
             return [IsAuthenticated(), IsThingOwner()]
         return [IsAuthenticated()]
+
+    def _can_delete(self, thing, user_code):
+        """Collection owner always; thing owner only if no transfers have occurred."""
+        if thing.collections.filter(owner_id=user_code).exists():
+            return True
+        return thing.is_owner(user_code) and not thing.transfers.exists()
 
     def get_object(self):
         obj = get_object_or_404(Thing, code=self.kwargs[self.lookup_field])
         if self.action == "retrieve":
             if not obj.can_view(self.request.user.code):
+                self.permission_denied(self.request)
+        elif self.action == "destroy":
+            if not self._can_delete(obj, self.request.user.code):
                 self.permission_denied(self.request)
         else:
             self.check_object_permissions(self.request, obj)
@@ -190,29 +199,15 @@ class ThingViewSet(ModelViewSet):
     @action(detail=True, methods=["post"], url_path="hide")
     def hide(self, request, code=None):
         thing = get_object_or_404(Thing, code=code)
-        is_thing_owner = thing.is_owner(request.user.code)
-        is_collection_owner = thing.collections.filter(owner_id=request.user.code).exists()
-
-        # Must be thing owner or collection owner to hide
-        if not is_thing_owner and not is_collection_owner:
+        if not thing.is_owner(request.user.code):
             return Response(
                 {"error": "You do not have permission to hide this thing."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-
         if thing.status != "ACTIVE":
             return Response(
                 {"error": "Only active things can be hidden."}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        # SHARE_THING after first transfer: only the collection owner can hide
-        if thing.type == "SHARE_THING" and thing.transfers.exists():
-            if not is_collection_owner:
-                return Response(
-                    {"error": "Only the collection owner can hide a shared thing after transfer."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
         thing.status = "INACTIVE"
         thing.save(update_fields=["status"])
         return Response(ThingSerializer(thing).data)

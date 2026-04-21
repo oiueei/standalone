@@ -9,6 +9,7 @@ import {
   IconEuroSign,
   IconLocation,
   IconShield,
+  IconGroup,
   IconTicket,
   Koros,
   Notification,
@@ -204,7 +205,8 @@ export default function ThingPage() {
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder || isSwap;
   const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
-  const canHide = isShare && thing.transfer_count > 0 ? isCollectionOwner : isOwner;
+  const canHide = isOwner;
+  const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
 
@@ -500,11 +502,13 @@ export default function ThingPage() {
         )}
 
         <div className="thing-card-info">
-          <div className="thing-card-info-row">
-            <IconTicket size="m" aria-hidden="true" />
-            <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
-            <span>{t('types.' + thing.type)}</span>
-          </div>
+          {!isEvent && (
+            <div className="thing-card-info-row">
+              <IconTicket size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
+              <span>{t('types.' + thing.type)}</span>
+            </div>
+          )}
           {thing.fee && (
             <div className="thing-card-info-row">
               <IconEuroSign size="m" aria-hidden="true" />
@@ -526,7 +530,7 @@ export default function ThingPage() {
               <span>{thing.location}</span>
             </div>
           )}
-          {thing.condition && (
+          {!isEvent && thing.condition && (
             <div className="thing-card-info-row">
               <IconShield size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
@@ -536,7 +540,7 @@ export default function ThingPage() {
           {thing.event_date && (
             <div className="thing-card-info-row">
               <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('events.eventDate')}</span>
+              <span className="thing-card-info-label">{t('events.eventDate')}:</span>
               <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           )}
@@ -552,6 +556,13 @@ export default function ThingPage() {
               <IconCalendar size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('appointment.slotDuration')}</span>
               <span>{t('appointment.minutes', { count: thing.slot_duration })}</span>
+            </div>
+          )}
+          {isEvent && attendees && (
+            <div className="thing-card-info-row">
+              <IconGroup size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('events.attendeesHeading')}:</span>
+              <span>{attendees.attendee_count}</span>
             </div>
           )}
         </div>
@@ -647,6 +658,20 @@ export default function ThingPage() {
             <Link to={editPath} style={{ display: 'contents' }}>
               <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>{t('common.edit')}</Button>
             </Link>
+            {canDelete && (
+              <Button
+                variant="secondary"
+                style={{ ...btnSecondaryStyle, width: '100%' }}
+                onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}
+              >
+                {t('common.delete')}
+              </Button>
+            )}
+          </div>
+        )}
+
+        {isCollectionOwner && !isOwner && (
+          <div className="button-row">
             <Button
               variant="secondary"
               style={{ ...btnSecondaryStyle, width: '100%' }}

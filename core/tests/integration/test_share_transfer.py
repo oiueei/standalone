@@ -174,10 +174,10 @@ class TestShareThingHideRestriction:
         share_thing.refresh_from_db()
         assert share_thing.status == "INACTIVE"
 
-    def test_collection_owner_can_hide_after_transfer(
+    def test_collection_owner_cannot_hide_after_transfer(
         self, authenticated_client, user, user2, share_thing, community_collection
     ):
-        """After transfer, the collection owner can hide the thing."""
+        """After transfer, the collection owner cannot hide — only the current thing owner can."""
         community_collection.invites.add(user2)
         # Transfer ownership to user2
         booking = BookingPeriod.objects.create(
@@ -191,16 +191,16 @@ class TestShareThingHideRestriction:
         )
         accept_booking(booking)
 
-        # user (collection owner) should still be able to hide
+        # user is now the collection owner but no longer the thing owner — 403
         response = authenticated_client.post(
             f"/api/v1/things/{share_thing.code}/hide/", format="json"
         )
-        assert response.status_code == 200
+        assert response.status_code == 403
 
-    def test_thing_owner_cannot_hide_after_transfer(
+    def test_new_thing_owner_can_hide_after_transfer(
         self, authenticated_client2, user, user2, share_thing, community_collection
     ):
-        """After transfer, the new thing owner (non-collection-owner) cannot hide."""
+        """After transfer, the new thing owner (user2) can hide the thing."""
         community_collection.invites.add(user2)
         # Transfer ownership to user2
         booking = BookingPeriod.objects.create(
@@ -214,11 +214,11 @@ class TestShareThingHideRestriction:
         )
         accept_booking(booking)
 
-        # user2 (new thing owner, but NOT collection owner) should get 403
+        # user2 is now the thing owner — can hide
         response = authenticated_client2.post(
             f"/api/v1/things/{share_thing.code}/hide/", format="json"
         )
-        assert response.status_code == 403
+        assert response.status_code == 200
 
 
 @pytest.mark.django_db

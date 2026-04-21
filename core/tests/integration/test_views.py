@@ -620,6 +620,80 @@ class TestThingViews:
         response = authenticated_client.delete(f"/api/v1/things/{thing.code}/")
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
+    def test_collection_owner_can_delete_others_thing(self, user, user2, thing, collection):
+        """Collection owner can delete a thing they do not own."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from core.models import User, Thing
+
+        # user3 is the collection owner; thing belongs to user (invited)
+        user3 = User.objects.create(email="colowner@test.com", code="COL003")
+        col_owner_col = collection.__class__.objects.create(
+            code="COWNC1", owner=user3, headline="Col Owner Collection"
+        )
+        other_thing = Thing.objects.create(
+            code="OTHRT1", type="GIFT_THING", owner=user, headline="Other's Thing"
+        )
+        col_owner_col.invites.add(user)
+        col_owner_col.things.add(other_thing)
+
+        client3 = APIClient()
+        client3.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user3).access_token}"
+        )
+        response = client3.delete(f"/api/v1/things/{other_thing.code}/")
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_thing_owner_cannot_delete_after_transfer(self, db, user, user2):
+        """Thing owner cannot delete if transfers exist and they don't own the collection."""
+        from core.models import Collection, Thing, User
+        from core.models.transfer import ThingTransfer
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        import datetime
+
+        # user2 owns the collection; user is just an invited member
+        col = Collection.objects.create(code="TRNFC1", owner=user2, headline="Col owned by u2")
+        col.mode = "COMMUNITY"
+        col.save()
+        col.invites.add(user)
+
+        share_thing = Thing.objects.create(
+            code="SHRTR1", type="SHARE_THING", owner=user, headline="Shared Thing"
+        )
+        col.things.add(share_thing)
+
+        ThingTransfer.objects.create(
+            code="TRFR01",
+            thing=share_thing,
+            from_user=user,
+            to_user=user2,
+            lent_date=datetime.date.today(),
+        )
+
+        client = APIClient()
+        client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user).access_token}"
+        )
+        response = client.delete(f"/api/v1/things/{share_thing.code}/")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_non_collection_owner_cannot_delete_others_thing(self, user, user2, thing, collection):
+        """Invited user cannot delete a thing owned by someone else."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+        from core.models import User, Thing
+
+        user3 = User.objects.create(email="invited3@test.com", code="INV003")
+        collection.invites.add(user3)
+
+        client3 = APIClient()
+        client3.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user3).access_token}"
+        )
+        response = client3.delete(f"/api/v1/things/{thing.code}/")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_request_thing(self, authenticated_client, user, user2, thing, collection):
         """Should request thing via BookingPeriod flow."""
         # Share collection with user2 first

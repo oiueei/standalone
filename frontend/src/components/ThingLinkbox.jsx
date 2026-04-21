@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome } from 'hds-react';
+import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome, IconGroup, IconSwapUser } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import MarkdownText from './MarkdownText';
@@ -40,7 +40,8 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder || isSwap;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
-  const canHide = isShare && thing.transfer_count > 0 ? isCollectionOwner : isOwner;
+  const canHide = isOwner;
+  const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
   const [attendSubmitting, setAttendSubmitting] = useState(false);
   const [isAttending, setIsAttending] = useState(false);
   const [attendeeCount, setAttendeeCount] = useState(thing.attendee_count || 0);
@@ -318,11 +319,13 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           <MarkdownText text={thing.description} className="thing-card-description" />
         )}
         <div className="thing-card-info">
-          <div className="thing-card-info-row">
-            <IconTicket size="m" aria-hidden="true" />
-            <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
-            <span>{t('types.' + thing.type)}</span>
-          </div>
+          {!isEvent && (
+            <div className="thing-card-info-row">
+              <IconTicket size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
+              <span>{t('types.' + thing.type)}</span>
+            </div>
+          )}
           {thing.fee && (
             <div className="thing-card-info-row">
               <IconEuroSign size="m" aria-hidden="true" />
@@ -344,7 +347,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <span>{thing.location}</span>
             </div>
           )}
-          {thing.condition && (
+          {!isEvent && thing.condition && (
             <div className="thing-card-info-row">
               <IconShield size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
@@ -354,7 +357,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           {thing.event_date && (
             <div className="thing-card-info-row">
               <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('events.eventDate')}</span>
+              <span className="thing-card-info-label">{t('events.eventDate')}:</span>
               <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           )}
@@ -374,8 +377,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           )}
           {isEvent && (
             <div className="thing-card-info-row">
-              <IconHome size="m" aria-hidden="true" />
-              <span>{t('events.attendeeCount', { count: attendeeCount })}</span>
+              <IconGroup size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('events.attendeesHeading')}:</span>
+              <span>{attendeeCount}</span>
             </div>
           )}
           {isWish && (
@@ -386,8 +390,8 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           )}
           {thing.transfer_count > 0 && (
             <div className="thing-card-info-row">
-              <IconHome size="m" aria-hidden="true" />
-              <span>{t('transfers.homesCount', { count: thing.transfer_count })}</span>
+              <IconSwapUser size="m" aria-hidden="true" />
+              <span>{t('transfers.changesCount', { count: thing.transfer_count })}</span>
             </div>
           )}
         </div>
@@ -466,15 +470,27 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <Link to={editPath} style={{ display: 'contents' }}>
                 <Button variant="secondary" fullWidth style={btnSecondaryStyle}>{t('common.edit')}</Button>
               </Link>
-              <Button
-                variant="secondary"
-                fullWidth
-                style={btnSecondaryStyle}
-                onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}
-              >
-                {t('common.delete')}
-              </Button>
+              {canDelete && (
+                <Button
+                  variant="secondary"
+                  fullWidth
+                  style={btnSecondaryStyle}
+                  onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}
+                >
+                  {t('common.delete')}
+                </Button>
+              )}
             </>
+          )}
+          {isCollectionOwner && !isOwner && (
+            <Button
+              variant="secondary"
+              fullWidth
+              style={btnSecondaryStyle}
+              onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}
+            >
+              {t('common.delete')}
+            </Button>
           )}
           {showButton && isEvent && (
             <Button
