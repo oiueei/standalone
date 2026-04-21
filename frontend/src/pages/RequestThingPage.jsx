@@ -292,17 +292,20 @@ export default function RequestThingPage() {
               <Select
                 id="request-slot"
                 label={t('appointment.selectSlot')}
-                value={startTime && endTime ? [{ label: `${startTime} – ${endTime}`, value: `${startTime}_${endTime}` }] : []}
+                value={startTime && endTime ? { label: `${startTime} – ${endTime}`, value: `${startTime}_${endTime}` } : null}
                 options={getAvailableSlots(startDate).map((s) => ({ label: s.label, value: `${s.start}_${s.end}` }))}
                 onChange={(selected) => {
-                  if (selected?.value) {
+                  if (selected) {
                     const [s, e] = selected.value.split('_');
                     setStartTime(s);
                     setEndTime(e);
+                  } else {
+                    setStartTime('');
+                    setEndTime('');
                   }
                 }}
                 invalid={attempted && (!startTime || !endTime)}
-                error={attempted && (!startTime || !endTime) ? t('appointment.slotRequired') : undefined}
+                errorText={attempted && (!startTime || !endTime) ? t('appointment.slotRequired') : undefined}
                 disabled={!startDate}
                 placeholder={startDate ? t('appointment.selectSlotPlaceholder') : t('appointment.selectDateFirst')}
               />
