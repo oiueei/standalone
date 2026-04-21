@@ -406,7 +406,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 const showStar = isActive && pendingCount > 1;
                 return (
                   <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
-                    {b.requester_name && <>{b.requester_name}. </>}
+                    {isOwner && b.requester_name && <>{b.requester_name}. </>}
                     {b.created && <>{new Date(b.created).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}. </>}
                     {b.start_date && b.end_date && !b.start_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
                     {b.start_date && b.start_time && b.end_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} {b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}</>}

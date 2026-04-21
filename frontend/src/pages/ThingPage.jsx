@@ -576,7 +576,7 @@ export default function ThingPage() {
                 const showStar = isActive && pendingCount > 1;
                 return (
                   <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
-                    {b.requester_name && <>{b.requester_name}. </>}
+                    {isOwner && b.requester_name && <>{b.requester_name}. </>}
                     {b.created && <>{new Date(b.created).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}. </>}
                     {b.start_date && b.end_date && (
                       <>
