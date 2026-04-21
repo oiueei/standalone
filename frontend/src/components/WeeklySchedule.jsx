@@ -124,17 +124,9 @@ export default function WeeklySchedule({ thingCode, isOwner, requestPath }) {
           );
         }
         if (slot.status === 'pending') {
-          return (
-            <span className="slot-pending">
-              {slot.requester_name || t('appointment.pending')}
-            </span>
-          );
+          return <span className="slot-pending">{t('appointment.pending')}</span>;
         }
-        return (
-          <span className="slot-booked">
-            {slot.requester_name || t('appointment.booked')}
-          </span>
-        );
+        return <span className="slot-booked">{t('appointment.booked')}</span>;
       },
     })),
   ];
