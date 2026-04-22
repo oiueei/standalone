@@ -181,7 +181,7 @@ export default function AddThingPage() {
               texts={{ label: t('addThing.typeLabel') }}
               options={TYPE_VALUES.filter(v => {
                 if (v === SWAP_TYPE) return false;
-                if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
+                if ((v === WISH_TYPE || v === SHARE_TYPE || v === ASSET_TYPE) && collectionMode !== 'COMMUNITY') return false;
                 if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
                 return true;
               }).map(v => ({ label: t('types.' + v), value: v }))}

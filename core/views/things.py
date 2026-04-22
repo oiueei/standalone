@@ -96,8 +96,8 @@ class ThingViewSet(ModelViewSet):
                 self._create_error = "Collection not found"
                 return
 
-            # WISH_THING and SHARE_THING are only allowed in COMMUNITY collections
-            if thing_type in ("WISH_THING", "SHARE_THING") and not collection.is_community():
+            # WISH_THING, SHARE_THING, and ASSET_THING are only allowed in COMMUNITY collections
+            if thing_type in ("WISH_THING", "SHARE_THING", "ASSET_THING") and not collection.is_community():
                 self._create_error = (
                     f"{thing_type.replace('_', ' ').title()}s can only be created"
                     " in community collections"
