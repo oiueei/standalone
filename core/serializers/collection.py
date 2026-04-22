@@ -7,7 +7,7 @@ from rest_framework import serializers
 from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
-from core.validators import SafeHeadlineField, SafeTextField
+from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
 
 class CollectionThingSummarySerializer(serializers.ModelSerializer):
@@ -108,6 +108,7 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     owner = serializers.CharField(source="owner_id")
     owner_name = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
     invites = CollectionInviteSummarySerializer(many=True, read_only=True)
     pending_invites = serializers.SerializerMethodField()
@@ -128,6 +129,8 @@ class CollectionSerializer(serializers.ModelSerializer):
             "is_share",
             "newsletter_enabled",
             "is_minimalist",
+            "thumbnail",
+            "thumbnail_url",
             "things",
             "invites",
             "pending_invites",
@@ -143,6 +146,9 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     def get_owner_name(self, obj):
         return obj.owner.name or obj.owner.email
+
+    def get_thumbnail_url(self, obj):
+        return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
 
     def get_things(self, obj):
         request = self.context.get("request")
@@ -164,6 +170,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
 
     headline = SafeHeadlineField(max_length=64)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    thumbnail = ImageIdField(required=False, allow_blank=True)
 
     class Meta:
         model = Collection
@@ -176,6 +183,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "is_share",
             "newsletter_enabled",
             "is_minimalist",
+            "thumbnail",
         ]
 
     def validate(self, attrs):
@@ -204,6 +212,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
 
     headline = SafeHeadlineField(max_length=64, required=False)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    thumbnail = ImageIdField(required=False, allow_blank=True)
 
     class Meta:
         model = Collection
@@ -217,6 +226,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "is_share",
             "newsletter_enabled",
             "is_minimalist",
+            "thumbnail",
         ]
 
     def validate(self, attrs):

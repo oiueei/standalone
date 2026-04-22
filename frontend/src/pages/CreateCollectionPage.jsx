@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Select, Button, Checkbox, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import ImageUpload from '../components/ImageUpload';
 import Toast from '../components/Toast';
 
 export default function CreateCollectionPage() {
@@ -29,6 +30,7 @@ export default function CreateCollectionPage() {
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [isMinimalist, setIsMinimalist] = useState(false);
+  const [thumbnail, setThumbnail] = useState('');
   const [errors, setErrors] = useState({});
 
   const MODE_OPTIONS = [
@@ -58,6 +60,7 @@ export default function CreateCollectionPage() {
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
       is_minimalist: isMinimalist,
+      thumbnail: thumbnail || '',
     };
     if (description.trim()) body.description = description.trim();
     try {
@@ -160,6 +163,13 @@ export default function CreateCollectionPage() {
             label={t('minimalist.enableMinimalist')}
             checked={isMinimalist}
             onChange={(e) => { setIsMinimalist(e.target.checked); if (e.target.checked) setIsSwap(false); }}
+          />
+          <ImageUpload
+            id="create-collection-thumbnail"
+            label={t('upload.thumbnailLabel')}
+            value={thumbnail}
+            onChange={setThumbnail}
+            folder="oiueei/collections"
           />
         </div>
         <div className="form-actions">

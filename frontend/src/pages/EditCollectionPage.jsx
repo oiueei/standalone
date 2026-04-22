@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Select, Button, Checkbox, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import ImageUpload from '../components/ImageUpload';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
@@ -23,6 +24,8 @@ export default function EditCollectionPage() {
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [isMinimalist, setIsMinimalist] = useState(false);
+  const [thumbnail, setThumbnail] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -64,6 +67,8 @@ export default function EditCollectionPage() {
           setIsShare(data.is_share || false);
           setNewsletterEnabled(data.newsletter_enabled || false);
           setIsMinimalist(data.is_minimalist || false);
+          setThumbnail(data.thumbnail || '');
+          setThumbnailUrl(data.thumbnail_url || '');
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -99,6 +104,7 @@ export default function EditCollectionPage() {
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
       is_minimalist: isMinimalist,
+      thumbnail: thumbnail || '',
     };
 
     try {
@@ -238,6 +244,14 @@ export default function EditCollectionPage() {
               setDigestFrequency(selectedOptions[0].value);
             }
           }}
+        />
+        <ImageUpload
+          id="edit-collection-thumbnail"
+          label={t('upload.thumbnailLabel')}
+          value={thumbnail}
+          onChange={setThumbnail}
+          currentUrl={thumbnailUrl}
+          folder="oiueei/collections"
         />
       </div>
       <div className="form-actions">
