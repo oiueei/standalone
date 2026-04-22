@@ -11,8 +11,6 @@ export default function UserPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
-  const [myCollections, setMyCollections] = useState(null);
-  const [invitedCollections, setInvitedCollections] = useState(null);
   const [error, setError] = useState('');
 
   const userCode = paramCode || localStorage.getItem('userCode');
@@ -56,16 +54,6 @@ export default function UserPage() {
     };
     fetchUser();
 
-    if (isOwnProfile) {
-      apiFetch('/api/v1/collections/')
-        .then((res) => res.ok ? res.json() : Promise.reject())
-        .then((data) => setMyCollections(data.results))
-        .catch(() => {});
-      apiFetch('/api/v1/invited-collections/')
-        .then((res) => res.ok ? res.json() : Promise.reject())
-        .then((data) => setInvitedCollections(data))
-        .catch(() => {});
-    }
   }, [userCode, isOwnProfile, navigate, t]);
 
   if (error) {
@@ -153,82 +141,6 @@ export default function UserPage() {
                 />
               ))}
             </div>
-          </>
-        )}
-
-        {isOwnProfile && (
-          <>
-            <h2>{t('userPage.myCollections')}</h2>
-            <div className="spacer-m" />
-            {myCollections === null ? (
-              <p className="text-muted">{t('userPage.loadingCollections')}</p>
-            ) : myCollections.filter((c) => c.status === 'ACTIVE').length === 0 ? (
-              <p>{t('userPage.noCollections')} <Link to="/collections/new">{t('userPage.createFirst')}</Link> {t('userPage.toGetStarted')}</p>
-            ) : (
-              <div className="collections-grid">
-                {myCollections.filter((c) => c.status === 'ACTIVE').map((c) => (
-                  <Linkbox
-                    key={c.code}
-                    href={`/collections/${c.code}`}
-                    onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
-                    heading={c.headline}
-                    text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
-                    linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
-                    linkboxAriaLabel={c.headline}
-                    border
-                    size="small"
-                  />
-                ))}
-              </div>
-            )}
-
-            {myCollections !== null && myCollections.filter((c) => c.status === 'INACTIVE').length > 0 && (
-              <>
-                <div className="spacer-xl" />
-                <h2>{t('userPage.inactiveCollections')}</h2>
-                <div className="spacer-m" />
-                <div className="collections-grid">
-                  {myCollections.filter((c) => c.status === 'INACTIVE').map((c) => (
-                    <Linkbox
-                      key={c.code}
-                      href={`/collections/${c.code}`}
-                      onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
-                      heading={c.headline}
-                      text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
-                      linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
-                      linkboxAriaLabel={c.headline}
-                      border
-                      size="small"
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-
-            <div className="spacer-xl" />
-            <h2>{t('userPage.sharedWithMe')}</h2>
-            <div className="spacer-m" />
-            {invitedCollections === null ? (
-              <p className="text-muted">{t('userPage.loadingCollections')}</p>
-            ) : invitedCollections.length === 0 ? (
-              <p>{t('userPage.noShared')}</p>
-            ) : (
-              <div className="collections-grid">
-                {invitedCollections.map((c) => (
-                  <Linkbox
-                    key={c.code}
-                    href={`/collections/${c.code}`}
-                    onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
-                    heading={c.headline}
-                    text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
-                    linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
-                    linkboxAriaLabel={c.headline}
-                    border
-                    size="small"
-                  />
-                ))}
-              </div>
-            )}
           </>
         )}
       </div>

@@ -320,7 +320,7 @@ Detail page for a thing with full information and FAQs section.
 - Handles 403 (no permission) and 404 (user not found) with specific error messages.
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors (own profile uses `theeeme_colors` from API, other profiles fall back to localStorage).
 - Hero follows the WelcomePage pattern: BackLink, spacer, headline as Heading M subtitle, name as h1 title, "Member since" date.
-- **Own profile:** shows "Edit profile" and "Log out" buttons in the hero, "My collections" (ACTIVE), "Inactive collections" (INACTIVE, only shown if any exist), and "Shared with me" sections below.
+- **Own profile:** shows "Edit profile" and "Log out" buttons in the hero. No collections listed — those are now on the HomePage (`/`).
 - **Other profiles:** shows "Collections in common" section with shared collections (where both users are connected as owner/invite) as HDS Linkbox components.
 
 ---
