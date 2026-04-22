@@ -177,6 +177,7 @@ export default function HomePage() {
                 text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
                 linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                 linkboxAriaLabel={c.headline}
+                imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
                 border
                 size="small"
               />
@@ -199,6 +200,7 @@ export default function HomePage() {
                   text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
                   linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                   linkboxAriaLabel={c.headline}
+                  imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
                   border
                   size="small"
                 />
@@ -225,6 +227,7 @@ export default function HomePage() {
                 text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
                 linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                 linkboxAriaLabel={c.headline}
+                imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
                 border
                 size="small"
               />

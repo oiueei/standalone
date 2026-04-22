@@ -136,6 +136,7 @@ export default function UserPage() {
                   heading={c.headline}
                   linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
                   linkboxAriaLabel={c.headline}
+                  imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
                   border
                   size="small"
                 />
