@@ -91,7 +91,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **API:** `GET /api/v1/auth/verify/{code}/`
 - Fetches on mount using the `:code` route parameter.
 - On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. Shows "Go to login" button. No login/redirect.
-- On success: stores `userCode` in `localStorage`. Auth tokens are set as HttpOnly cookies by the backend. If `data.invited_collection` is present (COLLECTION_INVITE flow), navigates to `/collections/{code}` with `{ state: { fromInvite: true } }`; otherwise navigates to `/`.
+- On success: stores `userCode` in `localStorage`. Auth tokens are set as HttpOnly cookies by the backend. If `data.invited_collection` is present (COLLECTION_INVITE flow), navigates to `/collections/{code}` with `{ state: { fromInvite: true } }`; if `seenWelcome` is not set in `localStorage` (new user — e.g. from `/popin`), navigates to `/welcome`; otherwise navigates to `/`.
 - On failure: shows error `Notification` with helpful guidance and "Go to login" button (resolves dead-end for expired links).
 
 ### WelcomePage (`src/pages/WelcomePage.jsx`)

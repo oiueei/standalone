@@ -45,6 +45,8 @@ export default function VerifyPage() {
           if (data.user?.koro) localStorage.setItem('koro', data.user.koro);
           if (data.invited_collection) {
             navigate(`/collections/${data.invited_collection}`, { state: { fromInvite: true } });
+          } else if (!localStorage.getItem('seenWelcome')) {
+            navigate('/welcome');
           } else {
             navigate('/');
           }
