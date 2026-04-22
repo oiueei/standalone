@@ -46,6 +46,7 @@ export default function EditThingPage() {
   const [bookingUnit, setBookingUnit] = useState('DAY');
   const [slotDuration, setSlotDuration] = useState(30);
   const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
+  const [isEndless, setIsEndless] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -82,6 +83,7 @@ export default function EditThingPage() {
           if (data.availability_schedule && data.availability_schedule.length > 0) {
             setScheduleWindows(data.availability_schedule);
           }
+          if (data.is_endless) setIsEndless(true);
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
         } else {
@@ -138,6 +140,9 @@ export default function EditThingPage() {
       body.availability_schedule = scheduleWindows.filter((w) => w.days.length > 0);
     }
     body.documents = documents.length > 0 ? documents : null;
+    if (['GIFT_THING', 'SELL_THING'].includes(thingType)) {
+      body.is_endless = isEndless;
+    }
 
     try {
       const res = await apiFetch(`/api/v1/things/${thingCode}/`, {
@@ -361,6 +366,14 @@ export default function EditThingPage() {
               errorText={errors.location}
             />
           </>
+        )}
+        {['GIFT_THING', 'SELL_THING'].includes(thingType) && (
+          <Checkbox
+            id="edit-thing-is-endless"
+            label={t('endless.label')}
+            checked={isEndless}
+            onChange={(e) => setIsEndless(e.target.checked)}
+          />
         )}
         <ImageUpload
           id="edit-thing-thumbnail"

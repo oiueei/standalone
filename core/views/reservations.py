@@ -298,7 +298,7 @@ class ThingRequestView(APIView):
         with transaction.atomic():
             thing = Thing.objects.select_for_update().get(code=thing.code)
 
-            if thing.status != "ACTIVE":
+            if not thing.is_endless and thing.status != "ACTIVE":
                 return Response(
                     {"error": "Thing is not available for reservation"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -323,8 +323,9 @@ class ThingRequestView(APIView):
                 owner_code=thing.owner,
             )
 
-            thing.status = "TAKEN"
-            thing.save(update_fields=["status"])
+            if not thing.is_endless:
+                thing.status = "TAKEN"
+                thing.save(update_fields=["status"])
 
         self._send_booking_email(request.user, thing, booking, owner_email)
 

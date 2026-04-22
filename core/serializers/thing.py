@@ -88,6 +88,7 @@ class ThingSerializer(serializers.ModelSerializer):
             "transfer_count",
             "attendee_count",
             "helper_count",
+            "is_endless",
         ]
         read_only_fields = [
             "code",
@@ -206,6 +207,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "slot_duration",
             "availability_schedule",
             "documents",
+            "is_endless",
         ]
 
     def validate_documents(self, value):
@@ -247,6 +249,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "slot_duration",
             "availability_schedule",
             "documents",
+            "is_endless",
         ]
         read_only_fields = ["status"]
 

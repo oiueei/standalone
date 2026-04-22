@@ -98,6 +98,7 @@ class Thing(models.Model):
         default=None,
         help_text="Attached documents: [{public_id, filename, content_type}]. Max 5.",
     )
+    is_endless = models.BooleanField(default=False)
     deal = models.ManyToManyField(
         "User",
         blank=True,

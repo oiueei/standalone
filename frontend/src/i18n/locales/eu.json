@@ -448,6 +448,9 @@
     "albumTag": "Albuma",
     "photoRequired": "Argazkia (beharrezkoa)"
   },
+  "endless": {
+    "label": "Mugagabea — hainbat pertsonak aldi berean eskatu dezakete, gauza beti aktibo dago"
+  },
   "documents": {
     "heading": "Dokumentuak",
     "uploadLabel": "Eranskinak",

@@ -23,7 +23,7 @@ def cancel_booking(booking):
     with transaction.atomic():
         booking.cancel()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
-        if booking.thing_type in SINGLE_USE_TYPES:
+        if booking.thing_type in SINGLE_USE_TYPES and not thing.is_endless:
             thing.status = "ACTIVE"
             thing.save(update_fields=["status"])
     return thing
@@ -46,9 +46,10 @@ def accept_booking(booking):
         booking.accept()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
         if booking.thing_type in SINGLE_USE_TYPES:
-            thing.status = "INACTIVE"
-            thing.save(update_fields=["status"])
-            thing.deal.add(booking.requester_code)
+            if not thing.is_endless:
+                thing.status = "INACTIVE"
+                thing.save(update_fields=["status"])
+                thing.deal.add(booking.requester_code)
         elif booking.thing_type == "SHARE_THING":
             thing.owner = booking.requester_code
             thing.save(update_fields=["owner"])
@@ -68,14 +69,15 @@ def accept_booking(booking):
                 offered.owner = booking.owner_code
                 offered.save(update_fields=["owner"])
 
-        # Record the transfer (item changing hands)
-        ThingTransfer.objects.create(
-            thing=thing,
-            from_user=booking.owner_code,
-            to_user=booking.requester_code,
-            booking=booking,
-            lent_date=booking.start_date or date.today(),
-        )
+        # Record the transfer (item changing hands) — skip for endless things
+        if not thing.is_endless:
+            ThingTransfer.objects.create(
+                thing=thing,
+                from_user=booking.owner_code,
+                to_user=booking.requester_code,
+                booking=booking,
+                lent_date=booking.start_date or date.today(),
+            )
 
     # Send document download links to the requester if thing has documents
     if thing.documents:
@@ -95,7 +97,7 @@ def reject_booking(booking):
     with transaction.atomic():
         booking.reject()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
-        if booking.thing_type in SINGLE_USE_TYPES:
+        if booking.thing_type in SINGLE_USE_TYPES and not thing.is_endless:
             thing.status = "ACTIVE"
             thing.save(update_fields=["status"])
     return thing

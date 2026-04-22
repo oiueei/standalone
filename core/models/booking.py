@@ -225,6 +225,7 @@ class BookingPeriod(models.Model):
                 Thing.objects.filter(
                     code__in=single_use_thing_codes,
                     status="TAKEN",
+                    is_endless=False,
                 ).update(status="ACTIVE")
 
             expired_count = cls.objects.filter(

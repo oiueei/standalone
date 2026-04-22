@@ -40,7 +40,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const isSwap = thing.type === SWAP_TYPE;
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
-  const needsPage = isDateBased || isOrder || isSwap;
+  const needsPage = isDateBased || isOrder || isSwap || thing.is_endless;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
   const canHide = isOwner;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
@@ -67,7 +67,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
 
   useEffect(() => {
     const shouldFetch = isOwner
-      ? (isDateBased || isOrder || isSwap || thing.status === 'TAKEN')
+      ? (isDateBased || isOrder || isSwap || thing.status === 'TAKEN' || thing.is_endless)
       : (isAsset || isAppointment);
     if (!shouldFetch) return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)

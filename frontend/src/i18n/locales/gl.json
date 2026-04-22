@@ -448,6 +448,9 @@
     "albumTag": "Álbum",
     "photoRequired": "Foto (obrigatoria)"
   },
+  "endless": {
+    "label": "Sen límite — varias persoas poden reservar á vez, a cousa sempre está activa"
+  },
   "documents": {
     "heading": "Documentos",
     "uploadLabel": "Anexos",

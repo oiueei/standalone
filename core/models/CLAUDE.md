@@ -270,7 +270,7 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 1. **72h expiry** - PENDING bookings expire after `BOOKING_EXPIRY_HOURS` (default 72h).
 2. **Date-based (LEND/RENT/ASSET/APPOINTMENT)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE. ASSET_THING with `booking_unit=HOUR` and APPOINTMENT_THING also require `start_time`/`end_time` and use same-day booking with time-range overlap detection.
 3. **Share (SHARE_THING)**: NOT date-based. No dates required — permanent ownership transfer on acceptance. Multiple pending requests allowed from different users.
-4. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept.
+4. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept. When `is_endless=True`: multiple simultaneous PENDING bookings allowed, status never TAKEN, thing stays ACTIVE after accept, no ThingTransfer created.
 5. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
 6. **Swap (SWAP_THING)**: No dates. Requester offers own things via `offered_things` M2M. On acceptance, requested thing transfers to requester and all offered things transfer to original owner. All things stay ACTIVE. ThingTransfer records created for each thing involved.
 7. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
@@ -315,6 +315,7 @@ The `Thing` model represents an item in a collection.
 | `slot_duration` | PositiveIntegerField | No | Slot duration in minutes for APPOINTMENT_THING: 15, 30, or 60 |
 | `availability_schedule` | JSONField | No | Weekly availability windows for APPOINTMENT_THING. Format: `[{"days": [1,2,3,4,5], "start_time": "09:00", "end_time": "12:00"}]`. Days are ISO weekday numbers (1=Monday, 7=Sunday). |
 | `documents` | JSONField | No | Attached documents: `[{"public_id": "...", "filename": "...", "content_type": "..."}]`. Max 5. Allowed types: PDF, Word, Excel, Markdown. Max 1 MB each (enforced client-side). Stored in Cloudinary raw uploads. Download links sent via email on booking acceptance. |
+| `is_endless` | BooleanField | No | GIFT_THING and SELL_THING only. When True: multiple simultaneous PENDING bookings from different users are allowed, thing status never changes to TAKEN, no ThingTransfer is created on acceptance, thing remains ACTIVE forever (until owner hides or deletes it). Default: False. |
 | `deal` | ManyToManyField(User) | No | Users who have reserved. For EVENT_THING: attendees. For WISH_THING: helpers |
 
 ### Status

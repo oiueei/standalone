@@ -461,6 +461,9 @@
     "albumTag": "Album",
     "photoRequired": "Photo (required)"
   },
+  "endless": {
+    "label": "Endless — multiple people can hold at the same time, thing stays active forever"
+  },
   "documents": {
     "heading": "Documents",
     "uploadLabel": "Attachments",

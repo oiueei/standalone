@@ -48,6 +48,7 @@ export default function AddThingPage() {
   const [bookingUnit, setBookingUnit] = useState('DAY');
   const [slotDuration, setSlotDuration] = useState(30);
   const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
+  const [isEndless, setIsEndless] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -119,6 +120,9 @@ export default function AddThingPage() {
     }
     if (documents.length > 0) {
       body.documents = documents;
+    }
+    if (['GIFT_THING', 'SELL_THING'].includes(type) && isEndless) {
+      body.is_endless = true;
     }
 
     try {
@@ -356,6 +360,14 @@ export default function AddThingPage() {
                 errorText={errors.location}
               />
             </>
+          )}
+          {['GIFT_THING', 'SELL_THING'].includes(type) && (
+            <Checkbox
+              id="add-thing-is-endless"
+              label={t('endless.label')}
+              checked={isEndless}
+              onChange={(e) => setIsEndless(e.target.checked)}
+            />
           )}
           <ImageUpload
             id="add-thing-thumbnail"
