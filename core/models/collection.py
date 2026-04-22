@@ -49,6 +49,7 @@ class Collection(models.Model):
     is_share = models.BooleanField(default=False)
     newsletter_enabled = models.BooleanField(default=False)
     is_minimalist = models.BooleanField(default=False)
+    thumbnail = models.CharField(max_length=255, blank=True, default="")
     things = models.ManyToManyField(
         "Thing",
         blank=True,
