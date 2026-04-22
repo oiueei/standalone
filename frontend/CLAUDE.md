@@ -8,7 +8,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 
 | Route | Page | Description |
 |-------|------|-------------|
-| `/` | `HomePage` | Dashboard with collections overview and all things |
+| `/` | `HomePage` | Dashboard: My collections + Shared with me (collection Linkbox grid) |
 | `/login` | `LoginPage` | Email input form for requesting a magic link |
 | `/logout` | `LogoutPage` | Clears auth cookies and localStorage, redirects to `/login` |
 | `/verify/:code` | `VerifyPage` | Processes magic link / RSVP verification |
@@ -104,14 +104,14 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 
 ### HomePage (`src/pages/HomePage.jsx`)
 
-- **APIs:** `GET /api/v1/auth/me/`, `GET /api/v1/things/`, `GET /api/v1/invited-things/`, `GET /api/v1/my-invitations/` (authenticated via HttpOnly cookies)
+- **APIs:** `GET /api/v1/auth/me/`, `GET /api/v1/collections/`, `GET /api/v1/invited-collections/`, `GET /api/v1/my-invitations/` (authenticated via HttpOnly cookies)
 - Redirects to `/login` if no `userCode` in `localStorage`.
-- On 401/403: clears `userCode` and redirects to `/login`.
 - Stores `userCode`, `theeemeColors`, `koro`, and `seenWelcome` in `localStorage` on successful fetch. `seenWelcome` suppresses the first-time Welcome Linkbox on `CollectionPage`.
 - Displays greeting, "Create collection" button linking to `/collections/new`, "My profile" button linking to `/me`, and "My requests" button linking to `/my-bookings`.
-- **Pending invitations**: fetches `GET /api/v1/my-invitations/` on mount. Shows one dismissible HDS `Notification` (type `info`) per pending invite, above the things section. Each notification shows the owner name as label, collection headline in bold, and "Accept invitation" / "Decline invitation" links pointing to `/verify/{accept_code}` and `/verify/{reject_code}`. Dismissed notifications are removed from local state only (RSVP remains until acted on).
-- **Things section**: lists all non-inactive own and invited things using the `ThingLinkbox` component in a responsive `things-grid` (3 columns, 2 at <=992px, 1 at <=576px), sorted by creation date descending. Things appearing in both `/things/` and `/invited-things/` are deduplicated by code before rendering.
-- **Inactive things section**: shown only to the owner, below the Things section, when at least one own inactive thing exists. Lists all own `INACTIVE` things using the same `ThingLinkbox` component (invited things are never inactive for guests).
+- **Pending invitations**: fetches `GET /api/v1/my-invitations/` on mount. Shows one dismissible HDS `Notification` (type `info`) per pending invite, above the collections. Each notification shows the owner name as label, collection headline in bold, and "Accept invitation" / "Decline invitation" links pointing to `/verify/{accept_code}` and `/verify/{reject_code}`. Dismissed notifications are removed from local state only (RSVP remains until acted on).
+- **My collections section**: shows own ACTIVE collections as HDS `Linkbox` cards (`collections-grid`). Each card shows headline and `{N} things · {N} guests`. Empty state links to `/collections/new`.
+- **Inactive collections section**: shown below My collections when at least one own INACTIVE collection exists.
+- **Shared with me section**: shows invited ACTIVE collections as HDS `Linkbox` cards. Empty state shows a no-shared message.
 
 ### CollectionPage (`src/pages/CollectionPage.jsx`)
 

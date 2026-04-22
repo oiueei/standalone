@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Notification } from 'hds-react';
+import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
-import ThingLinkbox from '../components/ThingLinkbox';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   useEffect(() => { document.title = t('titles.home'); }, [t]);
   const [user, setUser] = useState(null);
-  const [myThings, setMyThings] = useState(null);
-  const [invitedThings, setInvitedThings] = useState(null);
+  const [myCollections, setMyCollections] = useState(null);
+  const [invitedCollections, setInvitedCollections] = useState(null);
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [error, setError] = useState('');
 
@@ -39,22 +38,22 @@ export default function HomePage() {
       }
     };
 
-    const fetchMyThings = async () => {
+    const fetchMyCollections = async () => {
       try {
-        const res = await apiFetch('/api/v1/things/');
+        const res = await apiFetch('/api/v1/collections/');
         if (res.ok) {
           const data = await res.json();
-          setMyThings(data.results);
+          setMyCollections(data.results);
         }
       } catch { /* silently fail */ }
     };
 
-    const fetchInvitedThings = async () => {
+    const fetchInvitedCollections = async () => {
       try {
-        const res = await apiFetch('/api/v1/invited-things/');
+        const res = await apiFetch('/api/v1/invited-collections/');
         if (res.ok) {
           const data = await res.json();
-          setInvitedThings(data.results);
+          setInvitedCollections(data);
         }
       } catch { /* silently fail */ }
     };
@@ -70,20 +69,10 @@ export default function HomePage() {
     };
 
     fetchMe();
-    fetchMyThings();
-    fetchInvitedThings();
+    fetchMyCollections();
+    fetchInvitedCollections();
     fetchPendingInvitations();
   }, [navigate, t]);
-
-  const updateThing = (thingCode, updates) => {
-    setMyThings((prev) => prev && prev.map((t) => t.code === thingCode ? { ...t, ...updates } : t));
-    setInvitedThings((prev) => prev && prev.map((t) => t.code === thingCode ? { ...t, ...updates } : t));
-  };
-
-  const deleteThing = (thingCode) => {
-    setMyThings((prev) => prev && prev.filter((t) => t.code !== thingCode));
-    setInvitedThings((prev) => prev && prev.filter((t) => t.code !== thingCode));
-  };
 
   const dismissInvitation = (acceptCode) => {
     setPendingInvitations((prev) => prev.filter((inv) => inv.accept_code !== acceptCode));
@@ -100,14 +89,6 @@ export default function HomePage() {
   if (!user) {
     return <LoadingSpinner />;
   }
-
-  const activeThings = [
-    ...(myThings || []).filter((t) => t.status !== 'INACTIVE'),
-    ...(invitedThings || []).filter((t) => t.status !== 'INACTIVE'),
-  ].filter((t, i, arr) => arr.findIndex((x) => x.code === t.code) === i)
-   .sort((a, b) => new Date(b.created) - new Date(a.created));
-
-  const inactiveMyThings = [...(myThings || [])].filter((t) => t.status === 'INACTIVE').sort((a, b) => new Date(b.created) - new Date(a.created));
 
   const tc = user.theeeme_colors || {};
   const btnStyle = tc.color_01 ? {
@@ -156,67 +137,101 @@ export default function HomePage() {
       </div>
       <div className="page-container">
 
-      {pendingInvitations.length > 0 && (
-        <>
-          {pendingInvitations.map((inv) => (
-            <Notification
-              key={inv.accept_code}
-              label={t('home.invitedBy', { name: inv.owner_name })}
-              type="info"
-              dismissible
-              closeButtonLabelText={t('home.dismiss')}
-              onClose={() => dismissInvitation(inv.accept_code)}
-              style={{ marginBottom: 'var(--spacing-s)' }}
-            >
-              <strong>{inv.collection_headline}</strong>
-              <div style={{ marginTop: 'var(--spacing-xs)', display: 'flex', gap: 'var(--spacing-s)', flexWrap: 'wrap' }}>
-                <Link to={`/verify/${inv.accept_code}`}>{t('home.acceptInvitation')}</Link>
-                <Link to={`/verify/${inv.reject_code}`}>{t('home.declineInvitation')}</Link>
-              </div>
-            </Notification>
-          ))}
-          <div className="spacer-m" />
-        </>
-      )}
+        {pendingInvitations.length > 0 && (
+          <>
+            {pendingInvitations.map((inv) => (
+              <Notification
+                key={inv.accept_code}
+                label={t('home.invitedBy', { name: inv.owner_name })}
+                type="info"
+                dismissible
+                closeButtonLabelText={t('home.dismiss')}
+                onClose={() => dismissInvitation(inv.accept_code)}
+                style={{ marginBottom: 'var(--spacing-s)' }}
+              >
+                <strong>{inv.collection_headline}</strong>
+                <div style={{ marginTop: 'var(--spacing-xs)', display: 'flex', gap: 'var(--spacing-s)', flexWrap: 'wrap' }}>
+                  <Link to={`/verify/${inv.accept_code}`}>{t('home.acceptInvitation')}</Link>
+                  <Link to={`/verify/${inv.reject_code}`}>{t('home.declineInvitation')}</Link>
+                </div>
+              </Notification>
+            ))}
+            <div className="spacer-m" />
+          </>
+        )}
 
-      <h2>{t('home.allThings')}</h2>
-      <div className="spacer-m" />
-      {myThings === null || invitedThings === null ? (
-        <p className="text-muted">{t('home.loadingThings')}</p>
-      ) : activeThings.length === 0 ? (
-        <p>{t('home.noThings')}</p>
-      ) : (
-        <div className="things-grid">
-          {activeThings.map((thing) => (
-            <ThingLinkbox
-              key={thing.code}
-              thing={thing}
-              userCode={localStorage.getItem('userCode')}
-              onDelete={deleteThing}
-              onUpdateThing={updateThing}
-            />
-          ))}
-        </div>
-      )}
-
-      {inactiveMyThings.length > 0 && (
-        <>
-          <div className="spacer-l" />
-          <h2>{t('home.inactiveThings')}</h2>
-          <div className="spacer-m" />
-          <div className="things-grid">
-            {inactiveMyThings.map((thing) => (
-              <ThingLinkbox
-                key={thing.code}
-                thing={thing}
-                userCode={localStorage.getItem('userCode')}
-                onDelete={deleteThing}
-                onUpdateThing={updateThing}
+        <h2>{t('userPage.myCollections')}</h2>
+        <div className="spacer-m" />
+        {myCollections === null ? (
+          <p className="text-muted">{t('userPage.loadingCollections')}</p>
+        ) : myCollections.filter((c) => c.status === 'ACTIVE').length === 0 ? (
+          <p>{t('userPage.noCollections')} <Link to="/collections/new">{t('userPage.createFirst')}</Link> {t('userPage.toGetStarted')}</p>
+        ) : (
+          <div className="collections-grid">
+            {myCollections.filter((c) => c.status === 'ACTIVE').map((c) => (
+              <Linkbox
+                key={c.code}
+                href={`/collections/${c.code}`}
+                onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
+                heading={c.headline}
+                text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
+                linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
+                linkboxAriaLabel={c.headline}
+                border
+                size="small"
               />
             ))}
           </div>
-        </>
-      )}
+        )}
+
+        {myCollections !== null && myCollections.filter((c) => c.status === 'INACTIVE').length > 0 && (
+          <>
+            <div className="spacer-xl" />
+            <h2>{t('userPage.inactiveCollections')}</h2>
+            <div className="spacer-m" />
+            <div className="collections-grid">
+              {myCollections.filter((c) => c.status === 'INACTIVE').map((c) => (
+                <Linkbox
+                  key={c.code}
+                  href={`/collections/${c.code}`}
+                  onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
+                  heading={c.headline}
+                  text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
+                  linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
+                  linkboxAriaLabel={c.headline}
+                  border
+                  size="small"
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="spacer-xl" />
+        <h2>{t('userPage.sharedWithMe')}</h2>
+        <div className="spacer-m" />
+        {invitedCollections === null ? (
+          <p className="text-muted">{t('userPage.loadingCollections')}</p>
+        ) : invitedCollections.length === 0 ? (
+          <p>{t('userPage.noShared')}</p>
+        ) : (
+          <div className="collections-grid">
+            {invitedCollections.map((c) => (
+              <Linkbox
+                key={c.code}
+                href={`/collections/${c.code}`}
+                onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
+                heading={c.headline}
+                text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
+                linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
+                linkboxAriaLabel={c.headline}
+                border
+                size="small"
+              />
+            ))}
+          </div>
+        )}
+
       </div>
     </div>
   );
