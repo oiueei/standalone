@@ -7,7 +7,18 @@ from datetime import date
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
+import random
+
 from core.utils import generate_id
+
+_THEEEME_CODES = [
+    "BUU331", "3NNG31", "H00774", "K3SS44", "K0P4R1", "KU11T4",
+    "M377RO", "S0M0UU", "SP4740", "SU0M3N", "V44K0N", "5BC8W6",
+]
+
+
+def _random_theeeme():
+    return random.choice(_THEEEME_CODES)
 
 
 class UserManager(BaseUserManager):
@@ -58,7 +69,7 @@ class User(AbstractBaseUser):
         to_field="code",
         db_column="user_theeeme",
         related_name="users",
-        default="BUU331",
+        default=_random_theeeme,
     )
 
     # Required for Django auth
