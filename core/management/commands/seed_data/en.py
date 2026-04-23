@@ -109,7 +109,7 @@ COLLECTIONS = [
             "tea – new members welcome, grab your spot for the next stormy read!"
         ),
         "invites": ["La1aN1", "L3L3oo", "l1l13S"],
-        "is_onboarding": False,
+        "is_onboarding": True,
         "thumbnail": "l0l0C1",
     },
     {

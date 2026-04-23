@@ -113,7 +113,7 @@ COLLECTIONS = [
             "clásicos, comparte emociones con un té – ¡apúntate para la próxima lectura!"
         ),
         "invites": ["La1aN1", "L3L3oo", "l1l13S"],
-        "is_onboarding": False,
+        "is_onboarding": True,
         "thumbnail": "l0l0C1",
     },
     {
