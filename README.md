@@ -69,7 +69,11 @@ core/
       close_transfers.py  # Close overdue loan transfers
       send_reminders.py   # Daily booking/delivery/event reminders
       send_digests.py     # Weekly/monthly digest emails
-      seed_demo.py        # Populate demo data (idempotent; fresh deploys only)
+      seed_demo.py        # Populate demo data (idempotent; --lang=en|es)
+      seed_data/
+        common.py         # non-translatable (transfers, attendances)
+        en.py             # English demo content
+        es.py             # Spanish demo content
   tests/
     unit/            # Model, serializer, validator, security tests
     integration/     # View and booking integration tests
@@ -225,9 +229,13 @@ python manage.py makemigrations core
 python manage.py migrate
 
 # Seed demo data (Lala, Lele, Lili, Lolo, Lulu and their collections — idempotent)
-python manage.py seed_demo
+python manage.py seed_demo                 # English (default)
+python manage.py seed_demo --lang=es       # Spanish
+python manage.py seed_demo --lang=es --reset   # wipe demos, re-seed in Spanish
 # On Heroku: heroku run python manage.py seed_demo --app <your-app>
 # Pass --reset to wipe existing demo data first (leaves other users/collections untouched).
+# Adding a new language: copy core/management/commands/seed_data/en.py to e.g. ca.py,
+# translate the text fields, add the code to SUPPORTED_LANGS in seed_demo.py.
 
 # Create admin user
 python manage.py createsuperuser
@@ -303,7 +311,7 @@ python manage.py send_digests
 - **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
 - **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention. Every send is routed through a preference pipeline that filters Cat. 2 (activity) and Cat. 3 (news) based on `User.notify_activity` / `notify_news`; Cat. 1 (magic links, invitations, revokes) is always delivered. Non-mandatory emails carry a footer with a `TimestampSigner`-signed link to `/me/notifications?t=…` so recipients can toggle preferences without logging in (see `NotificationsByTokenView`).
 - **RSVP intermediary**: All email action links use RSVP codes. Real entity codes are never exposed in URLs.
-- **Seed data out of migrations**: Demo fixtures (Lala/Lele/Lili/Lolo/Lulu and their collections) live in `core/management/commands/seed_demo.py`, not in migrations. Fresh environments start with a clean DB and only get demo data when `python manage.py seed_demo` is run explicitly. The command is idempotent (`update_or_create` / `get_or_create`) so it can be re-run after editing. The old seed migrations (`0037`–`0076`) are retained as no-ops to preserve migration history.
+- **Seed data out of migrations**: Demo fixtures (Lala/Lele/Lili/Lolo/Lulu and their collections) live in `core/management/commands/seed_demo.py` + `seed_data/{lang}.py`, not in migrations. Fresh environments start with a clean DB and only get demo data when `python manage.py seed_demo` is run explicitly. The command is idempotent (`update_or_create` / `get_or_create`) and supports multiple languages (`--lang=en|es`, default English). Text content per language lives in its own module so you can switch the same DB between languages just by re-running the command. The old seed migrations (`0037`–`0076`) are retained as no-ops to preserve migration history.
 
 ## Default Data
 
