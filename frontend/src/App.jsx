@@ -17,6 +17,7 @@ import ThingPage from './pages/ThingPage';
 import CreateCollectionPage from './pages/CreateCollectionPage';
 import EditCollectionPage from './pages/EditCollectionPage';
 import EditProfilePage from './pages/EditProfilePage';
+import NotificationsPage from './pages/NotificationsPage';
 import ManageInvitesPage from './pages/ManageInvitesPage';
 import LogoutPage from './pages/LogoutPage';
 import UserPage from './pages/UserPage';
@@ -61,6 +62,7 @@ function App() {
         <Route path="/rsvp/:code" element={<VerifyPage />} />
         <Route path="/me" element={<UserPage />} />
         <Route path="/me/edit" element={<EditProfilePage />} />
+        <Route path="/me/notifications" element={<NotificationsPage />} />
         <Route path="/collections/new" element={<CreateCollectionPage />} />
         <Route path="/collections/:code" element={<CollectionPage />} />
         <Route path="/collections/:code/edit" element={<EditCollectionPage />} />

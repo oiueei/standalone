@@ -20,6 +20,8 @@ The `User` model represents a person who can own collections, be invited to othe
 | `headline` | CharField(64) | No | Short bio/tagline |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
+| `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, event announcements, broadcasts. Default: `True` |
+| `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |
@@ -37,6 +39,8 @@ The `User` model represents a person who can own collections, be invited to othe
 5. **Creation date is persisted** - The `created` field is automatically set to today's date when the user is created.
 
 6. **Last activity is updated on login** - The `update_last_activity()` method is called on each successful authentication.
+
+7. **Email notification preferences** - `notify_activity` and `notify_news` are consulted by `core/services/email_service.py` before sending. Magic links and invitations (Cat. 1) are mandatory and always sent regardless of these flags.
 
 ### Methods
 

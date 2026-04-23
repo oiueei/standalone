@@ -13,6 +13,8 @@ const MOCK_USER = {
   headline: '',
   thumbnail: '',
   koro: 'basic',
+  notify_activity: true,
+  notify_news: true,
   theeeme_colors: {
     color_01: 'bus',
     color_02: 'suomenlinna-light',
@@ -65,6 +67,7 @@ function mockResponse(data, ok = true) {
 vi.mock('../services/api', () => ({
   apiFetch: vi.fn((url) => {
     if (url.includes('/auth/me/')) return Promise.resolve(mockResponse(MOCK_USER));
+    if (url.includes('/notifications/token/')) return Promise.resolve(mockResponse({ notify_activity: true, notify_news: true }));
     if (url.includes('/theeemes/')) return Promise.resolve(mockResponse(MOCK_THEEEMES));
     if (url.includes('/my-bookings/')) return Promise.resolve(mockResponse({ results: [] }));
     if (url.includes('/my-invitations/')) return Promise.resolve(mockResponse({ results: [] }));
@@ -113,6 +116,7 @@ import DeleteThingPage from '../pages/DeleteThingPage';
 import RemoveGuestPage from '../pages/RemoveGuestPage';
 import EditCollectionPage from '../pages/EditCollectionPage';
 import EditProfilePage from '../pages/EditProfilePage';
+import NotificationsPage from '../pages/NotificationsPage';
 import ManageInvitesPage from '../pages/ManageInvitesPage';
 import HomePage from '../pages/HomePage';
 import CollectionPage from '../pages/CollectionPage';
@@ -160,6 +164,7 @@ smokeAndAxe('CreateCollectionPage', CreateCollectionPage);
 smokeAndAxe('MyBookingsPage', MyBookingsPage);
 smokeAndAxe('HomePage', HomePage);
 smokeAndAxe('EditProfilePage', EditProfilePage);
+smokeAndAxe('NotificationsPage', NotificationsPage);
 
 // ── Pages with route params ────────────────────────────────────────────
 smokeAndAxe('AddThingPage', AddThingPage, {

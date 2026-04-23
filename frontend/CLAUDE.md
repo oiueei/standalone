@@ -15,6 +15,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/rsvp/:code` | `VerifyPage` | Alias for /verify/:code |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
 | `/me/edit` | `EditProfilePage` | Edit own profile |
+| `/me/notifications` | `NotificationsPage` | Manage email preferences. Accepts optional `?t=<token>` for unauthenticated edits via email footer link. |
 | `/collections/new` | `CreateCollectionPage` | Create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
 | `/collections/:code/edit` | `EditCollectionPage` | Edit a collection |
@@ -280,8 +281,23 @@ Detail page for a thing with full information and FAQs section.
 - Simple form with h1 title + `form-grid` layout:
   - `TextInput` for name, `TextArea` for headline (bio), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid).
   - "Save" button below the form.
+  - Link below the form: **"Email preferences →"** routing to `/me/notifications`.
 - Pre-populates all fields from the current user profile.
 - On success: navigates to `/`.
+
+### NotificationsPage (`src/pages/NotificationsPage.jsx`)
+
+- **API (authenticated mode):** `GET /api/v1/auth/me/` to load, `PUT /api/v1/users/{userCode}/` to save.
+- **API (token mode):** `GET /api/v1/notifications/token/{t}/`, `PATCH /api/v1/notifications/token/{t}/`.
+- Accessible from `/me/notifications`, optionally with `?t=<token>` appended (the token is included in the footer of every Cat. 2 / Cat. 3 email).
+- **Token mode** (when `?t=` is present): no `userCode` required in localStorage, no BackLink (the user arrived from an email, there's nowhere "back" to navigate). Invalid/expired tokens render a `Notification type="error"` with a fallback message and no form.
+- **Authenticated mode** (no `?t=`): behaves like any other protected page — redirects to `/login` if `userCode` is missing; shows the standard BackLink.
+- **Form:** three HDS `Checkbox` components:
+  1. "Sign-in links and invitations" — checked and **disabled** (Cat. 1, cannot be toggled).
+  2. "Activity between users (recommended)" — controls `notify_activity` (Cat. 2).
+  3. "News and announcements (optional)" — controls `notify_news` (Cat. 3).
+- Save button persists via the appropriate endpoint. On success shows an inline `Notification type="success"` ("Preferences saved.").
+- Uses the standard `form-hero` + `Koros` layout with theeeme colours from localStorage when available.
 
 ### ManageInvitesPage (`src/pages/ManageInvitesPage.jsx`)
 

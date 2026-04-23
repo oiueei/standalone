@@ -36,6 +36,8 @@ class UserSerializer(serializers.ModelSerializer):
             "koro",
             "theeeme",
             "theeeme_colors",
+            "notify_activity",
+            "notify_news",
         ]
         read_only_fields = [
             "code",
@@ -102,4 +104,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "headline",
             "koro",
             "theeeme",
+            "notify_activity",
+            "notify_news",
         ]

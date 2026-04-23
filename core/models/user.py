@@ -72,6 +72,10 @@ class User(AbstractBaseUser):
         default=_random_theeeme,
     )
 
+    # Notification preferences (see core/services/email_service.py categories)
+    notify_activity = models.BooleanField(default=True)
+    notify_news = models.BooleanField(default=True)
+
     # Required for Django auth
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

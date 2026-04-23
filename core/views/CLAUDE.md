@@ -195,7 +195,27 @@ Returns user profile. Own profile returns full data (`UserSerializer`), other pr
 | **Endpoint** | `PUT /api/v1/users/{user_code}/` |
 | **Permission** | `IsAuthenticated` + own profile only |
 
-Updates own profile via `UserUpdateSerializer` (partial update). Accepts optional `theeeme` field (Theeeme code). Returns 403 if attempting to update another user.
+Updates own profile via `UserUpdateSerializer` (partial update). Accepts optional `theeeme` (Theeeme code), `notify_activity`, and `notify_news` booleans. Returns 403 if attempting to update another user.
+
+---
+
+## Notification Preference Views (`core/views/notifications.py`)
+
+### NotificationsByTokenView
+
+| | |
+|---|---|
+| **Endpoints** | `GET /api/v1/notifications/token/{token}/` and `PATCH /api/v1/notifications/token/{token}/` |
+| **Permission** | `AllowAny` |
+| **Rate limits** | GET: 20/min per IP. PATCH: 10/min per IP. |
+
+Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on a specific user. The token is a `TimestampSigner`-signed `user_code` (salt `notifications-prefs`, TTL 1 year) produced by `core.services.email_service.make_notifications_token()`; every Cat. 2 / Cat. 3 email footer contains a fresh link of the form `/me/notifications?t=<token>`.
+
+**Behaviour:**
+- Resolves the token via `verify_notifications_token()`. Returns 401 `{ "detail": "Invalid or expired link" }` if invalid.
+- On GET: returns `{ notify_activity, notify_news }` for the signed user.
+- On PATCH: accepts partial `{ notify_activity?, notify_news? }` via `NotificationPrefsSerializer` and persists the change.
+- Token has blast radius limited to these two booleans — it cannot be used to read or modify anything else.
 
 ---
 
@@ -871,6 +891,7 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 - `/things/{code}/request/` POST — 10 requests per hour per user
 - `/things/{code}/faq/` POST — 20 requests per hour per user
 - `/collections/{code}/broadcast/` POST — 5 requests per day per user
+- `/notifications/token/{t}/` — GET 20/min per IP, PATCH 10/min per IP
 
 ### Secure Code Practices
 

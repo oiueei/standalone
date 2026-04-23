@@ -33,6 +33,7 @@ from .views.collections import (
 )
 from .views.events import EventAttendeesView, EventAttendView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
+from .views.notifications import NotificationsByTokenView
 from .views.reservations import ThingRequestView
 from .views.slots import ThingSlotsView
 from .views.stats import ThingStatsView
@@ -67,6 +68,12 @@ urlpatterns = [
     path("rsvp/<str:rsvp_code>/", VerifyLinkView.as_view(), name="rsvp-action"),
     # Users
     path("users/<str:user_code>/", UserDetailView.as_view(), name="user-detail"),
+    # Notification preferences (tokenised; no login required)
+    path(
+        "notifications/token/<str:token>/",
+        NotificationsByTokenView.as_view(),
+        name="notifications-token",
+    ),
     # Collections (non-viewset)
     path(
         "invited-collections/",

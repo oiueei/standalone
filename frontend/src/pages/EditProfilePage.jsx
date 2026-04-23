@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
@@ -167,6 +167,9 @@ export default function EditProfilePage() {
             {submitting ? t('common.saving') : t('common.save')}
           </Button>
         </div>
+        <p style={{ marginTop: '1.5rem' }}>
+          <Link to="/me/notifications">{t('editProfile.emailPreferences')}</Link>
+        </p>
         <Toast toast={toast} onClose={() => setToast(null)} />
       </div>
     </div>

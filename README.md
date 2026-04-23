@@ -56,7 +56,7 @@ core/
   views/             # Auth, collections, things, bookings, FAQ, users
   serializers/       # DRF serializers per model
   services/          # Business logic layer
-    email_service.py   # All email composition and sending (8 functions)
+    email_service.py   # All email composition and sending (categorised opt-out pipeline)
     booking_service.py # Accept/reject booking logic (transaction.atomic)
   permissions.py     # Custom DRF permissions (IsThingOwner, IsCollectionOwner)
   validators.py      # Input validation (image IDs, headlines, etc.)
@@ -79,7 +79,7 @@ core/
 
 | Model | Purpose |
 |-------|---------|
-| **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords |
+| **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords. `notify_activity` and `notify_news` opt-out booleans control Cat. 2 / Cat. 3 email delivery (magic links and invitations are always sent) |
 | **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things). `is_swap` flag enables item swapping (COMMUNITY only). `is_share` flag restricts to SHARE_THING only (COMMUNITY only, mutually exclusive with `is_swap`). `newsletter_enabled` sends weekly activity newsletter on Mondays (requires `is_share`). `is_minimalist` enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (mutually exclusive with `is_swap`, compatible with `is_share`) |
 | **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING, SWAP_THING, APPOINTMENT_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). EVENT_THING uses `deal` M2M for attendance; WISH_THING uses `deal` M2M for help offers (both bypass bookings). WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. ASSET_THING supports day or hourly booking with shared calendar and usage statistics. APPOINTMENT_THING supports recurring availability schedules with configurable slot duration (15/30/60 min) and weekly slot view. `documents` JSONField supports up to 5 file attachments (PDF, Word, Excel, Markdown) stored as Cloudinary raw uploads; download links are emailed to the requester on booking acceptance |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
@@ -121,7 +121,9 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/api/v1/users/{user_code}/` | View profile (requires collection connection) |
-| PUT | `/api/v1/users/{user_code}/` | Update own profile |
+| PUT | `/api/v1/users/{user_code}/` | Update own profile (name, headline, koro, theeeme, `notify_activity`, `notify_news`) |
+| GET | `/api/v1/notifications/token/{token}/` | Read `notify_activity`/`notify_news` via signed token (no login required; linked from every Cat. 2/3 email footer) |
+| PATCH | `/api/v1/notifications/token/{token}/` | Update `notify_activity`/`notify_news` via signed token |
 
 ### Collections (ModelViewSet + Router)
 | Method | URL | Description |
@@ -271,6 +273,7 @@ python manage.py send_digests
 | Rate Limiting | Thing request | 10 req/hour per user |
 | Rate Limiting | Broadcast | 5 req/day per user |
 | Rate Limiting | FAQ question | 20 req/hour per user |
+| Rate Limiting | Notifications token | GET 20/min, PATCH 10/min per IP |
 | Headers | HSTS | 1-year strict transport security with preload |
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |
 | Headers | Content-Type | nosniff (prevents MIME confusion) |
@@ -292,7 +295,7 @@ python manage.py send_digests
 - **Service layer**: Business logic extracted into `core/services/` (email composition, booking accept/reject/cancel with `transaction.atomic()`). Views are thin controllers.
 - **ModelViewSet + Router**: Collections and Things use DRF ModelViewSet with DefaultRouter for standard CRUD. Custom actions use `@action` decorator.
 - **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
-- **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention.
+- **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention. Every send is routed through a preference pipeline that filters Cat. 2 (activity) and Cat. 3 (news) based on `User.notify_activity` / `notify_news`; Cat. 1 (magic links, invitations, revokes) is always delivered. Non-mandatory emails carry a footer with a `TimestampSigner`-signed link to `/me/notifications?t=…` so recipients can toggle preferences without logging in (see `NotificationsByTokenView`).
 - **RSVP intermediary**: All email action links use RSVP codes. Real entity codes are never exposed in URLs.
 
 ## Default Data

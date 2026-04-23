@@ -38,6 +38,7 @@
     "deleteThing": "Delete {{headline}} — OIUEEI",
     "deleteThingDefault": "Delete thing — OIUEEI",
     "editProfile": "Edit profile — OIUEEI",
+    "notifications": "Email preferences — OIUEEI",
     "editCollection": "Edit {{headline}} — OIUEEI",
     "editCollectionDefault": "Edit collection — OIUEEI",
     "newCollection": "New collection — OIUEEI",
@@ -235,7 +236,8 @@
     "maxName": "Maximum 32 characters.",
     "maxBio": "Maximum 64 characters.",
     "errorLoading": "Error loading profile.",
-    "errorSaving": "Error saving."
+    "errorSaving": "Error saving.",
+    "emailPreferences": "Email preferences →"
   },
   "editCollection": {
     "pageTitle": "Edit collection",
@@ -513,5 +515,19 @@
     "sendButton": "Send broadcast",
     "sending": "Sending...",
     "sent": "Broadcast sent to {{count}} guests."
+  },
+  "notifications": {
+    "pageTitle": "Email preferences",
+    "intro": "Choose which emails you'd like to receive from OIUEEI. You can change this at any time.",
+    "magicLabel": "Sign-in links and invitations",
+    "magicHelper": "Required — without these you cannot sign in or join collections.",
+    "activityLabel": "Activity between users (recommended)",
+    "activityHelper": "Booking requests, confirmations, questions and answers, reminders.",
+    "newsLabel": "News and announcements (optional)",
+    "newsHelper": "Collection broadcasts, weekly digests and newsletters.",
+    "saved": "Preferences saved.",
+    "errorLoading": "Error loading preferences.",
+    "errorSaving": "Error saving.",
+    "invalidLink": "This link is invalid or has expired. Please sign in to change your preferences."
   }
 }
