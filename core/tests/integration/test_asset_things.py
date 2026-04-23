@@ -25,7 +25,7 @@ def stranger():
 
 @pytest.fixture
 def collection(owner, guest):
-    col = Collection.objects.create(owner=owner, headline="Shared Office")
+    col = Collection.objects.create(owner=owner, headline="Shared Office", mode="COMMUNITY")
     col.invites.add(guest)
     return col
 

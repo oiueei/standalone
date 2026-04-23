@@ -2,7 +2,8 @@
 Unit tests for OIUEEI management commands.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
+from datetime import timezone as dt_timezone
 from io import StringIO
 from unittest.mock import patch
 
@@ -248,7 +249,9 @@ class TestSendRemindersCommand:
 class TestSendDigestsCommand:
     """Tests for send_digests management command."""
 
-    def _setup_collection_with_things(self, code_prefix, frequency, thing_days_ago=3):
+    def _setup_collection_with_things(
+        self, code_prefix, frequency, thing_days_ago=3, anchor_date=None
+    ):
         owner = User.objects.create(
             code=f"{code_prefix}O1", email=f"{code_prefix}owner@test.com", name="Owner"
         )
@@ -264,7 +267,12 @@ class TestSendDigestsCommand:
         collection.invites.add(invitee)
 
         thing = Thing.objects.create(code=f"{code_prefix}T1", owner=owner, headline="New Widget")
-        thing.created = timezone.now() - timedelta(days=thing_days_ago)
+        if anchor_date is not None:
+            thing.created = datetime.combine(
+                anchor_date - timedelta(days=thing_days_ago), time(12, 0), tzinfo=dt_timezone.utc
+            )
+        else:
+            thing.created = timezone.now() - timedelta(days=thing_days_ago)
         thing.save(update_fields=["created"])
         collection.things.add(thing)
 
@@ -277,7 +285,7 @@ class TestSendDigestsCommand:
         mock_date.today.return_value = monday
         mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
 
-        self._setup_collection_with_things("DGW", "WEEKLY", thing_days_ago=3)
+        self._setup_collection_with_things("DGW", "WEEKLY", thing_days_ago=3, anchor_date=monday)
 
         out = StringIO()
         call_command("send_digests", stdout=out)

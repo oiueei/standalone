@@ -69,6 +69,7 @@ core/
       close_transfers.py  # Close overdue loan transfers
       send_reminders.py   # Daily booking/delivery/event reminders
       send_digests.py     # Weekly/monthly digest emails
+      seed_demo.py        # Populate demo data (idempotent; fresh deploys only)
   tests/
     unit/            # Model, serializer, validator, security tests
     integration/     # View and booking integration tests
@@ -223,6 +224,11 @@ flake8 .
 python manage.py makemigrations core
 python manage.py migrate
 
+# Seed demo data (Lala, Lele, Lili, Lolo, Lulu and their collections — idempotent)
+python manage.py seed_demo
+# On Heroku: heroku run python manage.py seed_demo --app <your-app>
+# Pass --reset to wipe existing demo data first (leaves other users/collections untouched).
+
 # Create admin user
 python manage.py createsuperuser
 
@@ -297,10 +303,12 @@ python manage.py send_digests
 - **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
 - **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention. Every send is routed through a preference pipeline that filters Cat. 2 (activity) and Cat. 3 (news) based on `User.notify_activity` / `notify_news`; Cat. 1 (magic links, invitations, revokes) is always delivered. Non-mandatory emails carry a footer with a `TimestampSigner`-signed link to `/me/notifications?t=…` so recipients can toggle preferences without logging in (see `NotificationsByTokenView`).
 - **RSVP intermediary**: All email action links use RSVP codes. Real entity codes are never exposed in URLs.
+- **Seed data out of migrations**: Demo fixtures (Lala/Lele/Lili/Lolo/Lulu and their collections) live in `core/management/commands/seed_demo.py`, not in migrations. Fresh environments start with a clean DB and only get demo data when `python manage.py seed_demo` is run explicitly. The command is idempotent (`update_or_create` / `get_or_create`) so it can be re-run after editing. The old seed migrations (`0037`–`0076`) are retained as no-ops to preserve migration history.
 
 ## Default Data
 
-- Default Theeeme: "Bussi" (code: BUU331)
+- Default Theeemes (system baseline, seeded by migration `0036`): the 12 canonical palettes (Bussi, Engel, Hopea, Kesä, Kupari, Kulta, Metro, Sumu, Spåra, Suomenlinna, Vaakuna, M&V).
+- Demo users/collections/things: **not** created automatically — run `python manage.py seed_demo` to populate.
 
 ## Important Notes
 

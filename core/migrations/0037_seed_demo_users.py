@@ -1,37 +1,9 @@
-# Data migration — seed demo users for first-time installations.
-# Uses get_or_create so it is safe to run on existing databases.
+# Retired: demo data now lives in core/management/commands/seed_demo.py.
+# This migration is kept as a no-op to preserve migration history — existing
+# deployments that already ran it will see no change; fresh deployments will
+# not create any demo data until `manage.py seed_demo` is run explicitly.
 
 from django.db import migrations
-
-
-def seed_demo_users(apps, schema_editor):
-    User = apps.get_model("core", "User")
-
-    User.objects.get_or_create(
-        code="La1aN1",
-        defaults={
-            "email": "lala@mail.com",
-            "name": "Lala",
-            "headline": "Three cheers for second-hand!",
-            "theeeme_id": "BUU331",
-            "koro": "basic",
-        },
-    )
-
-    User.objects.get_or_create(
-        code="L3L3oo",
-        defaults={
-            "email": "lele@mail.com",
-            "name": "Lele",
-            "headline": "Here! Now!! Sharing!!!",
-            "theeeme_id": "K0P4R1",
-            "koro": "basic",
-        },
-    )
-
-
-def noop(apps, schema_editor):
-    pass
 
 
 class Migration(migrations.Migration):
@@ -41,5 +13,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(seed_demo_users, noop),
+        migrations.RunPython(migrations.RunPython.noop, migrations.RunPython.noop),
     ]
