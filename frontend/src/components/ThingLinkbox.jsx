@@ -385,7 +385,13 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           {thing.transfer_count > 0 && (
             <div className="thing-card-info-row">
               <IconSwapUser size="m" aria-hidden="true" />
-              <span>{t('transfers.changesCount', { count: thing.transfer_count })}</span>
+              <span>{t(`transfers.${
+                thing.type === 'LEND_THING' ? 'lendCount' :
+                thing.type === 'RENT_THING' ? 'rentCount' :
+                thing.type === 'SHARE_THING' ? 'shareCount' :
+                thing.type === 'SWAP_THING' ? 'swapCount' :
+                'changesCount'
+              }`, { count: thing.transfer_count })}</span>
             </div>
           )}
         </div>

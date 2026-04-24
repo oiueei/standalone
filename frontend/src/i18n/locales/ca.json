@@ -422,7 +422,15 @@
     "sharedByCount_one": "Compartit per {{count}} persona",
     "sharedByCount_other": "Compartit per {{count}} persones",
     "changesCount_one": "{{count}} canvi",
-    "changesCount_other": "{{count}} canvis"
+    "changesCount_other": "{{count}} canvis",
+    "lendCount_one": "{{count}} préstec",
+    "lendCount_other": "{{count}} préstecs",
+    "rentCount_one": "{{count}} lloguer",
+    "rentCount_other": "{{count}} lloguers",
+    "shareCount_one": "{{count}} cop compartit",
+    "shareCount_other": "{{count}} cops compartit",
+    "swapCount_one": "{{count}} intercanvi",
+    "swapCount_other": "{{count}} intercanvis"
   },
   "events": {
     "eventDate": "Data de l'esdeveniment",

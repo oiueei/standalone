@@ -422,7 +422,15 @@
     "sharedByCount_one": "Compartilhado por {{count}} pessoa",
     "sharedByCount_other": "Compartilhado por {{count}} pessoas",
     "changesCount_one": "{{count}} troca",
-    "changesCount_other": "{{count}} trocas"
+    "changesCount_other": "{{count}} trocas",
+    "lendCount_one": "{{count}} empréstimo",
+    "lendCount_other": "{{count}} empréstimos",
+    "rentCount_one": "{{count}} aluguel",
+    "rentCount_other": "{{count}} aluguéis",
+    "shareCount_one": "{{count}} compartilhamento",
+    "shareCount_other": "{{count}} compartilhamentos",
+    "swapCount_one": "{{count}} troca",
+    "swapCount_other": "{{count}} trocas"
   },
   "events": {
     "eventDate": "Data do evento",

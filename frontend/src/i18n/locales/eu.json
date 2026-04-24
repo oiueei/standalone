@@ -422,7 +422,15 @@
     "sharedByCount_one": "{{count}} pertsonak partekatua",
     "sharedByCount_other": "{{count}} pertsonak partekatua",
     "changesCount_one": "{{count}} aldaketa",
-    "changesCount_other": "{{count}} aldaketa"
+    "changesCount_other": "{{count}} aldaketa",
+    "lendCount_one": "{{count}} mailegua",
+    "lendCount_other": "{{count}} maileguak",
+    "rentCount_one": "{{count}} alokairua",
+    "rentCount_other": "{{count}} alokairu",
+    "shareCount_one": "{{count}} partekatze",
+    "shareCount_other": "{{count}} partekatze",
+    "swapCount_one": "{{count}} truke",
+    "swapCount_other": "{{count}} truke"
   },
   "events": {
     "eventDate": "Ekitaldiaren data",
