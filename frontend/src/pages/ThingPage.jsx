@@ -771,6 +771,7 @@ export default function ThingPage() {
                 <Highlight
                   text={faq.question}
                   reference={faq.answer || undefined}
+                  theme={tc.color_03 ? { '--accent-line-color': `var(--color-${tc.color_03})` } : undefined}
                 />
                 {!faq.answer && isOwner && (
                   <>
