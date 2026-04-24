@@ -217,7 +217,7 @@
   },
   "deleteCollection": {
     "pageTitle": "Ezabatu: {{headline}}",
-    "warning": "Ekintza hau ezin da desegin. Zure gauzak ez dira ezabatuko.",
+    "warning": "Ekintza hau ezin da desegin. Bildumako gauza guztiak ere ezabatuko dira.",
     "errorDeleting": "Errorea bilduma ezabatzean."
   },
   "editProfile": {

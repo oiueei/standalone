@@ -3,7 +3,7 @@ Collection views for OIUEEI.
 """
 
 from django.conf import settings
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
@@ -95,6 +95,14 @@ class CollectionViewSet(ModelViewSet):
         else:
             self.check_object_permissions(self.request, obj)
         return obj
+
+    def perform_destroy(self, instance):
+        # Delete things that belong exclusively to this collection before removing it.
+        orphaned_things = instance.things.annotate(
+            col_count=Count("collections")
+        ).filter(col_count=1)
+        orphaned_things.delete()
+        instance.delete()
 
     def perform_create(self, serializer):
         validated_data = serializer.validated_data

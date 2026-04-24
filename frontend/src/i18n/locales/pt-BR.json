@@ -217,7 +217,7 @@
   },
   "deleteCollection": {
     "pageTitle": "Excluir: {{headline}}",
-    "warning": "Esta ação não pode ser desfeita. Suas coisas não serão excluídas.",
+    "warning": "Esta ação não pode ser desfeita. Todas as coisas desta coleção também serão excluídas.",
     "errorDeleting": "Erro ao excluir a coleção."
   },
   "editProfile": {

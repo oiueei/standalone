@@ -217,7 +217,7 @@
   },
   "deleteCollection": {
     "pageTitle": "Eliminar: {{headline}}",
-    "warning": "Esta acción no se puede deshacer. Tus cosas no serán eliminadas.",
+    "warning": "Esta acción no se puede deshacer. Todas las cosas de esta colección también serán eliminadas.",
     "errorDeleting": "Error al eliminar la colección."
   },
   "editProfile": {

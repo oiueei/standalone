@@ -231,7 +231,7 @@
   },
   "deleteCollection": {
     "pageTitle": "Delete: {{headline}}",
-    "warning": "This action cannot be undone. Your things will not be deleted.",
+    "warning": "This action cannot be undone. All things in this collection will also be deleted.",
     "errorDeleting": "Error deleting collection."
   },
   "editProfile": {

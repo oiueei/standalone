@@ -217,7 +217,7 @@
   },
   "deleteCollection": {
     "pageTitle": "Eliminar: {{headline}}",
-    "warning": "Esta acción non se pode desfacer. As túas cousas non serán eliminadas.",
+    "warning": "Esta acción non se pode desfacer. Todas as cousas desta colección tamén serán eliminadas.",
     "errorDeleting": "Erro ao eliminar a colección."
   },
   "editProfile": {
