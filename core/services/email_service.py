@@ -15,30 +15,23 @@ that lets recipients change preferences without logging in.
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, send_mail
-from django.core.signing import TimestampSigner
 from django.utils.html import escape
 
 CATEGORY_MANDATORY = "mandatory"
 CATEGORY_ACTIVITY = "activity"
 CATEGORY_NEWS = "news"
 
-_NOTIFICATIONS_TOKEN_SALT = "notifications-prefs"
-_NOTIFICATIONS_TOKEN_MAX_AGE = 365 * 24 * 3600  # 1 year
 
-_signer = TimestampSigner(salt=_NOTIFICATIONS_TOKEN_SALT)
-
-
-def make_notifications_token(user_code):
-    """Create a signed token scoped to notification preferences editing."""
-    return _signer.sign(user_code)
+def make_notifications_token(user):
+    """Return the user's short prefs_token for the email footer link."""
+    return user.prefs_token
 
 
 def verify_notifications_token(token):
-    """Return user_code if the token is valid, else None."""
-    try:
-        return _signer.unsign(token, max_age=_NOTIFICATIONS_TOKEN_MAX_AGE)
-    except Exception:
-        return None
+    """Return user_code if the token matches a known prefs_token, else None."""
+    from core.models import User
+    user = User.objects.filter(prefs_token=token).first()
+    return user.code if user else None
 
 
 def _lookup_user(email):
@@ -88,7 +81,7 @@ def _notifications_link(email):
     user = _lookup_user(email)
     base = _frontend_base_url()
     if user:
-        return f"{base}/me/notifications?t={make_notifications_token(user.code)}"
+        return f"{base}/me/notifications?t={make_notifications_token(user)}"
     return f"{base}/me/notifications"
 
 
