@@ -14,6 +14,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     """Lightweight thing serializer for collection listings."""
 
     owner = serializers.CharField(source="owner_id")
+    owner_name = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
     pending_booking = serializers.SerializerMethodField()
     my_pending_booking = serializers.SerializerMethodField()
@@ -29,6 +30,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "code",
             "type",
             "owner",
+            "owner_name",
             "headline",
             "description",
             "status",
@@ -49,6 +51,9 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "deal",
             "created",
         ]
+
+    def get_owner_name(self, obj):
+        return obj.owner.name or obj.owner.email
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
