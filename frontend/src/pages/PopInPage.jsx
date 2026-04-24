@@ -26,6 +26,7 @@ export default function PopInPage() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
+        localStorage.removeItem('seenWelcome');
         setStatus('success');
         setMessage(t('popin.magicLinkSent'));
       } else {

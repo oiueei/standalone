@@ -280,23 +280,22 @@ Detail page for a thing with full information and FAQs section.
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
   - `TextInput` for name, `TextArea` for headline (bio), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid).
-  - "Save" button below the form.
-  - Link below the form: **"Email preferences →"** routing to `/me/notifications`.
-- Pre-populates all fields from the current user profile.
+  - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): three HDS `Checkbox` components — "Sign-in links and invitations" (disabled, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), "News and announcements" (`notify_news`, Cat. 3). Preferences are saved together with profile fields via a single Save button.
+  - "Save" button below the preferences section.
+- Pre-populates all fields (including `notify_activity`/`notify_news`) from the current user profile.
 - On success: navigates to `/`.
 
 ### NotificationsPage (`src/pages/NotificationsPage.jsx`)
 
-- **API (authenticated mode):** `GET /api/v1/auth/me/` to load, `PUT /api/v1/users/{userCode}/` to save.
-- **API (token mode):** `GET /api/v1/notifications/token/{t}/`, `PATCH /api/v1/notifications/token/{t}/`.
-- Accessible from `/me/notifications`, optionally with `?t=<token>` appended (the token is included in the footer of every Cat. 2 / Cat. 3 email).
-- **Token mode** (when `?t=` is present): no `userCode` required in localStorage, no BackLink (the user arrived from an email, there's nowhere "back" to navigate). Invalid/expired tokens render a `Notification type="error"` with a fallback message and no form.
-- **Authenticated mode** (no `?t=`): behaves like any other protected page — redirects to `/login` if `userCode` is missing; shows the standard BackLink.
+- **API (token mode only):** `GET /api/v1/notifications/token/{t}/`, `PATCH /api/v1/notifications/token/{t}/`.
+- Accessible from `/me/notifications?t=<token>` — the token is included in the footer of every Cat. 2 / Cat. 3 email for unauthenticated preference editing.
+- **Without `?t=`**: redirects immediately to `/me/edit` (preferences are now embedded in EditProfilePage).
+- **Token mode** (when `?t=` is present): no `userCode` required in localStorage, no BackLink. Invalid/expired tokens render a `Notification type="error"` with a fallback message and no form.
 - **Form:** three HDS `Checkbox` components:
   1. "Sign-in links and invitations" — checked and **disabled** (Cat. 1, cannot be toggled).
   2. "Activity between users (recommended)" — controls `notify_activity` (Cat. 2).
   3. "News and announcements (optional)" — controls `notify_news` (Cat. 3).
-- Save button persists via the appropriate endpoint. On success shows an inline `Notification type="success"` ("Preferences saved.").
+- Save button persists via `PATCH /api/v1/notifications/token/{t}/`. On success shows an inline `Notification type="success"` ("Preferences saved.").
 - Uses the standard `form-hero` + `Koros` layout with theeeme colours from localStorage when available.
 
 ### ManageInvitesPage (`src/pages/ManageInvitesPage.jsx`)
@@ -419,7 +418,7 @@ All `<Select>` components must include `language="en"` — the HDS default is `"
 
 The project consumes HDS directly from npm and applies three local overrides:
 
-- **Fonts** (`src/fonts/oiueei-fonts.css`) — GraebenbachTRIAL `.otf` files registered as `font-family: HelsinkiGrotesk` so all HDS components use them transparently.
+- **Fonts** (`src/fonts/oiueei-fonts.css`) — GraebenbachTRIAL `.otf` files registered as `font-family: HelsinkiGroteskPro` (matching the HDS `--font-default` token) so all HDS components use them transparently.
 - **Colors** (`src/styles/oiueei-theme.css`) — CSS custom property overrides for the "Theeemes" color palette, imported after `hds-design-tokens` to take precedence.
 - **Logos & brand assets** (`src/assets/`) — OIUEEI logos, placeholders, and favicon.
 

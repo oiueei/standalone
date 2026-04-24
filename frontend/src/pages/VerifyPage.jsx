@@ -40,9 +40,13 @@ export default function VerifyPage() {
           setTitle(t('verify.rejected'));
           setSuccess(t('verify.holdRejected'));
         } else if (res.ok && data.user) {
+          const prevUserCode = localStorage.getItem('userCode');
           if (data.user?.code) localStorage.setItem('userCode', data.user.code);
           if (data.user?.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.user.theeeme_colors));
           if (data.user?.koro) localStorage.setItem('koro', data.user.koro);
+          if (data.user?.code && data.user.code !== prevUserCode) {
+            localStorage.removeItem('seenWelcome');
+          }
           if (data.invited_collection) {
             navigate(`/collections/${data.invited_collection}`, { state: { fromInvite: true } });
           } else if (!localStorage.getItem('seenWelcome')) {

@@ -80,7 +80,7 @@
   "home": {
     "greeting": "Kaixo, {{name}}",
     "createCollection": "Bilduma sortu",
-    "myProfile": "Nire profila",
+    "myProfile": "Nire profila editatu",
     "myRequests": "Nire eskaerak",
     "allThings": "Gauza guztiak",
     "loadingThings": "Gauzak kargatzen...",
@@ -398,7 +398,8 @@
     "attendeeCount_one": "{{count}} bertaratua",
     "attendeeCount_other": "{{count}} bertaratu",
     "noAttendees": "Oraindik bertaraturik ez.",
-    "attendeesHeading": "Bertaratuak"
+    "attendeesHeading": "Bertaratuak",
+    "eventTime": "Ekitaldiaren ordua"
   },
   "wishes": {
     "offerHelp": "Lagundu dezaket",

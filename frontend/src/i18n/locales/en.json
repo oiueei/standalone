@@ -94,7 +94,7 @@
   "home": {
     "greeting": "Hello, {{name}}",
     "createCollection": "Create collection",
-    "myProfile": "My profile",
+    "myProfile": "Edit my profile",
     "myRequests": "My requests",
     "allThings": "All things",
     "loadingThings": "Loading things...",
@@ -413,7 +413,8 @@
     "attendeeCount_one": "{{count}} attendee",
     "attendeeCount_other": "{{count}} attendees",
     "noAttendees": "No attendees yet.",
-    "attendeesHeading": "Attendees"
+    "attendeesHeading": "Attendees",
+    "eventTime": "Event time"
   },
   "wishes": {
     "offerHelp": "I can help",

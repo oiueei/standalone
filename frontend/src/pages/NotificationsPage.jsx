@@ -1,24 +1,19 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Checkbox, Button, Koros, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
 export default function NotificationsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('t');
 
   useEffect(() => { document.title = t('titles.notifications'); }, [t]);
 
-  const backPath = location.state?.backPath || '/';
-  const backLabel = location.state?.backLabel || t('common.home');
-  const userCode = localStorage.getItem('userCode');
   const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
 
   const [loading, setLoading] = useState(true);
@@ -30,33 +25,20 @@ export default function NotificationsPage() {
   const [invalidToken, setInvalidToken] = useState(false);
 
   useEffect(() => {
+    if (!token) {
+      navigate('/me/edit', { replace: true });
+      return;
+    }
+
     const load = async () => {
       try {
-        if (token) {
-          const res = await apiFetch(`/api/v1/notifications/token/${token}/`);
-          if (res.ok) {
-            const data = await res.json();
-            setNotifyActivity(data.notify_activity);
-            setNotifyNews(data.notify_news);
-          } else {
-            setInvalidToken(true);
-          }
-          setLoading(false);
-          return;
-        }
-
-        if (!userCode) {
-          navigate('/login');
-          return;
-        }
-
-        const res = await apiFetch('/api/v1/auth/me/');
+        const res = await apiFetch(`/api/v1/notifications/token/${token}/`);
         if (res.ok) {
           const data = await res.json();
           setNotifyActivity(data.notify_activity);
           setNotifyNews(data.notify_news);
         } else {
-          setToast({ type: 'error', message: t('notifications.errorLoading') });
+          setInvalidToken(true);
         }
       } catch {
         setToast({ type: 'error', message: t('common.connectionError') });
@@ -65,7 +47,7 @@ export default function NotificationsPage() {
       }
     };
     load();
-  }, [token, userCode, navigate, t]);
+  }, [token, navigate, t]);
 
   const handleSave = async () => {
     setSubmitting(true);
@@ -73,11 +55,10 @@ export default function NotificationsPage() {
     setToast(null);
     const body = { notify_activity: notifyActivity, notify_news: notifyNews };
     try {
-      const url = token
-        ? `/api/v1/notifications/token/${token}/`
-        : `/api/v1/users/${userCode}/`;
-      const method = token ? 'PATCH' : 'PUT';
-      const res = await apiFetch(url, { method, body: JSON.stringify(body) });
+      const res = await apiFetch(`/api/v1/notifications/token/${token}/`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      });
       if (res.ok) {
         setSaved(true);
       } else {
@@ -111,9 +92,7 @@ export default function NotificationsPage() {
         <div
           className="form-hero-content"
           style={theeemeColors.color_05 ? { '--hero-text-color': `var(--color-${theeemeColors.color_05})` } : undefined}
-        >
-          {!token && <BackLink to={backPath} label={backLabel} />}
-        </div>
+        />
         <Koros
           className="form-hero-koros"
           type={localStorage.getItem('koro') || 'basic'}

@@ -121,7 +121,7 @@ export default function HomePage() {
             <Link to="/collections/new">
               <Button style={btnStyle}>{t('home.createCollection')}</Button>
             </Link>
-            <Link to="/me">
+            <Link to="/me/edit">
               <Button variant="secondary" style={btnSecondaryStyle}>{t('home.myProfile')}</Button>
             </Link>
             <Link to="/my-bookings">

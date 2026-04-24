@@ -86,7 +86,7 @@ COLLECTIONS = [
             "veganas, sin gluten o bajas en azúcar—¡escríbeme para personalizar la tuya!"
         ),
         "invites": ["La1aN1"],
-        "is_onboarding": False,
+        "is_onboarding": True,
         "thumbnail": "L3L3C1",
     },
     {

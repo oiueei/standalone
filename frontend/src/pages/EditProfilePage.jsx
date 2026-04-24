@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Button, Koros } from 'hds-react';
+import { TextInput, TextArea, Button, Checkbox, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -25,6 +25,8 @@ export default function EditProfilePage() {
   const [koro, setKoro] = useState('basic');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
+  const [notifyActivity, setNotifyActivity] = useState(true);
+  const [notifyNews, setNotifyNews] = useState(true);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -48,6 +50,8 @@ export default function EditProfilePage() {
           setHeadline(data.headline || '');
           setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
+          setNotifyActivity(data.notify_activity ?? true);
+          setNotifyNews(data.notify_news ?? true);
         } else {
           setToast({ type: 'error', message: t('editProfile.errorLoading') });
         }
@@ -82,6 +86,8 @@ export default function EditProfilePage() {
       name: name.trim(),
       headline: headline.trim(),
       koro,
+      notify_activity: notifyActivity,
+      notify_news: notifyNews,
     };
     if (theeeme) body.theeeme = theeeme;
 
@@ -152,6 +158,31 @@ export default function EditProfilePage() {
           />
           <KoroSelector value={koro} onChange={setKoro} />
         </div>
+        <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('notifications.pageTitle')}</h2>
+        <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('notifications.intro')}</p>
+        <div className="form-grid">
+          <Checkbox
+            id="notify-magic"
+            label={t('notifications.magicLabel')}
+            helperText={t('notifications.magicHelper')}
+            checked
+            disabled
+          />
+          <Checkbox
+            id="notify-activity"
+            label={t('notifications.activityLabel')}
+            helperText={t('notifications.activityHelper')}
+            checked={notifyActivity}
+            onChange={(e) => setNotifyActivity(e.target.checked)}
+          />
+          <Checkbox
+            id="notify-news"
+            label={t('notifications.newsLabel')}
+            helperText={t('notifications.newsHelper')}
+            checked={notifyNews}
+            onChange={(e) => setNotifyNews(e.target.checked)}
+          />
+        </div>
         <div className="form-actions">
           <Button
             fullWidth
@@ -167,9 +198,6 @@ export default function EditProfilePage() {
             {submitting ? t('common.saving') : t('common.save')}
           </Button>
         </div>
-        <p style={{ marginTop: '1.5rem' }}>
-          <Link to="/me/notifications">{t('editProfile.emailPreferences')}</Link>
-        </p>
         <Toast toast={toast} onClose={() => setToast(null)} />
       </div>
     </div>

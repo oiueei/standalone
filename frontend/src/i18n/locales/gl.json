@@ -80,7 +80,7 @@
   "home": {
     "greeting": "Ola, {{name}}",
     "createCollection": "Crear colección",
-    "myProfile": "O meu perfil",
+    "myProfile": "Editar o meu perfil",
     "myRequests": "As miñas solicitudes",
     "allThings": "Todos os artigos",
     "loadingThings": "Cargando artigos...",
@@ -398,7 +398,8 @@
     "attendeeCount_one": "{{count}} asistente",
     "attendeeCount_other": "{{count}} asistentes",
     "noAttendees": "Sen asistentes aínda.",
-    "attendeesHeading": "Asistentes"
+    "attendeesHeading": "Asistentes",
+    "eventTime": "Hora do evento"
   },
   "wishes": {
     "offerHelp": "Podo axudar",

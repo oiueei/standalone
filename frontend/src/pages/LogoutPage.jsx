@@ -11,6 +11,7 @@ export default function LogoutPage() {
       headers: { 'Content-Type': 'application/json' },
     }).finally(() => {
       localStorage.removeItem('userCode');
+      localStorage.removeItem('seenWelcome');
       navigate('/login');
     });
   }, [navigate]);

@@ -8,6 +8,7 @@ import {
   NumberInput,
   Button,
   Checkbox,
+  DateInput,
   Koros,
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, ASSET_TYPE, APPOINTMENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
@@ -43,6 +44,7 @@ export default function EditThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
   const [bookingUnit, setBookingUnit] = useState('DAY');
   const [slotDuration, setSlotDuration] = useState(30);
   const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
@@ -75,7 +77,8 @@ export default function EditThingPage() {
           setCondition(data.condition || '');
           if (data.event_date) {
             const d = new Date(data.event_date);
-            setEventDate(d.toISOString().slice(0, 16));
+            setEventDate(d.toISOString().slice(0, 10));
+            setEventTime(d.toISOString().slice(11, 16));
           }
           if (data.documents) setDocuments(data.documents);
           if (data.booking_unit) setBookingUnit(data.booking_unit);
@@ -130,7 +133,7 @@ export default function EditThingPage() {
       body.condition = condition || '';
     }
     if (thingType === EVENT_TYPE) {
-      body.event_date = eventDate ? new Date(eventDate).toISOString() : null;
+      body.event_date = eventDate ? new Date(`${eventDate}T${eventTime || '00:00'}`).toISOString() : null;
     }
     if (thingType === ASSET_TYPE) {
       body.booking_unit = bookingUnit;
@@ -216,13 +219,23 @@ export default function EditThingPage() {
           helperText={`${description.length}/256`}
         />
         {thingType === EVENT_TYPE && (
-          <TextInput
-            id="edit-thing-event-date"
-            label={t('events.eventDate')}
-            type="datetime-local"
-            value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-          />
+          <>
+            <DateInput
+              id="edit-thing-event-date"
+              label={t('events.eventDate')}
+              value={eventDate}
+              onChange={(value) => setEventDate(value)}
+              dateFormat="yyyy-MM-dd"
+              language="en"
+            />
+            <TextInput
+              id="edit-thing-event-time"
+              label={t('events.eventTime')}
+              type="time"
+              value={eventTime}
+              onChange={(e) => setEventTime(e.target.value)}
+            />
+          </>
         )}
         {thingType === ASSET_TYPE && (
           <Select

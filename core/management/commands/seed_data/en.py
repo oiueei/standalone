@@ -82,7 +82,7 @@ COLLECTIONS = [
             "or low-sugar diets—contact me to personalise yours!"
         ),
         "invites": ["La1aN1"],
-        "is_onboarding": False,
+        "is_onboarding": True,
         "thumbnail": "L3L3C1",
     },
     {
