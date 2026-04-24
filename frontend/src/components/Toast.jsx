@@ -11,11 +11,10 @@ export default function Toast({ toast, onClose }) {
       aria-live="polite"
       label={toast.type === 'success' ? t('common.done') : t('common.error')}
       type={toast.type}
-      position="top-right"
-      autoClose
       dismissible
       closeButtonLabelText={t('common.close')}
       onClose={onClose}
+      style={{ marginTop: 'var(--spacing-m)' }}
     >
       {toast.message}
     </Notification>
