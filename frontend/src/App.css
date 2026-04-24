@@ -91,6 +91,8 @@ div[class*="Linkbox-module_linkbox"] {
   width: 100%;
   background: #fff;
   border-radius: 2px;
+  display: flex;
+  flex-direction: column;
 }
 
 .thing-card-image {
@@ -105,6 +107,7 @@ div[class*="Linkbox-module_linkbox"] {
 .thing-card-body {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: var(--spacing-s);
   padding: var(--spacing-m) var(--spacing-s) var(--spacing-m);
 }
@@ -180,7 +183,8 @@ div[class*="Linkbox-module_linkbox"] {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-s);
-  margin-top: var(--spacing-2-xs);
+  margin-top: auto;
+  padding-top: var(--spacing-s);
 }
 
 .thing-card-buttons a {
@@ -229,6 +233,10 @@ div[class*="Linkbox-module_linkbox"] {
   display: flex;
   flex-direction: column;
   background-color: var(--color-white);
+}
+
+.collections-grid div[class*="Linkbox-module_border"] {
+  border: none;
 }
 
 .collections-grid div[class*="Linkbox-module_linkbox"] img[class*="Linkbox-module_image"] {
