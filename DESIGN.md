@@ -158,6 +158,28 @@ HDS icons must always render in the default black (`--color-black-90`). Never co
 
 ---
 
+## 12. Responsive Breakpoints
+
+OIUEEI uses four breakpoints. HDS `breakpoint-s` (576 px) is **not used** — skip it entirely.
+
+| Name | Min-width | Content width | Columns | Margin |
+|------|-----------|---------------|---------|--------|
+| `breakpoint-xs` | 320 px | 288 px | 1 | 16 px |
+| `breakpoint-m` | 768 px | 720 px | 2 | 24 px |
+| `breakpoint-l` | 944 px | 944 px | 3 | 24 px |
+| `breakpoint-xl` | 1248 px | 1200 px | 4 | 24 px |
+
+**Rules for all layout code:**
+
+- Write CSS **mobile-first**: start with the xs (1-column) layout as the default, then use `@media (min-width: ...)` to add columns progressively.
+- Use only these four `min-width` values in media queries: `768px`, `944px`, `1248px`. Never use `576px`, `480px`, `992px`, or any other ad-hoc value.
+- Card grids (`things-grid`, `collections-grid`, and any future card grid) follow the column progression: 1 → 2 → 3 → 4.
+- The `page-container` and `form-hero-content` max-width is `1248px` (matching breakpoint-xl total width).
+
+**When writing a new layout:** start at 1 column, add `min-width: 768px` for 2 columns, `min-width: 944px` for 3, `min-width: 1248px` for 4. Never design desktop-first and collapse downward.
+
+---
+
 ## Using These Guidelines in Practice
 
 When asked to design or review a view, apply this checklist:
@@ -173,3 +195,4 @@ When asked to design or review a view, apply this checklist:
 9. Does it collect only the data it strictly needs?
 10. Does it use the form-hero + Koros layout with theeeme colours?
 11. Are all icons black (or `--color-black-40` when disabled)?
+12. Do all media queries use only the four approved breakpoints (768px / 944px / 1248px) in `min-width` order, with xs as the mobile default?

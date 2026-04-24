@@ -194,26 +194,32 @@ div[class*="Linkbox-module_linkbox"] {
 
 .things-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
-@media (max-width: 992px) {
+@media (min-width: 768px) {
   .things-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 576px) {
+@media (min-width: 944px) {
   .things-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1248px) {
+  .things-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 
 .collections-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
@@ -235,15 +241,21 @@ div[class*="Linkbox-module_linkbox"] {
   box-sizing: border-box;
 }
 
-@media (max-width: 992px) {
+@media (min-width: 768px) {
   .collections-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 576px) {
+@media (min-width: 944px) {
   .collections-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1248px) {
+  .collections-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -310,7 +322,7 @@ div[class*="Linkbox-module_linkbox"] {
   gap: var(--spacing-s);
 }
 
-@media (max-width: 576px) {
+@media (max-width: 767px) {
   .button-row-wide {
     flex-direction: column;
   }
@@ -536,13 +548,13 @@ figure[class*="Highlight-module_highlight"] {
 
 .theeeme-selector-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-2-xs);
 }
 
-@media (max-width: 480px) {
+@media (min-width: 768px) {
   .theeeme-selector-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -613,13 +625,13 @@ figure[class*="Highlight-module_highlight"] {
 
 .koro-selector-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-2-xs);
 }
 
-@media (max-width: 480px) {
+@media (min-width: 768px) {
   .koro-selector-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
