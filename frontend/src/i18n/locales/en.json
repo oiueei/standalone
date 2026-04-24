@@ -105,7 +105,11 @@
     "invitedBy": "{{name}} has invited you to view",
     "acceptInvitation": "Accept invitation",
     "declineInvitation": "Decline invitation",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
+    "broadcastBody": "{{subject}}: {{message}}",
+    "collectionDeletedLabel": "Collection deleted",
+    "collectionDeletedBody": "\"{{collection_headline}}\" has been deleted by {{owner_name}}."
   },
   "collectionPage": {
     "editCollection": "Edit collection",

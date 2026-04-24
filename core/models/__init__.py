@@ -1,6 +1,7 @@
 from .booking import BookingPeriod
 from .collection import Collection
 from .faq import FAQ
+from .notification import InAppNotification
 from .rsvp import RSVP
 from .theeeme import Theeeme
 from .thing import Thing
@@ -16,4 +17,5 @@ __all__ = [
     "Theeeme",
     "BookingPeriod",
     "ThingTransfer",
+    "InAppNotification",
 ]

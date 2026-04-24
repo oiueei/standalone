@@ -97,12 +97,26 @@ class CollectionViewSet(ModelViewSet):
         return obj
 
     def perform_destroy(self, instance):
-        # Delete things that belong exclusively to this collection before removing it.
+        from ..models.notification import InAppNotification
+
+        owner_name = instance.owner.name or instance.owner.email
+        headline = instance.headline
+        invitees = list(instance.invites.all())
+
         orphaned_things = instance.things.annotate(
             col_count=Count("collections")
         ).filter(col_count=1)
         orphaned_things.delete()
         instance.delete()
+
+        InAppNotification.objects.bulk_create([
+            InAppNotification(
+                user=invitee,
+                type=InAppNotification.COLLECTION_DELETED,
+                payload={"collection_headline": headline, "owner_name": owner_name},
+            )
+            for invitee in invitees
+        ])
 
     def perform_create(self, serializer):
         validated_data = serializer.validated_data
@@ -459,6 +473,22 @@ class CollectionBroadcastView(APIView):
             message=message,
             emails=invitee_emails,
         )
+
+        from ..models.notification import InAppNotification
+
+        InAppNotification.objects.bulk_create([
+            InAppNotification(
+                user=invitee,
+                type=InAppNotification.BROADCAST,
+                payload={
+                    "collection_headline": collection.headline,
+                    "owner_name": owner_name,
+                    "subject": subject,
+                    "message": message,
+                },
+            )
+            for invitee in collection.invites.all()
+        ])
 
         return Response(
             {

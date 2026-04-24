@@ -13,6 +13,7 @@ export default function HomePage() {
   const [myCollections, setMyCollections] = useState(null);
   const [invitedCollections, setInvitedCollections] = useState(null);
   const [pendingInvitations, setPendingInvitations] = useState([]);
+  const [inboxNotifications, setInboxNotifications] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -68,14 +69,30 @@ export default function HomePage() {
       } catch { /* silently fail */ }
     };
 
+    const fetchInbox = async () => {
+      try {
+        const res = await apiFetch('/api/v1/inbox/');
+        if (res.ok) {
+          const data = await res.json();
+          setInboxNotifications(data);
+        }
+      } catch { /* silently fail */ }
+    };
+
     fetchMe();
     fetchMyCollections();
     fetchInvitedCollections();
     fetchPendingInvitations();
+    fetchInbox();
   }, [navigate, t]);
 
   const dismissInvitation = (acceptCode) => {
     setPendingInvitations((prev) => prev.filter((inv) => inv.accept_code !== acceptCode));
+  };
+
+  const dismissInboxNotification = async (code) => {
+    setInboxNotifications((prev) => prev.filter((n) => n.code !== code));
+    try { await apiFetch(`/api/v1/inbox/${code}/`, { method: 'DELETE' }); } catch { /* silently fail */ }
   };
 
   if (error) {
@@ -136,6 +153,29 @@ export default function HomePage() {
         />
       </div>
       <div className="page-container">
+
+        {inboxNotifications.length > 0 && (
+          <>
+            {inboxNotifications.map((n) => (
+              <Notification
+                key={n.code}
+                type={n.type === 'COLLECTION_DELETED' ? 'alert' : 'info'}
+                label={n.type === 'COLLECTION_DELETED'
+                  ? t('home.collectionDeletedLabel')
+                  : t('home.broadcastLabel', { owner_name: n.payload.owner_name, collection_headline: n.payload.collection_headline })}
+                dismissible
+                closeButtonLabelText={t('home.dismiss')}
+                onClose={() => dismissInboxNotification(n.code)}
+                style={{ marginBottom: 'var(--spacing-s)' }}
+              >
+                {n.type === 'COLLECTION_DELETED'
+                  ? t('home.collectionDeletedBody', { collection_headline: n.payload.collection_headline, owner_name: n.payload.owner_name })
+                  : t('home.broadcastBody', { subject: n.payload.subject, message: n.payload.message })}
+              </Notification>
+            ))}
+            <div className="spacer-m" />
+          </>
+        )}
 
         {pendingInvitations.length > 0 && (
           <>

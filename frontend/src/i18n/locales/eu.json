@@ -91,7 +91,11 @@
     "invitedBy": "{{name}}-k ikusteko gonbidatu zaitu",
     "acceptInvitation": "Gonbidapena onartu",
     "declineInvitation": "Gonbidapena ukatu",
-    "dismiss": "Itxi"
+    "dismiss": "Itxi",
+    "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
+    "broadcastBody": "{{subject}}: {{message}}",
+    "collectionDeletedLabel": "Bilduma ezabatua",
+    "collectionDeletedBody": "\"{{collection_headline}}\" {{owner_name}}-k ezabatu du."
   },
   "collectionPage": {
     "editCollection": "Bilduma editatu",

@@ -91,7 +91,11 @@
     "invitedBy": "{{name}} t'ha convidat a veure",
     "acceptInvitation": "Acceptar invitació",
     "declineInvitation": "Rebutjar invitació",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
+    "broadcastBody": "{{subject}}: {{message}}",
+    "collectionDeletedLabel": "Col·lecció eliminada",
+    "collectionDeletedBody": "\"{{collection_headline}}\" ha estat eliminada per {{owner_name}}."
   },
   "collectionPage": {
     "editCollection": "Editar col·lecció",
