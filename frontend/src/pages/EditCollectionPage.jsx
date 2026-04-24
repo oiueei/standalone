@@ -26,6 +26,9 @@ export default function EditCollectionPage() {
   const [isMinimalist, setIsMinimalist] = useState(false);
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [pauseMessage, setPauseMessage] = useState('');
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseSubmitting, setPauseSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -69,6 +72,8 @@ export default function EditCollectionPage() {
           setIsMinimalist(data.is_minimalist || false);
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
+          setPauseMessage(data.pause_message || '');
+          setIsPaused(data.is_paused || false);
         } else {
           setToast({ type: 'error', message: t('editCollection.errorLoading') });
         }
@@ -135,6 +140,36 @@ export default function EditCollectionPage() {
     '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
+  } : undefined;
+
+  const handlePauseToggle = async () => {
+    setPauseSubmitting(true);
+    setToast(null);
+    const newMessage = isPaused ? '' : pauseMessage.trim();
+    try {
+      const res = await apiFetch(`/api/v1/collections/${code}/`, {
+        method: 'PATCH',
+        body: JSON.stringify({ pause_message: newMessage }),
+      });
+      if (res.ok) {
+        setIsPaused(!isPaused);
+        if (isPaused) setPauseMessage('');
+        setToast({ type: 'success', message: isPaused ? t('pause.resumed') : t('pause.paused') });
+      } else {
+        setToast({ type: 'error', message: t('common.error') });
+      }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setPauseSubmitting(false);
+    }
+  };
 
   return (
     <div
@@ -270,6 +305,40 @@ export default function EditCollectionPage() {
         }}>
           {t('common.delete')}
         </Button>
+      </div>
+      <div style={{ marginTop: 'var(--spacing-xl)', borderTop: '1px solid var(--color-black-20)', paddingTop: 'var(--spacing-m)' }}>
+        <h2>{t('pause.sectionHeading')}</h2>
+        <p>{t('pause.sectionHelper')}</p>
+        {!isPaused && (
+          <div className="form-grid">
+            <TextArea
+              id="pause-message"
+              label={t('pause.messageLabel')}
+              helperText={`${pauseMessage.length}/256 — ${t('pause.messageHelper')}`}
+              value={pauseMessage}
+              onChange={(e) => setPauseMessage(e.target.value)}
+              maxLength={256}
+            />
+          </div>
+        )}
+        {isPaused && (
+          <blockquote style={{ borderLeft: `4px solid ${tc.color_01 ? `var(--color-${tc.color_01})` : 'var(--color-black-50)'}`, paddingLeft: 'var(--spacing-m)', margin: 'var(--spacing-m) 0', fontStyle: 'italic' }}>
+            {pauseMessage}
+          </blockquote>
+        )}
+        <div style={{ marginTop: 'var(--spacing-m)' }}>
+          <Button
+            variant="secondary"
+            fullWidth
+            disabled={pauseSubmitting || (!isPaused && !pauseMessage.trim())}
+            onClick={handlePauseToggle}
+            style={btnSecondaryStyle}
+          >
+            {pauseSubmitting
+              ? (isPaused ? t('pause.resuming') : t('pause.pausing'))
+              : (isPaused ? t('pause.resumeButton') : t('pause.pauseButton'))}
+          </Button>
+        </div>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
       </div>

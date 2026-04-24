@@ -875,7 +875,7 @@ export default function ThingPage() {
                     <li key={tr.code}>
                       {tr.from_user_name} {t('transfers.to')} {tr.to_user_name}
                       {' — '}
-                      {t('transfers.lentOn', { date: new Date(tr.lent_date).toLocaleDateString(i18n.language) })}
+                      {t(isSwap ? 'transfers.swappedOn' : 'transfers.lentOn', { date: new Date(tr.lent_date).toLocaleDateString(i18n.language) })}
                       {tr.returned_date && (
                         <> · {t('transfers.returnedOn', { date: new Date(tr.returned_date).toLocaleDateString(i18n.language) })}</>
                       )}

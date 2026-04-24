@@ -22,6 +22,7 @@ from core.serializers.booking import (
     BookingPeriodSerializer,
     MyBookingSerializer,
 )
+from core.models.notification import InAppNotification
 from core.services.booking_service import accept_booking, cancel_booking, reject_booking
 from core.services.email_service import send_booking_decision_email
 
@@ -157,12 +158,23 @@ class BookingActionView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        owner_name = request.user.name or request.user.email
         if action == "accept":
             thing = accept_booking(booking)
             send_booking_decision_email(booking, thing, accepted=True)
+            InAppNotification.objects.create(
+                user=booking.requester_code,
+                type=InAppNotification.BOOKING_ACCEPTED,
+                payload={"thing_headline": thing.headline, "owner_name": owner_name},
+            )
         else:
             thing = reject_booking(booking)
             send_booking_decision_email(booking, thing, accepted=False)
+            InAppNotification.objects.create(
+                user=booking.requester_code,
+                type=InAppNotification.BOOKING_REJECTED,
+                payload={"thing_headline": thing.headline, "owner_name": owner_name},
+            )
 
         # Invalidate any outstanding RSVP links for this booking
         RSVP.objects.filter(

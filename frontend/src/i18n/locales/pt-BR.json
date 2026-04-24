@@ -95,7 +95,29 @@
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
     "broadcastBody": "{{subject}}: {{message}}",
     "collectionDeletedLabel": "Coleção excluída",
-    "collectionDeletedBody": "\"{{collection_headline}}\" foi excluída por {{owner_name}}."
+    "collectionDeletedBody": "\"{{collection_headline}}\" foi excluída por {{owner_name}}.",
+    "collectionRevokedLabel": "Removido da coleção",
+    "collectionRevokedBody": "{{owner_name}} removeu você de «{{collection_headline}}».",
+    "bookingAcceptedLabel": "Reserva confirmada",
+    "bookingAcceptedBody": "{{owner_name}} confirmou sua reserva de {{thing_headline}}.",
+    "bookingRejectedLabel": "Reserva recusada",
+    "bookingRejectedBody": "{{owner_name}} recusou sua reserva de {{thing_headline}}.",
+    "bookingRequestedLabel": "Nova solicitação de reserva",
+    "bookingRequestedBody": "{{requester_name}} solicitou {{thing_headline}}.",
+    "swapRequestedLabel": "Nova proposta de troca",
+    "swapRequestedBody": "{{requester_name}} propôs uma troca por {{thing_headline}}.",
+    "faqQuestionLabel": "Nova pergunta",
+    "faqQuestionBody": "{{questioner_name}} fez uma pergunta sobre {{thing_headline}}.",
+    "faqAnsweredLabel": "Pergunta respondida",
+    "faqAnsweredBody": "{{owner_name}} respondeu sua pergunta sobre {{thing_headline}}.",
+    "faqHiddenLabel": "Pergunta ocultada",
+    "faqHiddenBody": "{{owner_name}} ocultou sua pergunta sobre {{thing_headline}}.",
+    "inviteRejectedLabel": "Convite recusado",
+    "inviteRejectedBody": "{{invitee_name}} recusou o convite para {{collection_headline}}.",
+    "eventAttendLabel": "Novo participante",
+    "eventAttendBody": "{{attendee_name}} confirmou presença em {{thing_headline}}.",
+    "eventCancelLabel": "Presença cancelada",
+    "eventCancelBody": "{{attendee_name}} cancelou a presença em {{thing_headline}}."
   },
   "collectionPage": {
     "editCollection": "Editar coleção",
@@ -391,6 +413,7 @@
     "journeyCount_other": "Este item viajou para {{count}} lares",
     "currentlyWith": "Atualmente com {{name}}",
     "lentOn": "Emprestado em {{date}}",
+    "swappedOn": "Trocado em {{date}}",
     "returnedOn": "Devolvido em {{date}}",
     "to": "para",
     "noTransfers": "Sem transferências ainda.",
@@ -512,5 +535,18 @@
     "sendButton": "Enviar difusão",
     "sending": "Enviando...",
     "sent": "Difusão enviada para {{count}} convidados."
+  },
+  "pause": {
+    "sectionHeading": "Pausar",
+    "sectionHelper": "Com a coleção pausada, os convidados podem vê-la mas não podem fazer novas reservas.",
+    "messageLabel": "Mensagem para os convidados",
+    "messageHelper": "Informe os convidados sobre o motivo da pausa. Máximo de 256 caracteres.",
+    "pauseButton": "Pausar coleção",
+    "resumeButton": "Retomar coleção",
+    "pausing": "Pausando...",
+    "resuming": "Retomando...",
+    "bannerLabel": "Temporariamente pausada",
+    "paused": "Coleção pausada.",
+    "resumed": "Coleção retomada."
   }
 }

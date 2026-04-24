@@ -95,7 +95,29 @@
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
     "broadcastBody": "{{subject}}: {{message}}",
     "collectionDeletedLabel": "Bilduma ezabatua",
-    "collectionDeletedBody": "\"{{collection_headline}}\" {{owner_name}}-k ezabatu du."
+    "collectionDeletedBody": "\"{{collection_headline}}\" {{owner_name}}-k ezabatu du.",
+    "collectionRevokedLabel": "Kolekziotik kendu zaituzte",
+    "collectionRevokedBody": "{{owner_name}}-k «{{collection_headline}}» kolekziotik kendu zaitu.",
+    "bookingAcceptedLabel": "Erreserba baieztatua",
+    "bookingAcceptedBody": "{{owner_name}}-k {{thing_headline}}-ren erreserba baieztatua du.",
+    "bookingRejectedLabel": "Erreserba ukatua",
+    "bookingRejectedBody": "{{owner_name}}-k {{thing_headline}}-ren erreserba ukatu du.",
+    "bookingRequestedLabel": "Erreserba-eskaera berria",
+    "bookingRequestedBody": "{{requester_name}}-k {{thing_headline}} eskatu du.",
+    "swapRequestedLabel": "Truke-proposamen berria",
+    "swapRequestedBody": "{{requester_name}}-k {{thing_headline}}-ren trukea proposatu du.",
+    "faqQuestionLabel": "Galdera berria",
+    "faqQuestionBody": "{{questioner_name}}-k {{thing_headline}}-ri buruzko galdera egin du.",
+    "faqAnsweredLabel": "Galdera erantzuna",
+    "faqAnsweredBody": "{{owner_name}}-k {{thing_headline}}-ri buruzko zure galdera erantzun du.",
+    "faqHiddenLabel": "Galdera ezkutatu da",
+    "faqHiddenBody": "{{owner_name}}-k {{thing_headline}}-ri buruzko zure galdera ezkutatu du.",
+    "inviteRejectedLabel": "Gonbidapena ukatua",
+    "inviteRejectedBody": "{{invitee_name}}-k {{collection_headline}}-ren gonbidapena ukatu du.",
+    "eventAttendLabel": "Parte-hartzaile berria",
+    "eventAttendBody": "{{attendee_name}}-k {{thing_headline}}-ra izena eman du.",
+    "eventCancelLabel": "Parte-hartzea bertan behera utzi da",
+    "eventCancelBody": "{{attendee_name}}-k {{thing_headline}}-rako parte-hartzea bertan behera utzi du."
   },
   "collectionPage": {
     "editCollection": "Bilduma editatu",
@@ -391,6 +413,7 @@
     "journeyCount_other": "Objektu honek {{count}} etxetara bidaiatu du",
     "currentlyWith": "Gaur egun {{name}} rekin",
     "lentOn": "Maileguan {{date}}(e)an",
+    "swappedOn": "Trukatuta {{date}}(e)an",
     "returnedOn": "Itzulia {{date}}(e)an",
     "to": "nori",
     "noTransfers": "Oraindik transferentziarik ez.",
@@ -512,5 +535,18 @@
     "sendButton": "Hedapena bidali",
     "sending": "Bidaltzen...",
     "sent": "Hedapena {{count}} gonbidaturi bidali da."
+  },
+  "pause": {
+    "sectionHeading": "Pausatu",
+    "sectionHelper": "Bilduma pausatuta dagoenean, gonbidatuek ikusi dezakete baina ezin dituzte eskaera berriak egin.",
+    "messageLabel": "Gonbidatuei mezua",
+    "messageHelper": "Jakinarazi gonbidatuei bilduma zergatik pausatu den. 256 karaktere gehienez.",
+    "pauseButton": "Bilduma pausatu",
+    "resumeButton": "Bilduma berreskuratu",
+    "pausing": "Pausatzen...",
+    "resuming": "Berreskuratzen...",
+    "bannerLabel": "Aldi baterako pausatuta",
+    "paused": "Bilduma pausatuta.",
+    "resumed": "Bilduma berreskuratuta."
   }
 }

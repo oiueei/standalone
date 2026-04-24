@@ -109,7 +109,29 @@
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
     "broadcastBody": "{{subject}}: {{message}}",
     "collectionDeletedLabel": "Collection deleted",
-    "collectionDeletedBody": "\"{{collection_headline}}\" has been deleted by {{owner_name}}."
+    "collectionDeletedBody": "\"{{collection_headline}}\" has been deleted by {{owner_name}}.",
+    "collectionRevokedLabel": "Removed from collection",
+    "collectionRevokedBody": "You have been removed from \"{{collection_headline}}\" by {{owner_name}}.",
+    "bookingAcceptedLabel": "Hold confirmed",
+    "bookingAcceptedBody": "{{owner_name}} confirmed your hold on {{thing_headline}}.",
+    "bookingRejectedLabel": "Hold declined",
+    "bookingRejectedBody": "{{owner_name}} declined your hold on {{thing_headline}}.",
+    "bookingRequestedLabel": "New hold request",
+    "bookingRequestedBody": "{{requester_name}} requested {{thing_headline}}.",
+    "swapRequestedLabel": "New swap proposal",
+    "swapRequestedBody": "{{requester_name}} proposed a swap for {{thing_headline}}.",
+    "faqQuestionLabel": "New question",
+    "faqQuestionBody": "{{questioner_name}} asked a question about {{thing_headline}}.",
+    "faqAnsweredLabel": "Question answered",
+    "faqAnsweredBody": "{{owner_name}} answered your question about {{thing_headline}}.",
+    "faqHiddenLabel": "Question hidden",
+    "faqHiddenBody": "{{owner_name}} hid your question about {{thing_headline}}.",
+    "inviteRejectedLabel": "Invitation declined",
+    "inviteRejectedBody": "{{invitee_name}} declined the invitation to {{collection_headline}}.",
+    "eventAttendLabel": "New attendee",
+    "eventAttendBody": "{{attendee_name}} signed up for {{thing_headline}}.",
+    "eventCancelLabel": "Attendance cancelled",
+    "eventCancelBody": "{{attendee_name}} cancelled attendance for {{thing_headline}}."
   },
   "collectionPage": {
     "editCollection": "Edit collection",
@@ -406,6 +428,7 @@
     "journeyCount_other": "This item has travelled to {{count}} homes",
     "currentlyWith": "Currently with {{name}}",
     "lentOn": "Lent on {{date}}",
+    "swappedOn": "Swapped on {{date}}",
     "returnedOn": "Returned on {{date}}",
     "to": "to",
     "noTransfers": "No transfers yet.",
@@ -541,5 +564,18 @@
     "errorLoading": "Error loading preferences.",
     "errorSaving": "Error saving.",
     "invalidLink": "This link is invalid or has expired. Please sign in to change your preferences."
+  },
+  "pause": {
+    "sectionHeading": "Pause",
+    "sectionHelper": "While paused, the collection is visible but guests cannot place new hold requests.",
+    "messageLabel": "Message to guests",
+    "messageHelper": "Let guests know why the collection is paused. Maximum 256 characters.",
+    "pauseButton": "Pause collection",
+    "resumeButton": "Resume collection",
+    "pausing": "Pausing...",
+    "resuming": "Resuming...",
+    "bannerLabel": "Temporarily paused",
+    "paused": "Collection paused.",
+    "resumed": "Collection resumed."
   }
 }

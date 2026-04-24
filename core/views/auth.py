@@ -21,6 +21,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import RSVP, Collection, User
 from core.models.booking import BookingPeriod
+from core.models.notification import InAppNotification
 from core.serializers import RequestLinkSerializer, UserSerializer
 from core.services.booking_service import accept_booking, reject_booking
 from core.services.email_service import (
@@ -259,6 +260,14 @@ class VerifyLinkView(APIView):
                     collection.headline,
                     collection.owner.email,
                 )
+                InAppNotification.objects.create(
+                    user=collection.owner,
+                    type=InAppNotification.INVITE_REJECTED,
+                    payload={
+                        "collection_headline": collection.headline,
+                        "invitee_name": invitee_name,
+                    },
+                )
             except Collection.DoesNotExist:
                 pass  # Collection was deleted, ignore
 
@@ -307,10 +316,21 @@ class VerifyLinkView(APIView):
             )
 
         # Process booking and send email
+        owner_name = booking.owner_code.name or booking.owner_code.email
         if accepted:
             thing = accept_booking(booking)
+            InAppNotification.objects.create(
+                user=booking.requester_code,
+                type=InAppNotification.BOOKING_ACCEPTED,
+                payload={"thing_headline": thing.headline, "owner_name": owner_name},
+            )
         else:
             thing = reject_booking(booking)
+            InAppNotification.objects.create(
+                user=booking.requester_code,
+                type=InAppNotification.BOOKING_REJECTED,
+                payload={"thing_headline": thing.headline, "owner_name": owner_name},
+            )
         send_booking_decision_email(booking, thing, accepted=accepted)
 
         # Delete all accept/reject RSVPs for this booking (invalidate sibling link)

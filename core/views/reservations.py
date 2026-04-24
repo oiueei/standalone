@@ -18,6 +18,7 @@ from rest_framework.views import APIView
 
 from core.models import RSVP, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
+from core.models.notification import InAppNotification
 from core.serializers.booking import (
     ThingOrderSerializer,
     ThingRequestWithDatesSerializer,
@@ -82,6 +83,15 @@ class ThingRequestView(APIView):
         if thing_collections.exists() and not thing_collections.filter(status="ACTIVE").exists():
             return Response(
                 {"error": "This collection is currently inactive"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if all active collections are paused (no new holds allowed)
+        if thing_collections.filter(status="ACTIVE").exists() and not thing_collections.filter(
+            status="ACTIVE", pause_message=""
+        ).exists():
+            return Response(
+                {"error": "This collection is currently paused"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -422,6 +432,14 @@ class ThingRequestView(APIView):
             requester, thing, offered_things, owner_email, accept_link, reject_link
         )
         send_swap_confirmation_email(requester, thing, offered_things, booking)
+        InAppNotification.objects.create(
+            user=thing.owner,
+            type=InAppNotification.SWAP_REQUESTED,
+            payload={
+                "thing_headline": thing.headline,
+                "requester_name": requester.name or requester.email,
+            },
+        )
 
     def _send_booking_email(self, requester, thing, booking, owner_email):
         """Send booking request email to owner with RSVP-protected links."""
@@ -436,3 +454,11 @@ class ThingRequestView(APIView):
 
         send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link)
         send_booking_confirmation_email(requester, thing, booking)
+        InAppNotification.objects.create(
+            user=thing.owner,
+            type=InAppNotification.BOOKING_REQUESTED,
+            payload={
+                "thing_headline": thing.headline,
+                "requester_name": requester.name or requester.email,
+            },
+        )

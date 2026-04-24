@@ -50,6 +50,7 @@ class Collection(models.Model):
     newsletter_enabled = models.BooleanField(default=False)
     is_minimalist = models.BooleanField(default=False)
     thumbnail = models.CharField(max_length=255, blank=True, default="")
+    pause_message = models.CharField(max_length=256, blank=True, default="")
     things = models.ManyToManyField(
         "Thing",
         blank=True,
@@ -109,6 +110,10 @@ class Collection(models.Model):
             self.invites.remove(user)
         except User.DoesNotExist:
             pass
+
+    @property
+    def is_paused(self):
+        return bool(self.pause_message)
 
     def is_owner(self, user_code):
         """Check if the given user is the owner."""

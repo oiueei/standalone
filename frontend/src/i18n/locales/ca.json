@@ -95,7 +95,29 @@
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
     "broadcastBody": "{{subject}}: {{message}}",
     "collectionDeletedLabel": "Col·lecció eliminada",
-    "collectionDeletedBody": "\"{{collection_headline}}\" ha estat eliminada per {{owner_name}}."
+    "collectionDeletedBody": "\"{{collection_headline}}\" ha estat eliminada per {{owner_name}}.",
+    "collectionRevokedLabel": "Eliminat de la col·lecció",
+    "collectionRevokedBody": "{{owner_name}} t'ha eliminat de «{{collection_headline}}».",
+    "bookingAcceptedLabel": "Reserva confirmada",
+    "bookingAcceptedBody": "{{owner_name}} ha confirmat la teva reserva de {{thing_headline}}.",
+    "bookingRejectedLabel": "Reserva rebutjada",
+    "bookingRejectedBody": "{{owner_name}} ha rebutjat la teva reserva de {{thing_headline}}.",
+    "bookingRequestedLabel": "Nova sol·licitud de reserva",
+    "bookingRequestedBody": "{{requester_name}} ha sol·licitat {{thing_headline}}.",
+    "swapRequestedLabel": "Nova proposta d'intercanvi",
+    "swapRequestedBody": "{{requester_name}} ha proposat un intercanvi per {{thing_headline}}.",
+    "faqQuestionLabel": "Nova pregunta",
+    "faqQuestionBody": "{{questioner_name}} ha fet una pregunta sobre {{thing_headline}}.",
+    "faqAnsweredLabel": "Pregunta resposta",
+    "faqAnsweredBody": "{{owner_name}} ha respost la teva pregunta sobre {{thing_headline}}.",
+    "faqHiddenLabel": "Pregunta amagada",
+    "faqHiddenBody": "{{owner_name}} ha amagat la teva pregunta sobre {{thing_headline}}.",
+    "inviteRejectedLabel": "Invitació rebutjada",
+    "inviteRejectedBody": "{{invitee_name}} ha rebutjat la invitació a {{collection_headline}}.",
+    "eventAttendLabel": "Nou assistent",
+    "eventAttendBody": "{{attendee_name}} s'ha apuntat a {{thing_headline}}.",
+    "eventCancelLabel": "Assistència cancel·lada",
+    "eventCancelBody": "{{attendee_name}} ha cancel·lat la seva assistència a {{thing_headline}}."
   },
   "collectionPage": {
     "editCollection": "Editar col·lecció",
@@ -391,6 +413,7 @@
     "journeyCount_other": "Aquest objecte ha viatjat a {{count}} llars",
     "currentlyWith": "Actualment amb {{name}}",
     "lentOn": "Prestat el {{date}}",
+    "swappedOn": "Intercanviat el {{date}}",
     "returnedOn": "Retornat el {{date}}",
     "to": "a",
     "noTransfers": "Sense transferències encara.",
@@ -512,5 +535,18 @@
     "sendButton": "Enviar difusió",
     "sending": "Enviant...",
     "sent": "Difusió enviada a {{count}} convidats."
+  },
+  "pause": {
+    "sectionHeading": "Pausar",
+    "sectionHelper": "Amb la col·lecció pausada, els convidats la poden veure però no poden fer noves reserves.",
+    "messageLabel": "Missatge als convidats",
+    "messageHelper": "Explica als convidats per què la col·lecció està pausada. Màxim 256 caràcters.",
+    "pauseButton": "Pausar col·lecció",
+    "resumeButton": "Reprendre col·lecció",
+    "pausing": "Pausant...",
+    "resuming": "Reprenent...",
+    "bannerLabel": "Temporalment pausada",
+    "paused": "Col·lecció pausada.",
+    "resumed": "Col·lecció represa."
   }
 }

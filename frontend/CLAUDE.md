@@ -15,7 +15,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/rsvp/:code` | `VerifyPage` | Alias for /verify/:code |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
 | `/me/edit` | `EditProfilePage` | Edit own profile |
-| `/me/notifications` | `NotificationsPage` | Manage email preferences. Accepts optional `?t=<token>` for unauthenticated edits via email footer link. |
+| `/me/notifications/:token` | `NotificationsPage` | Manage email preferences via 6-char `prefs_token` from email footer link. Without `:token` redirects to `/me/edit`. |
 | `/collections/new` | `CreateCollectionPage` | Create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
 | `/collections/:code/edit` | `EditCollectionPage` | Edit a collection |
@@ -130,6 +130,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **Welcome Linkbox**: shown only when user arrives from a COLLECTION_INVITE flow (`location.state.fromInvite`) AND `seenWelcome` is not set in `localStorage` (first-time users only). Links to `/welcome`. Disappears after first click. The "Home" back link is hidden while the Welcome Linkbox is visible. Uses `linkbox-full-width` CSS class for 100% width.
 - **Owner attribution**: guests see "Owner. {name}" below the description in the hero, linking to `/{owner_code}` (the owner's public profile). Uses `owner_name` from `CollectionSerializer`.
 - **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is the owner, a `Notification` informs them "This collection is inactive. It is not visible to guests." Guests cannot access inactive collections (backend returns 403).
+- **Pause banner**: when `collection.is_paused` is true, a fixed non-dismissible HDS `Notification` (type `alert`) is shown at the top of the page content area, with label `pause.bannerLabel` and body `collection.pause_message`. Shown to both owner and guests. `isPaused={collection.is_paused}` is passed to every `ThingLinkbox` so Hold buttons are disabled while paused.
 - **Broadcast section**: shown to the owner when the collection has invitees. A "Send a message to guests" button opens an inline form with subject (TextInput, max 64) and message (TextArea, max 256) fields. Submits to `POST /api/v1/collections/{code}/broadcast/`. Shows success/error Notification inline. Closable via "Close" button.
 - **Things section**: shows all non-inactive things for both owners and guests (responsive 3-column grid).
 - **Inactive things section**: shown only to the owner, below the Things section, when at least one inactive thing exists. Lists all `INACTIVE` things using the same `ThingLinkbox` component.
@@ -156,9 +157,10 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `INACTIVE`: "Reactivate" (primary, calls `POST /api/v1/things/{code}/activate/`), "Edit" (secondary), "Delete" (secondary, navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`).
 - **Wish help button** (non-owners, WISH_THING only): "I can help"/"Helping" toggle button. Calls `POST /api/v1/things/{code}/offer-help/`.
 - **Reservation button** logic (non-owners, non-event, non-wish only):
-  - `ACTIVE`: enabled "Hold" button.
+  - `ACTIVE`: enabled "Hold" button. Disabled (but still showing "Hold") when `isPaused` prop is true.
   - `TAKEN`: disabled button. Label is "Waiting for confirmation" if `thing.my_pending_booking` (or local `requested` state) is set, otherwise "Reserved".
   - `INACTIVE`: not shown (guests cannot see INACTIVE things).
+  - `isPaused` prop: passed from `CollectionPage` via `collection.is_paused`. Disables all Hold/propose-swap buttons for non-owners without changing button label.
 - **Reservation request** adapts to thing type:
   - `GIFT_THING`, `SELL_THING` — button submits directly via `POST /api/v1/things/{code}/request/`, no extra fields.
   - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button navigates to `RequestThingPage` for date selection.
@@ -287,15 +289,15 @@ Detail page for a thing with full information and FAQs section.
 
 ### NotificationsPage (`src/pages/NotificationsPage.jsx`)
 
-- **API (token mode only):** `GET /api/v1/notifications/token/{t}/`, `PATCH /api/v1/notifications/token/{t}/`.
-- Accessible from `/me/notifications?t=<token>` — the token is included in the footer of every Cat. 2 / Cat. 3 email for unauthenticated preference editing.
-- **Without `?t=`**: redirects immediately to `/me/edit` (preferences are now embedded in EditProfilePage).
-- **Token mode** (when `?t=` is present): no `userCode` required in localStorage, no BackLink. Invalid/expired tokens render a `Notification type="error"` with a fallback message and no form.
+- **API:** `GET /api/v1/notifications/token/{token}/`, `PATCH /api/v1/notifications/token/{token}/`.
+- Accessible from `/me/notifications/:token` — the 6-char `prefs_token` is included in the footer of every Cat. 2 / Cat. 3 email for unauthenticated preference editing.
+- **Without `:token`**: redirects immediately to `/me/edit` (preferences are now embedded in EditProfilePage).
+- **Token mode**: no `userCode` required in localStorage, no BackLink. Invalid tokens render a `Notification type="error"` with a fallback message and no form.
 - **Form:** three HDS `Checkbox` components:
   1. "Sign-in links and invitations" — checked and **disabled** (Cat. 1, cannot be toggled).
   2. "Activity between users (recommended)" — controls `notify_activity` (Cat. 2).
   3. "News and announcements (optional)" — controls `notify_news` (Cat. 3).
-- Save button persists via `PATCH /api/v1/notifications/token/{t}/`. On success shows an inline `Notification type="success"` ("Preferences saved.").
+- Save button persists via `PATCH /api/v1/notifications/token/{token}/`. On success shows an inline `Notification type="success"` ("Preferences saved.").
 - Uses the standard `form-hero` + `Koros` layout with theeeme colours from localStorage when available.
 
 ### ManageInvitesPage (`src/pages/ManageInvitesPage.jsx`)
@@ -314,9 +316,14 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
   - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled), `Checkbox` for "Minimalist (album)" (always visible; mutually exclusive with swap), `Select` for digest frequency (None/Weekly/Monthly), `ImageUpload` for thumbnail (folder `oiueei/collections`).
-  - "Save" button below the form.
+  - "Save" button below the form, then "Delete" button below that (navigates to `DeleteCollectionPage`).
+- **Pause section** below the Delete button (separated by a border):
+  - When NOT paused: `TextArea` for a custom message to guests + "Pause collection" button (disabled until message is non-empty). Submits `PATCH { pause_message: message }`.
+  - When paused: shows the current message in a styled `<blockquote>` + "Resume collection" button. Submits `PATCH { pause_message: "" }`.
+  - Both actions are independent PATCHes from the main Save; no page reload.
+  - Shows success toast on pause/resume.
 - Pre-populates all fields from the current collection data, including existing `thumbnail_url` for preview.
-- On success: navigates to `/collections/{code}`.
+- On save: navigates to `/collections/{code}`.
 
 ### CreateCollectionPage (`src/pages/CreateCollectionPage.jsx`)
 

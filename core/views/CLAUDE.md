@@ -209,7 +209,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 | **Permission** | `AllowAny` |
 | **Rate limits** | GET: 20/min per IP. PATCH: 10/min per IP. |
 
-Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on a specific user. The token is a `TimestampSigner`-signed `user_code` (salt `notifications-prefs`, TTL 1 year) produced by `core.services.email_service.make_notifications_token()`; every Cat. 2 / Cat. 3 email footer contains a fresh link of the form `/me/notifications?t=<token>`.
+Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on a specific user. The token is the user's 6-char `prefs_token` (persistent, no expiry), produced by `core.services.email_service.make_notifications_token()`; every Cat. 2 / Cat. 3 email footer contains a link of the form `/me/notifications/{token}`.
 
 **Behaviour:**
 - Resolves the token via `verify_notifications_token()`. Returns 401 `{ "detail": "Invalid or expired link" }` if invalid.
@@ -678,6 +678,9 @@ Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THIN
 
 **INACTIVE collection enforcement:**
 If all collections containing the thing are INACTIVE, the request is blocked with 400 "This collection is currently inactive".
+
+**Paused collection enforcement:**
+If all active collections containing the thing have a non-empty `pause_message` (i.e. are paused), the request is blocked with 400 "This collection is currently paused". Collections that are paused remain visible but no new hold requests are accepted.
 
 **Responses:**
 | Status | Condition |

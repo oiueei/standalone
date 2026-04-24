@@ -112,6 +112,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     things = serializers.SerializerMethodField()
     invites = CollectionInviteSummarySerializer(many=True, read_only=True)
     pending_invites = serializers.SerializerMethodField()
+    is_paused = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Collection
@@ -131,6 +132,8 @@ class CollectionSerializer(serializers.ModelSerializer):
             "is_minimalist",
             "thumbnail",
             "thumbnail_url",
+            "pause_message",
+            "is_paused",
             "things",
             "invites",
             "pending_invites",
@@ -139,6 +142,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "code",
             "owner",
             "created",
+            "is_paused",
             "things",
             "invites",
             "pending_invites",
@@ -213,6 +217,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64, required=False)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField(required=False, allow_blank=True)
+    pause_message = SafeTextField(max_length=256, required=False, allow_blank=True)
 
     class Meta:
         model = Collection
@@ -227,6 +232,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "newsletter_enabled",
             "is_minimalist",
             "thumbnail",
+            "pause_message",
         ]
 
     def validate(self, attrs):

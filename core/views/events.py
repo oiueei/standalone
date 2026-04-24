@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import Thing, User
+from core.models.notification import InAppNotification
 from core.services.email_service import send_event_attend_email
 
 
@@ -57,6 +58,15 @@ class EventAttendView(APIView):
             event_date=thing.event_date,
             owner_email=thing.owner.email,
             attending=attending,
+        )
+        InAppNotification.objects.create(
+            user=thing.owner,
+            type=InAppNotification.EVENT_ATTEND,
+            payload={
+                "thing_headline": thing.headline,
+                "attendee_name": attendee_name,
+                "attending": attending,
+            },
         )
 
         return Response(

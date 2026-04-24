@@ -16,6 +16,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
+from core.models.notification import InAppNotification
 from core.permissions import IsCollectionOwner
 from core.serializers import (
     CollectionAddThingSerializer,
@@ -97,8 +98,6 @@ class CollectionViewSet(ModelViewSet):
         return obj
 
     def perform_destroy(self, instance):
-        from ..models.notification import InAppNotification
-
         owner_name = instance.owner.name or instance.owner.email
         headline = instance.headline
         invitees = list(instance.invites.all())
@@ -324,11 +323,16 @@ class CollectionInviteView(APIView):
         if invited_user:
             collection.invites.remove(invited_user)
 
-            # Send notification email to removed user
+            # Send notification email and in-app notification to removed user
             try:
                 user = User.objects.get(code=user_code)
                 owner_name = request.user.name or request.user.email
                 send_collection_revoke_email(owner_name, collection.headline, user.email)
+                InAppNotification.objects.create(
+                    user=user,
+                    type=InAppNotification.COLLECTION_REVOKED,
+                    payload={"collection_headline": collection.headline, "owner_name": owner_name},
+                )
             except User.DoesNotExist:
                 pass
 
@@ -473,8 +477,6 @@ class CollectionBroadcastView(APIView):
             message=message,
             emails=invitee_emails,
         )
-
-        from ..models.notification import InAppNotification
 
         InAppNotification.objects.bulk_create([
             InAppNotification(

@@ -1,5 +1,5 @@
 """
-Integration tests for notification preferences.
+Integration tests for notification preferences and in-app inbox notifications.
 
 Covers:
 - _should_send helper: mandatory always on, activity/news respect user prefs, unknown email defaults to send.
@@ -8,14 +8,18 @@ Covers:
 - Cat. 1 email (send_magic_link_email) always sent regardless of prefs.
 - PATCH /api/v1/users/{code}/ accepts notify_activity / notify_news.
 - Token endpoint GET/PATCH round-trip; rejects invalid tokens.
+- InAppNotification created for all user-action-triggered events.
 """
 
 import pytest
 from django.core import mail
+from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+from unittest.mock import patch
 
-from core.models import BookingPeriod, Collection, Thing, User
+from core.models import RSVP, BookingPeriod, Collection, FAQ, Thing, User
+from core.models.notification import InAppNotification
 from core.services.email_service import (
     CATEGORY_ACTIVITY,
     CATEGORY_MANDATORY,
@@ -117,7 +121,7 @@ def test_patch_me_updates_prefs(db, noti_user):
 
 def test_notifications_token_endpoint_round_trip(db, noti_user):
     client = APIClient()
-    token = make_notifications_token(noti_user.code)
+    token = make_notifications_token(noti_user)
 
     resp = client.get(f"/api/v1/notifications/token/{token}/")
     assert resp.status_code == 200
@@ -138,3 +142,317 @@ def test_notifications_token_rejects_invalid(db):
     client = APIClient()
     resp = client.get("/api/v1/notifications/token/not-a-real-token/")
     assert resp.status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# InAppNotification creation tests
+# ---------------------------------------------------------------------------
+
+def _make_client(user):
+    client = APIClient()
+    token = RefreshToken.for_user(user)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+    return client
+
+
+def _make_booking(owner, requester, thing, thing_type="GIFT_THING"):
+    return BookingPeriod.objects.create(
+        thing_code=thing,
+        thing_type=thing_type,
+        requester_code=requester,
+        requester_email=requester.email,
+        owner_code=owner,
+        status="PENDING",
+    )
+
+
+@pytest.fixture
+def two_users(db):
+    owner = User.objects.create(code="OWN001", email="owner@test.com", name="Owner")
+    requester = User.objects.create(code="REQ001", email="requester@test.com", name="Requester")
+    return owner, requester
+
+
+@pytest.fixture
+def thing_with_collection(db, two_users):
+    owner, requester = two_users
+    thing = Thing.objects.create(code="THG001", owner=owner, headline="My Thing", type="GIFT_THING")
+    collection = Collection.objects.create(code="COL001", owner=owner, headline="My Collection")
+    collection.things.add(thing)
+    collection.invites.add(requester)
+    return thing, collection
+
+
+@pytest.mark.django_db
+def test_booking_accept_via_api_creates_in_app_notification(two_users, thing_with_collection):
+    owner, requester = two_users
+    thing, _ = thing_with_collection
+    booking = _make_booking(owner, requester, thing)
+    client = _make_client(owner)
+
+    with patch("core.views.booking.send_booking_decision_email"):
+        resp = client.post(f"/api/v1/bookings/{booking.code}/accept/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.BOOKING_ACCEPTED)
+    assert notif.payload["thing_headline"] == thing.headline
+    assert notif.payload["owner_name"] == owner.name
+
+
+@pytest.mark.django_db
+def test_booking_reject_via_api_creates_in_app_notification(two_users, thing_with_collection):
+    owner, requester = two_users
+    thing, _ = thing_with_collection
+    booking = _make_booking(owner, requester, thing)
+    client = _make_client(owner)
+
+    with patch("core.views.booking.send_booking_decision_email"):
+        resp = client.post(f"/api/v1/bookings/{booking.code}/reject/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.BOOKING_REJECTED)
+    assert notif.payload["thing_headline"] == thing.headline
+
+
+@pytest.mark.django_db
+def test_booking_accept_via_rsvp_creates_in_app_notification(two_users, thing_with_collection):
+    owner, requester = two_users
+    thing, _ = thing_with_collection
+    booking = _make_booking(owner, requester, thing)
+    rsvp = RSVP.objects.create(
+        user_code=owner,
+        user_email=owner.email,
+        action="BOOKING_ACCEPT",
+        target_code=booking.code,
+    )
+    client = APIClient()
+
+    with patch("core.views.auth.send_booking_decision_email"):
+        resp = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    assert InAppNotification.objects.filter(user=requester, type=InAppNotification.BOOKING_ACCEPTED).exists()
+
+
+@pytest.mark.django_db
+def test_booking_request_creates_in_app_notification_for_owner(two_users, thing_with_collection):
+    owner, requester = two_users
+    thing, _ = thing_with_collection
+    client = _make_client(requester)
+
+    with patch("core.views.reservations.send_booking_request_email"), \
+         patch("core.views.reservations.send_booking_confirmation_email"):
+        resp = client.post(f"/api/v1/things/{thing.code}/request/", {}, format="json")
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.BOOKING_REQUESTED)
+    assert notif.payload["thing_headline"] == thing.headline
+    assert notif.payload["requester_name"] == requester.name
+
+
+@pytest.mark.django_db
+def test_faq_question_creates_in_app_notification_for_owner(two_users, thing_with_collection):
+    owner, requester = two_users
+    thing, _ = thing_with_collection
+    client = _make_client(requester)
+
+    with patch("core.views.faq.send_faq_question_email"):
+        resp = client.post(f"/api/v1/things/{thing.code}/faq/", {"question": "Is this available?"}, format="json")
+
+    assert resp.status_code == status.HTTP_201_CREATED
+    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.FAQ_QUESTION)
+    assert notif.payload["thing_headline"] == thing.headline
+    assert notif.payload["questioner_name"] == requester.name
+
+
+@pytest.mark.django_db
+def test_faq_answer_creates_in_app_notification_for_questioner(two_users, thing_with_collection):
+    owner, requester = two_users
+    thing, _ = thing_with_collection
+    faq = FAQ.objects.create(
+        code="FAQ001",
+        thing=thing,
+        questioner=requester,
+        question="Is this available?",
+    )
+    client = _make_client(owner)
+
+    with patch("core.views.faq.send_faq_answer_email"):
+        resp = client.post(f"/api/v1/faq/{faq.code}/answer/", {"answer": "Yes!"}, format="json")
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.FAQ_ANSWERED)
+    assert notif.payload["thing_headline"] == thing.headline
+
+
+@pytest.mark.django_db
+def test_faq_hide_creates_in_app_notification_for_questioner(two_users, thing_with_collection):
+    owner, requester = two_users
+    thing, _ = thing_with_collection
+    faq = FAQ.objects.create(
+        code="FAQ002",
+        thing=thing,
+        questioner=requester,
+        question="Is this available?",
+    )
+    client = _make_client(owner)
+
+    with patch("core.views.faq.send_faq_hide_email"):
+        resp = client.post(f"/api/v1/faq/{faq.code}/hide/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.FAQ_HIDDEN)
+    assert notif.payload["thing_headline"] == thing.headline
+
+
+@pytest.mark.django_db
+def test_event_attend_creates_in_app_notification_for_owner(two_users):
+    owner, requester = two_users
+    thing = Thing.objects.create(
+        code="EVT001", owner=owner, headline="My Event", type="EVENT_THING"
+    )
+    collection = Collection.objects.create(code="COL002", owner=owner, headline="Events")
+    collection.things.add(thing)
+    collection.invites.add(requester)
+    client = _make_client(requester)
+
+    with patch("core.views.events.send_event_attend_email"):
+        resp = client.post(f"/api/v1/things/{thing.code}/attend/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.EVENT_ATTEND)
+    assert notif.payload["thing_headline"] == thing.headline
+    assert notif.payload["attending"] is True
+
+
+@pytest.mark.django_db
+def test_invite_rejected_creates_in_app_notification_for_owner(two_users):
+    owner, invitee = two_users
+    collection = Collection.objects.create(code="COL003", owner=owner, headline="My Collection")
+    rsvp = RSVP.objects.create(
+        user_code=invitee,
+        user_email=invitee.email,
+        action="COLLECTION_REJECT",
+        target_code=collection.code,
+    )
+    client = APIClient()
+
+    with patch("core.views.auth.send_invite_rejected_email"):
+        resp = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.INVITE_REJECTED)
+    assert notif.payload["collection_headline"] == collection.headline
+    assert notif.payload["invitee_name"] == invitee.name
+
+
+@pytest.mark.django_db
+def test_collection_revoke_creates_in_app_notification_for_removed_user(two_users):
+    owner, invitee = two_users
+    collection = Collection.objects.create(code="COL004", owner=owner, headline="My Collection")
+    collection.invites.add(invitee)
+    client = _make_client(owner)
+
+    with patch("core.views.collections.send_collection_revoke_email"):
+        resp = client.delete(
+            f"/api/v1/collections/{collection.code}/invite/",
+            {"user_code": invitee.code},
+            format="json",
+        )
+
+    assert resp.status_code == status.HTTP_200_OK
+    notif = InAppNotification.objects.get(user=invitee, type=InAppNotification.COLLECTION_REVOKED)
+    assert notif.payload["collection_headline"] == collection.headline
+
+
+# ---------------------------------------------------------------------------
+# Inbox endpoint tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_inbox_get_returns_notifications_for_authenticated_user(two_users):
+    owner, requester = two_users
+    InAppNotification.objects.create(
+        code="NTF001",
+        user=owner,
+        type=InAppNotification.BOOKING_ACCEPTED,
+        payload={"thing_headline": "Widget"},
+    )
+    InAppNotification.objects.create(
+        code="NTF002",
+        user=requester,
+        type=InAppNotification.BOOKING_REJECTED,
+        payload={"thing_headline": "Gadget"},
+    )
+    client = _make_client(owner)
+
+    resp = client.get("/api/v1/inbox/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    assert len(resp.data) == 1
+    assert resp.data[0]["code"] == "NTF001"
+    assert resp.data[0]["type"] == InAppNotification.BOOKING_ACCEPTED
+    assert resp.data[0]["payload"]["thing_headline"] == "Widget"
+
+
+@pytest.mark.django_db
+def test_inbox_get_returns_empty_list_when_no_notifications(two_users):
+    owner, _ = two_users
+    client = _make_client(owner)
+
+    resp = client.get("/api/v1/inbox/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data == []
+
+
+@pytest.mark.django_db
+def test_inbox_get_requires_authentication():
+    client = APIClient()
+    resp = client.get("/api/v1/inbox/")
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_inbox_delete_removes_notification(two_users):
+    owner, _ = two_users
+    notif = InAppNotification.objects.create(
+        code="NTF003",
+        user=owner,
+        type=InAppNotification.BOOKING_ACCEPTED,
+        payload={},
+    )
+    client = _make_client(owner)
+
+    resp = client.delete(f"/api/v1/inbox/{notif.code}/")
+
+    assert resp.status_code == 204
+    assert not InAppNotification.objects.filter(code="NTF003").exists()
+
+
+@pytest.mark.django_db
+def test_inbox_delete_cannot_remove_other_users_notification(two_users):
+    owner, requester = two_users
+    notif = InAppNotification.objects.create(
+        code="NTF004",
+        user=owner,
+        type=InAppNotification.BOOKING_ACCEPTED,
+        payload={},
+    )
+    client = _make_client(requester)
+
+    resp = client.delete(f"/api/v1/inbox/{notif.code}/")
+
+    assert resp.status_code == 404
+    assert InAppNotification.objects.filter(code="NTF004").exists()
+
+
+@pytest.mark.django_db
+def test_inbox_delete_nonexistent_notification_returns_404(two_users):
+    owner, _ = two_users
+    client = _make_client(owner)
+
+    resp = client.delete("/api/v1/inbox/ZZZZZZ/")
+
+    assert resp.status_code == 404

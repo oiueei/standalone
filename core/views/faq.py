@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import FAQ, Thing
+from core.models.notification import InAppNotification
 from core.pagination import StandardResultsPagination
 from core.serializers import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
 from core.services.email_service import (
@@ -90,11 +91,16 @@ class ThingFAQListView(APIView):
             question=serializer.validated_data["question"],
         )
 
-        # Notify owner by email
+        # Notify owner by email and in-app
         owner = thing.owner
         if owner and owner.email:
             questioner_name = request.user.name or request.user.email
             send_faq_question_email(questioner_name, thing, faq.question, owner.email)
+            InAppNotification.objects.create(
+                user=owner,
+                type=InAppNotification.FAQ_QUESTION,
+                payload={"thing_headline": thing.headline, "questioner_name": questioner_name},
+            )
 
         return Response(
             FAQSerializer(faq).data,
@@ -161,12 +167,17 @@ class FAQAnswerView(APIView):
 
         faq.set_answer(serializer.validated_data["answer"])
 
-        # Notify questioner by email
+        # Notify questioner by email and in-app
         questioner = faq.questioner
         if questioner and questioner.email:
             owner_name = request.user.name or request.user.email
             send_faq_answer_email(
                 owner_name, thing.headline, faq.question, faq.answer, questioner.email
+            )
+            InAppNotification.objects.create(
+                user=questioner,
+                type=InAppNotification.FAQ_ANSWERED,
+                payload={"thing_headline": thing.headline, "owner_name": owner_name},
             )
 
         return Response(FAQSerializer(faq).data)
@@ -200,11 +211,16 @@ class FAQVisibilityView(APIView):
             faq.is_visible = False
             faq.save(update_fields=["is_visible"])
 
-            # Notify questioner by email
+            # Notify questioner by email and in-app
             questioner = faq.questioner
             if questioner and questioner.email:
                 owner_name = request.user.name or request.user.email
                 send_faq_hide_email(owner_name, thing.headline, faq.question, questioner.email)
+                InAppNotification.objects.create(
+                    user=questioner,
+                    type=InAppNotification.FAQ_HIDDEN,
+                    payload={"thing_headline": thing.headline, "owner_name": owner_name},
+                )
 
             return Response({"message": "FAQ hidden", "faq": FAQSerializer(faq).data})
         elif action == "show":

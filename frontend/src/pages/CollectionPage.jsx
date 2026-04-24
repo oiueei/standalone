@@ -179,6 +179,11 @@ export default function CollectionPage() {
           {t('collectionPage.inactiveNotice')}
         </Notification>
       )}
+      {collection.is_paused && (
+        <Notification label={t('pause.bannerLabel')} type="alert" style={{ marginBottom: 'var(--spacing-m)' }}>
+          {collection.pause_message}
+        </Notification>
+      )}
 
       {showWelcome && (
         <div className="linkbox-full-width">
@@ -218,6 +223,7 @@ export default function CollectionPage() {
               collectionHeadline={collection.headline}
               collectionOwner={collection.owner}
               minimalist={collection.is_minimalist}
+              isPaused={collection.is_paused}
               onDelete={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),

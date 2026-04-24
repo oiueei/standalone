@@ -95,6 +95,55 @@ export default function HomePage() {
     try { await apiFetch(`/api/v1/inbox/${code}/`, { method: 'DELETE' }); } catch { /* silently fail */ }
   };
 
+  const ALERT_TYPES = new Set([
+    'COLLECTION_DELETED', 'COLLECTION_REVOKED', 'BOOKING_REJECTED', 'FAQ_HIDDEN', 'INVITE_REJECTED',
+  ]);
+  const SUCCESS_TYPES = new Set(['BOOKING_ACCEPTED']);
+
+  const inboxNotificationType = (type) => {
+    if (ALERT_TYPES.has(type)) return 'alert';
+    if (SUCCESS_TYPES.has(type)) return 'success';
+    return 'info';
+  };
+
+  const inboxNotificationLabel = (n, tFn) => {
+    const p = n.payload;
+    switch (n.type) {
+      case 'COLLECTION_DELETED': return tFn('home.collectionDeletedLabel');
+      case 'COLLECTION_REVOKED': return tFn('home.collectionRevokedLabel');
+      case 'BOOKING_ACCEPTED': return tFn('home.bookingAcceptedLabel');
+      case 'BOOKING_REJECTED': return tFn('home.bookingRejectedLabel');
+      case 'BOOKING_REQUESTED': return tFn('home.bookingRequestedLabel');
+      case 'SWAP_REQUESTED': return tFn('home.swapRequestedLabel');
+      case 'FAQ_QUESTION': return tFn('home.faqQuestionLabel');
+      case 'FAQ_ANSWERED': return tFn('home.faqAnsweredLabel');
+      case 'FAQ_HIDDEN': return tFn('home.faqHiddenLabel');
+      case 'INVITE_REJECTED': return tFn('home.inviteRejectedLabel');
+      case 'EVENT_ATTEND': return p.attending ? tFn('home.eventAttendLabel') : tFn('home.eventCancelLabel');
+      default: return tFn('home.broadcastLabel', { owner_name: p.owner_name, collection_headline: p.collection_headline });
+    }
+  };
+
+  const inboxNotificationBody = (n, tFn) => {
+    const p = n.payload;
+    switch (n.type) {
+      case 'COLLECTION_DELETED': return tFn('home.collectionDeletedBody', { collection_headline: p.collection_headline, owner_name: p.owner_name });
+      case 'COLLECTION_REVOKED': return tFn('home.collectionRevokedBody', { collection_headline: p.collection_headline, owner_name: p.owner_name });
+      case 'BOOKING_ACCEPTED': return tFn('home.bookingAcceptedBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
+      case 'BOOKING_REJECTED': return tFn('home.bookingRejectedBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
+      case 'BOOKING_REQUESTED': return tFn('home.bookingRequestedBody', { thing_headline: p.thing_headline, requester_name: p.requester_name });
+      case 'SWAP_REQUESTED': return tFn('home.swapRequestedBody', { thing_headline: p.thing_headline, requester_name: p.requester_name });
+      case 'FAQ_QUESTION': return tFn('home.faqQuestionBody', { thing_headline: p.thing_headline, questioner_name: p.questioner_name });
+      case 'FAQ_ANSWERED': return tFn('home.faqAnsweredBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
+      case 'FAQ_HIDDEN': return tFn('home.faqHiddenBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
+      case 'INVITE_REJECTED': return tFn('home.inviteRejectedBody', { collection_headline: p.collection_headline, invitee_name: p.invitee_name });
+      case 'EVENT_ATTEND': return p.attending
+        ? tFn('home.eventAttendBody', { thing_headline: p.thing_headline, attendee_name: p.attendee_name })
+        : tFn('home.eventCancelBody', { thing_headline: p.thing_headline, attendee_name: p.attendee_name });
+      default: return tFn('home.broadcastBody', { subject: p.subject, message: p.message });
+    }
+  };
+
   if (error) {
     return (
       <div className="page-container">
@@ -159,18 +208,14 @@ export default function HomePage() {
             {inboxNotifications.map((n) => (
               <Notification
                 key={n.code}
-                type={n.type === 'COLLECTION_DELETED' ? 'alert' : 'info'}
-                label={n.type === 'COLLECTION_DELETED'
-                  ? t('home.collectionDeletedLabel')
-                  : t('home.broadcastLabel', { owner_name: n.payload.owner_name, collection_headline: n.payload.collection_headline })}
+                type={inboxNotificationType(n.type)}
+                label={inboxNotificationLabel(n, t)}
                 dismissible
                 closeButtonLabelText={t('home.dismiss')}
                 onClose={() => dismissInboxNotification(n.code)}
                 style={{ marginBottom: 'var(--spacing-s)' }}
               >
-                {n.type === 'COLLECTION_DELETED'
-                  ? t('home.collectionDeletedBody', { collection_headline: n.payload.collection_headline, owner_name: n.payload.owner_name })
-                  : t('home.broadcastBody', { subject: n.payload.subject, message: n.payload.message })}
+                {inboxNotificationBody(n, t)}
               </Notification>
             ))}
             <div className="spacer-m" />

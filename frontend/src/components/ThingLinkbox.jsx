@@ -8,7 +8,7 @@ import MarkdownText from './MarkdownText';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, minimalist, onDelete, onRemoveFromCollection, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, minimalist, isPaused, onDelete, onRemoveFromCollection, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -210,7 +210,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   };
 
   const showButton = !isOwner && thing.status !== 'INACTIVE';
-  const buttonDisabled = thing.status === 'TAKEN' || submitting || requested;
+  const buttonDisabled = isPaused || thing.status === 'TAKEN' || submitting || requested;
 
   const editPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}/edit`
@@ -280,7 +280,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               style={btnStyle}
               onClick={isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
-              {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+              {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
             </Button>
           )}
         </div>
@@ -502,7 +502,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 ? () => navigate(thingPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } })
                 : needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
-              {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+              {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
             </Button>
           )}
           {isCollectionOwner && !isOwner && (

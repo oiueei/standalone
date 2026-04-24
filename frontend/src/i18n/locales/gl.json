@@ -95,7 +95,29 @@
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
     "broadcastBody": "{{subject}}: {{message}}",
     "collectionDeletedLabel": "Colección eliminada",
-    "collectionDeletedBody": "\"{{collection_headline}}\" foi eliminada por {{owner_name}}."
+    "collectionDeletedBody": "\"{{collection_headline}}\" foi eliminada por {{owner_name}}.",
+    "collectionRevokedLabel": "Eliminado da colección",
+    "collectionRevokedBody": "{{owner_name}} eliminouche de «{{collection_headline}}».",
+    "bookingAcceptedLabel": "Reserva confirmada",
+    "bookingAcceptedBody": "{{owner_name}} confirmou a túa reserva de {{thing_headline}}.",
+    "bookingRejectedLabel": "Reserva rexeitada",
+    "bookingRejectedBody": "{{owner_name}} rexeitou a túa reserva de {{thing_headline}}.",
+    "bookingRequestedLabel": "Nova solicitude de reserva",
+    "bookingRequestedBody": "{{requester_name}} solicitou {{thing_headline}}.",
+    "swapRequestedLabel": "Nova proposta de intercambio",
+    "swapRequestedBody": "{{requester_name}} propuxo un intercambio por {{thing_headline}}.",
+    "faqQuestionLabel": "Nova pregunta",
+    "faqQuestionBody": "{{questioner_name}} fixo unha pregunta sobre {{thing_headline}}.",
+    "faqAnsweredLabel": "Pregunta respondida",
+    "faqAnsweredBody": "{{owner_name}} respondeu á túa pregunta sobre {{thing_headline}}.",
+    "faqHiddenLabel": "Pregunta agochada",
+    "faqHiddenBody": "{{owner_name}} agochou a túa pregunta sobre {{thing_headline}}.",
+    "inviteRejectedLabel": "Convite rexeitado",
+    "inviteRejectedBody": "{{invitee_name}} rexeitou o convite a {{collection_headline}}.",
+    "eventAttendLabel": "Novo asistente",
+    "eventAttendBody": "{{attendee_name}} apuntouse a {{thing_headline}}.",
+    "eventCancelLabel": "Asistencia cancelada",
+    "eventCancelBody": "{{attendee_name}} cancelou a súa asistencia a {{thing_headline}}."
   },
   "collectionPage": {
     "editCollection": "Editar colección",
@@ -391,6 +413,7 @@
     "journeyCount_other": "Este obxecto viaxou a {{count}} fogares",
     "currentlyWith": "Actualmente con {{name}}",
     "lentOn": "Prestado o {{date}}",
+    "swappedOn": "Intercambiado o {{date}}",
     "returnedOn": "Devolto o {{date}}",
     "to": "a",
     "noTransfers": "Sen transferencias aínda.",
@@ -512,5 +535,18 @@
     "sendButton": "Enviar difusión",
     "sending": "Enviando...",
     "sent": "Difusión enviada a {{count}} convidados."
+  },
+  "pause": {
+    "sectionHeading": "Pausar",
+    "sectionHelper": "Coa colección pausada, os convidados poden vela pero non poden facer novas reservas.",
+    "messageLabel": "Mensaxe para os convidados",
+    "messageHelper": "Infórmalle os convidados do motivo da pausa. Máximo de 256 caracteres.",
+    "pauseButton": "Pausar colección",
+    "resumeButton": "Retomar colección",
+    "pausing": "Pausando...",
+    "resuming": "Retomando...",
+    "bannerLabel": "Temporalmente pausada",
+    "paused": "Colección pausada.",
+    "resumed": "Colección retomada."
   }
 }

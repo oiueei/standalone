@@ -14,6 +14,16 @@ def _generate_code():
 class InAppNotification(models.Model):
     BROADCAST = "BROADCAST"
     COLLECTION_DELETED = "COLLECTION_DELETED"
+    COLLECTION_REVOKED = "COLLECTION_REVOKED"
+    BOOKING_ACCEPTED = "BOOKING_ACCEPTED"
+    BOOKING_REJECTED = "BOOKING_REJECTED"
+    BOOKING_REQUESTED = "BOOKING_REQUESTED"
+    SWAP_REQUESTED = "SWAP_REQUESTED"
+    FAQ_QUESTION = "FAQ_QUESTION"
+    FAQ_ANSWERED = "FAQ_ANSWERED"
+    FAQ_HIDDEN = "FAQ_HIDDEN"
+    INVITE_REJECTED = "INVITE_REJECTED"
+    EVENT_ATTEND = "EVENT_ATTEND"
 
     code = models.CharField(max_length=6, primary_key=True, default=_generate_code)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="inbox_notifications")

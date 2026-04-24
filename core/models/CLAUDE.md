@@ -95,6 +95,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `newsletter_enabled` | BooleanField | No | If True, sends weekly activity newsletter on Mondays (default: False). Requires `is_share=True`. |
 | `is_minimalist` | BooleanField | No | If True, enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (default: False). Mutually exclusive with `is_swap`. Compatible with `is_share`. |
 | `thumbnail` | CharField(255) | No | Cloudinary image ID for the collection thumbnail (default: empty string). |
+| `pause_message` | CharField(256) | No | Owner's message to guests explaining why the collection is paused (default: empty string). Non-empty = paused. |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
 
@@ -118,6 +119,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 - `remove_thing(thing_code)` - Removes a thing from the collection via M2M
 - `add_invite(user_code)` - Invites a user to view the collection via M2M
 - `remove_invite(user_code)` - Revokes a user's invite via M2M
+- `is_paused` — Property. Returns `bool(self.pause_message)`. True when the collection has a non-empty `pause_message`.
 - `is_owner(user_code)` - Returns True if user is the owner (`self.owner_id == user_code`)
 - `is_invited(user_code)` - Returns True if user is in invites (`self.invites.filter(code=user_code).exists()`)
 - `is_community()` - Returns True if `mode == "COMMUNITY"`
@@ -383,3 +385,47 @@ The `ThingTransfer` model tracks the physical journey of a thing between users (
 - `user.transfers_in` — Transfers where user is the borrower (ThingTransfer.to_user FK reverse)
 
 For security considerations, view patterns, service layer, and utilities documentation, see [`core/views/CLAUDE.md`](../views/CLAUDE.md).
+
+---
+
+## InAppNotification
+
+The `InAppNotification` model stores in-app inbox notifications. Every user-action email that targets another party also creates an `InAppNotification` for that party. Displayed on `HomePage` as dismissible HDS `Notification` banners.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
+| `user` | ForeignKey(User) | **Yes** | Recipient of the notification |
+| `type` | CharField(32) | **Yes** | Notification type constant (see below) |
+| `payload` | JSONField | Auto | Type-specific data (default: `{}`) |
+| `created` | DateTimeField | Auto | Timestamp when notification was created |
+
+### Notification Types
+
+| Type | Created when | Recipient | Payload fields |
+|------|-------------|-----------|----------------|
+| `BROADCAST` | Owner sends a broadcast to collection | Each invitee | `owner_name`, `collection_headline`, `subject`, `message` |
+| `COLLECTION_DELETED` | Owner deletes a collection | Each invitee | `collection_headline`, `owner_name` |
+| `COLLECTION_REVOKED` | Owner removes a guest from collection | Removed user | `collection_headline`, `owner_name` |
+| `BOOKING_ACCEPTED` | Owner accepts a hold request | Requester | `thing_headline`, `owner_name` |
+| `BOOKING_REJECTED` | Owner rejects a hold request | Requester | `thing_headline`, `owner_name` |
+| `BOOKING_REQUESTED` | User requests a hold (non-swap) | Thing owner | `thing_headline`, `requester_name` |
+| `SWAP_REQUESTED` | User proposes a swap | Thing owner | `thing_headline`, `requester_name` |
+| `FAQ_QUESTION` | User asks a FAQ question | Thing owner | `thing_headline`, `questioner_name` |
+| `FAQ_ANSWERED` | Owner answers a FAQ | Questioner | `thing_headline`, `owner_name` |
+| `FAQ_HIDDEN` | Owner hides a FAQ | Questioner | `thing_headline`, `owner_name` |
+| `INVITE_REJECTED` | Invitee declines a collection invite | Collection owner | `collection_headline`, `invitee_name` |
+| `EVENT_ATTEND` | User toggles event attendance | Event owner | `thing_headline`, `attendee_name`, `attending` (bool) |
+
+### Business Rules
+
+1. **One notification per action** — Created atomically alongside the corresponding email.
+2. **Dismissal via DELETE** — `DELETE /api/v1/inbox/{code}/` removes the record (one-time dismiss).
+3. **Ordered newest-first** — Default ordering is `-created`.
+4. **Cascades on user delete** — `on_delete=CASCADE` on the `user` FK.
+
+### Reverse Relations
+
+- `user.inbox_notifications` — All in-app notifications for a user (InAppNotification.user FK reverse)
