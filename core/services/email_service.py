@@ -81,7 +81,7 @@ def _notifications_link(email):
     user = _lookup_user(email)
     base = _frontend_base_url()
     if user:
-        return f"{base}/me/notifications?t={make_notifications_token(user)}"
+        return f"{base}/me/notifications/{make_notifications_token(user)}"
     return f"{base}/me/notifications"
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Checkbox, Button, Koros, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
@@ -9,8 +9,7 @@ import Toast from '../components/Toast';
 export default function NotificationsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('t');
+  const { token } = useParams();
 
   useEffect(() => { document.title = t('titles.notifications'); }, [t]);
 

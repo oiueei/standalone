@@ -63,7 +63,7 @@ function App() {
         <Route path="/rsvp/:code" element={<VerifyPage />} />
         <Route path="/me" element={<UserPage />} />
         <Route path="/me/edit" element={<EditProfilePage />} />
-        <Route path="/me/notifications" element={<NotificationsPage />} />
+        <Route path="/me/notifications/:token" element={<NotificationsPage />} />
         <Route path="/collections/new" element={<CreateCollectionPage />} />
         <Route path="/collections/:code" element={<CollectionPage />} />
         <Route path="/collections/:code/edit" element={<EditCollectionPage />} />
