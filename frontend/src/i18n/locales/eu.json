@@ -430,7 +430,9 @@
     "shareCount_one": "{{count}} partekatze",
     "shareCount_other": "{{count}} partekatze",
     "swapCount_one": "{{count}} truke",
-    "swapCount_other": "{{count}} truke"
+    "swapCount_other": "{{count}} truke",
+    "orderCount_one": "{{count}} eskaera",
+    "orderCount_other": "{{count}} eskaera"
   },
   "events": {
     "eventDate": "Ekitaldiaren data",

@@ -430,7 +430,9 @@
     "shareCount_one": "{{count}} cop compartit",
     "shareCount_other": "{{count}} cops compartit",
     "swapCount_one": "{{count}} intercanvi",
-    "swapCount_other": "{{count}} intercanvis"
+    "swapCount_other": "{{count}} intercanvis",
+    "orderCount_one": "{{count}} comanda",
+    "orderCount_other": "{{count}} comandes"
   },
   "events": {
     "eventDate": "Data de l'esdeveniment",

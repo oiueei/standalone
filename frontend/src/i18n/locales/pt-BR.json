@@ -430,7 +430,9 @@
     "shareCount_one": "{{count}} compartilhamento",
     "shareCount_other": "{{count}} compartilhamentos",
     "swapCount_one": "{{count}} troca",
-    "swapCount_other": "{{count}} trocas"
+    "swapCount_other": "{{count}} trocas",
+    "orderCount_one": "{{count}} pedido",
+    "orderCount_other": "{{count}} pedidos"
   },
   "events": {
     "eventDate": "Data do evento",

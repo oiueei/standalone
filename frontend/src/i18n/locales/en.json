@@ -445,7 +445,9 @@
     "shareCount_one": "{{count}} share",
     "shareCount_other": "{{count}} shares",
     "swapCount_one": "{{count}} swap",
-    "swapCount_other": "{{count}} swaps"
+    "swapCount_other": "{{count}} swaps",
+    "orderCount_one": "{{count}} order",
+    "orderCount_other": "{{count}} orders"
   },
   "events": {
     "eventDate": "Event date",

@@ -390,6 +390,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 thing.type === 'RENT_THING' ? 'rentCount' :
                 thing.type === 'SHARE_THING' ? 'shareCount' :
                 thing.type === 'SWAP_THING' ? 'swapCount' :
+                thing.type === 'ORDER_THING' ? 'orderCount' :
                 'changesCount'
               }`, { count: thing.transfer_count })}</span>
             </div>
