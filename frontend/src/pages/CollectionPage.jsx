@@ -99,7 +99,7 @@ export default function CollectionPage() {
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
   const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
+    '--background-color': 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
     '--color': `var(--color-${tc.color_04})`,
     '--background-color-hover': `var(--color-${tc.color_01})`,
@@ -109,7 +109,7 @@ export default function CollectionPage() {
   return (
     <div
       className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+      style={{ '--background-color': 'var(--color-white)' }}
     >
       <div
         className="form-hero"

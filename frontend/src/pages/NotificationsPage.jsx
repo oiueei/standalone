@@ -82,7 +82,7 @@ export default function NotificationsPage() {
   return (
     <div
       className="form-page"
-      style={theeemeColors.color_02 ? { backgroundColor: `var(--color-${theeemeColors.color_02})` } : undefined}
+      style={{ '--background-color': 'var(--color-white)' }}
     >
       <div
         className="form-hero"

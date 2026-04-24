@@ -171,7 +171,7 @@ export default function EditThingPage() {
   return (
     <div
       className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+      style={{ '--background-color': 'var(--color-white)' }}
     >
       <div
         className="form-hero"
@@ -411,7 +411,7 @@ export default function EditThingPage() {
             : `/things/${thingCode}/delete`;
           navigate(deletePath, { state: { backPath: returnPath, backLabel: returnLabel } });
         }} style={{
-          '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
+          '--background-color': 'var(--color-white)',
           '--border-color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
           '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
           '--background-color-hover': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,

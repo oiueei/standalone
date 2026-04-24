@@ -158,7 +158,7 @@ export default function AddThingPage() {
   return (
     <div
       className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+      style={{ '--background-color': 'var(--color-white)' }}
     >
       <div
         className="form-hero"
