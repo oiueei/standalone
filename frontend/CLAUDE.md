@@ -62,13 +62,13 @@ form-page
 | Token | Role |
 |-------|------|
 | `color_01` | Primary button background + secondary button border |
-| `color_02` | Body background + secondary button background + Koros SVG fill |
+| `color_02` | Body background + Koros SVG fill |
 | `color_03` | Koros section background |
 | `color_04` | Body text + secondary button text |
 | `color_05` | Koros text (title, description, back-link) via `--hero-text-color` |
 | `color_06` | Primary button text |
 
-All buttons across the app use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
+All buttons across the app use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary). Secondary buttons always have a white background; `color_01` drives the border and `color_04` the text.
 
 Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCollectionPage, EditProfilePage, ManageInvitesPage, MyBookingsPage, EditThingPage, ThingPage, WelcomePage, RequestThingPage, DeleteThingPage, RemoveGuestPage, UserPage.
 
@@ -141,15 +141,16 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
 
 - **Card**: the component uses HDS `Card` (a `<div>`-based container) instead of `Linkbox`, since it contains interactive elements (buttons, links). The thumbnail and headline are wrapped in `<Link>` components for navigation to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). No `stopPropagation` hacks needed.
 - **Minimalist mode**: accepts `minimalist` prop. When true, renders a simplified photo-album card: full-width photo, italic caption (headline), and minimal buttons. No description, info rows, or link to ThingPage. Owner sees confirm/cancel hold (if pending), hide/reactivate. Guest sees "Hold" button (direct POST for GIFT/SHARE, navigates to RequestThingPage for SWAP).
+- **Community attribution** (before headline, COMMUNITY collections only): when `collectionMode === 'COMMUNITY'`, renders a `thing-card-meta` paragraph showing `owner_name` and the creation date formatted as dd/mm (`toLocaleDateString('es', { day: '2-digit', month: '2-digit' })`). Uses the `collectionMode` prop passed from `CollectionPage`.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Event, Wish.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
-- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), event date (`IconCalendar`, for EVENT_THING), booking unit (`IconCalendar`, for ASSET_THING — shows "Day" or "Hour"), slot duration (`IconCalendar`, for APPOINTMENT_THING — shows duration in minutes), attendee count (`IconHome`, for EVENT_THING), helper count (`IconHome`, for WISH_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — displays "N homes" using `transfers.homesCount` i18n key). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
+- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), event date (`IconCalendar`, for EVENT_THING), booking unit (`IconCalendar`, for ASSET_THING — shows "Day" or "Hour"), slot duration (`IconCalendar`, for APPOINTMENT_THING — shows duration in minutes), attendee count (`IconHome`, for EVENT_THING), helper count (`IconHome`, for WISH_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — uses type-specific i18n keys: `transfers.lendCount`, `transfers.rentCount`, `transfers.shareCount`, `transfers.swapCount`, `transfers.orderCount` based on `thing.type`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
 - **Shared calendar for ASSET_THING and APPOINTMENT_THING**: guests also fetch `GET /api/v1/things/{code}/calendar/` for ASSET_THING and APPOINTMENT_THING and see full booking details (requester name, dates, times). The bookings list is visible to both owners and guests for these types. Hourly bookings display time ranges (e.g. "09:00–12:00") alongside dates.
 - **Owner bookings display**: fetches `GET /api/v1/things/{code}/calendar/` on mount for date-based/order types and for any TAKEN thing (GIFT/SELL with a pending request). Shows future pending and confirmed bookings with requester name, request date, date ranges/delivery info, and status. Bookings with no dates (GIFT/SELL) are always shown regardless of date. The active pending booking is tracked in local `activePendingCode` state (initialised from `thing.pending_booking`, then synced to the first PENDING from the calendar on load) and marked bold with `*` when multiple pending exist.
-- **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary).
+- **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary). Secondary buttons always have a white background (`--background-color: white`); the theeeme `color_01` is used for the border, and `color_04` for the text.
 - **Owner button matrix** (based on `thing.status`):
   - `ACTIVE` (no pending hold): "Edit" (**primary**), "Hide" (secondary). "Hide" is suppressed when pending bookings exist. For SHARE_THING after transfer (`transfer_count > 0`), "Hide" is only shown to the collection owner (not the thing owner).
   - `ACTIVE` (date-based/order with pending hold): "Confirm hold" (primary) + "Cancel hold" (secondary) targeting `activePendingCode`, then "Edit" (secondary).

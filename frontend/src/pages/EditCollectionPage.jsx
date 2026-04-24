@@ -174,7 +174,7 @@ export default function EditCollectionPage() {
   return (
     <div
       className="form-page"
-      style={{ '--background-color': 'var(--color-white)' }}
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
     >
       <div
         className="form-hero"

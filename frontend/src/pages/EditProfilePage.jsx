@@ -115,7 +115,7 @@ export default function EditProfilePage() {
   return (
     <div
       className="form-page"
-      style={{ '--background-color': 'var(--color-white)' }}
+      style={theeemeColors.color_02 ? { backgroundColor: `var(--color-${theeemeColors.color_02})` } : undefined}
     >
       <div
         className="form-hero"

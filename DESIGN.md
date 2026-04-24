@@ -140,7 +140,7 @@ Each theeeme defines six colours used consistently across the interface:
 | Token | Role |
 |-------|------|
 | `color_01` | Primary button background + secondary button border |
-| `color_02` | Body background + secondary button background + Koros SVG fill |
+| `color_02` | Body background + Koros SVG fill |
 | `color_03` | Koros section background |
 | `color_04` | Body text + secondary button text |
 | `color_05` | Koros text (title, description, back-link) via the `--hero-text-color` CSS custom property |
