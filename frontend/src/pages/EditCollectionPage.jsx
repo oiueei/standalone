@@ -258,6 +258,18 @@ export default function EditCollectionPage() {
         <Button disabled={submitting} onClick={handleSubmit} style={{ ...btnStyle, width: '100%' }}>
           {submitting ? t('common.saving') : t('common.save')}
         </Button>
+        <Button variant="secondary" fullWidth disabled={submitting} onClick={() => {
+          navigate(`/collections/${code}/delete`, { state: { backPath: `/collections/${code}/edit`, backLabel: headline || t('common.collection') } });
+        }} style={{
+          '--background-color': tc.color_02 ? `var(--color-${tc.color_02})` : undefined,
+          '--border-color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
+          '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
+          '--background-color-hover': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
+          '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
+          marginTop: 'var(--spacing-s)',
+        }}>
+          {t('common.delete')}
+        </Button>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
       </div>

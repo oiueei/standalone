@@ -23,6 +23,7 @@ import LogoutPage from './pages/LogoutPage';
 import UserPage from './pages/UserPage';
 import RequestThingPage from './pages/RequestThingPage';
 import DeleteThingPage from './pages/DeleteThingPage';
+import DeleteCollectionPage from './pages/DeleteCollectionPage';
 import RemoveGuestPage from './pages/RemoveGuestPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import WelcomePage from './pages/WelcomePage';
@@ -66,6 +67,7 @@ function App() {
         <Route path="/collections/new" element={<CreateCollectionPage />} />
         <Route path="/collections/:code" element={<CollectionPage />} />
         <Route path="/collections/:code/edit" element={<EditCollectionPage />} />
+        <Route path="/collections/:code/delete" element={<DeleteCollectionPage />} />
         <Route path="/collections/:code/invites" element={<ManageInvitesPage />} />
         <Route path="/collections/:code/add" element={<AddThingPage />} />
         <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />

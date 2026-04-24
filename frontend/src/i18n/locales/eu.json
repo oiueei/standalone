@@ -51,7 +51,9 @@
     "guests": "Gonbidatuak — {{headline}} — OIUEEI",
     "guestsDefault": "Gonbidatuak — OIUEEI",
     "user": "{{name}} — OIUEEI",
-    "notFound": "Orrialdea ez da aurkitu — OIUEEI"
+    "notFound": "Orrialdea ez da aurkitu — OIUEEI",
+    "deleteCollection": "Ezabatu {{headline}} — OIUEEI",
+    "deleteCollectionDefault": "Ezabatu bilduma — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -212,6 +214,11 @@
     "pageTitle": "Ezabatu: {{headline}}",
     "warning": "Ekintza hau ezin da desegin.",
     "errorDeleting": "Errorea gauza ezabatzen."
+  },
+  "deleteCollection": {
+    "pageTitle": "Ezabatu: {{headline}}",
+    "warning": "Ekintza hau ezin da desegin. Zure gauzak ez dira ezabatuko.",
+    "errorDeleting": "Errorea bilduma ezabatzean."
   },
   "editProfile": {
     "pageTitle": "Profila editatu",

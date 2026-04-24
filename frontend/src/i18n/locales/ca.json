@@ -51,7 +51,9 @@
     "guests": "Convidats — {{headline}} — OIUEEI",
     "guestsDefault": "Convidats — OIUEEI",
     "user": "{{name}} — OIUEEI",
-    "notFound": "Pàgina no trobada — OIUEEI"
+    "notFound": "Pàgina no trobada — OIUEEI",
+    "deleteCollection": "Eliminar {{headline}} — OIUEEI",
+    "deleteCollectionDefault": "Eliminar col·lecció — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -212,6 +214,11 @@
     "pageTitle": "Eliminar: {{headline}}",
     "warning": "Aquesta acció no es pot desfer.",
     "errorDeleting": "Error en eliminar l'article."
+  },
+  "deleteCollection": {
+    "pageTitle": "Eliminar: {{headline}}",
+    "warning": "Aquesta acció no es pot desfer. Les teves coses no s'eliminaran.",
+    "errorDeleting": "Error en eliminar la col·lecció."
   },
   "editProfile": {
     "pageTitle": "Editar perfil",

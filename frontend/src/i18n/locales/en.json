@@ -37,6 +37,8 @@
     "editThingDefault": "Edit thing — OIUEEI",
     "deleteThing": "Delete {{headline}} — OIUEEI",
     "deleteThingDefault": "Delete thing — OIUEEI",
+    "deleteCollection": "Delete {{headline}} — OIUEEI",
+    "deleteCollectionDefault": "Delete collection — OIUEEI",
     "editProfile": "Edit profile — OIUEEI",
     "notifications": "Email preferences — OIUEEI",
     "editCollection": "Edit {{headline}} — OIUEEI",
@@ -226,6 +228,11 @@
     "pageTitle": "Delete: {{headline}}",
     "warning": "This action cannot be undone.",
     "errorDeleting": "Error deleting thing."
+  },
+  "deleteCollection": {
+    "pageTitle": "Delete: {{headline}}",
+    "warning": "This action cannot be undone. Your things will not be deleted.",
+    "errorDeleting": "Error deleting collection."
   },
   "editProfile": {
     "pageTitle": "Edit profile",

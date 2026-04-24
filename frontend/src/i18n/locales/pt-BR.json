@@ -51,7 +51,9 @@
     "guests": "Convidados — {{headline}} — OIUEEI",
     "guestsDefault": "Convidados — OIUEEI",
     "user": "{{name}} — OIUEEI",
-    "notFound": "Página não encontrada — OIUEEI"
+    "notFound": "Página não encontrada — OIUEEI",
+    "deleteCollection": "Excluir {{headline}} — OIUEEI",
+    "deleteCollectionDefault": "Excluir coleção — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -212,6 +214,11 @@
     "pageTitle": "Excluir: {{headline}}",
     "warning": "Esta ação não pode ser desfeita.",
     "errorDeleting": "Erro ao excluir o item."
+  },
+  "deleteCollection": {
+    "pageTitle": "Excluir: {{headline}}",
+    "warning": "Esta ação não pode ser desfeita. Suas coisas não serão excluídas.",
+    "errorDeleting": "Erro ao excluir a coleção."
   },
   "editProfile": {
     "pageTitle": "Editar perfil",
