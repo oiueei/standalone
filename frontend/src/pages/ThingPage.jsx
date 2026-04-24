@@ -194,7 +194,6 @@ export default function ThingPage() {
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder || isSwap;
   const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
-  const canHide = isOwner;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested || (isShare && !!thing.my_pending_booking);
@@ -235,20 +234,6 @@ export default function ThingPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleHide = async () => {
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/hide/`, { method: 'POST' });
-      if (res.ok) {
-        setThing((prev) => ({ ...prev, status: 'INACTIVE' }));
-        setToast({ type: 'success', message: t('thingPage.thingHidden') });
-      } else {
-        setToast({ type: 'error', message: t('thingPage.errorHidingThing') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
     }
   };
 
@@ -619,12 +604,8 @@ export default function ThingPage() {
                 <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
               )}
             </Link>
-            {!hasPendingBookings && (
-              isCollectionOwner ? (
-                <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}>{t('common.delete')}</Button>
-              ) : canHide ? (
-                <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={handleHide}>{t('thingPage.hide')}</Button>
-              ) : null
+            {!hasPendingBookings && canDelete && (
+              <Button fullWidth variant="secondary" style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath, backLabel } })}>{t('common.delete')}</Button>
             )}
           </div>
         )}

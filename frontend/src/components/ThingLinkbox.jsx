@@ -42,7 +42,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder || isSwap || thing.is_endless;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
-  const canHide = isOwner;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
   const [attendSubmitting, setAttendSubmitting] = useState(false);
   const [isAttending, setIsAttending] = useState(false);
@@ -111,18 +110,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     }
   };
 
-  const handleHide = async () => {
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/hide/`, { method: 'POST' });
-      if (res.ok) {
-        onUpdateThing(thing.code, { status: 'INACTIVE' });
-      } else {
-        setToast({ type: 'error', message: t('thingPage.errorHidingThing') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    }
-  };
 
   const handleActivate = async () => {
     try {
@@ -281,9 +268,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               {t('thingCard.reactivate')}
             </Button>
           )}
-          {isOwner && thing.status === 'ACTIVE' && !activePendingCode && canHide && (
-            <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
-              {t('thingPage.hide')}
+          {isOwner && thing.status === 'ACTIVE' && !activePendingCode && canDelete && (
+            <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}>
+              {t('common.delete')}
             </Button>
           )}
           {showButton && !isEvent && !isWish && (
@@ -444,16 +431,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                   <Button fullWidth style={btnStyle}>{t('common.edit')}</Button>
                 )}
               </Link>
-              {!bookings.some((b) => b.status === 'PENDING') && (
-                isCollectionOwner ? (
-                  <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}>
-                    {t('common.delete')}
-                  </Button>
-                ) : canHide ? (
-                  <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={handleHide}>
-                    {t('thingPage.hide')}
-                  </Button>
-                ) : null
+              {!bookings.some((b) => b.status === 'PENDING') && canDelete && (
+                <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}>
+                  {t('common.delete')}
+                </Button>
               )}
             </>
           )}
