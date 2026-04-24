@@ -228,6 +228,7 @@ div[class*="Linkbox-module_linkbox"] {
   max-width: 100%;
   display: flex;
   flex-direction: column;
+  background-color: var(--color-white);
 }
 
 .collections-grid div[class*="Linkbox-module_linkbox"] img[class*="Linkbox-module_image"] {
