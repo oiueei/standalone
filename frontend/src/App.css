@@ -91,14 +91,15 @@ div[class*="Linkbox-module_linkbox"] {
   width: 100%;
   background: #fff;
   border-radius: 2px;
-  overflow: hidden;
 }
 
 .thing-card-image {
-  width: 100%;
+  display: block;
+  width: calc(100% - 2 * var(--spacing-s));
+  margin: var(--spacing-s) var(--spacing-s) 0;
   aspect-ratio: 3 / 2;
   object-fit: cover;
-  display: block;
+  border-radius: 2px;
 }
 
 .thing-card-body {
