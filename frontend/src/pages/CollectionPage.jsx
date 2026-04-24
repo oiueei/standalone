@@ -222,6 +222,7 @@ export default function CollectionPage() {
               collectionCode={code}
               collectionHeadline={collection.headline}
               collectionOwner={collection.owner}
+              collectionMode={collection.mode}
               minimalist={collection.is_minimalist}
               isPaused={collection.is_paused}
               onDelete={(thingCode) => setCollection((prev) => ({
@@ -316,6 +317,7 @@ export default function CollectionPage() {
                 collectionCode={code}
                 collectionHeadline={collection.headline}
                 collectionOwner={collection.owner}
+                collectionMode={collection.mode}
                 minimalist={collection.is_minimalist}
                 onDelete={(thingCode) => setCollection((prev) => ({
                   ...prev,

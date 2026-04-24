@@ -8,7 +8,7 @@ import MarkdownText from './MarkdownText';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, minimalist, isPaused, onDelete, onRemoveFromCollection, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, onDelete, onRemoveFromCollection, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -301,6 +301,11 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         </Link>
       )}
       <div className="thing-card-body">
+        {collectionMode === 'COMMUNITY' && (
+          <p className="thing-card-meta">
+            {thing.owner_name}{thing.created && ` · ${new Date(thing.created).toLocaleDateString('es', { day: '2-digit', month: '2-digit' })}`}
+          </p>
+        )}
         <h3 className="thing-card-headline">
           <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
         </h3>
