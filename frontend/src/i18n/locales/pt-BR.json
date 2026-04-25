@@ -289,7 +289,9 @@
     "modeHelper": "No modo comunitário, os convidados podem adicionar os seus próprios itens.",
     "titleRequired": "O título é obrigatório.",
     "maxHeadline": "Máximo 64 caracteres.",
-    "errorCreating": "Erro ao criar a coleção."
+    "errorCreating": "Erro ao criar a coleção.",
+    "modeInfoLabel": "Qual é a diferença?",
+    "modeInfoText": "Própria: só você pode adicionar itens a esta lista. Comunitária: todos os convidados também podem adicionar os seus próprios itens."
   },
   "welcome": {
     "greeting": "Olá, {{name}}",

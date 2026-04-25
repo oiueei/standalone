@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Checkbox, Koros } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Checkbox, Koros, Notification, IconInfoCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
@@ -37,6 +37,7 @@ export default function CreateCollectionPage() {
     { label: t('createCollection.modeProprietary'), value: 'PROPRIETARY' },
     { label: t('createCollection.modeCommunity'), value: 'COMMUNITY' },
   ];
+  const [showModeInfo, setShowModeInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -119,21 +120,42 @@ export default function CreateCollectionPage() {
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
           />
-          <Select
-                language="en"
-            id="create-collection-mode"
-            texts={{ label: t('createCollection.modeLabel') }}
-            helper={t('createCollection.modeHelper')}
-            options={MODE_OPTIONS}
-            value={mode}
-            onChange={(selectedOptions) => {
-              if (selectedOptions.length > 0) {
-                const newMode = selectedOptions[0].value;
-                setMode(newMode);
-                if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
-              }
-            }}
-          />
+          <div>
+            <Select
+              language="en"
+              id="create-collection-mode"
+              texts={{ label: t('createCollection.modeLabel') }}
+              options={MODE_OPTIONS}
+              value={mode}
+              onChange={(selectedOptions) => {
+                if (selectedOptions.length > 0) {
+                  const newMode = selectedOptions[0].value;
+                  setMode(newMode);
+                  if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowModeInfo((v) => !v)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2-xs)', padding: 'var(--spacing-2-xs) 0', color: theeemeColors.color_01 ? `var(--color-${theeemeColors.color_01})` : 'var(--color-bus)', fontSize: 'var(--fontsize-body-s)' }}
+              aria-expanded={showModeInfo}
+            >
+              <IconInfoCircle size="xs" aria-hidden />
+              {t('createCollection.modeInfoLabel')}
+            </button>
+            {showModeInfo && (
+              <Notification
+                type="info"
+                dismissible
+                closeButtonLabelText={t('common.close')}
+                onClose={() => setShowModeInfo(false)}
+                style={{ marginTop: 'var(--spacing-2-xs)' }}
+              >
+                {t('createCollection.modeInfoText')}
+              </Notification>
+            )}
+          </div>
           {mode === 'COMMUNITY' && (
             <Checkbox
               id="create-collection-swap"

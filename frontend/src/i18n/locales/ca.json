@@ -289,7 +289,9 @@
     "modeHelper": "En mode comunitari, els convidats poden afegir els seus propis articles.",
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters.",
-    "errorCreating": "Error en crear la col·lecció."
+    "errorCreating": "Error en crear la col·lecció.",
+    "modeInfoLabel": "Quina és la diferència?",
+    "modeInfoText": "Pròpia: només tu pots afegir coses a aquesta llista. Comunitària: tots els convidats també poden afegir les seves pròpies coses."
   },
   "welcome": {
     "greeting": "Hola, {{name}}",

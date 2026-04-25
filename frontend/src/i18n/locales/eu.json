@@ -289,7 +289,9 @@
     "modeHelper": "Modu komunitarioan, gonbidatuek beren gauzak gehitu ditzakete.",
     "titleRequired": "Izenburua beharrezkoa da.",
     "maxHeadline": "Gehienez 64 karaktere.",
-    "errorCreating": "Errorea bilduma sortzen."
+    "errorCreating": "Errorea bilduma sortzen.",
+    "modeInfoLabel": "Zer da aldea?",
+    "modeInfoText": "Propioa: zeuk bakarrik gehi ditzakezu gauzak zerrenda honetan. Komunitarioa: gonbidatu guztiek ere beren gauzak gehi ditzakete."
   },
   "welcome": {
     "greeting": "Kaixo, {{name}}",

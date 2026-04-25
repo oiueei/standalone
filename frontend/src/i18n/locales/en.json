@@ -304,7 +304,9 @@
     "modeHelper": "In community mode, invited users can add their own things.",
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters.",
-    "errorCreating": "Error creating collection."
+    "errorCreating": "Error creating collection.",
+    "modeInfoLabel": "What's the difference?",
+    "modeInfoText": "Proprietary: only you can add things to this list. Community: everyone you invite can add their own things too."
   },
   "welcome": {
     "greeting": "Hello, {{name}}",
