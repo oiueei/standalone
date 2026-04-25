@@ -55,7 +55,7 @@ COLLECTIONS = [
             "Anything left? Straight to the local orphanage!"
         ),
         "invites": ["L3L3oo"],
-        "is_onboarding": False,
+        "is_onboarding": True,
         "thumbnail": "La1aC1",
     },
     {

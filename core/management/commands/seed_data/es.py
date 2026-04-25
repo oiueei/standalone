@@ -58,7 +58,7 @@ COLLECTIONS = [
             "¿Queda algo? ¡Al orfanato del barrio de cabeza!"
         ),
         "invites": ["L3L3oo"],
-        "is_onboarding": False,
+        "is_onboarding": True,
         "thumbnail": "La1aC1",
     },
     {
