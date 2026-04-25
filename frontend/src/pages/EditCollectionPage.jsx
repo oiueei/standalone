@@ -266,6 +266,7 @@ export default function EditCollectionPage() {
           label={t('minimalist.enableMinimalist')}
           checked={isMinimalist}
           onChange={(val) => { setIsMinimalist(val); if (val) setIsSwap(false); }}
+          variant="inline"
           theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
         />
         <Select

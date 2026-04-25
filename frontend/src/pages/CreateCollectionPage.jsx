@@ -141,7 +141,7 @@ export default function CreateCollectionPage() {
               style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-2-xs)', padding: 'var(--spacing-2-xs) 0', color: theeemeColors.color_01 ? `var(--color-${theeemeColors.color_01})` : 'var(--color-bus)', fontSize: 'var(--fontsize-body-s)', whiteSpace: 'nowrap' }}
               aria-expanded={showModeInfo}
             >
-              <IconInfoCircle size="extraSmall" aria-hidden />
+              <IconInfoCircle size="small" aria-hidden />
               {t('createCollection.modeInfoLabel')}
             </button>
             {showModeInfo && (
@@ -185,6 +185,7 @@ export default function CreateCollectionPage() {
             label={t('minimalist.enableMinimalist')}
             checked={isMinimalist}
             onChange={(val) => { setIsMinimalist(val); if (val) setIsSwap(false); }}
+            variant="inline"
             theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
           />
           <ImageUpload
