@@ -124,7 +124,22 @@ export default function CreateCollectionPage() {
             <Select
               language="en"
               id="create-collection-mode"
-              texts={{ label: t('createCollection.modeLabel') }}
+              texts={{
+                label: (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                    {t('createCollection.modeLabel')}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setShowModeInfo((v) => !v); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-2-xs)', padding: 0, color: theeemeColors.color_01 ? `var(--color-${theeemeColors.color_01})` : 'var(--color-bus)', fontSize: 'var(--fontsize-body-s)', whiteSpace: 'nowrap', fontWeight: 'normal' }}
+                      aria-expanded={showModeInfo}
+                    >
+                      <IconInfoCircle size="small" aria-hidden />
+                      {t('createCollection.modeInfoLabel')}
+                    </button>
+                  </span>
+                ),
+              }}
               options={MODE_OPTIONS}
               value={mode}
               onChange={(selectedOptions) => {
@@ -135,15 +150,6 @@ export default function CreateCollectionPage() {
                 }
               }}
             />
-            <button
-              type="button"
-              onClick={() => setShowModeInfo((v) => !v)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-2-xs)', padding: 'var(--spacing-2-xs) 0', color: theeemeColors.color_01 ? `var(--color-${theeemeColors.color_01})` : 'var(--color-bus)', fontSize: 'var(--fontsize-body-s)', whiteSpace: 'nowrap' }}
-              aria-expanded={showModeInfo}
-            >
-              <IconInfoCircle size="small" aria-hidden />
-              {t('createCollection.modeInfoLabel')}
-            </button>
             {showModeInfo && (
               <Notification
                 type="info"
