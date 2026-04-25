@@ -140,7 +140,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPage` and `HomePage`.
 
 - **Card**: the component uses HDS `Card` (a `<div>`-based container) instead of `Linkbox`, since it contains interactive elements (buttons, links). The thumbnail and headline are wrapped in `<Link>` components for navigation to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). No `stopPropagation` hacks needed.
-- **Minimalist mode**: accepts `minimalist` prop. When true, renders a simplified photo-album card: full-width photo, italic caption (headline), and minimal buttons. No description, info rows, or link to ThingPage. Owner sees confirm/cancel hold (if pending), hide/reactivate. Guest sees "Hold" button (direct POST for GIFT/SHARE, navigates to RequestThingPage for SWAP).
+- **Minimalist mode**: accepts `minimalist` prop. When true, renders a photo-album card: photo fills a `3/4` aspect-ratio container (`object-fit: cover`), action buttons are overlaid at the bottom of the photo (`.thing-card-minimalist-buttons`, `position: absolute`), and the headline appears below as a small centred caption (`.thing-card-caption`). No description, info rows, or link to ThingPage. Owner sees confirm/cancel hold (if pending), hide/reactivate. Guest sees "Hold" button (direct POST for GIFT/SHARE, navigates to RequestThingPage for SWAP).
 - **Community attribution** (before headline, COMMUNITY collections only): when `collectionMode === 'COMMUNITY'`, renders a `thing-card-meta` paragraph showing `owner_name` and the creation date formatted as dd/mm (`toLocaleDateString('es', { day: '2-digit', month: '2-digit' })`). Uses the `collectionMode` prop passed from `CollectionPage`.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Event, Wish.
@@ -264,7 +264,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type (WISH_THING, SHARE_THING, and ASSET_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). `ImageUpload` for thumbnail (folder `oiueei/collections`). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. When collection `is_minimalist`: filters type selector to GIFT/SHARE/SWAP only, hides fee/availability/location/condition fields, makes ImageUpload label show "Photo (required)", hides DocumentUpload. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with day checkboxes (Mon–Sun) and time range inputs per window, "Add time window" button. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING, SHARE_THING, and ASSET_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). Immediately after the type selector: `ToggleButton` for "Sin límite / Endless" (shown only for GIFT/SELL types). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. When collection `is_minimalist`: filters type selector to GIFT/SHARE/SWAP only, hides fee/availability/location/condition fields, makes ImageUpload label show "Photo (required)", hides DocumentUpload. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with day checkboxes (Mon–Sun) and time range inputs per window, "Add time window" button. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -273,7 +273,7 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save, `DELETE /api/v1/things/{thingCode}/` to delete
 - Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
-- Same fields as AddThingPage (type, headline, description, event date for EVENT_THING, booking unit for ASSET_THING, fee, availability/location/condition for `DETAIL_TYPES`, `ImageUpload` for thumbnail last). Pre-populates all fields including existing `thumbnail_url` for preview, `event_date` for events, and `booking_unit` for assets.
+- Same fields as AddThingPage (type, then `ToggleButton` for Endless immediately after type for GIFT/SELL, headline, description, event date for EVENT_THING, booking unit for ASSET_THING, fee, availability/location/condition for `DETAIL_TYPES`, `ImageUpload` for thumbnail last). Pre-populates all fields including existing `thumbnail_url` for preview, `event_date` for events, and `booking_unit` for assets.
 - "Save" button (primary, full width) and "Delete" button (secondary, full width) below the form. Delete navigates to `DeleteThingPage` with `{ state: { backPath: returnPath, backLabel: returnLabel } }`.
 - On success: navigates back to collection or home.
 
@@ -283,7 +283,7 @@ Detail page for a thing with full information and FAQs section.
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
   - `TextInput` for name, `TextArea` for headline (bio), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid).
-  - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): three HDS `Checkbox` components — "Sign-in links and invitations" (disabled, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), "News and announcements" (`notify_news`, Cat. 3). Preferences are saved together with profile fields via a single Save button.
+  - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): three HDS `ToggleButton` components (wrapped in `.toggle-left`) — "Sign-in links and invitations" (always checked, `disabled`, renders black pill, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), "News and announcements" (`notify_news`, Cat. 3). Each has a sub-label helper text rendered as a `<span>` inside the label prop. Preferences are saved together with profile fields via a single Save button.
   - "Save" button below the preferences section.
 - Pre-populates all fields (including `notify_activity`/`notify_news`) from the current user profile.
 - On success: navigates to `/`.
@@ -294,10 +294,11 @@ Detail page for a thing with full information and FAQs section.
 - Accessible from `/me/notifications/:token` — the 6-char `prefs_token` is included in the footer of every Cat. 2 / Cat. 3 email for unauthenticated preference editing.
 - **Without `:token`**: redirects immediately to `/me/edit` (preferences are now embedded in EditProfilePage).
 - **Token mode**: no `userCode` required in localStorage, no BackLink. Invalid tokens render a `Notification type="error"` with a fallback message and no form.
-- **Form:** three HDS `Checkbox` components:
-  1. "Sign-in links and invitations" — checked and **disabled** (Cat. 1, cannot be toggled).
+- **Form:** three HDS `ToggleButton` components (wrapped in `.toggle-left`):
+  1. "Sign-in links and invitations" — always checked, `disabled`, renders black pill (Cat. 1, cannot be toggled).
   2. "Activity between users (recommended)" — controls `notify_activity` (Cat. 2).
   3. "News and announcements (optional)" — controls `notify_news` (Cat. 3).
+  Each toggle has a sub-label helper text rendered as a `<span>` inside the label prop.
 - Save button persists via `PATCH /api/v1/notifications/token/{token}/`. On success shows an inline `Notification type="success"` ("Preferences saved.").
 - Uses the standard `form-hero` + `Koros` layout with theeeme colours from localStorage when available.
 
@@ -316,7 +317,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled), `Checkbox` for "Minimalist (album)" (always visible; mutually exclusive with swap), `Select` for digest frequency (None/Weekly/Monthly), `ImageUpload` for thumbnail (folder `oiueei/collections`).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `ToggleButton` for "Enable item swapping" and `ToggleButton` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; swap and share are mutually exclusive with each other), `ToggleButton` for "Weekly activity newsletter" (visible when share is enabled), `ToggleButton` for "Minimalist (album)" (always visible; independent of swap), `Select` for digest frequency (None/Weekly/Monthly), `ImageUpload` for thumbnail (folder `oiueei/collections`). All toggles use the `.toggle-left` wrapper class.
   - "Save" button below the form, then "Delete" button below that (navigates to `DeleteCollectionPage`).
 - **Pause section** below the Delete button (separated by a border):
   - When NOT paused: `TextArea` for a custom message to guests + "Pause collection" button (disabled until message is non-empty). Submits `PATCH { pause_message: message }`.
@@ -331,7 +332,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `Checkbox` for "Enable item swapping" and `Checkbox` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; mutually exclusive), `Checkbox` for "Weekly activity newsletter" (visible when share is enabled), `Checkbox` for "Minimalist (album)" (always visible; mutually exclusive with swap).
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `ToggleButton` for "Enable item swapping" and `ToggleButton` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; swap and share are mutually exclusive with each other), `ToggleButton` for "Weekly activity newsletter" (visible when share is enabled), `ToggleButton` for "Minimalist (album)" (always visible; independent of swap). All toggles use the `.toggle-left` wrapper class.
   - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 
@@ -421,6 +422,14 @@ Smoke tests and automated accessibility checks using vitest + testing-library + 
 ### HDS Select quirks (v5)
 
 All `<Select>` components must include `language="en"` — the HDS default is `"fi"` which produces Finnish placeholder text ("Valitse yksi"). Additional API notes: `value` is an array (`[{ label, value }]`), `onChange` receives an array (`(sel) => sel[0].value`), error text uses the `error` prop (string), not `errorText`.
+
+### HDS ToggleButton quirks (v5)
+
+Three non-obvious behaviours:
+
+1. **`onChange` receives the current value, not the new one.** Always negate: `onChange={(val) => setState(!val)}`.
+2. **`style` prop targets the inner `<button>`, not the flex container.** Flex layout overrides via `style` have no effect. Use `<div className="toggle-left">` wrapper instead — the `.toggle-left` CSS class in `App.css` reverses the flex direction to put the pill on the left.
+3. **`disabled + checked` renders light grey by default.** Overridden to `--color-black-90` in `App.css` via `.toggle-left button[aria-pressed="true"][disabled]`.
 
 ## OIUEEI Customization Layer
 

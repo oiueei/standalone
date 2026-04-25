@@ -234,56 +234,58 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   if (minimalist) {
     return (
       <div className="thing-card-minimalist">
-        {thing.thumbnail_url && (
-          <img
-            src={thing.thumbnail_url}
-            alt={thing.headline}
-            className="thing-card-image-minimalist"
-          />
-        )}
-        <p className="thing-card-caption">{thing.headline}</p>
-        <div className="thing-card-buttons">
-          {isOwner && thing.status === 'ACTIVE' && activePendingCode && (
-            <>
-              <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
-                {t('thingCard.confirmHold')}
+        <div className="thing-card-minimalist-photo">
+          {thing.thumbnail_url && (
+            <img
+              src={thing.thumbnail_url}
+              alt={thing.headline}
+              className="thing-card-image-minimalist"
+            />
+          )}
+          <div className="thing-card-minimalist-buttons">
+            {isOwner && thing.status === 'ACTIVE' && activePendingCode && (
+              <>
+                <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
+                  {t('thingCard.confirmHold')}
+                </Button>
+                <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
+                  {t('thingCard.cancelHold')}
+                </Button>
+              </>
+            )}
+            {isOwner && thing.status === 'TAKEN' && (
+              <>
+                <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+                  {t('thingCard.confirmHold')}
+                </Button>
+                <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
+                  {t('thingCard.cancelHold')}
+                </Button>
+              </>
+            )}
+            {isOwner && thing.status === 'INACTIVE' && (
+              <Button fullWidth onClick={handleActivate} style={btnStyle}>
+                {t('thingCard.reactivate')}
               </Button>
-              <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
-                {t('thingCard.cancelHold')}
+            )}
+            {isOwner && thing.status === 'ACTIVE' && !activePendingCode && canDelete && (
+              <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}>
+                {t('common.delete')}
               </Button>
-            </>
-          )}
-          {isOwner && thing.status === 'TAKEN' && (
-            <>
-              <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                {t('thingCard.confirmHold')}
+            )}
+            {showButton && !isEvent && !isWish && (
+              <Button
+                fullWidth
+                disabled={buttonDisabled}
+                style={btnStyle}
+                onClick={isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
+              >
+                {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
               </Button>
-              <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-                {t('thingCard.cancelHold')}
-              </Button>
-            </>
-          )}
-          {isOwner && thing.status === 'INACTIVE' && (
-            <Button fullWidth onClick={handleActivate} style={btnStyle}>
-              {t('thingCard.reactivate')}
-            </Button>
-          )}
-          {isOwner && thing.status === 'ACTIVE' && !activePendingCode && canDelete && (
-            <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}>
-              {t('common.delete')}
-            </Button>
-          )}
-          {showButton && !isEvent && !isWish && (
-            <Button
-              fullWidth
-              disabled={buttonDisabled}
-              style={btnStyle}
-              onClick={isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
-            >
-              {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
-            </Button>
-          )}
+            )}
+          </div>
         </div>
+        <p className="thing-card-caption">{thing.headline}</p>
         <Toast toast={toast} onClose={() => setToast(null)} />
       </div>
     );

@@ -862,17 +862,32 @@ figure[class*="Highlight-module_highlight"] {
   overflow: hidden;
   text-align: center;
 }
+.thing-card-minimalist-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-black-10);
+}
 .thing-card-image-minimalist {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
+.thing-card-minimalist-buttons {
+  position: absolute;
+  bottom: var(--spacing-s);
+  left: var(--spacing-s);
+  right: var(--spacing-s);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
 .thing-card-caption {
-  font-style: italic;
-  padding: var(--spacing-xs) var(--spacing-s);
+  padding: var(--spacing-s) var(--spacing-s) var(--spacing-xs);
   margin: 0;
   text-align: center;
-}
-.thing-card-minimalist .thing-card-buttons {
-  padding: 0 var(--spacing-s) var(--spacing-s);
+  font-size: var(--fontsize-body-m);
+  color: var(--color-black-70);
 }
