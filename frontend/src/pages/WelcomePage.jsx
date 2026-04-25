@@ -5,6 +5,14 @@ import { Button, Koros } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 
+const PERSONA_LINKS = {
+  Lala: [{ code: 'La1aC2', key: 'personaLalaLink1' }],
+  Lele: [{ code: 'L3L3C1', key: 'personaLeleLink1' }, { code: 'L3L3C2', key: 'personaLeleLink2' }],
+  Lili: [{ code: 'l1l1C1', key: 'personaLiliLink1' }, { code: 'l1l1C2', key: 'personaLiliLink2' }],
+  Lolo: [{ code: 'l0l0C1', key: 'personaLoloLink1' }, { code: 'l0l0C2', key: 'personaLoloLink2' }],
+  Lulu: [{ code: '1u1uC1', key: 'personaLuluLink1' }],
+};
+
 export default function WelcomePage() {
   const { t } = useTranslation();
   useEffect(() => {
@@ -77,6 +85,17 @@ export default function WelcomePage() {
               <b>{t(`welcome.persona${name}Title`)}</b>{' '}
               {t(`welcome.persona${name}Body`)}
             </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-xs)' }}>
+              {PERSONA_LINKS[name].map(({ code, key }) => (
+                <Link
+                  key={code}
+                  to={`/collections/${code}`}
+                  style={{ color: tc.color_01 ? `var(--color-${tc.color_01})` : 'var(--color-bus)', textDecoration: 'underline', fontSize: 'var(--fontsize-body-s)' }}
+                >
+                  {t(`welcome.${key}`)} →
+                </Link>
+              ))}
+            </div>
           </div>
         ))}
       </div>

@@ -307,7 +307,15 @@
     "personaLoloTitle": "Lolo — Zaletua.",
     "personaLoloBody": "Liburu-kluba antolatzen du heroi atormentatuak eta haize-bideetako lurraldeak gustatzen zaizkienen tzat — eta dulzimer-klaseak ere ematen ditu, harparen forma trapezoidal hori. Hitzordu bat irakurketa lasai baterako, beste bat munduko soinu politenaren truke.",
     "personaLuluTitle": "Lulu — Konektatzailea.",
-    "personaLuluBody": "Inork ez daki ondo non aurkitzen dituen gauza hauek ezta nora joaten den ere. Bere komunitate-apalategia astero betetzen da bizitza bat izandako objektuekin, etxe berri baten zain. Kideek astero e-posta laburpena jasotzen dute — astelehenetatik apategira iristen dena ostiraleko baino lehen joan behar da-eta."
+    "personaLuluBody": "Inork ez daki ondo non aurkitzen dituen gauza hauek ezta nora joaten den ere. Bere komunitate-apalategia astero betetzen da bizitza bat izandako objektuekin, etxe berri baten zain. Kideek astero e-posta laburpena jasotzen dute — astelehenetatik apategira iristen dena ostiraleko baino lehen joan behar da-eta.",
+    "personaLalaLink1": "Furgonetaren partekatze eskema",
+    "personaLeleLink1": "Leleren pastelak",
+    "personaLeleLink2": "Leleren landare-albuma",
+    "personaLiliLink1": "Liliren mailegutze-apalategia",
+    "personaLiliLink2": "Liliren elektronika-trukea",
+    "personaLoloLink1": "Loloren liburu-kluba",
+    "personaLoloLink2": "Loloren dulzimer-saioak",
+    "personaLuluLink1": "Luluren apalategi fantasma"
   },
   "myBookings": {
     "pageTitle": "Nire eskaerak",

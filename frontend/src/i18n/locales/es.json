@@ -307,7 +307,15 @@
     "personaLoloTitle": "Lolo — La Entusiasta.",
     "personaLoloBody": "Organiza un club de lectura para quienes gustan de héroes atormentados y páramos azotados por el viento — y también da clases de salterio de martillos, esa preciosa arpa trapezoidal. Una cita para una lectura acogedora, otra para el sonido más bonito del mundo.",
     "personaLuluTitle": "Lulu — La Conectora.",
-    "personaLuluBody": "Nadie sabe muy bien dónde encuentra estas cosas ni adónde va. Su estante comunitario se llena cada semana con objetos que han tenido una vida, listos para un nuevo hogar. Los miembros reciben un resumen semanal por correo — porque lo que llega al estante el lunes merece haberse ido el viernes."
+    "personaLuluBody": "Nadie sabe muy bien dónde encuentra estas cosas ni adónde va. Su estante comunitario se llena cada semana con objetos que han tenido una vida, listos para un nuevo hogar. Los miembros reciben un resumen semanal por correo — porque lo que llega al estante el lunes merece haberse ido el viernes.",
+    "personaLalaLink1": "La furgoneta compartida",
+    "personaLeleLink1": "Los pasteles de Lele",
+    "personaLeleLink2": "El vivero de Lele",
+    "personaLiliLink1": "El banco de herramientas de Lili",
+    "personaLiliLink2": "El intercambio de electrónica de Lili",
+    "personaLoloLink1": "El club de lectura de Lolo",
+    "personaLoloLink2": "Las clases de salterio de Lolo",
+    "personaLuluLink1": "El estante fantasma de Lulu"
   },
   "myBookings": {
     "pageTitle": "Mis solicitudes",

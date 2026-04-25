@@ -307,7 +307,15 @@
     "personaLoloTitle": "Lolo — L'Entusiasta.",
     "personaLoloBody": "Organitza un club de lectura per als qui els agraden els herois turmentats i els erms batuts pel vent — i també dóna classes de dulcimer de martells, aquella preciosa arpa trapezoïdal. Una cita per a una lectura acollidora, una altra per al so més bonic del món.",
     "personaLuluTitle": "Lulu — La Connectora.",
-    "personaLuluBody": "Ningú no sap gaire bé on troba aquestes coses ni on va. El seu prestatge comunitari s'omple cada setmana amb objectes que han tingut una vida, a punt per a una nova llar. Els membres reben un resum setmanal per correu — perquè allò que arriba al prestatge el dilluns mereix haver marxat el divendres."
+    "personaLuluBody": "Ningú no sap gaire bé on troba aquestes coses ni on va. El seu prestatge comunitari s'omple cada setmana amb objectes que han tingut una vida, a punt per a una nova llar. Els membres reben un resum setmanal per correu — perquè allò que arriba al prestatge el dilluns mereix haver marxat el divendres.",
+    "personaLalaLink1": "La furgoneta compartida",
+    "personaLeleLink1": "Els pastissos de la Lele",
+    "personaLeleLink2": "El viver de la Lele",
+    "personaLiliLink1": "El banc d'eines de la Lili",
+    "personaLiliLink2": "L'intercanvi d'electrònica de la Lili",
+    "personaLoloLink1": "El club de lectura de la Lolo",
+    "personaLoloLink2": "Les classes de dulcimer de la Lolo",
+    "personaLuluLink1": "El prestatge fantasma de la Lulu"
   },
   "myBookings": {
     "pageTitle": "Les meves sol·licituds",

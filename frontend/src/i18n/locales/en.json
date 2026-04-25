@@ -322,7 +322,15 @@
     "personaLoloTitle": "Lolo — The Enthusiast.",
     "personaLoloBody": "Hosts a book club for those who like their heroes tortured and their moors windswept — and also teaches the hammered dulcimer, that dreamy trapezoidal harp. One appointment for a cosy read, another for the loveliest sound in the world.",
     "personaLuluTitle": "Lulu — The Connector.",
-    "personaLuluBody": "Nobody quite knows where she finds these things or where she goes. Her community shelf fills weekly with objects that have lived a life, ready for a new home. Members get a weekly email digest — because what arrives on the shelf on Monday deserves to be gone by Friday."
+    "personaLuluBody": "Nobody quite knows where she finds these things or where she goes. Her community shelf fills weekly with objects that have lived a life, ready for a new home. Members get a weekly email digest — because what arrives on the shelf on Monday deserves to be gone by Friday.",
+    "personaLalaLink1": "Vanlife on tap",
+    "personaLeleLink1": "Lele's Cakes",
+    "personaLeleLink2": "Lele's Leafy Lounge",
+    "personaLiliLink1": "Lili's Borrow Borrow",
+    "personaLiliLink2": "Lili's Circuit Swap",
+    "personaLoloLink1": "Lolo's book club",
+    "personaLoloLink2": "Lolo's dulcimer sessions",
+    "personaLuluLink1": "Lulu's Phantom Shelf"
   },
   "myBookings": {
     "pageTitle": "My requests",

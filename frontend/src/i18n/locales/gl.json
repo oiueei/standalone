@@ -307,7 +307,15 @@
     "personaLoloTitle": "Lolo — A Entusiasta.",
     "personaLoloBody": "Organiza un club de lectura para quen lle gustan os heroes atormentados e os páramos batidos polo vento — e tamén imparte clases de dulcémele de martelos, esa preciosa arpa trapezoidal. Unha cita para unha lectura acolledora, outra para o son máis fermoso do mundo.",
     "personaLuluTitle": "Lulu — A Conectora.",
-    "personaLuluBody": "Ninguén sabe moi ben onde atopa estas cousas nin a onde vai. A súa estante comunitaria énchese cada semana con obxectos que xa tiveron unha vida, listos para un novo fogar. Os membros reciben un resumo semanal por correo — porque o que chega á estante o luns merece ter marchado antes do venres."
+    "personaLuluBody": "Ninguén sabe moi ben onde atopa estas cousas nin a onde vai. A súa estante comunitaria énchese cada semana con obxectos que xa tiveron unha vida, listos para un novo fogar. Os membros reciben un resumo semanal por correo — porque o que chega á estante o luns merece ter marchado antes do venres.",
+    "personaLalaLink1": "A furgoneta compartida",
+    "personaLeleLink1": "Os bolos de Lele",
+    "personaLeleLink2": "O viveiro de Lele",
+    "personaLiliLink1": "A estante de préstamo de Lili",
+    "personaLiliLink2": "O intercambio de electrónica de Lili",
+    "personaLoloLink1": "O club de lectura de Lolo",
+    "personaLoloLink2": "As clases de dulcémele de Lolo",
+    "personaLuluLink1": "A estante fantasma de Lulu"
   },
   "myBookings": {
     "pageTitle": "As miñas solicitudes",

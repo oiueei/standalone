@@ -307,7 +307,15 @@
     "personaLoloTitle": "Lolo — A Entusiasta.",
     "personaLoloBody": "Organiza um clube do livro para quem gosta de heróis atormentados e charnecas varridas pelo vento — e também ensina dulcimer de martelos, aquela harpa trapezoidal sonhadora. Uma sessão para uma leitura aconchegante, outra para o som mais lindo do mundo.",
     "personaLuluTitle": "Lulu — A Conectora.",
-    "personaLuluBody": "Ninguém sabe bem onde ela encontra essas coisas nem para onde vai. Sua prateleira comunitária se enche toda semana com objetos que já viveram uma vida, prontos para um novo lar. Os membros recebem um resumo semanal por e-mail — porque o que chega à prateleira na segunda-feira merece já ter ido embora na sexta."
+    "personaLuluBody": "Ninguém sabe bem onde ela encontra essas coisas nem para onde vai. Sua prateleira comunitária se enche toda semana com objetos que já viveram uma vida, prontos para um novo lar. Os membros recebem um resumo semanal por e-mail — porque o que chega à prateleira na segunda-feira merece já ter ido embora na sexta.",
+    "personaLalaLink1": "A van compartilhada",
+    "personaLeleLink1": "Os bolos da Lele",
+    "personaLeleLink2": "O viveiro da Lele",
+    "personaLiliLink1": "A estante de empréstimos da Lili",
+    "personaLiliLink2": "A troca de eletrônicos da Lili",
+    "personaLoloLink1": "O clube do livro da Lolo",
+    "personaLoloLink2": "As aulas de dulcimer da Lolo",
+    "personaLuluLink1": "A prateleira fantasma da Lulu"
   },
   "myBookings": {
     "pageTitle": "Minhas solicitações",
