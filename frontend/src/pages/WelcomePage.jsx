@@ -90,7 +90,7 @@ export default function WelcomePage() {
                 <Link
                   key={code}
                   to={`/collections/${code}`}
-                  style={{ color: tc.color_01 ? `var(--color-${tc.color_01})` : 'var(--color-bus)', textDecoration: 'underline', fontSize: 'var(--fontsize-body-s)', fontWeight: 700 }}
+                  style={{ color: tc.color_01 ? `var(--color-${tc.color_01})` : 'var(--color-bus)', textDecoration: 'underline', fontSize: 'var(--fontsize-body-m)', fontWeight: 700 }}
                 >
                   {t(`welcome.${key}`)} →
                 </Link>
