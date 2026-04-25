@@ -291,7 +291,7 @@
     "maxHeadline": "Màxim 64 caràcters.",
     "errorCreating": "Error en crear la col·lecció.",
     "modeInfoLabel": "Quina és la diferència?",
-    "modeInfoText": "Pròpia: només tu pots afegir coses a aquesta llista. Comunitària: tots els convidats també poden afegir les seves pròpies coses."
+    "modeInfoText": "<bold>Pròpia</bold>: només tu pots afegir coses a aquesta llista. <bold>Comunitària</bold>: tots els convidats també poden afegir les seves pròpies coses."
   },
   "welcome": {
     "greeting": "Hola, {{name}}",

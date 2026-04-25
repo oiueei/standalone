@@ -291,7 +291,7 @@
     "maxHeadline": "Gehienez 64 karaktere.",
     "errorCreating": "Errorea bilduma sortzen.",
     "modeInfoLabel": "Zer da aldea?",
-    "modeInfoText": "Propioa: zeuk bakarrik gehi ditzakezu gauzak zerrenda honetan. Komunitarioa: gonbidatu guztiek ere beren gauzak gehi ditzakete."
+    "modeInfoText": "<bold>Propioa</bold>: zeuk bakarrik gehi ditzakezu gauzak zerrenda honetan. <bold>Komunitarioa</bold>: gonbidatu guztiek ere beren gauzak gehi ditzakete."
   },
   "welcome": {
     "greeting": "Kaixo, {{name}}",

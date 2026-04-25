@@ -10,6 +10,7 @@ import {
   Checkbox,
   DateInput,
   Koros,
+  ToggleButton,
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, ASSET_TYPE, APPOINTMENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
@@ -195,6 +196,18 @@ export default function AddThingPage() {
               }}
             />
           )}
+          {['GIFT_THING', 'SELL_THING'].includes(type) && (
+            <div className="toggle-left">
+              <ToggleButton
+                id="add-thing-is-endless"
+                label={t('endless.label')}
+                checked={isEndless}
+                onChange={(val) => setIsEndless(!val)}
+                variant="inline"
+                theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
+              />
+            </div>
+          )}
           <TextInput
             id="add-thing-headline"
             label={t('addThing.titleLabel')}
@@ -373,14 +386,6 @@ export default function AddThingPage() {
                 errorText={errors.location}
               />
             </>
-          )}
-          {['GIFT_THING', 'SELL_THING'].includes(type) && (
-            <Checkbox
-              id="add-thing-is-endless"
-              label={t('endless.label')}
-              checked={isEndless}
-              onChange={(e) => setIsEndless(e.target.checked)}
-            />
           )}
           <ImageUpload
             id="add-thing-thumbnail"

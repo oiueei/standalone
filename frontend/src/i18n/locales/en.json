@@ -306,7 +306,7 @@
     "maxHeadline": "Maximum 64 characters.",
     "errorCreating": "Error creating collection.",
     "modeInfoLabel": "What's the difference?",
-    "modeInfoText": "Proprietary: only you can add things to this list. Community: everyone you invite can add their own things too."
+    "modeInfoText": "<bold>Proprietary</bold>: only you can add things to this list. <bold>Community</bold>: everyone you invite can add their own things too."
   },
   "welcome": {
     "greeting": "Hello, {{name}}",

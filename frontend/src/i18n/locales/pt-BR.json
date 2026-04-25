@@ -291,7 +291,7 @@
     "maxHeadline": "Máximo 64 caracteres.",
     "errorCreating": "Erro ao criar a coleção.",
     "modeInfoLabel": "Qual é a diferença?",
-    "modeInfoText": "Própria: só você pode adicionar itens a esta lista. Comunitária: todos os convidados também podem adicionar os seus próprios itens."
+    "modeInfoText": "<bold>Própria</bold>: só você pode adicionar itens a esta lista. <bold>Comunitária</bold>: todos os convidados também podem adicionar os seus próprios itens."
   },
   "welcome": {
     "greeting": "Olá, {{name}}",

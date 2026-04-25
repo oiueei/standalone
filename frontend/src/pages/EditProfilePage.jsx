@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Button, Checkbox, Koros } from 'hds-react';
+import { TextInput, TextArea, Button, Koros, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -161,27 +161,37 @@ export default function EditProfilePage() {
         <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('notifications.pageTitle')}</h2>
         <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('notifications.intro')}</p>
         <div className="form-grid">
-          <Checkbox
-            id="notify-magic"
-            label={t('notifications.magicLabel')}
-            helperText={t('notifications.magicHelper')}
-            checked
-            disabled
-          />
-          <Checkbox
-            id="notify-activity"
-            label={t('notifications.activityLabel')}
-            helperText={t('notifications.activityHelper')}
-            checked={notifyActivity}
-            onChange={(e) => setNotifyActivity(e.target.checked)}
-          />
-          <Checkbox
-            id="notify-news"
-            label={t('notifications.newsLabel')}
-            helperText={t('notifications.newsHelper')}
-            checked={notifyNews}
-            onChange={(e) => setNotifyNews(e.target.checked)}
-          />
+          <div className="toggle-left">
+            <ToggleButton
+              id="notify-magic"
+              label={<>{t('notifications.magicLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('notifications.magicHelper')}</span></>}
+              checked
+              disabled
+              onChange={() => {}}
+              variant="inline"
+              theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
+            />
+          </div>
+          <div className="toggle-left">
+            <ToggleButton
+              id="notify-activity"
+              label={<>{t('notifications.activityLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('notifications.activityHelper')}</span></>}
+              checked={notifyActivity}
+              onChange={(val) => setNotifyActivity(!val)}
+              variant="inline"
+              theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
+            />
+          </div>
+          <div className="toggle-left">
+            <ToggleButton
+              id="notify-news"
+              label={<>{t('notifications.newsLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('notifications.newsHelper')}</span></>}
+              checked={notifyNews}
+              onChange={(val) => setNotifyNews(!val)}
+              variant="inline"
+              theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
+            />
+          </div>
         </div>
         <div className="form-actions">
           <Button

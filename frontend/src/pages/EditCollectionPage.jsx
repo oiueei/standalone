@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Checkbox, Koros, ToggleButton } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Koros, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
@@ -238,38 +238,51 @@ export default function EditCollectionPage() {
           }}
         />
         {mode === 'COMMUNITY' && (
-          <Checkbox
-            id="edit-collection-swap"
-            label={t('swap.enableSwap')}
-            checked={isSwap}
-            onChange={(e) => { setIsSwap(e.target.checked); if (e.target.checked) { setIsShare(false); setIsMinimalist(false); } }}
-          />
+          <div className="toggle-left">
+            <ToggleButton
+              id="edit-collection-swap"
+              label={t('swap.enableSwap')}
+              checked={isSwap}
+              onChange={(val) => { setIsSwap(!val); if (!val) setIsShare(false); }}
+              variant="inline"
+              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
+            />
+          </div>
         )}
         {mode === 'COMMUNITY' && (
-          <Checkbox
-            id="edit-collection-share"
-            label={t('share.enableShare')}
-            checked={isShare}
-            onChange={(e) => { setIsShare(e.target.checked); if (e.target.checked) setIsSwap(false); else setNewsletterEnabled(false); }}
-          />
+          <div className="toggle-left">
+            <ToggleButton
+              id="edit-collection-share"
+              label={t('share.enableShare')}
+              checked={isShare}
+              onChange={(val) => { setIsShare(!val); if (!val) setIsSwap(false); else setNewsletterEnabled(false); }}
+              variant="inline"
+              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
+            />
+          </div>
         )}
         {mode === 'COMMUNITY' && isShare && (
-          <Checkbox
-            id="edit-collection-newsletter"
-            label={t('newsletter.enableNewsletter')}
-            checked={newsletterEnabled}
-            onChange={(e) => setNewsletterEnabled(e.target.checked)}
-          />
+          <div className="toggle-left">
+            <ToggleButton
+              id="edit-collection-newsletter"
+              label={t('newsletter.enableNewsletter')}
+              checked={newsletterEnabled}
+              onChange={(val) => setNewsletterEnabled(!val)}
+              variant="inline"
+              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
+            />
+          </div>
         )}
-        <ToggleButton
-          id="edit-collection-minimalist"
-          label={t('minimalist.enableMinimalist')}
-          checked={isMinimalist}
-          onChange={(val) => { setIsMinimalist(val); if (val) setIsSwap(false); }}
-          variant="inline"
-          style={{ flexDirection: 'row-reverse', justifyContent: 'flex-start', gap: 'var(--spacing-s)' }}
-          theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-        />
+        <div className="toggle-left">
+          <ToggleButton
+            id="edit-collection-minimalist"
+            label={t('minimalist.enableMinimalist')}
+            checked={isMinimalist}
+            onChange={(val) => setIsMinimalist(!val)}
+            variant="inline"
+            theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
+          />
+        </div>
         <Select
                 language="en"
           id="edit-collection-digest"

@@ -766,12 +766,28 @@ figure[class*="Highlight-module_highlight"] {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-xs);
+  align-items: center;
 }
 
 .schedule-times {
   display: flex;
   gap: var(--spacing-s);
   align-items: end;
+}
+
+/* Toggle-left: puts the toggle pill on the left of the label */
+.toggle-left [class*="toggleButtonContainerInlineVariant"] {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: var(--spacing-s);
+}
+.toggle-left [class*="toggleButtonContainerInlineVariant"] > button {
+  margin-left: 0 !important;
+}
+/* Disabled+checked toggle: darker grey than HDS default (black-10) */
+.toggle-left button[aria-pressed="true"][disabled] {
+  background-color: var(--color-black-90) !important;
+  border-color: var(--color-black-90) !important;
 }
 
 /* Markdown text */
