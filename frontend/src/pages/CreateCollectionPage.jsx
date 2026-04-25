@@ -138,10 +138,10 @@ export default function CreateCollectionPage() {
             <button
               type="button"
               onClick={() => setShowModeInfo((v) => !v)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 'var(--spacing-2-xs)', padding: 'var(--spacing-2-xs) 0', color: theeemeColors.color_01 ? `var(--color-${theeemeColors.color_01})` : 'var(--color-bus)', fontSize: 'var(--fontsize-body-s)' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-2-xs)', padding: 'var(--spacing-2-xs) 0', color: theeemeColors.color_01 ? `var(--color-${theeemeColors.color_01})` : 'var(--color-bus)', fontSize: 'var(--fontsize-body-s)', whiteSpace: 'nowrap' }}
               aria-expanded={showModeInfo}
             >
-              <IconInfoCircle size="xs" aria-hidden />
+              <IconInfoCircle size="extraSmall" aria-hidden />
               {t('createCollection.modeInfoLabel')}
             </button>
             {showModeInfo && (
