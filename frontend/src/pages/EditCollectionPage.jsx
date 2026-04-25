@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Checkbox, Koros } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Checkbox, Koros, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
@@ -261,11 +261,12 @@ export default function EditCollectionPage() {
             onChange={(e) => setNewsletterEnabled(e.target.checked)}
           />
         )}
-        <Checkbox
+        <ToggleButton
           id="edit-collection-minimalist"
           label={t('minimalist.enableMinimalist')}
           checked={isMinimalist}
-          onChange={(e) => { setIsMinimalist(e.target.checked); if (e.target.checked) setIsSwap(false); }}
+          onChange={(val) => { setIsMinimalist(val); if (val) setIsSwap(false); }}
+          theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
         />
         <Select
                 language="en"

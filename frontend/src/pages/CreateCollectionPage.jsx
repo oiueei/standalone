@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Checkbox, Koros, Notification, IconInfoCircle } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Checkbox, Koros, Notification, IconInfoCircle, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
@@ -180,11 +180,12 @@ export default function CreateCollectionPage() {
               onChange={(e) => setNewsletterEnabled(e.target.checked)}
             />
           )}
-          <Checkbox
+          <ToggleButton
             id="create-collection-minimalist"
             label={t('minimalist.enableMinimalist')}
             checked={isMinimalist}
-            onChange={(e) => { setIsMinimalist(e.target.checked); if (e.target.checked) setIsSwap(false); }}
+            onChange={(val) => { setIsMinimalist(val); if (val) setIsSwap(false); }}
+            theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
           />
           <ImageUpload
             id="create-collection-thumbnail"
