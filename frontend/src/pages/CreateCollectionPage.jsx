@@ -186,6 +186,7 @@ export default function CreateCollectionPage() {
             checked={isMinimalist}
             onChange={(val) => { setIsMinimalist(val); if (val) setIsSwap(false); }}
             variant="inline"
+            style={{ flexDirection: 'row-reverse', justifyContent: 'flex-start', gap: 'var(--spacing-s)' }}
             theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
           />
           <ImageUpload

@@ -267,6 +267,7 @@ export default function EditCollectionPage() {
           checked={isMinimalist}
           onChange={(val) => { setIsMinimalist(val); if (val) setIsSwap(false); }}
           variant="inline"
+          style={{ flexDirection: 'row-reverse', justifyContent: 'flex-start', gap: 'var(--spacing-s)' }}
           theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
         />
         <Select
