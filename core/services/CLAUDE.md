@@ -72,8 +72,8 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_faq_hide_email(owner_name, thing_headline, question, questioner_email)` | Owner hides a FAQ | Questioner |
 | `send_event_announcement_email(owner_name, thing_headline, event_date, collection_headline, emails)` | EVENT_THING created in a collection | All collection invitees (individually) |
 | `send_broadcast_email(owner_name, owner_email, collection_headline, subject, message, emails)` | Owner sends broadcast to collection | All collection invitees (individually, with Reply-To owner) |
-| `send_digest_email(collection_headline, thing_headlines, emails)` | Daily command (weekly/monthly) | All collection invitees (individually) |
-| `send_newsletter_email(collection_headline, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |
+| `send_digest_email(collection_headline, collection_code, thing_headlines, emails)` | Daily command (weekly/monthly) | All collection invitees (individually) |
+| `send_newsletter_email(collection_headline, collection_code, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |
 | `send_return_reminder_email(requester_name, thing_headline, end_date, owner_email)` | Daily command (end_date = tomorrow) | Thing owner |
 | `send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email)` | Daily command (delivery_date = tomorrow) | Thing owner |
 | `send_event_reminder_email(owner_name, thing_headline, event_date, emails)` | Daily command (event_date = tomorrow) | All attendees (individually) |
@@ -91,4 +91,5 @@ Every email belongs to one of three categories. Each function routes through the
 - **Booking email variants**: `send_booking_request_email` and `send_booking_decision_email` adapt their content based on booking type — date-based (start/end), order (delivery + quantity), or simple (no extra fields).
 - **Reply-To header**: `send_broadcast_email()` uses `EmailMultiAlternatives` with `reply_to` so invitees can respond directly to the collection owner. Routed through `_send(..., reply_to=[owner_email])`.
 - **Digest emails**: `send_digest_email()` lists new thing headlines in both plain text (bulleted) and HTML (`<ul>/<li>`) formats.
+- **Click-through prefix for Cat. 3 emails**: `send_digest_email()` and `send_newsletter_email()` build their "View collection" link as `{frontend_base}/digest/collections/{code}`. The frontend `/digest/*` route fires the `digest_link_clicked` analytics event and immediately `<Navigate replace>`s to the real path. Per DESIGN.md §9, tracking pixels for individual open monitoring are forbidden — click-through redirects are the permitted alternative. We measure clicks, never opens.
 - **Preference pipeline**: every send goes through `_send()` → `_should_send()` + `_with_footer()`. Never call `send_mail` directly from outside this module — the preference check and footer would be bypassed.

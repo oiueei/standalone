@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Button, Koros, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
+import { setAnalyticsOptOut } from '../services/analytics';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -27,6 +28,7 @@ export default function EditProfilePage() {
   const [theeemes, setTheeemes] = useState([]);
   const [notifyActivity, setNotifyActivity] = useState(true);
   const [notifyNews, setNotifyNews] = useState(true);
+  const [analyticsOptOut, setAnalyticsOptOutState] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -52,6 +54,7 @@ export default function EditProfilePage() {
           setTheeeme(data.theeeme || '');
           setNotifyActivity(data.notify_activity ?? true);
           setNotifyNews(data.notify_news ?? true);
+          setAnalyticsOptOutState(!!data.analytics_opt_out);
         } else {
           setToast({ type: 'error', message: t('editProfile.errorLoading') });
         }
@@ -88,6 +91,7 @@ export default function EditProfilePage() {
       koro,
       notify_activity: notifyActivity,
       notify_news: notifyNews,
+      analytics_opt_out: analyticsOptOut,
     };
     if (theeeme) body.theeeme = theeeme;
 
@@ -97,6 +101,7 @@ export default function EditProfilePage() {
         body: JSON.stringify(body),
       });
       if (res.ok) {
+        setAnalyticsOptOut(analyticsOptOut);
         navigate('/');
       } else {
         setToast({ type: 'error', message: t('editProfile.errorSaving') });
@@ -188,6 +193,16 @@ export default function EditProfilePage() {
               label={<>{t('notifications.newsLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('notifications.newsHelper')}</span></>}
               checked={notifyNews}
               onChange={(val) => setNotifyNews(!val)}
+              variant="inline"
+              theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
+            />
+          </div>
+          <div className="toggle-left">
+            <ToggleButton
+              id="analytics-opt-out"
+              label={<>{t('notifications.analyticsLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('notifications.analyticsHelper')}</span></>}
+              checked={analyticsOptOut}
+              onChange={(val) => setAnalyticsOptOutState(!val)}
               variant="inline"
               theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
             />

@@ -17,7 +17,7 @@ the text fields, and add the code to SUPPORTED_LANGS below.
 
 from importlib import import_module
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from core.models import FAQ, Collection, Thing, User
@@ -63,11 +63,13 @@ class Command(BaseCommand):
         self._seed_event_attendances(common.EVENT_ATTENDANCES)
         self._seed_transfers(common.TRANSFERS)
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Seeded [{lang}] {len(data.USERS)} users, {len(data.COLLECTIONS)} collections, "
-            f"{len(data.THINGS)} things, {len(data.FAQS)} FAQs, "
-            f"{len(common.EVENT_ATTENDANCES)} attendances, {len(common.TRANSFERS)} transfers."
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Seeded [{lang}] {len(data.USERS)} users, {len(data.COLLECTIONS)} collections, "
+                f"{len(data.THINGS)} things, {len(data.FAQS)} FAQs, "
+                f"{len(common.EVENT_ATTENDANCES)} attendances, {len(common.TRANSFERS)} transfers."
+            )
+        )
 
     # ---- helpers ----
 

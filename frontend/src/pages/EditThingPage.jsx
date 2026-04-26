@@ -7,7 +7,6 @@ import {
   TextArea,
   NumberInput,
   Button,
-  Checkbox,
   DateInput,
   Koros,
   ToggleButton,
@@ -282,23 +281,28 @@ export default function EditThingPage() {
               {scheduleWindows.map((window, idx) => (
                 <div key={idx} className="schedule-window">
                   <div className="schedule-days">
-                    {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                      <Checkbox
-                        key={day}
-                        id={`edit-schedule-day-${idx}-${day}`}
-                        label={t('appointment.' + ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][day - 1])}
-                        checked={window.days.includes(day)}
-                        onChange={(e) => {
-                          const updated = [...scheduleWindows];
-                          if (e.target.checked) {
-                            updated[idx] = { ...updated[idx], days: [...updated[idx].days, day].sort() };
-                          } else {
-                            updated[idx] = { ...updated[idx], days: updated[idx].days.filter((d) => d !== day) };
-                          }
-                          setScheduleWindows(updated);
-                        }}
-                      />
-                    ))}
+                    <Select
+                      multiSelect
+                      language="en"
+                      id={`edit-schedule-days-${idx}`}
+                      texts={{
+                        label: t('appointment.days'),
+                        placeholder: t('appointment.daysPlaceholder'),
+                      }}
+                      options={[1, 2, 3, 4, 5, 6, 7].map((day) => ({
+                        label: t('appointment.' + ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][day - 1]),
+                        value: String(day),
+                      }))}
+                      value={window.days.map(String)}
+                      onChange={(selected) => {
+                        const updated = [...scheduleWindows];
+                        updated[idx] = {
+                          ...updated[idx],
+                          days: selected.map((s) => Number(s.value)).sort((a, b) => a - b),
+                        };
+                        setScheduleWindows(updated);
+                      }}
+                    />
                   </div>
                   <div className="schedule-times">
                     <TextInput

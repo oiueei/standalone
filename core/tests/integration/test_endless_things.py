@@ -76,6 +76,7 @@ def normal_gift(db, owner, coll):
 
 # --- Request behaviour ---
 
+
 @pytest.mark.django_db
 def test_endless_thing_stays_active_after_request(endless_gift, guest1):
     client = get_client(guest1)
@@ -122,6 +123,7 @@ def test_normal_gift_blocks_second_request_when_taken(normal_gift, guest1, guest
 
 
 # --- Accept behaviour ---
+
 
 @pytest.mark.django_db
 def test_accept_endless_booking_stays_active(endless_gift, guest1):
@@ -197,6 +199,7 @@ def test_accept_normal_gift_creates_transfer(normal_gift, guest1):
 
 # --- Reject / cancel behaviour ---
 
+
 @pytest.mark.django_db
 def test_reject_endless_booking_stays_active(endless_gift, guest1):
     booking = BookingPeriod.objects.create(
@@ -229,9 +232,11 @@ def test_cancel_endless_booking_stays_active(endless_gift, guest1):
 
 # --- expire_old_pending: endless things not restored ---
 
+
 @pytest.mark.django_db
 def test_expire_endless_pending_does_not_change_status(endless_gift, guest1):
     from datetime import timedelta
+
     from django.utils import timezone
 
     booking = BookingPeriod.objects.create(
@@ -256,6 +261,7 @@ def test_expire_endless_pending_does_not_change_status(endless_gift, guest1):
 
 # --- Serializer exposes is_endless ---
 
+
 @pytest.mark.django_db
 def test_serializer_exposes_is_endless(endless_gift, owner):
     client = get_client(owner)
@@ -268,12 +274,16 @@ def test_serializer_exposes_is_endless(endless_gift, owner):
 @pytest.mark.django_db
 def test_create_thing_with_is_endless(owner, coll):
     client = get_client(owner)
-    res = client.post("/api/v1/things/", {
-        "type": "GIFT_THING",
-        "headline": "My endless gift",
-        "collection_code": coll.code,
-        "is_endless": True,
-    }, format="json")
+    res = client.post(
+        "/api/v1/things/",
+        {
+            "type": "GIFT_THING",
+            "headline": "My endless gift",
+            "collection_code": coll.code,
+            "is_endless": True,
+        },
+        format="json",
+    )
     assert res.status_code == status.HTTP_201_CREATED
     created = Thing.objects.get(headline="My endless gift")
     assert created.is_endless is True

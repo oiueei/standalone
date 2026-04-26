@@ -16,12 +16,13 @@ The `User` model represents a person who can own collections, be invited to othe
 | `email` | CharField(64) | **Yes** | Unique email address for authentication |
 | `name` | CharField(32) | No | Display name |
 | `created` | DateField | Auto | Date the user was created |
-| `last_activity` | DateField | Auto | Date of last login/activity |
+| `last_activity` | DateField | No | Date of last login/activity. Null until the user's first verify — `update_last_activity()` populates it. |
 | `headline` | CharField(64) | No | Short bio/tagline |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, event announcements, broadcasts. Default: `True` |
 | `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
+| `analytics_opt_out` | BooleanField | No | When `True`, the frontend Mixpanel client stops sending events from this user's browser (DESIGN.md §9 condition 4 — visible opt-out). Mirrored to `localStorage.analyticsOptOut` on every `/auth/me/` fetch so `analytics.js` can short-circuit without a network call. Default: `False`. |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |
@@ -38,7 +39,7 @@ The `User` model represents a person who can own collections, be invited to othe
 
 5. **Creation date is persisted** - The `created` field is automatically set to today's date when the user is created.
 
-6. **Last activity is updated on login** - The `update_last_activity()` method is called on each successful authentication.
+6. **Last activity is updated on login** - The `update_last_activity()` method is called on each successful authentication. Newly-created users have `last_activity = None` until that first call; the `VerifyLinkView` samples this state before updating to derive `is_first_login` for the response payload (used by frontend analytics).
 
 7. **Email notification preferences** - `notify_activity` and `notify_news` are consulted by `core/services/email_service.py` before sending. Magic links and invitations (Cat. 1) are mandatory and always sent regardless of these flags.
 
@@ -96,6 +97,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `is_minimalist` | BooleanField | No | If True, enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (default: False). Mutually exclusive with `is_swap`. Compatible with `is_share`. |
 | `thumbnail` | CharField(255) | No | Cloudinary image ID for the collection thumbnail (default: empty string). |
 | `pause_message` | CharField(256) | No | Owner's message to guests explaining why the collection is paused (default: empty string). Non-empty = paused. |
+| `share_token` | CharField(22) | No | URL-safe public share token (`secrets.token_urlsafe(16)` → 22 chars). Nullable, unique. Generated on demand the first time the owner opens the share menu. Anyone with the token can join the collection via `POST /api/v1/auth/pop-in/` with `share_token`. **Bearer credential — must never appear in any read serializer.** |
 | `things` | ManyToManyField(Thing) | No | Things in this collection |
 | `invites` | ManyToManyField(User) | No | Users invited to view this collection |
 
@@ -112,6 +114,8 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 5. **Only owner invites/revokes** - The `add_invite()` and `remove_invite()` methods modify the M2M relationship.
 
 6. **Visible only to owner and invites** - The `can_view()` method returns True only if the user is the owner or is in `invites`.
+
+7. **Public share link is owner-managed** — `share_token` is generated lazily by `POST /api/v1/collections/{code}/share-link/` and revoked by `DELETE` on the same endpoint. The token grants invitee status to anyone who completes the pop-in flow with it; revoke + rotate invalidate previously shared links immediately. The token is excluded from `CollectionSerializer` so it cannot leak via any read endpoint.
 
 ### Methods
 

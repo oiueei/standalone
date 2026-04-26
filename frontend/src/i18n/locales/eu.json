@@ -53,7 +53,8 @@
     "user": "{{name}} — OIUEEI",
     "notFound": "Orrialdea ez da aurkitu — OIUEEI",
     "deleteCollection": "Ezabatu {{headline}} — OIUEEI",
-    "deleteCollectionDefault": "Ezabatu bilduma — OIUEEI"
+    "deleteCollectionDefault": "Ezabatu bilduma — OIUEEI",
+    "share": "Sartu — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -494,7 +495,16 @@
   },
   "share": {
     "enableShare": "Soilik SHARE motako gauzak",
-    "shareCollection": "Partekatzeko bilduma"
+    "shareCollection": "Partekatzeko bilduma",
+    "pageTitle": "Sartu OIUEEI-n",
+    "pageDescription": "Idatzi zure e-posta eta esteka magiko bat bidaliko dizugu bildumara sartzeko. Klik bat eta barruan zaude.",
+    "emailLabel": "E-posta",
+    "emailPlaceholder": "zu@eposta.com",
+    "join": "Sartu",
+    "joining": "Bidaltzen…",
+    "magicLinkSent": "Esteka bidalita! Begiratu zure sarrera-ontzia eta egin klik estekan bildumara sartzeko.",
+    "errorSendingLink": "Errorea esteka bidaltzean.",
+    "alreadyHaveAccount": "Konturik baduzu? Hasi saioa →"
   },
   "newsletter": {
     "enableNewsletter": "Asteko jarduera buletina"
@@ -546,7 +556,8 @@
     "selectSlot": "Ordu-tartea",
     "slotRequired": "Hautatu ordu-tarte bat",
     "selectSlotPlaceholder": "Hautatu tarte bat",
-    "selectDateFirst": "Hautatu lehenik data bat"
+    "selectDateFirst": "Hautatu lehenik data bat",
+    "daysPlaceholder": "Aukeratu egun bat edo gehiago"
   },
   "broadcast": {
     "heading": "Hedapena",
@@ -569,5 +580,18 @@
     "bannerLabel": "Aldi baterako pausatuta",
     "paused": "Bilduma pausatuta.",
     "resumed": "Bilduma berreskuratuta."
+  },
+  "shareMenu": {
+    "label": "Bilduma partekatu",
+    "placeholder": "Aukeratu modu bat…",
+    "email": "E-posta",
+    "copy": "Kopiatu gonbidapen-esteka",
+    "whatsapp": "WhatsApp",
+    "emailSubject": "{{headline}}-ra gonbidatzen zaitut OIUEEI-n",
+    "emailBody": "Kaixo,\n\n\"{{headline}}\"-ra gonbidatzen zaitut OIUEEI-n.\n\nHemen sartu zaitezke: {{url}}\n\nBesarkada bat,\n{{name}}",
+    "whatsappText": "\"{{headline}}\"-ra gonbidatzen zaitut OIUEEI-n: {{url}}",
+    "copied": "Esteka arbelean kopiatua.",
+    "copyError": "Ezin izan dugu esteka kopiatu. Saiatu berriro edo erabili beste aukera bat.",
+    "linkError": "Ezin izan dugu esteka sortu. Saiatu berriro."
   }
 }

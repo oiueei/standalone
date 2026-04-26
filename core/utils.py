@@ -5,8 +5,6 @@ Utility functions for OIUEEI.
 import secrets
 import string
 
-from django.conf import settings
-
 
 def generate_id():
     """Generate a unique 6-character alphanumeric ID in uppercase."""

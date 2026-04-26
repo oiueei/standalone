@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { TextInput, TextArea, Select, Button, Koros, Notification, IconInfoCircle, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
+import { track } from '../services/analytics';
 import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
 import Toast from '../components/Toast';
@@ -71,6 +72,13 @@ export default function CreateCollectionPage() {
       });
       if (res.ok) {
         const data = await res.json();
+        track('collection_created', {
+          collection_code: data.code,
+          collection_mode: data.mode,
+          is_swap: !!data.is_swap,
+          is_share: !!data.is_share,
+          is_minimalist: !!data.is_minimalist,
+        });
         navigate(`/collections/${data.code}`);
       } else {
         setToast({ type: 'error', message: t('createCollection.errorCreating') });

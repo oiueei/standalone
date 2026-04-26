@@ -6,7 +6,8 @@ duplicating email logic across views.
 
 Each email belongs to one of three categories (see `_should_send`):
 - CATEGORY_MANDATORY: magic links, invitations, revocations — always sent.
-- CATEGORY_ACTIVITY: user↔user events (bookings, FAQs, reminders) — opt-out via User.notify_activity.
+- CATEGORY_ACTIVITY: user↔user events (bookings, FAQs, reminders)
+  — opt-out via User.notify_activity.
 - CATEGORY_NEWS: broadcast/digest/newsletter — opt-out via User.notify_news.
 
 Cat. 2 and Cat. 3 emails include a footer with a tokenised link to /me/notifications
@@ -30,6 +31,7 @@ def make_notifications_token(user):
 def verify_notifications_token(token):
     """Return user_code if the token matches a known prefs_token, else None."""
     from core.models import User
+
     user = User.objects.filter(prefs_token=token).first()
     return user.code if user else None
 
@@ -37,11 +39,7 @@ def verify_notifications_token(token):
 def _lookup_user(email):
     from core.models import User
 
-    return (
-        User.objects.filter(email=email)
-        .only("code", "notify_activity", "notify_news")
-        .first()
-    )
+    return User.objects.filter(email=email).only("code", "notify_activity", "notify_news").first()
 
 
 def _should_send(email, category):
@@ -303,8 +301,10 @@ def send_booking_confirmation_email(requester, thing, booking):
         safe_start = escape(str(booking.start_date))
         safe_end = escape(str(booking.end_date))
         plain = (
-            f"You've put a hold on '{thing.headline}' from {booking.start_date} to {booking.end_date}. "
-            f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
+            f"You've put a hold on '{thing.headline}' from "
+            f"{booking.start_date} to {booking.end_date}. "
+            f"We've let {owner_name} know — they'll get back to you soon. "
+            f"View thing: {thing_url}"
         )
         html_extra = f"<p>Dates: {safe_start} — {safe_end}</p>"
     elif booking.delivery_date:
@@ -423,7 +423,8 @@ def send_event_announcement_email(
 
     html = f"""
         <html>
-        <p><strong>{safe_owner}</strong> has created a new event in <strong>{safe_collection}</strong>:</p>
+        <p><strong>{safe_owner}</strong> has created a new event in
+        <strong>{safe_collection}</strong>:</p>
         <p><strong>{safe_headline}</strong></p>
         {"<p>Date: " + escape(date_str) + "</p>" if date_str else ""}
         </html>
@@ -641,9 +642,16 @@ def send_event_attend_email(attendee_name, thing_headline, event_date, owner_ema
 # --- Category 3: News / broadcast ---------------------------------------------
 
 
-def send_digest_email(collection_headline, thing_headlines, emails):
-    """Send a digest email listing new things added to a collection."""
+def send_digest_email(collection_headline, collection_code, thing_headlines, emails):
+    """Send a digest email listing new things added to a collection.
+
+    The "View collection" link is prefixed with `/digest/` so the frontend
+    can record `digest_link_clicked` and redirect to the real path. We measure
+    clicks, never opens (DESIGN.md §9 forbids tracking pixels in email).
+    """
     safe_collection = escape(collection_headline)
+    base_url = _frontend_base_url()
+    collection_url = f"{base_url}/digest/collections/{collection_code}"
 
     things_plain = "\n".join(f"  - {h}" for h in thing_headlines)
     things_html = "".join(f"<li>{escape(h)}</li>" for h in thing_headlines)
@@ -652,13 +660,13 @@ def send_digest_email(collection_headline, thing_headlines, emails):
     plain = (
         f"New things in {collection_headline}:\n\n"
         f"{things_plain}\n\n"
-        f"Log in to OIUEEI to see more."
+        f"View collection: {collection_url}"
     )
     html = f"""
         <html>
         <p>New things in <strong>{safe_collection}</strong>:</p>
         <ul>{things_html}</ul>
-        <p>Log in to OIUEEI to see more.</p>
+        <p><a href="{collection_url}">View collection</a></p>
         </html>
         """
 
@@ -666,16 +674,22 @@ def send_digest_email(collection_headline, thing_headlines, emails):
         _send(email, subject, plain, html, CATEGORY_NEWS)
 
 
-def send_newsletter_email(collection_headline, new_thing_headlines, transfer_entries, emails):
+def send_newsletter_email(
+    collection_headline, collection_code, new_thing_headlines, transfer_entries, emails
+):
     """Send a weekly newsletter for share collections.
 
     Args:
         collection_headline: The collection name.
+        collection_code: 6-char collection code, used to build the `/digest/...`
+            click-through URL (DESIGN.md §9 — clicks, never opens).
         new_thing_headlines: List of headlines of newly added things.
         transfer_entries: List of dicts with keys: date, thing, from_name, to_name.
         emails: List of recipient email addresses.
     """
     safe_collection = escape(collection_headline)
+    base_url = _frontend_base_url()
+    collection_url = f"{base_url}/digest/collections/{collection_code}"
 
     if new_thing_headlines:
         things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)
@@ -703,13 +717,17 @@ def send_newsletter_email(collection_headline, new_thing_headlines, transfer_ent
         block2_html = ""
 
     subject = f"Weekly newsletter: {collection_headline}"
-    plain = f"Newsletter for {collection_headline}:\n\n{block1_plain}{block2_plain}"
+    plain = (
+        f"Newsletter for {collection_headline}:\n\n"
+        f"{block1_plain}{block2_plain}"
+        f"View collection: {collection_url}"
+    )
     html = f"""
         <html>
         <p>Newsletter for <strong>{safe_collection}</strong>:</p>
         {block1_html}
         {block2_html}
-        <p>Log in to OIUEEI to see more.</p>
+        <p><a href="{collection_url}">View collection</a></p>
         </html>
         """
 

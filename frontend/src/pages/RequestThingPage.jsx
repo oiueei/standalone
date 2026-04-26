@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, DateInput, Koros, Notification, NumberInput, Select, TextInput } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
+import { track } from '../services/analytics';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 
@@ -164,6 +165,7 @@ export default function RequestThingPage() {
         body: JSON.stringify(body),
       });
       if (res.ok) {
+        track('booking_requested', { thing_code: thingCode, thing_type: thing.type });
         setSuccess(true);
       } else if (res.status === 400) {
         const data = await res.json();

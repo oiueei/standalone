@@ -230,7 +230,7 @@ class TestSendRemindersCommand:
             timezone.datetime.combine(tomorrow, timezone.datetime.min.time().replace(hour=10))
         )
         owner = User.objects.create(code="RMOWN5", email="rmowner5@test.com", name="Host")
-        event = Thing.objects.create(
+        Thing.objects.create(
             code="RMEVT2",
             owner=owner,
             headline="Empty Event",

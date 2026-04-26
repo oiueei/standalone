@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
+import { identifyUser } from '../services/analytics';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function HomePage() {
@@ -32,6 +33,8 @@ export default function HomePage() {
           if (data.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.theeeme_colors));
           if (data.koro) localStorage.setItem('koro', data.koro);
           localStorage.setItem('seenWelcome', 'true');
+          localStorage.setItem('analyticsOptOut', data.analytics_opt_out ? '1' : '0');
+          if (data.code) identifyUser(data.code);
           setUser(data);
         }
       } catch {

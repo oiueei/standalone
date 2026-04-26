@@ -87,9 +87,10 @@ class ThingRequestView(APIView):
             )
 
         # Check if all active collections are paused (no new holds allowed)
-        if thing_collections.filter(status="ACTIVE").exists() and not thing_collections.filter(
-            status="ACTIVE", pause_message=""
-        ).exists():
+        if (
+            thing_collections.filter(status="ACTIVE").exists()
+            and not thing_collections.filter(status="ACTIVE", pause_message="").exists()
+        ):
             return Response(
                 {"error": "This collection is currently paused"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -190,7 +191,10 @@ class ThingRequestView(APIView):
         )
 
     def _handle_hourly_request(self, request, thing, owner_email):
-        """Handle hourly requests (APPOINTMENT_THING + ASSET_THING hourly). Validates schedule for appointments."""
+        """Handle hourly requests (APPOINTMENT_THING + ASSET_THING hourly).
+
+        Validates schedule for appointments.
+        """
         serializer = ThingRequestWithTimesSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -216,13 +220,18 @@ class ThingRequestView(APIView):
             w_end = _dt.strptime(window["end_time"], "%H:%M").time()
             if start_time < w_start or end_time > w_end:
                 return Response(
-                    {"error": f"Selected time must be between {window['start_time']} and {window['end_time']}"},
+                    {
+                        "error": (
+                            f"Selected time must be between {window['start_time']} "
+                            f"and {window['end_time']}"
+                        )
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if thing.slot_duration:
-                from datetime import timedelta
-
-                duration = (_dt.combine(start_date, end_time) - _dt.combine(start_date, start_time)).seconds // 60
+                duration = (
+                    _dt.combine(start_date, end_time) - _dt.combine(start_date, start_time)
+                ).seconds // 60
                 if duration != thing.slot_duration:
                     return Response(
                         {"error": f"Slot must be exactly {thing.slot_duration} minutes"},

@@ -2,18 +2,27 @@
 User model for OIUEEI.
 """
 
+import random
 from datetime import date
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
-import random
-
 from core.utils import generate_id
 
 _THEEEME_CODES = [
-    "BUU331", "3NNG31", "H00774", "K3SS44", "K0P4R1", "KU11T4",
-    "M377RO", "S0M0UU", "SP4740", "SU0M3N", "V44K0N", "5BC8W6",
+    "BUU331",
+    "3NNG31",
+    "H00774",
+    "K3SS44",
+    "K0P4R1",
+    "KU11T4",
+    "M377RO",
+    "S0M0UU",
+    "SP4740",
+    "SU0M3N",
+    "V44K0N",
+    "5BC8W6",
 ]
 
 
@@ -60,7 +69,8 @@ class User(AbstractBaseUser):
     email = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=32, blank=True, default="")
     created = models.DateField(default=date.today)
-    last_activity = models.DateField(default=date.today)
+    last_activity = models.DateField(null=True, blank=True, default=None)
+    analytics_opt_out = models.BooleanField(default=False)
     headline = models.CharField(max_length=64, blank=True, default="")
     koro = models.CharField(max_length=9, choices=KORO_CHOICES, default="basic")
     theeeme = models.ForeignKey(

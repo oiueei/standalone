@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import Thing, User
+from core.models import Thing
 from core.models.notification import InAppNotification
 from core.services.email_service import send_event_attend_email
 

@@ -2,10 +2,17 @@
 Collection model for OIUEEI.
 """
 
+import secrets
+
 from django.db import models
 from django.utils import timezone
 
 from core.utils import generate_id
+
+
+def generate_share_token():
+    """22-char URL-safe token for public share links. Bearer credential — must be unguessable."""
+    return secrets.token_urlsafe(16)
 
 
 class Collection(models.Model):
@@ -51,6 +58,7 @@ class Collection(models.Model):
     is_minimalist = models.BooleanField(default=False)
     thumbnail = models.CharField(max_length=255, blank=True, default="")
     pause_message = models.CharField(max_length=256, blank=True, default="")
+    share_token = models.CharField(max_length=22, blank=True, null=True, unique=True)
     things = models.ManyToManyField(
         "Thing",
         blank=True,

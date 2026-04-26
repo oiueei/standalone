@@ -55,7 +55,8 @@
     "guestsDefault": "Guests — OIUEEI",
     "user": "{{name}} — OIUEEI",
     "notFound": "Page not found — OIUEEI",
-    "popin": "Pop in — OIUEEI"
+    "popin": "Pop in — OIUEEI",
+    "share": "Join — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -509,7 +510,16 @@
   },
   "share": {
     "enableShare": "Exclusively SHARE things",
-    "shareCollection": "Share collection"
+    "shareCollection": "Share collection",
+    "pageTitle": "Join us on OIUEEI",
+    "pageDescription": "Enter your email and we'll send you a magic link to join the collection. One click and you're in.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@email.com",
+    "join": "Join",
+    "joining": "Sending…",
+    "magicLinkSent": "Magic link sent! Check your inbox and click the link to join the collection.",
+    "errorSendingLink": "Error sending link.",
+    "alreadyHaveAccount": "Already have an account? Sign in →"
   },
   "newsletter": {
     "enableNewsletter": "Weekly activity newsletter"
@@ -561,7 +571,8 @@
     "selectSlot": "Time slot",
     "slotRequired": "Please select a time slot",
     "selectSlotPlaceholder": "Select a slot",
-    "selectDateFirst": "Select a date first"
+    "selectDateFirst": "Select a date first",
+    "daysPlaceholder": "Pick one or more days"
   },
   "broadcast": {
     "heading": "Broadcast",
@@ -581,6 +592,8 @@
     "activityHelper": "Booking requests, confirmations, questions and answers, reminders.",
     "newsLabel": "News and announcements (optional)",
     "newsHelper": "Collection broadcasts, weekly digests and newsletters.",
+    "analyticsLabel": "Opt out of product analytics",
+    "analyticsHelper": "We collect a small set of pseudonymous events (sign-in, collection created, hold requested) to understand how OIUEEI is used. Tagged with your 6-character user code only — never your email, name or message content. Tick to stop sending events from your browser.",
     "saved": "Preferences saved.",
     "errorLoading": "Error loading preferences.",
     "errorSaving": "Error saving.",
@@ -598,5 +611,18 @@
     "bannerLabel": "Temporarily paused",
     "paused": "Collection paused.",
     "resumed": "Collection resumed."
+  },
+  "shareMenu": {
+    "label": "Share collection",
+    "placeholder": "Choose a way…",
+    "email": "Email",
+    "copy": "Copy invite link",
+    "whatsapp": "WhatsApp",
+    "emailSubject": "I'm inviting you to {{headline}} on OIUEEI",
+    "emailBody": "Hi,\n\nI'm inviting you to \"{{headline}}\" on OIUEEI.\n\nYou can join here: {{url}}\n\nLove,\n{{name}}",
+    "whatsappText": "I'm inviting you to \"{{headline}}\" on OIUEEI: {{url}}",
+    "copied": "Invite link copied to clipboard.",
+    "copyError": "We couldn't copy the link. Try again or use one of the other options.",
+    "linkError": "We couldn't generate the invite link. Please try again."
   }
 }

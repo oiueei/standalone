@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextInput, Button, Koros, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
+import { track } from '../services/analytics';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -74,6 +75,7 @@ export default function ManageInvitesPage() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
+        track('invite_sent', { collection_code: code, source: 'resend' });
         setToast({ type: 'success', message: t('manageInvites.invitationResent') });
       } else {
         setToast({ type: 'error', message: t('manageInvites.errorResending') });
@@ -94,6 +96,7 @@ export default function ManageInvitesPage() {
         body: JSON.stringify({ email: inviteEmail.trim() }),
       });
       if (res.ok) {
+        track('invite_sent', { collection_code: code, source: 'new' });
         setPendingInvites((prev) => [...prev, { email: inviteEmail.trim() }]);
         setInviteEmail('');
         setToast({ type: 'success', message: t('manageInvites.invitationSent') });

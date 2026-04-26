@@ -112,16 +112,32 @@ OIUEEI is built for real communities, which means linguistic diversity must be c
 
 ## 9. User Data is Never a Product
 
-This is a founding commitment, not a feature. We do not use user data for advertising, cross-selling, or profiling. We do not share or sell data to third parties under any justification.
+This is a founding commitment, not a feature. OIUEEI does not sell, share, or use user data against users — not for advertising, profiling, scoring, or influence. The floor is: *would a user be uncomfortable if they read the data we hold on them?*
 
-This principle has concrete design consequences:
+Operating a product responsibly requires understanding how it is used. OIUEEI collects a small amount of pseudonymous product analytics for **our own insight only**, never to monetise the user.
 
-- No tracking pixels, third-party analytics scripts, or ad SDKs
-- Cookie consent flows must be honest and minimal — we should have very little to ask consent for
-- No "personalised recommendations" that are a pretext for behavioural profiling
-- No UI patterns that nudge users into sharing more data than the service requires
+### Forbidden under any justification
 
-**When designing a new view:** question every data point the view collects or transmits. If it is not strictly necessary for the feature to function, do not collect it.
+- Selling, leasing, or sharing user data with third parties.
+- Tracking pixels in emails for individual open monitoring. *(To measure email engagement, prefix outbound links with a one-shot click-through path, e.g. `/digest/...`, that records the click on landing and redirects to the destination. We measure **clicks, not opens**.)*
+- Behavioural advertising SDKs (Meta Pixel, Google Ads, TikTok Pixel, etc.).
+- Fingerprinting libraries that bypass consent.
+- Session replay tools that record individual user behaviour (Hotjar, FullStory, etc.).
+- "Personalised recommendations" that are a pretext for profiling.
+- UI patterns that nudge users into sharing more data than the service requires.
+
+### Permitted under strict conditions
+
+- **Product analytics** (currently Mixpanel). Allowed because we cannot improve a product we cannot measure. Must obey **all** of:
+  1. **Pseudonymous identifiers only.** Events are tagged with the 6-char `User.code` — never email, name, IP, or any other PII.
+  2. **No user content in event properties.** Never send `headline`, `description`, message bodies, or anything a user typed. Properties are categorical or structural only (`thing_type`, `collection_mode`, counts, durations).
+  3. **Provider acts as a data processor on our behalf only.** No resale, no enrichment, no cross-customer sharing. Re-audit the provider's terms whenever they change.
+  4. **Visible opt-out** in the user profile, and a plain-language disclosure in the privacy policy.
+  5. **Aggregate outputs.** Dashboards surface counts, funnels and distributions — not individual user journeys. Per-user views, if ever used, are restricted to debugging by the team and never exposed.
+- **Operational error and performance monitoring** (Sentry-style). Same PII rules apply: scrub user content from stack traces and breadcrumbs.
+- **Cookie consent** must be honest and minimal: list every category we collect for, name every provider, allow granular opt-out.
+
+**When designing a new view:** for any data the view collects or transmits, ask two questions: *Could a user read it without surprise or discomfort?* And *does anyone outside our team get it?* If either answer is wrong, change the design.
 
 ---
 

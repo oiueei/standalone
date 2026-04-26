@@ -4,7 +4,6 @@ Unit tests for OIUEEI security features.
 
 import string
 
-import pytest
 from django.test import RequestFactory
 
 from core.middleware import SecurityHeadersMiddleware

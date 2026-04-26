@@ -50,6 +50,23 @@ class TestAuthViews:
         assert "access_token" in response.cookies
         assert "refresh_token" in response.cookies
 
+    def test_verify_link_first_login_flag(self, api_client, rsvp, user):
+        """First verify should return is_first_login=True (drives analytics signup event)."""
+        assert user.last_activity is None
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["is_first_login"] is True
+
+    def test_verify_link_returning_user_flag(self, api_client, user):
+        """Subsequent verifies should return is_first_login=False."""
+        from core.models import RSVP
+
+        user.update_last_activity()
+        rsvp = RSVP.objects.create(code="RSVP02", user_code=user, user_email=user.email)
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["is_first_login"] is False
+
     def test_verify_link_invalid(self, api_client):
         """Should reject invalid RSVP code."""
         response = api_client.get("/api/v1/auth/verify/INVALID/")
@@ -60,6 +77,31 @@ class TestAuthViews:
         response = authenticated_client.get("/api/v1/auth/me/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["code"] == user.code
+
+    def test_me_exposes_analytics_opt_out(self, authenticated_client, user):
+        """`/auth/me/` must expose `analytics_opt_out` so the frontend can
+        mirror it to `localStorage.analyticsOptOut` (DESIGN.md §9 condition 4)."""
+        response = authenticated_client.get("/api/v1/auth/me/")
+        assert response.status_code == status.HTTP_200_OK
+        assert "analytics_opt_out" in response.data
+        assert response.data["analytics_opt_out"] is False
+
+    def test_put_user_persists_analytics_opt_out(self, authenticated_client, user):
+        """`PUT /api/v1/users/{code}/` must accept and persist `analytics_opt_out`.
+
+        Guards against the field being silently dropped from
+        `UserUpdateSerializer.fields` — the toggle in EditProfilePage would
+        appear to work but the backend would ignore the change.
+        """
+        assert user.analytics_opt_out is False
+        response = authenticated_client.put(
+            f"/api/v1/users/{user.code}/",
+            {"analytics_opt_out": True},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        assert user.analytics_opt_out is True
 
     def test_me_unauthenticated(self, api_client):
         """Should reject unauthenticated request."""
@@ -624,7 +666,8 @@ class TestThingViews:
         """Collection owner can delete a thing they do not own."""
         from rest_framework.test import APIClient
         from rest_framework_simplejwt.tokens import RefreshToken
-        from core.models import User, Thing
+
+        from core.models import Thing, User
 
         # user3 is the collection owner; thing belongs to user (invited)
         user3 = User.objects.create(email="colowner@test.com", code="COL003")
@@ -646,11 +689,13 @@ class TestThingViews:
 
     def test_thing_owner_cannot_delete_after_transfer(self, db, user, user2):
         """Thing owner cannot delete if transfers exist and they don't own the collection."""
-        from core.models import Collection, Thing, User
-        from core.models.transfer import ThingTransfer
+        import datetime
+
         from rest_framework.test import APIClient
         from rest_framework_simplejwt.tokens import RefreshToken
-        import datetime
+
+        from core.models import Collection, Thing
+        from core.models.transfer import ThingTransfer
 
         # user2 owns the collection; user is just an invited member
         col = Collection.objects.create(code="TRNFC1", owner=user2, headline="Col owned by u2")
@@ -672,9 +717,7 @@ class TestThingViews:
         )
 
         client = APIClient()
-        client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user).access_token}"
-        )
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user).access_token}")
         response = client.delete(f"/api/v1/things/{share_thing.code}/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -682,7 +725,8 @@ class TestThingViews:
         """Invited user cannot delete a thing owned by someone else."""
         from rest_framework.test import APIClient
         from rest_framework_simplejwt.tokens import RefreshToken
-        from core.models import User, Thing
+
+        from core.models import User
 
         user3 = User.objects.create(email="invited3@test.com", code="INV003")
         collection.invites.add(user3)

@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 
 from core.models import Thing
 from core.models.booking import BookingPeriod
+from core.models.notification import InAppNotification
 from core.models.rsvp import RSVP
 from core.pagination import StandardResultsPagination
 from core.serializers.booking import (
@@ -22,7 +23,6 @@ from core.serializers.booking import (
     BookingPeriodSerializer,
     MyBookingSerializer,
 )
-from core.models.notification import InAppNotification
 from core.services.booking_service import accept_booking, cancel_booking, reject_booking
 from core.services.email_service import send_booking_decision_email
 

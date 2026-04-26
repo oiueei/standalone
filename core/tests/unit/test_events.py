@@ -5,7 +5,7 @@ Unit tests for EVENT_THING.
 import pytest
 from django.utils import timezone
 
-from core.models import Collection, Thing, User
+from core.models import Thing
 
 
 @pytest.mark.django_db

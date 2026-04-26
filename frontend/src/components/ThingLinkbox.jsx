@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome, IconGroup, IconSwapUser } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
+import { track } from '../services/analytics';
 import MarkdownText from './MarkdownText';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
@@ -96,6 +97,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         body: JSON.stringify({}),
       });
       if (res.ok) {
+        track('booking_requested', { thing_code: thing.code, thing_type: thing.type });
         setRequested(true);
         setToast({ type: 'success', message: t('thingPage.holdRequested') });
       } else if (res.status === 400) {
@@ -130,6 +132,11 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     try {
       const res = await apiFetch(`/api/v1/bookings/${code}/${action}/`, { method: 'POST' });
       if (res.ok) {
+        if (action === 'accept') {
+          track('booking_accepted', { thing_code: thing.code, thing_type: thing.type });
+        } else {
+          track('booking_cancelled', { thing_code: thing.code, thing_type: thing.type, cancelled_by: 'owner' });
+        }
         if (needsPage) {
           // Date-based / order: thing stays ACTIVE, update bookings list and active pending pointer
           if (action === 'accept') {

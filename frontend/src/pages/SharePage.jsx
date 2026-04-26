@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useParams, Link } from 'react-router-dom';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
 import { track } from '../services/analytics';
 
-export default function LoginPage() {
+export default function SharePage() {
   const { t } = useTranslation();
-  useEffect(() => { document.title = t('titles.login'); }, [t]);
+  const { token } = useParams();
+  useEffect(() => { document.title = t('titles.share'); }, [t]);
+
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null); // 'success' | 'alert' | 'error'
+  const [status, setStatus] = useState(null); // 'success' | 'error'
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
@@ -18,21 +20,22 @@ export default function LoginPage() {
     setStatus(null);
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/auth/request-link/', {
+      const res = await fetch('/api/v1/auth/pop-in/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': getCsrfToken(),
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, share_token: token }),
       });
       if (res.ok) {
-        track('magic_link_requested', { source: 'login' });
+        track('magic_link_requested', { source: 'share' });
+        localStorage.removeItem('seenWelcome');
         setStatus('success');
-        setMessage(t('login.magicLinkSent'));
+        setMessage(t('share.magicLinkSent'));
       } else {
         setStatus('error');
-        setMessage(t('login.errorSendingLink'));
+        setMessage(t('share.errorSendingLink'));
       }
     } catch {
       setStatus('error');
@@ -62,8 +65,8 @@ export default function LoginPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <h1 className="form-hero-title">{t('login.title')}</h1>
+        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <h1 className="form-hero-title">{t('share.pageTitle')}</h1>
         </div>
         <Koros
           className="form-hero-koros"
@@ -72,30 +75,22 @@ export default function LoginPage() {
         />
       </div>
       <div className="page-container">
-        <p className="section-mt" style={{ maxWidth: '400px' }}>{t('login.description')}</p>
-        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
-          <Trans
-            i18nKey="login.openSource"
-            components={[
-              <span key="0" />,
-              <a key="1" href="https://github.com/oiueei/oiueei" target="_blank" rel="noopener noreferrer" />,
-            ]}
-          />
-        </p>
-        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
-          <Link to="/popin">{t('login.popIn')}</Link>
-        </p>
+        <p className="section-mt" style={{ maxWidth: '400px' }}>{t('share.pageDescription')}</p>
         {status ? (
-          <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
+          <Notification
+            label={status === 'success' ? t('common.sent') : t('common.error')}
+            type={status}
+            style={{ marginTop: 'var(--spacing-m)' }}
+          >
             {message}
           </Notification>
         ) : (
           <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
             <TextInput
-              id="login-email"
-              label={t('login.emailLabel')}
+              id="share-email"
+              label={t('share.emailLabel')}
               type="email"
-              placeholder={t('login.emailPlaceholder')}
+              placeholder={t('share.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -103,11 +98,14 @@ export default function LoginPage() {
             />
             <div>
               <Button type="submit" fullWidth disabled={loading} style={btnStyle}>
-                {loading ? t('common.sending') : t('login.signIn')}
+                {loading ? t('share.joining') : t('share.join')}
               </Button>
             </div>
           </form>
         )}
+        <p style={{ marginTop: 'var(--spacing-m)', maxWidth: '400px' }}>
+          <Link to="/login">{t('share.alreadyHaveAccount')}</Link>
+        </p>
       </div>
     </div>
   );

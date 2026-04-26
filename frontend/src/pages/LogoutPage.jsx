@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { resetAnalytics } from '../services/analytics';
 
 export default function LogoutPage() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function LogoutPage() {
     }).finally(() => {
       localStorage.removeItem('userCode');
       localStorage.removeItem('seenWelcome');
+      resetAnalytics();
       navigate('/login');
     });
   }, [navigate]);

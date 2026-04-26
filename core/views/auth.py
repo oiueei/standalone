@@ -169,7 +169,9 @@ class VerifyLinkView(APIView):
     def _authenticate_user(self, request, rsvp):
         """Authenticate a user via RSVP: validate, generate JWT, login, delete RSVP.
 
-        Returns (user, refresh, user_data) on success, or a Response on failure.
+        Returns (user, refresh, user_data, is_first_login) on success, or a Response
+        on failure. `is_first_login` is True when the user has never logged in before
+        (sampled BEFORE update_last_activity() so the first verify is detectable).
         """
         user = rsvp.user_code
         if not user:
@@ -179,13 +181,14 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+        is_first_login = user.last_activity is None
         user.update_last_activity()
 
         refresh = RefreshToken.for_user(user)
         login(request, user)
 
         user_data = UserSerializer(user).data
-        return user, refresh, user_data
+        return user, refresh, user_data, is_first_login
 
     def _handle_magic_link(self, request, rsvp):
         """Handle magic link authentication."""
@@ -194,14 +197,18 @@ class VerifyLinkView(APIView):
         result = self._authenticate_user(request, rsvp)
         if isinstance(result, Response):
             return result
-        user, refresh, user_data = result
+        user, refresh, user_data, is_first_login = result
 
         rsvp.delete()
 
         security_logger.info(f"User {user.email} logged in via magic link from IP {ip}")
 
         response = Response(
-            {"action": "MAGIC_LINK", "user": user_data},
+            {
+                "action": "MAGIC_LINK",
+                "user": user_data,
+                "is_first_login": is_first_login,
+            },
             status=status.HTTP_200_OK,
         )
         _set_auth_cookies(response, refresh)
@@ -212,7 +219,7 @@ class VerifyLinkView(APIView):
         result = self._authenticate_user(request, rsvp)
         if isinstance(result, Response):
             return result
-        user, refresh, user_data = result
+        user, refresh, user_data, is_first_login = result
 
         # Process collection invitation
         invited_collection = None
@@ -232,7 +239,11 @@ class VerifyLinkView(APIView):
         ).delete()
         rsvp.delete()
 
-        response_data = {"action": "COLLECTION_INVITE", "user": user_data}
+        response_data = {
+            "action": "COLLECTION_INVITE",
+            "user": user_data,
+            "is_first_login": is_first_login,
+        }
         if invited_collection:
             response_data["invited_collection"] = invited_collection
 
@@ -371,8 +382,13 @@ class VerifyLinkView(APIView):
 class PopInView(APIView):
     """
     POST /api/v1/auth/pop-in/
-    Open-door onboarding: get_or_create a user, add them to all is_onboarding
+    Open-door onboarding: get_or_create a user, add them to onboarding
     collections, and send a magic link. No prior invitation required.
+
+    Accepts optional `share_token` (string, 22 chars). If present and valid,
+    the user is added to that collection's invitees instead of (or in
+    addition to) the onboarding collections. Invalid tokens are silently
+    ignored — the unified response prevents probing the token space.
     """
 
     permission_classes = [AllowAny]
@@ -383,13 +399,28 @@ class PopInView(APIView):
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"].lower()
+        share_token = (request.data.get("share_token") or "").strip() or None
         ip = get_client_ip(request)
 
         user, created = User.objects.get_or_create(email=email)
 
-        onboarding_collections = Collection.objects.filter(is_onboarding=True)
-        for collection in onboarding_collections:
-            collection.invites.add(user)
+        # If a valid share_token is provided, join that collection.
+        # Otherwise, fall back to onboarding collections.
+        joined_via_share = False
+        if share_token:
+            try:
+                shared_collection = Collection.objects.get(share_token=share_token, status="ACTIVE")
+            except Collection.DoesNotExist:
+                shared_collection = None
+
+            if shared_collection is not None:
+                shared_collection.invites.add(user)
+                joined_via_share = True
+
+        if not joined_via_share:
+            onboarding_collections = Collection.objects.filter(is_onboarding=True)
+            for collection in onboarding_collections:
+                collection.invites.add(user)
 
         rsvp = RSVP.objects.create(user_code=user, user_email=email)
         magic_link_base = getattr(
@@ -398,7 +429,10 @@ class PopInView(APIView):
         magic_link = f"{magic_link_base}/{rsvp.code}"
         send_magic_link_email(email, magic_link)
 
-        security_logger.info(f"Pop-in request for {email} from IP {ip} (new_user={created})")
+        security_logger.info(
+            f"Pop-in request for {email} from IP {ip} "
+            f"(new_user={created}, via_share={joined_via_share})"
+        )
 
         return Response(
             {"message": "Check your email — we've sent you a magic link to join OIUEEI."},

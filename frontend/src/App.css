@@ -33,7 +33,6 @@ body {
 .form-hero {
   background-color: var(--color-black);
   position: relative;
-  overflow: hidden;
 }
 
 .form-hero-content {
@@ -763,10 +762,12 @@ figure[class*="Highlight-module_highlight"] {
 }
 
 .schedule-days {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  align-items: center;
+  display: block;
+  min-width: 0;
+}
+
+.schedule-days > div[class*="Select-module"] {
+  max-width: 100%;
 }
 
 .schedule-times {
@@ -775,14 +776,21 @@ figure[class*="Highlight-module_highlight"] {
   align-items: end;
 }
 
-/* Toggle-left: puts the toggle pill on the left of the label */
+/* Toggle-left: puts the toggle pill on the left of the label.
+ * `flex-wrap: nowrap` + `flex-shrink: 0` on the pill keeps the pill on the
+ * same row even when the label is multi-line (e.g. long helper text under
+ * the title). `align-items: flex-start` aligns the pill with the title
+ * rather than the vertical centre of a tall label. */
 .toggle-left [class*="toggleButtonContainerInlineVariant"] {
   flex-direction: row-reverse;
   justify-content: flex-end;
+  align-items: flex-start;
+  flex-wrap: nowrap;
   gap: var(--spacing-s);
 }
 .toggle-left [class*="toggleButtonContainerInlineVariant"] > button {
   margin-left: 0 !important;
+  flex-shrink: 0;
 }
 /* Disabled+checked toggle: darker grey than HDS default (black-10) */
 .toggle-left button[aria-pressed="true"][disabled] {

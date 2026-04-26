@@ -33,6 +33,8 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/popin` | `PopInPage` | Open-door onboarding: enter email, get magic link, join onboarding collections |
+| `/share/:token` | `SharePage` | Public collection share-link landing: enter email, get magic link, join the collection identified by `:token` |
+| `/digest/*` | `DigestEntry` | Click-through entry for Cat. 3 digest/newsletter email links. Fires `digest_link_clicked` analytics event and `<Navigate replace>`s to the real path with `/digest` stripped. Per DESIGN.md §9: we measure clicks, never opens — pixels in email are forbidden. |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
 | `*` | `NotFoundPage` | 404 page for unknown routes |
 
@@ -131,6 +133,7 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 - **Owner attribution**: guests see "Owner. {name}" below the description in the hero, linking to `/{owner_code}` (the owner's public profile). Uses `owner_name` from `CollectionSerializer`.
 - **INACTIVE notice**: when the collection status is `INACTIVE` and the viewer is the owner, a `Notification` informs them "This collection is inactive. It is not visible to guests." Guests cannot access inactive collections (backend returns 403).
 - **Pause banner**: when `collection.is_paused` is true, a fixed non-dismissible HDS `Notification` (type `alert`) is shown at the top of the page content area, with label `pause.bannerLabel` and body `collection.pause_message`. Shown to both owner and guests. `isPaused={collection.is_paused}` is passed to every `ThingLinkbox` so Hold buttons are disabled while paused.
+- **Share menu**: directly under the owner action buttons in the hero, shown only to the owner. Renders `<ShareCollectionMenu>` (HDS `Select` with `IconEnvelope` / `IconShare` / `IconWhatsapp` icons). On first interaction calls `POST /api/v1/collections/{code}/share-link/` to lazily generate the public token, caches the URL in component state, and dispatches the chosen share action: `mailto:`, `navigator.clipboard.writeText`, or `https://wa.me/?text=`. Email subject/body and WhatsApp text are pre-filled with the collection headline and the resulting `/share/{token}` URL, all translated to the owner's language.
 - **Broadcast section**: shown to the owner when the collection has invitees. A "Send a message to guests" button opens an inline form with subject (TextInput, max 64) and message (TextArea, max 256) fields. Submits to `POST /api/v1/collections/{code}/broadcast/`. Shows success/error Notification inline. Closable via "Close" button.
 - **Things section**: shows all non-inactive things for both owners and guests (responsive 3-column grid).
 - **Inactive things section**: shown only to the owner, below the Things section, when at least one inactive thing exists. Lists all `INACTIVE` things using the same `ThingLinkbox` component.
@@ -253,6 +256,14 @@ Detail page for a thing with full information and FAQs section.
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (or defaults).
 - Shows a "Page not found" title and message with a button to go home or login.
 
+### SharePage (`src/pages/SharePage.jsx`)
+
+- **API:** `POST /api/v1/auth/pop-in/` with `{ email, share_token }`.
+- Public route at `/share/:token`. The owner has previously generated this token via the `ShareCollectionMenu` in CollectionPage; anyone with the link can land here and join the collection.
+- Same UX as `PopInPage`: email input + magic link sent. After submit shows an inline `Notification`.
+- Invalid / revoked / inactive-collection tokens return 200 with the same magic-link response (anti-enumeration). The user gets a magic link; if the token was invalid they simply land on `/welcome` or `/` rather than on the target collection.
+- Uses the standard `form-hero` + `Koros` layout with theeeme colours from localStorage (or defaults when the recipient has no prior session).
+
 ### LogoutPage (`src/pages/LogoutPage.jsx`)
 
 - Calls `POST /api/v1/auth/logout/` to clear auth cookies on the backend.
@@ -264,7 +275,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type (WISH_THING, SHARE_THING, and ASSET_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). Immediately after the type selector: `ToggleButton` for "Sin límite / Endless" (shown only for GIFT/SELL types). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. When collection `is_minimalist`: filters type selector to GIFT/SHARE/SWAP only, hides fee/availability/location/condition fields, makes ImageUpload label show "Photo (required)", hides DocumentUpload. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with day checkboxes (Mon–Sun) and time range inputs per window, "Add time window" button. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING, SHARE_THING, and ASSET_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). Immediately after the type selector: `ToggleButton` for "Sin límite / Endless" (shown only for GIFT/SELL types). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. When collection `is_minimalist`: filters type selector to GIFT/SHARE/SWAP only, hides fee/availability/location/condition fields, makes ImageUpload label show "Photo (required)", hides DocumentUpload. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with one HDS `Select multiSelect` for days (Mon–Sun, value is the ISO weekday number 1–7) and time range inputs per window, "Add time window" button. Selected days render as chips/tags below the trigger; multiple days can be picked from the dropdown. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -283,9 +294,9 @@ Detail page for a thing with full information and FAQs section.
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
   - `TextInput` for name, `TextArea` for headline (bio), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid).
-  - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): three HDS `ToggleButton` components (wrapped in `.toggle-left`) — "Sign-in links and invitations" (always checked, `disabled`, renders black pill, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), "News and announcements" (`notify_news`, Cat. 3). Each has a sub-label helper text rendered as a `<span>` inside the label prop. Preferences are saved together with profile fields via a single Save button.
+  - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): four HDS `ToggleButton` components (wrapped in `.toggle-left`) — "Sign-in links and invitations" (always checked, `disabled`, renders black pill, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), "News and announcements" (`notify_news`, Cat. 3), and "Opt out of product analytics" (`analytics_opt_out` — DESIGN.md §9 visible opt-out for Mixpanel; calls `setAnalyticsOptOut()` on save to update the SDK and `localStorage.analyticsOptOut` immediately). Each has a sub-label helper text rendered as a `<span>` inside the label prop. Preferences are saved together with profile fields via a single Save button.
   - "Save" button below the preferences section.
-- Pre-populates all fields (including `notify_activity`/`notify_news`) from the current user profile.
+- Pre-populates all fields (including `notify_activity`/`notify_news`/`analytics_opt_out`) from the current user profile.
 - On success: navigates to `/`.
 
 ### NotificationsPage (`src/pages/NotificationsPage.jsx`)
@@ -365,6 +376,7 @@ Detail page for a thing with full information and FAQs section.
 - **`DocumentUpload`** (`src/components/DocumentUpload.jsx`) — Multi-document upload using HDS `FileInput`. Uploads raw files to Cloudinary via `POST /api/v1/upload/signature/` with `resource_type: 'raw'` and `folder: 'oiueei/documents'`. Max 5 documents, max 1 MB each. Accepts PDF, Word, Excel, and Markdown files. Shows uploaded file list with remove buttons. Props: `documents` (array of `{public_id, filename, content_type}`), `onChange`. Used in AddThingPage, EditThingPage.
 - **`TheeemeSelector`** (`src/components/TheeemeSelector.jsx`) — Visual theeeme picker. Renders a grid of buttons; each button shows three 20 px circular swatches (`color_01`, `color_02`, `color_03`) and the theeeme name, with a checkmark when selected. `aria-pressed` and `aria-label` for accessibility. Props: `theeemes` (array from API), `value` (selected code), `onChange`. Used in EditProfilePage.
 - **`KoroSelector`** (`src/components/KoroSelector.jsx`) — Visual koro picker. Renders a grid of buttons; each button shows a live `<Koros>` SVG preview (white fill on black background, 50 px tall, scaled to fit) and the koro label. Props: `value` (selected type string), `onChange`. Used in EditProfilePage.
+- **`ShareCollectionMenu`** (`src/components/ShareCollectionMenu.jsx`) — Owner-only share menu rendered in the CollectionPage hero. HDS `Select` with three options (`IconEnvelope` for email, `IconShare` for copy-link, `IconWhatsapp` for WhatsApp). Calls `POST /api/v1/collections/{code}/share-link/` lazily on first interaction, caches the resulting URL via `useRef`, and dispatches the action: `mailto:` for email, `navigator.clipboard.writeText` + Toast for copy, `https://wa.me/?text=` for WhatsApp. The Select's value is reset on every change so it acts as a one-shot menu rather than a form input. Strings live in the `shareMenu` i18n namespace. Props: `collectionCode`, `collectionHeadline`, `ownerName`.
 - **`WeeklySchedule`** (`src/components/WeeklySchedule.jsx`) — Weekly appointment slot grid for APPOINTMENT_THING. Fetches `GET /api/v1/things/{code}/slots/?week_start=...` and renders an HDS `Table` with time slots as rows and days as columns. Available slots are clickable buttons that navigate to `RequestThingPage` with pre-filled date/time. Booked/pending slots show "Booked"/"Pending" only — requester names are never shown (privacy by default, regardless of ownership). Week navigation via prev/next buttons. Props: `thingCode`, `isOwner`, `requestPath`. Used in ThingPage.
 
 ### Constants (`src/constants/things.js`)
@@ -400,6 +412,20 @@ All UI strings are externalised via `react-i18next`. No hardcoded strings in com
 
 ---
 
+## Analytics
+
+Pseudonymous product analytics via Mixpanel (EU host). Governed by [DESIGN.md §9](../DESIGN.md#9-user-data-is-never-a-product).
+
+- **Service**: `src/services/analytics.js` — `initAnalytics`, `identifyUser(code)`, `track(event, properties)`, `resetAnalytics`, `setAnalyticsOptOut(bool)`. Every export is a silent no-op when `VITE_MIXPANEL_TOKEN` is unset (dev) or when the user has opted out.
+- **Init**: `App.jsx` calls `initAnalytics()` once on mount. Calls `mixpanel.opt_out_tracking()` immediately if `localStorage.analyticsOptOut === '1'`.
+- **Identify**: `VerifyPage` after every successful verify; `HomePage` after every `/auth/me/` fetch (covers reload-with-cached-session).
+- **Reset**: `LogoutPage` calls `resetAnalytics()` after the logout POST resolves.
+- **Opt-out**: `EditProfilePage` toggle (`notifications.analyticsLabel`). Saved with the email-preference toggles via `PUT /api/v1/users/{code}/`. On save, `setAnalyticsOptOut()` updates Mixpanel and `localStorage.analyticsOptOut` immediately. `HomePage` mirrors the backend value to `localStorage` on every `/auth/me/` so the flag stays fresh across tabs.
+- **The 12 events**: `signup`, `magic_link_requested`, `magic_link_verified`, `collection_created`, `thing_created`, `invite_sent`, `invite_accepted`, `invite_declined`, `booking_requested`, `booking_accepted`, `booking_cancelled`, `digest_link_clicked`. Property schemas in `MIXPANEL.md`.
+- **Email engagement**: measured via `/digest/*` click-through redirect (the `<DigestEntry>` route fires `digest_link_clicked` and `<Navigate replace>`s to the real path). Tracking pixels in email are forbidden.
+
+---
+
 ## Testing
 
 Smoke tests and automated accessibility checks using vitest + testing-library + jest-axe.
@@ -425,11 +451,12 @@ All `<Select>` components must include `language="en"` — the HDS default is `"
 
 ### HDS ToggleButton quirks (v5)
 
-Three non-obvious behaviours:
+Four non-obvious behaviours:
 
 1. **`onChange` receives the current value, not the new one.** Always negate: `onChange={(val) => setState(!val)}`.
 2. **`style` prop targets the inner `<button>`, not the flex container.** Flex layout overrides via `style` have no effect. Use `<div className="toggle-left">` wrapper instead — the `.toggle-left` CSS class in `App.css` reverses the flex direction to put the pill on the left.
 3. **`disabled + checked` renders light grey by default.** Overridden to `--color-black-90` in `App.css` via `.toggle-left button[aria-pressed="true"][disabled]`.
+4. **Multi-line labels (title + `<br/>` + long helper) wrap the pill onto a new row.** HDS's inline container allows wrap by default; a long helper makes the label wider than the available row and the pill drops below. Fixed in `.toggle-left` with `flex-wrap: nowrap; align-items: flex-start` on the container plus `flex-shrink: 0` on the inner button.
 
 ## OIUEEI Customization Layer
 

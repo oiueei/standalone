@@ -16,6 +16,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
+from core.models.collection import generate_share_token
 from core.models.notification import InAppNotification
 from core.permissions import IsCollectionOwner
 from core.serializers import (
@@ -102,20 +103,22 @@ class CollectionViewSet(ModelViewSet):
         headline = instance.headline
         invitees = list(instance.invites.all())
 
-        orphaned_things = instance.things.annotate(
-            col_count=Count("collections")
-        ).filter(col_count=1)
+        orphaned_things = instance.things.annotate(col_count=Count("collections")).filter(
+            col_count=1
+        )
         orphaned_things.delete()
         instance.delete()
 
-        InAppNotification.objects.bulk_create([
-            InAppNotification(
-                user=invitee,
-                type=InAppNotification.COLLECTION_DELETED,
-                payload={"collection_headline": headline, "owner_name": owner_name},
-            )
-            for invitee in invitees
-        ])
+        InAppNotification.objects.bulk_create(
+            [
+                InAppNotification(
+                    user=invitee,
+                    type=InAppNotification.COLLECTION_DELETED,
+                    payload={"collection_headline": headline, "owner_name": owner_name},
+                )
+                for invitee in invitees
+            ]
+        )
 
     def perform_create(self, serializer):
         validated_data = serializer.validated_data
@@ -434,6 +437,67 @@ class MyPendingInvitationsView(APIView):
         return Response(result)
 
 
+class CollectionShareLinkView(APIView):
+    """
+    POST /api/v1/collections/{collection_code}/share-link/
+    Generate (or rotate) a public share token. Returns the full public URL.
+
+    DELETE /api/v1/collections/{collection_code}/share-link/
+    Revoke the share token. The link becomes invalid for everyone.
+
+    Owner only. Token is a 22-char URL-safe bearer credential — anyone with
+    the link can join the collection via /share/{token}, so the token must
+    not appear in any read endpoint.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
+    def post(self, request, collection_code):
+        collection = get_object_or_404(Collection, code=collection_code)
+
+        if not collection.is_owner(request.user.code):
+            return Response(
+                {"error": "Only the owner can manage the share link"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        rotate = bool(request.data.get("rotate"))
+
+        if rotate or not collection.share_token:
+            collection.share_token = generate_share_token()
+            collection.save(update_fields=["share_token"])
+
+        share_base = getattr(settings, "SHARE_LINK_BASE_URL", "http://localhost:3000/share")
+        share_url = f"{share_base}/{collection.share_token}"
+
+        return Response(
+            {
+                "share_url": share_url,
+                "share_token": collection.share_token,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def delete(self, request, collection_code):
+        collection = get_object_or_404(Collection, code=collection_code)
+
+        if not collection.is_owner(request.user.code):
+            return Response(
+                {"error": "Only the owner can manage the share link"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if collection.share_token:
+            collection.share_token = None
+            collection.save(update_fields=["share_token"])
+
+        return Response(
+            {"message": "Share link revoked"},
+            status=status.HTTP_200_OK,
+        )
+
+
 class CollectionBroadcastView(APIView):
     """
     POST /api/v1/collections/{collection_code}/broadcast/
@@ -478,19 +542,21 @@ class CollectionBroadcastView(APIView):
             emails=invitee_emails,
         )
 
-        InAppNotification.objects.bulk_create([
-            InAppNotification(
-                user=invitee,
-                type=InAppNotification.BROADCAST,
-                payload={
-                    "collection_headline": collection.headline,
-                    "owner_name": owner_name,
-                    "subject": subject,
-                    "message": message,
-                },
-            )
-            for invitee in collection.invites.all()
-        ])
+        InAppNotification.objects.bulk_create(
+            [
+                InAppNotification(
+                    user=invitee,
+                    type=InAppNotification.BROADCAST,
+                    payload={
+                        "collection_headline": collection.headline,
+                        "owner_name": owner_name,
+                        "subject": subject,
+                        "message": message,
+                    },
+                )
+                for invitee in collection.invites.all()
+            ]
+        )
 
         return Response(
             {

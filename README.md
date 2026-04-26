@@ -85,7 +85,7 @@ core/
 | Model | Purpose |
 |-------|---------|
 | **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords. `notify_activity` and `notify_news` opt-out booleans control Cat. 2 / Cat. 3 email delivery (magic links and invitations are always sent) |
-| **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things). `is_swap` flag enables item swapping (COMMUNITY only). `is_share` flag restricts to SHARE_THING only (COMMUNITY only, mutually exclusive with `is_swap`). `newsletter_enabled` sends weekly activity newsletter on Mondays (requires `is_share`). `is_minimalist` enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (mutually exclusive with `is_swap`, compatible with `is_share`) |
+| **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things). `is_swap` flag enables item swapping (COMMUNITY only). `is_share` flag restricts to SHARE_THING only (COMMUNITY only, mutually exclusive with `is_swap`). `newsletter_enabled` sends weekly activity newsletter on Mondays (requires `is_share`). `is_minimalist` enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (mutually exclusive with `is_swap`, compatible with `is_share`). `share_token` is a 22-char URL-safe bearer credential generated on demand for the public `/share/{token}` link — never exposed in any read serializer. |
 | **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING, SWAP_THING, APPOINTMENT_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). EVENT_THING uses `deal` M2M for attendance; WISH_THING uses `deal` M2M for help offers (both bypass bookings). WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. ASSET_THING supports day or hourly booking with shared calendar and usage statistics. APPOINTMENT_THING supports recurring availability schedules with configurable slot duration (15/30/60 min) and weekly slot view. `documents` JSONField supports up to 5 file attachments (PDF, Word, Excel, Markdown) stored as Cloudinary raw uploads; download links are emailed to the requester on booking acceptance |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 HDS colour token names) for customising collections |
@@ -115,7 +115,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | Method | URL | Description |
 |--------|-----|-------------|
 | POST | `/api/v1/auth/request-link/` | Request magic link (rate limited: 5/min) |
-| POST | `/api/v1/auth/pop-in/` | Open-door onboarding: get_or_create user, add to onboarding collections, send magic link (rate limited: 5/min) |
+| POST | `/api/v1/auth/pop-in/` | Open-door onboarding: get_or_create user, add to onboarding collections OR (if `share_token` provided) to that shared collection, send magic link (rate limited: 5/min) |
 | GET | `/api/v1/auth/verify/{rsvp_code}/` | Verify magic link or process any RSVP action (rate limited: 10/min) |
 | GET | `/api/v1/rsvp/{rsvp_code}/` | Alias for verify endpoint |
 | POST | `/api/v1/auth/refresh/` | Rotate access/refresh tokens via HttpOnly cookies |
@@ -142,6 +142,8 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | POST | `/api/v1/collections/{code}/remove-thing/` | Remove thing from collection (owner; thing owner in COMMUNITY mode) |
 | POST | `/api/v1/collections/{code}/invite/` | Invite user (owner only, resend-safe) |
 | DELETE | `/api/v1/collections/{code}/invite/` | Remove invitee (owner only) |
+| POST | `/api/v1/collections/{code}/share-link/` | Generate or rotate the public share token (owner only). Returns `share_url` and `share_token`. Pass `{"rotate": true}` to force a fresh token. Rate limited: 30/h. |
+| DELETE | `/api/v1/collections/{code}/share-link/` | Revoke the public share token (owner only) |
 | GET | `/api/v1/invited-collections/` | List collections where invited |
 
 ### Things (ModelViewSet + Router)
@@ -266,6 +268,7 @@ python manage.py send_digests
 | `EMAIL_HOST_PASSWORD` | Prod | SMTP password |
 | `DEFAULT_FROM_EMAIL` | No | Sender email address |
 | `RSVP_BASE_URL` | No | Base URL for RSVP action links in emails |
+| `SHARE_LINK_BASE_URL` | No | Base URL for public collection share links (default: `http://localhost:3000/share` / `https://oiueei.com/share`) |
 | `CLOUDINARY_CLOUD_NAME` | No | Cloudinary cloud name (default: oiueei) |
 
 ## Security
@@ -284,6 +287,7 @@ python manage.py send_digests
 | Input Validation | Quantity Limit | Orders capped at 99 items max |
 | Rate Limiting | Auth | 5 req/min for magic link, 10 req/min for verify |
 | Rate Limiting | Collection invite | 30 req/hour per user |
+| Rate Limiting | Collection share-link | 30 req/hour per user |
 | Rate Limiting | Thing request | 10 req/hour per user |
 | Rate Limiting | Broadcast | 5 req/day per user |
 | Rate Limiting | FAQ question | 20 req/hour per user |
@@ -303,6 +307,14 @@ python manage.py send_digests
 - [ ] 2FA for admin users
 - [ ] Audit logging to external service
 - [ ] Content Security Policy (CSP) headers
+
+## Privacy & Analytics
+
+OIUEEI does not sell or share user data with third parties. We collect a small amount of pseudonymous product analytics (Mixpanel, EU host) to understand how the app is used: events are tagged with the 6-character `User.code` only — never email, name, or anything users type. Users can opt out of analytics from their profile (`User.analytics_opt_out`); when opted out, `frontend/src/services/analytics.js` short-circuits and Mixpanel stops sending from that browser.
+
+The instrumented events are: `signup`, `magic_link_requested`, `magic_link_verified`, `collection_created`, `thing_created`, `invite_sent`, `invite_accepted`, `invite_declined`, `booking_requested`, `booking_accepted`, `booking_cancelled`, `digest_link_clicked`. Email engagement is measured via click-through redirects (`/digest/...`), never tracking pixels — see [`MIXPANEL.md`](MIXPANEL.md) for the full event taxonomy and property schema.
+
+Full ethical commitment and the rules we follow: [DESIGN.md §9](DESIGN.md#9-user-data-is-never-a-product).
 
 ## Architecture Decisions
 

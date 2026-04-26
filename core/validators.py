@@ -23,7 +23,8 @@ def validate_image_id(value):
     if value:
         if not re.match(r"^[a-zA-Z0-9_/.-]+$", value):
             raise serializers.ValidationError(
-                "Image ID can only contain letters, numbers, underscores, hyphens, dots, and forward slashes."
+                "Image ID can only contain letters, numbers, underscores, "
+                "hyphens, dots, and forward slashes."
             )
         if "//" in value or value.startswith("/") or value.endswith("/"):
             raise serializers.ValidationError("Image ID contains invalid slash usage.")

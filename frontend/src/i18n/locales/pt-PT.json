@@ -53,7 +53,8 @@
     "user": "{{name}} — OIUEEI",
     "notFound": "Página não encontrada — OIUEEI",
     "deleteCollection": "Eliminar {{headline}} — OIUEEI",
-    "deleteCollectionDefault": "Eliminar coleção — OIUEEI"
+    "deleteCollectionDefault": "Eliminar coleção — OIUEEI",
+    "share": "Juntar-me — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -494,7 +495,16 @@
   },
   "share": {
     "enableShare": "Exclusivamente coisas tipo SHARE",
-    "shareCollection": "Coleção partilhada"
+    "shareCollection": "Coleção partilhada",
+    "pageTitle": "Junta-te ao OIUEEI",
+    "pageDescription": "Indica o teu e-mail e enviamos-te uma ligação mágica para te juntares à coleção. Um clique e estás dentro.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "tu@email.com",
+    "join": "Juntar-me",
+    "joining": "A enviar…",
+    "magicLinkSent": "Ligação enviada! Verifica a tua caixa de entrada e clica na ligação para te juntares à coleção.",
+    "errorSendingLink": "Erro ao enviar a ligação.",
+    "alreadyHaveAccount": "Já tens conta? Iniciar sessão →"
   },
   "newsletter": {
     "enableNewsletter": "Boletim semanal de atividade"
@@ -546,7 +556,8 @@
     "selectSlot": "Horário",
     "slotRequired": "Por favor, selecione um horário",
     "selectSlotPlaceholder": "Selecione um horário",
-    "selectDateFirst": "Selecione primeiro uma data"
+    "selectDateFirst": "Selecione primeiro uma data",
+    "daysPlaceholder": "Escolhe um ou mais dias"
   },
   "broadcast": {
     "heading": "Difusão",
@@ -569,5 +580,18 @@
     "bannerLabel": "Temporariamente pausada",
     "paused": "Coleção pausada.",
     "resumed": "Coleção retomada."
+  },
+  "shareMenu": {
+    "label": "Partilhar coleção",
+    "placeholder": "Escolhe uma opção…",
+    "email": "E-mail",
+    "copy": "Copiar ligação de convite",
+    "whatsapp": "WhatsApp",
+    "emailSubject": "Convido-te para {{headline}} no OIUEEI",
+    "emailBody": "Olá,\n\nConvido-te para \"{{headline}}\" no OIUEEI.\n\nPodes juntar-te aqui: {{url}}\n\nUm abraço,\n{{name}}",
+    "whatsappText": "Convido-te para \"{{headline}}\" no OIUEEI: {{url}}",
+    "copied": "Ligação copiada para a área de transferência.",
+    "copyError": "Não conseguimos copiar a ligação. Tenta novamente ou usa outra opção.",
+    "linkError": "Não conseguimos gerar a ligação. Tenta novamente."
   }
 }

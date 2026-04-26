@@ -60,27 +60,29 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 4. RSVP is deleted after use (one-time use).
 
 **Internal helpers:**
-- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, refresh, user_data)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
+- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, samples `is_first_login = user.last_activity is None` BEFORE calling `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, refresh, user_data, is_first_login)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
 - `_handle_booking_action(rsvp, accepted)` — Shared by `BOOKING_ACCEPT` and `BOOKING_REJECT` handlers. Looks up booking, validates via `is_valid()`, calls `accept_booking()`/`reject_booking()` service, sends decision email, deletes sibling RSVPs.
 
 **MAGIC_LINK response (200):**
 ```json
 {
   "action": "MAGIC_LINK",
-  "user": { ... }
+  "user": { ... },
+  "is_first_login": true
 }
 ```
-Auth tokens (`access_token`, `refresh_token`) are set as HttpOnly cookies via `_set_auth_cookies()`.
+Auth tokens (`access_token`, `refresh_token`) are set as HttpOnly cookies via `_set_auth_cookies()`. `is_first_login` is `true` only on the very first verify (when `user.last_activity` was previously null); `false` on every subsequent login. Used by the frontend to fire the analytics `signup` event exactly once per user.
 
 **COLLECTION_INVITE response (200):**
 ```json
 {
   "action": "COLLECTION_INVITE",
   "user": { ... },
+  "is_first_login": true,
   "invited_collection": "<collection_code>"
 }
 ```
-Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
+Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`. `is_first_login` follows the same semantics as in `MAGIC_LINK`.
 
 **COLLECTION_REJECT response (200):**
 ```json
@@ -115,15 +117,17 @@ Open-door onboarding. Allows anyone to join OIUEEI without a prior invitation.
 
 **Request body:**
 ```json
-{ "email": "user@example.com" }
+{ "email": "user@example.com", "share_token": "<optional 22-char token>" }
 ```
 
 **Behaviour:**
 1. Validates email via `RequestLinkSerializer`.
-2. `get_or_create` user by email.
-3. Adds user to all `Collection` objects where `is_onboarding=True`.
-4. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
-5. Logs request to `security` logger with IP and whether user is new.
+2. Reads optional `share_token` from the body.
+3. `get_or_create` user by email.
+4. If a valid `share_token` is provided **and** the matching `Collection` is `ACTIVE`, adds the user to that collection's `invites` M2M. Invalid, missing, or pointing-to-INACTIVE tokens are silently ignored (anti-enumeration: response shape is identical regardless).
+5. If the user did not join via `share_token`, falls back to adding them to all `is_onboarding=True` collections.
+6. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
+7. Logs request to `security` logger with IP, whether user is new, and whether they joined via share token.
 
 **Responses:**
 | Status | Condition |
@@ -346,6 +350,27 @@ Lists ACTIVE collections where the current user is in the invites M2M. INACTIVE 
 | **Permission** | `IsAuthenticated` |
 
 Lists pending collection invitations (not yet accepted) for the current user. Returns `COLLECTION_INVITE` RSVPs for the user, joined with the collection and its owner. For each invitation returns: `accept_code`, `reject_code`, `collection_code`, `collection_headline`, `owner_name`. Used to display in-app invitation notifications on the HomePage.
+
+### CollectionShareLinkView
+
+| | |
+|---|---|
+| **Endpoints** | `POST` and `DELETE /api/v1/collections/{collection_code}/share-link/` |
+| **Permission** | `IsAuthenticated` + collection owner |
+| **Rate limit** | POST: 30 requests/hour per user. DELETE: unrestricted. |
+
+Owner-only management of the public share token. The token is a 22-character URL-safe bearer credential (`secrets.token_urlsafe(16)`); anyone with the resulting `/share/{token}` link can join the collection by completing the pop-in flow. The token is intentionally excluded from `CollectionSerializer` and any other read endpoint — it must never leak.
+
+**`POST` behaviour:**
+- Generates a new token if none exists. Returns the existing token unchanged on subsequent calls (idempotent).
+- Pass `{"rotate": true}` to force a fresh token (invalidates any previously shared link).
+- Returns `{share_url, share_token}`. `share_url` is built from `settings.SHARE_LINK_BASE_URL` (default `http://localhost:3000/share`).
+
+**`DELETE` behaviour:**
+- Sets `share_token` back to `null`. The shared link becomes invalid for everyone immediately.
+- Returns `{"message": "Share link revoked"}`.
+
+**Frontend integration:** `ShareCollectionMenu` (HDS Select with `IconEnvelope` / `IconShare` / `IconWhatsapp`) calls `POST` lazily the first time the owner triggers any share action. The URL is cached for the rest of the session to avoid extra round-trips.
 
 ### CollectionBroadcastView
 
@@ -894,6 +919,7 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 - `/things/{code}/request/` POST — 10 requests per hour per user
 - `/things/{code}/faq/` POST — 20 requests per hour per user
 - `/collections/{code}/broadcast/` POST — 5 requests per day per user
+- `/collections/{code}/share-link/` POST — 30 requests per hour per user
 - `/notifications/token/{t}/` — GET 20/min per IP, PATCH 10/min per IP
 
 ### Secure Code Practices

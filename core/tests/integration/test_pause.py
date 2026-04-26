@@ -8,8 +8,9 @@ Covers:
 - POST /api/v1/things/{code}/request/ succeeds when at least one active collection is not paused
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken

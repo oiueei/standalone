@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Notification, Tag, Koros, Table, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
+import { track } from '../services/analytics';
 import { TAG_THEMES } from '../constants/things';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -64,6 +65,12 @@ export default function MyBookingsPage() {
         method: 'POST',
       });
       if (res.ok) {
+        const cancelled = bookings.find((b) => b.code === bookingCode);
+        track('booking_cancelled', {
+          thing_code: cancelled?.thing_code,
+          thing_type: cancelled?.thing_type,
+          cancelled_by: 'requester',
+        });
         setBookings((prev) =>
           prev.map((b) => b.code === bookingCode ? { ...b, status: 'CANCELLED' } : b)
         );

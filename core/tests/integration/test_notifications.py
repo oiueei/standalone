@@ -2,7 +2,8 @@
 Integration tests for notification preferences and in-app inbox notifications.
 
 Covers:
-- _should_send helper: mandatory always on, activity/news respect user prefs, unknown email defaults to send.
+- _should_send helper: mandatory always on, activity/news respect user prefs,
+  unknown email defaults to send.
 - Representative Cat. 2 email (send_booking_decision_email) skips when notify_activity=False.
 - Representative Cat. 3 email (send_digest_email) skips when notify_news=False.
 - Cat. 1 email (send_magic_link_email) always sent regardless of prefs.
@@ -11,14 +12,15 @@ Covers:
 - InAppNotification created for all user-action-triggered events.
 """
 
+from unittest.mock import patch
+
 import pytest
 from django.core import mail
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
-from unittest.mock import patch
 
-from core.models import RSVP, BookingPeriod, Collection, FAQ, Thing, User
+from core.models import FAQ, RSVP, BookingPeriod, Collection, Thing, User
 from core.models.notification import InAppNotification
 from core.services.email_service import (
     CATEGORY_ACTIVITY,
@@ -98,7 +100,7 @@ def test_news_email_skipped_when_opted_out(db, noti_user):
     noti_user.save()
     mail.outbox.clear()
 
-    send_digest_email("Club", ["Thing A"], [noti_user.email, second.email])
+    send_digest_email("Club", "COLL01", ["Thing A"], [noti_user.email, second.email])
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [second.email]
 
@@ -147,6 +149,7 @@ def test_notifications_token_rejects_invalid(db):
 # ---------------------------------------------------------------------------
 # InAppNotification creation tests
 # ---------------------------------------------------------------------------
+
 
 def _make_client(user):
     client = APIClient()
@@ -231,7 +234,9 @@ def test_booking_accept_via_rsvp_creates_in_app_notification(two_users, thing_wi
         resp = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
 
     assert resp.status_code == status.HTTP_200_OK
-    assert InAppNotification.objects.filter(user=requester, type=InAppNotification.BOOKING_ACCEPTED).exists()
+    assert InAppNotification.objects.filter(
+        user=requester, type=InAppNotification.BOOKING_ACCEPTED
+    ).exists()
 
 
 @pytest.mark.django_db
@@ -240,8 +245,10 @@ def test_booking_request_creates_in_app_notification_for_owner(two_users, thing_
     thing, _ = thing_with_collection
     client = _make_client(requester)
 
-    with patch("core.views.reservations.send_booking_request_email"), \
-         patch("core.views.reservations.send_booking_confirmation_email"):
+    with (
+        patch("core.views.reservations.send_booking_request_email"),
+        patch("core.views.reservations.send_booking_confirmation_email"),
+    ):
         resp = client.post(f"/api/v1/things/{thing.code}/request/", {}, format="json")
 
     assert resp.status_code == status.HTTP_200_OK
@@ -257,7 +264,9 @@ def test_faq_question_creates_in_app_notification_for_owner(two_users, thing_wit
     client = _make_client(requester)
 
     with patch("core.views.faq.send_faq_question_email"):
-        resp = client.post(f"/api/v1/things/{thing.code}/faq/", {"question": "Is this available?"}, format="json")
+        resp = client.post(
+            f"/api/v1/things/{thing.code}/faq/", {"question": "Is this available?"}, format="json"
+        )
 
     assert resp.status_code == status.HTTP_201_CREATED
     notif = InAppNotification.objects.get(user=owner, type=InAppNotification.FAQ_QUESTION)

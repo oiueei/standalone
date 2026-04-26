@@ -2,8 +2,9 @@
 Integration tests for APPOINTMENT_THING appointment scheduling feature.
 """
 
-import pytest
 from datetime import date, timedelta
+
+import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 

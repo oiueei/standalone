@@ -6,6 +6,7 @@ import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
+import ShareCollectionMenu from '../components/ShareCollectionMenu';
 import ThingLinkbox from '../components/ThingLinkbox';
 
 export default function CollectionPage() {
@@ -153,6 +154,14 @@ export default function CollectionPage() {
               <Link to={`/collections/${code}/invites`}>
                 <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.manageGuests')}</Button>
               </Link>
+            </div>
+            <div className="spacer-s"></div>
+            <div className="share-menu-wrap" style={{ maxWidth: '320px' }}>
+              <ShareCollectionMenu
+                collectionCode={code}
+                collectionHeadline={collection.headline}
+                ownerName={collection.owner_name}
+              />
             </div>
             </>
           )}

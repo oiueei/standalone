@@ -17,7 +17,8 @@ class SecurityHeadersMiddleware:
             "style-src 'self' 'unsafe-inline'; "
             "img-src 'self'  blob: https://res.cloudinary.com; "
             "font-src 'self' data:; "
-            "connect-src 'self' https://api.cloudinary.com https://res.cloudinary.com https://api-eu.mixpanel.com; "
+            "connect-src 'self' https://api.cloudinary.com "
+            "https://res.cloudinary.com https://api-eu.mixpanel.com; "
             "frame-ancestors 'none'; "
         )
         response["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"

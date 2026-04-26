@@ -27,6 +27,7 @@ from .views.booking import (
 from .views.collections import (
     CollectionBroadcastView,
     CollectionInviteView,
+    CollectionShareLinkView,
     CollectionViewSet,
     InvitedCollectionsView,
     MyPendingInvitationsView,
@@ -98,6 +99,11 @@ urlpatterns = [
         "collections/<str:collection_code>/broadcast/",
         CollectionBroadcastView.as_view(),
         name="collection-broadcast",
+    ),
+    path(
+        "collections/<str:collection_code>/share-link/",
+        CollectionShareLinkView.as_view(),
+        name="collection-share-link",
     ),
     # Upload
     path("upload/signature/", CloudinarySignatureView.as_view(), name="upload-signature"),

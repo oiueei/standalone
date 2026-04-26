@@ -177,6 +177,10 @@ RSVP_BASE_URL = os.environ.get(
     "RSVP_BASE_URL",
     "http://localhost:3000/rsvp",
 )
+SHARE_LINK_BASE_URL = os.environ.get(
+    "SHARE_LINK_BASE_URL",
+    "http://localhost:3000/share",
+)
 
 
 # Cloudinary — the SDK reads CLOUDINARY_URL automatically on import.

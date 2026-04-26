@@ -63,6 +63,7 @@ class Command(BaseCommand):
 
             send_digest_email(
                 collection_headline=collection.headline,
+                collection_code=collection.code,
                 thing_headlines=headlines,
                 emails=invitee_emails,
             )
@@ -115,6 +116,7 @@ class Command(BaseCommand):
 
             send_newsletter_email(
                 collection_headline=collection.headline,
+                collection_code=collection.code,
                 new_thing_headlines=new_thing_headlines,
                 transfer_entries=transfer_entries,
                 emails=invitee_emails,

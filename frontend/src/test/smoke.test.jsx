@@ -124,6 +124,8 @@ import ThingPage from '../pages/ThingPage';
 import EditThingPage from '../pages/EditThingPage';
 import RequestThingPage from '../pages/RequestThingPage';
 import UserPage from '../pages/UserPage';
+import SharePage from '../pages/SharePage';
+import PopInPage from '../pages/PopInPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 // ── Setup ──────────────────────────────────────────────────────────────
@@ -224,5 +226,12 @@ smokeAndAxe('VerifyPage', VerifyPage, {
 });
 
 smokeAndAxe('LogoutPage', LogoutPage);
+
+smokeAndAxe('PopInPage', PopInPage);
+
+smokeAndAxe('SharePage', SharePage, {
+  path: '/share/:token',
+  entry: '/share/aB3xK_9-pQrS2tUvWx1y',
+});
 
 smokeAndAxe('NotFoundPage', NotFoundPage);

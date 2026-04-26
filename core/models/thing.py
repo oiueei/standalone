@@ -159,6 +159,8 @@ class Thing(models.Model):
             return False
 
         # Check if thing is in any active collection where user is invited or is the owner
-        return self.collections.filter(status="ACTIVE").filter(
-            models.Q(invites__code=user_code) | models.Q(owner__code=user_code)
-        ).exists()
+        return (
+            self.collections.filter(status="ACTIVE")
+            .filter(models.Q(invites__code=user_code) | models.Q(owner__code=user_code))
+            .exists()
+        )

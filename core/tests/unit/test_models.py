@@ -73,11 +73,17 @@ class TestUserModel:
         assert user.owned_things.count() == 0
 
     def test_update_last_activity(self):
-        """Should update last activity date."""
+        """Should update last activity date.
+
+        New users start with `last_activity = None` so the first verify is
+        detectable as a true first login (powers the analytics `signup` event).
+        """
+        from datetime import date
+
         user = User.objects.create(email="test@example.com")
-        old_date = user.last_activity
+        assert user.last_activity is None
         user.update_last_activity()
-        assert user.last_activity >= old_date
+        assert user.last_activity == date.today()
 
     def test_user_email_must_be_unique(self):
         """Duplicate email should raise IntegrityError."""

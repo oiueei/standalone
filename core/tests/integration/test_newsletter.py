@@ -196,6 +196,54 @@ class TestNewsletterCommand:
 
 
 @pytest.mark.django_db
+class TestDigestLinks:
+    """Digest and newsletter emails must use /digest/ click-through prefix.
+
+    DESIGN.md §9 forbids tracking pixels for individual open monitoring; the
+    /digest/{code} prefix is the permitted alternative — we measure clicks,
+    never opens. The frontend `<DigestEntry>` route fires
+    `digest_link_clicked` and redirects to the real path.
+    """
+
+    def test_digest_email_link_uses_digest_prefix(self, db):
+        from django.core import mail
+
+        from core.services.email_service import send_digest_email
+
+        mail.outbox.clear()
+        send_digest_email(
+            collection_headline="Book Club",
+            collection_code="ABC123",
+            thing_headlines=["Dune"],
+            emails=["reader@example.com"],
+        )
+        assert len(mail.outbox) == 1
+        body = mail.outbox[0].body
+        html_body = mail.outbox[0].alternatives[0][0]
+        assert "/digest/collections/ABC123" in body
+        assert "/digest/collections/ABC123" in html_body
+
+    def test_newsletter_email_link_uses_digest_prefix(self, db):
+        from django.core import mail
+
+        from core.services.email_service import send_newsletter_email
+
+        mail.outbox.clear()
+        send_newsletter_email(
+            collection_headline="Free Library",
+            collection_code="XYZ789",
+            new_thing_headlines=["A Book"],
+            transfer_entries=[],
+            emails=["reader@example.com"],
+        )
+        assert len(mail.outbox) == 1
+        body = mail.outbox[0].body
+        html_body = mail.outbox[0].alternatives[0][0]
+        assert "/digest/collections/XYZ789" in body
+        assert "/digest/collections/XYZ789" in html_body
+
+
+@pytest.mark.django_db
 class TestNewsletterValidation:
     """Tests for newsletter_enabled validation on collection serializers."""
 

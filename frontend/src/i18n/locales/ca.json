@@ -53,7 +53,8 @@
     "user": "{{name}} — OIUEEI",
     "notFound": "Pàgina no trobada — OIUEEI",
     "deleteCollection": "Eliminar {{headline}} — OIUEEI",
-    "deleteCollectionDefault": "Eliminar col·lecció — OIUEEI"
+    "deleteCollectionDefault": "Eliminar col·lecció — OIUEEI",
+    "share": "Uneix-te — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -494,7 +495,16 @@
   },
   "share": {
     "enableShare": "Exclusivament coses tipus SHARE",
-    "shareCollection": "Col·lecció compartida"
+    "shareCollection": "Col·lecció compartida",
+    "pageTitle": "Uneix-te a OIUEEI",
+    "pageDescription": "Introdueix el teu correu i t'enviarem un enllaç màgic per unir-te a la col·lecció. Un clic i ja hi ets.",
+    "emailLabel": "Correu",
+    "emailPlaceholder": "tu@correu.com",
+    "join": "Unir-m'hi",
+    "joining": "Enviant…",
+    "magicLinkSent": "Enllaç enviat! Revisa la safata d'entrada i fes clic a l'enllaç per unir-te a la col·lecció.",
+    "errorSendingLink": "Error en enviar l'enllaç.",
+    "alreadyHaveAccount": "Ja tens un compte? Inicia sessió →"
   },
   "newsletter": {
     "enableNewsletter": "Butlletí setmanal d'activitat"
@@ -546,7 +556,8 @@
     "selectSlot": "Franja horària",
     "slotRequired": "Si us plau, selecciona una franja horària",
     "selectSlotPlaceholder": "Selecciona una franja",
-    "selectDateFirst": "Primer selecciona una data"
+    "selectDateFirst": "Primer selecciona una data",
+    "daysPlaceholder": "Tria un o més dies"
   },
   "broadcast": {
     "heading": "Difusió",
@@ -569,5 +580,18 @@
     "bannerLabel": "Temporalment pausada",
     "paused": "Col·lecció pausada.",
     "resumed": "Col·lecció represa."
+  },
+  "shareMenu": {
+    "label": "Comparteix la col·lecció",
+    "placeholder": "Tria una opció…",
+    "email": "Correu",
+    "copy": "Copia l'enllaç d'invitació",
+    "whatsapp": "WhatsApp",
+    "emailSubject": "T'invito a {{headline}} a OIUEEI",
+    "emailBody": "Hola,\n\nT'invito a \"{{headline}}\" a OIUEEI.\n\nPots unir-t'hi aquí: {{url}}\n\nUna abraçada,\n{{name}}",
+    "whatsappText": "T'invito a \"{{headline}}\" a OIUEEI: {{url}}",
+    "copied": "Enllaç copiat al porta-retalls.",
+    "copyError": "No hem pogut copiar l'enllaç. Torna-ho a provar o fes servir una altra opció.",
+    "linkError": "No hem pogut generar l'enllaç. Torna-ho a provar."
   }
 }
