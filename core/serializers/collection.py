@@ -22,6 +22,8 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     transfer_count = serializers.SerializerMethodField()
     attendee_count = serializers.SerializerMethodField()
     helper_count = serializers.SerializerMethodField()
+    collection_swap_minimum_items = serializers.SerializerMethodField()
+    my_swap_count_in_collection = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
 
     class Meta:
@@ -48,6 +50,8 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "transfer_count",
             "attendee_count",
             "helper_count",
+            "collection_swap_minimum_items",
+            "my_swap_count_in_collection",
             "deal",
             "created",
         ]
@@ -99,6 +103,15 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             return None
         return obj.deal.count()
 
+    def get_collection_swap_minimum_items(self, obj):
+        parent = self.context.get("parent_collection")
+        return parent.swap_minimum_items if parent else 0
+
+    def get_my_swap_count_in_collection(self, obj):
+        # Pre-computed once at the parent CollectionSerializer level — same
+        # value for every thing in this collection, so we avoid N queries.
+        return self.context.get("my_swap_count_in_collection", 0)
+
 
 class CollectionInviteSummarySerializer(serializers.ModelSerializer):
     """Lightweight serializer for invited users."""
@@ -135,6 +148,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "is_share",
             "newsletter_enabled",
             "is_minimalist",
+            "swap_minimum_items",
             "thumbnail",
             "thumbnail_url",
             "pause_message",
@@ -161,10 +175,18 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     def get_things(self, obj):
         request = self.context.get("request")
+        ctx = {**self.context, "parent_collection": obj}
+        if request and request.user.is_authenticated and obj.is_swap:
+            ctx["my_swap_count_in_collection"] = Thing.objects.filter(
+                owner=request.user,
+                type="SWAP_THING",
+                status__in=("ACTIVE", "TAKEN"),
+                collections=obj,
+            ).count()
         things = obj.things.all()
         if request and not obj.is_owner(request.user.code):
             things = things.exclude(status="INACTIVE")
-        return CollectionThingSummarySerializer(things, many=True, context=self.context).data
+        return CollectionThingSummarySerializer(things, many=True, context=ctx).data
 
     def get_pending_invites(self, obj):
         rsvps = RSVP.objects.filter(
@@ -192,6 +214,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "is_share",
             "newsletter_enabled",
             "is_minimalist",
+            "swap_minimum_items",
             "thumbnail",
         ]
 
@@ -200,6 +223,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         is_share = attrs.get("is_share", False)
         is_minimalist = attrs.get("is_minimalist", False)
         newsletter_enabled = attrs.get("newsletter_enabled", False)
+        swap_minimum_items = attrs.get("swap_minimum_items", 0)
         mode = attrs.get("mode", "PROPRIETARY")
         if is_swap and is_share:
             raise serializers.ValidationError(
@@ -212,6 +236,10 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         if is_minimalist and is_swap:
             raise serializers.ValidationError(
                 "A collection cannot be both minimalist and swap-only."
+            )
+        if swap_minimum_items > 0 and not is_swap:
+            raise serializers.ValidationError(
+                "swap_minimum_items can only be set on swap collections."
             )
         return attrs
 
@@ -236,6 +264,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "is_share",
             "newsletter_enabled",
             "is_minimalist",
+            "swap_minimum_items",
             "thumbnail",
             "pause_message",
         ]
@@ -247,6 +276,9 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         is_minimalist = attrs.get("is_minimalist", instance.is_minimalist if instance else False)
         newsletter_enabled = attrs.get(
             "newsletter_enabled", instance.newsletter_enabled if instance else False
+        )
+        swap_minimum_items = attrs.get(
+            "swap_minimum_items", instance.swap_minimum_items if instance else 0
         )
         mode = attrs.get("mode", instance.mode if instance else "PROPRIETARY")
         if is_swap and is_share:
@@ -260,6 +292,10 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         if is_minimalist and is_swap:
             raise serializers.ValidationError(
                 "A collection cannot be both minimalist and swap-only."
+            )
+        if swap_minimum_items > 0 and not is_swap:
+            raise serializers.ValidationError(
+                "swap_minimum_items can only be set on swap collections."
             )
         return attrs
 

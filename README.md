@@ -234,7 +234,8 @@ python manage.py migrate
 python manage.py seed_demo                 # English (default)
 python manage.py seed_demo --lang=es       # Spanish
 python manage.py seed_demo --lang=es --reset   # wipe demos, re-seed in Spanish
-# On Heroku: heroku run python manage.py seed_demo --app <your-app>
+# On Heroku (quote the inner command — the Heroku CLI otherwise grabs inner flags like --lang as its own):
+#   heroku run --app <your-app> "python manage.py seed_demo --lang=es"
 # Pass --reset to wipe existing demo data first (leaves other users/collections untouched).
 # Adding a new language: copy core/management/commands/seed_data/en.py to e.g. ca.py,
 # translate the text fields, add the code to SUPPORTED_LANGS in seed_demo.py.

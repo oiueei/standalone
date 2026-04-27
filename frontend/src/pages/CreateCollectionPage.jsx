@@ -31,6 +31,7 @@ export default function CreateCollectionPage() {
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [isMinimalist, setIsMinimalist] = useState(false);
+  const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [thumbnail, setThumbnail] = useState('');
   const [errors, setErrors] = useState({});
 
@@ -62,6 +63,8 @@ export default function CreateCollectionPage() {
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
       is_minimalist: isMinimalist,
+      swap_minimum_items:
+        requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       thumbnail: thumbnail || '',
     };
     if (description.trim()) body.description = description.trim();
@@ -176,7 +179,19 @@ export default function CreateCollectionPage() {
                 id="create-collection-swap"
                 label={t('swap.enableSwap')}
                 checked={isSwap}
-                onChange={(val) => { setIsSwap(!val); if (!val) setIsShare(false); }}
+                onChange={(val) => { setIsSwap(!val); if (!val) { setIsShare(false); } else { setRequireMinimumSwapItems(false); } }}
+                variant="inline"
+                theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
+              />
+            </div>
+          )}
+          {mode === 'COMMUNITY' && isSwap && (
+            <div className="toggle-left">
+              <ToggleButton
+                id="create-collection-swap-minimum"
+                label={<>{t('swap.requireMinimumLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('swap.requireMinimumHelper')}</span></>}
+                checked={requireMinimumSwapItems}
+                onChange={(val) => setRequireMinimumSwapItems(!val)}
                 variant="inline"
                 theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
               />

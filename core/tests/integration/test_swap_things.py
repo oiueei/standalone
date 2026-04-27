@@ -424,6 +424,148 @@ class TestSwapAcceptance:
 # --- Serializer tests ---
 
 
+class TestSwapMinimumItems:
+    """Owners can require N items uploaded before a guest can propose a swap."""
+
+    def test_swap_minimum_items_defaults_to_zero(self, auth_client_user):
+        res = auth_client_user.post(
+            "/api/v1/collections/",
+            {"headline": "Swap", "mode": "COMMUNITY", "is_swap": True},
+            format="json",
+        )
+        assert res.status_code == 201
+        assert res.data["swap_minimum_items"] == 0
+
+    def test_can_set_swap_minimum_items_on_swap_collection(self, auth_client_user):
+        res = auth_client_user.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Swap with min",
+                "mode": "COMMUNITY",
+                "is_swap": True,
+                "swap_minimum_items": 3,
+            },
+            format="json",
+        )
+        assert res.status_code == 201
+        assert res.data["swap_minimum_items"] == 3
+
+    def test_cannot_set_swap_minimum_items_without_is_swap(self, auth_client_user):
+        res = auth_client_user.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Not swap",
+                "mode": "COMMUNITY",
+                "swap_minimum_items": 3,
+            },
+            format="json",
+        )
+        assert res.status_code == 400
+
+    def test_swap_request_blocked_when_below_minimum(
+        self,
+        auth_client_user_setup,
+        swap_collection,
+        owner_swap_thing,
+        user2,
+    ):
+        """Guest with 0 swap things in collection cannot propose a swap when minimum=3."""
+        swap_collection.swap_minimum_items = 3
+        swap_collection.save()
+        swap_collection.invites.add(user2)
+
+        # Give the guest one offered swap thing (in collection) just so the
+        # request is otherwise valid — the gating check fires before the
+        # offered-things check, but having an offering ensures we're testing
+        # the minimum-items rule and not a different validation path.
+        guest_offering = Thing.objects.create(
+            code="GOFFR1",
+            type="SWAP_THING",
+            owner=user2,
+            headline="Guest offering",
+        )
+        swap_collection.things.add(guest_offering)
+
+        client = APIClient()
+        refresh = RefreshToken.for_user(user2)
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+        res = client.post(
+            f"/api/v1/things/{owner_swap_thing.code}/request/",
+            {"offered_thing_codes": [guest_offering.code]},
+            format="json",
+        )
+        assert res.status_code == 400
+        assert "at least 3" in res.data["error"]
+
+    def test_swap_request_succeeds_when_at_minimum(
+        self,
+        auth_client_user_setup,
+        swap_collection,
+        owner_swap_thing,
+        user2,
+    ):
+        """Guest with 3 swap things in collection can propose a swap when minimum=3."""
+        swap_collection.swap_minimum_items = 3
+        swap_collection.save()
+        swap_collection.invites.add(user2)
+
+        guest_things = []
+        for i in range(3):
+            t = Thing.objects.create(
+                code=f"GST00{i}",
+                type="SWAP_THING",
+                owner=user2,
+                headline=f"Guest item {i}",
+            )
+            swap_collection.things.add(t)
+            guest_things.append(t)
+
+        client = APIClient()
+        refresh = RefreshToken.for_user(user2)
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+        res = client.post(
+            f"/api/v1/things/{owner_swap_thing.code}/request/",
+            {"offered_thing_codes": [guest_things[0].code]},
+            format="json",
+        )
+        assert res.status_code == 200
+
+    def test_thing_serializer_exposes_minimum_and_count(
+        self, auth_client_user_setup, swap_collection, owner_swap_thing, user2
+    ):
+        """Frontend gating relies on these two fields being present in the thing payload."""
+        swap_collection.swap_minimum_items = 3
+        swap_collection.save()
+        swap_collection.invites.add(user2)
+
+        # Guest uploads 1 of their own swap items
+        guest_t = Thing.objects.create(
+            code="GST101",
+            type="SWAP_THING",
+            owner=user2,
+            headline="Guest item",
+        )
+        swap_collection.things.add(guest_t)
+
+        client = APIClient()
+        refresh = RefreshToken.for_user(user2)
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+        res = client.get(f"/api/v1/things/{owner_swap_thing.code}/")
+        assert res.status_code == 200
+        assert res.data["collection_swap_minimum_items"] == 3
+        assert res.data["my_swap_count_in_collection"] == 1
+
+
+@pytest.fixture
+def auth_client_user_setup(api_client, user):
+    refresh = RefreshToken.for_user(user)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    return api_client
+
+
 class TestSwapSerializer:
     def test_collection_serializer_includes_is_swap(self, auth_client_user, swap_collection):
         res = auth_client_user.get(f"/api/v1/collections/{swap_collection.code}/")

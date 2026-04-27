@@ -24,6 +24,7 @@ export default function EditCollectionPage() {
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [isMinimalist, setIsMinimalist] = useState(false);
+  const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
@@ -70,6 +71,7 @@ export default function EditCollectionPage() {
           setIsShare(data.is_share || false);
           setNewsletterEnabled(data.newsletter_enabled || false);
           setIsMinimalist(data.is_minimalist || false);
+          setRequireMinimumSwapItems((data.swap_minimum_items || 0) > 0);
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
           setPauseMessage(data.pause_message || '');
@@ -109,6 +111,8 @@ export default function EditCollectionPage() {
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
       is_minimalist: isMinimalist,
+      swap_minimum_items:
+        requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       thumbnail: thumbnail || '',
     };
 
@@ -233,7 +237,7 @@ export default function EditCollectionPage() {
             if (selectedOptions.length > 0) {
               const newMode = selectedOptions[0].value;
               setMode(newMode);
-              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
+              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); setRequireMinimumSwapItems(false); }
             }
           }}
         />
@@ -243,7 +247,19 @@ export default function EditCollectionPage() {
               id="edit-collection-swap"
               label={t('swap.enableSwap')}
               checked={isSwap}
-              onChange={(val) => { setIsSwap(!val); if (!val) setIsShare(false); }}
+              onChange={(val) => { setIsSwap(!val); if (!val) { setIsShare(false); } else { setRequireMinimumSwapItems(false); } }}
+              variant="inline"
+              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
+            />
+          </div>
+        )}
+        {mode === 'COMMUNITY' && isSwap && (
+          <div className="toggle-left">
+            <ToggleButton
+              id="edit-collection-swap-minimum"
+              label={<>{t('swap.requireMinimumLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('swap.requireMinimumHelper')}</span></>}
+              checked={requireMinimumSwapItems}
+              onChange={(val) => setRequireMinimumSwapItems(!val)}
               variant="inline"
               theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
             />

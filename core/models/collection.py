@@ -56,6 +56,7 @@ class Collection(models.Model):
     is_share = models.BooleanField(default=False)
     newsletter_enabled = models.BooleanField(default=False)
     is_minimalist = models.BooleanField(default=False)
+    swap_minimum_items = models.PositiveIntegerField(default=0)
     thumbnail = models.CharField(max_length=255, blank=True, default="")
     pause_message = models.CharField(max_length=256, blank=True, default="")
     share_token = models.CharField(max_length=22, blank=True, null=True, unique=True)

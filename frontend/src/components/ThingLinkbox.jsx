@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome, IconGroup, IconSwapUser } from 'hds-react';
+import { Button, Notification, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome, IconGroup, IconSwapUser } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import { track } from '../services/analytics';
@@ -217,7 +217,11 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   };
 
   const showButton = !isOwner && thing.status !== 'INACTIVE';
-  const buttonDisabled = isPaused || thing.status === 'TAKEN' || submitting || requested;
+  const swapMinimum = thing.collection_swap_minimum_items || 0;
+  const swapOwnCount = thing.my_swap_count_in_collection || 0;
+  const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
+  const swapItemsMissing = swapMinimumNotMet ? swapMinimum - swapOwnCount : 0;
+  const buttonDisabled = isPaused || thing.status === 'TAKEN' || submitting || requested || swapMinimumNotMet;
 
   const editPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}/edit`
@@ -293,6 +297,16 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           </div>
         </div>
         <p className="thing-card-caption">{thing.headline}</p>
+        {showButton && swapMinimumNotMet && (
+          <Notification
+            type="info"
+            label={t('swap.minimumNotMetLabel')}
+            size="small"
+            style={{ marginTop: 'var(--spacing-2-xs)' }}
+          >
+            {t('swap.minimumNotMetBody', { count: swapItemsMissing })}
+          </Notification>
+        )}
         <Toast toast={toast} onClose={() => setToast(null)} />
       </div>
     );
@@ -525,6 +539,16 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             >
               {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
             </Button>
+          )}
+          {showButton && swapMinimumNotMet && (
+            <Notification
+              type="info"
+              label={t('swap.minimumNotMetLabel')}
+              size="small"
+              style={{ marginTop: 'var(--spacing-2-xs)' }}
+            >
+              {t('swap.minimumNotMetBody', { count: swapItemsMissing })}
+            </Notification>
           )}
           {isCollectionOwner && !isOwner && (
             <Button

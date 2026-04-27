@@ -169,7 +169,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `GIFT_THING`, `SELL_THING` — button submits directly via `POST /api/v1/things/{code}/request/`, no extra fields.
   - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button navigates to `RequestThingPage` for date selection.
   - `ORDER_THING` — button navigates to `RequestThingPage` for delivery date and quantity.
-  - `SWAP_THING` — "Propose swap" button navigates to `RequestThingPage` for swap item selection. Owner bookings display shows offered thing headlines for swap requests.
+  - `SWAP_THING` — "Propose swap" button navigates to `RequestThingPage` for swap item selection. Owner bookings display shows offered thing headlines for swap requests. **Minimum-items gate**: when `thing.collection_swap_minimum_items > 0` and `thing.my_swap_count_in_collection` is below it, the button is disabled and an inline HDS `Notification` (`type="info"`, `size="small"`) is rendered below it via `swap.minimumNotMetLabel` + `swap.minimumNotMetBody` (with `count` interpolation). The same gate is mirrored in `ThingPage`. Backend backstops it in `core/views/reservations.py::_handle_swap_request`.
   - `APPOINTMENT_THING` — "Hold" button navigates to `ThingPage` (not `RequestThingPage`); booking is done via the `WeeklySchedule` slot grid.
 - **Back navigation**: passes `{ state: { backPath, backLabel } }` to RequestThingPage and ThingPage based on context (collection headline or home).
 
@@ -328,7 +328,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/collections/{code}/` to load, `PATCH /api/v1/collections/{code}/` to save
 - Accessible from `/collections/:code/edit`.
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `ToggleButton` for "Enable item swapping" and `ToggleButton` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; swap and share are mutually exclusive with each other), `ToggleButton` for "Weekly activity newsletter" (visible when share is enabled), `ToggleButton` for "Minimalist (album)" (always visible; independent of swap), `Select` for digest frequency (None/Weekly/Monthly), `ImageUpload` for thumbnail (folder `oiueei/collections`). All toggles use the `.toggle-left` wrapper class.
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for status (ACTIVE/INACTIVE), `Select` for mode (Proprietary/Community), `ToggleButton` for "Enable item swapping" and `ToggleButton` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; swap and share are mutually exclusive with each other), `ToggleButton` for "Require 3 items before swapping" (visible only when swap is enabled; saves `swap_minimum_items=3` when on, `0` when off), `ToggleButton` for "Weekly activity newsletter" (visible when share is enabled), `ToggleButton` for "Minimalist (album)" (always visible; independent of swap), `Select` for digest frequency (None/Weekly/Monthly), `ImageUpload` for thumbnail (folder `oiueei/collections`). All toggles use the `.toggle-left` wrapper class.
   - "Save" button below the form, then "Delete" button below that (navigates to `DeleteCollectionPage`).
 - **Pause section** below the Delete button (separated by a border):
   - When NOT paused: `TextArea` for a custom message to guests + "Pause collection" button (disabled until message is non-empty). Submits `PATCH { pause_message: message }`.
@@ -343,7 +343,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/collections/`
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `ToggleButton` for "Enable item swapping" and `ToggleButton` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; swap and share are mutually exclusive with each other), `ToggleButton` for "Weekly activity newsletter" (visible when share is enabled), `ToggleButton` for "Minimalist (album)" (always visible; independent of swap). All toggles use the `.toggle-left` wrapper class.
+  - `TextInput` for headline (required), `TextArea` for description, `Select` for mode (Proprietary/Community), `ToggleButton` for "Enable item swapping" and `ToggleButton` for "Exclusively SHARE things" (visible only when mode is COMMUNITY; swap and share are mutually exclusive with each other), `ToggleButton` for "Require 3 items before swapping" (visible only when swap is enabled; saves `swap_minimum_items=3` when on, `0` when off), `ToggleButton` for "Weekly activity newsletter" (visible when share is enabled), `ToggleButton` for "Minimalist (album)" (always visible; independent of swap). All toggles use the `.toggle-left` wrapper class.
   - "Create" button below the form.
 - On success: navigates to `/collections/{code}`.
 

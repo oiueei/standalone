@@ -49,6 +49,8 @@ class ThingSerializer(serializers.ModelSerializer):
     collection_code = serializers.SerializerMethodField()
     collection_headline = serializers.SerializerMethodField()
     collection_owner = serializers.SerializerMethodField()
+    collection_swap_minimum_items = serializers.SerializerMethodField()
+    my_swap_count_in_collection = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
     attendee_count = serializers.SerializerMethodField()
     helper_count = serializers.SerializerMethodField()
@@ -85,6 +87,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "collection_code",
             "collection_headline",
             "collection_owner",
+            "collection_swap_minimum_items",
+            "my_swap_count_in_collection",
             "transfer_count",
             "attendee_count",
             "helper_count",
@@ -141,6 +145,30 @@ class ThingSerializer(serializers.ModelSerializer):
         collections = obj.collections.all()
         first = collections[0] if collections else None
         return first.owner_id if first else None
+
+    def get_collection_swap_minimum_items(self, obj):
+        collections = obj.collections.all()
+        first = collections[0] if collections else None
+        return first.swap_minimum_items if first else 0
+
+    def get_my_swap_count_in_collection(self, obj):
+        """Number of own ACTIVE/TAKEN SWAP_THINGs the requester has in this thing's
+        first collection. Used by the frontend to gate the 'Propose swap' button
+        against `collection_swap_minimum_items`. Returns 0 when no collection,
+        no requester, or thing isn't a swap."""
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return 0
+        collections = obj.collections.all()
+        first = collections[0] if collections else None
+        if not first or not first.is_swap:
+            return 0
+        return Thing.objects.filter(
+            owner=request.user,
+            type="SWAP_THING",
+            status__in=("ACTIVE", "TAKEN"),
+            collections=first,
+        ).count()
 
     def get_faqs(self, obj):
         # Use prefetched faq_set cache if available

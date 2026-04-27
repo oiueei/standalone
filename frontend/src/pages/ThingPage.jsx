@@ -197,7 +197,11 @@ export default function ThingPage() {
   const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
   const showButton = !isOwner && thing.status !== 'INACTIVE';
-  const buttonDisabled = thing.status === 'TAKEN' || submitting || requested || (isShare && !!thing.my_pending_booking);
+  const swapMinimum = thing.collection_swap_minimum_items || 0;
+  const swapOwnCount = thing.my_swap_count_in_collection || 0;
+  const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
+  const swapItemsMissing = swapMinimumNotMet ? swapMinimum - swapOwnCount : 0;
+  const buttonDisabled = thing.status === 'TAKEN' || submitting || requested || (isShare && !!thing.my_pending_booking) || swapMinimumNotMet;
 
   const editPath = code
     ? `/collections/${code}/things/${thing.code}/edit`
@@ -685,8 +689,22 @@ export default function ThingPage() {
             style={btnStyle}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
-            {submitting ? t('common.sending') : buttonDisabled ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+            {submitting
+              ? t('common.sending')
+              : (thing.status === 'TAKEN' || requested || (isShare && !!thing.my_pending_booking))
+                ? t('thingCard.waitingForConfirmation')
+                : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
           </Button>
+        )}
+        {showButton && swapMinimumNotMet && (
+          <Notification
+            type="info"
+            label={t('swap.minimumNotMetLabel')}
+            size="small"
+            style={{ marginTop: 'var(--spacing-2-xs)' }}
+          >
+            {t('swap.minimumNotMetBody', { count: swapItemsMissing })}
+          </Notification>
         )}
 
         {isCollectionOwner && !isOwner && (

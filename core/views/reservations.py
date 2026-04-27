@@ -373,6 +373,28 @@ class ThingRequestView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Enforce per-collection minimum: requester must already have N of their
+        # own SWAP_THINGs (ACTIVE/TAKEN) in this collection before they can ask
+        # for a swap. Backstops the frontend gating in ThingLinkbox/ThingPage.
+        minimum = thing_collection.swap_minimum_items
+        if minimum > 0:
+            own_count = Thing.objects.filter(
+                owner=request.user,
+                type="SWAP_THING",
+                status__in=("ACTIVE", "TAKEN"),
+                collections=thing_collection,
+            ).count()
+            if own_count < minimum:
+                return Response(
+                    {
+                        "error": (
+                            f"You need to upload at least {minimum} item(s) to this collection"
+                            " before you can propose a swap."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         # Validate all offered things
         offered_things = []
         for code in offered_codes:

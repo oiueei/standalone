@@ -506,7 +506,12 @@
     "swapAccepted": "Swap completed! Items have been exchanged.",
     "swapRejected": "Swap request declined.",
     "enableSwap": "Enable item swapping",
-    "swapCollection": "Swap collection"
+    "swapCollection": "Swap collection",
+    "requireMinimumLabel": "Require 3 items before swapping",
+    "requireMinimumHelper": "Guests (and you) must upload at least 3 of your own items to this collection before being allowed to propose a swap.",
+    "minimumNotMetLabel": "Upload more items first",
+    "minimumNotMetBody_one": "Upload {{count}} more item to this collection before you can propose a swap.",
+    "minimumNotMetBody_other": "Upload {{count}} more items to this collection before you can propose a swap."
   },
   "share": {
     "enableShare": "Exclusively SHARE things",

@@ -682,6 +682,7 @@ Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THIN
 **Swap (SWAP_THING):**
 - Requires `offered_thing_codes` (list of thing codes to offer in exchange).
 - Each offered thing must: be SWAP_THING, be owned by the requester, be ACTIVE, be in the same swap collection.
+- **Minimum-items gate** (`Collection.swap_minimum_items`): if `>0`, the requester must already have at least that many own SWAP_THINGs (status ACTIVE or TAKEN) in the same collection — otherwise returns 400 with the message "You need to upload at least N item(s) to this collection before you can propose a swap." Applies symmetrically to guests AND the collection owner (owners only request swaps on guests' things, but the rule treats them the same). Frontend mirrors the gate via `collection_swap_minimum_items` + `my_swap_count_in_collection` on the thing serializer.
 - Creates `BookingPeriod` with no dates, links offered things via M2M.
 - Thing stays `ACTIVE`. Sends swap-specific emails via `_send_swap_email()`.
 

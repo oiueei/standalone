@@ -144,7 +144,25 @@ Required to access the Django admin at `/oiueei-admin/`:
 heroku run python manage.py createsuperuser -a your-app-name
 ```
 
-### 8. Open the app
+### 8. Seed demo data (optional)
+
+Populate the database with the demo users (Lala/Lele/Lili/Lolo/Lulu) and their collections. Idempotent — safe to re-run.
+
+```bash
+heroku run -a your-app-name "python manage.py seed_demo"                  # English (default)
+heroku run -a your-app-name "python manage.py seed_demo --lang=es"        # Spanish
+heroku run -a your-app-name "python manage.py seed_demo --lang=es --reset"  # wipe demos and re-seed
+```
+
+**Quote the inner command.** Without quotes (or a `--` separator), the Heroku CLI intercepts inner flags such as `--lang` and `--reset` as its own and fails with `Nonexistent flag`. Equivalent forms that also work:
+
+```bash
+heroku run -a your-app-name -- python manage.py seed_demo --lang=es
+```
+
+`--reset` only deletes demo data (the seeded users/collections/things), leaving any other users and content intact.
+
+### 9. Open the app
 
 ```bash
 heroku open -a your-app-name
