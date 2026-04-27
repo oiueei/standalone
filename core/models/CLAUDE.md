@@ -22,7 +22,7 @@ The `User` model represents a person who can own collections, be invited to othe
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, event announcements, broadcasts. Default: `True` |
 | `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
-| `analytics_opt_out` | BooleanField | No | When `True`, the frontend Mixpanel client stops sending events from this user's browser (DESIGN.md §9 condition 4 — visible opt-out). Mirrored to `localStorage.analyticsOptOut` on every `/auth/me/` fetch so `analytics.js` can short-circuit without a network call. Default: `False`. |
+| `analytics_opt_out` | BooleanField | No | When `True`, the frontend Mixpanel client stops sending events from this user's browser (DESIGN.md §9 condition 4 — visible opt-out). Mirrored to `localStorage.analyticsOptOut` on every `/auth/me/` fetch so `analytics.js` can short-circuit without a network call. Schema default: `False`. **Runtime privacy-first default**: every user-creation entry point (`PopInView`, `CollectionInviteView`, `seed_demo`) sets `True` explicitly, so new real users and demo users start opted out and only send events if they untoggle in `EditProfilePage`. The schema/runtime mismatch is a temporary alpha shape — the post-alpha plan is to rename the field to `analytics_opt_in` and move the privacy-first default to the schema. |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |

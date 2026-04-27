@@ -123,7 +123,7 @@ Open-door onboarding. Allows anyone to join OIUEEI without a prior invitation.
 **Behaviour:**
 1. Validates email via `RequestLinkSerializer`.
 2. Reads optional `share_token` from the body.
-3. `get_or_create` user by email.
+3. `get_or_create` user by email. **Newly-created users are flagged `analytics_opt_out=True` explicitly via `defaults`** so they start opted out of Mixpanel events (privacy-first default — see `User.analytics_opt_out` in `core/models/CLAUDE.md`). The model field still has schema default `False`; the override happens here at the user-creation entry point.
 4. If a valid `share_token` is provided **and** the matching `Collection` is `ACTIVE`, adds the user to that collection's `invites` M2M. Invalid, missing, or pointing-to-INACTIVE tokens are silently ignored (anti-enumeration: response shape is identical regardless).
 5. If the user did not join via `share_token`, falls back to adding them to all `is_onboarding=True` collections.
 6. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
@@ -314,7 +314,7 @@ Lists things from collections where the current user is invited. Only returns AC
 | **Permission** | `IsAuthenticated` + collection owner |
 | **Rate limit** | 30 requests/hour per user |
 
-Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
+Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). **Newly-created users are flagged `analytics_opt_out=True` via `defaults`** so they start opted out of Mixpanel events (privacy-first default — see `User.analytics_opt_out` in `core/models/CLAUDE.md`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
 
 **Request body:**
 ```json
