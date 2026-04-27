@@ -568,6 +568,22 @@
     "sending": "Bidaltzen...",
     "sent": "Hedapena {{count}} gonbidaturi bidali da."
   },
+  "notifications": {
+    "pageTitle": "Email lehentasunak",
+    "intro": "Aukeratu OIUEEI-tik zein email jaso nahi dituzun. Edozein unetan alda dezakezu.",
+    "magicLabel": "Saio hasteko esteka eta gonbidapenak",
+    "magicHelper": "Beharrezkoa — hauek gabe ezin duzu saioa hasi ezta bilduma batera batu ere.",
+    "activityLabel": "Erabiltzaileen arteko jarduera (gomendatua)",
+    "activityHelper": "Erreserba eskaerak, baieztapenak, galderak eta erantzunak, oroigarriak.",
+    "newsLabel": "Berriak eta iragarpenak (aukerakoa)",
+    "newsHelper": "Bildumen difusioak, asteroko digestoak eta buletinak.",
+    "analyticsLabel": "Produktuaren analitikari uko egin",
+    "analyticsHelper": "Lehenespenez ez dugu inolako gertaerarik bidaltzen zure nabigatzailetik — zure pribatutasuna abiapuntua da. Berriro aktibatzen baduzu, gertaera pseudonimo gutxi batzuk bilduko genituzke (saio hasiera, sortutako bilduma, eskatutako erreserba) OIUEEI nola erabiltzen den ulertzeko, zure 6 karaktereko erabiltzaile-kodearekin soilik etiketatuta — inoiz ez zure email, izen edo mezuen edukiarekin. Botere hau arduraz erabiliko dugu, agintzen dizugu.",
+    "saved": "Lehentasunak gorde dira.",
+    "errorLoading": "Errorea lehentasunak kargatzean.",
+    "errorSaving": "Errorea gordetzean.",
+    "invalidLink": "Esteka hau ez da baliozkoa edo iraungi da. Hasi saioa zure lehentasunak aldatzeko."
+  },
   "pause": {
     "sectionHeading": "Pausatu",
     "sectionHelper": "Bilduma pausatuta dagoenean, gonbidatuek ikusi dezakete baina ezin dituzte eskaera berriak egin.",

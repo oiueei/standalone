@@ -568,6 +568,22 @@
     "sending": "Enviando...",
     "sent": "Difusão enviada para {{count}} convidados."
   },
+  "notifications": {
+    "pageTitle": "Preferências de e-mail",
+    "intro": "Escolha quais e-mails você quer receber do OIUEEI. Você pode mudar isso a qualquer momento.",
+    "magicLabel": "Links de login e convites",
+    "magicHelper": "Necessário — sem estes você não consegue entrar nem se juntar a coleções.",
+    "activityLabel": "Atividade entre usuários (recomendado)",
+    "activityHelper": "Solicitações de reserva, confirmações, perguntas e respostas, lembretes.",
+    "newsLabel": "Notícias e anúncios (opcional)",
+    "newsHelper": "Difusões de coleções, digests semanais e newsletters.",
+    "analyticsLabel": "Recusar análise de produto",
+    "analyticsHelper": "Por padrão não enviamos nenhum evento do seu navegador — sua privacidade é o ponto de partida. Se você reativar a análise, coletaríamos um pequeno conjunto de eventos pseudônimos (login, coleção criada, reserva solicitada) para entender como o OIUEEI é usado, marcados apenas com seu código de usuário de 6 caracteres — nunca com seu e-mail, nome ou conteúdo de mensagens. Usaremos esse poder com muita responsabilidade, prometemos.",
+    "saved": "Preferências salvas.",
+    "errorLoading": "Erro ao carregar as preferências.",
+    "errorSaving": "Erro ao salvar.",
+    "invalidLink": "Este link é inválido ou expirou. Faça login para mudar suas preferências."
+  },
   "pause": {
     "sectionHeading": "Pausar",
     "sectionHelper": "Com a coleção pausada, os convidados podem vê-la mas não podem fazer novas reservas.",

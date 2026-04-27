@@ -402,7 +402,14 @@ class PopInView(APIView):
         share_token = (request.data.get("share_token") or "").strip() or None
         ip = get_client_ip(request)
 
-        user, created = User.objects.get_or_create(email=email)
+        # New users start opted out of product analytics (privacy-first default,
+        # DESIGN.md §9). The model field default is False to keep the DB schema
+        # unchanged — we set True explicitly only at the user-creation entry
+        # points (PopInView here, CollectionInviteView, seed_demo).
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={"analytics_opt_out": True},
+        )
 
         # If a valid share_token is provided, join that collection.
         # Otherwise, fall back to onboarding collections.

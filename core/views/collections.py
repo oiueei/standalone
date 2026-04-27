@@ -248,10 +248,13 @@ class CollectionInviteView(APIView):
 
         email = serializer.validated_data["email"].lower()
 
-        # Get or create user to invite
+        # Get or create user to invite. New users start opted out of product
+        # analytics (privacy-first default, DESIGN.md §9) — set explicitly here
+        # because the model field default is False to keep the DB schema
+        # unchanged. See also PopInView and seed_demo.
         invited_user, created = User.objects.get_or_create(
             email=email,
-            defaults={"email": email},
+            defaults={"email": email, "analytics_opt_out": True},
         )
 
         if collection.is_invited(invited_user.code):
