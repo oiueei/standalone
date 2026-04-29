@@ -76,6 +76,21 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 
 ---
 
+## Breakpoints
+
+OIUEEI follows the official HDS breakpoint tokens. Use these exact `min-width` values in all media queries — never use arbitrary pixel values.
+
+| Token | Min-width | Max content width | Columns | Margin |
+|---|---|---|---|---|
+| `breakpoint-xs` | 320px | 288px | 4 | 16px |
+| `breakpoint-m` | 768px | 720px | 8 | 24px |
+| `breakpoint-l` | 992px | 944px | 12 | 24px |
+| `breakpoint-xl` | 1248px | 1200px | 12 | 24px |
+
+The `page-container` and `form-hero-content` max-width is **1248px** (aligned with `breakpoint-xl`). The complementary `max-width: 767px` query (below `breakpoint-m`) is also valid for mobile-only overrides.
+
+---
+
 ## Pages
 
 ### LoginPage (`src/pages/LoginPage.jsx`)

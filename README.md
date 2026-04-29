@@ -2,6 +2,20 @@
 
 An open-source web application for people to share their belongings with friends and others around. Users can create collections (wishlists, gift lists, items for sale) and share them with friends who can then reserve items or ask questions.
 
+## Authorship & Development
+
+OIUEEI is designed and led by Carlos Alberto, a designer, and co-written with [Claude Code](https://claude.ai/code), Anthropic's command-line coding assistant. UI and UX design decisions, product scope, tone and voice, and the choice to build on HDS are Carlos Alberto's; Claude carries a large share of the Django, DRF, and React implementation under direction. Every commit involves Claude, is reviewed before it ships, and is signed with a `Co-Authored-By: Claude` trailer — the contribution history is fully transparent.
+
+## Try it (and tell me what breaks)
+
+OIUEEI is in **alpha**: nothing is finished, nothing is at 100%, and you'll find rough edges. That's exactly why your hands on it would help.
+
+You can explore a live demo environment at **[oiueei.com/popin](https://www.oiueei.com/popin)** — instant access to a populated account so you can see what collections, things, and the different sharing modes look and feel like.
+
+What I'm looking for is honest feedback from people willing to poke at it: things that confuse you, flows that break, words that don't make sense, design decisions you'd push back on. If something annoys you, that's signal.
+
+**[→ Tell me what you found](https://tally.so/r/A76Xkz)** (2 minutes, no signup needed)
+
 ## Tech Stack
 
 - **Backend**: Django 5.x + Django REST Framework
@@ -14,15 +28,15 @@ An open-source web application for people to share their belongings with friends
 
 ## UI & Design System
 
-OIUEEI's user interface is built on top of the [Helsinki Design System (HDS)](https://hds.hel.fi/), an open-source design system created by the City of Helsinki. We consume HDS at multiple levels:
+OIUEEI's user interface is built on top of the [Helsinki Design System (HDS)](https://hds.hel.fi/), an open-source design system created by the City of Helsinki. OIUEEI consumes HDS at multiple levels:
 
 - **React components** — via [`hds-react`](https://github.com/City-of-Helsinki/helsinki-design-system/tree/master/packages/react)
 - **Design tokens** — colours, spacing, typography, and breakpoints from [`hds-design-tokens`](https://github.com/City-of-Helsinki/helsinki-design-system/tree/master/packages/design-tokens)
 - **Core styles** — base CSS from [`hds-core`](https://github.com/City-of-Helsinki/helsinki-design-system/tree/master/packages/core)
 
-### What we customise
+### What I customise
 
-HDS is designed for City of Helsinki services, so we adapt it to fit OIUEEI's context:
+HDS is designed for City of Helsinki services, so I adapt it to fit OIUEEI's context:
 
 | Layer | HDS baseline | OIUEEI adaptation |
 |---|---|---|
@@ -311,11 +325,12 @@ python manage.py send_digests
 
 ## Privacy & Analytics
 
-OIUEEI does not sell or share user data with third parties. We collect a small amount of pseudonymous product analytics (Mixpanel, EU host) to understand how the app is used: events are tagged with the 6-character `User.code` only — never email, name, or anything users type. Users can opt out of analytics from their profile (`User.analytics_opt_out`); when opted out, `frontend/src/services/analytics.js` short-circuits and Mixpanel stops sending from that browser.
+OIUEEI does not sell or share user data with third parties. I collect a small amount of pseudonymous product analytics (Mixpanel, EU host) to understand how the app is used: events are tagged with the 6-character `User.code` only — never email, name, or anything users type. Users can opt out of analytics from their profile (`User.analytics_opt_out`); when opted out, `frontend/src/services/analytics.js` short-circuits and Mixpanel stops sending from that browser.
 
 The instrumented events are: `signup`, `magic_link_requested`, `magic_link_verified`, `collection_created`, `thing_created`, `invite_sent`, `invite_accepted`, `invite_declined`, `booking_requested`, `booking_accepted`, `booking_cancelled`, `digest_link_clicked`. Email engagement is measured via click-through redirects (`/digest/...`), never tracking pixels — see [`MIXPANEL.md`](MIXPANEL.md) for the full event taxonomy and property schema.
 
-Full ethical commitment and the rules we follow: [DESIGN.md §9](DESIGN.md#9-user-data-is-never-a-product).
+Full ethical commitment and the rules I follow: [DESIGN.md §9](DESIGN.md#9-user-data-is-never-a-product).
+
 
 ## Architecture Decisions
 
@@ -380,3 +395,5 @@ Main pages are validated with [axe DevTools](https://www.deque.com/axe/devtools/
 ## Acknowledgements
 
 This project uses components and design tokens from the [Helsinki Design System](https://hds.hel.fi/) by the [City of Helsinki](https://github.com/City-of-Helsinki), licensed under the [MIT License](https://github.com/City-of-Helsinki/helsinki-design-system/blob/master/LICENSE).
+
+This project is co-written with [Claude Code](https://claude.ai/code) by [Anthropic](https://www.anthropic.com/).

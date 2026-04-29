@@ -53,6 +53,15 @@ Mobile is the primary target. The experience must be excellent on a small screen
 - Navigation, forms, and key actions must work flawlessly with one hand
 - Tablet and desktop layouts are progressive enhancements, not the baseline
 
+**Official HDS breakpoints** — use these exact values in all media queries. Never use arbitrary pixel values.
+
+| Token | Min-width | Max content width | Columns | Margin |
+|---|---|---|---|---|
+| `breakpoint-xs` | 320px | 288px | 4 | 16px |
+| `breakpoint-m` | 768px | 720px | 8 | 24px |
+| `breakpoint-l` | 992px | 944px | 12 | 24px |
+| `breakpoint-xl` | 1248px | 1200px | 12 | 24px |
+
 **When designing a new view:** design mobile first, then adapt upwards. Never design desktop first and shrink down.
 
 ---

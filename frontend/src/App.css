@@ -208,7 +208,7 @@ div[class*="Linkbox-module_linkbox"] {
   }
 }
 
-@media (min-width: 944px) {
+@media (min-width: 992px) {
   .things-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -259,7 +259,7 @@ div[class*="Linkbox-module_linkbox"] {
   }
 }
 
-@media (min-width: 944px) {
+@media (min-width: 992px) {
   .collections-grid {
     grid-template-columns: repeat(3, 1fr);
   }
