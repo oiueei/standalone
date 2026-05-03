@@ -51,16 +51,29 @@ export default function EditCollectionPage() {
     { label: t('editCollection.digestMonthly'), value: 'MONTHLY' },
   ];
 
-  // Types allowed in PROPRIETARY collections (excludes COMMUNITY-only types).
+  // Type lists per mode/album combination. SWAP_THING is excluded everywhere
+  // because it requires `is_swap=True`, which forces the value via its flag.
   const PROPRIETARY_TYPES = [
     'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING',
     'LEND_THING', 'EVENT_THING', 'APPOINTMENT_THING',
   ];
-  const ALLOWED_TYPES_OPTIONS = (
-    isMinimalist
-      ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
-      : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }))
-  );
+  const COMMUNITY_TYPES = [
+    'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING', 'LEND_THING',
+    'SHARE_THING', 'EVENT_THING', 'WISH_THING', 'ASSET_THING', 'APPOINTMENT_THING',
+  ];
+  const COMMUNITY_MINIMALIST_TYPES = ['GIFT_THING', 'SHARE_THING'];
+
+  const ALLOWED_TYPES_OPTIONS = (() => {
+    if (mode === 'PROPRIETARY') {
+      return isMinimalist
+        ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
+        : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }));
+    }
+    const list = isMinimalist ? COMMUNITY_MINIMALIST_TYPES : COMMUNITY_TYPES;
+    return list.map((v) => ({ label: t('types.' + v), value: v }));
+  })();
+  const showAllowedTypesSelect =
+    mode === 'PROPRIETARY' || (mode === 'COMMUNITY' && !isSwap && !isShare);
 
   useEffect(() => {
     if (!userCode) {
@@ -105,7 +118,7 @@ export default function EditCollectionPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('editCollection.maxHeadline');
-    if (mode === 'PROPRIETARY' && allowedThingTypes.length === 0) {
+    if (showAllowedTypesSelect && allowedThingTypes.length === 0) {
       newErrors.allowedThingTypes = t('createCollection.allowedTypesAtLeastOne');
     }
     setErrors(newErrors);
@@ -129,9 +142,9 @@ export default function EditCollectionPage() {
       is_minimalist: isMinimalist,
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
-      // v1: only PROPRIETARY ships the multi-select. COMMUNITY collections
-      // keep the field empty until the COMMUNITY iteration.
-      allowed_thing_types: mode === 'PROPRIETARY' ? allowedThingTypes : [],
+      // is_swap and is_share force the value via their flag — the backend
+      // rejects an explicit allowlist on top, so we always send empty there.
+      allowed_thing_types: showAllowedTypesSelect ? allowedThingTypes : [],
       thumbnail: thumbnail || '',
     };
 
@@ -275,7 +288,12 @@ export default function EditCollectionPage() {
               id="edit-collection-swap"
               label={t('swap.enableSwap')}
               checked={isSwap}
-              onChange={(val) => { setIsSwap(!val); if (!val) { setIsShare(false); } else { setRequireMinimumSwapItems(false); } }}
+              onChange={(val) => {
+                const next = !val;
+                setIsSwap(next);
+                if (!next) { setIsShare(false); } else { setRequireMinimumSwapItems(false); }
+                setAllowedThingTypes([]);
+              }}
               variant="inline"
               theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
             />
@@ -299,7 +317,12 @@ export default function EditCollectionPage() {
               id="edit-collection-share"
               label={t('share.enableShare')}
               checked={isShare}
-              onChange={(val) => { setIsShare(!val); if (!val) setIsSwap(false); else setNewsletterEnabled(false); }}
+              onChange={(val) => {
+                const next = !val;
+                setIsShare(next);
+                if (!next) setIsSwap(false); else setNewsletterEnabled(false);
+                setAllowedThingTypes([]);
+              }}
               variant="inline"
               theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
             />
@@ -327,14 +350,16 @@ export default function EditCollectionPage() {
               setIsMinimalist(next);
               if (mode === 'PROPRIETARY') {
                 setAllowedThingTypes(next ? ['GIFT_THING'] : []);
+              } else {
+                setAllowedThingTypes([]);
               }
             }}
             variant="inline"
             theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
           />
         </div>
-        {mode === 'PROPRIETARY' && (
-          <div className={isMinimalist ? 'multiselect-locked' : undefined}>
+        {showAllowedTypesSelect && (
+          <div className={mode === 'PROPRIETARY' && isMinimalist ? 'multiselect-locked' : undefined}>
             <Select
               language="en"
               multiSelect
@@ -342,7 +367,7 @@ export default function EditCollectionPage() {
               texts={{
                 label: t('createCollection.allowedTypesLabel'),
                 placeholder: t('createCollection.allowedTypesPlaceholder'),
-                assistive: isMinimalist
+                assistive: isMinimalist && mode === 'PROPRIETARY'
                   ? t('createCollection.allowedTypesAlbumHelper')
                   : t('createCollection.allowedTypesHelper'),
                 error: errors.allowedThingTypes,
@@ -353,7 +378,7 @@ export default function EditCollectionPage() {
                 value: v,
               }))}
               onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
-              disabled={isMinimalist}
+              disabled={mode === 'PROPRIETARY' && isMinimalist}
               invalid={!!errors.allowedThingTypes}
             />
           </div>

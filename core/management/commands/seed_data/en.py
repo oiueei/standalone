@@ -71,6 +71,7 @@ COLLECTIONS = [
         "mode": "COMMUNITY",
         "invites": ["L3L3oo", "l1l13S", "l0l0oh", "1u1ucs"],
         "is_onboarding": True,
+        "allowed_thing_types": ["ASSET_THING"],
         "thumbnail": "La1aC2",
     },
     {

@@ -69,6 +69,103 @@ class TestCreateWithAllowedTypes:
 
 
 @pytest.mark.django_db
+class TestCommunityWithAllowedTypes:
+    """COMMUNITY collections accept the wider type set; flags override the list."""
+
+    def test_create_community_with_share_or_wish_succeeds(self, authenticated_client):
+        for community_type in ("WISH_THING", "SHARE_THING", "ASSET_THING"):
+            response = authenticated_client.post(
+                "/api/v1/collections/",
+                {
+                    "headline": f"Community {community_type}",
+                    "mode": "COMMUNITY",
+                    "allowed_thing_types": [community_type],
+                },
+                format="json",
+            )
+            assert response.status_code == status.HTTP_201_CREATED, community_type
+
+    def test_create_community_rejects_swap_type_without_is_swap(self, authenticated_client):
+        """SWAP_THING needs is_swap=True; listing it on a non-swap COMMUNITY is invalid."""
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "No-swap community",
+                "mode": "COMMUNITY",
+                "allowed_thing_types": ["SWAP_THING"],
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_community_minimalist_only_gift_and_share(self, authenticated_client):
+        """COMMUNITY+album limits the list to GIFT/SHARE; SELL/EVENT/etc. are rejected."""
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Album community",
+                "mode": "COMMUNITY",
+                "is_minimalist": True,
+                "allowed_thing_types": ["GIFT_THING", "SHARE_THING"],
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Bad album community",
+                "mode": "COMMUNITY",
+                "is_minimalist": True,
+                "allowed_thing_types": ["GIFT_THING", "SELL_THING"],
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_with_is_swap_rejects_non_empty_allowlist(self, authenticated_client):
+        """is_swap forces the type via its flag; setting an explicit allowlist is redundant."""
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Swap with allowlist",
+                "mode": "COMMUNITY",
+                "is_swap": True,
+                "allowed_thing_types": ["SWAP_THING"],
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_with_is_share_rejects_non_empty_allowlist(self, authenticated_client):
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Share with allowlist",
+                "mode": "COMMUNITY",
+                "is_share": True,
+                "allowed_thing_types": ["SHARE_THING"],
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_with_is_swap_empty_allowlist_succeeds(self, authenticated_client):
+        """Empty allowlist is fine on a swap collection — the flag does the restricting."""
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Swap clean",
+                "mode": "COMMUNITY",
+                "is_swap": True,
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
 class TestUpdateWithAllowedTypes:
     """PUT /api/v1/collections/{code}/ — narrowing is rejected when it would orphan."""
 

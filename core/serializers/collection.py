@@ -21,7 +21,24 @@ PROPRIETARY_THING_TYPES = (
     "EVENT_THING",
     "APPOINTMENT_THING",
 )
-MINIMALIST_THING_TYPES = ("GIFT_THING", "SHARE_THING", "SWAP_THING")
+# Thing types valid for community collections without is_swap/is_share flags.
+# SWAP_THING is excluded because it requires is_swap=True (which forces a
+# single-type collection and bypasses the allowlist entirely).
+COMMUNITY_THING_TYPES = (
+    "GIFT_THING",
+    "SELL_THING",
+    "ORDER_THING",
+    "RENT_THING",
+    "LEND_THING",
+    "SHARE_THING",
+    "EVENT_THING",
+    "WISH_THING",
+    "ASSET_THING",
+    "APPOINTMENT_THING",
+)
+# Album mode in COMMUNITY narrows to GIFT and SHARE (SWAP needs is_swap, which
+# is mutually exclusive with is_minimalist).
+COMMUNITY_MINIMALIST_THING_TYPES = ("GIFT_THING", "SHARE_THING")
 
 
 class CollectionThingSummarySerializer(serializers.ModelSerializer):
@@ -258,11 +275,11 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "swap_minimum_items can only be set on swap collections."
             )
-        _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types)
+        _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types)
         return attrs
 
 
-def _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types):
+def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types):
     """Validate the allowed_thing_types list when non-empty.
 
     Empty list means "no restriction" — accepted in any mode (preserves the
@@ -271,11 +288,23 @@ def _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types):
     form on the frontend, where it belongs as a UX nudge.
 
     When non-empty:
-    - PROPRIETARY excludes COMMUNITY-only types (WISH/SHARE/ASSET/SWAP)
-    - PROPRIETARY + is_minimalist must be exactly [GIFT_THING]
+    - is_swap or is_share already restrict the collection to a single type via
+      their own flag — combining either with a non-empty allowlist is rejected
+      to keep the rules unambiguous (the flag wins, the allowlist is redundant).
+    - PROPRIETARY excludes COMMUNITY-only types (WISH/SHARE/ASSET/SWAP).
+    - PROPRIETARY + is_minimalist must be exactly [GIFT_THING].
+    - COMMUNITY (no flags) accepts the 10-type COMMUNITY set (all except SWAP,
+      which requires is_swap).
+    - COMMUNITY + is_minimalist narrows to [GIFT_THING, SHARE_THING] (SWAP is
+      out because is_minimalist and is_swap are mutually exclusive).
     """
     if not allowed_thing_types:
         return
+    if is_swap or is_share:
+        raise serializers.ValidationError(
+            "Don't set allowed_thing_types on swap-only or share-only"
+            " collections — the flag already restricts the type."
+        )
     if mode == "PROPRIETARY":
         if is_minimalist:
             if list(allowed_thing_types) != ["GIFT_THING"]:
@@ -289,6 +318,19 @@ def _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types):
             raise serializers.ValidationError(
                 f"These types are not allowed in proprietary collections: {invalid}"
             )
+        return
+    # COMMUNITY
+    valid = COMMUNITY_MINIMALIST_THING_TYPES if is_minimalist else COMMUNITY_THING_TYPES
+    invalid = [t for t in allowed_thing_types if t not in valid]
+    if invalid:
+        if is_minimalist:
+            raise serializers.ValidationError(
+                "Album mode in community collections only accepts gifts and"
+                f" shares — these types are not allowed: {invalid}"
+            )
+        raise serializers.ValidationError(
+            f"These types are not allowed in community collections: {invalid}"
+        )
 
 
 class CollectionUpdateSerializer(serializers.ModelSerializer):
@@ -349,7 +391,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "swap_minimum_items can only be set on swap collections."
             )
-        _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types)
+        _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types)
         # Orphan check: if this is an update narrowing the list, every existing
         # thing currently in the collection must keep a valid slot in the new
         # list. Otherwise the rule would become incoherent ("type X is not
