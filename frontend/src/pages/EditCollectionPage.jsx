@@ -63,17 +63,21 @@ export default function EditCollectionPage() {
   ];
   const COMMUNITY_MINIMALIST_TYPES = ['GIFT_THING', 'SHARE_THING'];
 
+  const isLockedToSingleType = (
+    (mode === 'PROPRIETARY' && isMinimalist)
+    || (mode === 'COMMUNITY' && (isSwap || isShare))
+  );
   const ALLOWED_TYPES_OPTIONS = (() => {
     if (mode === 'PROPRIETARY') {
       return isMinimalist
         ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
         : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }));
     }
+    if (isSwap) return [{ label: t('types.SWAP_THING'), value: 'SWAP_THING' }];
+    if (isShare) return [{ label: t('types.SHARE_THING'), value: 'SHARE_THING' }];
     const list = isMinimalist ? COMMUNITY_MINIMALIST_TYPES : COMMUNITY_TYPES;
     return list.map((v) => ({ label: t('types.' + v), value: v }));
   })();
-  const showAllowedTypesSelect =
-    mode === 'PROPRIETARY' || (mode === 'COMMUNITY' && !isSwap && !isShare);
 
   useEffect(() => {
     if (!userCode) {
@@ -118,7 +122,7 @@ export default function EditCollectionPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('editCollection.maxHeadline');
-    if (showAllowedTypesSelect && allowedThingTypes.length === 0) {
+    if (!isLockedToSingleType && allowedThingTypes.length === 0) {
       newErrors.allowedThingTypes = t('createCollection.allowedTypesAtLeastOne');
     }
     setErrors(newErrors);
@@ -142,9 +146,7 @@ export default function EditCollectionPage() {
       is_minimalist: isMinimalist,
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
-      // is_swap and is_share force the value via their flag — the backend
-      // rejects an explicit allowlist on top, so we always send empty there.
-      allowed_thing_types: showAllowedTypesSelect ? allowedThingTypes : [],
+      allowed_thing_types: allowedThingTypes,
       thumbnail: thumbnail || '',
     };
 
@@ -291,8 +293,10 @@ export default function EditCollectionPage() {
               onChange={(val) => {
                 const next = !val;
                 setIsSwap(next);
-                if (!next) { setIsShare(false); } else { setRequireMinimumSwapItems(false); }
-                setAllowedThingTypes([]);
+                // Turning ON swap clears the mutually-exclusive share flag;
+                // turning OFF clears the swap-specific minimum-items rule.
+                if (next) { setIsShare(false); } else { setRequireMinimumSwapItems(false); }
+                setAllowedThingTypes(next ? ['SWAP_THING'] : []);
               }}
               variant="inline"
               theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
@@ -320,8 +324,10 @@ export default function EditCollectionPage() {
               onChange={(val) => {
                 const next = !val;
                 setIsShare(next);
-                if (!next) setIsSwap(false); else setNewsletterEnabled(false);
-                setAllowedThingTypes([]);
+                // Turning ON share clears the mutually-exclusive swap flag;
+                // turning OFF clears the share-only newsletter setting.
+                if (next) setIsSwap(false); else setNewsletterEnabled(false);
+                setAllowedThingTypes(next ? ['SHARE_THING'] : []);
               }}
               variant="inline"
               theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
@@ -358,31 +364,32 @@ export default function EditCollectionPage() {
             theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
           />
         </div>
-        {showAllowedTypesSelect && (
-          <div className={mode === 'PROPRIETARY' && isMinimalist ? 'multiselect-locked' : undefined}>
-            <Select
-              language="en"
-              multiSelect
-              id="edit-collection-allowed-thing-types"
-              texts={{
-                label: t('createCollection.allowedTypesLabel'),
-                placeholder: t('createCollection.allowedTypesPlaceholder'),
-                assistive: isMinimalist && mode === 'PROPRIETARY'
-                  ? t('createCollection.allowedTypesAlbumHelper')
-                  : t('createCollection.allowedTypesHelper'),
-                error: errors.allowedThingTypes,
-              }}
-              options={ALLOWED_TYPES_OPTIONS}
-              value={allowedThingTypes.map((v) => ({
-                label: t('types.' + v),
-                value: v,
-              }))}
-              onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
-              disabled={mode === 'PROPRIETARY' && isMinimalist}
-              invalid={!!errors.allowedThingTypes}
-            />
-          </div>
-        )}
+        <div className={isLockedToSingleType ? 'multiselect-locked' : undefined}>
+          <Select
+            language="en"
+            multiSelect
+            id="edit-collection-allowed-thing-types"
+            texts={{
+              label: t('createCollection.allowedTypesLabel'),
+              placeholder: t('createCollection.allowedTypesPlaceholder'),
+              assistive: (() => {
+                if (mode === 'PROPRIETARY' && isMinimalist) return t('createCollection.allowedTypesAlbumHelper');
+                if (mode === 'COMMUNITY' && isSwap) return t('createCollection.allowedTypesSwapHelper');
+                if (mode === 'COMMUNITY' && isShare) return t('createCollection.allowedTypesShareHelper');
+                return t('createCollection.allowedTypesHelper');
+              })(),
+              error: errors.allowedThingTypes,
+            }}
+            options={ALLOWED_TYPES_OPTIONS}
+            value={allowedThingTypes.map((v) => ({
+              label: t('types.' + v),
+              value: v,
+            }))}
+            onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
+            disabled={isLockedToSingleType}
+            invalid={!!errors.allowedThingTypes}
+          />
+        </div>
         <Select
                 language="en"
           id="edit-collection-digest"

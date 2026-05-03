@@ -165,6 +165,7 @@ COLLECTIONS = [
         "is_swap": True,
         "invites": ["La1aN1", "L3L3oo", "l0l0oh", "1u1ucs"],
         "is_onboarding": True,
+        "allowed_thing_types": ["SWAP_THING"],
         "thumbnail": "l1l1C2",
     },
     {
@@ -182,6 +183,7 @@ COLLECTIONS = [
         "digest_frequency": "WEEKLY",
         "invites": ["La1aN1", "L3L3oo", "l1l13S", "l0l0oh"],
         "is_onboarding": True,
+        "allowed_thing_types": ["SHARE_THING"],
         "thumbnail": "1u1uC1",
     },
 ]

@@ -312,6 +312,8 @@
     "allowedTypesPlaceholder": "Pick one or more types",
     "allowedTypesHelper": "Pick at least one. Only the types you choose will be available when adding things later.",
     "allowedTypesAlbumHelper": "Album mode only accepts gifts.",
+    "allowedTypesSwapHelper": "Swap mode only accepts swap things.",
+    "allowedTypesShareHelper": "Share-only mode only accepts share things.",
     "allowedTypesAtLeastOne": "Pick at least one type."
   },
   "welcome": {

@@ -297,6 +297,8 @@
     "allowedTypesPlaceholder": "Escolle un ou máis tipos",
     "allowedTypesHelper": "Escolle polo menos un. Só estarán dispoñibles os tipos que selecciones cando engadas cousas.",
     "allowedTypesAlbumHelper": "O modo álbum só acepta agasallos.",
+    "allowedTypesSwapHelper": "O modo intercambio só acepta cousas de intercambio.",
+    "allowedTypesShareHelper": "O modo exclusivamente share só acepta cousas share.",
     "allowedTypesAtLeastOne": "Escolle polo menos un tipo."
   },
   "welcome": {

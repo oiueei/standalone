@@ -288,9 +288,10 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
     form on the frontend, where it belongs as a UX nudge.
 
     When non-empty:
-    - is_swap or is_share already restrict the collection to a single type via
-      their own flag — combining either with a non-empty allowlist is rejected
-      to keep the rules unambiguous (the flag wins, the allowlist is redundant).
+    - is_swap forces SWAP_THING via its flag, so the only consistent list is
+      ["SWAP_THING"]. Anything else is rejected so the form and the data
+      cannot disagree.
+    - is_share is the same with ["SHARE_THING"].
     - PROPRIETARY excludes COMMUNITY-only types (WISH/SHARE/ASSET/SWAP).
     - PROPRIETARY + is_minimalist must be exactly [GIFT_THING].
     - COMMUNITY (no flags) accepts the 10-type COMMUNITY set (all except SWAP,
@@ -300,11 +301,20 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
     """
     if not allowed_thing_types:
         return
-    if is_swap or is_share:
-        raise serializers.ValidationError(
-            "Don't set allowed_thing_types on swap-only or share-only"
-            " collections — the flag already restricts the type."
-        )
+    if is_swap:
+        if list(allowed_thing_types) != ["SWAP_THING"]:
+            raise serializers.ValidationError(
+                "Swap collections only accept swap things —"
+                " allowed_thing_types must be ['SWAP_THING'] or empty."
+            )
+        return
+    if is_share:
+        if list(allowed_thing_types) != ["SHARE_THING"]:
+            raise serializers.ValidationError(
+                "Share-only collections only accept share things —"
+                " allowed_thing_types must be ['SHARE_THING'] or empty."
+            )
+        return
     if mode == "PROPRIETARY":
         if is_minimalist:
             if list(allowed_thing_types) != ["GIFT_THING"]:

@@ -124,28 +124,55 @@ class TestCommunityWithAllowedTypes:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_create_with_is_swap_rejects_non_empty_allowlist(self, authenticated_client):
-        """is_swap forces the type via its flag; setting an explicit allowlist is redundant."""
+    def test_create_with_is_swap_accepts_matching_swap_thing_list(self, authenticated_client):
+        """is_swap forces SWAP_THING; the only consistent allowlist is ['SWAP_THING']."""
         response = authenticated_client.post(
             "/api/v1/collections/",
             {
-                "headline": "Swap with allowlist",
+                "headline": "Swap with matching allowlist",
                 "mode": "COMMUNITY",
                 "is_swap": True,
                 "allowed_thing_types": ["SWAP_THING"],
             },
             format="json",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["allowed_thing_types"] == ["SWAP_THING"]
 
-    def test_create_with_is_share_rejects_non_empty_allowlist(self, authenticated_client):
+    def test_create_with_is_swap_rejects_non_matching_list(self, authenticated_client):
         response = authenticated_client.post(
             "/api/v1/collections/",
             {
-                "headline": "Share with allowlist",
+                "headline": "Swap with wrong allowlist",
+                "mode": "COMMUNITY",
+                "is_swap": True,
+                "allowed_thing_types": ["GIFT_THING"],
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_with_is_share_accepts_matching_share_thing_list(self, authenticated_client):
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Share with matching allowlist",
                 "mode": "COMMUNITY",
                 "is_share": True,
                 "allowed_thing_types": ["SHARE_THING"],
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_create_with_is_share_rejects_non_matching_list(self, authenticated_client):
+        response = authenticated_client.post(
+            "/api/v1/collections/",
+            {
+                "headline": "Share with wrong allowlist",
+                "mode": "COMMUNITY",
+                "is_share": True,
+                "allowed_thing_types": ["LEND_THING"],
             },
             format="json",
         )

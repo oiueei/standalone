@@ -52,19 +52,24 @@ export default function CreateCollectionPage() {
   ];
   const COMMUNITY_MINIMALIST_TYPES = ['GIFT_THING', 'SHARE_THING'];
 
+  // is_swap, is_share and PROPRIETARY+album force a single type via their
+  // flag — the multi-select still renders, but locked and pre-filled, same
+  // visual pattern as PROPRIETARY+album (commit be9d789).
+  const isLockedToSingleType = (
+    (mode === 'PROPRIETARY' && isMinimalist)
+    || (mode === 'COMMUNITY' && (isSwap || isShare))
+  );
   const ALLOWED_TYPES_OPTIONS = (() => {
     if (mode === 'PROPRIETARY') {
       return isMinimalist
         ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
         : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }));
     }
+    if (isSwap) return [{ label: t('types.SWAP_THING'), value: 'SWAP_THING' }];
+    if (isShare) return [{ label: t('types.SHARE_THING'), value: 'SHARE_THING' }];
     const list = isMinimalist ? COMMUNITY_MINIMALIST_TYPES : COMMUNITY_TYPES;
     return list.map((v) => ({ label: t('types.' + v), value: v }));
   })();
-  // The multi-select is shown for PROPRIETARY always, and for COMMUNITY only
-  // when neither is_swap nor is_share is on (those flags force the value).
-  const showAllowedTypesSelect =
-    mode === 'PROPRIETARY' || (mode === 'COMMUNITY' && !isSwap && !isShare);
   const [showModeInfo, setShowModeInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -73,7 +78,9 @@ export default function CreateCollectionPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('createCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('createCollection.maxHeadline');
-    if (showAllowedTypesSelect && allowedThingTypes.length === 0) {
+    // "Pick at least one" only applies when the user can pick — locked
+    // selects (album, swap, share) auto-fill, so they pass by construction.
+    if (!isLockedToSingleType && allowedThingTypes.length === 0) {
       newErrors.allowedThingTypes = t('createCollection.allowedTypesAtLeastOne');
     }
     setErrors(newErrors);
@@ -94,9 +101,7 @@ export default function CreateCollectionPage() {
       is_minimalist: isMinimalist,
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
-      // is_swap and is_share force the value via their flag — the backend
-      // rejects an explicit allowlist on top, so we always send empty there.
-      allowed_thing_types: showAllowedTypesSelect ? allowedThingTypes : [],
+      allowed_thing_types: allowedThingTypes,
       thumbnail: thumbnail || '',
     };
     if (description.trim()) body.description = description.trim();
@@ -209,11 +214,13 @@ export default function CreateCollectionPage() {
                 onChange={(val) => {
                   const next = !val;
                   setIsSwap(next);
-                  if (!next) { setIsShare(false); } else { setRequireMinimumSwapItems(false); }
-                  // Toggling either is_swap or is_share invalidates whatever is
-                  // in the allowlist — the flag overrides it. Reset to keep the
-                  // form coherent with what the backend will accept.
-                  setAllowedThingTypes([]);
+                  // Turning ON swap clears the mutually-exclusive share flag;
+                  // turning OFF clears the swap-specific minimum-items rule.
+                  if (next) { setIsShare(false); } else { setRequireMinimumSwapItems(false); }
+                  // is_swap forces the type — auto-fill SWAP_THING so the
+                  // locked select shows it. Toggling off resets so the user
+                  // re-picks from the wider community set.
+                  setAllowedThingTypes(next ? ['SWAP_THING'] : []);
                 }}
                 variant="inline"
                 theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
@@ -241,8 +248,10 @@ export default function CreateCollectionPage() {
                 onChange={(val) => {
                   const next = !val;
                   setIsShare(next);
-                  if (!next) setIsSwap(false); else setNewsletterEnabled(false);
-                  setAllowedThingTypes([]);
+                  // Turning ON share clears the mutually-exclusive swap flag;
+                  // turning OFF clears the share-only newsletter setting.
+                  if (next) setIsSwap(false); else setNewsletterEnabled(false);
+                  setAllowedThingTypes(next ? ['SHARE_THING'] : []);
                 }}
                 variant="inline"
                 theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
@@ -283,31 +292,32 @@ export default function CreateCollectionPage() {
               theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
             />
           </div>
-          {showAllowedTypesSelect && (
-            <div className={mode === 'PROPRIETARY' && isMinimalist ? 'multiselect-locked' : undefined}>
-              <Select
-                language="en"
-                multiSelect
-                id="create-collection-allowed-thing-types"
-                texts={{
-                  label: t('createCollection.allowedTypesLabel'),
-                  placeholder: t('createCollection.allowedTypesPlaceholder'),
-                  assistive: isMinimalist && mode === 'PROPRIETARY'
-                    ? t('createCollection.allowedTypesAlbumHelper')
-                    : t('createCollection.allowedTypesHelper'),
-                  error: errors.allowedThingTypes,
-                }}
-                options={ALLOWED_TYPES_OPTIONS}
-                value={allowedThingTypes.map((v) => ({
-                  label: t('types.' + v),
-                  value: v,
-                }))}
-                onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
-                disabled={mode === 'PROPRIETARY' && isMinimalist}
-                invalid={!!errors.allowedThingTypes}
-              />
-            </div>
-          )}
+          <div className={isLockedToSingleType ? 'multiselect-locked' : undefined}>
+            <Select
+              language="en"
+              multiSelect
+              id="create-collection-allowed-thing-types"
+              texts={{
+                label: t('createCollection.allowedTypesLabel'),
+                placeholder: t('createCollection.allowedTypesPlaceholder'),
+                assistive: (() => {
+                  if (mode === 'PROPRIETARY' && isMinimalist) return t('createCollection.allowedTypesAlbumHelper');
+                  if (mode === 'COMMUNITY' && isSwap) return t('createCollection.allowedTypesSwapHelper');
+                  if (mode === 'COMMUNITY' && isShare) return t('createCollection.allowedTypesShareHelper');
+                  return t('createCollection.allowedTypesHelper');
+                })(),
+                error: errors.allowedThingTypes,
+              }}
+              options={ALLOWED_TYPES_OPTIONS}
+              value={allowedThingTypes.map((v) => ({
+                label: t('types.' + v),
+                value: v,
+              }))}
+              onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
+              disabled={isLockedToSingleType}
+              invalid={!!errors.allowedThingTypes}
+            />
+          </div>
           <ImageUpload
             id="create-collection-thumbnail"
             label={t('upload.thumbnailLabel')}
