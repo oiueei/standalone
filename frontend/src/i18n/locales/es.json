@@ -296,6 +296,7 @@
     "allowedTypesLabel": "Qué se puede añadir a esta colección",
     "allowedTypesPlaceholder": "Elige uno o más tipos",
     "allowedTypesHelper": "Elige al menos uno. Solo estarán disponibles los tipos que selecciones cuando añadas cosas.",
+    "allowedTypesAlbumHelper": "El modo álbum solo permite cosas del tipo regalo.",
     "allowedTypesAtLeastOne": "Elige al menos un tipo."
   },
   "welcome": {

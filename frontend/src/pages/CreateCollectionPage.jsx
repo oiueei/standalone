@@ -258,7 +258,9 @@ export default function CreateCollectionPage() {
               texts={{
                 label: t('createCollection.allowedTypesLabel'),
                 placeholder: t('createCollection.allowedTypesPlaceholder'),
-                assistive: t('createCollection.allowedTypesHelper'),
+                assistive: isMinimalist
+                  ? t('createCollection.allowedTypesAlbumHelper')
+                  : t('createCollection.allowedTypesHelper'),
                 error: errors.allowedThingTypes,
               }}
               options={ALLOWED_TYPES_OPTIONS}

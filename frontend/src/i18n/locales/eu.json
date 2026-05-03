@@ -296,6 +296,7 @@
     "allowedTypesLabel": "Bilduma honetan zer gehi daiteke",
     "allowedTypesPlaceholder": "Aukeratu mota bat edo gehiago",
     "allowedTypesHelper": "Aukeratu gutxienez bat. Aukeratutako motak bakarrik egongo dira eskuragarri gauzak gehitzean.",
+    "allowedTypesAlbumHelper": "Album moduak opariak bakarrik onartzen ditu.",
     "allowedTypesAtLeastOne": "Aukeratu gutxienez mota bat."
   },
   "welcome": {

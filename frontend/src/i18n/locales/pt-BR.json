@@ -296,6 +296,7 @@
     "allowedTypesLabel": "O que pode ser adicionado a esta coleção",
     "allowedTypesPlaceholder": "Escolha um ou mais tipos",
     "allowedTypesHelper": "Escolha pelo menos um. Apenas os tipos selecionados estarão disponíveis ao adicionar itens.",
+    "allowedTypesAlbumHelper": "O modo álbum aceita apenas presentes.",
     "allowedTypesAtLeastOne": "Escolha pelo menos um tipo."
   },
   "welcome": {

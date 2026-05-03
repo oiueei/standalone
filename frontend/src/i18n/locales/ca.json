@@ -296,6 +296,7 @@
     "allowedTypesLabel": "Què es pot afegir a aquesta col·lecció",
     "allowedTypesPlaceholder": "Tria un o més tipus",
     "allowedTypesHelper": "Tria almenys un. Només estaran disponibles els tipus que seleccionis quan hi afegeixis coses.",
+    "allowedTypesAlbumHelper": "El mode àlbum només accepta regals.",
     "allowedTypesAtLeastOne": "Tria almenys un tipus."
   },
   "welcome": {
