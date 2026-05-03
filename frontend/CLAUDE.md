@@ -34,7 +34,6 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/popin` | `PopInPage` | Open-door onboarding: enter email, get magic link, join onboarding collections |
 | `/share/:token` | `SharePage` | Public collection share-link landing: enter email, get magic link, join the collection identified by `:token` |
-| `/digest/*` | `DigestEntry` | Click-through entry for Cat. 3 digest/newsletter email links. Fires `digest_link_clicked` analytics event and `<Navigate replace>`s to the real path with `/digest` stripped. Per DESIGN.md §9: we measure clicks, never opens — pixels in email are forbidden. |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
 | `*` | `NotFoundPage` | 404 page for unknown routes |
 
@@ -309,9 +308,9 @@ Detail page for a thing with full information and FAQs section.
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
   - `TextInput` for name, `TextArea` for headline (bio), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid).
-  - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): four HDS `ToggleButton` components (wrapped in `.toggle-left`) — "Sign-in links and invitations" (always checked, `disabled`, renders black pill, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), "News and announcements" (`notify_news`, Cat. 3), and "Opt out of product analytics" (`analytics_opt_out` — DESIGN.md §9 visible opt-out for Mixpanel; calls `setAnalyticsOptOut()` on save to update the SDK and `localStorage.analyticsOptOut` immediately). Each has a sub-label helper text rendered as a `<span>` inside the label prop. Preferences are saved together with profile fields via a single Save button.
+  - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): three HDS `ToggleButton` components (wrapped in `.toggle-left`) — "Sign-in links and invitations" (always checked, `disabled`, renders black pill, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), and "News and announcements" (`notify_news`, Cat. 3). Each has a sub-label helper text rendered as a `<span>` inside the label prop. Preferences are saved together with profile fields via a single Save button.
   - "Save" button below the preferences section.
-- Pre-populates all fields (including `notify_activity`/`notify_news`/`analytics_opt_out`) from the current user profile.
+- Pre-populates all fields (including `notify_activity`/`notify_news`) from the current user profile.
 - On success: navigates to `/`.
 
 ### NotificationsPage (`src/pages/NotificationsPage.jsx`)
@@ -429,15 +428,7 @@ All UI strings are externalised via `react-i18next`. No hardcoded strings in com
 
 ## Analytics
 
-Pseudonymous product analytics via Mixpanel (EU host). Governed by [DESIGN.md §9](../DESIGN.md#9-user-data-is-never-a-product).
-
-- **Service**: `src/services/analytics.js` — `initAnalytics`, `identifyUser(code)`, `track(event, properties)`, `resetAnalytics`, `setAnalyticsOptOut(bool)`. Every export is a silent no-op when `VITE_MIXPANEL_TOKEN` is unset (dev) or when the user has opted out.
-- **Init**: `App.jsx` calls `initAnalytics()` once on mount. Calls `mixpanel.opt_out_tracking()` immediately if `localStorage.analyticsOptOut === '1'`.
-- **Identify**: `VerifyPage` after every successful verify; `HomePage` after every `/auth/me/` fetch (covers reload-with-cached-session).
-- **Reset**: `LogoutPage` calls `resetAnalytics()` after the logout POST resolves.
-- **Opt-out**: `EditProfilePage` toggle (`notifications.analyticsLabel`). Saved with the email-preference toggles via `PUT /api/v1/users/{code}/`. On save, `setAnalyticsOptOut()` updates Mixpanel and `localStorage.analyticsOptOut` immediately. `HomePage` mirrors the backend value to `localStorage` on every `/auth/me/` so the flag stays fresh across tabs.
-- **The 12 events**: `signup`, `magic_link_requested`, `magic_link_verified`, `collection_created`, `thing_created`, `invite_sent`, `invite_accepted`, `invite_declined`, `booking_requested`, `booking_accepted`, `booking_cancelled`, `digest_link_clicked`. Property schemas in `MIXPANEL.md`.
-- **Email engagement**: measured via `/digest/*` click-through redirect (the `<DigestEntry>` route fires `digest_link_clicked` and `<Navigate replace>`s to the real path). Tracking pixels in email are forbidden.
+OIUEEI ships with **no third-party analytics**. There is no SDK, no event-tracking service, no consent banner, no opt-out toggle. See [DESIGN.md §9](../DESIGN.md#9-user-data-is-never-a-product) for the underlying principle.
 
 ---
 

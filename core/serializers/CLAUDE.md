@@ -62,9 +62,9 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, koro, theeeme, theeeme_colors, notify_activity, notify_news, analytics_opt_out | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. `theeeme_colors` returns a dict with `color_01`–`color_06` HDS token names (or null if no theeeme). `notify_activity`/`notify_news` control Cat. 2 / Cat. 3 email delivery (see `core/services/CLAUDE.md`). `analytics_opt_out` is the visible opt-out for product analytics required by DESIGN.md §9 — when `True`, the frontend stops sending Mixpanel events from this user's browser. |
+| `UserSerializer` | code, email, name, created, last_activity, own_collections, invited_collections, things, headline, koro, theeeme, theeeme_colors, notify_activity, notify_news | Full profile for authenticated user. Collections and things returned as code lists. `koro` is the user's chosen Koros wave type. `theeeme_colors` returns a dict with `color_01`–`color_06` HDS token names (or null if no theeeme). `notify_activity`/`notify_news` control Cat. 2 / Cat. 3 email delivery (see `core/services/CLAUDE.md`). |
 | `UserPublicSerializer` | code, name, headline, created | Limited public profile. No email, no collections. `created` allows "Member since" display. |
-| `UserUpdateSerializer` | name, headline, koro, theeeme, notify_activity, notify_news, analytics_opt_out | PUT/PATCH input. Uses `SafeHeadlineField`. `koro` accepts: basic, beat, calm, pulse, vibration, wave. `notify_activity` / `notify_news` are the global Cat. 2 / Cat. 3 opt-out toggles. `analytics_opt_out` is the product-analytics opt-out (DESIGN.md §9). |
+| `UserUpdateSerializer` | name, headline, koro, theeeme, notify_activity, notify_news | PUT/PATCH input. Uses `SafeHeadlineField`. `koro` accepts: basic, beat, calm, pulse, vibration, wave. `notify_activity` / `notify_news` are the global Cat. 2 / Cat. 3 opt-out toggles. |
 | `NotificationPrefsSerializer` | notify_activity, notify_news | Lives in `core/views/notifications.py`. Used by `NotificationsByTokenView` for unauthenticated token-based preference editing. |
 
 ### `thing.py`

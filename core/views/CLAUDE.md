@@ -60,29 +60,27 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 4. RSVP is deleted after use (one-time use).
 
 **Internal helpers:**
-- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, samples `is_first_login = user.last_activity is None` BEFORE calling `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, refresh, user_data, is_first_login)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
+- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, refresh, user_data)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
 - `_handle_booking_action(rsvp, accepted)` — Shared by `BOOKING_ACCEPT` and `BOOKING_REJECT` handlers. Looks up booking, validates via `is_valid()`, calls `accept_booking()`/`reject_booking()` service, sends decision email, deletes sibling RSVPs.
 
 **MAGIC_LINK response (200):**
 ```json
 {
   "action": "MAGIC_LINK",
-  "user": { ... },
-  "is_first_login": true
+  "user": { ... }
 }
 ```
-Auth tokens (`access_token`, `refresh_token`) are set as HttpOnly cookies via `_set_auth_cookies()`. `is_first_login` is `true` only on the very first verify (when `user.last_activity` was previously null); `false` on every subsequent login. Used by the frontend to fire the analytics `signup` event exactly once per user.
+Auth tokens (`access_token`, `refresh_token`) are set as HttpOnly cookies via `_set_auth_cookies()`.
 
 **COLLECTION_INVITE response (200):**
 ```json
 {
   "action": "COLLECTION_INVITE",
   "user": { ... },
-  "is_first_login": true,
   "invited_collection": "<collection_code>"
 }
 ```
-Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`. `is_first_login` follows the same semantics as in `MAGIC_LINK`.
+Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
 
 **COLLECTION_REJECT response (200):**
 ```json
@@ -123,7 +121,7 @@ Open-door onboarding. Allows anyone to join OIUEEI without a prior invitation.
 **Behaviour:**
 1. Validates email via `RequestLinkSerializer`.
 2. Reads optional `share_token` from the body.
-3. `get_or_create` user by email. **Newly-created users are flagged `analytics_opt_out=True` explicitly via `defaults`** so they start opted out of Mixpanel events (privacy-first default — see `User.analytics_opt_out` in `core/models/CLAUDE.md`). The model field still has schema default `False`; the override happens here at the user-creation entry point.
+3. `get_or_create` user by email.
 4. If a valid `share_token` is provided **and** the matching `Collection` is `ACTIVE`, adds the user to that collection's `invites` M2M. Invalid, missing, or pointing-to-INACTIVE tokens are silently ignored (anti-enumeration: response shape is identical regardless).
 5. If the user did not join via `share_token`, falls back to adding them to all `is_onboarding=True` collections.
 6. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
@@ -314,7 +312,7 @@ Lists things from collections where the current user is invited. Only returns AC
 | **Permission** | `IsAuthenticated` + collection owner |
 | **Rate limit** | 30 requests/hour per user |
 
-Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). **Newly-created users are flagged `analytics_opt_out=True` via `defaults`** so they start opted out of Mixpanel events (privacy-first default — see `User.analytics_opt_out` in `core/models/CLAUDE.md`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
+Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
 
 **Request body:**
 ```json

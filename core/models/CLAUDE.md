@@ -22,7 +22,6 @@ The `User` model represents a person who can own collections, be invited to othe
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, event announcements, broadcasts. Default: `True` |
 | `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
-| `analytics_opt_out` | BooleanField | No | When `True`, the frontend Mixpanel client stops sending events from this user's browser (DESIGN.md §9 condition 4 — visible opt-out). Mirrored to `localStorage.analyticsOptOut` on every `/auth/me/` fetch so `analytics.js` can short-circuit without a network call. Schema default: `False`. **Runtime privacy-first default**: every user-creation entry point (`PopInView`, `CollectionInviteView`, `seed_demo`) sets `True` explicitly, so new real users and demo users start opted out and only send events if they untoggle in `EditProfilePage`. The schema/runtime mismatch is a temporary alpha shape — the post-alpha plan is to rename the field to `analytics_opt_in` and move the privacy-first default to the schema. |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |
@@ -39,7 +38,7 @@ The `User` model represents a person who can own collections, be invited to othe
 
 5. **Creation date is persisted** - The `created` field is automatically set to today's date when the user is created.
 
-6. **Last activity is updated on login** - The `update_last_activity()` method is called on each successful authentication. Newly-created users have `last_activity = None` until that first call; the `VerifyLinkView` samples this state before updating to derive `is_first_login` for the response payload (used by frontend analytics).
+6. **Last activity is updated on login** - The `update_last_activity()` method is called on each successful authentication. Newly-created users have `last_activity = None` until that first call; subsequent calls bump the date to today.
 
 7. **Email notification preferences** - `notify_activity` and `notify_news` are consulted by `core/services/email_service.py` before sending. Magic links and invitations (Cat. 1) are mandatory and always sent regardless of these flags.
 
