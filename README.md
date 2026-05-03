@@ -323,11 +323,9 @@ python manage.py send_digests
 - [ ] Audit logging to external service
 - [ ] Content Security Policy (CSP) headers
 
-## Privacy & Analytics
+## Privacy
 
-OIUEEI does not sell or share user data with third parties. I collect a small amount of pseudonymous product analytics (Mixpanel, EU host) to understand how the app is used: events are tagged with the 6-character `User.code` only — never email, name, or anything users type. Users can opt out of analytics from their profile (`User.analytics_opt_out`); when opted out, `frontend/src/services/analytics.js` short-circuits and Mixpanel stops sending from that browser.
-
-The instrumented events are: `signup`, `magic_link_requested`, `magic_link_verified`, `collection_created`, `thing_created`, `invite_sent`, `invite_accepted`, `invite_declined`, `booking_requested`, `booking_accepted`, `booking_cancelled`, `digest_link_clicked`. Email engagement is measured via click-through redirects (`/digest/...`), never tracking pixels — see [`MIXPANEL.md`](MIXPANEL.md) for the full event taxonomy and property schema.
+OIUEEI does not sell or share user data with third parties. There is **no third-party analytics SDK** in the app: nothing is loaded, nothing is sent, no consent banner is needed. The only outbound data flows are the operational ones the user expects — email delivery via the configured SMTP provider, image hosting via Cloudinary, and the user's own session cookies.
 
 Full ethical commitment and the rules I follow: [DESIGN.md §9](DESIGN.md#9-user-data-is-never-a-product).
 

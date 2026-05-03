@@ -113,14 +113,11 @@ heroku config:set \
   SHARE_LINK_BASE_URL='https://your-app-name.herokuapp.com/share' \
   DEFAULT_FROM_EMAIL='noreply@your-domain.com' \
   EMAIL_HOST_PASSWORD='<your SMTP API key>' \
-  VITE_MIXPANEL_TOKEN='<your mixpanel project token>' \
   NPM_CONFIG_PRODUCTION=false \
   -a your-app-name
 ```
 
 > **Note:** Heroku sometimes appends a random suffix to the hostname (e.g. `your-app-name-a1b2c3d4.herokuapp.com`). Check the exact URL after the first deploy and update `DJANGO_ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` if needed.
-
-> **Build-time vars:** `VITE_MIXPANEL_TOKEN` (and any other `VITE_*` var) is read by Vite during `npm run build`, which runs in the Node buildpack **before** the slug is compiled. Set it via `heroku config:set` *before* pushing — changing it later requires a new build (push or empty commit). Leaving it unset is supported: `analytics.js` short-circuits to silent no-ops and ships zero events. See [Product Analytics](#product-analytics) below.
 
 ### 5. Deploy
 
@@ -265,25 +262,6 @@ Recommended monitors to activate in the dashboard:
 - **Monitor Interrupted Jobs** — alerts if the dyno dies mid-run
 - **Monitor Execution Times** — alerts if the job takes longer than expected
 - **Scheduler Job Skip Detection (Every Day)** — alerts if the job is skipped entirely
-
-## Product Analytics
-
-OIUEEI sends a small set of pseudonymous events to Mixpanel (EU host). Full taxonomy in [`MIXPANEL.md`](MIXPANEL.md), governing principles in [`DESIGN.md §9`](DESIGN.md#9-user-data-is-never-a-product).
-
-| Variable | Description |
-|----------|-------------|
-| `VITE_MIXPANEL_TOKEN` | Mixpanel project token. Read by Vite at **build time** (Node buildpack). Unset = analytics fully disabled, zero events leave the browser. |
-
-**Important — build-time var.** `VITE_*` variables are baked into the JavaScript bundle when `npm run build` runs. Setting `VITE_MIXPANEL_TOKEN` after a deploy has no effect until the next build. To force a rebuild without code changes:
-
-```bash
-git commit --allow-empty -m "Rebuild: pick up new VITE_MIXPANEL_TOKEN"
-git push heroku deploy-heroku:main
-```
-
-**Rotating or removing the token** is the same workflow: `heroku config:set VITE_MIXPANEL_TOKEN=<new>` (or `:unset`), then push (or empty-commit-push) to rebuild the bundle. Old bundles in browser caches will keep using the old token until they refresh.
-
-**Per-user opt-out** (DESIGN.md §9 condition 4) is handled in-app — users toggle "Opt out of product analytics" on `/me/edit`. The flag is persisted on `User.analytics_opt_out` and mirrored to `localStorage.analyticsOptOut` so the SDK respects it without a server round-trip per event. No deploy-side action needed.
 
 ## Booking Expiration
 
