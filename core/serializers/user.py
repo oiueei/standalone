@@ -38,7 +38,6 @@ class UserSerializer(serializers.ModelSerializer):
             "theeeme_colors",
             "notify_activity",
             "notify_news",
-            "analytics_opt_out",
         ]
         read_only_fields = [
             "code",
@@ -107,5 +106,4 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "theeeme",
             "notify_activity",
             "notify_news",
-            "analytics_opt_out",
         ]

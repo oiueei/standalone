@@ -643,15 +643,10 @@ def send_event_attend_email(attendee_name, thing_headline, event_date, owner_ema
 
 
 def send_digest_email(collection_headline, collection_code, thing_headlines, emails):
-    """Send a digest email listing new things added to a collection.
-
-    The "View collection" link is prefixed with `/digest/` so the frontend
-    can record `digest_link_clicked` and redirect to the real path. We measure
-    clicks, never opens (DESIGN.md §9 forbids tracking pixels in email).
-    """
+    """Send a digest email listing new things added to a collection."""
     safe_collection = escape(collection_headline)
     base_url = _frontend_base_url()
-    collection_url = f"{base_url}/digest/collections/{collection_code}"
+    collection_url = f"{base_url}/collections/{collection_code}"
 
     things_plain = "\n".join(f"  - {h}" for h in thing_headlines)
     things_html = "".join(f"<li>{escape(h)}</li>" for h in thing_headlines)
@@ -681,15 +676,15 @@ def send_newsletter_email(
 
     Args:
         collection_headline: The collection name.
-        collection_code: 6-char collection code, used to build the `/digest/...`
-            click-through URL (DESIGN.md §9 — clicks, never opens).
+        collection_code: 6-char collection code, used to build the
+            "View collection" link.
         new_thing_headlines: List of headlines of newly added things.
         transfer_entries: List of dicts with keys: date, thing, from_name, to_name.
         emails: List of recipient email addresses.
     """
     safe_collection = escape(collection_headline)
     base_url = _frontend_base_url()
-    collection_url = f"{base_url}/digest/collections/{collection_code}"
+    collection_url = f"{base_url}/collections/{collection_code}"
 
     if new_thing_headlines:
         things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)

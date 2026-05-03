@@ -169,9 +169,7 @@ class VerifyLinkView(APIView):
     def _authenticate_user(self, request, rsvp):
         """Authenticate a user via RSVP: validate, generate JWT, login, delete RSVP.
 
-        Returns (user, refresh, user_data, is_first_login) on success, or a Response
-        on failure. `is_first_login` is True when the user has never logged in before
-        (sampled BEFORE update_last_activity() so the first verify is detectable).
+        Returns (user, refresh, user_data) on success, or a Response on failure.
         """
         user = rsvp.user_code
         if not user:
@@ -181,14 +179,13 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        is_first_login = user.last_activity is None
         user.update_last_activity()
 
         refresh = RefreshToken.for_user(user)
         login(request, user)
 
         user_data = UserSerializer(user).data
-        return user, refresh, user_data, is_first_login
+        return user, refresh, user_data
 
     def _handle_magic_link(self, request, rsvp):
         """Handle magic link authentication."""
@@ -197,7 +194,7 @@ class VerifyLinkView(APIView):
         result = self._authenticate_user(request, rsvp)
         if isinstance(result, Response):
             return result
-        user, refresh, user_data, is_first_login = result
+        user, refresh, user_data = result
 
         rsvp.delete()
 
@@ -207,7 +204,6 @@ class VerifyLinkView(APIView):
             {
                 "action": "MAGIC_LINK",
                 "user": user_data,
-                "is_first_login": is_first_login,
             },
             status=status.HTTP_200_OK,
         )
@@ -219,7 +215,7 @@ class VerifyLinkView(APIView):
         result = self._authenticate_user(request, rsvp)
         if isinstance(result, Response):
             return result
-        user, refresh, user_data, is_first_login = result
+        user, refresh, user_data = result
 
         # Process collection invitation
         invited_collection = None
@@ -242,7 +238,6 @@ class VerifyLinkView(APIView):
         response_data = {
             "action": "COLLECTION_INVITE",
             "user": user_data,
-            "is_first_login": is_first_login,
         }
         if invited_collection:
             response_data["invited_collection"] = invited_collection
@@ -402,14 +397,7 @@ class PopInView(APIView):
         share_token = (request.data.get("share_token") or "").strip() or None
         ip = get_client_ip(request)
 
-        # New users start opted out of product analytics (privacy-first default,
-        # DESIGN.md §9). The model field default is False to keep the DB schema
-        # unchanged — we set True explicitly only at the user-creation entry
-        # points (PopInView here, CollectionInviteView, seed_demo).
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={"analytics_opt_out": True},
-        )
+        user, created = User.objects.get_or_create(email=email)
 
         # If a valid share_token is provided, join that collection.
         # Otherwise, fall back to onboarding collections.

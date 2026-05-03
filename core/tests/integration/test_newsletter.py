@@ -197,15 +197,15 @@ class TestNewsletterCommand:
 
 @pytest.mark.django_db
 class TestDigestLinks:
-    """Digest and newsletter emails must use /digest/ click-through prefix.
+    """Digest and newsletter emails link directly to the collection page.
 
-    DESIGN.md §9 forbids tracking pixels for individual open monitoring; the
-    /digest/{code} prefix is the permitted alternative — we measure clicks,
-    never opens. The frontend `<DigestEntry>` route fires
-    `digest_link_clicked` and redirects to the real path.
+    Regression guard: a previous Phase 0 instrumentation prefixed these
+    links with `/digest/` to fire a Mixpanel click event from a frontend
+    trampoline route. That mechanism was removed when product analytics
+    were dropped — the prefix must not come back.
     """
 
-    def test_digest_email_link_uses_digest_prefix(self, db):
+    def test_digest_email_link_targets_collection_directly(self, db):
         from django.core import mail
 
         from core.services.email_service import send_digest_email
@@ -220,10 +220,12 @@ class TestDigestLinks:
         assert len(mail.outbox) == 1
         body = mail.outbox[0].body
         html_body = mail.outbox[0].alternatives[0][0]
-        assert "/digest/collections/ABC123" in body
-        assert "/digest/collections/ABC123" in html_body
+        assert "/collections/ABC123" in body
+        assert "/collections/ABC123" in html_body
+        assert "/digest/" not in body
+        assert "/digest/" not in html_body
 
-    def test_newsletter_email_link_uses_digest_prefix(self, db):
+    def test_newsletter_email_link_targets_collection_directly(self, db):
         from django.core import mail
 
         from core.services.email_service import send_newsletter_email
@@ -239,8 +241,10 @@ class TestDigestLinks:
         assert len(mail.outbox) == 1
         body = mail.outbox[0].body
         html_body = mail.outbox[0].alternatives[0][0]
-        assert "/digest/collections/XYZ789" in body
-        assert "/digest/collections/XYZ789" in html_body
+        assert "/collections/XYZ789" in body
+        assert "/collections/XYZ789" in html_body
+        assert "/digest/" not in body
+        assert "/digest/" not in html_body
 
 
 @pytest.mark.django_db

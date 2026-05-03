@@ -70,7 +70,6 @@ class User(AbstractBaseUser):
     name = models.CharField(max_length=32, blank=True, default="")
     created = models.DateField(default=date.today)
     last_activity = models.DateField(null=True, blank=True, default=None)
-    analytics_opt_out = models.BooleanField(default=False)
     headline = models.CharField(max_length=64, blank=True, default="")
     koro = models.CharField(max_length=9, choices=KORO_CHOICES, default="basic")
     theeeme = models.ForeignKey(

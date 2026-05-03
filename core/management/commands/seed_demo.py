@@ -88,10 +88,6 @@ class Command(BaseCommand):
                     "headline": data["headline"],
                     "theeeme_id": data["theeeme_id"],
                     "koro": data.get("koro", "basic"),
-                    # Demo users never send analytics events to Mixpanel —
-                    # they exist for local/staging testing only and would
-                    # otherwise pollute funnels with synthetic activity.
-                    "analytics_opt_out": True,
                 },
             )
 
