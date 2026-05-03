@@ -294,6 +294,7 @@
     "modeInfoLabel": "Zer da aldea?",
     "modeInfoText": "<bold>Propioa</bold>: zeuk bakarrik gehi ditzakezu gauzak zerrenda honetan. <bold>Komunitarioa</bold>: gonbidatu guztiek ere beren gauzak gehi ditzakete.",
     "allowedTypesLabel": "Bilduma honetan zer gehi daiteke",
+    "allowedTypesPlaceholder": "Aukeratu mota bat edo gehiago",
     "allowedTypesHelper": "Aukeratu gutxienez bat. Aukeratutako motak bakarrik egongo dira eskuragarri gauzak gehitzean.",
     "allowedTypesAtLeastOne": "Aukeratu gutxienez mota bat."
   },

@@ -294,6 +294,7 @@
     "modeInfoLabel": "Cal é a diferenza?",
     "modeInfoText": "<bold>Propia</bold>: só ti podes engadir cousas a esta lista. <bold>Comunitaria</bold>: todos os convidados tamén poden engadir as súas propias cousas.",
     "allowedTypesLabel": "Que se pode engadir a esta colección",
+    "allowedTypesPlaceholder": "Escolle un ou máis tipos",
     "allowedTypesHelper": "Escolle polo menos un. Só estarán dispoñibles os tipos que selecciones cando engadas cousas.",
     "allowedTypesAtLeastOne": "Escolle polo menos un tipo."
   },

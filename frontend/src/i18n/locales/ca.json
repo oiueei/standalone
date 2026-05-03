@@ -294,6 +294,7 @@
     "modeInfoLabel": "Quina és la diferència?",
     "modeInfoText": "<bold>Pròpia</bold>: només tu pots afegir coses a aquesta llista. <bold>Comunitària</bold>: tots els convidats també poden afegir les seves pròpies coses.",
     "allowedTypesLabel": "Què es pot afegir a aquesta col·lecció",
+    "allowedTypesPlaceholder": "Tria un o més tipus",
     "allowedTypesHelper": "Tria almenys un. Només estaran disponibles els tipus que seleccionis quan hi afegeixis coses.",
     "allowedTypesAtLeastOne": "Tria almenys un tipus."
   },

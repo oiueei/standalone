@@ -340,6 +340,7 @@ export default function EditCollectionPage() {
             id="edit-collection-allowed-thing-types"
             texts={{
               label: t('createCollection.allowedTypesLabel'),
+              placeholder: t('createCollection.allowedTypesPlaceholder'),
               assistive: t('createCollection.allowedTypesHelper'),
               error: errors.allowedThingTypes,
             }}

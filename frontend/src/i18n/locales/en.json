@@ -309,6 +309,7 @@
     "modeInfoLabel": "What's the difference?",
     "modeInfoText": "<bold>Proprietary</bold>: only you can add things to this list. <bold>Community</bold>: everyone you invite can add their own things too.",
     "allowedTypesLabel": "What can be added to this collection",
+    "allowedTypesPlaceholder": "Pick one or more types",
     "allowedTypesHelper": "Pick at least one. Only the types you choose will be available when adding things later.",
     "allowedTypesAtLeastOne": "Pick at least one type."
   },
