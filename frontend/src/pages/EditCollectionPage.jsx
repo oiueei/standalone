@@ -334,27 +334,29 @@ export default function EditCollectionPage() {
           />
         </div>
         {mode === 'PROPRIETARY' && (
-          <Select
-            language="en"
-            multiSelect
-            id="edit-collection-allowed-thing-types"
-            texts={{
-              label: t('createCollection.allowedTypesLabel'),
-              placeholder: t('createCollection.allowedTypesPlaceholder'),
-              assistive: isMinimalist
-                ? t('createCollection.allowedTypesAlbumHelper')
-                : t('createCollection.allowedTypesHelper'),
-              error: errors.allowedThingTypes,
-            }}
-            options={ALLOWED_TYPES_OPTIONS}
-            value={allowedThingTypes.map((v) => ({
-              label: t('types.' + v),
-              value: v,
-            }))}
-            onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
-            disabled={isMinimalist}
-            invalid={!!errors.allowedThingTypes}
-          />
+          <div className={isMinimalist ? 'multiselect-locked' : undefined}>
+            <Select
+              language="en"
+              multiSelect
+              id="edit-collection-allowed-thing-types"
+              texts={{
+                label: t('createCollection.allowedTypesLabel'),
+                placeholder: t('createCollection.allowedTypesPlaceholder'),
+                assistive: isMinimalist
+                  ? t('createCollection.allowedTypesAlbumHelper')
+                  : t('createCollection.allowedTypesHelper'),
+                error: errors.allowedThingTypes,
+              }}
+              options={ALLOWED_TYPES_OPTIONS}
+              value={allowedThingTypes.map((v) => ({
+                label: t('types.' + v),
+                value: v,
+              }))}
+              onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
+              disabled={isMinimalist}
+              invalid={!!errors.allowedThingTypes}
+            />
+          </div>
         )}
         <Select
                 language="en"
