@@ -9,6 +9,20 @@ from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
+# Thing types valid for proprietary collections (excludes COMMUNITY-only types
+# WISH_THING, SHARE_THING, ASSET_THING and the SWAP_THING which is gated by
+# is_swap on COMMUNITY collections).
+PROPRIETARY_THING_TYPES = (
+    "GIFT_THING",
+    "SELL_THING",
+    "ORDER_THING",
+    "RENT_THING",
+    "LEND_THING",
+    "EVENT_THING",
+    "APPOINTMENT_THING",
+)
+MINIMALIST_THING_TYPES = ("GIFT_THING", "SHARE_THING", "SWAP_THING")
+
 
 class CollectionThingSummarySerializer(serializers.ModelSerializer):
     """Lightweight thing serializer for collection listings."""
@@ -149,6 +163,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "newsletter_enabled",
             "is_minimalist",
             "swap_minimum_items",
+            "allowed_thing_types",
             "thumbnail",
             "thumbnail_url",
             "pause_message",
@@ -215,6 +230,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "newsletter_enabled",
             "is_minimalist",
             "swap_minimum_items",
+            "allowed_thing_types",
             "thumbnail",
         ]
 
@@ -225,6 +241,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         newsletter_enabled = attrs.get("newsletter_enabled", False)
         swap_minimum_items = attrs.get("swap_minimum_items", 0)
         mode = attrs.get("mode", "PROPRIETARY")
+        allowed_thing_types = attrs.get("allowed_thing_types", [])
         if is_swap and is_share:
             raise serializers.ValidationError(
                 "A collection cannot be both swap-only and share-only."
@@ -241,7 +258,37 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "swap_minimum_items can only be set on swap collections."
             )
+        _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types)
         return attrs
+
+
+def _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types):
+    """Validate the allowed_thing_types list when non-empty.
+
+    Empty list means "no restriction" — accepted in any mode (preserves the
+    pre-feature behaviour and keeps the API tolerant for non-form callers).
+    The "user must pick at least one" rule is enforced in the create/edit
+    form on the frontend, where it belongs as a UX nudge.
+
+    When non-empty:
+    - PROPRIETARY excludes COMMUNITY-only types (WISH/SHARE/ASSET/SWAP)
+    - PROPRIETARY + is_minimalist must be exactly [GIFT_THING]
+    """
+    if not allowed_thing_types:
+        return
+    if mode == "PROPRIETARY":
+        if is_minimalist:
+            if list(allowed_thing_types) != ["GIFT_THING"]:
+                raise serializers.ValidationError(
+                    "Album collections only accept gifts — allowed_thing_types"
+                    " must be exactly ['GIFT_THING']."
+                )
+            return
+        invalid = [t for t in allowed_thing_types if t not in PROPRIETARY_THING_TYPES]
+        if invalid:
+            raise serializers.ValidationError(
+                f"These types are not allowed in proprietary collections: {invalid}"
+            )
 
 
 class CollectionUpdateSerializer(serializers.ModelSerializer):
@@ -265,6 +312,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "newsletter_enabled",
             "is_minimalist",
             "swap_minimum_items",
+            "allowed_thing_types",
             "thumbnail",
             "pause_message",
         ]
@@ -281,6 +329,10 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "swap_minimum_items", instance.swap_minimum_items if instance else 0
         )
         mode = attrs.get("mode", instance.mode if instance else "PROPRIETARY")
+        allowed_thing_types = attrs.get(
+            "allowed_thing_types",
+            instance.allowed_thing_types if instance else [],
+        )
         if is_swap and is_share:
             raise serializers.ValidationError(
                 "A collection cannot be both swap-only and share-only."
@@ -297,6 +349,19 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "swap_minimum_items can only be set on swap collections."
             )
+        _validate_allowed_thing_types(mode, is_minimalist, allowed_thing_types)
+        # Orphan check: if this is an update narrowing the list, every existing
+        # thing currently in the collection must keep a valid slot in the new
+        # list. Otherwise the rule would become incoherent ("type X is not
+        # allowed but the collection contains 3 of them").
+        if instance is not None and "allowed_thing_types" in attrs and allowed_thing_types:
+            existing_types = set(instance.things.values_list("type", flat=True))
+            orphaned = sorted(existing_types - set(allowed_thing_types))
+            if orphaned:
+                raise serializers.ValidationError(
+                    "Cannot restrict the allowed types: existing things would be"
+                    f" orphaned (types: {orphaned}). Remove them first."
+                )
         return attrs
 
 

@@ -25,6 +25,7 @@ export default function EditCollectionPage() {
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [isMinimalist, setIsMinimalist] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
+  const [allowedThingTypes, setAllowedThingTypes] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
@@ -50,6 +51,17 @@ export default function EditCollectionPage() {
     { label: t('editCollection.digestMonthly'), value: 'MONTHLY' },
   ];
 
+  // Types allowed in PROPRIETARY collections (excludes COMMUNITY-only types).
+  const PROPRIETARY_TYPES = [
+    'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING',
+    'LEND_THING', 'EVENT_THING', 'APPOINTMENT_THING',
+  ];
+  const ALLOWED_TYPES_OPTIONS = (
+    isMinimalist
+      ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
+      : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }))
+  );
+
   useEffect(() => {
     if (!userCode) {
       navigate('/login');
@@ -72,6 +84,7 @@ export default function EditCollectionPage() {
           setNewsletterEnabled(data.newsletter_enabled || false);
           setIsMinimalist(data.is_minimalist || false);
           setRequireMinimumSwapItems((data.swap_minimum_items || 0) > 0);
+          setAllowedThingTypes(data.allowed_thing_types || []);
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
           setPauseMessage(data.pause_message || '');
@@ -92,6 +105,9 @@ export default function EditCollectionPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('editCollection.maxHeadline');
+    if (mode === 'PROPRIETARY' && allowedThingTypes.length === 0) {
+      newErrors.allowedThingTypes = t('createCollection.allowedTypesAtLeastOne');
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -113,6 +129,9 @@ export default function EditCollectionPage() {
       is_minimalist: isMinimalist,
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
+      // v1: only PROPRIETARY ships the multi-select. COMMUNITY collections
+      // keep the field empty until the COMMUNITY iteration.
+      allowed_thing_types: mode === 'PROPRIETARY' ? allowedThingTypes : [],
       thumbnail: thumbnail || '',
     };
 
@@ -123,6 +142,13 @@ export default function EditCollectionPage() {
       });
       if (res.ok) {
         navigate(`/collections/${code}`);
+      } else if (res.status === 400) {
+        // Backend rejects narrowing if it would orphan existing things — surface
+        // its detail (which names the offending types) so the user can act on it.
+        const detail = await res.json().catch(() => null);
+        const message = (detail && (detail.non_field_errors || detail.detail))
+          || t('editCollection.errorSaving');
+        setToast({ type: 'error', message: Array.isArray(message) ? message[0] : message });
       } else {
         setToast({ type: 'error', message: t('editCollection.errorSaving') });
       }
@@ -238,6 +264,8 @@ export default function EditCollectionPage() {
               const newMode = selectedOptions[0].value;
               setMode(newMode);
               if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); setRequireMinimumSwapItems(false); }
+              // Reset the allowlist on mode change — v1 only wires it for PROPRIETARY.
+              setAllowedThingTypes([]);
             }
           }}
         />
@@ -294,11 +322,37 @@ export default function EditCollectionPage() {
             id="edit-collection-minimalist"
             label={t('minimalist.enableMinimalist')}
             checked={isMinimalist}
-            onChange={(val) => setIsMinimalist(!val)}
+            onChange={(val) => {
+              const next = !val;
+              setIsMinimalist(next);
+              if (mode === 'PROPRIETARY') {
+                setAllowedThingTypes(next ? ['GIFT_THING'] : []);
+              }
+            }}
             variant="inline"
             theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
           />
         </div>
+        {mode === 'PROPRIETARY' && (
+          <Select
+            language="en"
+            multiSelect
+            id="edit-collection-allowed-thing-types"
+            texts={{
+              label: t('createCollection.allowedTypesLabel'),
+              assistive: t('createCollection.allowedTypesHelper'),
+              error: errors.allowedThingTypes,
+            }}
+            options={ALLOWED_TYPES_OPTIONS}
+            value={allowedThingTypes.map((v) => ({
+              label: t('types.' + v),
+              value: v,
+            }))}
+            onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
+            disabled={isMinimalist}
+            invalid={!!errors.allowedThingTypes}
+          />
+        )}
         <Select
                 language="en"
           id="edit-collection-digest"

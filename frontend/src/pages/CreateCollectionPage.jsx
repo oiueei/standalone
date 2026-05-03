@@ -31,6 +31,7 @@ export default function CreateCollectionPage() {
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [isMinimalist, setIsMinimalist] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
+  const [allowedThingTypes, setAllowedThingTypes] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [errors, setErrors] = useState({});
 
@@ -38,6 +39,17 @@ export default function CreateCollectionPage() {
     { label: t('createCollection.modeProprietary'), value: 'PROPRIETARY' },
     { label: t('createCollection.modeCommunity'), value: 'COMMUNITY' },
   ];
+
+  // Types allowed in PROPRIETARY collections (excludes COMMUNITY-only types).
+  const PROPRIETARY_TYPES = [
+    'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING',
+    'LEND_THING', 'EVENT_THING', 'APPOINTMENT_THING',
+  ];
+  const ALLOWED_TYPES_OPTIONS = (
+    isMinimalist
+      ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
+      : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }))
+  );
   const [showModeInfo, setShowModeInfo] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -46,6 +58,9 @@ export default function CreateCollectionPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('createCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('createCollection.maxHeadline');
+    if (mode === 'PROPRIETARY' && allowedThingTypes.length === 0) {
+      newErrors.allowedThingTypes = t('createCollection.allowedTypesAtLeastOne');
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -64,6 +79,9 @@ export default function CreateCollectionPage() {
       is_minimalist: isMinimalist,
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
+      // v1: only PROPRIETARY ships the multi-select. COMMUNITY collections
+      // keep the field empty (= no restriction) until the COMMUNITY iteration.
+      allowed_thing_types: mode === 'PROPRIETARY' ? allowedThingTypes : [],
       thumbnail: thumbnail || '',
     };
     if (description.trim()) body.description = description.trim();
@@ -150,6 +168,8 @@ export default function CreateCollectionPage() {
                   const newMode = selectedOptions[0].value;
                   setMode(newMode);
                   if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
+                  // Reset the allowlist on mode change — v1 only wires it for PROPRIETARY.
+                  setAllowedThingTypes([]);
                 }
               }}
             />
@@ -218,11 +238,38 @@ export default function CreateCollectionPage() {
               id="create-collection-minimalist"
               label={t('minimalist.enableMinimalist')}
               checked={isMinimalist}
-              onChange={(val) => setIsMinimalist(!val)}
+              onChange={(val) => {
+                const next = !val;
+                setIsMinimalist(next);
+                // PROPRIETARY+album → forced [GIFT_THING]; toggling off resets.
+                if (mode === 'PROPRIETARY') {
+                  setAllowedThingTypes(next ? ['GIFT_THING'] : []);
+                }
+              }}
               variant="inline"
               theme={theeemeColors.color_01 ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` } : undefined}
             />
           </div>
+          {mode === 'PROPRIETARY' && (
+            <Select
+              language="en"
+              multiSelect
+              id="create-collection-allowed-thing-types"
+              texts={{
+                label: t('createCollection.allowedTypesLabel'),
+                assistive: t('createCollection.allowedTypesHelper'),
+                error: errors.allowedThingTypes,
+              }}
+              options={ALLOWED_TYPES_OPTIONS}
+              value={allowedThingTypes.map((v) => ({
+                label: t('types.' + v),
+                value: v,
+              }))}
+              onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
+              disabled={isMinimalist}
+              invalid={!!errors.allowedThingTypes}
+            />
+          )}
           <ImageUpload
             id="create-collection-thumbnail"
             label={t('upload.thumbnailLabel')}

@@ -134,6 +134,16 @@ class ThingViewSet(ModelViewSet):
                 if not serializer.validated_data.get("thumbnail"):
                     self._create_error = "A photo is required for things in minimalist collections"
                     return
+
+            # Per-collection allowlist (set on creation/edit). Empty list means
+            # "no restriction", typically the case for COMMUNITY collections in
+            # v1 — the multi-select UI is wired only for PROPRIETARY for now.
+            if collection.allowed_thing_types and thing_type not in collection.allowed_thing_types:
+                self._create_error = (
+                    f"This collection does not accept {thing_type.replace('_', ' ').title()}s."
+                    " The owner has restricted it to specific types."
+                )
+                return
         else:
             # WISH_THING, SHARE_THING, and SWAP_THING require specific collections
             if thing_type in ("WISH_THING", "SHARE_THING"):

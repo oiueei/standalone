@@ -292,7 +292,10 @@
     "maxHeadline": "Máximo 64 caracteres.",
     "errorCreating": "Error al crear la colección.",
     "modeInfoLabel": "¿Cuál es la diferencia?",
-    "modeInfoText": "<bold>Propia</bold>: solo tú puedes añadir cosas a esta lista. <bold>Comunitaria</bold>: todos los invitados también pueden añadir sus propias cosas."
+    "modeInfoText": "<bold>Propia</bold>: solo tú puedes añadir cosas a esta lista. <bold>Comunitaria</bold>: todos los invitados también pueden añadir sus propias cosas.",
+    "allowedTypesLabel": "Qué se puede añadir a esta colección",
+    "allowedTypesHelper": "Elige al menos uno. Solo estarán disponibles los tipos que selecciones cuando añadas cosas.",
+    "allowedTypesAtLeastOne": "Elige al menos un tipo."
   },
   "welcome": {
     "greeting": "Hola, {{name}}",

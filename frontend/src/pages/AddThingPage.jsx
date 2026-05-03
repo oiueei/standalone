@@ -56,6 +56,8 @@ export default function AddThingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
+  const [collectionAllowedTypes, setCollectionAllowedTypes] = useState([]);
+
   useEffect(() => {
     if (!userCode) return;
     apiFetch(`/api/v1/collections/${code}/`)
@@ -73,6 +75,13 @@ export default function AddThingPage() {
         }
         if (data.is_minimalist) {
           setIsMinimalistCollection(true);
+        }
+        const allowed = data.allowed_thing_types || [];
+        setCollectionAllowedTypes(allowed);
+        // If the allowlist names a single type, pre-select it so the form
+        // immediately shows the right downstream fields.
+        if (allowed.length === 1) {
+          setType(allowed[0]);
         }
       })
       .catch(() => {});
@@ -185,6 +194,8 @@ export default function AddThingPage() {
                 if (v === SWAP_TYPE) return false;
                 if ((v === WISH_TYPE || v === SHARE_TYPE || v === ASSET_TYPE) && collectionMode !== 'COMMUNITY') return false;
                 if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
+                // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
+                if (collectionAllowedTypes.length > 0 && !collectionAllowedTypes.includes(v)) return false;
                 return true;
               }).map(v => ({ label: t('types.' + v), value: v }))}
               value={type}

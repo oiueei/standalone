@@ -59,6 +59,7 @@ COLLECTIONS = [
         ),
         "invites": ["L3L3oo"],
         "is_onboarding": True,
+        "allowed_thing_types": ["SELL_THING"],
         "thumbnail": "La1aC1",
     },
     {
@@ -87,6 +88,7 @@ COLLECTIONS = [
         ),
         "invites": ["La1aN1"],
         "is_onboarding": True,
+        "allowed_thing_types": ["ORDER_THING"],
         "thumbnail": "L3L3C1",
     },
     {
@@ -101,6 +103,7 @@ COLLECTIONS = [
         "is_minimalist": True,
         "invites": ["La1aN1", "l1l13S", "l0l0oh"],
         "is_onboarding": True,
+        "allowed_thing_types": ["GIFT_THING"],
         "thumbnail": "L3L3C2",
     },
     {
@@ -114,6 +117,7 @@ COLLECTIONS = [
         ),
         "invites": ["La1aN1", "L3L3oo", "l1l13S"],
         "is_onboarding": True,
+        "allowed_thing_types": ["EVENT_THING"],
         "thumbnail": "l0l0C1",
     },
     {
@@ -128,6 +132,7 @@ COLLECTIONS = [
         "mode": "PROPRIETARY",
         "invites": ["La1aN1", "L3L3oo", "l1l13S", "1u1ucs"],
         "is_onboarding": True,
+        "allowed_thing_types": ["APPOINTMENT_THING"],
         "thumbnail": "l0l0C2",
     },
     {
@@ -142,6 +147,7 @@ COLLECTIONS = [
         ),
         "invites": ["La1aN1"],
         "is_onboarding": True,
+        "allowed_thing_types": ["LEND_THING"],
         "thumbnail": "l1l1C1",
     },
     {
