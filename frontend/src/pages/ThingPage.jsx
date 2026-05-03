@@ -17,7 +17,6 @@ import {
 } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
-import { track } from '../services/analytics';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
 import BackLink from '../components/BackLink';
@@ -228,7 +227,6 @@ export default function ThingPage() {
         body: JSON.stringify({}),
       });
       if (res.ok) {
-        track('booking_requested', { thing_code: thing.code, thing_type: thing.type });
         setRequested(true);
         setToast({ type: 'success', message: t('thingPage.holdRequested') });
       } else if (res.status === 400) {
@@ -263,11 +261,6 @@ export default function ThingPage() {
     try {
       const res = await apiFetch(`/api/v1/bookings/${code}/${action}/`, { method: 'POST' });
       if (res.ok) {
-        if (action === 'accept') {
-          track('booking_accepted', { thing_code: thing.code, thing_type: thing.type });
-        } else {
-          track('booking_cancelled', { thing_code: thing.code, thing_type: thing.type, cancelled_by: 'owner' });
-        }
         const isDateBased = isDateType(thing.type);
         const isOrder = thing.type === ORDER_TYPE;
         if (isDateBased || isOrder) {

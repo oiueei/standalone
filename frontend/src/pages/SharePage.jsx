@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
-import { track } from '../services/analytics';
 
 export default function SharePage() {
   const { t } = useTranslation();
@@ -29,7 +28,6 @@ export default function SharePage() {
         body: JSON.stringify({ email, share_token: token }),
       });
       if (res.ok) {
-        track('magic_link_requested', { source: 'share' });
         localStorage.removeItem('seenWelcome');
         setStatus('success');
         setMessage(t('share.magicLinkSent'));

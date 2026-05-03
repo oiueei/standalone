@@ -597,8 +597,6 @@
     "activityHelper": "Booking requests, confirmations, questions and answers, reminders.",
     "newsLabel": "News and announcements (optional)",
     "newsHelper": "Collection broadcasts, weekly digests and newsletters.",
-    "analyticsLabel": "Opt out of product analytics",
-    "analyticsHelper": "By default we send no analytics events from your browser — your privacy is the starting point. If you opt back in, we'd collect a small set of pseudonymous events (sign-in, collection created, hold requested) to understand how OIUEEI is used, tagged with your 6-character user code only — never your email, name or message content. We'll use this power responsibly, we promise.",
     "saved": "Preferences saved.",
     "errorLoading": "Error loading preferences.",
     "errorSaving": "Error saving.",

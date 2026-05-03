@@ -13,7 +13,6 @@ import {
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, ASSET_TYPE, APPOINTMENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
-import { track } from '../services/analytics';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
@@ -134,12 +133,6 @@ export default function AddThingPage() {
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        const data = await res.json();
-        track('thing_created', {
-          thing_code: data.code,
-          thing_type: type,
-          collection_code: code,
-        });
         navigate(`/collections/${code}`);
       } else {
         setToast({ type: 'error', message: t('addThing.errorCreating') });

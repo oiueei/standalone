@@ -577,8 +577,6 @@
     "activityHelper": "Pedidos de reserva, confirmações, perguntas e respostas, lembretes.",
     "newsLabel": "Notícias e anúncios (opcional)",
     "newsHelper": "Difusões de coleções, resumos semanais e newsletters.",
-    "analyticsLabel": "Recusar análise de produto",
-    "analyticsHelper": "Por defeito não enviamos nenhum evento do teu navegador — a tua privacidade é o ponto de partida. Se voltares a ativar a análise, recolheríamos um pequeno conjunto de eventos pseudónimos (início de sessão, coleção criada, reserva pedida) para entender como o OIUEEI é usado, etiquetados apenas com o teu código de utilizador de 6 caracteres — nunca com o teu e-mail, nome ou conteúdo de mensagens. Usaremos este poder com muita responsabilidade, prometemos.",
     "saved": "Preferências guardadas.",
     "errorLoading": "Erro ao carregar as preferências.",
     "errorSaving": "Erro ao guardar.",

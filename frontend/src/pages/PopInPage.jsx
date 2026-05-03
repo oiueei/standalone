@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
-import { track } from '../services/analytics';
 
 export default function PopInPage() {
   const { t } = useTranslation();
@@ -27,7 +26,6 @@ export default function PopInPage() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
-        track('magic_link_requested', { source: 'popin' });
         localStorage.removeItem('seenWelcome');
         setStatus('success');
         setMessage(t('popin.magicLinkSent'));

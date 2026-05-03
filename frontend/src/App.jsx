@@ -4,9 +4,8 @@ import 'hds-core/lib/base.css';
 import './fonts/oiueei-fonts.css';
 import './styles/oiueei-theme.css';
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import i18n from './i18n';
-import { initAnalytics, track } from './services/analytics';
 import LoginPage from './pages/LoginPage';
 import VerifyPage from './pages/VerifyPage';
 import HomePage from './pages/HomePage';
@@ -32,30 +31,8 @@ import SharePage from './pages/SharePage';
 import NotFoundPage from './pages/NotFoundPage';
 import './App.css';
 
-function PageViewTracker() {
-  const location = useLocation();
-  useEffect(() => {
-    track('page_view', { path: location.pathname });
-  }, [location.pathname]);
-  return null;
-}
-
-// Click-through entry for digest/newsletter emails. Records the click and
-// redirects to the real path with /digest stripped. Per DESIGN.md §9 we
-// measure clicks, never opens — pixels in email are forbidden.
-function DigestEntry() {
-  const params = useParams();
-  const rest = params['*'] || '';
-  const target = '/' + rest;
-  useEffect(() => {
-    track('digest_link_clicked', { path: target });
-  }, [target]);
-  return <Navigate to={target} replace />;
-}
-
 function App() {
   useEffect(() => {
-    initAnalytics();
     fetch('/api/v1/auth/me/', { credentials: 'same-origin' }).catch(() => {});
   }, []);
 
@@ -68,7 +45,6 @@ function App() {
 
   return (
     <BrowserRouter>
-      <PageViewTracker />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -97,7 +73,6 @@ function App() {
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/popin" element={<PopInPage />} />
         <Route path="/share/:token" element={<SharePage />} />
-        <Route path="/digest/*" element={<DigestEntry />} />
         <Route path="/:userCode" element={<UserPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

@@ -577,8 +577,6 @@
     "activityHelper": "Erreserba eskaerak, baieztapenak, galderak eta erantzunak, oroigarriak.",
     "newsLabel": "Berriak eta iragarpenak (aukerakoa)",
     "newsHelper": "Bildumen difusioak, asteroko digestoak eta buletinak.",
-    "analyticsLabel": "Produktuaren analitikari uko egin",
-    "analyticsHelper": "Lehenespenez ez dugu inolako gertaerarik bidaltzen zure nabigatzailetik — zure pribatutasuna abiapuntua da. Berriro aktibatzen baduzu, gertaera pseudonimo gutxi batzuk bilduko genituzke (saio hasiera, sortutako bilduma, eskatutako erreserba) OIUEEI nola erabiltzen den ulertzeko, zure 6 karaktereko erabiltzaile-kodearekin soilik etiketatuta — inoiz ez zure email, izen edo mezuen edukiarekin. Botere hau arduraz erabiliko dugu, agintzen dizugu.",
     "saved": "Lehentasunak gorde dira.",
     "errorLoading": "Errorea lehentasunak kargatzean.",
     "errorSaving": "Errorea gordetzean.",

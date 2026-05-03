@@ -3,7 +3,6 @@ import { useTranslation, Trans } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
-import { track } from '../services/analytics';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -27,7 +26,6 @@ export default function LoginPage() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
-        track('magic_link_requested', { source: 'login' });
         setStatus('success');
         setMessage(t('login.magicLinkSent'));
       } else {

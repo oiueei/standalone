@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, Koros } from 'hds-react';
-import { identifyUser, track } from '../services/analytics';
 
 const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white', color_06: 'white' };
 
@@ -32,7 +31,6 @@ export default function VerifyPage() {
         const res = await fetch(`/api/v1/auth/verify/${code}/`);
         const data = await res.json();
         if (res.ok && data.action === 'COLLECTION_REJECT') {
-          track('invite_declined');
           setTitle(t('verify.declined'));
           setSuccess(t('verify.invitationDeclined'));
         } else if (res.ok && data.action === 'BOOKING_ACCEPT') {
@@ -48,12 +46,6 @@ export default function VerifyPage() {
           if (data.user?.koro) localStorage.setItem('koro', data.user.koro);
           if (data.user?.code && data.user.code !== prevUserCode) {
             localStorage.removeItem('seenWelcome');
-          }
-          if (data.user?.code) identifyUser(data.user.code);
-          track('magic_link_verified', { action: data.action });
-          if (data.is_first_login) track('signup');
-          if (data.action === 'COLLECTION_INVITE' && data.invited_collection) {
-            track('invite_accepted', { collection_code: data.invited_collection });
           }
           if (data.invited_collection) {
             navigate(`/collections/${data.invited_collection}`, { state: { fromInvite: true } });

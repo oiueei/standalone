@@ -418,49 +418,6 @@
   resolved "https://registry.npmjs.org/@juggle/resize-observer/-/resize-observer-3.2.0.tgz"
   integrity sha512-fsLxt0CHx2HCV9EL8lDoVkwHffsA0snUpddYjdLyXcG5E41xaamn9ZyQqOE9TUJdrRlH8/hjIf+UdOdDeKCUgg==
 
-"@mixpanel/rrdom@^2.0.0-alpha.18":
-  version "2.0.0-alpha.18.4"
-  resolved "https://registry.npmjs.org/@mixpanel/rrdom/-/rrdom-2.0.0-alpha.18.4.tgz"
-  integrity sha512-58sWLQDPRU0VQn8VzB1tx4ujih9X327Vr6xAzbJ4zge9GENm2L696T4TbWvrRGWPW6w99tHIHbv6SvcLhjjmcQ==
-  dependencies:
-    "@mixpanel/rrweb-snapshot" "^2.0.0-alpha.18"
-
-"@mixpanel/rrweb-plugin-console-record@2.0.0-alpha.18.4":
-  version "2.0.0-alpha.18.4"
-  resolved "https://registry.npmjs.org/@mixpanel/rrweb-plugin-console-record/-/rrweb-plugin-console-record-2.0.0-alpha.18.4.tgz"
-  integrity sha512-gGxEnNpfWurQht+fpSJbwPV60ug0LAENlk4Ux3XRmYooNJGPBO1TiQHcM7g0yhrKf4tfbTiKKZ4EXzFlOZs/pw==
-
-"@mixpanel/rrweb-snapshot@^2.0.0-alpha.18":
-  version "2.0.0-alpha.18.4"
-  resolved "https://registry.npmjs.org/@mixpanel/rrweb-snapshot/-/rrweb-snapshot-2.0.0-alpha.18.4.tgz"
-  integrity sha512-ubLGwgPiMMi0rl7zJRh1uMScQ480lT95tkHkIAHkiZOemMY4JSkYZh2v9fpMNwJhaGwB5n/76KI7Cwy8F5qixQ==
-  dependencies:
-    postcss "^8.4.38"
-
-"@mixpanel/rrweb-types@^2.0.0-alpha.18":
-  version "2.0.0-alpha.18.4"
-  resolved "https://registry.npmjs.org/@mixpanel/rrweb-types/-/rrweb-types-2.0.0-alpha.18.4.tgz"
-  integrity sha512-7kRuk7pK6Firrb26Mm235Po7s/z+9k0gUKZU/DZkzg5U1yQRcsu4byIrnWTiTQr+LFLUrIiyRKnpGK/QneAhTw==
-
-"@mixpanel/rrweb-utils@^2.0.0-alpha.18", "@mixpanel/rrweb-utils@2.0.0-alpha.18.4":
-  version "2.0.0-alpha.18.4"
-  resolved "https://registry.npmjs.org/@mixpanel/rrweb-utils/-/rrweb-utils-2.0.0-alpha.18.4.tgz"
-  integrity sha512-c3nUbQl19kxHjf8nowFMeXlJw0ZqLesIVBb9t4g1nC4WtaNEPkFotWRdGt5V2cJNQ+aY38/v2uYb8Ren4IcdSQ==
-
-"@mixpanel/rrweb@^2.0.0-alpha.18", "@mixpanel/rrweb@2.0.0-alpha.18.4":
-  version "2.0.0-alpha.18.4"
-  resolved "https://registry.npmjs.org/@mixpanel/rrweb/-/rrweb-2.0.0-alpha.18.4.tgz"
-  integrity sha512-ICpEYDFEEiCoUuQg+de3VvQCsolF4lNHfEM9DBp5Pwuc7EgXqwWV4wUpiRF/NbhoKk+82X1Qe+oqqlKJb/CGFw==
-  dependencies:
-    "@mixpanel/rrdom" "^2.0.0-alpha.18"
-    "@mixpanel/rrweb-snapshot" "^2.0.0-alpha.18"
-    "@mixpanel/rrweb-types" "^2.0.0-alpha.18"
-    "@mixpanel/rrweb-utils" "^2.0.0-alpha.18"
-    "@types/css-font-loading-module" "0.0.7"
-    "@xstate/fsm" "^1.4.0"
-    base64-arraybuffer "^1.0.1"
-    mitt "^3.0.0"
-
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
   resolved "https://registry.npmjs.org/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz"
@@ -702,11 +659,6 @@
   resolved "https://registry.npmjs.org/@types/cookie/-/cookie-0.4.1.tgz"
   integrity sha512-XW/Aa8APYr6jSVVA1y/DEIZX0/GMKLEVekNG727R8cs56ahETkRAy/3DR7+fJyh7oUgGwNQaRfXCun0+KbWY7Q==
 
-"@types/css-font-loading-module@0.0.7":
-  version "0.0.7"
-  resolved "https://registry.npmjs.org/@types/css-font-loading-module/-/css-font-loading-module-0.0.7.tgz"
-  integrity sha512-nl09VhutdjINdWyXxHWN/w9zlNCfr60JUqJbd24YXUuCwgeL0TpFSdElCwb6cxfB6ybE19Gjj4g0jsgkXxKv1Q==
-
 "@types/deep-eql@*":
   version "4.0.2"
   resolved "https://registry.npmjs.org/@types/deep-eql/-/deep-eql-4.0.2.tgz"
@@ -716,11 +668,6 @@
   version "1.0.8"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz"
   integrity sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==
-
-"@types/json-logic-js@2.0.5":
-  version "2.0.5"
-  resolved "https://registry.npmjs.org/@types/json-logic-js/-/json-logic-js-2.0.5.tgz"
-  integrity sha512-hu/FTi0zwCjQEFfbPur275cNoZj6NsuOBhhYNzqoSdfmMhuxFr58OZ957lyIOWc9+kO+2tFlBthRjcxuytD4HA==
 
 "@types/json-schema@^7.0.15":
   version "7.0.15"
@@ -885,11 +832,6 @@
   dependencies:
     tslib "^2.3.0"
 
-"@xstate/fsm@^1.4.0":
-  version "1.6.5"
-  resolved "https://registry.npmjs.org/@xstate/fsm/-/fsm-1.6.5.tgz"
-  integrity sha512-b5o1I6aLNeYlU/3CPlj/Z91ybk1gUsKT+5NAJI+2W4UjvS5KLG28K9v5UvNoFVjHV8PajVZ00RH3vnjyQO7ZAw==
-
 acorn-jsx@^5.3.2:
   version "5.3.2"
   resolved "https://registry.npmjs.org/acorn-jsx/-/acorn-jsx-5.3.2.tgz"
@@ -963,11 +905,6 @@ balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
-
-base64-arraybuffer@^1.0.1:
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/base64-arraybuffer/-/base64-arraybuffer-1.0.2.tgz"
-  integrity sha512-I3yl4r9QB5ZRY3XuJVEPfc2XhZO6YweFPI+UovAzn+8/hb3oJ6lnysaFcjVpkCPfVWFUDvoZ8kmVDP7WyRtYtQ==
 
 baseline-browser-mapping@^2.9.0:
   version "2.10.0"
@@ -1730,11 +1667,6 @@ json-buffer@3.0.1:
   resolved "https://registry.npmjs.org/json-buffer/-/json-buffer-3.0.1.tgz"
   integrity sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==
 
-json-logic-js@2.0.5:
-  version "2.0.5"
-  resolved "https://registry.npmjs.org/json-logic-js/-/json-logic-js-2.0.5.tgz"
-  integrity sha512-rTT2+lqcuUmj4DgWfmzupZqQDA64AdmYqizzMPWj3DxGdfFNsxPpcNVSaTj4l8W2tG/+hg7/mQhxjU3aPacO6g==
-
 json-schema-traverse@^0.4.1:
   version "0.4.1"
   resolved "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz"
@@ -1868,22 +1800,6 @@ minimatch@9.0.3:
   dependencies:
     brace-expansion "^2.0.1"
 
-mitt@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.npmjs.org/mitt/-/mitt-3.0.1.tgz"
-  integrity sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==
-
-mixpanel-browser@^2.77.0:
-  version "2.77.0"
-  resolved "https://registry.npmjs.org/mixpanel-browser/-/mixpanel-browser-2.77.0.tgz"
-  integrity sha512-gU3J7osa+ZiX0gQ6UBjUw5YLfz4lb9B4X3yiXNxBQW+mVDkg9L+0VNWa+QnpWJi/ehAHuvl2nN1XTHp5NIL3HQ==
-  dependencies:
-    "@mixpanel/rrweb" "2.0.0-alpha.18.4"
-    "@mixpanel/rrweb-plugin-console-record" "2.0.0-alpha.18.4"
-    "@mixpanel/rrweb-utils" "2.0.0-alpha.18.4"
-    "@types/json-logic-js" "2.0.5"
-    json-logic-js "2.0.5"
-
 ms@^2.1.3:
   version "2.1.3"
   resolved "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
@@ -2007,7 +1923,7 @@ picomatch@^2.3.1:
   resolved "https://registry.npmjs.org/picomatch/-/picomatch-4.0.3.tgz"
   integrity sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==
 
-postcss@^8.4.21, postcss@^8.4.38, postcss@^8.5.6:
+postcss@^8.4.21, postcss@^8.5.6:
   version "8.5.6"
   resolved "https://registry.npmjs.org/postcss/-/postcss-8.5.6.tgz"
   integrity sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==

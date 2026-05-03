@@ -577,8 +577,6 @@
     "activityHelper": "Sol·licituds de reserva, confirmacions, preguntes i respostes, recordatoris.",
     "newsLabel": "Notícies i anuncis (opcional)",
     "newsHelper": "Difusions de col·leccions, butlletins setmanals i newsletters.",
-    "analyticsLabel": "Renunciar a l'analítica de producte",
-    "analyticsHelper": "Per defecte no enviem cap esdeveniment des del teu navegador — la teva privacitat és el punt de partida. Si tornes a activar l'analítica, recolliríem un petit conjunt d'esdeveniments pseudònims (inici de sessió, col·lecció creada, reserva sol·licitada) per entendre com s'utilitza OIUEEI, etiquetats només amb el teu codi d'usuari de 6 caràcters — mai amb el teu email, nom ni el contingut dels teus missatges. Farem servir aquest poder amb molta responsabilitat, t'ho prometem.",
     "saved": "Preferències desades.",
     "errorLoading": "Error en carregar les preferències.",
     "errorSaving": "Error en desar.",
