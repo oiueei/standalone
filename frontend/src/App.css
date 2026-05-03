@@ -808,6 +808,20 @@ figure[class*="Highlight-module_highlight"] {
   display: none;
 }
 
+/* HDS multi-select default behaviour: cap the chip area at 80px and surface
+   a "Show all (N)" button to expand. Two problems for us: (1) the button's
+   label hard-codes Finnish ("Näytä kaikki") regardless of `language="en"`,
+   (2) we'd rather always show every selected chip so the user sees the full
+   selection without an extra click. The first rule lifts the cap; the
+   second hides the now-redundant show-all button. The clear-all button (if
+   ever shown) is preserved. */
+[class*="Select-module_tagListContainer"] [class*="Select-module_tagList__"] {
+  max-height: unset !important;
+}
+[class*="Select-module_tagListContainer"] [class*="showAllButton"] {
+  display: none !important;
+}
+
 /* Markdown text */
 
 .markdown-text ul,
