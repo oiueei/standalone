@@ -53,14 +53,16 @@ Mobile is the primary target. The experience must be excellent on a small screen
 - Navigation, forms, and key actions must work flawlessly with one hand
 - Tablet and desktop layouts are progressive enhancements, not the baseline
 
-**Official HDS breakpoints** — use these exact values in all media queries. Never use arbitrary pixel values.
+**Official HDS breakpoints** — these are the canonical six values from [HDS Foundation — Breakpoints](https://hds.hel.fi/foundation/design-tokens/breakpoints/). OIUEEI uses four of them and deliberately skips `breakpoint-s` (576 px) and `breakpoint-xxl` (1440 px). Use only these exact values in media queries — never invent ad-hoc breakpoints.
 
-| Token | Min-width | Max content width | Columns | Margin |
-|---|---|---|---|---|
-| `breakpoint-xs` | 320px | 288px | 4 | 16px |
-| `breakpoint-m` | 768px | 720px | 8 | 24px |
-| `breakpoint-l` | 992px | 944px | 12 | 24px |
-| `breakpoint-xl` | 1248px | 1200px | 12 | 24px |
+| Token | Min-width | Container width | HDS grid columns | Margin | OIUEEI uses |
+|---|---|---|---|---|---|
+| `breakpoint-xs` | 320px | 288px | 4 | 16px | ✓ (mobile default) |
+| `breakpoint-s` | 576px | 544px | 4 | 16px | — (skipped) |
+| `breakpoint-m` | 768px | 720px | 8 | 24px | ✓ |
+| `breakpoint-l` | 992px | 944px | 12 | 24px | ✓ |
+| `breakpoint-xl` | 1248px | 1200px | 12 | 24px | ✓ |
+| `breakpoint-xxl` | 1440px | 1200px | 12 | 24px | — (skipped) |
 
 **When designing a new view:** design mobile first, then adapt upwards. Never design desktop first and shrink down.
 
@@ -181,23 +183,25 @@ HDS icons must always render in the default black (`--color-black-90`). Never co
 
 ## 12. Responsive Breakpoints
 
-OIUEEI uses four breakpoints. HDS `breakpoint-s` (576 px) is **not used** — skip it entirely.
+OIUEEI uses four of the six HDS breakpoints (xs / m / l / xl). `breakpoint-s` (576 px) and `breakpoint-xxl` (1440 px) are intentionally skipped — see §4 above for the full canonical HDS table.
 
-| Name | Min-width | Content width | Columns | Margin |
-|------|-----------|---------------|---------|--------|
-| `breakpoint-xs` | 320 px | 288 px | 1 | 16 px |
-| `breakpoint-m` | 768 px | 720 px | 2 | 24 px |
-| `breakpoint-l` | 944 px | 944 px | 3 | 24 px |
-| `breakpoint-xl` | 1248 px | 1200 px | 4 | 24 px |
+| HDS breakpoint | Min-width | Container width | OIUEEI card-grid columns |
+|------|-----------|---------------|---------|
+| `breakpoint-xs` | 320 px | 288 px | 1 |
+| `breakpoint-m` | 768 px | 720 px | 2 |
+| `breakpoint-l` | 992 px | 944 px | 3 |
+| `breakpoint-xl` | 1248 px | 1200 px | 4 |
+
+Note: the "columns" here are OIUEEI card-grid columns (`things-grid`, `collections-grid`, etc.), not the HDS 12-column layout grid. HDS grid column counts live in §4.
 
 **Rules for all layout code:**
 
 - Write CSS **mobile-first**: start with the xs (1-column) layout as the default, then use `@media (min-width: ...)` to add columns progressively.
-- Use only these four `min-width` values in media queries: `768px`, `944px`, `1248px`. Never use `576px`, `480px`, `992px`, or any other ad-hoc value.
-- Card grids (`things-grid`, `collections-grid`, and any future card grid) follow the column progression: 1 → 2 → 3 → 4.
+- Use only these three `min-width` values in media queries: `768px`, `992px`, `1248px`. Never use `576px`, `480px`, `944px`, or any other ad-hoc value. `max-width: 767px` is also acceptable for mobile-only overrides.
+- Card grids (`things-grid`, `collections-grid`, and any future card grid) follow the OIUEEI column progression: 1 → 2 → 3 → 4.
 - The `page-container` and `form-hero-content` max-width is `1248px` (matching breakpoint-xl total width).
 
-**When writing a new layout:** start at 1 column, add `min-width: 768px` for 2 columns, `min-width: 944px` for 3, `min-width: 1248px` for 4. Never design desktop-first and collapse downward.
+**When writing a new layout:** start at 1 column, add `min-width: 768px` for 2 columns, `min-width: 992px` for 3, `min-width: 1248px` for 4. Never design desktop-first and collapse downward.
 
 ---
 

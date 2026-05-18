@@ -77,9 +77,9 @@ Pages using this pattern: HomePage, CollectionPage, CreateCollectionPage, EditCo
 
 ## Breakpoints
 
-OIUEEI follows the official HDS breakpoint tokens. Use these exact `min-width` values in all media queries — never use arbitrary pixel values.
+OIUEEI follows the official [HDS breakpoint tokens](https://hds.hel.fi/foundation/design-tokens/breakpoints/). HDS defines six breakpoints; OIUEEI uses four of them and intentionally skips `breakpoint-s` (576px) and `breakpoint-xxl` (1440px). Use only these exact `min-width` values in media queries — never use arbitrary pixel values.
 
-| Token | Min-width | Max content width | Columns | Margin |
+| Token | Min-width | Container width | HDS grid columns | Margin |
 |---|---|---|---|---|
 | `breakpoint-xs` | 320px | 288px | 4 | 16px |
 | `breakpoint-m` | 768px | 720px | 8 | 24px |
