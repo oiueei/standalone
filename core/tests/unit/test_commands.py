@@ -317,7 +317,7 @@ class TestSendDigestsCommand:
         mock_date.today.return_value = first
         mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
 
-        self._setup_collection_with_things("DGM", "MONTHLY", thing_days_ago=15)
+        self._setup_collection_with_things("DGM", "MONTHLY", thing_days_ago=15, anchor_date=first)
 
         out = StringIO()
         call_command("send_digests", stdout=out)
@@ -347,7 +347,7 @@ class TestSendDigestsCommand:
         mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
 
         # Thing created 30 days ago — outside the weekly window
-        self._setup_collection_with_things("DGO", "WEEKLY", thing_days_ago=30)
+        self._setup_collection_with_things("DGO", "WEEKLY", thing_days_ago=30, anchor_date=monday)
 
         out = StringIO()
         call_command("send_digests", stdout=out)
