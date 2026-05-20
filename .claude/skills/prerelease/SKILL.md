@@ -136,19 +136,8 @@ Read the following before forming any opinion:
 - The full `core/` directory (models, views, serializers, services, tests)
 - The full `frontend/src/` directory (components, pages, hooks, routes)
 - All commits since the last tag (injected above)
-- `TECHNICAL_DEBT.md` (if it exists locally — it is gitignored, so it will not be present in CI or fresh clones)
 
-### Technical debt triage
-
-After reading `TECHNICAL_DEBT.md`, go through each open item and decide:
-
-- **Promote to Phase A** if the risk has increased since it was deferred — e.g. traffic has grown, a related bug was found, or a new feature depends on the affected code path.
-- **Promote to Phase B** if it is now straightforward to fix given recent changes.
-- **Leave as-is** if the risk and effort assessment still holds.
-
-State your decision for each item explicitly before presenting the rest of the review.
-
-Then evaluate against these dimensions:
+Evaluate against these dimensions:
 
 **Code quality**
 - Repeated or duplicated logic (DRY)

@@ -19,6 +19,10 @@ Runtime (single gunicorn process):
 
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) installed and logged in
 - A Heroku account
+- **Three external services** the app cannot run without:
+  - **PostgreSQL** — the database (added as a Heroku add-on below)
+  - **Cloudinary** — image uploads, free account at [cloudinary.com](https://cloudinary.com)
+  - **An SMTP provider** — magic-link sign-in emails, e.g. Mailgun or SendGrid
 
 ## Font Notice
 
@@ -37,27 +41,17 @@ Edit `frontend/src/fonts/oiueei-fonts.css` and replace the `@font-face` declarat
 
 > In either case, the app will work without fonts — browsers will fall back to system fonts. Fonts only affect visual appearance.
 
-## Deployment Branch
+## Fonts in the build
 
-Because font files must be present for the build but cannot be committed to the public repository, we recommend using a dedicated deployment branch:
+The font files are gitignored (see [Font Notice](#font-notice)), so a fresh clone does not contain them. Heroku compiles the frontend during the build, so the fonts must be present on the branch you deploy. Add them locally before deploying — a normal `git add` skips them, so force-add:
 
 ```bash
-git checkout -b deploy-heroku
-# add your font files to frontend/src/fonts/
-git add frontend/src/fonts/
+# place your .otf files in frontend/src/fonts/, then:
+git add -f frontend/src/fonts/*.otf
 git commit -m "Add fonts for deployment"
 ```
 
-Use this branch exclusively for Heroku deploys. Keep `development` clean for GitHub.
-
-When you have new changes to deploy:
-
-```bash
-git checkout deploy-heroku
-git merge development
-git push heroku deploy-heroku:main
-git checkout development
-```
+If you skip this the app still works — it falls back to system fonts (see Option B above).
 
 ## Step-by-step Setup
 
@@ -111,18 +105,23 @@ heroku config:set \
   MAGIC_LINK_BASE_URL='https://your-app-name.herokuapp.com/verify' \
   RSVP_BASE_URL='https://your-app-name.herokuapp.com/rsvp' \
   SHARE_LINK_BASE_URL='https://your-app-name.herokuapp.com/share' \
-  DEFAULT_FROM_EMAIL='noreply@your-domain.com' \
-  EMAIL_HOST_PASSWORD='<your SMTP API key>' \
+  CLOUDINARY_URL='cloudinary://<api_key>:<api_secret>@<cloud_name>' \
   NPM_CONFIG_PRODUCTION=false \
   -a your-app-name
 ```
+
+> **Cloudinary:** `CLOUDINARY_URL` powers image uploads. Create a free account at [cloudinary.com](https://cloudinary.com) and copy the value of *API environment variable* from your dashboard (Settings → API Keys). Format: `cloudinary://api_key:api_secret@cloud_name`. Without it the app runs, but image uploads fail.
+
+> **Email** is configured separately — see the [Email](#email) section below. Magic-link sign-in does not work until SMTP is set.
 
 > **Note:** Heroku sometimes appends a random suffix to the hostname (e.g. `your-app-name-a1b2c3d4.herokuapp.com`). Check the exact URL after the first deploy and update `DJANGO_ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` if needed.
 
 ### 5. Deploy
 
+Heroku deploys from its `main` branch. Push whichever local branch has your fonts committed:
+
 ```bash
-git push heroku deploy-heroku:main
+git push heroku HEAD:main
 ```
 
 ### 6. Run migrations
@@ -218,7 +217,17 @@ heroku config:set \
 
 ## Email
 
-OIUEEI requires email to send magic links. Configure your SMTP provider via the following vars (defaults to SendGrid):
+Sign-in uses magic links, so a working SMTP provider is **mandatory** — without it nobody can log in. Any provider works; below is an example for Mailgun (for SendGrid, set `EMAIL_HOST=smtp.sendgrid.net` and `EMAIL_HOST_USER=apikey`):
+
+```bash
+heroku config:set \
+  EMAIL_HOST='smtp.mailgun.org' \
+  EMAIL_PORT=587 \
+  EMAIL_HOST_USER='postmaster@your-domain.com' \
+  EMAIL_HOST_PASSWORD='<your SMTP password or API key>' \
+  DEFAULT_FROM_EMAIL='noreply@your-domain.com' \
+  -a your-app-name
+```
 
 | Variable | Description |
 |----------|-------------|
@@ -227,41 +236,6 @@ OIUEEI requires email to send magic links. Configure your SMTP provider via the 
 | `EMAIL_HOST_USER` | SMTP username (default: `apikey`) |
 | `EMAIL_HOST_PASSWORD` | SMTP password or API key |
 | `DEFAULT_FROM_EMAIL` | Sender address |
-
-## Monitoring (New Relic)
-
-OIUEEI uses the New Relic APM add-on for performance and error monitoring. The `Procfile` wraps gunicorn with `newrelic-admin run-program` so every request and background transaction is instrumented automatically.
-
-### Add the add-on
-
-```bash
-heroku addons:create newrelic:wayne -a your-app-name
-```
-
-This automatically sets `NEW_RELIC_LICENSE_KEY`. Then set the remaining config vars:
-
-```bash
-heroku config:set \
-  NEW_RELIC_CONFIG_FILE=newrelic.ini \
-  NEW_RELIC_LOG=stdout \
-  -a your-app-name
-```
-
-The `newrelic.ini` file in the repository reads the licence key from `NEW_RELIC_LICENSE_KEY` via `%(NEW_RELIC_LICENSE_KEY)s` — no secrets are hardcoded.
-
-### Scheduler Monitor
-
-The Heroku Scheduler Monitor add-on tracks execution of `expire_bookings`:
-
-```bash
-heroku addons:create scheduler-monitor:test -a your-app-name
-```
-
-Recommended monitors to activate in the dashboard:
-- **Monitor Failed Jobs** — alerts on any job failure
-- **Monitor Interrupted Jobs** — alerts if the dyno dies mid-run
-- **Monitor Execution Times** — alerts if the job takes longer than expected
-- **Scheduler Job Skip Detection (Every Day)** — alerts if the job is skipped entirely
 
 ## Booking Expiration
 

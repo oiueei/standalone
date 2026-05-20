@@ -283,8 +283,8 @@ python manage.py send_digests
 | `EMAIL_HOST_PASSWORD` | Prod | SMTP password |
 | `DEFAULT_FROM_EMAIL` | No | Sender email address |
 | `RSVP_BASE_URL` | No | Base URL for RSVP action links in emails |
-| `SHARE_LINK_BASE_URL` | No | Base URL for public collection share links (default: `http://localhost:3000/share` / `https://oiueei.com/share`) |
-| `CLOUDINARY_CLOUD_NAME` | No | Cloudinary cloud name (default: oiueei) |
+| `SHARE_LINK_BASE_URL` | No | Base URL for public collection share links (default: `http://localhost:3000/share` / `https://YOUR-DOMAIN.com/share`) |
+| `CLOUDINARY_URL` | Uploads | Cloudinary credentials for image uploads: `cloudinary://api_key:api_secret@cloud_name` (free account at cloudinary.com) |
 
 ## Security
 

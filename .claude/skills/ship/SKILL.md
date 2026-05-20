@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Pre-commit checklist for OIUEEI — review changes, run backend and frontend tests, identify missing tests, update .md documentation and DEPENDENCIES.md feature map, confirm branch is `development`, then commit in British English as co-author. Use when the user says they are ready to commit or ship work.
+description: Pre-commit checklist for OIUEEI — review changes, run backend and frontend tests, identify missing tests, update .md documentation, confirm branch is `development`, then commit in British English as co-author. Use when the user says they are ready to commit or ship work.
 disable-model-invocation: true
 ---
 
@@ -71,24 +71,11 @@ Review the following documentation files against the changes made. Update any fi
 
 For each file, state clearly: **up to date** or **updated** (with a brief summary of what changed).
 
-## Phase 6 — Update DEPENDENCIES.md
-
-Review the changes from Phase 1 and check whether any feature dependencies have changed. Update `DEPENDENCIES.md` if:
-
-- A new model, view, serializer, service function, URL route, frontend page, or component was added
-- An existing dependency was removed or renamed
-- A new cross-cutting concern (email function, RSVP action, migration) was introduced
-- A new feature was added that needs its own section
-
-Update the **"Last updated"** date at the top of the file.
-
-For each feature section, state clearly: **up to date** or **updated** (with a brief summary of what changed).
-
-## Phase 7 — Confirm Branch
+## Phase 6 — Confirm Branch
 
 Verify the current branch is `development`. If it is not, stop and warn the user before proceeding.
 
-## Phase 8 — Commit
+## Phase 7 — Commit
 
 Once all phases above are green (or the user has explicitly approved any exceptions):
 

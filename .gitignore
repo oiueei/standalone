@@ -47,10 +47,3 @@ frontend/src/fonts/*.pdf
 # OS
 .DS_Store
 Thumbs.db
-
-# Internal docs (not for public repo)
-TECHNICAL_DEBT.md
-IDEAS.md
-RELEASE_NOTES_F01_F17.md
-DEPENDENCIES.md
-MIXPANEL.md

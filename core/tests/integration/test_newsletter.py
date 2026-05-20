@@ -199,10 +199,9 @@ class TestNewsletterCommand:
 class TestDigestLinks:
     """Digest and newsletter emails link directly to the collection page.
 
-    Regression guard: a previous Phase 0 instrumentation prefixed these
-    links with `/digest/` to fire a Mixpanel click event from a frontend
-    trampoline route. That mechanism was removed when product analytics
-    were dropped — the prefix must not come back.
+    The links point straight to `/collections/{code}` and are never wrapped
+    in a redirect or tracking intermediary (see DESIGN.md §9). The tests
+    assert both: the direct link is present and no `/digest/` prefix appears.
     """
 
     def test_digest_email_link_targets_collection_directly(self, db):
