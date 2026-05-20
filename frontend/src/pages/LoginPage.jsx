@@ -76,7 +76,7 @@ export default function LoginPage() {
             i18nKey="login.openSource"
             components={[
               <span key="0" />,
-              <a key="1" href="https://github.com/oiueei/oiueei" target="_blank" rel="noopener noreferrer" />,
+              <a key="1" href="https://github.com/oiueei/standalone" target="_blank" rel="noopener noreferrer" />,
             ]}
           />
         </p>
