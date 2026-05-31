@@ -147,6 +147,11 @@ REST_FRAMEWORK = {
 }
 
 
+# JWT signing key — defaults to SECRET_KEY but can be set independently via the
+# JWT_SIGNING_KEY env var, so the two can be rotated separately. Rotating
+# SECRET_KEY alone would otherwise also invalidate every issued JWT.
+JWT_SIGNING_KEY = os.environ.get("JWT_SIGNING_KEY", SECRET_KEY)
+
 # Simple JWT settings
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
@@ -154,7 +159,7 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
+    "SIGNING_KEY": JWT_SIGNING_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "code",
     "USER_ID_CLAIM": "user_code",

@@ -20,6 +20,9 @@ class SecurityHeadersMiddleware:
             "connect-src 'self' https://api.cloudinary.com "
             "https://res.cloudinary.com; "
             "frame-ancestors 'none'; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'; "
         )
         response["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
         return response

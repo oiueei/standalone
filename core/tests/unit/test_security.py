@@ -153,3 +153,13 @@ class TestSecurityHeadersMiddleware:
         assert "camera=()" in policy
         assert "microphone=()" in policy
         assert "geolocation=()" in policy
+
+    def test_csp_includes_hardening_directives(self):
+        """object-src/base-uri/form-action block plugin embedding, base-tag
+        injection, and cross-origin form hijacking respectively."""
+        request = self.factory.get("/")
+        response = self.middleware(request)
+        csp = response["Content-Security-Policy"]
+        assert "object-src 'none'" in csp
+        assert "base-uri 'self'" in csp
+        assert "form-action 'self'" in csp
