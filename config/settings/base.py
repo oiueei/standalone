@@ -108,6 +108,20 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# Cache
+# A shared backend so rate-limit counters are consistent across gunicorn
+# workers and dynos — the default per-process LocMemCache is NOT shared, so
+# counters would multiply per worker and reset on every dyno cycle.
+# DatabaseCache reuses the existing PostgreSQL add-on at zero extra cost;
+# the cache table is created by migration (see core/migrations).
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "oiueei_cache",
+    }
+}
+
+
 # REST Framework settings
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -161,6 +175,16 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
     "CSRF_TRUSTED_ORIGINS",
     "http://localhost:3000,http://127.0.0.1:3000",
 ).split(",")
+
+
+# Rate limiting (django-ratelimit)
+# Bucket limiters per REAL client IP. The built-in "ip" key reads
+# REMOTE_ADDR, which behind the Heroku router is a single shared proxy
+# address — collapsing every client into one bucket (so "5/m per IP" becomes
+# "5/m for everyone", letting one abuser lock out all users). Point it at our
+# anti-spoofing helper, which takes the rightmost X-Forwarded-For value
+# appended by the Heroku router. Accepts a dotted path called as fn(request).
+RATELIMIT_IP_META_KEY = "core.utils.get_client_ip"
 
 
 # Custom User Model

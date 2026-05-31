@@ -1603,3 +1603,44 @@ class TestBookingActionView:
         response = api_client.post(f"/api/v1/bookings/{booking.code}/accept/")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+class TestBookingCancelView:
+    """Tests for the requester cancelling their own booking via API."""
+
+    def test_requester_can_cancel_pending_booking(
+        self, authenticated_client2, user, user2, lend_thing
+    ):
+        """The requester can cancel their own PENDING booking → 200, CANCELLED."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+        )
+
+        response = authenticated_client2.post(f"/api/v1/bookings/{booking.code}/cancel/")
+
+        assert response.status_code == status.HTTP_200_OK
+        booking.refresh_from_db()
+        assert booking.status == "CANCELLED"
+
+    def test_non_requester_cannot_cancel(self, authenticated_client, user, user2, lend_thing):
+        """A user who is not the requester gets 403 (authenticated_client is the owner)."""
+        booking = BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=3),
+        )
+
+        response = authenticated_client.post(f"/api/v1/bookings/{booking.code}/cancel/")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        booking.refresh_from_db()
+        assert booking.status == "PENDING"

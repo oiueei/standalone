@@ -122,6 +122,20 @@ class TestTransferCreatedOnBookingAccept:
         assert transfer.lent_date == date.today()
         assert transfer.returned_date is None
 
+    def test_accept_twice_is_idempotent(self, user, user2, thing):
+        """A second accept on an already-processed booking is a race-safe no-op:
+        the service re-reads the locked row, sees it is no longer PENDING,
+        returns None, and creates no duplicate ThingTransfer."""
+        booking = self._make_booking(thing, user, user2, thing_type="GIFT_THING")
+
+        first = accept_booking(booking)
+        assert first is not None
+
+        second = accept_booking(booking)
+        assert second is None
+
+        assert ThingTransfer.objects.filter(booking=booking, thing=thing).count() == 1
+
 
 @pytest.mark.django_db
 class TestCloseTransfersCommand:

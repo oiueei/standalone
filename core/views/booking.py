@@ -120,7 +120,14 @@ class BookingCancelView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        cancel_booking(booking)
+        thing = cancel_booking(booking)
+
+        # A concurrent transition already processed this booking — no-op.
+        if thing is None:
+            return Response(
+                {"error": "Booking expired or already processed"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Invalidate any outstanding RSVP links for this booking
         RSVP.objects.filter(
@@ -159,22 +166,27 @@ class BookingActionView(APIView):
             )
 
         owner_name = request.user.name or request.user.email
-        if action == "accept":
-            thing = accept_booking(booking)
-            send_booking_decision_email(booking, thing, accepted=True)
-            InAppNotification.objects.create(
-                user=booking.requester_code,
-                type=InAppNotification.BOOKING_ACCEPTED,
-                payload={"thing_headline": thing.headline, "owner_name": owner_name},
+        accepted = action == "accept"
+        thing = accept_booking(booking) if accepted else reject_booking(booking)
+
+        # A concurrent request (double-click, or email link racing this call)
+        # already transitioned this booking — the service no-ops and returns None.
+        if thing is None:
+            return Response(
+                {"error": "Booking expired or already processed"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
-            thing = reject_booking(booking)
-            send_booking_decision_email(booking, thing, accepted=False)
-            InAppNotification.objects.create(
-                user=booking.requester_code,
-                type=InAppNotification.BOOKING_REJECTED,
-                payload={"thing_headline": thing.headline, "owner_name": owner_name},
-            )
+
+        send_booking_decision_email(booking, thing, accepted=accepted)
+        InAppNotification.objects.create(
+            user=booking.requester_code,
+            type=(
+                InAppNotification.BOOKING_ACCEPTED
+                if accepted
+                else InAppNotification.BOOKING_REJECTED
+            ),
+            payload={"thing_headline": thing.headline, "owner_name": owner_name},
+        )
 
         # Invalidate any outstanding RSVP links for this booking
         RSVP.objects.filter(

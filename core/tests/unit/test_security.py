@@ -82,6 +82,34 @@ class TestGetClientIp:
         assert get_client_ip(request) == "unknown"
 
 
+class TestRateLimitClientIp:
+    """django-ratelimit must bucket per REAL client IP, not the shared Heroku
+    router REMOTE_ADDR. Guards the RATELIMIT_IP_META_KEY wiring so the
+    anti-spoof get_client_ip() is actually used by the limiter (not only logging)."""
+
+    def setup_method(self):
+        self.factory = RequestFactory()
+
+    def test_setting_points_to_anti_spoof_helper(self):
+        """The limiter's IP key must resolve to core.utils.get_client_ip."""
+        from django.conf import settings
+        from django.utils.module_loading import import_string
+
+        assert settings.RATELIMIT_IP_META_KEY == "core.utils.get_client_ip"
+        assert import_string(settings.RATELIMIT_IP_META_KEY) is get_client_ip
+
+    def test_ratelimit_resolves_ip_via_rightmost_forwarded_for(self):
+        """The limiter's IP resolver must use the rightmost X-Forwarded-For (the
+        real client appended by the Heroku router), never REMOTE_ADDR (the shared
+        router address) nor an attacker-spoofed leading value."""
+        from django_ratelimit.core import _get_ip
+
+        request = self.factory.post("/")
+        request.META["REMOTE_ADDR"] = "10.0.0.1"  # shared router IP — must NOT be the bucket key
+        request.META["HTTP_X_FORWARDED_FOR"] = "6.6.6.6, 203.0.113.7"  # spoofed, real-client
+        assert _get_ip(request) == "203.0.113.7"
+
+
 class TestSecurityHeadersMiddleware:
     """Tests for SecurityHeadersMiddleware — CSP and Permissions-Policy headers."""
 

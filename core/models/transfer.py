@@ -63,6 +63,17 @@ class ThingTransfer(models.Model):
         app_label = "core"
         db_table = "thing_transfers"
         ordering = ["-lent_date"]
+        constraints = [
+            # A booking may create at most one transfer per thing. Prevents
+            # duplicate ThingTransfer rows if an accept is processed twice
+            # (and matches the 1:1 intent of booking's related_name="transfer").
+            # `booking` is nullable; NULLs are distinct, so manual transfers
+            # (booking=NULL) are unaffected.
+            models.UniqueConstraint(
+                fields=["booking", "thing"],
+                name="uniq_transfer_per_booking_thing",
+            ),
+        ]
 
     def __str__(self):
         status = "returned" if self.returned_date else "active"

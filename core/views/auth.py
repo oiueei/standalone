@@ -323,20 +323,26 @@ class VerifyLinkView(APIView):
 
         # Process booking and send email
         owner_name = booking.owner_code.name or booking.owner_code.email
-        if accepted:
-            thing = accept_booking(booking)
-            InAppNotification.objects.create(
-                user=booking.requester_code,
-                type=InAppNotification.BOOKING_ACCEPTED,
-                payload={"thing_headline": thing.headline, "owner_name": owner_name},
+        thing = accept_booking(booking) if accepted else reject_booking(booking)
+
+        # A concurrent request (this link racing the in-app action, or the
+        # sibling link) already transitioned this booking — the service no-ops.
+        if thing is None:
+            rsvp.delete()
+            return Response(
+                {"error": "Booking expired or already processed"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
-            thing = reject_booking(booking)
-            InAppNotification.objects.create(
-                user=booking.requester_code,
-                type=InAppNotification.BOOKING_REJECTED,
-                payload={"thing_headline": thing.headline, "owner_name": owner_name},
-            )
+
+        InAppNotification.objects.create(
+            user=booking.requester_code,
+            type=(
+                InAppNotification.BOOKING_ACCEPTED
+                if accepted
+                else InAppNotification.BOOKING_REJECTED
+            ),
+            payload={"thing_headline": thing.headline, "owner_name": owner_name},
+        )
         send_booking_decision_email(booking, thing, accepted=accepted)
 
         # Delete all accept/reject RSVPs for this booking (invalidate sibling link)
