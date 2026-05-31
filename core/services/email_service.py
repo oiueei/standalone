@@ -14,9 +14,14 @@ Cat. 2 and Cat. 3 emails include a footer with a tokenised link to /me/notificat
 that lets recipients change preferences without logging in.
 """
 
+import logging
+import smtplib
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import escape
+
+logger = logging.getLogger(__name__)
 
 CATEGORY_MANDATORY = "mandatory"
 CATEGORY_ACTIVITY = "activity"
@@ -101,25 +106,34 @@ def _with_footer(plain, html, email, category):
 def _send(to_email, subject, plain, html, category, reply_to=None):
     """Send a single email through the category + footer pipeline.
 
-    Returns True if the email was dispatched, False if the recipient opted out.
+    Returns True if the email was dispatched, False if the recipient opted out
+    or the send failed. A failed send (SMTP error / timeout / socket error) is
+    logged and swallowed — it never propagates, so it cannot 500 a user action
+    whose DB work has already committed, nor abort a multi-recipient loop.
     """
     if not _should_send(to_email, category):
         return False
     plain, html = _with_footer(plain, html, to_email, category)
-    if reply_to:
-        msg = EmailMultiAlternatives(
-            subject=subject, body=plain, from_email=None, to=[to_email], reply_to=reply_to
-        )
-        msg.attach_alternative(html, "text/html")
-        msg.send()
-    else:
-        send_mail(
-            subject=subject,
-            message=plain,
-            from_email=None,
-            recipient_list=[to_email],
-            html_message=html,
-        )
+    try:
+        if reply_to:
+            msg = EmailMultiAlternatives(
+                subject=subject, body=plain, from_email=None, to=[to_email], reply_to=reply_to
+            )
+            msg.attach_alternative(html, "text/html")
+            msg.send()
+        else:
+            send_mail(
+                subject=subject,
+                message=plain,
+                from_email=None,
+                recipient_list=[to_email],
+                html_message=html,
+            )
+    except (smtplib.SMTPException, OSError) as exc:
+        # OSError covers socket.timeout/connection errors (socket.timeout is an
+        # OSError subclass). A dead/slow provider degrades gracefully here.
+        logger.error("Email send failed (to=%s, subject=%r): %s", to_email, subject, exc)
+        return False
     return True
 
 
