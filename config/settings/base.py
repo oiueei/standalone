@@ -20,7 +20,9 @@ if not SECRET_KEY:
     raise ValueError("DJANGO_SECRET_KEY environment variable must be set")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
+# Default False (fail-closed): a missing/typo'd DJANGO_DEBUG must NOT leak
+# stack traces or drop the cookie Secure flag. development.py opts back in.
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 

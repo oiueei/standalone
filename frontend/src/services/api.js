@@ -7,6 +7,28 @@ export function getCsrfToken() {
   return match ? match[1] : '';
 }
 
+// Single-flight token refresh: when several authenticated requests race on a
+// just-expired access token they all get 401 at once. Without a shared promise
+// each would POST its own /auth/refresh/, and with rotating refresh tokens the
+// later ones present an already-rotated (blacklisted) token, fail, and log the
+// user out mid-session. Funnel every concurrent 401 through one refresh.
+let refreshPromise = null;
+
+function refreshTokens() {
+  if (!refreshPromise) {
+    refreshPromise = fetch('/api/v1/auth/refresh/', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'X-CSRFToken': getCsrfToken() },
+    }).finally(() => {
+      // Clear once settled so a later expiry can refresh again.
+      refreshPromise = null;
+    });
+  }
+  // All awaiters share one Response — only read `.ok` here, never the body.
+  return refreshPromise;
+}
+
 export async function apiFetch(url, options = {}) {
   const headers = { ...options.headers };
 
@@ -22,12 +44,8 @@ export async function apiFetch(url, options = {}) {
   const res = await fetch(url, { ...options, headers, credentials: 'include' });
 
   if (res.status === 401) {
-    // Try refreshing the token once
-    const refreshRes = await fetch('/api/v1/auth/refresh/', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'X-CSRFToken': getCsrfToken() },
-    });
+    // Try refreshing the token once (shared across concurrent 401s)
+    const refreshRes = await refreshTokens();
     if (refreshRes.ok) {
       // Retry the original request with fresh cookies
       const retryRes = await fetch(url, { ...options, headers, credentials: 'include' });

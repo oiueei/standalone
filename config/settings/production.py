@@ -45,6 +45,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.sendgrid.net")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 EMAIL_USE_TLS = True
+# Cap the SMTP socket so a slow/hung provider can't stall a web dyno until the
+# 30s Heroku router timeout (H12). Email is currently sent synchronously.
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", 10))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "apikey")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@YOUR-DOMAIN.com")

@@ -1,4 +1,10 @@
 {
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. Try reloading the page, or go back home.",
+    "reload": "Reload page",
+    "home": "Go home"
+  },
   "common": {
     "appName": "OIUEEI",
     "error": "Error",
