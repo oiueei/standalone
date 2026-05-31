@@ -30,13 +30,12 @@ class RSVP(models.Model):
     Deleted after one-time use.
     """
 
-    ACTION_CHOICES = [
-        ("MAGIC_LINK", "Magic Link"),
-        ("COLLECTION_INVITE", "Collection Invite"),
-        ("COLLECTION_REJECT", "Collection Reject"),
-        ("BOOKING_ACCEPT", "Booking Accept"),
-        ("BOOKING_REJECT", "Booking Reject"),
-    ]
+    class Action(models.TextChoices):
+        MAGIC_LINK = "MAGIC_LINK", "Magic Link"
+        COLLECTION_INVITE = "COLLECTION_INVITE", "Collection Invite"
+        COLLECTION_REJECT = "COLLECTION_REJECT", "Collection Reject"
+        BOOKING_ACCEPT = "BOOKING_ACCEPT", "Booking Accept"
+        BOOKING_REJECT = "BOOKING_REJECT", "Booking Reject"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     created = models.DateTimeField(default=timezone.now)
@@ -51,7 +50,7 @@ class RSVP(models.Model):
 
     # Action type and target
     action = models.CharField(
-        max_length=20, choices=ACTION_CHOICES, default="MAGIC_LINK", db_index=True
+        max_length=20, choices=Action.choices, default=Action.MAGIC_LINK, db_index=True
     )
     target_code = models.CharField(max_length=6, null=True, blank=True, db_index=True)
 

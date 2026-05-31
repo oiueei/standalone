@@ -270,20 +270,20 @@ class CollectionInviteView(APIView):
         RSVP.objects.filter(
             user_code=invited_user,
             target_code=collection_code,
-            action__in=["COLLECTION_INVITE", "COLLECTION_REJECT"],
+            action__in=[RSVP.Action.COLLECTION_INVITE, RSVP.Action.COLLECTION_REJECT],
         ).delete()
 
         # Create RSVPs for accept and reject actions
         accept_rsvp = RSVP.objects.create(
             user_code=invited_user,
             user_email=email,
-            action="COLLECTION_INVITE",
+            action=RSVP.Action.COLLECTION_INVITE,
             target_code=collection_code,
         )
         reject_rsvp = RSVP.objects.create(
             user_code=invited_user,
             user_email=email,
-            action="COLLECTION_REJECT",
+            action=RSVP.Action.COLLECTION_REJECT,
             target_code=collection_code,
         )
 
@@ -357,7 +357,7 @@ class CollectionInviteView(APIView):
         pending_rsvps = RSVP.objects.filter(
             user_code_id=user_code,
             target_code=collection_code,
-            action__in=["COLLECTION_INVITE", "COLLECTION_REJECT"],
+            action__in=[RSVP.Action.COLLECTION_INVITE, RSVP.Action.COLLECTION_REJECT],
         )
         if pending_rsvps.exists():
             pending_rsvps.delete()
@@ -403,7 +403,9 @@ class MyPendingInvitationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        accept_rsvps = list(RSVP.objects.filter(user_code=request.user, action="COLLECTION_INVITE"))
+        accept_rsvps = list(
+            RSVP.objects.filter(user_code=request.user, action=RSVP.Action.COLLECTION_INVITE)
+        )
 
         if not accept_rsvps:
             return Response([])
@@ -419,7 +421,7 @@ class MyPendingInvitationsView(APIView):
             r.target_code: r
             for r in RSVP.objects.filter(
                 user_code=request.user,
-                action="COLLECTION_REJECT",
+                action=RSVP.Action.COLLECTION_REJECT,
                 target_code__in=target_codes,
             )
         }

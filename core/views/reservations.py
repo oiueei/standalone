@@ -452,8 +452,8 @@ class ThingRequestView(APIView):
 
     def _send_swap_email(self, requester, thing, offered_things, booking, owner_email):
         """Send swap request email to owner with RSVP-protected links."""
-        rsvp_accept = RSVP.create_for_booking("BOOKING_ACCEPT", booking, owner_email)
-        rsvp_reject = RSVP.create_for_booking("BOOKING_REJECT", booking, owner_email)
+        rsvp_accept = RSVP.create_for_booking(RSVP.Action.BOOKING_ACCEPT, booking, owner_email)
+        rsvp_reject = RSVP.create_for_booking(RSVP.Action.BOOKING_REJECT, booking, owner_email)
 
         base_url = settings.RSVP_BASE_URL
         accept_link = f"{base_url}/{rsvp_accept.code}"
@@ -475,8 +475,8 @@ class ThingRequestView(APIView):
     def _send_booking_email(self, requester, thing, booking, owner_email):
         """Send booking request email to owner with RSVP-protected links."""
         # Create RSVP tokens for accept/reject links
-        rsvp_accept = RSVP.create_for_booking("BOOKING_ACCEPT", booking, owner_email)
-        rsvp_reject = RSVP.create_for_booking("BOOKING_REJECT", booking, owner_email)
+        rsvp_accept = RSVP.create_for_booking(RSVP.Action.BOOKING_ACCEPT, booking, owner_email)
+        rsvp_reject = RSVP.create_for_booking(RSVP.Action.BOOKING_REJECT, booking, owner_email)
 
         # Build links
         base_url = settings.RSVP_BASE_URL

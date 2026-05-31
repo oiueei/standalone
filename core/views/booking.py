@@ -132,7 +132,7 @@ class BookingCancelView(APIView):
         # Invalidate any outstanding RSVP links for this booking
         RSVP.objects.filter(
             target_code=booking_code,
-            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
+            action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
         ).delete()
 
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
@@ -191,7 +191,7 @@ class BookingActionView(APIView):
         # Invalidate any outstanding RSVP links for this booking
         RSVP.objects.filter(
             target_code=booking_code,
-            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
+            action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
         ).delete()
 
         return Response({"status": "ok"}, status=status.HTTP_200_OK)

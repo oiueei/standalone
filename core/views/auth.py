@@ -230,7 +230,7 @@ class VerifyLinkView(APIView):
         # Delete this RSVP and the sibling reject RSVP (invalidate both links)
         RSVP.objects.filter(
             user_code=user,
-            action="COLLECTION_REJECT",
+            action=RSVP.Action.COLLECTION_REJECT,
             target_code=rsvp.target_code,
         ).delete()
         rsvp.delete()
@@ -280,7 +280,7 @@ class VerifyLinkView(APIView):
         # Delete both accept and reject RSVPs to invalidate all links
         RSVP.objects.filter(
             user_code=user,
-            action="COLLECTION_INVITE",
+            action=RSVP.Action.COLLECTION_INVITE,
             target_code=rsvp.target_code,
         ).delete()
         rsvp.delete()
@@ -348,7 +348,7 @@ class VerifyLinkView(APIView):
         # Delete all accept/reject RSVPs for this booking (invalidate sibling link)
         RSVP.objects.filter(
             target_code=booking_code,
-            action__in=["BOOKING_ACCEPT", "BOOKING_REJECT"],
+            action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
         ).delete()
 
         # Build response

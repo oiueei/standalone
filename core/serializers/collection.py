@@ -228,7 +228,7 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     def get_pending_invites(self, obj):
         rsvps = RSVP.objects.filter(
-            action="COLLECTION_INVITE",
+            action=RSVP.Action.COLLECTION_INVITE,
             target_code=obj.code,
         ).values("user_code_id", "user_email")
         return [{"code": r["user_code_id"], "email": r["user_email"]} for r in rsvps]
