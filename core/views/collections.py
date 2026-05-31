@@ -42,7 +42,9 @@ def _optimise_collection_queryset(queryset):
         "invites",
         Prefetch(
             "things",
-            queryset=Thing.objects.select_related("owner").prefetch_related(
+            queryset=Thing.objects.select_related("owner")
+            .annotate(_transfer_count=Count("transfers", distinct=True))
+            .prefetch_related(
                 "faq_set",
                 "deal",
                 Prefetch(
@@ -90,12 +92,17 @@ class CollectionViewSet(ModelViewSet):
         return [IsAuthenticated()]
 
     def get_object(self):
-        obj = get_object_or_404(Collection, code=self.kwargs[self.lookup_field])
         if self.action == "retrieve":
+            # Use the optimised queryset (prefetch + annotations) so nesting the
+            # collection's things doesn't N+1. No owner filter — can_view() below
+            # gates access so invited (non-owner) users can still retrieve.
+            qs = _optimise_collection_queryset(Collection.objects.all())
+            obj = get_object_or_404(qs, code=self.kwargs[self.lookup_field])
             if not obj.can_view(self.request.user.code):
                 self.permission_denied(self.request)
-        else:
-            self.check_object_permissions(self.request, obj)
+            return obj
+        obj = get_object_or_404(Collection, code=self.kwargs[self.lookup_field])
+        self.check_object_permissions(self.request, obj)
         return obj
 
     def perform_destroy(self, instance):

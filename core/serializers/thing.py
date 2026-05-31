@@ -123,6 +123,12 @@ class ThingSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return None
+        # Reuse the prefetched PENDING bookings (all requesters) when present.
+        if hasattr(obj, "_pending_bookings"):
+            for b in obj._pending_bookings:
+                if b.requester_code_id == request.user.code:
+                    return b.code
+            return None
         booking = BookingPeriod.objects.filter(
             thing_code=obj,
             requester_code=request.user,

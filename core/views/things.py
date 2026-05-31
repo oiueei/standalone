@@ -2,7 +2,7 @@
 Thing views for OIUEEI.
 """
 
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
@@ -36,9 +36,11 @@ class ThingViewSet(ModelViewSet):
         return (
             Thing.objects.filter(owner=self.request.user)
             .select_related("owner")
+            .annotate(_transfer_count=Count("transfers", distinct=True))
             .prefetch_related(
                 "collections",
                 "faq_set",
+                "deal",
                 Prefetch(
                     "bookings",
                     queryset=BookingPeriod.objects.filter(status="PENDING"),
@@ -244,9 +246,11 @@ class InvitedThingsView(ListAPIView):
             )
             .exclude(status="INACTIVE")
             .select_related("owner")
+            .annotate(_transfer_count=Count("transfers", distinct=True))
             .prefetch_related(
                 "collections",
                 "faq_set",
+                "deal",
                 Prefetch(
                     "bookings",
                     queryset=BookingPeriod.objects.filter(status="PENDING"),
