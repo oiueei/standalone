@@ -24,7 +24,7 @@ class WishOfferHelpView(APIView):
     def post(self, request, thing_code):
         thing = get_object_or_404(Thing, code=thing_code)
 
-        if thing.type != "WISH_THING":
+        if thing.type != Thing.Type.WISH_THING:
             return Response(
                 {"error": "This endpoint is only for wish things"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -68,7 +68,7 @@ class WishHelpersView(APIView):
     def get(self, request, thing_code):
         thing = get_object_or_404(Thing, code=thing_code)
 
-        if thing.type != "WISH_THING":
+        if thing.type != Thing.Type.WISH_THING:
             return Response(
                 {"error": "This endpoint is only for wish things"},
                 status=status.HTTP_400_BAD_REQUEST,

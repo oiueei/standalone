@@ -7,6 +7,7 @@ from datetime import date
 from rest_framework import serializers
 
 from core.models.booking import BookingPeriod
+from core.models.thing import Thing
 
 
 class BookingPeriodSerializer(serializers.ModelSerializer):
@@ -44,12 +45,12 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
         ]
 
     def get_offered_thing_codes(self, obj):
-        if obj.thing_type != "SWAP_THING":
+        if obj.thing_type != Thing.Type.SWAP_THING:
             return None
         return list(obj.offered_things.values_list("code", flat=True))
 
     def get_offered_thing_headlines(self, obj):
-        if obj.thing_type != "SWAP_THING":
+        if obj.thing_type != Thing.Type.SWAP_THING:
             return None
         return list(obj.offered_things.values_list("headline", flat=True))
 
@@ -98,12 +99,12 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
         return obj.requester_code.name or obj.requester_email
 
     def get_offered_thing_codes(self, obj):
-        if obj.thing_type != "SWAP_THING":
+        if obj.thing_type != Thing.Type.SWAP_THING:
             return None
         return list(obj.offered_things.values_list("code", flat=True))
 
     def get_offered_thing_headlines(self, obj):
-        if obj.thing_type != "SWAP_THING":
+        if obj.thing_type != Thing.Type.SWAP_THING:
             return None
         return list(obj.offered_things.values_list("headline", flat=True))
 
@@ -203,11 +204,11 @@ class MyBookingSerializer(serializers.ModelSerializer):
         return obj.owner_code.name or obj.owner_code.email
 
     def get_offered_thing_codes(self, obj):
-        if obj.thing_type != "SWAP_THING":
+        if obj.thing_type != Thing.Type.SWAP_THING:
             return None
         return list(obj.offered_things.values_list("code", flat=True))
 
     def get_offered_thing_headlines(self, obj):
-        if obj.thing_type != "SWAP_THING":
+        if obj.thing_type != Thing.Type.SWAP_THING:
             return None
         return list(obj.offered_things.values_list("headline", flat=True))

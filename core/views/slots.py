@@ -30,7 +30,7 @@ class ThingSlotsView(APIView):
         if not thing.can_view(request.user.code):
             return Response({"error": "Not authorised"}, status=status.HTTP_403_FORBIDDEN)
 
-        if thing.type != "APPOINTMENT_THING":
+        if thing.type != Thing.Type.APPOINTMENT_THING:
             return Response(
                 {"error": "Slots only available for appointment things"},
                 status=status.HTTP_400_BAD_REQUEST,

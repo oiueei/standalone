@@ -13,32 +13,32 @@ from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 # WISH_THING, SHARE_THING, ASSET_THING and the SWAP_THING which is gated by
 # is_swap on COMMUNITY collections).
 PROPRIETARY_THING_TYPES = (
-    "GIFT_THING",
-    "SELL_THING",
-    "ORDER_THING",
-    "RENT_THING",
-    "LEND_THING",
-    "EVENT_THING",
-    "APPOINTMENT_THING",
+    Thing.Type.GIFT_THING,
+    Thing.Type.SELL_THING,
+    Thing.Type.ORDER_THING,
+    Thing.Type.RENT_THING,
+    Thing.Type.LEND_THING,
+    Thing.Type.EVENT_THING,
+    Thing.Type.APPOINTMENT_THING,
 )
 # Thing types valid for community collections without is_swap/is_share flags.
 # SWAP_THING is excluded because it requires is_swap=True (which forces a
 # single-type collection and bypasses the allowlist entirely).
 COMMUNITY_THING_TYPES = (
-    "GIFT_THING",
-    "SELL_THING",
-    "ORDER_THING",
-    "RENT_THING",
-    "LEND_THING",
-    "SHARE_THING",
-    "EVENT_THING",
-    "WISH_THING",
-    "ASSET_THING",
-    "APPOINTMENT_THING",
+    Thing.Type.GIFT_THING,
+    Thing.Type.SELL_THING,
+    Thing.Type.ORDER_THING,
+    Thing.Type.RENT_THING,
+    Thing.Type.LEND_THING,
+    Thing.Type.SHARE_THING,
+    Thing.Type.EVENT_THING,
+    Thing.Type.WISH_THING,
+    Thing.Type.ASSET_THING,
+    Thing.Type.APPOINTMENT_THING,
 )
 # Album mode in COMMUNITY narrows to GIFT and SHARE (SWAP needs is_swap, which
 # is mutually exclusive with is_minimalist).
-COMMUNITY_MINIMALIST_THING_TYPES = ("GIFT_THING", "SHARE_THING")
+COMMUNITY_MINIMALIST_THING_TYPES = (Thing.Type.GIFT_THING, Thing.Type.SHARE_THING)
 
 
 class CollectionThingSummarySerializer(serializers.ModelSerializer):
@@ -131,12 +131,12 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         return obj.transfers.count()
 
     def get_attendee_count(self, obj):
-        if obj.type != "EVENT_THING":
+        if obj.type != Thing.Type.EVENT_THING:
             return None
         return obj.deal.count()
 
     def get_helper_count(self, obj):
-        if obj.type != "WISH_THING":
+        if obj.type != Thing.Type.WISH_THING:
             return None
         return obj.deal.count()
 
@@ -217,7 +217,7 @@ class CollectionSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated and obj.is_swap:
             ctx["my_swap_count_in_collection"] = Thing.objects.filter(
                 owner=request.user,
-                type="SWAP_THING",
+                type=Thing.Type.SWAP_THING,
                 status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
                 collections=obj,
             ).count()
@@ -295,9 +295,9 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
 
     When non-empty:
     - is_swap forces SWAP_THING via its flag, so the only consistent list is
-      ["SWAP_THING"]. Anything else is rejected so the form and the data
+      [Thing.Type.SWAP_THING]. Anything else is rejected so the form and the data
       cannot disagree.
-    - is_share is the same with ["SHARE_THING"].
+    - is_share is the same with [Thing.Type.SHARE_THING].
     - PROPRIETARY excludes COMMUNITY-only types (WISH/SHARE/ASSET/SWAP).
     - PROPRIETARY + is_minimalist must be exactly [GIFT_THING].
     - COMMUNITY (no flags) accepts the 10-type COMMUNITY set (all except SWAP,
@@ -308,14 +308,14 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
     if not allowed_thing_types:
         return
     if is_swap:
-        if list(allowed_thing_types) != ["SWAP_THING"]:
+        if list(allowed_thing_types) != [Thing.Type.SWAP_THING]:
             raise serializers.ValidationError(
                 "Swap collections only accept swap things —"
                 " allowed_thing_types must be ['SWAP_THING'] or empty."
             )
         return
     if is_share:
-        if list(allowed_thing_types) != ["SHARE_THING"]:
+        if list(allowed_thing_types) != [Thing.Type.SHARE_THING]:
             raise serializers.ValidationError(
                 "Share-only collections only accept share things —"
                 " allowed_thing_types must be ['SHARE_THING'] or empty."
@@ -323,7 +323,7 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
         return
     if mode == Collection.Mode.PROPRIETARY:
         if is_minimalist:
-            if list(allowed_thing_types) != ["GIFT_THING"]:
+            if list(allowed_thing_types) != [Thing.Type.GIFT_THING]:
                 raise serializers.ValidationError(
                     "Album collections only accept gifts — allowed_thing_types"
                     " must be exactly ['GIFT_THING']."

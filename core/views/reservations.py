@@ -65,7 +65,7 @@ class ThingRequestView(APIView):
             )
 
         # EVENT_THING and WISH_THING bypass BookingPeriod — use attend/offer endpoints
-        if thing.type in ("EVENT_THING", "WISH_THING"):
+        if thing.type in (Thing.Type.EVENT_THING, Thing.Type.WISH_THING):
             return Response(
                 {"error": "This thing type does not support reservations"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -110,13 +110,13 @@ class ThingRequestView(APIView):
             )
 
         # Route based on thing type
-        if thing.type == "SWAP_THING":
+        if thing.type == Thing.Type.SWAP_THING:
             return self._handle_swap_request(request, thing, owner_email)
-        elif thing.type == "APPOINTMENT_THING":
+        elif thing.type == Thing.Type.APPOINTMENT_THING:
             return self._handle_hourly_request(request, thing, owner_email)
-        elif thing.type == "ASSET_THING" and thing.booking_unit == Thing.BookingUnit.HOUR:
+        elif thing.type == Thing.Type.ASSET_THING and thing.booking_unit == Thing.BookingUnit.HOUR:
             return self._handle_hourly_request(request, thing, owner_email)
-        elif thing.type == "SHARE_THING":
+        elif thing.type == Thing.Type.SHARE_THING:
             return self._handle_share_request(request, thing, owner_email)
         elif thing.type in DATE_BASED_TYPES:
             return self._handle_date_based_request(request, thing, owner_email)
@@ -208,7 +208,7 @@ class ThingRequestView(APIView):
         start_time = serializer.validated_data["start_time"]
         end_time = serializer.validated_data["end_time"]
 
-        if thing.type == "APPOINTMENT_THING" and thing.availability_schedule:
+        if thing.type == Thing.Type.APPOINTMENT_THING and thing.availability_schedule:
             day_of_week = start_date.isoweekday()
             window = next(
                 (w for w in thing.availability_schedule if day_of_week in w.get("days", [])),
@@ -385,7 +385,7 @@ class ThingRequestView(APIView):
         if minimum > 0:
             own_count = Thing.objects.filter(
                 owner=request.user,
-                type="SWAP_THING",
+                type=Thing.Type.SWAP_THING,
                 status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
                 collections=thing_collection,
             ).count()
@@ -410,7 +410,7 @@ class ThingRequestView(APIView):
                     {"error": f"Offered thing {code} not found"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if offered.type != "SWAP_THING":
+            if offered.type != Thing.Type.SWAP_THING:
                 return Response(
                     {"error": f"Offered thing {code} is not a swap thing"},
                     status=status.HTTP_400_BAD_REQUEST,

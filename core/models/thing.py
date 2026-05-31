@@ -18,19 +18,18 @@ class Thing(models.Model):
     - INACTIVE: Hidden from guests, not available for reservation
     """
 
-    TYPE_CHOICES = [
-        ("GIFT_THING", "Gift Thing"),
-        ("SELL_THING", "Sell Thing"),
-        ("ORDER_THING", "Order Thing"),
-        ("RENT_THING", "Rent Thing"),
-        ("LEND_THING", "Lend Thing"),
-        ("SHARE_THING", "Share Thing"),
-        ("EVENT_THING", "Event Thing"),
-        ("WISH_THING", "Wish Thing"),
-        ("ASSET_THING", "Asset Thing"),
-        ("SWAP_THING", "Swap Thing"),
-        ("APPOINTMENT_THING", "Appointment Thing"),
-    ]
+    class Type(models.TextChoices):
+        GIFT_THING = "GIFT_THING", "Gift Thing"
+        SELL_THING = "SELL_THING", "Sell Thing"
+        ORDER_THING = "ORDER_THING", "Order Thing"
+        RENT_THING = "RENT_THING", "Rent Thing"
+        LEND_THING = "LEND_THING", "Lend Thing"
+        SHARE_THING = "SHARE_THING", "Share Thing"
+        EVENT_THING = "EVENT_THING", "Event Thing"
+        WISH_THING = "WISH_THING", "Wish Thing"
+        ASSET_THING = "ASSET_THING", "Asset Thing"
+        SWAP_THING = "SWAP_THING", "Swap Thing"
+        APPOINTMENT_THING = "APPOINTMENT_THING", "Appointment Thing"
 
     class BookingUnit(models.TextChoices):
         DAY = "DAY", "Day"
@@ -56,7 +55,7 @@ class Thing(models.Model):
         ALMOST_JUNK = "ALMOST_JUNK", "Almost junk"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    type = models.CharField(max_length=17, choices=TYPE_CHOICES, default="GIFT_THING")
+    type = models.CharField(max_length=17, choices=Type.choices, default=Type.GIFT_THING)
     owner = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,

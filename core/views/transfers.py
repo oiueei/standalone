@@ -59,7 +59,7 @@ class ThingTransferView(APIView):
 
         # Is this a SHARE_THING in a COMMUNITY collection?
         is_share_in_community = (
-            thing.type == "SHARE_THING"
+            thing.type == Thing.Type.SHARE_THING
             and thing.collections.filter(mode=Collection.Mode.COMMUNITY).exists()
         )
 

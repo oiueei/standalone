@@ -171,7 +171,7 @@ class ThingSerializer(serializers.ModelSerializer):
             return 0
         return Thing.objects.filter(
             owner=request.user,
-            type="SWAP_THING",
+            type=Thing.Type.SWAP_THING,
             status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
             collections=first,
         ).count()
@@ -190,12 +190,12 @@ class ThingSerializer(serializers.ModelSerializer):
         return obj.transfers.count()
 
     def get_attendee_count(self, obj):
-        if obj.type != "EVENT_THING":
+        if obj.type != Thing.Type.EVENT_THING:
             return None
         return obj.deal.count()
 
     def get_helper_count(self, obj):
-        if obj.type != "WISH_THING":
+        if obj.type != Thing.Type.WISH_THING:
             return None
         return obj.deal.count()
 

@@ -70,7 +70,7 @@ class Command(BaseCommand):
         tomorrow_end = datetime.combine(tomorrow, datetime.max.time(), tzinfo=timezone.utc)
         events = (
             Thing.objects.filter(
-                type="EVENT_THING",
+                type=Thing.Type.EVENT_THING,
                 status=Thing.Status.ACTIVE,
                 event_date__gte=tomorrow_start,
                 event_date__lte=tomorrow_end,

@@ -72,10 +72,10 @@ def accept_booking(booking):
                 thing.status = Thing.Status.INACTIVE
                 thing.save(update_fields=["status"])
                 thing.deal.add(booking.requester_code)
-        elif booking.thing_type == "SHARE_THING":
+        elif booking.thing_type == Thing.Type.SHARE_THING:
             thing.owner = booking.requester_code
             thing.save(update_fields=["owner"])
-        elif booking.thing_type == "SWAP_THING":
+        elif booking.thing_type == Thing.Type.SWAP_THING:
             # Requested thing → requester
             thing.owner = booking.requester_code
             thing.save(update_fields=["owner"])

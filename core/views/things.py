@@ -84,7 +84,7 @@ class ThingViewSet(ModelViewSet):
         collection_code = self.request.data.get("collection_code")
         collection = None
 
-        thing_type = serializer.validated_data.get("type", "GIFT_THING")
+        thing_type = serializer.validated_data.get("type", Thing.Type.GIFT_THING)
 
         if collection_code:
             try:
@@ -100,7 +100,8 @@ class ThingViewSet(ModelViewSet):
 
             # WISH_THING, SHARE_THING, and ASSET_THING are only allowed in COMMUNITY collections
             if (
-                thing_type in ("WISH_THING", "SHARE_THING", "ASSET_THING")
+                thing_type
+                in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING, Thing.Type.ASSET_THING)
                 and not collection.is_community()
             ):
                 self._create_error = (
@@ -110,23 +111,23 @@ class ThingViewSet(ModelViewSet):
                 return
 
             # Swap collection: only SWAP_THING allowed
-            if collection.is_swap and thing_type != "SWAP_THING":
+            if collection.is_swap and thing_type != Thing.Type.SWAP_THING:
                 self._create_error = "Only swap things can be added to a swap collection"
                 return
 
             # SWAP_THING requires a swap collection
-            if thing_type == "SWAP_THING" and not collection.is_swap:
+            if thing_type == Thing.Type.SWAP_THING and not collection.is_swap:
                 self._create_error = "Swap things can only be created in swap collections"
                 return
 
             # Share collection: only SHARE_THING allowed
-            if collection.is_share and thing_type != "SHARE_THING":
+            if collection.is_share and thing_type != Thing.Type.SHARE_THING:
                 self._create_error = "Only share things can be added to a share collection"
                 return
 
             # Minimalist collection: only GIFT/SHARE/SWAP allowed, thumbnail required
             if collection.is_minimalist:
-                allowed = ("GIFT_THING", "SHARE_THING", "SWAP_THING")
+                allowed = (Thing.Type.GIFT_THING, Thing.Type.SHARE_THING, Thing.Type.SWAP_THING)
                 if thing_type not in allowed:
                     self._create_error = (
                         "Only gift, share, and swap things can be added"
@@ -148,13 +149,13 @@ class ThingViewSet(ModelViewSet):
                 return
         else:
             # WISH_THING, SHARE_THING, and SWAP_THING require specific collections
-            if thing_type in ("WISH_THING", "SHARE_THING"):
+            if thing_type in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING):
                 self._create_error = (
                     f"{thing_type.replace('_', ' ').title()}s can only be created"
                     " in community collections"
                 )
                 return
-            if thing_type == "SWAP_THING":
+            if thing_type == Thing.Type.SWAP_THING:
                 self._create_error = "Swap things can only be created in swap collections"
                 return
 
@@ -167,7 +168,7 @@ class ThingViewSet(ModelViewSet):
             collection.things.add(thing)
 
             # Send announcement email for EVENT_THING
-            if thing.type == "EVENT_THING":
+            if thing.type == Thing.Type.EVENT_THING:
                 invitee_emails = list(
                     collection.invites.exclude(code=self.request.user.code).values_list(
                         "email", flat=True

@@ -26,7 +26,7 @@ class EventAttendView(APIView):
     def post(self, request, thing_code):
         thing = get_object_or_404(Thing, code=thing_code)
 
-        if thing.type != "EVENT_THING":
+        if thing.type != Thing.Type.EVENT_THING:
             return Response(
                 {"error": "This endpoint is only for event things"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -88,7 +88,7 @@ class EventAttendeesView(APIView):
     def get(self, request, thing_code):
         thing = get_object_or_404(Thing, code=thing_code)
 
-        if thing.type != "EVENT_THING":
+        if thing.type != Thing.Type.EVENT_THING:
             return Response(
                 {"error": "This endpoint is only for event things"},
                 status=status.HTTP_400_BAD_REQUEST,
