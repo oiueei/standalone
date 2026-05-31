@@ -114,7 +114,7 @@ class ThingRequestView(APIView):
             return self._handle_swap_request(request, thing, owner_email)
         elif thing.type == "APPOINTMENT_THING":
             return self._handle_hourly_request(request, thing, owner_email)
-        elif thing.type == "ASSET_THING" and thing.booking_unit == "HOUR":
+        elif thing.type == "ASSET_THING" and thing.booking_unit == Thing.BookingUnit.HOUR:
             return self._handle_hourly_request(request, thing, owner_email)
         elif thing.type == "SHARE_THING":
             return self._handle_share_request(request, thing, owner_email)

@@ -32,31 +32,28 @@ class Thing(models.Model):
         ("APPOINTMENT_THING", "Appointment Thing"),
     ]
 
-    BOOKING_UNIT_CHOICES = [
-        ("DAY", "Day"),
-        ("HOUR", "Hour"),
-    ]
+    class BookingUnit(models.TextChoices):
+        DAY = "DAY", "Day"
+        HOUR = "HOUR", "Hour"
 
     class Status(models.TextChoices):
         ACTIVE = "ACTIVE", "Active"
         INACTIVE = "INACTIVE", "Inactive"
         TAKEN = "TAKEN", "Taken"
 
-    AVAILABILITY_CHOICES = [
-        ("IMMEDIATE", "Immediate"),
-        ("NEXT_WEEK", "Next week"),
-        ("END_OF_MONTH", "End of month"),
-        ("NEXT_MONTH", "Next month"),
-    ]
+    class Availability(models.TextChoices):
+        IMMEDIATE = "IMMEDIATE", "Immediate"
+        NEXT_WEEK = "NEXT_WEEK", "Next week"
+        END_OF_MONTH = "END_OF_MONTH", "End of month"
+        NEXT_MONTH = "NEXT_MONTH", "Next month"
 
-    CONDITION_CHOICES = [
-        ("NEW", "New"),
-        ("GOOD", "Good condition"),
-        ("FAIR", "Fair"),
-        ("USED", "Used"),
-        ("WELL_USED", "Well used"),
-        ("ALMOST_JUNK", "Almost junk"),
-    ]
+    class Condition(models.TextChoices):
+        NEW = "NEW", "New"
+        GOOD = "GOOD", "Good condition"
+        FAIR = "FAIR", "Fair"
+        USED = "USED", "Used"
+        WELL_USED = "WELL_USED", "Well used"
+        ALMOST_JUNK = "ALMOST_JUNK", "Almost junk"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     type = models.CharField(max_length=17, choices=TYPE_CHOICES, default="GIFT_THING")
@@ -74,13 +71,13 @@ class Thing(models.Model):
     status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE)
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     availability = models.CharField(
-        max_length=12, choices=AVAILABILITY_CHOICES, blank=True, default=""
+        max_length=12, choices=Availability.choices, blank=True, default=""
     )
     location = models.CharField(max_length=32, blank=True, default="")
-    condition = models.CharField(max_length=12, choices=CONDITION_CHOICES, blank=True, default="")
+    condition = models.CharField(max_length=12, choices=Condition.choices, blank=True, default="")
     event_date = models.DateTimeField(null=True, blank=True)
     booking_unit = models.CharField(
-        max_length=4, choices=BOOKING_UNIT_CHOICES, blank=True, default=""
+        max_length=4, choices=BookingUnit.choices, blank=True, default=""
     )
     slot_duration = models.PositiveIntegerField(
         null=True, blank=True, help_text="Slot duration in minutes (15, 30, or 60)"
