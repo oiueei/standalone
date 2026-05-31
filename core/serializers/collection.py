@@ -218,12 +218,12 @@ class CollectionSerializer(serializers.ModelSerializer):
             ctx["my_swap_count_in_collection"] = Thing.objects.filter(
                 owner=request.user,
                 type="SWAP_THING",
-                status__in=("ACTIVE", "TAKEN"),
+                status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
                 collections=obj,
             ).count()
         things = obj.things.all()
         if request and not obj.is_owner(request.user.code):
-            things = things.exclude(status="INACTIVE")
+            things = things.exclude(status=Thing.Status.INACTIVE)
         return CollectionThingSummarySerializer(things, many=True, context=ctx).data
 
     def get_pending_invites(self, obj):

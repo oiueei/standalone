@@ -71,7 +71,7 @@ class Command(BaseCommand):
         events = (
             Thing.objects.filter(
                 type="EVENT_THING",
-                status="ACTIVE",
+                status=Thing.Status.ACTIVE,
                 event_date__gte=tomorrow_start,
                 event_date__lte=tomorrow_end,
             )

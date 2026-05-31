@@ -37,11 +37,10 @@ class Thing(models.Model):
         ("HOUR", "Hour"),
     ]
 
-    STATUS_CHOICES = [
-        ("ACTIVE", "Active"),
-        ("INACTIVE", "Inactive"),
-        ("TAKEN", "Taken"),
-    ]
+    class Status(models.TextChoices):
+        ACTIVE = "ACTIVE", "Active"
+        INACTIVE = "INACTIVE", "Inactive"
+        TAKEN = "TAKEN", "Taken"
 
     AVAILABILITY_CHOICES = [
         ("IMMEDIATE", "Immediate"),
@@ -72,7 +71,7 @@ class Thing(models.Model):
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
     thumbnail = models.CharField(max_length=255, blank=True, default="")
-    status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
+    status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE)
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     availability = models.CharField(
         max_length=12, choices=AVAILABILITY_CHOICES, blank=True, default=""
@@ -155,12 +154,14 @@ class Thing(models.Model):
             return True
 
         # INACTIVE things are only visible to the owner
-        if self.status == "INACTIVE":
+        if self.status == self.Status.INACTIVE:
             return False
 
         # Check if thing is in any active collection where user is invited or is the owner
+        from core.models.collection import Collection
+
         return (
-            self.collections.filter(status="ACTIVE")
+            self.collections.filter(status=Collection.Status.ACTIVE)
             .filter(models.Q(invites__code=user_code) | models.Q(owner__code=user_code))
             .exists()
         )

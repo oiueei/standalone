@@ -172,7 +172,7 @@ class ThingSerializer(serializers.ModelSerializer):
         return Thing.objects.filter(
             owner=request.user,
             type="SWAP_THING",
-            status__in=("ACTIVE", "TAKEN"),
+            status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
             collections=first,
         ).count()
 

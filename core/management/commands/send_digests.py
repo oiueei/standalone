@@ -12,6 +12,7 @@ from datetime import date, timedelta
 from django.core.management.base import BaseCommand
 
 from core.models.collection import Collection
+from core.models.thing import Thing
 from core.models.transfer import ThingTransfer
 from core.services.email_service import send_digest_email, send_newsletter_email
 
@@ -46,7 +47,7 @@ class Command(BaseCommand):
         """Send digest emails for collections with the given frequency."""
         collections = Collection.objects.filter(
             digest_frequency=frequency,
-            status="ACTIVE",
+            status=Collection.Status.ACTIVE,
         ).prefetch_related("things", "invites")
 
         count = 0
@@ -54,7 +55,7 @@ class Command(BaseCommand):
             new_things = collection.things.filter(
                 created__date__gte=since,
                 created__date__lt=until,
-                status__in=["ACTIVE", "TAKEN"],
+                status__in=[Thing.Status.ACTIVE, Thing.Status.TAKEN],
             )
 
             headlines = list(new_things.values_list("headline", flat=True))
@@ -80,7 +81,7 @@ class Command(BaseCommand):
         collections = Collection.objects.filter(
             newsletter_enabled=True,
             is_share=True,
-            status="ACTIVE",
+            status=Collection.Status.ACTIVE,
         ).prefetch_related("things", "invites")
 
         count = 0
@@ -93,7 +94,7 @@ class Command(BaseCommand):
             new_things = collection.things.filter(
                 created__date__gte=since,
                 created__date__lt=until,
-                status__in=["ACTIVE", "TAKEN"],
+                status__in=[Thing.Status.ACTIVE, Thing.Status.TAKEN],
             )
             new_thing_headlines = list(new_things.values_list("headline", flat=True))
 

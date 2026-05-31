@@ -21,10 +21,9 @@ class Collection(models.Model):
     Can be shared with other users via invites.
     """
 
-    STATUS_CHOICES = [
-        ("ACTIVE", "Active"),
-        ("INACTIVE", "Inactive"),
-    ]
+    class Status(models.TextChoices):
+        ACTIVE = "ACTIVE", "Active"
+        INACTIVE = "INACTIVE", "Inactive"
 
     class Mode(models.TextChoices):
         PROPRIETARY = "PROPRIETARY", "Proprietary"
@@ -46,7 +45,7 @@ class Collection(models.Model):
     created = models.DateTimeField(default=timezone.now)
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
-    status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
+    status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE)
     mode = models.CharField(max_length=12, choices=Mode.choices, default=Mode.PROPRIETARY)
     digest_frequency = models.CharField(
         max_length=7, choices=DigestFrequency.choices, default=DigestFrequency.NONE
@@ -153,6 +152,6 @@ class Collection(models.Model):
         """
         if self.is_owner(user_code):
             return True
-        if self.status == "INACTIVE":
+        if self.status == self.Status.INACTIVE:
             return False
         return self.is_invited(user_code)

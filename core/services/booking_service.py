@@ -34,7 +34,7 @@ def cancel_booking(booking):
         booking.cancel()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
         if booking.thing_type in SINGLE_USE_TYPES and not thing.is_endless:
-            thing.status = "ACTIVE"
+            thing.status = Thing.Status.ACTIVE
             thing.save(update_fields=["status"])
     return thing
 
@@ -69,7 +69,7 @@ def accept_booking(booking):
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
         if booking.thing_type in SINGLE_USE_TYPES:
             if not thing.is_endless:
-                thing.status = "INACTIVE"
+                thing.status = Thing.Status.INACTIVE
                 thing.save(update_fields=["status"])
                 thing.deal.add(booking.requester_code)
         elif booking.thing_type == "SHARE_THING":
@@ -131,6 +131,6 @@ def reject_booking(booking):
         booking.reject()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
         if booking.thing_type in SINGLE_USE_TYPES and not thing.is_endless:
-            thing.status = "ACTIVE"
+            thing.status = Thing.Status.ACTIVE
             thing.save(update_fields=["status"])
     return thing

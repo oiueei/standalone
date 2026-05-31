@@ -204,9 +204,9 @@ class ThingViewSet(ModelViewSet):
     @action(detail=True, methods=["post"], url_path="activate")
     def activate(self, request, code=None):
         thing = self.get_object()
-        if thing.status != "INACTIVE":
+        if thing.status != Thing.Status.INACTIVE:
             return Response({"error": "Thing is not inactive."}, status=status.HTTP_400_BAD_REQUEST)
-        thing.status = "ACTIVE"
+        thing.status = Thing.Status.ACTIVE
         thing.save(update_fields=["status"])
         thing.deal.clear()
         return Response(ThingSerializer(thing).data)
@@ -219,11 +219,11 @@ class ThingViewSet(ModelViewSet):
                 {"error": "You do not have permission to hide this thing."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        if thing.status != "ACTIVE":
+        if thing.status != Thing.Status.ACTIVE:
             return Response(
                 {"error": "Only active things can be hidden."}, status=status.HTTP_400_BAD_REQUEST
             )
-        thing.status = "INACTIVE"
+        thing.status = Thing.Status.INACTIVE
         thing.save(update_fields=["status"])
         return Response(ThingSerializer(thing).data)
 
@@ -242,9 +242,9 @@ class InvitedThingsView(ListAPIView):
         return (
             Thing.objects.filter(
                 collections__invites=self.request.user,
-                collections__status="ACTIVE",
+                collections__status=Collection.Status.ACTIVE,
             )
-            .exclude(status="INACTIVE")
+            .exclude(status=Thing.Status.INACTIVE)
             .select_related("owner")
             .annotate(_transfer_count=Count("transfers", distinct=True))
             .prefetch_related(

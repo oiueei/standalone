@@ -16,7 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import RSVP, Thing
+from core.models import RSVP, Collection, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
 from core.models.notification import InAppNotification
 from core.serializers.booking import (
@@ -72,7 +72,7 @@ class ThingRequestView(APIView):
             )
 
         # Check if thing is available
-        if thing.status != "ACTIVE":
+        if thing.status != Thing.Status.ACTIVE:
             return Response(
                 {"error": "Thing is not available for reservation"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -80,7 +80,10 @@ class ThingRequestView(APIView):
 
         # Check if all collections containing this thing are INACTIVE
         thing_collections = thing.collections.all()
-        if thing_collections.exists() and not thing_collections.filter(status="ACTIVE").exists():
+        if (
+            thing_collections.exists()
+            and not thing_collections.filter(status=Collection.Status.ACTIVE).exists()
+        ):
             return Response(
                 {"error": "This collection is currently inactive"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -88,8 +91,10 @@ class ThingRequestView(APIView):
 
         # Check if all active collections are paused (no new holds allowed)
         if (
-            thing_collections.filter(status="ACTIVE").exists()
-            and not thing_collections.filter(status="ACTIVE", pause_message="").exists()
+            thing_collections.filter(status=Collection.Status.ACTIVE).exists()
+            and not thing_collections.filter(
+                status=Collection.Status.ACTIVE, pause_message=""
+            ).exists()
         ):
             return Response(
                 {"error": "This collection is currently paused"},
@@ -317,7 +322,7 @@ class ThingRequestView(APIView):
         with transaction.atomic():
             thing = Thing.objects.select_for_update().get(code=thing.code)
 
-            if not thing.is_endless and thing.status != "ACTIVE":
+            if not thing.is_endless and thing.status != Thing.Status.ACTIVE:
                 return Response(
                     {"error": "Thing is not available for reservation"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -343,7 +348,7 @@ class ThingRequestView(APIView):
             )
 
             if not thing.is_endless:
-                thing.status = "TAKEN"
+                thing.status = Thing.Status.TAKEN
                 thing.save(update_fields=["status"])
 
         self._send_booking_email(request.user, thing, booking, owner_email)
@@ -381,7 +386,7 @@ class ThingRequestView(APIView):
             own_count = Thing.objects.filter(
                 owner=request.user,
                 type="SWAP_THING",
-                status__in=("ACTIVE", "TAKEN"),
+                status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
                 collections=thing_collection,
             ).count()
             if own_count < minimum:
@@ -415,7 +420,7 @@ class ThingRequestView(APIView):
                     {"error": f"You do not own offered thing {code}"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if offered.status != "ACTIVE":
+            if offered.status != Thing.Status.ACTIVE:
                 return Response(
                     {"error": f"Offered thing {code} is not active"},
                     status=status.HTTP_400_BAD_REQUEST,

@@ -410,7 +410,9 @@ class PopInView(APIView):
         joined_via_share = False
         if share_token:
             try:
-                shared_collection = Collection.objects.get(share_token=share_token, status="ACTIVE")
+                shared_collection = Collection.objects.get(
+                    share_token=share_token, status=Collection.Status.ACTIVE
+                )
             except Collection.DoesNotExist:
                 shared_collection = None
 

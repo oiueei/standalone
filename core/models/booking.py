@@ -223,9 +223,9 @@ class BookingPeriod(models.Model):
             if single_use_thing_codes:
                 Thing.objects.filter(
                     code__in=single_use_thing_codes,
-                    status="TAKEN",
+                    status=Thing.Status.TAKEN,
                     is_endless=False,
-                ).update(status="ACTIVE")
+                ).update(status=Thing.Status.ACTIVE)
 
             expired_count = cls.objects.filter(
                 status=cls.Status.PENDING,
