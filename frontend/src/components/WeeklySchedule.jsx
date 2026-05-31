@@ -44,6 +44,7 @@ export default function WeeklySchedule({ thingCode, isOwner, requestPath }) {
   } : undefined;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intended loading-before-fetch: show the spinner before each week's slot fetch
     setLoading(true);
     const ws = formatDate(weekStart);
     apiFetch(`/api/v1/things/${thingCode}/slots/?week_start=${ws}`)
@@ -97,7 +98,7 @@ export default function WeeklySchedule({ thingCode, isOwner, requestPath }) {
     ...data.days.map((day, i) => ({
       key: DAY_KEYS[i],
       headerName: `${t('appointment.' + DAY_KEYS[i])} ${new Date(day.date + 'T00:00:00').toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}`,
-      transform: ({ _id: timeKey, ...row }) => {
+      transform: ({ _id: _timeKey, ...row }) => {
         const slot = row[DAY_KEYS[i]];
         const date = row[DAY_KEYS[i] + '_date'];
         if (!slot) return '';

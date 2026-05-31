@@ -20,14 +20,6 @@ export default function ManageInvitesPage() {
     '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
-
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);

@@ -99,7 +99,7 @@ export default function EditThingPage() {
       }
     };
     fetchThing();
-  }, [userCode, thingCode, navigate]);
+  }, [userCode, thingCode, navigate, code, t]);
 
   const returnPath = thingCollectionCode ? `/collections/${thingCollectionCode}` : '/';
   const returnLabel = thingCollectionHeadline || (thingCollectionCode ? t('common.collection') : t('common.home'));

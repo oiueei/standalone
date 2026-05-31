@@ -41,13 +41,12 @@ function resizeIfNeeded(file) {
  * Props:
  *   id          – HTML id for the FileInput
  *   label       – visible label text
- *   value       – current Cloudinary public_id (string)
  *   onChange    – called with the new public_id (or '') on upload / remove
  *   currentUrl  – full URL of the current saved image (for the initial preview)
  *   folder      – Cloudinary upload folder (default 'oiueei/users')
  *   helperText  – optional helper text shown below the input
  */
-export default function ImageUpload({ id, label, value, onChange, currentUrl, folder = 'oiueei/users', helperText }) {
+export default function ImageUpload({ id, label, onChange, currentUrl, folder = 'oiueei/users', helperText }) {
   const { t, i18n } = useTranslation();
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
   const [uploading, setUploading] = useState(false);

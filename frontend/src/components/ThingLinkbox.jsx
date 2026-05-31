@@ -8,7 +8,7 @@ import MarkdownText from './MarkdownText';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, onDelete, onRemoveFromCollection, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -85,7 +85,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         setActivePendingCode(firstPending?.code || null);
       })
       .catch(() => {});
-  }, [thing.code, thing.status, isOwner, isDateBased, isOrder, isSwap, isAsset, isAppointment]);
+  }, [thing.code, thing.status, thing.is_endless, isOwner, isDateBased, isOrder, isSwap, isAsset, isAppointment]);
 
   const handleRequest = async () => {
     setSubmitting(true);
