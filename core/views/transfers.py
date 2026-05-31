@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import Thing
+from core.models import Collection, Thing
 from core.models.transfer import ThingTransfer
 from core.serializers.transfer import ThingTransferStatsSerializer
 
@@ -59,7 +59,8 @@ class ThingTransferView(APIView):
 
         # Is this a SHARE_THING in a COMMUNITY collection?
         is_share_in_community = (
-            thing.type == "SHARE_THING" and thing.collections.filter(mode="COMMUNITY").exists()
+            thing.type == "SHARE_THING"
+            and thing.collections.filter(mode=Collection.Mode.COMMUNITY).exists()
         )
 
         stats_data = {

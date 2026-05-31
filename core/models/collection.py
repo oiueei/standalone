@@ -26,16 +26,14 @@ class Collection(models.Model):
         ("INACTIVE", "Inactive"),
     ]
 
-    MODE_CHOICES = [
-        ("PROPRIETARY", "Proprietary"),
-        ("COMMUNITY", "Community"),
-    ]
+    class Mode(models.TextChoices):
+        PROPRIETARY = "PROPRIETARY", "Proprietary"
+        COMMUNITY = "COMMUNITY", "Community"
 
-    DIGEST_CHOICES = [
-        ("NONE", "None"),
-        ("WEEKLY", "Weekly"),
-        ("MONTHLY", "Monthly"),
-    ]
+    class DigestFrequency(models.TextChoices):
+        NONE = "NONE", "None"
+        WEEKLY = "WEEKLY", "Weekly"
+        MONTHLY = "MONTHLY", "Monthly"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     owner = models.ForeignKey(
@@ -49,8 +47,10 @@ class Collection(models.Model):
     headline = models.CharField(max_length=64)
     description = models.CharField(max_length=256, blank=True, default="")
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default="ACTIVE")
-    mode = models.CharField(max_length=12, choices=MODE_CHOICES, default="PROPRIETARY")
-    digest_frequency = models.CharField(max_length=7, choices=DIGEST_CHOICES, default="NONE")
+    mode = models.CharField(max_length=12, choices=Mode.choices, default=Mode.PROPRIETARY)
+    digest_frequency = models.CharField(
+        max_length=7, choices=DigestFrequency.choices, default=DigestFrequency.NONE
+    )
     is_onboarding = models.BooleanField(default=False)
     is_swap = models.BooleanField(default=False)
     is_share = models.BooleanField(default=False)
@@ -135,7 +135,7 @@ class Collection(models.Model):
 
     def is_community(self):
         """Check if this is a community collection."""
-        return self.mode == "COMMUNITY"
+        return self.mode == self.Mode.COMMUNITY
 
     def can_add_thing(self, user_code):
         """Check if the given user can add things to this collection.

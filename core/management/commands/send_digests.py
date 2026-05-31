@@ -25,7 +25,9 @@ class Command(BaseCommand):
 
         # Weekly digests: send on Mondays (weekday 0)
         if today.weekday() == 0:
-            total += self._send_digests("WEEKLY", today - timedelta(days=7), today)
+            total += self._send_digests(
+                Collection.DigestFrequency.WEEKLY, today - timedelta(days=7), today
+            )
             total += self._send_newsletters(today - timedelta(days=7), today)
 
         # Monthly digests: send on the 1st of the month
@@ -34,7 +36,9 @@ class Command(BaseCommand):
             first_of_this_month = today
             last_month = first_of_this_month - timedelta(days=1)
             first_of_last_month = last_month.replace(day=1)
-            total += self._send_digests("MONTHLY", first_of_last_month, first_of_this_month)
+            total += self._send_digests(
+                Collection.DigestFrequency.MONTHLY, first_of_last_month, first_of_this_month
+            )
 
         self.stdout.write(self.style.SUCCESS(f"Sent {total} digest emails"))
 
