@@ -78,7 +78,7 @@ export default function DeleteThingPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <BackLink to={backPath} label={backLabel} />
           <h1 className="form-hero-title">{t('deleteThing.pageTitle', { headline: thing.headline })}</h1>
         </div>

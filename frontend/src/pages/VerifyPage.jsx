@@ -74,7 +74,7 @@ export default function VerifyPage() {
           className="form-hero"
           style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
         >
-          <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
             <h1 className="form-hero-title">{title}</h1>
             <div>
               <Link to={isLoggedIn ? '/' : '/login'}>
@@ -107,7 +107,7 @@ export default function VerifyPage() {
           className="form-hero"
           style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
         >
-          <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
             <h1 className="form-hero-title">{t('verify.oops')}</h1>
             <div>
               <Link to={isLoggedIn ? '/' : '/login'}>
@@ -142,7 +142,7 @@ export default function VerifyPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <h1 className="form-hero-title">{t('verify.verifying')}</h1>
         </div>
         <Koros

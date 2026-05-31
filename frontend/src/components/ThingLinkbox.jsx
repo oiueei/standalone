@@ -259,10 +259,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             )}
             {isOwner && thing.status === 'TAKEN' && (
               <>
-                <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+                <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
                   {t('thingCard.confirmHold')}
                 </Button>
-                <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
+                <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
                   {t('thingCard.cancelHold')}
                 </Button>
               </>
@@ -468,10 +468,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           )}
           {isOwner && thing.status === 'TAKEN' && (
             <>
-              <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+              <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
                 {t('thingCard.confirmHold')}
               </Button>
-              <Button variant="secondary" fullWidth disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
+              <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
                 {t('thingCard.cancelHold')}
               </Button>
               <Link to={editPath} style={{ display: 'contents' }}>

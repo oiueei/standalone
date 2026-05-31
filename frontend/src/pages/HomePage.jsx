@@ -180,7 +180,7 @@ export default function HomePage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <h1 className="form-hero-title" style={{ paddingTop: 'var(--spacing-xl)' }}>{t('home.greeting', { name: user.name || user.email })}</h1>
           {user.headline && <p className="form-hero-text">{user.headline}</p>}
           <div className="button-row-wide">

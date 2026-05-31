@@ -95,7 +95,7 @@ export default function UserPage() {
         className="form-hero"
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_04 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           <BackLink to="/" label={t('common.home')} />
           <div className="spacer-m" />
           {user.headline && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>{user.headline}</p>}
