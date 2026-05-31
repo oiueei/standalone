@@ -40,13 +40,12 @@ class BookingPeriod(models.Model):
     - LEND/RENT/SHARE: thing stays ACTIVE (date-based availability)
     """
 
-    STATUS_CHOICES = [
-        ("PENDING", "Pending"),
-        ("ACCEPTED", "Accepted"),
-        ("REJECTED", "Rejected"),
-        ("CANCELLED", "Cancelled"),
-        ("EXPIRED", "Expired"),
-    ]
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        ACCEPTED = "ACCEPTED", "Accepted"
+        REJECTED = "REJECTED", "Rejected"
+        CANCELLED = "CANCELLED", "Cancelled"
+        EXPIRED = "EXPIRED", "Expired"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     created = models.DateTimeField(default=timezone.now)
@@ -80,7 +79,7 @@ class BookingPeriod(models.Model):
     delivery_date = models.DateField(null=True, blank=True)  # For ORDER_THING
     quantity = models.PositiveIntegerField(null=True, blank=True)  # For ORDER_THING
     status = models.CharField(
-        max_length=9, choices=STATUS_CHOICES, default="PENDING", db_index=True
+        max_length=9, choices=Status.choices, default=Status.PENDING, db_index=True
     )
     offered_things = models.ManyToManyField(
         "Thing",
@@ -123,26 +122,26 @@ class BookingPeriod(models.Model):
         """Check if the booking request is still valid (not expired and PENDING)."""
         expiry_hours = getattr(settings, "BOOKING_EXPIRY_HOURS", 72)
         expiry_time = self.created + timedelta(hours=expiry_hours)
-        return timezone.now() < expiry_time and self.status == "PENDING"
+        return timezone.now() < expiry_time and self.status == self.Status.PENDING
 
     def accept(self):
         """Accept the booking request."""
-        self.status = "ACCEPTED"
+        self.status = self.Status.ACCEPTED
         self.save(update_fields=["status"])
 
     def reject(self):
         """Reject the booking request."""
-        self.status = "REJECTED"
+        self.status = self.Status.REJECTED
         self.save(update_fields=["status"])
 
     def cancel(self):
         """Cancel the booking (by the requester)."""
-        self.status = "CANCELLED"
+        self.status = self.Status.CANCELLED
         self.save(update_fields=["status"])
 
     def expire(self):
         """Mark the booking as expired."""
-        self.status = "EXPIRED"
+        self.status = self.Status.EXPIRED
         self.save(update_fields=["status"])
 
     @classmethod
@@ -167,7 +166,7 @@ class BookingPeriod(models.Model):
         """
         queryset = cls.objects.filter(
             thing_code=thing_code,
-            status__in=["PENDING", "ACCEPTED"],
+            status__in=[cls.Status.PENDING, cls.Status.ACCEPTED],
             start_date__lte=end_date,
             end_date__gte=start_date,
         )
@@ -193,7 +192,7 @@ class BookingPeriod(models.Model):
         """
         return cls.objects.filter(
             thing_code=thing_code,
-            status__in=["PENDING", "ACCEPTED"],
+            status__in=[cls.Status.PENDING, cls.Status.ACCEPTED],
         ).order_by("start_date")
 
     @classmethod
@@ -215,7 +214,7 @@ class BookingPeriod(models.Model):
             # Collect thing codes for single-use bookings that are about to expire
             single_use_thing_codes = list(
                 cls.objects.filter(
-                    status="PENDING",
+                    status=cls.Status.PENDING,
                     thing_type__in=SINGLE_USE_TYPES,
                     created__lt=cutoff_time,
                 ).values_list("thing_code_id", flat=True)
@@ -229,8 +228,8 @@ class BookingPeriod(models.Model):
                 ).update(status="ACTIVE")
 
             expired_count = cls.objects.filter(
-                status="PENDING",
+                status=cls.Status.PENDING,
                 created__lt=cutoff_time,
-            ).update(status="EXPIRED")
+            ).update(status=cls.Status.EXPIRED)
 
         return expired_count

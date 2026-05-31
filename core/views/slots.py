@@ -68,7 +68,7 @@ class ThingSlotsView(APIView):
             thing_code=thing,
             start_date__gte=week_start,
             start_date__lte=week_end,
-            status__in=["PENDING", "ACCEPTED"],
+            status__in=[BookingPeriod.Status.PENDING, BookingPeriod.Status.ACCEPTED],
         ).select_related("requester_code")
 
         # Index bookings by (date, start_time)
@@ -76,7 +76,7 @@ class ThingSlotsView(APIView):
         for b in bookings:
             key = (str(b.start_date), str(b.start_time)[:5] if b.start_time else "")
             booking_map[key] = {
-                "status": "pending" if b.status == "PENDING" else "booked",
+                "status": "pending" if b.status == BookingPeriod.Status.PENDING else "booked",
                 "requester_name": b.requester_code.name or b.requester_code.email,
             }
 

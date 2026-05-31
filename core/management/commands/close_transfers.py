@@ -9,6 +9,7 @@ from datetime import date
 
 from django.core.management.base import BaseCommand
 
+from core.models.booking import BookingPeriod
 from core.models.transfer import ThingTransfer
 
 
@@ -23,7 +24,7 @@ class Command(BaseCommand):
             returned_date__isnull=True,
             booking__isnull=False,
             booking__end_date__lt=today,
-            booking__status="ACCEPTED",
+            booking__status=BookingPeriod.Status.ACCEPTED,
         )
 
         count = transfers.update(returned_date=today)

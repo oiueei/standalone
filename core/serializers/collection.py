@@ -100,7 +100,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             return bookings[0].code if bookings else None
         booking = BookingPeriod.objects.filter(
             thing_code=obj,
-            status="PENDING",
+            status=BookingPeriod.Status.PENDING,
         ).first()
         return booking.code if booking else None
 
@@ -117,7 +117,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         booking = BookingPeriod.objects.filter(
             thing_code=obj,
             requester_code=request.user,
-            status="PENDING",
+            status=BookingPeriod.Status.PENDING,
         ).first()
         return booking.code if booking else None
 

@@ -128,7 +128,7 @@ class ThingRequestView(APIView):
             if BookingPeriod.objects.filter(
                 thing_code=thing,
                 requester_code=request.user,
-                status="PENDING",
+                status=BookingPeriod.Status.PENDING,
             ).exists():
                 return Response(
                     {"error": "You already have a pending request for this thing"},
@@ -326,7 +326,7 @@ class ThingRequestView(APIView):
             existing = BookingPeriod.objects.filter(
                 thing_code=thing,
                 requester_code=request.user,
-                status="PENDING",
+                status=BookingPeriod.Status.PENDING,
             ).first()
             if existing:
                 return Response(

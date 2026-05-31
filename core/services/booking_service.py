@@ -29,7 +29,7 @@ def cancel_booking(booking):
     """
     with transaction.atomic():
         booking = BookingPeriod.objects.select_for_update().get(code=booking.code)
-        if booking.status != "PENDING":
+        if booking.status != BookingPeriod.Status.PENDING:
             return None
         booking.cancel()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
@@ -63,7 +63,7 @@ def accept_booking(booking):
     """
     with transaction.atomic():
         booking = BookingPeriod.objects.select_for_update().get(code=booking.code)
-        if booking.status != "PENDING":
+        if booking.status != BookingPeriod.Status.PENDING:
             return None
         booking.accept()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
@@ -126,7 +126,7 @@ def reject_booking(booking):
     """
     with transaction.atomic():
         booking = BookingPeriod.objects.select_for_update().get(code=booking.code)
-        if booking.status != "PENDING":
+        if booking.status != BookingPeriod.Status.PENDING:
             return None
         booking.reject()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)

@@ -49,7 +49,7 @@ def _optimise_collection_queryset(queryset):
                 "deal",
                 Prefetch(
                     "bookings",
-                    queryset=BookingPeriod.objects.filter(status="PENDING"),
+                    queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
                     to_attr="_pending_bookings",
                 ),
             ),

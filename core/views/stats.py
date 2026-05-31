@@ -38,7 +38,7 @@ class ThingStatsView(APIView):
         usage = (
             BookingPeriod.objects.filter(
                 thing_code=thing,
-                status="ACCEPTED",
+                status=BookingPeriod.Status.ACCEPTED,
             )
             .annotate(month=TruncMonth("created"))
             .values("month", "requester_code_id")
@@ -66,13 +66,13 @@ class ThingStatsView(APIView):
         # Total stats
         total_bookings = BookingPeriod.objects.filter(
             thing_code=thing,
-            status="ACCEPTED",
+            status=BookingPeriod.Status.ACCEPTED,
         ).count()
 
         unique_users = (
             BookingPeriod.objects.filter(
                 thing_code=thing,
-                status="ACCEPTED",
+                status=BookingPeriod.Status.ACCEPTED,
             )
             .values("requester_code_id")
             .distinct()

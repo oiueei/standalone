@@ -32,7 +32,7 @@ class Command(BaseCommand):
         # 1. Booking return reminders (end_date = tomorrow)
         return_bookings = BookingPeriod.objects.filter(
             end_date=tomorrow,
-            status="ACCEPTED",
+            status=BookingPeriod.Status.ACCEPTED,
         ).select_related("thing_code__owner", "requester_code")
 
         for booking in return_bookings:
@@ -50,7 +50,7 @@ class Command(BaseCommand):
         # 2. Order delivery reminders (delivery_date = tomorrow)
         delivery_bookings = BookingPeriod.objects.filter(
             delivery_date=tomorrow,
-            status="ACCEPTED",
+            status=BookingPeriod.Status.ACCEPTED,
         ).select_related("thing_code__owner", "requester_code")
 
         for booking in delivery_bookings:

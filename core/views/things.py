@@ -43,7 +43,7 @@ class ThingViewSet(ModelViewSet):
                 "deal",
                 Prefetch(
                     "bookings",
-                    queryset=BookingPeriod.objects.filter(status="PENDING"),
+                    queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
                     to_attr="_pending_bookings",
                 ),
             )
@@ -253,7 +253,7 @@ class InvitedThingsView(ListAPIView):
                 "deal",
                 Prefetch(
                     "bookings",
-                    queryset=BookingPeriod.objects.filter(status="PENDING"),
+                    queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
                     to_attr="_pending_bookings",
                 ),
             )
