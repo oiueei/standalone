@@ -47,3 +47,6 @@ frontend/src/fonts/*.pdf
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code tooling (local workflow scripts, not project code)
+.claude/workflows/
