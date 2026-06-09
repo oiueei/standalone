@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome, IconGroup, IconSwapUser } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
+import { Button, Notification, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome, IconSwapUser } from 'hds-react';
+import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import MarkdownText from './MarkdownText';
 import ThingTags from './ThingTags';
@@ -34,7 +34,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     '--background-color-hover': `var(--color-${tc.color_01})`,
     '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
-  const isEvent = thing.type === EVENT_TYPE;
   const isWish = thing.type === WISH_TYPE;
   const isShare = thing.type === SHARE_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
@@ -43,31 +42,21 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const needsPage = isDateBased || isOrder || isSwap || thing.is_endless;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
-  const [attendSubmitting, setAttendSubmitting] = useState(false);
-  const [isAttending, setIsAttending] = useState(false);
-  const [attendeeCount, setAttendeeCount] = useState(thing.attendee_count || 0);
   const [helpSubmitting, setHelpSubmitting] = useState(false);
   const [isHelping, setIsHelping] = useState(false);
   const [helperCount, setHelperCount] = useState(thing.helper_count || 0);
 
   useEffect(() => {
-    if (isEvent && thing.deal) {
-      setIsAttending(thing.deal.includes(userCode));
-    }
     if (isWish && thing.deal) {
       setIsHelping(thing.deal.includes(userCode));
     }
-  }, [isEvent, isWish, thing.deal, userCode]);
+  }, [isWish, thing.deal, userCode]);
 
   const [bookings, setBookings] = useState([]);
 
-  const isAsset = thing.type === ASSET_TYPE;
-  const isAppointment = thing.type === APPOINTMENT_TYPE;
-
   useEffect(() => {
     const shouldFetch = isOwner
-      ? (isDateBased || isOrder || isSwap || thing.status === 'TAKEN' || thing.is_endless)
-      : (isAsset || isAppointment);
+      && (isDateBased || isOrder || isSwap || thing.status === 'TAKEN' || thing.is_endless);
     if (!shouldFetch) return;
     apiFetch(`/api/v1/things/${thing.code}/calendar/`)
       .then((res) => (res.ok ? res.json() : []))
@@ -85,7 +74,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         setActivePendingCode(firstPending?.code || null);
       })
       .catch(() => {});
-  }, [thing.code, thing.status, thing.is_endless, isOwner, isDateBased, isOrder, isSwap, isAsset, isAppointment]);
+  }, [thing.code, thing.status, thing.is_endless, isOwner, isDateBased, isOrder, isSwap]);
 
   const handleRequest = async () => {
     setSubmitting(true);
@@ -170,24 +159,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setBookingAction(null);
-    }
-  };
-
-  const handleAttend = async () => {
-    setAttendSubmitting(true);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/attend/`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setIsAttending(data.attending);
-        setAttendeeCount(data.attendee_count);
-      } else {
-        setToast({ type: 'error', message: t('common.connectionError') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setAttendSubmitting(false);
     }
   };
 
@@ -277,7 +248,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 {t('common.delete')}
               </Button>
             )}
-            {showButton && !isEvent && !isWish && (
+            {showButton && !isWish && (
               <Button
                 fullWidth
                 disabled={buttonDisabled}
@@ -329,13 +300,11 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           <MarkdownText text={thing.description} className="thing-card-description" />
         )}
         <div className="thing-card-info">
-          {!isEvent && (
-            <div className="thing-card-info-row">
-              <IconTicket size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
-              <span>{t('types.' + thing.type)}</span>
-            </div>
-          )}
+          <div className="thing-card-info-row">
+            <IconTicket size="m" aria-hidden="true" />
+            <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
+            <span>{t('types.' + thing.type)}</span>
+          </div>
           {thing.fee && (
             <div className="thing-card-info-row">
               <IconEuroSign size="m" aria-hidden="true" />
@@ -357,39 +326,11 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <span>{thing.location}</span>
             </div>
           )}
-          {!isEvent && thing.condition && (
+          {thing.condition && (
             <div className="thing-card-info-row">
               <IconShield size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
               <span>{t('condition.' + thing.condition)}</span>
-            </div>
-          )}
-          {thing.event_date && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('events.eventDate')}:</span>
-              <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          )}
-          {isAsset && thing.booking_unit && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('asset.bookingUnit')}</span>
-              <span>{thing.booking_unit === 'HOUR' ? t('asset.unitHour') : t('asset.unitDay')}</span>
-            </div>
-          )}
-          {isAppointment && thing.slot_duration && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('appointment.slotDuration')}</span>
-              <span>{t('appointment.minutes', { count: thing.slot_duration })}</span>
-            </div>
-          )}
-          {isEvent && (
-            <div className="thing-card-info-row">
-              <IconGroup size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('events.attendeesHeading')}:</span>
-              <span>{attendeeCount}</span>
             </div>
           )}
           {isWish && (
@@ -412,7 +353,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             </div>
           )}
         </div>
-        {(isOwner || isAsset || isAppointment) && bookings.length > 0 && (() => {
+        {isOwner && bookings.length > 0 && (() => {
           const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
           return (
             <ul className="thing-card-bookings">
@@ -423,8 +364,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                   <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
                     {isOwner && b.requester_name && <>{b.requester_name}. </>}
                     {b.created && <>{new Date(b.created).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}. </>}
-                    {b.start_date && b.end_date && !b.start_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
-                    {b.start_date && b.start_time && b.end_time && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} {b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)}</>}
+                    {b.start_date && b.end_date && <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>}
                     {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
                     {b.offered_thing_headlines && b.offered_thing_headlines.length > 0 && (
                       <><br />{t('swap.offeredItems')}: {b.offered_thing_headlines.join(', ')}</>
@@ -499,17 +439,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               )}
             </>
           )}
-          {showButton && isEvent && (
-            <Button
-              fullWidth
-              disabled={attendSubmitting}
-              style={isAttending ? btnSecondaryStyle : btnStyle}
-              variant={isAttending ? 'secondary' : 'primary'}
-              onClick={handleAttend}
-            >
-              {isAttending ? t('events.attending') : t('events.attend')}
-            </Button>
-          )}
           {showButton && isWish && (
             <Button
               fullWidth
@@ -521,14 +450,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               {isHelping ? t('wishes.helping') : t('wishes.offerHelp')}
             </Button>
           )}
-          {showButton && !isEvent && !isWish && (
+          {showButton && !isWish && (
             <Button
               fullWidth
               disabled={buttonDisabled}
               style={btnStyle}
-              onClick={isAppointment
-                ? () => navigate(thingPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } })
-                : needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
+              onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
               {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
             </Button>

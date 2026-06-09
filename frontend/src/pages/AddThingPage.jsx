@@ -7,11 +7,10 @@ import {
   TextArea,
   NumberInput,
   Button,
-  DateInput,
   Koros,
   ToggleButton,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, ASSET_TYPE, APPOINTMENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -45,11 +44,6 @@ export default function AddThingPage() {
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
-  const [eventDate, setEventDate] = useState('');
-  const [eventTime, setEventTime] = useState('');
-  const [bookingUnit, setBookingUnit] = useState('DAY');
-  const [slotDuration, setSlotDuration] = useState(30);
-  const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
   const [isEndless, setIsEndless] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [errors, setErrors] = useState({});
@@ -119,16 +113,6 @@ export default function AddThingPage() {
       if (location.trim()) body.location = location.trim();
       if (condition) body.condition = condition;
     }
-    if (type === EVENT_TYPE && eventDate) {
-      body.event_date = new Date(`${eventDate}T${eventTime || '00:00'}`).toISOString();
-    }
-    if (type === ASSET_TYPE) {
-      body.booking_unit = bookingUnit;
-    }
-    if (type === APPOINTMENT_TYPE) {
-      body.slot_duration = slotDuration;
-      body.availability_schedule = scheduleWindows.filter((w) => w.days.length > 0);
-    }
     if (documents.length > 0) {
       body.documents = documents;
     }
@@ -192,7 +176,7 @@ export default function AddThingPage() {
               texts={{ label: t('addThing.typeLabel') }}
               options={TYPE_VALUES.filter(v => {
                 if (v === SWAP_TYPE) return false;
-                if ((v === WISH_TYPE || v === SHARE_TYPE || v === ASSET_TYPE) && collectionMode !== 'COMMUNITY') return false;
+                if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
                 if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
                 // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
                 if (collectionAllowedTypes.length > 0 && !collectionAllowedTypes.includes(v)) return false;
@@ -235,126 +219,6 @@ export default function AddThingPage() {
             onChange={(e) => setDescription(e.target.value)}
             helperText={`${description.length}/256`}
           />
-          {type === EVENT_TYPE && (
-            <>
-              <DateInput
-                id="add-thing-event-date"
-                label={t('events.eventDate')}
-                value={eventDate}
-                onChange={(value) => setEventDate(value)}
-                dateFormat="yyyy-MM-dd"
-                language="en"
-                minDate={new Date()}
-              />
-              <TextInput
-                id="add-thing-event-time"
-                label={t('events.eventTime')}
-                type="time"
-                value={eventTime}
-                onChange={(e) => setEventTime(e.target.value)}
-              />
-            </>
-          )}
-          {type === ASSET_TYPE && (
-            <Select
-                language="en"
-              id="add-thing-booking-unit"
-              texts={{ label: t('asset.bookingUnit') }}
-              options={[
-                { label: t('asset.unitDay'), value: 'DAY' },
-                { label: t('asset.unitHour'), value: 'HOUR' },
-              ]}
-              value={bookingUnit}
-              onChange={(sel) => sel.length > 0 && setBookingUnit(sel[0].value)}
-            />
-          )}
-          {type === APPOINTMENT_TYPE && (
-            <>
-              <Select
-                language="en"
-                id="add-thing-slot-duration"
-                texts={{ label: t('appointment.durationLabel') }}
-                options={[
-                  { label: t('appointment.duration15'), value: '15' },
-                  { label: t('appointment.duration30'), value: '30' },
-                  { label: t('appointment.duration60'), value: '60' },
-                ]}
-                value={String(slotDuration)}
-                onChange={(sel) => sel.length > 0 && setSlotDuration(Number(sel[0].value))}
-              />
-              <h3>{t('appointment.schedule')}</h3>
-              <div className="schedule-windows">
-                {scheduleWindows.map((window, idx) => (
-                  <div key={idx} className="schedule-window">
-                    <div className="schedule-days">
-                      <Select
-                        multiSelect
-                        language="en"
-                        id={`schedule-days-${idx}`}
-                        texts={{
-                          label: t('appointment.days'),
-                          placeholder: t('appointment.daysPlaceholder'),
-                        }}
-                        options={[1, 2, 3, 4, 5, 6, 7].map((day) => ({
-                          label: t('appointment.' + ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][day - 1]),
-                          value: String(day),
-                        }))}
-                        value={window.days.map(String)}
-                        onChange={(selected) => {
-                          const updated = [...scheduleWindows];
-                          updated[idx] = {
-                            ...updated[idx],
-                            days: selected.map((s) => Number(s.value)).sort((a, b) => a - b),
-                          };
-                          setScheduleWindows(updated);
-                        }}
-                      />
-                    </div>
-                    <div className="schedule-times">
-                      <TextInput
-                        id={`schedule-start-${idx}`}
-                        label={t('appointment.startTime')}
-                        type="time"
-                        value={window.start_time}
-                        onChange={(e) => {
-                          const updated = [...scheduleWindows];
-                          updated[idx] = { ...updated[idx], start_time: e.target.value };
-                          setScheduleWindows(updated);
-                        }}
-                      />
-                      <TextInput
-                        id={`schedule-end-${idx}`}
-                        label={t('appointment.endTime')}
-                        type="time"
-                        value={window.end_time}
-                        onChange={(e) => {
-                          const updated = [...scheduleWindows];
-                          updated[idx] = { ...updated[idx], end_time: e.target.value };
-                          setScheduleWindows(updated);
-                        }}
-                      />
-                      {scheduleWindows.length > 1 && (
-                        <Button
-                          variant="secondary"
-                          size="small"
-                          onClick={() => setScheduleWindows(scheduleWindows.filter((_, i) => i !== idx))}
-                        >
-                          {t('appointment.removeWindow')}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="secondary"
-                size="small"
-                onClick={() => setScheduleWindows([...scheduleWindows, { days: [], start_time: '09:00', end_time: '17:00' }])}
-              >
-                {t('appointment.addWindow')}
-              </Button>
-            </>
-          )}
           {FEE_TYPES.includes(type) && !isMinimalistCollection && (
             <NumberInput
               id="add-thing-fee"

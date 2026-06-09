@@ -250,7 +250,7 @@ Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on 
 
 **Retrieve:** Uses `thing.can_view(user_code)` — owner, or invited to an ACTIVE collection containing the thing (INACTIVE things are only visible to their owner).
 
-**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING, SHARE_THING, and ASSET_THING are restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. SWAP_THING requires a swap collection (`is_swap=True`) — returns 400 otherwise. Swap collections only accept SWAP_THING — returns 400 for any other type. Minimalist collections (`is_minimalist=True`) only accept GIFT_THING, SHARE_THING, and SWAP_THING — returns 400 for other types — and require a thumbnail (photo) — returns 400 if missing. **Per-collection allowlist** (`Collection.allowed_thing_types`): if non-empty, the thing's type must be in it — returns 400 otherwise. Empty list = no per-collection restriction. EVENT_THING sends an announcement email to all collection invitees on creation.
+**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING and SHARE_THING are restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. SWAP_THING requires a swap collection (`is_swap=True`) — returns 400 otherwise. Swap collections only accept SWAP_THING — returns 400 for any other type. Minimalist collections (`is_minimalist=True`) only accept GIFT_THING, SHARE_THING, and SWAP_THING — returns 400 for other types — and require a thumbnail (photo) — returns 400 if missing. **Per-collection allowlist** (`Collection.allowed_thing_types`): if non-empty, the thing's type must be in it — returns 400 otherwise. Empty list = no per-collection restriction.
 
 **`activate` action:** Sets `status = 'ACTIVE'`. Returns 400 if thing is not INACTIVE.
 
@@ -522,7 +522,7 @@ Lists all available theeemes. Returns `code` and `name` for each theeeme via `Th
 | **Endpoint** | `GET /api/v1/things/{thing_code}/calendar/` |
 | **Permission** | `IsAuthenticated` + `thing.can_view()` |
 
-Returns blocked periods for a thing's calendar. Owner sees full details (`BookingPeriodOwnerCalendarSerializer`), guests see only dates and status (`BookingPeriodCalendarSerializer`). For ASSET_THING and APPOINTMENT_THING, all users who can view the thing see full details (owner calendar serializer) — this enables shared calendar visibility.
+Returns blocked periods for a thing's calendar. Owner sees full details (`BookingPeriodOwnerCalendarSerializer`), guests see only dates and status (`BookingPeriodCalendarSerializer`).
 
 ### MyBookingsView
 
@@ -587,47 +587,6 @@ Rejects a pending booking. Same permission and validation as accept. Calls `reje
 
 ---
 
-## Slots Views (`core/views/slots.py`)
-
-### ThingSlotsView
-
-| | |
-|---|---|
-| **Endpoint** | `GET /api/v1/things/{thing_code}/slots/` |
-| **Permission** | `IsAuthenticated` + `thing.can_view()` |
-
-Returns a weekly slot grid for APPOINTMENT_THING. Only available for things with `type == "APPOINTMENT_THING"` — returns 400 for other types.
-
-**Query parameters:**
-- `week_start` — Monday of target week (YYYY-MM-DD). Defaults to current week's Monday.
-
-**Response (200):**
-```json
-{
-  "week_start": "2026-04-20",
-  "slot_duration": 30,
-  "days": [
-    {
-      "date": "2026-04-20",
-      "day_of_week": 1,
-      "slots": [
-        {"start_time": "09:00", "end_time": "09:30", "status": "available"},
-        {"start_time": "09:30", "end_time": "10:00", "status": "booked", "requester_name": "Lele"}
-      ]
-    }
-  ]
-}
-```
-
-**Algorithm:**
-1. Reads `availability_schedule` (JSONField) and `slot_duration` from the thing.
-2. For each day Mon–Sun, checks if that ISO weekday appears in any schedule window.
-3. Generates slot start times from window start to window end, stepping by `slot_duration`.
-4. Fetches BookingPeriod records (PENDING + ACCEPTED) for the target week.
-5. Marks each slot as `available`, `pending`, or `booked`. Booked/pending slots include `requester_name`.
-
----
-
 ## Reservation Views (`core/views/reservations.py`)
 
 ### ThingRequestView
@@ -638,19 +597,7 @@ Returns a weekly slot grid for APPOINTMENT_THING. Only available for things with
 | **Permission** | `IsAuthenticated` + `thing.can_view()` + not owner |
 | **Rate limit** | 10 requests/hour per user |
 
-Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THING (these types bypass BookingPeriod). Routes based on thing type:
-
-**Hourly (APPOINTMENT_THING, or ASSET_THING with booking_unit=HOUR):**
-- Requires `start_date`, `start_time`, and `end_time`.
-- Creates a same-day booking (`start_date == end_date`) with time range.
-- For APPOINTMENT_THING: validates that the requested day of week appears in `availability_schedule`; validates that the time window is within the schedule block; validates that the duration matches `slot_duration`. Returns 400 if any check fails.
-- Checks for time-range overlap via `BookingPeriod.has_overlap()` with time params. Returns 409 if conflict.
-- Thing stays `ACTIVE`.
-
-**Request body:**
-```json
-{ "start_date": "2025-06-01", "start_time": "09:00", "end_time": "12:00" }
-```
+Creates a reservation/booking request. Returns 400 for WISH_THING (this type bypasses BookingPeriod). Routes based on thing type:
 
 **Share (SHARE_THING)** — handled by `_handle_share_request()`:
 - NOT date-based — no `start_date`/`end_date` fields.
@@ -658,7 +605,7 @@ Creates a reservation/booking request. Returns 400 for EVENT_THING and WISH_THIN
 - Multiple pending requests from different users are allowed.
 - Returns 400 if the requesting user already has a PENDING request for this thing.
 
-**Date-based (LEND/RENT/ASSET_THING with booking_unit=DAY):**
+**Date-based (LEND/RENT):**
 - Requires `start_date` and `end_date`.
 - Checks for overlap via `BookingPeriod.has_overlap()`. Returns 409 if conflict.
 - Thing stays `ACTIVE` (multiple bookings for different date ranges allowed).
@@ -760,70 +707,7 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 6. Computes `original_owner` from the `from_user` of the oldest transfer (by `lent_date`). Null if no transfers.
 7. Computes `is_share_in_community`: True when the thing is a `SHARE_THING` and belongs to at least one `COMMUNITY` collection.
 
-## Stats Views (`core/views/stats.py`)
-
-### ThingStatsView
-
-| | |
-|---|---|
-| **Endpoint** | `GET /api/v1/things/{thing_code}/stats/` |
-| **Permission** | `IsAuthenticated` + `thing.can_view()` |
-
-Returns aggregated usage statistics for a thing, based on ACCEPTED bookings. Primarily designed for ASSET_THING but works for any thing type.
-
-**Response (200):**
-```json
-{
-  "total_bookings": 12,
-  "unique_users": 4,
-  "monthly_usage": [
-    {
-      "month": "2026-04",
-      "user_code": "ABC123",
-      "user_name": "Lala",
-      "bookings": 3
-    }
-  ]
-}
-```
-
-**Behaviour:**
-1. Looks up thing by `thing_code`. Returns 404 if not found.
-2. Checks `thing.can_view(user_code)`. Returns 403 if not authorised.
-3. Aggregates ACCEPTED bookings using `TruncMonth` annotation, grouped by month and requester.
-4. Returns total booking count, unique user count, and per-user-per-month breakdown.
-
 ---
-
-## Event Views (`core/views/events.py`)
-
-### EventAttendView
-
-| | |
-|---|---|
-| **Endpoint** | `POST /api/v1/things/{thing_code}/attend/` |
-| **Permission** | `IsAuthenticated` |
-
-Toggles attendance for an EVENT_THING using the `deal` M2M field. Returns 400 for non-event things. Returns 403 for users who cannot view the thing. Owner cannot attend their own event. After every toggle, sends an email to the event owner via `send_event_attend_email()` — "signed up" when `attending=True`, "cancelled" when `attending=False`. Attendee name falls back to email when `user.name` is empty.
-
-**Response:**
-```json
-{ "attending": true, "attendee_count": 5 }
-```
-
-### EventAttendeesView
-
-| | |
-|---|---|
-| **Endpoint** | `GET /api/v1/things/{thing_code}/attendees/` |
-| **Permission** | `IsAuthenticated` |
-
-Lists attendees for an EVENT_THING. Returns 400 for non-event things. Returns 403 for users who cannot view the thing.
-
-**Response:**
-```json
-{ "attendee_count": 2, "attendees": [{ "code": "ABC123", "name": "User Name" }] }
-```
 
 ## Wish Views (`core/views/wishes.py`)
 
@@ -869,7 +753,6 @@ Daily command (`python manage.py close_transfers`) that closes overdue transfers
 Daily command (`python manage.py send_reminders`) that sends reminder emails:
 - **Booking return reminders**: ACCEPTED bookings with `end_date = tomorrow` — notifies thing owner.
 - **Delivery reminders**: ACCEPTED bookings with `delivery_date = tomorrow` — notifies thing owner.
-- **Event reminders**: ACTIVE EVENT_THINGs with `event_date` tomorrow — notifies all attendees (via `deal` M2M).
 - Outputs count of reminder emails sent.
 
 ### Management Command: `send_digests`

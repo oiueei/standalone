@@ -114,11 +114,7 @@
     "faqHiddenLabel": "Pregunta agochada",
     "faqHiddenBody": "{{owner_name}} agochou a túa pregunta sobre {{thing_headline}}.",
     "inviteRejectedLabel": "Convite rexeitado",
-    "inviteRejectedBody": "{{invitee_name}} rexeitou o convite a {{collection_headline}}.",
-    "eventAttendLabel": "Novo asistente",
-    "eventAttendBody": "{{attendee_name}} apuntouse a {{thing_headline}}.",
-    "eventCancelLabel": "Asistencia cancelada",
-    "eventCancelBody": "{{attendee_name}} cancelou a súa asistencia a {{thing_headline}}."
+    "inviteRejectedBody": "{{invitee_name}} rexeitou o convite a {{collection_headline}}."
   },
   "collectionPage": {
     "editCollection": "Editar colección",
@@ -402,11 +398,8 @@
     "RENT_THING": "Alugueiro",
     "LEND_THING": "Préstamo",
     "SHARE_THING": "Compartir",
-    "EVENT_THING": "Evento",
     "WISH_THING": "Desexo",
-    "ASSET_THING": "Recurso compartido",
-    "SWAP_THING": "Intercambio",
-    "APPOINTMENT_THING": "Cita"
+    "SWAP_THING": "Intercambio"
   },
   "availability": {
     "IMMEDIATE": "Inmediata",
@@ -453,17 +446,6 @@
     "orderCount_one": "{{count}} pedido",
     "orderCount_other": "{{count}} pedidos"
   },
-  "events": {
-    "eventDate": "Data do evento",
-    "attend": "Asistir",
-    "attending": "Asistindo",
-    "leave": "Deixar evento",
-    "attendeeCount_one": "{{count}} asistente",
-    "attendeeCount_other": "{{count}} asistentes",
-    "noAttendees": "Sen asistentes aínda.",
-    "attendeesHeading": "Asistentes",
-    "eventTime": "Hora do evento"
-  },
   "wishes": {
     "offerHelp": "Podo axudar",
     "helping": "Axudando",
@@ -471,23 +453,6 @@
     "helperCount_other": "{{count}} axudantes",
     "noHelpers": "Sen axudantes aínda.",
     "helpersHeading": "Axudantes"
-  },
-  "asset": {
-    "bookingUnit": "Unidade de reserva",
-    "unitDay": "Día",
-    "unitHour": "Hora",
-    "startTime": "Hora de inicio",
-    "endTime": "Hora de fin",
-    "statsHeading": "Estatísticas de uso",
-    "totalBookings_one": "{{count}} reserva",
-    "totalBookings_other": "{{count}} reservas",
-    "uniqueUsers_one": "{{count}} usuario",
-    "uniqueUsers_other": "{{count}} usuarios",
-    "noStats": "Sen datos de uso aínda.",
-    "monthlyHeading": "Desglose mensual",
-    "bookingsLabel_one": "{{count}} reserva",
-    "bookingsLabel_other": "{{count}} reservas",
-    "selectTimePlaceholder": "Selecciona unha hora"
   },
   "swap": {
     "offerItems": "Seleccionar artigos a ofrecer",
@@ -532,39 +497,6 @@
     "maxFiles": "Máximo 5 documentos permitidos.",
     "fileTooLarge": "O ficheiro é demasiado grande. Tamaño máximo: 1 MB.",
     "invalidType": "Este tipo de ficheiro non está permitido."
-  },
-  "appointment": {
-    "slotDuration": "Duración do turno",
-    "minutes": "{{count}} min",
-    "schedule": "Horario de dispoñibilidade",
-    "addWindow": "Engadir franxa horaria",
-    "removeWindow": "Eliminar",
-    "bookSlot": "Reservar",
-    "available": "Libre",
-    "booked": "Reservado",
-    "pending": "Pendente",
-    "prevWeek": "← Semana anterior",
-    "nextWeek": "Semana seguinte →",
-    "noSlots": "Non hai turnos configurados.",
-    "durationLabel": "Duración",
-    "duration15": "15 minutos",
-    "duration30": "30 minutos",
-    "duration60": "1 hora",
-    "days": "Días",
-    "startTime": "Dende",
-    "endTime": "Ata",
-    "mon": "Lun",
-    "tue": "Mar",
-    "wed": "Mér",
-    "thu": "Xov",
-    "fri": "Ven",
-    "sat": "Sáb",
-    "sun": "Dom",
-    "selectSlot": "Franxa horaria",
-    "slotRequired": "Por favor, selecciona unha franxa horaria",
-    "selectSlotPlaceholder": "Selecciona unha franxa",
-    "selectDateFirst": "Selecciona primeiro unha data",
-    "daysPlaceholder": "Elixe un ou máis días"
   },
   "broadcast": {
     "heading": "Difusión",

@@ -119,7 +119,6 @@ export default function HomePage() {
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredLabel');
       case 'FAQ_HIDDEN': return tFn('home.faqHiddenLabel');
       case 'INVITE_REJECTED': return tFn('home.inviteRejectedLabel');
-      case 'EVENT_ATTEND': return p.attending ? tFn('home.eventAttendLabel') : tFn('home.eventCancelLabel');
       default: return tFn('home.broadcastLabel', { owner_name: p.owner_name, collection_headline: p.collection_headline });
     }
   };
@@ -137,9 +136,6 @@ export default function HomePage() {
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'FAQ_HIDDEN': return tFn('home.faqHiddenBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'INVITE_REJECTED': return tFn('home.inviteRejectedBody', { collection_headline: p.collection_headline, invitee_name: p.invitee_name });
-      case 'EVENT_ATTEND': return p.attending
-        ? tFn('home.eventAttendBody', { thing_headline: p.thing_headline, attendee_name: p.attendee_name })
-        : tFn('home.eventCancelBody', { thing_headline: p.thing_headline, attendee_name: p.attendee_name });
       default: return tFn('home.broadcastBody', { subject: p.subject, message: p.message });
     }
   };

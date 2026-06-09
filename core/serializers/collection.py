@@ -10,7 +10,7 @@ from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
 # Thing types valid for proprietary collections (excludes COMMUNITY-only types
-# WISH_THING, SHARE_THING, ASSET_THING and the SWAP_THING which is gated by
+# WISH_THING, SHARE_THING and the SWAP_THING which is gated by
 # is_swap on COMMUNITY collections).
 PROPRIETARY_THING_TYPES = (
     Thing.Type.GIFT_THING,
@@ -18,8 +18,6 @@ PROPRIETARY_THING_TYPES = (
     Thing.Type.ORDER_THING,
     Thing.Type.RENT_THING,
     Thing.Type.LEND_THING,
-    Thing.Type.EVENT_THING,
-    Thing.Type.APPOINTMENT_THING,
 )
 # Thing types valid for community collections without is_swap/is_share flags.
 # SWAP_THING is excluded because it requires is_swap=True (which forces a
@@ -31,10 +29,7 @@ COMMUNITY_THING_TYPES = (
     Thing.Type.RENT_THING,
     Thing.Type.LEND_THING,
     Thing.Type.SHARE_THING,
-    Thing.Type.EVENT_THING,
     Thing.Type.WISH_THING,
-    Thing.Type.ASSET_THING,
-    Thing.Type.APPOINTMENT_THING,
 )
 # Album mode in COMMUNITY narrows to GIFT and SHARE (SWAP needs is_swap, which
 # is mutually exclusive with is_minimalist).
@@ -51,7 +46,6 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     my_pending_booking = serializers.SerializerMethodField()
     pending_questions = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
-    attendee_count = serializers.SerializerMethodField()
     helper_count = serializers.SerializerMethodField()
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
@@ -71,15 +65,11 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "event_date",
-            "booking_unit",
-            "slot_duration",
             "thumbnail_url",
             "pending_booking",
             "my_pending_booking",
             "pending_questions",
             "transfer_count",
-            "attendee_count",
             "helper_count",
             "collection_swap_minimum_items",
             "my_swap_count_in_collection",
@@ -129,11 +119,6 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         if hasattr(obj, "_transfer_count"):
             return obj._transfer_count
         return obj.transfers.count()
-
-    def get_attendee_count(self, obj):
-        if obj.type != Thing.Type.EVENT_THING:
-            return None
-        return obj.deal.count()
 
     def get_helper_count(self, obj):
         if obj.type != Thing.Type.WISH_THING:
@@ -300,7 +285,7 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
     - is_share is the same with [Thing.Type.SHARE_THING].
     - PROPRIETARY excludes COMMUNITY-only types (WISH/SHARE/ASSET/SWAP).
     - PROPRIETARY + is_minimalist must be exactly [GIFT_THING].
-    - COMMUNITY (no flags) accepts the 10-type COMMUNITY set (all except SWAP,
+    - COMMUNITY (no flags) accepts the 7-type COMMUNITY set (all except SWAP,
       which requires is_swap).
     - COMMUNITY + is_minimalist narrows to [GIFT_THING, SHARE_THING] (SWAP is
       out because is_minimalist and is_swap are mutually exclusive).

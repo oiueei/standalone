@@ -134,11 +134,7 @@
     "faqHiddenLabel": "Question hidden",
     "faqHiddenBody": "{{owner_name}} hid your question about {{thing_headline}}.",
     "inviteRejectedLabel": "Invitation declined",
-    "inviteRejectedBody": "{{invitee_name}} declined the invitation to {{collection_headline}}.",
-    "eventAttendLabel": "New attendee",
-    "eventAttendBody": "{{attendee_name}} signed up for {{thing_headline}}.",
-    "eventCancelLabel": "Attendance cancelled",
-    "eventCancelBody": "{{attendee_name}} cancelled attendance for {{thing_headline}}."
+    "inviteRejectedBody": "{{invitee_name}} declined the invitation to {{collection_headline}}."
   },
   "collectionPage": {
     "editCollection": "Edit collection",
@@ -423,11 +419,8 @@
     "RENT_THING": "Rental",
     "LEND_THING": "Lend",
     "SHARE_THING": "Share",
-    "EVENT_THING": "Event",
     "WISH_THING": "Wish",
-    "ASSET_THING": "Shared asset",
-    "SWAP_THING": "Swap",
-    "APPOINTMENT_THING": "Appointment"
+    "SWAP_THING": "Swap"
   },
   "availability": {
     "IMMEDIATE": "Immediate",
@@ -474,17 +467,6 @@
     "orderCount_one": "{{count}} order",
     "orderCount_other": "{{count}} orders"
   },
-  "events": {
-    "eventDate": "Event date",
-    "attend": "Attend",
-    "attending": "Attending",
-    "leave": "Leave event",
-    "attendeeCount_one": "{{count}} attendee",
-    "attendeeCount_other": "{{count}} attendees",
-    "noAttendees": "No attendees yet.",
-    "attendeesHeading": "Attendees",
-    "eventTime": "Event time"
-  },
   "wishes": {
     "offerHelp": "I can help",
     "helping": "Helping",
@@ -492,23 +474,6 @@
     "helperCount_other": "{{count}} helpers",
     "noHelpers": "No helpers yet.",
     "helpersHeading": "Helpers"
-  },
-  "asset": {
-    "bookingUnit": "Booking unit",
-    "unitDay": "Day",
-    "unitHour": "Hour",
-    "startTime": "Start time",
-    "endTime": "End time",
-    "statsHeading": "Usage statistics",
-    "totalBookings_one": "{{count}} booking",
-    "totalBookings_other": "{{count}} bookings",
-    "uniqueUsers_one": "{{count}} user",
-    "uniqueUsers_other": "{{count}} users",
-    "noStats": "No usage data yet.",
-    "monthlyHeading": "Monthly breakdown",
-    "bookingsLabel_one": "{{count}} booking",
-    "bookingsLabel_other": "{{count}} bookings",
-    "selectTimePlaceholder": "Select a time"
   },
   "swap": {
     "offerItems": "Select items to offer",
@@ -558,39 +523,6 @@
     "maxFiles": "Maximum 5 documents allowed.",
     "fileTooLarge": "File is too large. Maximum size is 1 MB.",
     "invalidType": "This file type is not allowed."
-  },
-  "appointment": {
-    "slotDuration": "Slot duration",
-    "minutes": "{{count}} min",
-    "schedule": "Availability schedule",
-    "addWindow": "Add time window",
-    "removeWindow": "Remove",
-    "bookSlot": "Book",
-    "available": "Free",
-    "booked": "Booked",
-    "pending": "Pending",
-    "prevWeek": "← Previous week",
-    "nextWeek": "Next week →",
-    "noSlots": "No slots configured.",
-    "durationLabel": "Duration",
-    "duration15": "15 minutes",
-    "duration30": "30 minutes",
-    "duration60": "1 hour",
-    "days": "Days",
-    "startTime": "From",
-    "endTime": "To",
-    "mon": "Mon",
-    "tue": "Tue",
-    "wed": "Wed",
-    "thu": "Thu",
-    "fri": "Fri",
-    "sat": "Sat",
-    "sun": "Sun",
-    "selectSlot": "Time slot",
-    "slotRequired": "Please select a time slot",
-    "selectSlotPlaceholder": "Select a slot",
-    "selectDateFirst": "Select a date first",
-    "daysPlaceholder": "Pick one or more days"
   },
   "broadcast": {
     "heading": "Broadcast",

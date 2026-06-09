@@ -49,12 +49,8 @@ class ThingCalendarView(APIView):
         # Get blocked periods
         blocked_periods = BookingPeriod.get_blocked_periods(thing_code)
 
-        # For ASSET_THING, all invitees see full details (shared calendar)
-        # For other types, owner sees full details, guests see limited info
-        if thing.is_owner(request.user.code) or thing.type in (
-            Thing.Type.ASSET_THING,
-            Thing.Type.APPOINTMENT_THING,
-        ):
+        # Owner sees full details; guests see only dates and status.
+        if thing.is_owner(request.user.code):
             serializer = BookingPeriodOwnerCalendarSerializer(blocked_periods, many=True)
         else:
             serializer = BookingPeriodCalendarSerializer(blocked_periods, many=True)

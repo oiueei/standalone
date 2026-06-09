@@ -145,31 +145,6 @@ class TestSendRemindersCommand:
         assert "delivery" in mail.outbox[0].subject.lower()
         assert "Sent 1 reminder" in out.getvalue()
 
-    def test_event_reminder(self):
-        """Should send event reminder to attendees when event is tomorrow."""
-        tomorrow = date.today() + timedelta(days=1)
-        event_dt = timezone.make_aware(
-            timezone.datetime.combine(tomorrow, timezone.datetime.min.time().replace(hour=18))
-        )
-        owner = User.objects.create(code="RMOWN3", email="rmowner3@test.com", name="Host")
-        attendee = User.objects.create(code="RMATT1", email="rmatt@test.com", name="Attendee")
-        event = Thing.objects.create(
-            code="RMEVT1", owner=owner, headline="Party", type="EVENT_THING", event_date=event_dt
-        )
-        event.deal.add(attendee)
-
-        collection = Collection.objects.create(code="RMCOL1", owner=owner, headline="Events")
-        collection.things.add(event)
-        collection.invites.add(attendee)
-
-        out = StringIO()
-        call_command("send_reminders", stdout=out)
-
-        assert len(mail.outbox) == 1
-        assert "Party" in mail.outbox[0].subject
-        assert "rmatt@test.com" in mail.outbox[0].to
-        assert "Sent 1 reminder" in out.getvalue()
-
     def test_no_reminders(self):
         """Should report zero when nothing is due tomorrow."""
         out = StringIO()
@@ -191,51 +166,6 @@ class TestSendRemindersCommand:
             start_date=date.today(),
             end_date=tomorrow,
             status="PENDING",
-        )
-
-        out = StringIO()
-        call_command("send_reminders", stdout=out)
-
-        assert len(mail.outbox) == 0
-        assert "Sent 0 reminder" in out.getvalue()
-
-    def test_event_skips_inactive_events(self):
-        """Should not send reminders for INACTIVE events."""
-        tomorrow = date.today() + timedelta(days=1)
-        event_dt = timezone.make_aware(
-            timezone.datetime.combine(tomorrow, timezone.datetime.min.time().replace(hour=18))
-        )
-        owner = User.objects.create(code="RMOWN6", email="rmowner6@test.com", name="Host")
-        attendee = User.objects.create(code="RMATT2", email="rmatt2@test.com", name="Attendee")
-        event = Thing.objects.create(
-            code="RMEVT3",
-            owner=owner,
-            headline="Cancelled Party",
-            type="EVENT_THING",
-            event_date=event_dt,
-            status="INACTIVE",
-        )
-        event.deal.add(attendee)
-
-        out = StringIO()
-        call_command("send_reminders", stdout=out)
-
-        assert len(mail.outbox) == 0
-        assert "Sent 0 reminder" in out.getvalue()
-
-    def test_skips_events_with_no_attendees(self):
-        """Should not send event reminders when nobody is attending."""
-        tomorrow = date.today() + timedelta(days=1)
-        event_dt = timezone.make_aware(
-            timezone.datetime.combine(tomorrow, timezone.datetime.min.time().replace(hour=10))
-        )
-        owner = User.objects.create(code="RMOWN5", email="rmowner5@test.com", name="Host")
-        Thing.objects.create(
-            code="RMEVT2",
-            owner=owner,
-            headline="Empty Event",
-            type="EVENT_THING",
-            event_date=event_dt,
         )
 
         out = StringIO()

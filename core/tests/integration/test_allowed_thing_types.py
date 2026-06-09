@@ -35,7 +35,7 @@ class TestCreateWithAllowedTypes:
         assert response.data["allowed_thing_types"] == []
 
     def test_create_proprietary_rejects_community_only_type(self, authenticated_client):
-        for community_type in ("WISH_THING", "SHARE_THING", "ASSET_THING", "SWAP_THING"):
+        for community_type in ("WISH_THING", "SHARE_THING", "SWAP_THING"):
             response = authenticated_client.post(
                 "/api/v1/collections/",
                 {"headline": "Bad", "allowed_thing_types": ["GIFT_THING", community_type]},
@@ -73,7 +73,7 @@ class TestCommunityWithAllowedTypes:
     """COMMUNITY collections accept the wider type set; flags override the list."""
 
     def test_create_community_with_share_or_wish_succeeds(self, authenticated_client):
-        for community_type in ("WISH_THING", "SHARE_THING", "ASSET_THING"):
+        for community_type in ("WISH_THING", "SHARE_THING"):
             response = authenticated_client.post(
                 "/api/v1/collections/",
                 {

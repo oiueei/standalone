@@ -23,7 +23,6 @@ class InAppNotification(models.Model):
     FAQ_ANSWERED = "FAQ_ANSWERED"
     FAQ_HIDDEN = "FAQ_HIDDEN"
     INVITE_REJECTED = "INVITE_REJECTED"
-    EVENT_ATTEND = "EVENT_ATTEND"
 
     code = models.CharField(max_length=6, primary_key=True, default=_generate_code)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="inbox_notifications")

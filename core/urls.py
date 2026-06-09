@@ -32,13 +32,10 @@ from .views.collections import (
     InvitedCollectionsView,
     MyPendingInvitationsView,
 )
-from .views.events import EventAttendeesView, EventAttendView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.inbox import InboxView
 from .views.notifications import NotificationsByTokenView
 from .views.reservations import ThingRequestView
-from .views.slots import ThingSlotsView
-from .views.stats import ThingStatsView
 from .views.theeemes import TheeemeListView
 from .views.things import InvitedThingsView, ThingViewSet
 from .views.transfers import ThingTransferView
@@ -118,29 +115,9 @@ urlpatterns = [
         name="thing-calendar",
     ),
     path(
-        "things/<str:thing_code>/slots/",
-        ThingSlotsView.as_view(),
-        name="thing-slots",
-    ),
-    path(
         "things/<str:thing_code>/transfers/",
         ThingTransferView.as_view(),
         name="thing-transfers",
-    ),
-    path(
-        "things/<str:thing_code>/stats/",
-        ThingStatsView.as_view(),
-        name="thing-stats",
-    ),
-    path(
-        "things/<str:thing_code>/attend/",
-        EventAttendView.as_view(),
-        name="event-attend",
-    ),
-    path(
-        "things/<str:thing_code>/attendees/",
-        EventAttendeesView.as_view(),
-        name="event-attendees",
     ),
     path(
         "things/<str:thing_code>/offer-help/",

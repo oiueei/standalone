@@ -421,33 +421,6 @@ def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
-def send_event_announcement_email(
-    owner_name, thing_headline, event_date, collection_headline, emails
-):
-    """Send event announcement email to all collection invitees."""
-    safe_owner = escape(owner_name)
-    safe_headline = escape(thing_headline)
-    safe_collection = escape(collection_headline)
-    date_str = event_date.strftime("%d %B %Y, %H:%M") if event_date else ""
-
-    subject = f"New event: {thing_headline}"
-    plain = f"{owner_name} has created a new event in {collection_headline}: {thing_headline}."
-    if date_str:
-        plain += f" Date: {date_str}."
-
-    html = f"""
-        <html>
-        <p><strong>{safe_owner}</strong> has created a new event in
-        <strong>{safe_collection}</strong>:</p>
-        <p><strong>{safe_headline}</strong></p>
-        {"<p>Date: " + escape(date_str) + "</p>" if date_str else ""}
-        </html>
-        """
-
-    for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
-        _send(email, subject, plain, html, CATEGORY_ACTIVITY)
-
-
 def send_broadcast_email(owner_name, owner_email, collection_headline, subject, message, emails):
     """Send a broadcast email from a collection owner to all invitees.
 
@@ -513,29 +486,6 @@ def send_delivery_reminder_email(requester_name, thing_headline, delivery_date, 
         </html>
         """
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
-
-
-def send_event_reminder_email(owner_name, thing_headline, event_date, emails):
-    """Remind attendees that an event is tomorrow."""
-    safe_owner = escape(owner_name)
-    safe_headline = escape(thing_headline)
-    date_str = event_date.strftime("%d %B %Y, %H:%M") if event_date else ""
-
-    subject = f"Reminder: {thing_headline} is tomorrow"
-    plain = f"Reminder: {thing_headline} by {owner_name} is happening tomorrow."
-    if date_str:
-        plain += f" Date: {date_str}."
-
-    html = f"""
-        <html>
-        <p>Reminder: <strong>{safe_headline}</strong> by
-        <strong>{safe_owner}</strong> is happening tomorrow.</p>
-        {"<p>Date: " + escape(date_str) + "</p>" if date_str else ""}
-        </html>
-        """
-
-    for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
-        _send(email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_documents_email(requester_email, thing_headline, documents):
@@ -623,34 +573,6 @@ def send_swap_confirmation_email(requester, thing, offered_things, booking):
         </html>
         """
     _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
-
-
-def send_event_attend_email(attendee_name, thing_headline, event_date, owner_email, attending):
-    """Notify the event owner when someone attends or cancels attendance."""
-    safe_attendee = escape(attendee_name)
-    safe_headline = escape(thing_headline)
-    date_str = event_date.strftime("%d %B %Y, %H:%M") if event_date else ""
-
-    if attending:
-        subject = f"{attendee_name} is attending: {thing_headline}"
-        plain = f"{attendee_name} has signed up for your event: {thing_headline}."
-        action_html = f"<strong>{safe_attendee}</strong> has signed up for your event."
-    else:
-        subject = f"{attendee_name} cancelled attendance: {thing_headline}"
-        plain = f"{attendee_name} has cancelled their attendance for: {thing_headline}."
-        action_html = f"<strong>{safe_attendee}</strong> has cancelled their attendance."
-
-    if date_str:
-        plain += f" Date: {date_str}."
-
-    html = f"""
-        <html>
-        <p>{action_html}</p>
-        <p>Event: <strong>{safe_headline}</strong></p>
-        {"<p>Date: " + escape(date_str) + "</p>" if date_str else ""}
-        </html>
-        """
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 # --- Category 3: News / broadcast ---------------------------------------------

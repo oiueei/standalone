@@ -3,10 +3,6 @@ English demo data — users, collections, things, FAQs with headlines/descriptio
 in British English. Use via `python manage.py seed_demo --lang=en` (default).
 """
 
-from datetime import datetime
-
-from .common import TZ_PLUS2
-
 USERS = [
     {
         "code": "La1aN1",
@@ -60,21 +56,6 @@ COLLECTIONS = [
         "thumbnail": "La1aC1",
     },
     {
-        "code": "La1aC2",
-        "owner_code": "La1aN1",
-        "headline": "Vanlife on tap – our shared hippie wheels await!",
-        "description": (
-            "Need to shift a sofa? Chasing a sunset? Our beloved communal van is ready to roll. "
-            "Book her for errands, road trips or spontaneous adventures. Diesel's on you, "
-            "good vibes are on the house. Just don't leave sandy towels on the seats, yeah?"
-        ),
-        "mode": "COMMUNITY",
-        "invites": ["L3L3oo", "l1l13S", "l0l0oh", "1u1ucs"],
-        "is_onboarding": True,
-        "allowed_thing_types": ["ASSET_THING"],
-        "thumbnail": "La1aC2",
-    },
-    {
         "code": "L3L3C1",
         "owner_code": "L3L3oo",
         "headline": "Lele's Cakes!",
@@ -102,35 +83,6 @@ COLLECTIONS = [
         "is_onboarding": True,
         "allowed_thing_types": ["GIFT_THING"],
         "thumbnail": "L3L3C2",
-    },
-    {
-        "code": "l0l0C1",
-        "owner_code": "l0l0oh",
-        "headline": "The melancholic Heathcliff calls! Lolo's book club!",
-        "description": (
-            "Craving windswept moors and tortured lovers? Dive into English romances like "
-            "Wuthering Heights with Lolo's cosy book club. Borrow classics, share feels over "
-            "tea – new members welcome, grab your spot for the next stormy read!"
-        ),
-        "invites": ["La1aN1", "L3L3oo", "l1l13S"],
-        "is_onboarding": True,
-        "allowed_thing_types": ["EVENT_THING"],
-        "thumbnail": "l0l0C1",
-    },
-    {
-        "code": "l0l0C2",
-        "owner_code": "l0l0oh",
-        "headline": "Lolo's Dulcimer Sessions – music as meditation!",
-        "description": (
-            "Fancy learning an instrument just for the joy of it? Lolo teaches the hammered dulcimer "
-            "– that dreamy trapezoidal harp played with little mallets. Laid-back lessons, no "
-            "recitals, no grades. Just you, two sticks, and the loveliest sound in the world."
-        ),
-        "mode": "PROPRIETARY",
-        "invites": ["La1aN1", "L3L3oo", "l1l13S", "1u1ucs"],
-        "is_onboarding": True,
-        "allowed_thing_types": ["APPOINTMENT_THING"],
-        "thumbnail": "l0l0C2",
     },
     {
         "code": "l1l1C1",
@@ -374,62 +326,6 @@ THINGS = [
             }
         ],
     },
-    # --- Lolo: book club events ---
-    {
-        "code": "lltl06",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Book Club session – Wuthering Heights Classic",
-        "description": "Brontë's stormy masterpiece! Heathcliff's wild heart on windswept moors. Grab for our next brooding chat!",
-        "thumbnail": "lltl06",
-        "condition": "NEW",
-        "event_date": datetime(2027, 1, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl07",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Book Club session – Jane Eyre Gothic",
-        "description": "Orphan to obsession – pure Brontë fire! Madwoman in the attic awaits. Perfect for our dark romance dive!",
-        "thumbnail": "lltl07",
-        "condition": "GOOD",
-        "event_date": datetime(2027, 2, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl08",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Book Club session – Rebecca Timeless",
-        "description": "Du Maurier's Manderley mystery! Second wife vs ghostly first – chills and thrills. Join the tea-spilling session!",
-        "thumbnail": "lltl08",
-        "condition": "NEW",
-        "event_date": datetime(2027, 3, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl09",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Book Club session – Pride & Prejudice Spark",
-        "description": "Austen's witty Darcy dance! Bennet sisters vs eligible bachelors. Lightens our gothic with Regency banter!",
-        "thumbnail": "lltl09",
-        "condition": "USED",
-        "event_date": datetime(2027, 4, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl10",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Book Club session – Tess of the D'Urbervilles",
-        "description": "Hardy's tragic rural beauty! Pure woman wrongly blamed. Deep, devastating – ideal for our emotional book bash!",
-        "thumbnail": "lltl10",
-        "condition": "FAIR",
-        "event_date": datetime(2027, 5, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
     # --- Lulu: share collection (ownership transferred below in TRANSFERS) ---
     {
         "code": "lltl11",
@@ -544,29 +440,6 @@ THINGS = [
         "headline": "Too many babies, not enough pots – come rescue one!",
         "thumbnail": "lltl28",
         "is_endless": True,
-    },
-    # --- Lolo: dulcimer appointment ---
-    {
-        "code": "lltl29",
-        "type": "APPOINTMENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C2"],
-        "headline": "Classes every afternoon!",
-        "description": "Bring your own dulcimer if you have one. If not, don't sweat it – mine's here for you to borrow!",
-        "thumbnail": "lltl29",
-        "slot_duration": 60,
-        "availability_schedule": [{"days": [2, 3, 4], "start_time": "14:00", "end_time": "18:00"}],
-        "location": "At Lolo's flat, Zona Franca, BCN",
-    },
-    # --- Lala: shared van (hourly asset) ---
-    {
-        "code": "lltl30",
-        "type": "ASSET_THING",
-        "owner_code": "La1aN1",
-        "collections": ["La1aC2"],
-        "headline": "Wherever you're going, she makes it prettier!",
-        "thumbnail": "lltl30",
-        "booking_unit": "HOUR",
     },
     # --- Lulu's wish posted by Lala ---
     {

@@ -315,26 +315,6 @@ def test_faq_hide_creates_in_app_notification_for_questioner(two_users, thing_wi
 
 
 @pytest.mark.django_db
-def test_event_attend_creates_in_app_notification_for_owner(two_users):
-    owner, requester = two_users
-    thing = Thing.objects.create(
-        code="EVT001", owner=owner, headline="My Event", type="EVENT_THING"
-    )
-    collection = Collection.objects.create(code="COL002", owner=owner, headline="Events")
-    collection.things.add(thing)
-    collection.invites.add(requester)
-    client = _make_client(requester)
-
-    with patch("core.views.events.send_event_attend_email"):
-        resp = client.post(f"/api/v1/things/{thing.code}/attend/")
-
-    assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.EVENT_ATTEND)
-    assert notif.payload["thing_headline"] == thing.headline
-    assert notif.payload["attending"] is True
-
-
-@pytest.mark.django_db
 def test_invite_rejected_creates_in_app_notification_for_owner(two_users):
     owner, invitee = two_users
     collection = Collection.objects.create(code="COL003", owner=owner, headline="My Collection")

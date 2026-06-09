@@ -19,11 +19,7 @@ from rest_framework.views import APIView
 from core.models import RSVP, Collection, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
 from core.models.notification import InAppNotification
-from core.serializers.booking import (
-    ThingOrderSerializer,
-    ThingRequestWithDatesSerializer,
-    ThingRequestWithTimesSerializer,
-)
+from core.serializers.booking import ThingOrderSerializer, ThingRequestWithDatesSerializer
 from core.services.email_service import (
     send_booking_confirmation_email,
     send_booking_request_email,
@@ -64,8 +60,8 @@ class ThingRequestView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # EVENT_THING and WISH_THING bypass BookingPeriod — use attend/offer endpoints
-        if thing.type in (Thing.Type.EVENT_THING, Thing.Type.WISH_THING):
+        # WISH_THING bypasses BookingPeriod — use the offer-help endpoint
+        if thing.type == Thing.Type.WISH_THING:
             return Response(
                 {"error": "This thing type does not support reservations"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -112,10 +108,6 @@ class ThingRequestView(APIView):
         # Route based on thing type
         if thing.type == Thing.Type.SWAP_THING:
             return self._handle_swap_request(request, thing, owner_email)
-        elif thing.type == Thing.Type.APPOINTMENT_THING:
-            return self._handle_hourly_request(request, thing, owner_email)
-        elif thing.type == Thing.Type.ASSET_THING and thing.booking_unit == Thing.BookingUnit.HOUR:
-            return self._handle_hourly_request(request, thing, owner_email)
         elif thing.type == Thing.Type.SHARE_THING:
             return self._handle_share_request(request, thing, owner_email)
         elif thing.type in DATE_BASED_TYPES:
@@ -191,94 +183,6 @@ class ThingRequestView(APIView):
                 "booking_code": booking.code,
                 "start_date": str(start_date),
                 "end_date": str(end_date),
-            },
-            status=status.HTTP_200_OK,
-        )
-
-    def _handle_hourly_request(self, request, thing, owner_email):
-        """Handle hourly requests (APPOINTMENT_THING + ASSET_THING hourly).
-
-        Validates schedule for appointments.
-        """
-        serializer = ThingRequestWithTimesSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        start_date = serializer.validated_data["start_date"]
-        start_time = serializer.validated_data["start_time"]
-        end_time = serializer.validated_data["end_time"]
-
-        if thing.type == Thing.Type.APPOINTMENT_THING and thing.availability_schedule:
-            day_of_week = start_date.isoweekday()
-            window = next(
-                (w for w in thing.availability_schedule if day_of_week in w.get("days", [])),
-                None,
-            )
-            if window is None:
-                return Response(
-                    {"error": "No availability on the selected day"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            from datetime import datetime as _dt
-
-            w_start = _dt.strptime(window["start_time"], "%H:%M").time()
-            w_end = _dt.strptime(window["end_time"], "%H:%M").time()
-            if start_time < w_start or end_time > w_end:
-                return Response(
-                    {
-                        "error": (
-                            f"Selected time must be between {window['start_time']} "
-                            f"and {window['end_time']}"
-                        )
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            if thing.slot_duration:
-                duration = (
-                    _dt.combine(start_date, end_time) - _dt.combine(start_date, start_time)
-                ).seconds // 60
-                if duration != thing.slot_duration:
-                    return Response(
-                        {"error": f"Slot must be exactly {thing.slot_duration} minutes"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-        with transaction.atomic():
-            Thing.objects.select_for_update().get(code=thing.code)
-
-            if BookingPeriod.has_overlap(
-                thing.code,
-                start_date,
-                start_date,
-                start_time=start_time,
-                end_time=end_time,
-            ):
-                return Response(
-                    {"error": "Selected time overlaps with existing booking"},
-                    status=status.HTTP_409_CONFLICT,
-                )
-
-            booking = BookingPeriod.objects.create(
-                thing_code=thing,
-                thing_type=thing.type,
-                requester_code=request.user,
-                requester_email=request.user.email,
-                owner_code=thing.owner,
-                start_date=start_date,
-                end_date=start_date,
-                start_time=start_time,
-                end_time=end_time,
-            )
-
-        self._send_booking_email(request.user, thing, booking, owner_email)
-
-        return Response(
-            {
-                "message": "Booking request sent",
-                "booking_code": booking.code,
-                "start_date": str(start_date),
-                "start_time": str(start_time),
-                "end_time": str(end_time),
             },
             status=status.HTTP_200_OK,
         )

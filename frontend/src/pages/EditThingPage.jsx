@@ -7,11 +7,10 @@ import {
   TextArea,
   NumberInput,
   Button,
-  DateInput,
   Koros,
   ToggleButton,
 } from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, EVENT_TYPE, ASSET_TYPE, APPOINTMENT_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -43,11 +42,6 @@ export default function EditThingPage() {
   const [availability, setAvailability] = useState('');
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
-  const [eventDate, setEventDate] = useState('');
-  const [eventTime, setEventTime] = useState('');
-  const [bookingUnit, setBookingUnit] = useState('DAY');
-  const [slotDuration, setSlotDuration] = useState(30);
-  const [scheduleWindows, setScheduleWindows] = useState([{ days: [], start_time: '09:00', end_time: '17:00' }]);
   const [isEndless, setIsEndless] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [errors, setErrors] = useState({});
@@ -75,17 +69,7 @@ export default function EditThingPage() {
           setAvailability(data.availability || '');
           setLocation(data.location || '');
           setCondition(data.condition || '');
-          if (data.event_date) {
-            const d = new Date(data.event_date);
-            setEventDate(d.toISOString().slice(0, 10));
-            setEventTime(d.toISOString().slice(11, 16));
-          }
           if (data.documents) setDocuments(data.documents);
-          if (data.booking_unit) setBookingUnit(data.booking_unit);
-          if (data.slot_duration) setSlotDuration(data.slot_duration);
-          if (data.availability_schedule && data.availability_schedule.length > 0) {
-            setScheduleWindows(data.availability_schedule);
-          }
           if (data.is_endless) setIsEndless(true);
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
@@ -131,16 +115,6 @@ export default function EditThingPage() {
       body.availability = availability || '';
       body.location = location.trim();
       body.condition = condition || '';
-    }
-    if (thingType === EVENT_TYPE) {
-      body.event_date = eventDate ? new Date(`${eventDate}T${eventTime || '00:00'}`).toISOString() : null;
-    }
-    if (thingType === ASSET_TYPE) {
-      body.booking_unit = bookingUnit;
-    }
-    if (thingType === APPOINTMENT_TYPE) {
-      body.slot_duration = slotDuration;
-      body.availability_schedule = scheduleWindows.filter((w) => w.days.length > 0);
     }
     body.documents = documents.length > 0 ? documents : null;
     if (['GIFT_THING', 'SELL_THING'].includes(thingType)) {
@@ -230,125 +204,6 @@ export default function EditThingPage() {
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/256`}
         />
-        {thingType === EVENT_TYPE && (
-          <>
-            <DateInput
-              id="edit-thing-event-date"
-              label={t('events.eventDate')}
-              value={eventDate}
-              onChange={(value) => setEventDate(value)}
-              dateFormat="yyyy-MM-dd"
-              language="en"
-            />
-            <TextInput
-              id="edit-thing-event-time"
-              label={t('events.eventTime')}
-              type="time"
-              value={eventTime}
-              onChange={(e) => setEventTime(e.target.value)}
-            />
-          </>
-        )}
-        {thingType === ASSET_TYPE && (
-          <Select
-                language="en"
-            id="edit-thing-booking-unit"
-            texts={{ label: t('asset.bookingUnit') }}
-            options={[
-              { label: t('asset.unitDay'), value: 'DAY' },
-              { label: t('asset.unitHour'), value: 'HOUR' },
-            ]}
-            value={bookingUnit}
-            onChange={(sel) => sel.length > 0 && setBookingUnit(sel[0].value)}
-          />
-        )}
-        {thingType === APPOINTMENT_TYPE && (
-          <>
-            <Select
-                language="en"
-              id="edit-thing-slot-duration"
-              texts={{ label: t('appointment.durationLabel') }}
-              options={[
-                { label: t('appointment.duration15'), value: '15' },
-                { label: t('appointment.duration30'), value: '30' },
-                { label: t('appointment.duration60'), value: '60' },
-              ]}
-              value={String(slotDuration)}
-              onChange={(sel) => sel.length > 0 && setSlotDuration(Number(sel[0].value))}
-            />
-            <h3>{t('appointment.schedule')}</h3>
-            <div className="schedule-windows">
-              {scheduleWindows.map((window, idx) => (
-                <div key={idx} className="schedule-window">
-                  <div className="schedule-days">
-                    <Select
-                      multiSelect
-                      language="en"
-                      id={`edit-schedule-days-${idx}`}
-                      texts={{
-                        label: t('appointment.days'),
-                        placeholder: t('appointment.daysPlaceholder'),
-                      }}
-                      options={[1, 2, 3, 4, 5, 6, 7].map((day) => ({
-                        label: t('appointment.' + ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][day - 1]),
-                        value: String(day),
-                      }))}
-                      value={window.days.map(String)}
-                      onChange={(selected) => {
-                        const updated = [...scheduleWindows];
-                        updated[idx] = {
-                          ...updated[idx],
-                          days: selected.map((s) => Number(s.value)).sort((a, b) => a - b),
-                        };
-                        setScheduleWindows(updated);
-                      }}
-                    />
-                  </div>
-                  <div className="schedule-times">
-                    <TextInput
-                      id={`edit-schedule-start-${idx}`}
-                      label={t('appointment.startTime')}
-                      type="time"
-                      value={window.start_time}
-                      onChange={(e) => {
-                        const updated = [...scheduleWindows];
-                        updated[idx] = { ...updated[idx], start_time: e.target.value };
-                        setScheduleWindows(updated);
-                      }}
-                    />
-                    <TextInput
-                      id={`edit-schedule-end-${idx}`}
-                      label={t('appointment.endTime')}
-                      type="time"
-                      value={window.end_time}
-                      onChange={(e) => {
-                        const updated = [...scheduleWindows];
-                        updated[idx] = { ...updated[idx], end_time: e.target.value };
-                        setScheduleWindows(updated);
-                      }}
-                    />
-                    {scheduleWindows.length > 1 && (
-                      <Button
-                        variant="secondary"
-                        size="small"
-                        onClick={() => setScheduleWindows(scheduleWindows.filter((_, i) => i !== idx))}
-                      >
-                        {t('appointment.removeWindow')}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button
-              variant="secondary"
-              size="small"
-              onClick={() => setScheduleWindows([...scheduleWindows, { days: [], start_time: '09:00', end_time: '17:00' }])}
-            >
-              {t('appointment.addWindow')}
-            </Button>
-          </>
-        )}
         {FEE_TYPES.includes(thingType) && (
           <NumberInput
             id="edit-thing-fee"

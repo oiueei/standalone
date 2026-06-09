@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Checkbox, DateInput, Koros, Notification, NumberInput, Select, TextInput } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
+import { Button, Checkbox, DateInput, Koros, Notification, NumberInput } from 'hds-react';
+import { DATE_TYPES, ORDER_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
@@ -33,8 +33,6 @@ export default function RequestThingPage() {
   const [endDate, setEndDate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [startTime, setStartTime] = useState(location.state?.prefillStartTime || '');
-  const [endTime, setEndTime] = useState(location.state?.prefillEndTime || '');
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -84,49 +82,7 @@ export default function RequestThingPage() {
       d.setHours(0, 0, 0, 0);
       return d >= start && d <= end;
     })) return true;
-    if (thing && thing.type === APPOINTMENT_TYPE && thing.availability_schedule?.length) {
-      const scheduledDays = [...new Set(thing.availability_schedule.flatMap((w) => w.days))];
-      const jsDay = new Date(date).getDay();
-      const isoDay = jsDay === 0 ? 7 : jsDay;
-      return !scheduledDays.includes(isoDay);
-    }
     return false;
-  };
-
-  const toMinutes = (timeStr) => {
-    const [h, m] = timeStr.split(':').map(Number);
-    return h * 60 + m;
-  };
-
-  const fromMinutes = (mins) =>
-    `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
-
-  const hourlyOptions = Array.from({ length: 24 }, (_, i) => {
-    const time = fromMinutes(i * 60);
-    return { label: time, value: time };
-  });
-
-  const getAvailableSlots = (date) => {
-    if (!thing || !date || thing.type !== APPOINTMENT_TYPE || !thing.availability_schedule?.length) return [];
-    const jsDay = new Date(date).getDay();
-    const isoDay = jsDay === 0 ? 7 : jsDay;
-    const duration = thing.slot_duration || 60;
-    const slots = [];
-    for (const window of thing.availability_schedule) {
-      if (!window.days.includes(isoDay)) continue;
-      const start = toMinutes(window.start_time);
-      const end = toMinutes(window.end_time);
-      for (let m = start; m + duration <= end; m += duration) {
-        const slotStart = fromMinutes(m);
-        const slotEnd = fromMinutes(m + duration);
-        const taken = blockedPeriods.some((p) => {
-          if (p.start_date !== date) return false;
-          return toMinutes(p.start_time.slice(0, 5)) < m + duration && toMinutes(p.end_time.slice(0, 5)) > m;
-        });
-        if (!taken) slots.push({ label: `${slotStart} – ${slotEnd}`, start: slotStart, end: slotEnd });
-      }
-    }
-    return slots;
   };
 
   const handleSubmit = async () => {
@@ -134,16 +90,12 @@ export default function RequestThingPage() {
 
     const isDateBased = thing && DATE_TYPES.includes(thing.type);
     const isOrder = thing && thing.type === ORDER_TYPE;
-    const isHourly = thing && (thing.type === APPOINTMENT_TYPE || (thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR'));
     const isSwap = thing && thing.type === SWAP_TYPE;
 
     let body = {};
     if (isSwap) {
       if (selectedOfferings.length === 0) return;
       body = { offered_thing_codes: selectedOfferings };
-    } else if (isHourly) {
-      if (!startDate || !startTime || !endTime) return;
-      body = { start_date: startDate, start_time: startTime, end_time: endTime };
     } else if (isDateBased) {
       if (!startDate || !endDate) return;
       body = { start_date: startDate, end_date: endDate };
@@ -193,7 +145,6 @@ export default function RequestThingPage() {
 
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
-  const isHourly = thing.type === APPOINTMENT_TYPE || (thing.type === ASSET_TYPE && thing.booking_unit === 'HOUR');
   const isSwap = thing.type === SWAP_TYPE;
 
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
@@ -274,79 +225,7 @@ export default function RequestThingPage() {
           )}
         </div>
       )}
-      {isHourly && (
-        <div className="summary-grid section-mt">
-          <DateInput
-            id="request-start-date"
-            label={t('request.startLabel')}
-            value={startDate}
-            onChange={(value) => { setStartDate(value); setStartTime(''); setEndTime(''); }}
-            dateFormat="yyyy-MM-dd"
-            language="en"
-            required
-            invalid={attempted && !startDate}
-            errorText={attempted && !startDate ? t('request.startRequired') : undefined}
-            minDate={TODAY}
-            maxDate={MAX_DATE}
-            dateOutsideRangeErrorText={t('request.dateRange')}
-            isDateDisabledBy={isDateBlocked}
-          />
-          <div className="spacer-xxxs" />
-          {thing?.type === APPOINTMENT_TYPE ? (
-            <>
-              <Select
-                id="request-slot"
-                label={t('appointment.selectSlot')}
-                language="en"
-                value={startTime && endTime ? [{ label: `${startTime} – ${endTime}`, value: `${startTime}_${endTime}` }] : []}
-                options={getAvailableSlots(startDate).map((s) => ({ label: s.label, value: `${s.start}_${s.end}` }))}
-                onChange={(selected) => {
-                  if (selected && selected.length > 0) {
-                    const [s, e] = selected[0].value.split('_');
-                    setStartTime(s);
-                    setEndTime(e);
-                  } else {
-                    setStartTime('');
-                    setEndTime('');
-                  }
-                }}
-                invalid={attempted && (!startTime || !endTime)}
-                error={attempted && (!startTime || !endTime) ? t('appointment.slotRequired') : ''}
-                disabled={!startDate}
-                placeholder={startDate ? t('appointment.selectSlotPlaceholder') : t('appointment.selectDateFirst')}
-              />
-            </>
-          ) : (
-            <>
-              <Select
-                id="request-start-time"
-                label={t('asset.startTime')}
-                language="en"
-                value={startTime ? [{ label: startTime, value: startTime }] : []}
-                options={hourlyOptions}
-                onChange={(sel) => { const v = sel?.length > 0 ? sel[0].value : ''; setStartTime(v); if (endTime && v >= endTime) setEndTime(''); }}
-                invalid={attempted && !startTime}
-                error={attempted && !startTime ? t('asset.startTime') : ''}
-                placeholder={t('asset.selectTimePlaceholder')}
-              />
-              <div className="spacer-xxxs" />
-              <Select
-                id="request-end-time"
-                label={t('asset.endTime')}
-                language="en"
-                value={endTime ? [{ label: endTime, value: endTime }] : []}
-                options={startTime ? hourlyOptions.filter((o) => o.value > startTime) : hourlyOptions}
-                onChange={(sel) => { setEndTime(sel?.length > 0 ? sel[0].value : ''); }}
-                invalid={attempted && !endTime}
-                error={attempted && !endTime ? t('asset.endTime') : ''}
-                disabled={!startTime}
-                placeholder={t('asset.selectTimePlaceholder')}
-              />
-            </>
-          )}
-        </div>
-      )}
-      {isDateBased && !isHourly && (
+      {isDateBased && (
         <div className="summary-grid section-mt">
           <DateInput
             id="request-start-date"

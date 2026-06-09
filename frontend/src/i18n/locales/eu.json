@@ -114,11 +114,7 @@
     "faqHiddenLabel": "Galdera ezkutatu da",
     "faqHiddenBody": "{{owner_name}}-k {{thing_headline}}-ri buruzko zure galdera ezkutatu du.",
     "inviteRejectedLabel": "Gonbidapena ukatua",
-    "inviteRejectedBody": "{{invitee_name}}-k {{collection_headline}}-ren gonbidapena ukatu du.",
-    "eventAttendLabel": "Parte-hartzaile berria",
-    "eventAttendBody": "{{attendee_name}}-k {{thing_headline}}-ra izena eman du.",
-    "eventCancelLabel": "Parte-hartzea bertan behera utzi da",
-    "eventCancelBody": "{{attendee_name}}-k {{thing_headline}}-rako parte-hartzea bertan behera utzi du."
+    "inviteRejectedBody": "{{invitee_name}}-k {{collection_headline}}-ren gonbidapena ukatu du."
   },
   "collectionPage": {
     "editCollection": "Bilduma editatu",
@@ -402,11 +398,8 @@
     "RENT_THING": "Alokairua",
     "LEND_THING": "Mailegua",
     "SHARE_THING": "Partekatzeko",
-    "EVENT_THING": "Ekitaldia",
     "WISH_THING": "Nahia",
-    "ASSET_THING": "Baliabide partekatua",
-    "SWAP_THING": "Trukea",
-    "APPOINTMENT_THING": "Hitzordua"
+    "SWAP_THING": "Trukea"
   },
   "availability": {
     "IMMEDIATE": "Berehala",
@@ -453,17 +446,6 @@
     "orderCount_one": "{{count}} eskaera",
     "orderCount_other": "{{count}} eskaera"
   },
-  "events": {
-    "eventDate": "Ekitaldiaren data",
-    "attend": "Bertaratu",
-    "attending": "Bertaratzen",
-    "leave": "Ekitaldia utzi",
-    "attendeeCount_one": "{{count}} bertaratua",
-    "attendeeCount_other": "{{count}} bertaratu",
-    "noAttendees": "Oraindik bertaraturik ez.",
-    "attendeesHeading": "Bertaratuak",
-    "eventTime": "Ekitaldiaren ordua"
-  },
   "wishes": {
     "offerHelp": "Lagundu dezaket",
     "helping": "Laguntzen",
@@ -471,23 +453,6 @@
     "helperCount_other": "{{count}} laguntzaile",
     "noHelpers": "Oraindik laguntzailerik ez.",
     "helpersHeading": "Laguntzaileak"
-  },
-  "asset": {
-    "bookingUnit": "Erreserba-unitatea",
-    "unitDay": "Eguna",
-    "unitHour": "Ordua",
-    "startTime": "Hasiera-ordua",
-    "endTime": "Amaiera-ordua",
-    "statsHeading": "Erabilera-estatistikak",
-    "totalBookings_one": "{{count}} erreserba",
-    "totalBookings_other": "{{count}} erreserba",
-    "uniqueUsers_one": "{{count}} erabiltzaile",
-    "uniqueUsers_other": "{{count}} erabiltzaile",
-    "noStats": "Oraindik erabilera-daturik ez.",
-    "monthlyHeading": "Hileko xehetasuna",
-    "bookingsLabel_one": "{{count}} erreserba",
-    "bookingsLabel_other": "{{count}} erreserba",
-    "selectTimePlaceholder": "Hautatu ordu bat"
   },
   "swap": {
     "offerItems": "Eskaintzeko artikuluak hautatu",
@@ -532,39 +497,6 @@
     "maxFiles": "Gehienez 5 dokumentu onartzen dira.",
     "fileTooLarge": "Fitxategia handiegia da. Gehienezko tamaina: 1 MB.",
     "invalidType": "Fitxategi mota hau ez da onartzen."
-  },
-  "appointment": {
-    "slotDuration": "Txandaren iraupena",
-    "minutes": "{{count}} min",
-    "schedule": "Eskuragarritasun-ordutegia",
-    "addWindow": "Ordu-tartea gehitu",
-    "removeWindow": "Kendu",
-    "bookSlot": "Erreserbatu",
-    "available": "Libre",
-    "booked": "Erreserbatuta",
-    "pending": "Zain",
-    "prevWeek": "← Aurreko astea",
-    "nextWeek": "Hurrengo astea →",
-    "noSlots": "Ez dago txandarik konfiguratuta.",
-    "durationLabel": "Iraupena",
-    "duration15": "15 minutu",
-    "duration30": "30 minutu",
-    "duration60": "Ordu 1",
-    "days": "Egunak",
-    "startTime": "Noiztik",
-    "endTime": "Noiz arte",
-    "mon": "Al",
-    "tue": "As",
-    "wed": "Az",
-    "thu": "Og",
-    "fri": "Or",
-    "sat": "Lr",
-    "sun": "Ig",
-    "selectSlot": "Ordu-tartea",
-    "slotRequired": "Hautatu ordu-tarte bat",
-    "selectSlotPlaceholder": "Hautatu tarte bat",
-    "selectDateFirst": "Hautatu lehenik data bat",
-    "daysPlaceholder": "Aukeratu egun bat edo gehiago"
   },
   "broadcast": {
     "heading": "Hedapena",

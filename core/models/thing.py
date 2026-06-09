@@ -25,15 +25,8 @@ class Thing(models.Model):
         RENT_THING = "RENT_THING", "Rent Thing"
         LEND_THING = "LEND_THING", "Lend Thing"
         SHARE_THING = "SHARE_THING", "Share Thing"
-        EVENT_THING = "EVENT_THING", "Event Thing"
         WISH_THING = "WISH_THING", "Wish Thing"
-        ASSET_THING = "ASSET_THING", "Asset Thing"
         SWAP_THING = "SWAP_THING", "Swap Thing"
-        APPOINTMENT_THING = "APPOINTMENT_THING", "Appointment Thing"
-
-    class BookingUnit(models.TextChoices):
-        DAY = "DAY", "Day"
-        HOUR = "HOUR", "Hour"
 
     class Status(models.TextChoices):
         ACTIVE = "ACTIVE", "Active"
@@ -55,7 +48,7 @@ class Thing(models.Model):
         ALMOST_JUNK = "ALMOST_JUNK", "Almost junk"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
-    type = models.CharField(max_length=17, choices=Type.choices, default=Type.GIFT_THING)
+    type = models.CharField(max_length=11, choices=Type.choices, default=Type.GIFT_THING)
     owner = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,
@@ -74,19 +67,6 @@ class Thing(models.Model):
     )
     location = models.CharField(max_length=32, blank=True, default="")
     condition = models.CharField(max_length=12, choices=Condition.choices, blank=True, default="")
-    event_date = models.DateTimeField(null=True, blank=True)
-    booking_unit = models.CharField(
-        max_length=4, choices=BookingUnit.choices, blank=True, default=""
-    )
-    slot_duration = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Slot duration in minutes (15, 30, or 60)"
-    )
-    availability_schedule = models.JSONField(
-        null=True,
-        blank=True,
-        default=None,
-        help_text="Recurring availability windows: [{days: [1-7], start_time, end_time}]",
-    )
     documents = models.JSONField(
         null=True,
         blank=True,

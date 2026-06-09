@@ -55,11 +55,11 @@ export default function EditCollectionPage() {
   // because it requires `is_swap=True`, which forces the value via its flag.
   const PROPRIETARY_TYPES = [
     'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING',
-    'LEND_THING', 'EVENT_THING', 'APPOINTMENT_THING',
+    'LEND_THING',
   ];
   const COMMUNITY_TYPES = [
     'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING', 'LEND_THING',
-    'SHARE_THING', 'EVENT_THING', 'WISH_THING', 'ASSET_THING', 'APPOINTMENT_THING',
+    'SHARE_THING', 'WISH_THING',
   ];
   const COMMUNITY_MINIMALIST_TYPES = ['GIFT_THING', 'SHARE_THING'];
 

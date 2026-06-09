@@ -22,7 +22,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 
 - **Atomic transactions**: Every function wraps its work in `transaction.atomic()` to ensure `BookingPeriod` and `Thing` are updated together or not at all.
 - **Row-level locking**: Uses `Thing.objects.select_for_update()` to prevent race conditions when two concurrent requests try to modify the same thing's status.
-- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT, ASSET), SHARE_THING, and repeatable types (ORDER) leave thing status unchanged because multiple bookings can coexist.
+- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT), SHARE_THING, and repeatable types (ORDER) leave thing status unchanged because multiple bookings can coexist.
 - **`is_endless` guard**: For GIFT/SELL things where `thing.is_endless=True`, all status changes (TAKEN on request, INACTIVE on accept, ACTIVE on reject/cancel) and ThingTransfer creation are skipped. The thing remains ACTIVE at all times and accumulates multiple simultaneous PENDING bookings from different users. `expire_old_pending()` also excludes endless things from the TAKEN→ACTIVE restore.
 - **SHARE_THING ownership transfer**: On acceptance, `thing.owner` is changed to the requester. The thing stays `ACTIVE` so the new owner can continue sharing it. This enables a chain of ownership transfers within a community collection.
 - **SWAP_THING bilateral transfer**: On acceptance, the requested thing transfers to the requester, and all offered things transfer to the original owner. All things stay `ACTIVE`. `ThingTransfer` records are created for every thing involved (requested + offered).
@@ -41,11 +41,11 @@ Every email belongs to one of three categories. Each function routes through the
 | Category | Constant | User flag | Scope |
 |----------|----------|-----------|-------|
 | **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_revoke_email` |
-| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_return_reminder_email`, `send_delivery_reminder_email`, `send_event_reminder_email`, `send_event_announcement_email`, `send_event_attend_email`, `send_broadcast_email`, `send_documents_email`, `send_swap_request_email`, `send_swap_confirmation_email` |
+| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_return_reminder_email`, `send_delivery_reminder_email`, `send_broadcast_email`, `send_documents_email`, `send_swap_request_email`, `send_swap_confirmation_email` |
 | **Cat. 3 — News** | `CATEGORY_NEWS` | `User.notify_news` | `send_digest_email`, `send_newsletter_email` |
 
 - **Lookup fallback**: if no `User` matches the recipient email (e.g. a not-yet-registered invitee), `_should_send` returns `True` — all emails reach non-users by default.
-- **Multi-recipient**: functions that take `emails=[...]` (digest, newsletter, broadcast, event announcement, event reminder) use `_filter_recipients()` for a bulk query that drops opted-out addresses before iterating.
+- **Multi-recipient**: functions that take `emails=[...]` (digest, newsletter, broadcast) use `_filter_recipients()` for a bulk query that drops opted-out addresses before iterating.
 - **Footer**: Cat. 2 and Cat. 3 emails get an auto-appended footer with a link to `/me/notifications?t=<signed-token>` (see below). Cat. 1 has no footer — nothing to manage.
 
 #### Signed tokens for unauthenticated preference editing
@@ -70,14 +70,11 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_faq_question_email(questioner_name, thing, question, owner_email)` | Guest asks a question on a thing | Thing owner |
 | `send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email)` | Owner answers a FAQ | Questioner |
 | `send_faq_hide_email(owner_name, thing_headline, question, questioner_email)` | Owner hides a FAQ | Questioner |
-| `send_event_announcement_email(owner_name, thing_headline, event_date, collection_headline, emails)` | EVENT_THING created in a collection | All collection invitees (individually) |
 | `send_broadcast_email(owner_name, owner_email, collection_headline, subject, message, emails)` | Owner sends broadcast to collection | All collection invitees (individually, with Reply-To owner) |
 | `send_digest_email(collection_headline, collection_code, thing_headlines, emails)` | Daily command (weekly/monthly) | All collection invitees (individually) |
 | `send_newsletter_email(collection_headline, collection_code, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |
 | `send_return_reminder_email(requester_name, thing_headline, end_date, owner_email)` | Daily command (end_date = tomorrow) | Thing owner |
 | `send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email)` | Daily command (delivery_date = tomorrow) | Thing owner |
-| `send_event_reminder_email(owner_name, thing_headline, event_date, emails)` | Daily command (event_date = tomorrow) | All attendees (individually) |
-| `send_event_attend_email(attendee_name, thing_headline, event_date, owner_email, attending)` | Attendee toggles attendance on EVENT_THING | Event owner. `attending=True` → "signed up" message; `attending=False` → "cancelled" message. |
 | `send_documents_email(requester_email, thing_headline, documents)` | Booking accepted for thing with documents | Requester (download links to Cloudinary raw URLs) |
 | `send_swap_request_email(requester, thing, offered_things, owner_email, accept_link, reject_link)` | Guest proposes a swap | Thing owner (lists offered thing headlines, accept/reject links) |
 | `send_swap_confirmation_email(requester, thing, offered_things, booking)` | Guest proposes a swap | Requester (confirmation of swap proposal) |

@@ -220,8 +220,6 @@ export default function CollectionPage() {
       ) : (
         <div className="things-grid">
           {[...collection.things].filter((t) => t.status !== 'INACTIVE').sort((a, b) => {
-            const allEvents = collection.things.every((t) => t.type === 'EVENT_THING');
-            if (allEvents) return new Date(a.event_date) - new Date(b.event_date);
             return new Date(b.created) - new Date(a.created);
           }).map((thing) => (
             <ThingLinkbox
@@ -315,8 +313,6 @@ export default function CollectionPage() {
           <div className="spacer-m" />
           <div className="things-grid">
             {[...collection.things].filter((t) => t.status === 'INACTIVE').sort((a, b) => {
-              const allEvents = collection.things.every((t) => t.type === 'EVENT_THING');
-              if (allEvents) return new Date(a.event_date) - new Date(b.event_date);
               return new Date(b.created) - new Date(a.created);
             }).map((thing) => (
               <ThingLinkbox

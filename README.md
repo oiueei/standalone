@@ -81,11 +81,11 @@ core/
       expire_bookings.py  # Batch expire stale PENDING bookings
       cleanup_rsvps.py    # Delete expired RSVPs (24h+)
       close_transfers.py  # Close overdue loan transfers
-      send_reminders.py   # Daily booking/delivery/event reminders
+      send_reminders.py   # Daily booking/delivery reminders
       send_digests.py     # Weekly/monthly digest emails
       seed_demo.py        # Populate demo data (idempotent; --lang=en|es)
       seed_data/
-        common.py         # non-translatable (transfers, attendances)
+        common.py         # non-translatable (transfers)
         en.py             # English demo content
         es.py             # Spanish demo content
   tests/
@@ -100,7 +100,7 @@ core/
 |-------|---------|
 | **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords. `notify_activity` and `notify_news` opt-out booleans control Cat. 2 / Cat. 3 email delivery (magic links and invitations are always sent) |
 | **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things). `is_swap` flag enables item swapping (COMMUNITY only). `is_share` flag restricts to SHARE_THING only (COMMUNITY only, mutually exclusive with `is_swap`). `newsletter_enabled` sends weekly activity newsletter on Mondays (requires `is_share`). `is_minimalist` enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (mutually exclusive with `is_swap`, compatible with `is_share`). `share_token` is a 22-char URL-safe bearer credential generated on demand for the public `/share/{token}` link — never exposed in any read serializer. |
-| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING, SWAP_THING, APPOINTMENT_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). EVENT_THING uses `deal` M2M for attendance; WISH_THING uses `deal` M2M for help offers (both bypass bookings). WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. ASSET_THING supports day or hourly booking with shared calendar and usage statistics. APPOINTMENT_THING supports recurring availability schedules with configurable slot duration (15/30/60 min) and weekly slot view. `documents` JSONField supports up to 5 file attachments (PDF, Word, Excel, Markdown) stored as Cloudinary raw uploads; download links are emailed to the requester on booking acceptance |
+| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). WISH_THING uses `deal` M2M for help offers (bypasses bookings). WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. `documents` JSONField supports up to 5 file attachments (PDF, Word, Excel, Markdown) stored as Cloudinary raw uploads; download links are emailed to the requester on booking acceptance |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 HDS colour token names) for customising collections |
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
@@ -169,14 +169,10 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | PUT | `/api/v1/things/{code}/` | Update thing (owner only) |
 | DELETE | `/api/v1/things/{code}/` | Delete thing (owner only) |
 | POST | `/api/v1/things/{code}/request/` | Request reservation (invited only) |
-| GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE/ASSET/APPOINTMENT) |
+| GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE) |
 | GET | `/api/v1/things/{code}/transfers/` | View transfer history and stats (Loan Chain). For SHARE_THING in COMMUNITY collections, includes `original_owner`, `original_owner_name`, and `is_share_in_community` fields |
-| GET | `/api/v1/things/{code}/stats/` | View usage statistics (total bookings, unique users, monthly breakdown) |
-| POST | `/api/v1/things/{code}/attend/` | Toggle attendance for EVENT_THING |
-| GET | `/api/v1/things/{code}/attendees/` | List attendees for EVENT_THING |
 | POST | `/api/v1/things/{code}/offer-help/` | Toggle "I can help" for WISH_THING |
 | GET | `/api/v1/things/{code}/helpers/` | List helpers for WISH_THING |
-| GET | `/api/v1/things/{code}/slots/` | Weekly slot grid for APPOINTMENT_THING (available/pending/booked) |
 | GET | `/api/v1/invited-things/` | List things from invited collections |
 
 ### Bookings
@@ -260,7 +256,7 @@ python manage.py createsuperuser
 # Expire stale bookings (run via Heroku Scheduler in production)
 python manage.py expire_bookings
 
-# Send return/delivery/event reminders (run daily via Heroku Scheduler)
+# Send return/delivery reminders (run daily via Heroku Scheduler)
 python manage.py send_reminders
 
 # Send weekly/monthly digest emails (run daily via Heroku Scheduler)

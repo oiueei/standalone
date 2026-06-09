@@ -6,10 +6,6 @@ Text lengths respect model max_length constraints:
   headline=64, description=256, question=64, answer=256, location=32.
 """
 
-from datetime import datetime
-
-from .common import TZ_PLUS2
-
 USERS = [
     {
         "code": "La1aN1",
@@ -63,22 +59,6 @@ COLLECTIONS = [
         "thumbnail": "La1aC1",
     },
     {
-        "code": "La1aC2",
-        "owner_code": "La1aN1",
-        "headline": "Vanlife a la carta – ¡nuestra furgo hippie os espera!",
-        "description": (
-            "¿Hay que mover un sofá? ¿Perseguir un atardecer? Nuestra furgo comunitaria "
-            "está lista. Resérvala para recados, viajes o aventuras espontáneas. "
-            "El gasóleo lo pones tú, el buen rollo corre por la casa. "
-            "¡Pero nada de toallas con arena en los asientos!"
-        ),
-        "mode": "COMMUNITY",
-        "invites": ["L3L3oo", "l1l13S", "l0l0oh", "1u1ucs"],
-        "is_onboarding": True,
-        "allowed_thing_types": ["ASSET_THING"],
-        "thumbnail": "La1aC2",
-    },
-    {
         "code": "L3L3C1",
         "owner_code": "L3L3oo",
         "headline": "¡Las tartas de Lele!",
@@ -106,35 +86,6 @@ COLLECTIONS = [
         "is_onboarding": True,
         "allowed_thing_types": ["GIFT_THING"],
         "thumbnail": "L3L3C2",
-    },
-    {
-        "code": "l0l0C1",
-        "owner_code": "l0l0oh",
-        "headline": "¡El melancólico Heathcliff llama! ¡Club del libro de Lolo!",
-        "description": (
-            "¿Ganas de páramos ventosos y amantes atormentados? Sumérgete en romances "
-            "ingleses como Cumbres borrascosas en el club de lectura de Lolo. Llévate "
-            "clásicos, comparte emociones con un té – ¡apúntate para la próxima lectura!"
-        ),
-        "invites": ["La1aN1", "L3L3oo", "l1l13S"],
-        "is_onboarding": True,
-        "allowed_thing_types": ["EVENT_THING"],
-        "thumbnail": "l0l0C1",
-    },
-    {
-        "code": "l0l0C2",
-        "owner_code": "l0l0oh",
-        "headline": "Sesiones de dulcémele con Lolo – ¡música como meditación!",
-        "description": (
-            "¿Te apetece aprender un instrumento solo por gusto? Lolo enseña el dulcémele "
-            "– esa arpa trapezoidal soñadora que se toca con mazos pequeños. Clases "
-            "tranquis, sin recitales ni notas. Solo tú, dos palillos y un sonido precioso."
-        ),
-        "mode": "PROPRIETARY",
-        "invites": ["La1aN1", "L3L3oo", "l1l13S", "1u1ucs"],
-        "is_onboarding": True,
-        "allowed_thing_types": ["APPOINTMENT_THING"],
-        "thumbnail": "l0l0C2",
     },
     {
         "code": "l1l1C1",
@@ -379,62 +330,6 @@ THINGS = [
             }
         ],
     },
-    # --- Lolo: book club events ---
-    {
-        "code": "lltl06",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Club de lectura – Cumbres Borrascosas clásica",
-        "description": "¡La obra tormentosa de Brontë! El corazón salvaje de Heathcliff en páramos ventosos. ¡Elige para nuestra próxima charla melancólica!",
-        "thumbnail": "lltl06",
-        "condition": "NEW",
-        "event_date": datetime(2027, 1, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl07",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Club de lectura – Jane Eyre gótica",
-        "description": "De huérfana a obsesión – ¡puro fuego Brontë! La loca del ático te espera. ¡Perfecta para nuestra inmersión en el romance oscuro!",
-        "thumbnail": "lltl07",
-        "condition": "GOOD",
-        "event_date": datetime(2027, 2, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl08",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Club de lectura – Rebecca atemporal",
-        "description": "¡El misterio de Manderley de Du Maurier! La segunda esposa contra la primera fantasmal – escalofríos y emociones. ¡Únete a la sesión de chismes!",
-        "thumbnail": "lltl08",
-        "condition": "NEW",
-        "event_date": datetime(2027, 3, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl09",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Club de lectura – Orgullo y Prejuicio chispeante",
-        "description": "¡El baile ingenioso de Darcy de Austen! Las hermanas Bennet contra solteros elegibles. ¡Aligera nuestro gótico con humor de Regencia!",
-        "thumbnail": "lltl09",
-        "condition": "USED",
-        "event_date": datetime(2027, 4, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
-    {
-        "code": "lltl10",
-        "type": "EVENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C1"],
-        "headline": "Club de lectura – Tess de los D'Urberville",
-        "description": "¡La trágica belleza rural de Hardy! Mujer pura injustamente culpada. Profunda y devastadora – ¡ideal para nuestra juerga literaria emocional!",
-        "thumbnail": "lltl10",
-        "condition": "FAIR",
-        "event_date": datetime(2027, 5, 5, 16, 0, 0, tzinfo=TZ_PLUS2),
-    },
     # --- Lulu: share collection (ownership transferred below in TRANSFERS) ---
     {
         "code": "lltl11",
@@ -549,29 +444,6 @@ THINGS = [
         "headline": "¡Muchas crías y pocas macetas – ven a rescatar una!",
         "thumbnail": "lltl28",
         "is_endless": True,
-    },
-    # --- Lolo: dulcimer appointment ---
-    {
-        "code": "lltl29",
-        "type": "APPOINTMENT_THING",
-        "owner_code": "l0l0oh",
-        "collections": ["l0l0C2"],
-        "headline": "¡Clases todas las tardes!",
-        "description": "Trae tu propio dulcémele si tienes uno. Si no, no te agobies – ¡el mío está aquí para que lo uses prestado!",
-        "thumbnail": "lltl29",
-        "slot_duration": 60,
-        "availability_schedule": [{"days": [2, 3, 4], "start_time": "14:00", "end_time": "18:00"}],
-        "location": "Casa de Lolo, Zona Franca, BCN",
-    },
-    # --- Lala: shared van (hourly asset) ---
-    {
-        "code": "lltl30",
-        "type": "ASSET_THING",
-        "owner_code": "La1aN1",
-        "collections": ["La1aC2"],
-        "headline": "Vayas donde vayas, ¡ella lo hace más bonito!",
-        "thumbnail": "lltl30",
-        "booking_unit": "HOUR",
     },
     # --- Lulu's wish posted by Lala ---
     {

@@ -9,13 +9,12 @@ import {
   IconEuroSign,
   IconLocation,
   IconShield,
-  IconGroup,
   IconTicket,
   Koros,
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, EVENT_TYPE, WISH_TYPE, SHARE_TYPE, ASSET_TYPE, SWAP_TYPE, APPOINTMENT_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -24,7 +23,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
 import MarkdownText from '../components/MarkdownText';
-import WeeklySchedule from '../components/WeeklySchedule';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -53,14 +51,6 @@ export default function ThingPage() {
 
   // Transfer state
   const [transfers, setTransfers] = useState(null);
-
-  // Stats state (for ASSET_THING)
-  const [stats, setStats] = useState(null);
-
-  // Event state
-  const [attendees, setAttendees] = useState(null);
-  const [isAttending, setIsAttending] = useState(false);
-  const [attendSubmitting, setAttendSubmitting] = useState(false);
 
   // Wish state
   const [helpers, setHelpers] = useState(null);
@@ -109,30 +99,13 @@ export default function ThingPage() {
       } catch { /* silently fail */ }
     };
 
-    const fetchStats = async () => {
-      try {
-        const res = await apiFetch(`/api/v1/things/${thingCode}/stats/`);
-        if (res.ok) {
-          setStats(await res.json());
-        }
-      } catch { /* silently fail */ }
-    };
-
     fetchThing();
     fetchFaqs();
     fetchTransfers();
-    fetchStats();
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
     if (!thing) return;
-    if (thing.type === EVENT_TYPE) {
-      if (thing.deal) setIsAttending(thing.deal.includes(userCode));
-      apiFetch(`/api/v1/things/${thing.code}/attendees/`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => { if (data) setAttendees(data); })
-        .catch(() => {});
-    }
     if (thing.type === WISH_TYPE) {
       if (thing.deal) setIsHelping(thing.deal.includes(userCode));
       apiFetch(`/api/v1/things/${thing.code}/helpers/`)
@@ -144,10 +117,8 @@ export default function ThingPage() {
 
   useEffect(() => {
     if (!thing || !userCode) return;
-    const isAssetThing = thing.type === ASSET_TYPE;
-    const isAppointmentThing = thing.type === APPOINTMENT_TYPE;
     const ownerView = thing.owner === userCode;
-    if (!ownerView && !isAssetThing && !isAppointmentThing) return;
+    if (!ownerView) return;
     const isDateBased = isDateType(thing.type);
     const isOrder = thing.type === ORDER_TYPE;
     const isSwapThing = thing.type === SWAP_TYPE;
@@ -184,12 +155,9 @@ export default function ThingPage() {
 
   const isOwner = thing.owner === userCode;
   const isCollectionOwner = thing.collection_owner === userCode;
-  const isEvent = thing.type === EVENT_TYPE;
   const isWish = thing.type === WISH_TYPE;
   const isShare = thing.type === SHARE_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
-  const isAsset = thing.type === ASSET_TYPE;
-  const isAppointment = thing.type === APPOINTMENT_TYPE;
   const isDateBased = isDateType(thing.type);
   const isOrder = thing.type === ORDER_TYPE;
   const needsPage = isDateBased || isOrder || isSwap;
@@ -298,27 +266,6 @@ export default function ThingPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setBookingAction(false);
-    }
-  };
-
-  const handleAttend = async () => {
-    setAttendSubmitting(true);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/attend/`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setIsAttending(data.attending);
-        setAttendees((prev) => prev ? { ...prev, attendee_count: data.attendee_count } : prev);
-        // Re-fetch attendees list
-        const atRes = await apiFetch(`/api/v1/things/${thing.code}/attendees/`);
-        if (atRes.ok) setAttendees(await atRes.json());
-      } else {
-        setToast({ type: 'error', message: t('common.connectionError') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setAttendSubmitting(false);
     }
   };
 
@@ -480,13 +427,11 @@ export default function ThingPage() {
         )}
 
         <div className="thing-card-info">
-          {!isEvent && (
-            <div className="thing-card-info-row">
-              <IconTicket size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
-              <span>{t('types.' + thing.type)}</span>
-            </div>
-          )}
+          <div className="thing-card-info-row">
+            <IconTicket size="m" aria-hidden="true" />
+            <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
+            <span>{t('types.' + thing.type)}</span>
+          </div>
           {thing.fee && (
             <div className="thing-card-info-row">
               <IconEuroSign size="m" aria-hidden="true" />
@@ -508,55 +453,17 @@ export default function ThingPage() {
               <span>{thing.location}</span>
             </div>
           )}
-          {!isEvent && thing.condition && (
+          {thing.condition && (
             <div className="thing-card-info-row">
               <IconShield size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
               <span>{t('condition.' + thing.condition)}</span>
             </div>
           )}
-          {thing.event_date && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('events.eventDate')}:</span>
-              <span>{new Date(thing.event_date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          )}
-          {thing.type === ASSET_TYPE && thing.booking_unit && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('asset.bookingUnit')}</span>
-              <span>{thing.booking_unit === 'HOUR' ? t('asset.unitHour') : t('asset.unitDay')}</span>
-            </div>
-          )}
-          {isAppointment && thing.slot_duration && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('appointment.slotDuration')}</span>
-              <span>{t('appointment.minutes', { count: thing.slot_duration })}</span>
-            </div>
-          )}
-          {isEvent && attendees && (
-            <div className="thing-card-info-row">
-              <IconGroup size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('events.attendeesHeading')}:</span>
-              <span>{attendees.attendee_count}</span>
-            </div>
-          )}
         </div>
 
-        {/* Weekly schedule for APPOINTMENT_THING */}
-        {isAppointment && thing.slot_duration && (
-          <WeeklySchedule
-            thingCode={thing.code}
-            isOwner={isOwner}
-            requestPath={requestPath}
-          />
-        )}
-
-
-        {/* Owner / shared-asset/appointment bookings list */}
-        {(isOwner || isAsset || isAppointment) && bookings.length > 0 && (() => {
+        {/* Owner bookings list */}
+        {isOwner && bookings.length > 0 && (() => {
           const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
           return (
             <ul className="thing-card-bookings">
@@ -570,7 +477,6 @@ export default function ThingPage() {
                     {b.start_date && b.end_date && (
                       <>
                         {new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}
-                        {b.start_time && b.end_time && <> ({b.start_time.slice(0, 5)}–{b.end_time.slice(0, 5)})</>}
                       </>
                     )}
                     {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
@@ -648,19 +554,6 @@ export default function ThingPage() {
           </div>
         )}
 
-        {/* Attend button for event things */}
-        {showButton && isEvent && (
-          <Button
-            fullWidth
-            disabled={attendSubmitting}
-            style={isAttending ? btnSecondaryStyle : btnStyle}
-            variant={isAttending ? 'secondary' : 'primary'}
-            onClick={handleAttend}
-          >
-            {isAttending ? t('events.attending') : t('events.attend')}
-          </Button>
-        )}
-
         {/* Offer help button for wish things */}
         {showButton && isWish && (
           <Button
@@ -674,8 +567,8 @@ export default function ThingPage() {
           </Button>
         )}
 
-        {/* Reservation button for non-event/non-wish/non-appointment invited users */}
-        {showButton && !isEvent && !isWish && !isAppointment && (
+        {/* Reservation button for non-wish invited users */}
+        {showButton && !isWish && (
           <Button
             fullWidth
             disabled={buttonDisabled}
@@ -710,26 +603,6 @@ export default function ThingPage() {
               {t('common.delete')}
             </Button>
           </div>
-        )}
-
-        {/* Attendees section for event things */}
-        {isEvent && attendees && (
-          <>
-            <div className="spacer-m" />
-            <hr />
-            <div className="spacer-m" />
-            <h2>{t('events.attendeesHeading')}</h2>
-            <p>{t('events.attendeeCount', { count: attendees.attendee_count })}</p>
-            {attendees.attendees.length > 0 ? (
-              <ul className="thing-card-bookings">
-                {attendees.attendees.map((a) => (
-                  <li key={a.code}>{a.name}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>{t('events.noAttendees')}</p>
-            )}
-          </>
         )}
 
         {/* Helpers section for wish things */}
@@ -900,41 +773,6 @@ export default function ThingPage() {
                     </li>
                   ))}
                 </ul>
-              </>
-            )}
-          </>
-        )}
-
-        {/* Usage statistics for ASSET_THING */}
-        {isAsset && stats && (
-          <>
-            <div className="spacer-m" />
-            <hr />
-            <div className="spacer-m" />
-            <h2>{t('asset.statsHeading')}</h2>
-            {stats.total_bookings === 0 ? (
-              <p>{t('asset.noStats')}</p>
-            ) : (
-              <>
-                <p>
-                  {t('asset.totalBookings', { count: stats.total_bookings })}
-                  {' · '}
-                  {t('asset.uniqueUsers', { count: stats.unique_users })}
-                </p>
-                {stats.monthly_usage && stats.monthly_usage.length > 0 && (
-                  <>
-                    <h3>{t('asset.monthlyHeading')}</h3>
-                    <ul className="thing-card-bookings">
-                      {stats.monthly_usage.map((m, i) => (
-                        <li key={i}>
-                          {new Date(m.month).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })}
-                          {' — '}
-                          {m.user_name}: {t('asset.bookingsLabel', { count: m.bookings })}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
               </>
             )}
           </>

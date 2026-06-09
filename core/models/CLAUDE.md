@@ -20,7 +20,7 @@ The `User` model represents a person who can own collections, be invited to othe
 | `headline` | CharField(64) | No | Short bio/tagline |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
-| `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, event announcements, broadcasts. Default: `True` |
+| `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, broadcasts. Default: `True` |
 | `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
@@ -260,10 +260,8 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 | `requester_code` | ForeignKey(User) | **Yes** | User who made the request |
 | `requester_email` | CharField(64) | **Yes** | Email of the requester |
 | `owner_code` | ForeignKey(User) | **Yes** | Owner of the thing |
-| `start_date` | DateField | No | Start date (for LEND/RENT/SHARE/ASSET) |
-| `end_date` | DateField | No | End date (for LEND/RENT/SHARE/ASSET) |
-| `start_time` | TimeField | No | Start time (for ASSET_THING hourly and APPOINTMENT_THING bookings) |
-| `end_time` | TimeField | No | End time (for ASSET_THING hourly and APPOINTMENT_THING bookings) |
+| `start_date` | DateField | No | Start date (for LEND/RENT/SHARE) |
+| `end_date` | DateField | No | End date (for LEND/RENT/SHARE) |
 | `delivery_date` | DateField | No | Delivery date (for ORDER_THING) |
 | `quantity` | PositiveIntegerField | No | Quantity ordered (for ORDER_THING) |
 | `status` | CharField(9) | No | Status: PENDING, ACCEPTED, REJECTED, CANCELLED, EXPIRED. Indexed (`db_index=True`) |
@@ -272,7 +270,7 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 ### Thing Type Categories
 
 ```python
-DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "ASSET_THING", "APPOINTMENT_THING"]  # Require dates
+DATE_BASED_TYPES = ["LEND_THING", "RENT_THING"]  # Require dates
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]  # Thing becomes INACTIVE after acceptance
 REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 ```
@@ -280,7 +278,7 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 ### Business Rules
 
 1. **72h expiry** - PENDING bookings expire after `BOOKING_EXPIRY_HOURS` (default 72h).
-2. **Date-based (LEND/RENT/ASSET/APPOINTMENT)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE. ASSET_THING with `booking_unit=HOUR` and APPOINTMENT_THING also require `start_time`/`end_time` and use same-day booking with time-range overlap detection.
+2. **Date-based (LEND/RENT)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE.
 3. **Share (SHARE_THING)**: NOT date-based. No dates required — permanent ownership transfer on acceptance. Multiple pending requests allowed from different users.
 4. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept. When `is_endless=True`: multiple simultaneous PENDING bookings allowed, status never TAKEN, thing stays ACTIVE after accept, no ThingTransfer created.
 5. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
@@ -296,7 +294,7 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 
 ### Class Methods
 
-- `has_overlap(thing_code, start_date, end_date, exclude_booking_code, start_time=None, end_time=None)` - Check for date (and optionally time) conflicts. When `start_time`/`end_time` are provided, additionally filters by time-range overlap on bookings that have non-null time fields.
+- `has_overlap(thing_code, start_date, end_date, exclude_booking_code)` - Check for date conflicts.
 - `get_blocked_periods(thing_code)` - Get all PENDING/ACCEPTED bookings
 - `expire_old_pending()` - Batch expire stale PENDING bookings (used by `manage.py expire_bookings`). For single-use types (GIFT/SELL), also restores the Thing to `ACTIVE` within the same transaction — prevents things getting permanently stuck in `TAKEN` after booking expiry.
 
@@ -311,7 +309,7 @@ The `Thing` model represents an item in a collection.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
-| `type` | CharField(17) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, EVENT_THING, WISH_THING, ASSET_THING, SWAP_THING, APPOINTMENT_THING |
+| `type` | CharField(17) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING |
 | `owner` | ForeignKey(User) | **Yes** | Owner of the thing |
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |
@@ -322,13 +320,9 @@ The `Thing` model represents an item in a collection.
 | `availability` | CharField(12) | No | Availability: IMMEDIATE, NEXT_WEEK, END_OF_MONTH, NEXT_MONTH. Only for GIFT/SELL/LEND/SHARE types. |
 | `location` | CharField(32) | No | Free-text location. Only for GIFT/SELL/LEND/SHARE types. |
 | `condition` | CharField(12) | No | Condition: NEW, GOOD, FAIR, USED, WELL_USED, ALMOST_JUNK. Only for GIFT/SELL/LEND/SHARE types. |
-| `event_date` | DateTimeField | No | Date/time for EVENT_THING (null for other types) |
-| `booking_unit` | CharField(4) | No | Booking granularity for ASSET_THING: DAY or HOUR (default: empty) |
-| `slot_duration` | PositiveIntegerField | No | Slot duration in minutes for APPOINTMENT_THING: 15, 30, or 60 |
-| `availability_schedule` | JSONField | No | Weekly availability windows for APPOINTMENT_THING. Format: `[{"days": [1,2,3,4,5], "start_time": "09:00", "end_time": "12:00"}]`. Days are ISO weekday numbers (1=Monday, 7=Sunday). |
 | `documents` | JSONField | No | Attached documents: `[{"public_id": "...", "filename": "...", "content_type": "..."}]`. Max 5. Allowed types: PDF, Word, Excel, Markdown. Max 1 MB each (enforced client-side). Stored in Cloudinary raw uploads. Download links sent via email on booking acceptance. |
 | `is_endless` | BooleanField | No | GIFT_THING and SELL_THING only. When True: multiple simultaneous PENDING bookings from different users are allowed, thing status never changes to TAKEN, no ThingTransfer is created on acceptance, thing remains ACTIVE forever (until owner hides or deletes it). Default: False. |
-| `deal` | ManyToManyField(User) | No | Users who have reserved. For EVENT_THING: attendees. For WISH_THING: helpers |
+| `deal` | ManyToManyField(User) | No | Users who have reserved. For WISH_THING: helpers |
 
 ### Status
 
@@ -422,7 +416,6 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 | `FAQ_ANSWERED` | Owner answers a FAQ | Questioner | `thing_headline`, `owner_name` |
 | `FAQ_HIDDEN` | Owner hides a FAQ | Questioner | `thing_headline`, `owner_name` |
 | `INVITE_REJECTED` | Invitee declines a collection invite | Collection owner | `collection_headline`, `invitee_name` |
-| `EVENT_ATTEND` | User toggles event attendance | Event owner | `thing_headline`, `attendee_name`, `attending` (bool) |
 
 ### Business Rules
 

@@ -52,7 +52,6 @@ class ThingSerializer(serializers.ModelSerializer):
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
-    attendee_count = serializers.SerializerMethodField()
     helper_count = serializers.SerializerMethodField()
     document_urls = serializers.SerializerMethodField()
 
@@ -74,10 +73,6 @@ class ThingSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "event_date",
-            "booking_unit",
-            "slot_duration",
-            "availability_schedule",
             "documents",
             "document_urls",
             "deal",
@@ -90,7 +85,6 @@ class ThingSerializer(serializers.ModelSerializer):
             "collection_swap_minimum_items",
             "my_swap_count_in_collection",
             "transfer_count",
-            "attendee_count",
             "helper_count",
             "is_endless",
         ]
@@ -189,11 +183,6 @@ class ThingSerializer(serializers.ModelSerializer):
             return obj._transfer_count
         return obj.transfers.count()
 
-    def get_attendee_count(self, obj):
-        if obj.type != Thing.Type.EVENT_THING:
-            return None
-        return obj.deal.count()
-
     def get_helper_count(self, obj):
         if obj.type != Thing.Type.WISH_THING:
             return None
@@ -236,10 +225,6 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "event_date",
-            "booking_unit",
-            "slot_duration",
-            "availability_schedule",
             "documents",
             "is_endless",
         ]
@@ -278,10 +263,6 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "event_date",
-            "booking_unit",
-            "slot_duration",
-            "availability_schedule",
             "documents",
             "is_endless",
         ]

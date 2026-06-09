@@ -1,24 +1,11 @@
 """
 Non-translatable demo data shared across all language variants.
 
-EVENT_ATTENDANCES and TRANSFERS have no user-facing text, so they live here
-instead of being duplicated in each language file.
+TRANSFERS has no user-facing text, so it lives here instead of being
+duplicated in each language file.
 """
 
-from datetime import date, timedelta, timezone
-
-TZ_PLUS2 = timezone(timedelta(hours=2))
-
-# Event attendees: (thing_code, user_code)
-EVENT_ATTENDANCES = [
-    ("lltl06", "La1aN1"),  # Lala → Wuthering Heights
-    ("lltl07", "La1aN1"),  # Lala → Jane Eyre
-    ("lltl08", "La1aN1"),  # Lala → Rebecca
-    ("lltl06", "L3L3oo"),  # Lele → Wuthering Heights
-    ("lltl08", "L3L3oo"),  # Lele → Rebecca
-    ("lltl06", "l1l13S"),  # Lili → Wuthering Heights
-    ("lltl07", "l1l13S"),  # Lili → Jane Eyre
-]
+from datetime import date
 
 # ThingTransfer chain — (thing_code, from_code, to_code, lent_date, returned_date)
 TRANSFERS = [

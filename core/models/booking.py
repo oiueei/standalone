@@ -17,7 +17,7 @@ from django.utils import timezone
 from core.utils import generate_id
 
 # Thing types that require dates for booking
-DATE_BASED_TYPES = ["LEND_THING", "RENT_THING", "ASSET_THING", "APPOINTMENT_THING"]
+DATE_BASED_TYPES = ["LEND_THING", "RENT_THING"]
 
 # Thing types where the thing becomes INACTIVE after acceptance
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]
@@ -72,10 +72,8 @@ class BookingPeriod(models.Model):
         db_column="owner_code",
         related_name="booking_owned",
     )
-    start_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE/ASSET
-    end_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE/ASSET
-    start_time = models.TimeField(null=True, blank=True)  # For ASSET_THING (HOUR unit)
-    end_time = models.TimeField(null=True, blank=True)  # For ASSET_THING (HOUR unit)
+    start_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE
+    end_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE
     delivery_date = models.DateField(null=True, blank=True)  # For ORDER_THING
     quantity = models.PositiveIntegerField(null=True, blank=True)  # For ORDER_THING
     status = models.CharField(
@@ -145,24 +143,11 @@ class BookingPeriod(models.Model):
         self.save(update_fields=["status"])
 
     @classmethod
-    def has_overlap(
-        cls,
-        thing_code,
-        start_date,
-        end_date,
-        exclude_booking_code=None,
-        start_time=None,
-        end_time=None,
-    ):
+    def has_overlap(cls, thing_code, start_date, end_date, exclude_booking_code=None):
         """
         Check if there's an overlap with existing PENDING or ACCEPTED bookings.
 
-        For day-based bookings:
         existing.start_date <= requested.end_date AND existing.end_date >= requested.start_date
-
-        For hourly bookings (start_time/end_time provided, single-day):
-        additionally checks time overlap on the same day:
-        existing.start_time < requested.end_time AND existing.end_time > requested.start_time
         """
         queryset = cls.objects.filter(
             thing_code=thing_code,
@@ -172,15 +157,6 @@ class BookingPeriod(models.Model):
         )
         if exclude_booking_code:
             queryset = queryset.exclude(code=exclude_booking_code)
-
-        if start_time and end_time:
-            # Hourly bookings: only conflict if times also overlap
-            queryset = queryset.filter(
-                start_time__isnull=False,
-                end_time__isnull=False,
-                start_time__lt=end_time,
-                end_time__gt=start_time,
-            )
 
         return queryset.exists()
 

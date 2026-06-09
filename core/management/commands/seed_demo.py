@@ -60,14 +60,13 @@ class Command(BaseCommand):
         self._seed_collections(data.COLLECTIONS)
         self._seed_things(data.THINGS)
         self._seed_faqs(data.FAQS)
-        self._seed_event_attendances(common.EVENT_ATTENDANCES)
         self._seed_transfers(common.TRANSFERS)
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"Seeded [{lang}] {len(data.USERS)} users, {len(data.COLLECTIONS)} collections, "
                 f"{len(data.THINGS)} things, {len(data.FAQS)} FAQs, "
-                f"{len(common.EVENT_ATTENDANCES)} attendances, {len(common.TRANSFERS)} transfers."
+                f"{len(common.TRANSFERS)} transfers."
             )
         )
 
@@ -124,10 +123,6 @@ class Command(BaseCommand):
                 "availability": data.get("availability", ""),
                 "location": data.get("location", ""),
                 "thumbnail": data.get("thumbnail", ""),
-                "event_date": data.get("event_date"),
-                "booking_unit": data.get("booking_unit", ""),
-                "slot_duration": data.get("slot_duration"),
-                "availability_schedule": data.get("availability_schedule", []),
                 "documents": data.get("documents", []),
                 "is_endless": data.get("is_endless", False),
             }
@@ -143,10 +138,6 @@ class Command(BaseCommand):
                 question=data["question"],
                 defaults={"answer": data["answer"], "is_visible": True},
             )
-
-    def _seed_event_attendances(self, attendances):
-        for thing_code, user_code in attendances:
-            Thing.objects.get(code=thing_code).deal.add(User.objects.get(code=user_code))
 
     def _seed_transfers(self, transfers):
         for thing_code, from_code, to_code, lent_date, returned_date in transfers:

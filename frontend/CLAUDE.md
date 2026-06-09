@@ -160,12 +160,11 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
 - **Minimalist mode**: accepts `minimalist` prop. When true, renders a photo-album card: photo fills a `3/4` aspect-ratio container (`object-fit: cover`), action buttons are overlaid at the bottom of the photo (`.thing-card-minimalist-buttons`, `position: absolute`), and the headline appears below as a small centred caption (`.thing-card-caption`). No description, info rows, or link to ThingPage. Owner sees confirm/cancel hold (if pending), hide/reactivate. Guest sees "Hold" button (direct POST for GIFT/SHARE, navigates to RequestThingPage for SWAP).
 - **Community attribution** (before headline, COMMUNITY collections only): when `collectionMode === 'COMMUNITY'`, renders a `thing-card-meta` paragraph showing `owner_name` and the creation date formatted as dd/mm (`toLocaleDateString('es', { day: '2-digit', month: '2-digit' })`). Uses the `collectionMode` prop passed from `CollectionPage`.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
-  - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Event, Wish.
+  - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Wish.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
-- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), event date (`IconCalendar`, for EVENT_THING), booking unit (`IconCalendar`, for ASSET_THING — shows "Day" or "Hour"), slot duration (`IconCalendar`, for APPOINTMENT_THING — shows duration in minutes), attendee count (`IconHome`, for EVENT_THING), helper count (`IconHome`, for WISH_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — uses type-specific i18n keys: `transfers.lendCount`, `transfers.rentCount`, `transfers.shareCount`, `transfers.swapCount`, `transfers.orderCount` based on `thing.type`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
-- **Shared calendar for ASSET_THING and APPOINTMENT_THING**: guests also fetch `GET /api/v1/things/{code}/calendar/` for ASSET_THING and APPOINTMENT_THING and see full booking details (requester name, dates, times). The bookings list is visible to both owners and guests for these types. Hourly bookings display time ranges (e.g. "09:00–12:00") alongside dates.
+- Displays thumbnail (or placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar`), location (`IconLocation`), condition (`IconShield`), helper count (`IconHome`, for WISH_THING), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — uses type-specific i18n keys: `transfers.lendCount`, `transfers.rentCount`, `transfers.shareCount`, `transfers.swapCount`, `transfers.orderCount` based on `thing.type`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
 - **Owner bookings display**: fetches `GET /api/v1/things/{code}/calendar/` on mount for date-based/order types and for any TAKEN thing (GIFT/SELL with a pending request). Shows future pending and confirmed bookings with requester name, request date, date ranges/delivery info, and status. Bookings with no dates (GIFT/SELL) are always shown regardless of date. The active pending booking is tracked in local `activePendingCode` state (initialised from `thing.pending_booking`, then synced to the first PENDING from the calendar on load) and marked bold with `*` when multiple pending exist.
 - **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary). Secondary buttons always have a white background (`--background-color: white`); the theeeme `color_01` is used for the border, and `color_04` for the text.
 - **Owner button matrix** (based on `thing.status`):
@@ -174,7 +173,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `TAKEN`: "Confirm hold" (primary), "Cancel hold" (secondary), "Edit" (secondary). After each accept/cancel, `activePendingCode` advances to the next pending.
   - `INACTIVE`: "Reactivate" (primary, calls `POST /api/v1/things/{code}/activate/`), "Edit" (secondary), "Delete" (secondary, navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`).
 - **Wish help button** (non-owners, WISH_THING only): "I can help"/"Helping" toggle button. Calls `POST /api/v1/things/{code}/offer-help/`.
-- **Reservation button** logic (non-owners, non-event, non-wish only):
+- **Reservation button** logic (non-owners, non-wish only):
   - `ACTIVE`: enabled "Hold" button. Disabled (but still showing "Hold") when `isPaused` prop is true.
   - `TAKEN`: disabled button. Label is "Waiting for confirmation" if `thing.my_pending_booking` (or local `requested` state) is set, otherwise "Reserved".
   - `INACTIVE`: not shown (guests cannot see INACTIVE things).
@@ -184,31 +183,27 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button navigates to `RequestThingPage` for date selection.
   - `ORDER_THING` — button navigates to `RequestThingPage` for delivery date and quantity.
   - `SWAP_THING` — "Propose swap" button navigates to `RequestThingPage` for swap item selection. Owner bookings display shows offered thing headlines for swap requests. **Minimum-items gate**: when `thing.collection_swap_minimum_items > 0` and `thing.my_swap_count_in_collection` is below it, the button is disabled and an inline HDS `Notification` (`type="info"`, `size="small"`) is rendered below it via `swap.minimumNotMetLabel` + `swap.minimumNotMetBody` (with `count` interpolation). The same gate is mirrored in `ThingPage`. Backend backstops it in `core/views/reservations.py::_handle_swap_request`.
-  - `APPOINTMENT_THING` — "Hold" button navigates to `ThingPage` (not `RequestThingPage`); booking is done via the `WeeklySchedule` slot grid.
 - **Back navigation**: passes `{ state: { backPath, backLabel } }` to RequestThingPage and ThingPage based on context (collection headline or home).
 
 ### ThingPage (`src/pages/ThingPage.jsx`)
 
 Detail page for a thing with full information and FAQs section.
 
-- **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/faq/` (FAQs), `POST /api/v1/things/{thingCode}/faq/` (ask question), `POST /api/v1/faq/{faqCode}/answer/` (answer), `POST /api/v1/faq/{faqCode}/hide/` and `/show/` (toggle visibility), `GET /api/v1/things/{thingCode}/transfers/` (transfer history), `GET /api/v1/things/{thingCode}/attendees/` (event attendees), `POST /api/v1/things/{thingCode}/attend/` (toggle attendance), `GET /api/v1/things/{thingCode}/helpers/` (wish helpers), `POST /api/v1/things/{thingCode}/offer-help/` (toggle help offer), `GET /api/v1/things/{thingCode}/stats/` (usage statistics)
+- **APIs:** `GET /api/v1/things/{thingCode}/` (detail), `GET /api/v1/things/{thingCode}/faq/` (FAQs), `POST /api/v1/things/{thingCode}/faq/` (ask question), `POST /api/v1/faq/{faqCode}/answer/` (answer), `POST /api/v1/faq/{faqCode}/hide/` and `/show/` (toggle visibility), `GET /api/v1/things/{thingCode}/transfers/` (transfer history), `GET /api/v1/things/{thingCode}/helpers/` (wish helpers), `POST /api/v1/things/{thingCode}/offer-help/` (toggle help offer)
 - Accessible from `/collections/:code/things/:thingCode` (collection context) or `/things/:thingCode` (standalone).
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - **Tags row** (before headline): same HDS `Tag` components as ThingLinkbox (type, Taken, Inactive, Pending questions).
-- Displays thumbnail (if present), headline, description, creation date, fee, availability, location, condition, event date (for EVENT_THING), booking unit (for ASSET_THING — "Day" or "Hour"), and slot duration (for APPOINTMENT_THING).
-- **Weekly schedule**: For APPOINTMENT_THING with `slot_duration`, shows `WeeklySchedule` component below info section. Available slots are clickable for non-owners, navigating to RequestThingPage with pre-filled date/time.
+- Displays thumbnail (if present), headline, description, creation date, fee, availability, location, and condition.
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
-- **Owner bookings display**: fetches `GET /api/v1/things/{thingCode}/calendar/` for date-based/order types and for any TAKEN thing (GIFT/SELL). Same logic as ThingLinkbox: filters past bookings, syncs `activePendingCode` to the first PENDING from the calendar, shows bookings list with requester name, request date, date ranges/delivery info, and status. Active pending booking is bold; starred when multiple pending exist. For ASSET_THING, the bookings list is visible to all users (not just owner). Hourly bookings display time ranges alongside dates.
-- **Usage statistics**: for ASSET_THING, fetches `GET /api/v1/things/{thingCode}/stats/` and displays total bookings, unique users, and a monthly per-user breakdown table. Shown below the Journey/transfers section.
+- **Owner bookings display**: fetches `GET /api/v1/things/{thingCode}/calendar/` for date-based/order types and for any TAKEN thing (GIFT/SELL). Same logic as ThingLinkbox: filters past bookings, syncs `activePendingCode` to the first PENDING from the calendar, shows bookings list with requester name, request date, date ranges/delivery info, and status. Active pending booking is bold; starred when multiple pending exist.
 - **Owner actions:** Full parity with ThingLinkbox button matrix:
   - `ACTIVE` (no pending): "Edit" (**primary**) + "Hide" (secondary, suppressed when pending bookings exist).
   - `ACTIVE` (date-based/order with pending): "Confirm hold" + "Cancel hold" + "Edit" (secondary).
   - `TAKEN`: "Confirm hold" (primary) → "Cancel hold" (secondary) → "Edit" (secondary). `activePendingCode` advances to next pending after each action.
   - `INACTIVE`: "Reactivate" (primary) + "Edit" (secondary) + "Delete" (secondary).
   - Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
-- **Event attendance:** For EVENT_THING, non-owners see "Attend"/"Attending" toggle button instead of "Hold". Calls `POST /api/v1/things/{code}/attend/`. Attendees section shows list of attendees fetched from `GET /api/v1/things/{code}/attendees/`.
 - **Wish help:** For WISH_THING, non-owners see "I can help"/"Helping" toggle button. Calls `POST /api/v1/things/{code}/offer-help/`. Helpers section shows list of helpers fetched from `GET /api/v1/things/{code}/helpers/`.
-- **Reservation:** For non-event/non-wish/non-appointment types, non-owners see "Hold" button (or "Propose swap" for SWAP_THING). GIFT/SELL types submit directly; date-based, order, and swap types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`. Owner bookings for SWAP_THING display offered thing headlines. APPOINTMENT_THING has no "Hold" button — booking is done via `WeeklySchedule` slot clicks.
+- **Reservation:** For non-wish types, non-owners see "Hold" button (or "Propose swap" for SWAP_THING). GIFT/SELL types submit directly; date-based, order, and swap types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`. Owner bookings for SWAP_THING display offered thing headlines.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
   - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
@@ -224,9 +219,7 @@ Detail page for a thing with full information and FAQs section.
 - **Page title**: `Hold: {thing.headline}` with fee display when present.
 - **Form fields** adapt to thing type:
   - `SWAP_THING` — Fetches user's own SWAP_THING items in the same collection. Shows HDS `Checkbox` per item for multi-select. Submits `{ offered_thing_codes: [...] }`. "Propose swap" button disabled until at least one item selected.
-  - `APPOINTMENT_THING` — `DateInput` for date (day-of-week filtered against `availability_schedule`) + HDS `Select` showing precomputed 1-hour slots (e.g. "14:00 – 15:00") for the chosen date. Accepts pre-filled values from `location.state`: `prefillDate`, `prefillStartTime`, `prefillEndTime` (set by WeeklySchedule slot clicks).
-  - `ASSET_THING` with `booking_unit=HOUR` — `DateInput` for date + two HDS `Select` components for start/end time (hourly options 00:00–23:00, end filtered to > start). All `Select` components use `language="en"` (required — default is Finnish "fi").
-  - `LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING` (day) — `DateInput` for start and end dates with blocked-date validation.
+  - `LEND_THING`, `RENT_THING`, `SHARE_THING` — `DateInput` for start and end dates with blocked-date validation.
   - `ORDER_THING` — `DateInput` for delivery date + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates fetched from calendar API.
 - **Buttons**: Cancel (navigates back) + Hold/Propose swap (submits request).
@@ -289,7 +282,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `POST /api/v1/things/` with `collection_code` in body
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Simple form with h1 title + `form-grid` layout:
-  - `Select` for thing type (WISH_THING, SHARE_THING, and ASSET_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). The select is also filtered down to `collection.allowed_thing_types` when that field is non-empty (PROPRIETARY collections set this on Create/Edit). When the allowlist contains a single type, it is pre-selected so downstream fields show right away. Immediately after the type selector: `ToggleButton` for "Sin límite / Endless" (shown only for GIFT/SELL types). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. When collection `is_minimalist`: filters type selector to GIFT/SHARE/SWAP only, hides fee/availability/location/condition fields, makes ImageUpload label show "Photo (required)", hides DocumentUpload. `TextInput` for headline (required, max 64), `TextArea` for description, `TextInput` with `type="datetime-local"` for event date (shown only for EVENT_THING), `Select` for booking unit DAY/HOUR (shown only for ASSET_THING). For APPOINTMENT_THING: `Select` for slot duration (15/30/60 min), schedule builder with one HDS `Select multiSelect` for days (Mon–Sun, value is the ISO weekday number 1–7) and time range inputs per window, "Add time window" button. Selected days render as chips/tags below the trigger; multiple days can be picked from the dropdown. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
+  - `Select` for thing type (WISH_THING and SHARE_THING only shown when collection is COMMUNITY; SWAP_THING hidden — auto-selected for swap collections). The select is also filtered down to `collection.allowed_thing_types` when that field is non-empty (PROPRIETARY collections set this on Create/Edit). When the allowlist contains a single type, it is pre-selected so downstream fields show right away. Immediately after the type selector: `ToggleButton` for "Sin límite / Endless" (shown only for GIFT/SELL types). When collection `is_swap`: auto-selects SWAP_THING, hides type selector. When collection `is_minimalist`: filters type selector to GIFT/SHARE/SWAP only, hides fee/availability/location/condition fields, makes ImageUpload label show "Photo (required)", hides DocumentUpload. `TextInput` for headline (required, max 64), `TextArea` for description. `NumberInput` for fee (required for SELL/RENT/ORDER types, hidden for others). For GIFT/SELL/LEND/SHARE types (`DETAIL_TYPES`): `Select` for availability, `TextInput` for location (max 32), `Select` for condition. `ImageUpload` for thumbnail (last, before button, folder `oiueei/things`).
   - "Create" button below the form. Validates on submit.
 - On success: navigates to `/collections/{code}`.
 - On error: toast notification (top-right, auto-close).
@@ -298,7 +291,7 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `GET /api/v1/things/{thingCode}/` to load, `PATCH /api/v1/things/{thingCode}/` to save, `DELETE /api/v1/things/{thingCode}/` to delete
 - Accessible from `/collections/:code/things/:thingCode/edit` or `/things/:thingCode/edit`.
-- Same fields as AddThingPage (type, then `ToggleButton` for Endless immediately after type for GIFT/SELL, headline, description, event date for EVENT_THING, booking unit for ASSET_THING, fee, availability/location/condition for `DETAIL_TYPES`, `ImageUpload` for thumbnail last). Pre-populates all fields including existing `thumbnail_url` for preview, `event_date` for events, and `booking_unit` for assets.
+- Same fields as AddThingPage (type, then `ToggleButton` for Endless immediately after type for GIFT/SELL, headline, description, fee, availability/location/condition for `DETAIL_TYPES`, `ImageUpload` for thumbnail last). Pre-populates all fields including existing `thumbnail_url` for preview.
 - "Save" button (primary, full width) and "Delete" button (secondary, full width) below the form. Delete navigates to `DeleteThingPage` with `{ state: { backPath: returnPath, backLabel: returnLabel } }`.
 - On success: navigates back to collection or home.
 
@@ -391,19 +384,15 @@ Detail page for a thing with full information and FAQs section.
 - **`TheeemeSelector`** (`src/components/TheeemeSelector.jsx`) — Visual theeeme picker. Renders a grid of buttons; each button shows three 20 px circular swatches (`color_01`, `color_02`, `color_03`) and the theeeme name, with a checkmark when selected. `aria-pressed` and `aria-label` for accessibility. Props: `theeemes` (array from API), `value` (selected code), `onChange`. Used in EditProfilePage.
 - **`KoroSelector`** (`src/components/KoroSelector.jsx`) — Visual koro picker. Renders a grid of buttons; each button shows a live `<Koros>` SVG preview (white fill on black background, 50 px tall, scaled to fit) and the koro label. Props: `value` (selected type string), `onChange`. Used in EditProfilePage.
 - **`ShareCollectionMenu`** (`src/components/ShareCollectionMenu.jsx`) — Owner-only share menu rendered in the CollectionPage hero. HDS `Select` with three options (`IconEnvelope` for email, `IconShare` for copy-link, `IconWhatsapp` for WhatsApp). Calls `POST /api/v1/collections/{code}/share-link/` lazily on first interaction, caches the resulting URL via `useRef`, and dispatches the action: `mailto:` for email, `navigator.clipboard.writeText` + Toast for copy, `https://wa.me/?text=` for WhatsApp. The Select's value is reset on every change so it acts as a one-shot menu rather than a form input. Strings live in the `shareMenu` i18n namespace. Props: `collectionCode`, `collectionHeadline`, `ownerName`.
-- **`WeeklySchedule`** (`src/components/WeeklySchedule.jsx`) — Weekly appointment slot grid for APPOINTMENT_THING. Fetches `GET /api/v1/things/{code}/slots/?week_start=...` and renders an HDS `Table` with time slots as rows and days as columns. Available slots are clickable buttons that navigate to `RequestThingPage` with pre-filled date/time. Booked/pending slots show "Booked"/"Pending" only — requester names are never shown (privacy by default, regardless of ownership). Week navigation via prev/next buttons. Props: `thingCode`, `isOwner`, `requestPath`. Used in ThingPage.
 
 ### Constants (`src/constants/things.js`)
 
 Central source of truth for thing type definitions. Display labels are handled by i18n — use `t('types.GIFT_THING')` etc.
 - `TYPE_VALUES` — Array of type value strings (no labels — labels come from i18n).
 - `SHARE_TYPE` — `SHARE_THING` constant (used for share-specific UI logic — hide button restriction after transfer).
-- `EVENT_TYPE` — `EVENT_THING` constant (used for event-specific UI logic).
 - `WISH_TYPE` — `WISH_THING` constant (used for wish-specific UI logic).
 - `SWAP_TYPE` — `SWAP_THING` constant (used for swap-specific UI logic — swap request form, "Propose swap" button).
-- `APPOINTMENT_TYPE` — `APPOINTMENT_THING` constant (used for appointment-specific UI logic — weekly schedule table, slot booking).
-- `ASSET_TYPE` — `ASSET_THING` constant (used for asset-specific UI logic).
-- `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`, `SHARE_THING`, `ASSET_THING`, `APPOINTMENT_THING`).
+- `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`).
 - `ORDER_TYPE` — `ORDER_THING` constant.
 - `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`, `ORDER_THING`).
 - `DETAIL_TYPES` — Types with availability/location/condition fields (`GIFT_THING`, `SELL_THING`, `LEND_THING`, `SHARE_THING`).

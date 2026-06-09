@@ -114,11 +114,7 @@
     "faqHiddenLabel": "Pregunta amagada",
     "faqHiddenBody": "{{owner_name}} ha amagat la teva pregunta sobre {{thing_headline}}.",
     "inviteRejectedLabel": "Invitació rebutjada",
-    "inviteRejectedBody": "{{invitee_name}} ha rebutjat la invitació a {{collection_headline}}.",
-    "eventAttendLabel": "Nou assistent",
-    "eventAttendBody": "{{attendee_name}} s'ha apuntat a {{thing_headline}}.",
-    "eventCancelLabel": "Assistència cancel·lada",
-    "eventCancelBody": "{{attendee_name}} ha cancel·lat la seva assistència a {{thing_headline}}."
+    "inviteRejectedBody": "{{invitee_name}} ha rebutjat la invitació a {{collection_headline}}."
   },
   "collectionPage": {
     "editCollection": "Editar col·lecció",
@@ -402,11 +398,8 @@
     "RENT_THING": "Lloguer",
     "LEND_THING": "Préstec",
     "SHARE_THING": "Compartir",
-    "EVENT_THING": "Esdeveniment",
     "WISH_THING": "Desig",
-    "ASSET_THING": "Recurs compartit",
-    "SWAP_THING": "Intercanvi",
-    "APPOINTMENT_THING": "Cita"
+    "SWAP_THING": "Intercanvi"
   },
   "availability": {
     "IMMEDIATE": "Immediata",
@@ -453,17 +446,6 @@
     "orderCount_one": "{{count}} comanda",
     "orderCount_other": "{{count}} comandes"
   },
-  "events": {
-    "eventDate": "Data de l'esdeveniment",
-    "attend": "Assistir",
-    "attending": "Assistint",
-    "leave": "Deixar esdeveniment",
-    "attendeeCount_one": "{{count}} assistent",
-    "attendeeCount_other": "{{count}} assistents",
-    "noAttendees": "Sense assistents encara.",
-    "attendeesHeading": "Assistents",
-    "eventTime": "Hora de l'acte"
-  },
   "wishes": {
     "offerHelp": "Puc ajudar",
     "helping": "Ajudant",
@@ -471,23 +453,6 @@
     "helperCount_other": "{{count}} ajudants",
     "noHelpers": "Sense ajudants encara.",
     "helpersHeading": "Ajudants"
-  },
-  "asset": {
-    "bookingUnit": "Unitat de reserva",
-    "unitDay": "Dia",
-    "unitHour": "Hora",
-    "startTime": "Hora d'inici",
-    "endTime": "Hora de fi",
-    "statsHeading": "Estadístiques d'ús",
-    "totalBookings_one": "{{count}} reserva",
-    "totalBookings_other": "{{count}} reserves",
-    "uniqueUsers_one": "{{count}} usuari",
-    "uniqueUsers_other": "{{count}} usuaris",
-    "noStats": "Sense dades d'ús encara.",
-    "monthlyHeading": "Desglossament mensual",
-    "bookingsLabel_one": "{{count}} reserva",
-    "bookingsLabel_other": "{{count}} reserves",
-    "selectTimePlaceholder": "Selecciona una hora"
   },
   "swap": {
     "offerItems": "Seleccionar articles a oferir",
@@ -532,39 +497,6 @@
     "maxFiles": "Màxim 5 documents permesos.",
     "fileTooLarge": "El fitxer és massa gran. Mida màxima: 1 MB.",
     "invalidType": "Aquest tipus de fitxer no està permès."
-  },
-  "appointment": {
-    "slotDuration": "Durada del torn",
-    "minutes": "{{count}} min",
-    "schedule": "Horari de disponibilitat",
-    "addWindow": "Afegir franja horària",
-    "removeWindow": "Eliminar",
-    "bookSlot": "Reservar",
-    "available": "Lliure",
-    "booked": "Reservat",
-    "pending": "Pendent",
-    "prevWeek": "← Setmana anterior",
-    "nextWeek": "Setmana següent →",
-    "noSlots": "No hi ha torns configurats.",
-    "durationLabel": "Durada",
-    "duration15": "15 minuts",
-    "duration30": "30 minuts",
-    "duration60": "1 hora",
-    "days": "Dies",
-    "startTime": "Des de",
-    "endTime": "Fins a",
-    "mon": "Dll",
-    "tue": "Dm",
-    "wed": "Dc",
-    "thu": "Dj",
-    "fri": "Dv",
-    "sat": "Ds",
-    "sun": "Dg",
-    "selectSlot": "Franja horària",
-    "slotRequired": "Si us plau, selecciona una franja horària",
-    "selectSlotPlaceholder": "Selecciona una franja",
-    "selectDateFirst": "Primer selecciona una data",
-    "daysPlaceholder": "Tria un o més dies"
   },
   "broadcast": {
     "heading": "Difusió",

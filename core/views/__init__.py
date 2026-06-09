@@ -6,9 +6,7 @@ from .collections import (
     CollectionViewSet,
     InvitedCollectionsView,
 )
-from .events import EventAttendeesView, EventAttendView
 from .faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
-from .stats import ThingStatsView
 from .theeemes import TheeemeListView
 from .things import InvitedThingsView, ThingViewSet
 from .transfers import ThingTransferView
@@ -35,9 +33,6 @@ __all__ = [
     "OwnerBookingsView",
     "TheeemeListView",
     "ThingTransferView",
-    "EventAttendView",
-    "EventAttendeesView",
     "WishOfferHelpView",
     "WishHelpersView",
-    "ThingStatsView",
 ]

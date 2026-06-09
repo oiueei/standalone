@@ -16,7 +16,6 @@ from core.models.booking import BookingPeriod
 from core.pagination import StandardResultsPagination
 from core.permissions import IsThingOwner
 from core.serializers import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
-from core.services.email_service import send_event_announcement_email
 
 
 class ThingViewSet(ModelViewSet):
@@ -98,10 +97,9 @@ class ThingViewSet(ModelViewSet):
                 self._create_error = "Collection not found"
                 return
 
-            # WISH_THING, SHARE_THING, and ASSET_THING are only allowed in COMMUNITY collections
+            # WISH_THING and SHARE_THING are only allowed in COMMUNITY collections
             if (
-                thing_type
-                in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING, Thing.Type.ASSET_THING)
+                thing_type in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING)
                 and not collection.is_community()
             ):
                 self._create_error = (
@@ -166,23 +164,6 @@ class ThingViewSet(ModelViewSet):
 
         if collection:
             collection.things.add(thing)
-
-            # Send announcement email for EVENT_THING
-            if thing.type == Thing.Type.EVENT_THING:
-                invitee_emails = list(
-                    collection.invites.exclude(code=self.request.user.code).values_list(
-                        "email", flat=True
-                    )
-                )
-                if invitee_emails:
-                    owner_name = self.request.user.name or self.request.user.email
-                    send_event_announcement_email(
-                        owner_name,
-                        thing.headline,
-                        thing.event_date,
-                        collection.headline,
-                        invitee_emails,
-                    )
 
         # Store created thing for create response
         self._created_thing = thing
