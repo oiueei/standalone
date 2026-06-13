@@ -21,6 +21,7 @@ import ManageInvitesPage from './pages/ManageInvitesPage';
 import LogoutPage from './pages/LogoutPage';
 import UserPage from './pages/UserPage';
 import RequestThingPage from './pages/RequestThingPage';
+import RespondWishPage from './pages/RespondWishPage';
 import DeleteThingPage from './pages/DeleteThingPage';
 import DeleteCollectionPage from './pages/DeleteCollectionPage';
 import RemoveGuestPage from './pages/RemoveGuestPage';
@@ -63,11 +64,13 @@ function App() {
         <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
         <Route path="/collections/:code/things/:thingCode/edit" element={<EditThingPage />} />
         <Route path="/collections/:code/things/:thingCode/request" element={<RequestThingPage />} />
+        <Route path="/collections/:code/things/:thingCode/respond/:kind" element={<RespondWishPage />} />
         <Route path="/collections/:code/things/:thingCode/delete" element={<DeleteThingPage />} />
         <Route path="/collections/:code/invites/remove" element={<RemoveGuestPage />} />
         <Route path="/things/:thingCode" element={<ThingPage />} />
         <Route path="/things/:thingCode/edit" element={<EditThingPage />} />
         <Route path="/things/:thingCode/request" element={<RequestThingPage />} />
+        <Route path="/things/:thingCode/respond/:kind" element={<RespondWishPage />} />
         <Route path="/things/:thingCode/delete" element={<DeleteThingPage />} />
         <Route path="/my-bookings" element={<MyBookingsPage />} />
         <Route path="/welcome" element={<WelcomePage />} />

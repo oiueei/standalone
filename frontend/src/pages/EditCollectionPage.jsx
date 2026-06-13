@@ -5,6 +5,7 @@ import { TextInput, TextArea, Select, Button, Koros, ToggleButton } from 'hds-re
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
+import TagInput from '../components/TagInput';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 
@@ -26,6 +27,7 @@ export default function EditCollectionPage() {
   const [isMinimalist, setIsMinimalist] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [allowedThingTypes, setAllowedThingTypes] = useState([]);
+  const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
@@ -102,6 +104,7 @@ export default function EditCollectionPage() {
           setIsMinimalist(data.is_minimalist || false);
           setRequireMinimumSwapItems((data.swap_minimum_items || 0) > 0);
           setAllowedThingTypes(data.allowed_thing_types || []);
+          setTags(data.tags || []);
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
           setPauseMessage(data.pause_message || '');
@@ -147,6 +150,7 @@ export default function EditCollectionPage() {
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       allowed_thing_types: allowedThingTypes,
+      tags,
       thumbnail: thumbnail || '',
     };
 
@@ -390,6 +394,13 @@ export default function EditCollectionPage() {
             invalid={!!errors.allowedThingTypes}
           />
         </div>
+        <TagInput
+          tags={tags}
+          onChange={setTags}
+          label={t('createCollection.tagsLabel')}
+          placeholder={t('createCollection.tagsPlaceholder')}
+          helperText={t('createCollection.tagsHelper')}
+        />
         <Select
                 language="en"
           id="edit-collection-digest"

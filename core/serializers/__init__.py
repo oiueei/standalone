@@ -21,6 +21,7 @@ from .theeeme import TheeemeSerializer
 from .thing import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
 from .transfer import ThingTransferSerializer, ThingTransferStatsSerializer
 from .user import UserPublicSerializer, UserSerializer, UserUpdateSerializer
+from .wish import WishResponseCreateSerializer, WishResponseSerializer
 
 __all__ = [
     "RequestLinkSerializer",
@@ -49,4 +50,6 @@ __all__ = [
     "TheeemeSerializer",
     "ThingTransferSerializer",
     "ThingTransferStatsSerializer",
+    "WishResponseSerializer",
+    "WishResponseCreateSerializer",
 ]

@@ -5,6 +5,7 @@ import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import MarkdownText from '../components/MarkdownText';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
@@ -86,43 +87,81 @@ export default function UserPage() {
     '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;
 
+  const koroType = localStorage.getItem('koro') || 'basic';
+
+  const heroContent = (
+    <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+      <BackLink to="/" label={t('common.home')} />
+      <div className="spacer-m" />
+      {user.headline && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>{user.headline}</p>}
+      <h1 className="form-hero-title">{user.name || user.email}</h1>
+      {user.created && (
+        <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)', opacity: 0.7 }}>
+          {t('userPage.memberSince', { date: new Date(user.created).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' }) })}
+        </p>
+      )}
+      {isOwnProfile && (
+        <div className="button-row-wide" style={{ paddingBottom: 'var(--spacing-s)' }}>
+          <Link to="/me/edit">
+            <Button style={btnStyle}>{t('userPage.editProfile')}</Button>
+          </Link>
+          <Link to="/logout">
+            <Button variant="secondary" style={btnSecondaryStyle}>{t('userPage.logout')}</Button>
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div
       className="form-page"
       style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
     >
       <div
-        className="form-hero"
+        className={`form-hero${user.photo_url ? ' form-hero--photo' : ''}`}
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to="/" label={t('common.home')} />
-          <div className="spacer-m" />
-          {user.headline && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 500, lineHeight: 'var(--lineheight-s)', color: 'var(--hero-text-color, var(--color-black-90))' }}>{user.headline}</p>}
-          <h1 className="form-hero-title">{user.name || user.email}</h1>
-          {user.created && (
-            <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)', opacity: 0.7 }}>
-              {t('userPage.memberSince', { date: new Date(user.created).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' }) })}
-            </p>
-          )}
-          {isOwnProfile && (
-            <div className="button-row-wide" style={{ paddingBottom: 'var(--spacing-s)' }}>
-              <Link to="/me/edit">
-                <Button style={btnStyle}>{t('userPage.editProfile')}</Button>
-              </Link>
-              <Link to="/logout">
-                <Button variant="secondary" style={btnSecondaryStyle}>{t('userPage.logout')}</Button>
-              </Link>
-            </div>
-          )}
+        <div className="form-hero-split">
+          {heroContent}
         </div>
+        {user.photo_url && (
+          <div className="hero-photo-wrap">
+            <img
+              className="hero-photo"
+              src={user.photo_url}
+              alt={t('userPage.photoAlt', { name: user.name || user.email })}
+            />
+            {/* a diagonal colour wedge (z1) carves the photo so the content reads */}
+            <div className="hero-photo-diag" aria-hidden="true">
+              <div
+                className="hero-photo-diag-fill"
+                style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+              />
+              <Koros
+                className="hero-photo-diag-koros"
+                type={koroType}
+                aria-hidden="true"
+                style={tc.color_03 ? { fill: `var(--color-${tc.color_03})` } : undefined}
+              />
+            </div>
+          </div>
+        )}
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koroType}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
       <div className="page-container">
+        {user.about && (
+          <>
+            <h2>{t('userPage.aboutHeading')}</h2>
+            <div className="spacer-s" />
+            <MarkdownText text={user.about} className="about-markdown" />
+            <div className="spacer-l" />
+          </>
+        )}
         {!isOwnProfile && user.shared_collections && user.shared_collections.length > 0 && (
           <>
             <h2>{t('userPage.collectionsInCommon')}</h2>

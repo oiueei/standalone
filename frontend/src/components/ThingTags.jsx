@@ -17,6 +17,9 @@ export default function ThingTags({ thing, isOwner, showType = true }) {
       {isOwner && thing.pending_questions > 0 && (
         <Tag theme={TAG_THEMES.pending}>{t('thingTags.pendingQuestions')}</Tag>
       )}
+      {(thing.tags || []).map((tag) => (
+        <Tag key={tag} theme={TAG_THEMES.custom}>{tag}</Tag>
+      ))}
     </div>
   );
 }

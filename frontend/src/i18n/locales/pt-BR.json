@@ -54,7 +54,9 @@
     "notFound": "Página não encontrada — OIUEEI",
     "deleteCollection": "Excluir {{headline}} — OIUEEI",
     "deleteCollectionDefault": "Excluir coleção — OIUEEI",
-    "share": "Entrar — OIUEEI"
+    "share": "Entrar — OIUEEI",
+    "notifications": "Preferências de e-mail — OIUEEI",
+    "popin": "Entra aí — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -64,7 +66,8 @@
     "magicLinkSent": "Se este e-mail estiver cadastrado, enviamos um link mágico para você.",
     "errorSendingLink": "Erro ao enviar o link.",
     "description": "O que é o OIUEEI? Um aplicativo web de código aberto para que as pessoas compartilhem seus pertences com amigos e outras pessoas. Os usuários podem criar coleções (listas de desejos, listas de presentes, itens à venda) e compartilhá-las com amigos que podem reservar itens ou fazer perguntas.",
-    "openSource": "OIUEEI é de código aberto. Você pode encontrar o projeto no <1>GitHub</1>. Se quiser solicitar acesso ou colaborar, entre em contato."
+    "openSource": "OIUEEI é de código aberto. Você pode encontrar o projeto no <1>GitHub</1>. Se quiser solicitar acesso ou colaborar, entre em contato.",
+    "popIn": "Novo por aqui? Entra aí →"
   },
   "verify": {
     "declined": "Recusado",
@@ -83,7 +86,7 @@
   "home": {
     "greeting": "Olá, {{name}}",
     "createCollection": "Criar coleção",
-    "myProfile": "Editar meu perfil",
+    "myProfile": "Meu perfil",
     "myRequests": "Minhas solicitações",
     "allThings": "Todos os itens",
     "loadingThings": "Carregando itens...",
@@ -94,7 +97,7 @@
     "declineInvitation": "Recusar convite",
     "dismiss": "Dispensar",
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
-    "broadcastBody": "{{subject}}: {{message}}",
+    "broadcastBody": "{{message}}",
     "collectionDeletedLabel": "Coleção excluída",
     "collectionDeletedBody": "\"{{collection_headline}}\" foi excluída por {{owner_name}}.",
     "collectionRevokedLabel": "Removido da coleção",
@@ -114,7 +117,15 @@
     "faqHiddenLabel": "Pergunta ocultada",
     "faqHiddenBody": "{{owner_name}} ocultou sua pergunta sobre {{thing_headline}}.",
     "inviteRejectedLabel": "Convite recusado",
-    "inviteRejectedBody": "{{invitee_name}} recusou o convite para {{collection_headline}}."
+    "inviteRejectedBody": "{{invitee_name}} recusou o convite para {{collection_headline}}.",
+    "wishPostedLabel": "Novo pedido",
+    "wishPostedBody": "{{creator_name}} publicou um pedido: {{wish_headline}}.",
+    "wishResponseLabel": "Nova resposta",
+    "wishResponseBody": "{{responder_name}} respondeu ao seu pedido {{wish_headline}}.",
+    "wishAcceptedLabel": "Resposta aceita",
+    "wishAcceptedBody": "{{owner_name}} aceitou sua resposta a {{wish_headline}}.",
+    "viewWish": "Ver pedido",
+    "viewCollection": "Posso ajudar!"
   },
   "collectionPage": {
     "editCollection": "Editar coleção",
@@ -169,7 +180,11 @@
     "errorShowingQuestion": "Erro ao mostrar a pergunta.",
     "noPermission": "Você não tem permissão para ver este item.",
     "notFound": "Item não encontrado.",
-    "errorLoading": "Erro ao carregar o item."
+    "errorLoading": "Erro ao carregar o item.",
+    "galleryLabel": "Fotos",
+    "galleryImageAlt": "{{name}} — imagem {{index}} de {{total}}",
+    "galleryPrev": "Imagem anterior",
+    "galleryNext": "Próxima imagem"
   },
   "thingCard": {
     "confirmHold": "Confirmar reserva",
@@ -226,7 +241,10 @@
     "maxHeadline": "Máximo 64 caracteres.",
     "priceRequired": "O preço é obrigatório para este tipo.",
     "maxLocation": "Máximo 32 caracteres.",
-    "errorCreating": "Erro ao criar o item."
+    "errorCreating": "Erro ao criar o item.",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Selecione as tags",
+    "tagsHelper": "Escolha entre as tags desta coleção"
   },
   "editThing": {
     "pageTitle": "Editar item",
@@ -252,7 +270,13 @@
     "maxName": "Máximo 32 caracteres.",
     "maxBio": "Máximo 64 caracteres.",
     "errorLoading": "Erro ao carregar o perfil.",
-    "errorSaving": "Erro ao salvar."
+    "errorSaving": "Erro ao salvar.",
+    "aboutLabel": "Sobre você",
+    "aboutHelper": "Compatível com Markdown",
+    "photoLabel": "Foto de perfil",
+    "photoHelper": "Exibida no seu perfil, opcional",
+    "maxAbout": "Máximo de 2000 caracteres.",
+    "emailPreferences": "Preferências de e-mail →"
   },
   "editCollection": {
     "pageTitle": "Editar coleção",
@@ -295,32 +319,32 @@
     "allowedTypesAlbumHelper": "O modo álbum aceita apenas presentes.",
     "allowedTypesSwapHelper": "O modo troca aceita apenas itens de troca.",
     "allowedTypesShareHelper": "O modo exclusivamente share aceita apenas itens share.",
-    "allowedTypesAtLeastOne": "Escolha pelo menos um tipo."
+    "allowedTypesAtLeastOne": "Escolha pelo menos um tipo.",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "ex.: Vintage, Cozinha, Externo",
+    "tagsHelper": "Rótulos opcionais para organizar as coisas desta coleção"
   },
   "welcome": {
     "greeting": "Olá, {{name}}",
     "pageTitle": "Bem-vindo ao OIUEEI!",
-    "description": "O OIUEEI é uma plataforma de código aberto para compartilhar dentro de comunidades de confiança. Crie coleções para presentes, vendas, empréstimos, pedidos, eventos, trocas, desejos e consultas — depois convide amigos para explorar, reservar e interagir. Tudo fica entre pessoas que se conhecem.",
+    "description": "O OIUEEI é uma plataforma de código aberto para compartilhar dentro de comunidades de confiança. Crie coleções para presentes, vendas, empréstimos, pedidos, trocas e desejos — depois convide amigos para explorar, reservar e interagir. Tudo fica entre pessoas que se conhecem.",
     "createCollection": "Criar coleção",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "Quem usa o OIUEEI?",
-    "personaLalaTitle": "Lala — A Multitarefa.",
-    "personaLalaBody": "De férias sabáticas e se desfazendo de tudo sem complicação — dez euros cada coisa, você vai buscar, tudo encerrado antes do dia 25. Mas a Lala também administra um esquema comunitário de compartilhamento de van, porque nem tudo precisa ser vendido quando pode simplesmente ser emprestado.",
+    "personaLalaTitle": "Lala — A Desapegada.",
+    "personaLalaBody": "De férias sabáticas e se desfazendo de tudo sem complicação — dez euros cada coisa, você vai buscar, tudo encerrado antes do dia 25. O que sobrar vai direto para o orfanato do bairro.",
     "personaLeleTitle": "Lele — A Cuidadora.",
-    "personaLeleBody": "Acordada às cinco da manhã assando bolos arquitetônicos com ingredientes que você consegue pronunciar, e — quando não está na cozinha — presenteando mudas de suculentas de um lindo álbum de fotos. Peça um bolo ou adote uma planta: ambos vêm com instruções de cuidado.",
+    "personaLeleBody": "Acordada às cinco da manhã assando bolos arquitetônicos com ingredientes que você consegue pronunciar — veganos, sem glúten ou com pouco açúcar, conforme a ocasião. Peça um para a próxima comemoração e ele chega feito do seu jeito.",
     "personaLiliTitle": "Lili — A Trocadora.",
     "personaLiliBody": "Ela empresta furadeiras, vaporizadores e escadas de graça porque ninguém precisa de furadeira todo dia. Também administra um quadro de troca de eletrônicos para entusiastas de Arduino — sem dinheiro, só componentes e respeito mútuo. Devolva as coisas limpas. Esse é o combinado.",
-    "personaLoloTitle": "Lolo — A Entusiasta.",
-    "personaLoloBody": "Organiza um clube do livro para quem gosta de heróis atormentados e charnecas varridas pelo vento — e também ensina dulcimer de martelos, aquela harpa trapezoidal sonhadora. Uma sessão para uma leitura aconchegante, outra para o som mais lindo do mundo.",
+    "personaLoloTitle": "Lolo — A Jardineira.",
+    "personaLoloBody": "Mãe de plantas com crias verdes demais, presenteia mudas de suculentas de um lindo álbum de fotos — echeverias, jades, sedums, de tudo. Adote uma muda; a única regra é que você tem que dar um nome a ela.",
     "personaLuluTitle": "Lulu — A Conectora.",
     "personaLuluBody": "Ninguém sabe bem onde ela encontra essas coisas nem para onde vai. Sua prateleira comunitária se enche toda semana com objetos que já viveram uma vida, prontos para um novo lar. Os membros recebem um resumo semanal por e-mail — porque o que chega à prateleira na segunda-feira merece já ter ido embora na sexta.",
-    "personaLalaLink1": "A van compartilhada",
     "personaLeleLink1": "Os bolos da Lele",
-    "personaLeleLink2": "O viveiro da Lele",
     "personaLiliLink1": "A estante de empréstimos da Lili",
     "personaLiliLink2": "A troca de eletrônicos da Lili",
-    "personaLoloLink1": "O clube do livro da Lolo",
-    "personaLoloLink2": "As aulas de dulcimer da Lolo",
+    "personaLoloLink1": "O salão verde da Lolo",
     "personaLuluLink1": "A prateleira fantasma da Lulu",
     "personaLalaLink2": "A venda sabática da Lala"
   },
@@ -381,7 +405,9 @@
     "noPermission": "Você não tem permissão para ver este perfil.",
     "notFound": "Usuário não encontrado.",
     "errorLoading": "Erro ao carregar o perfil.",
-    "logout": "Sair"
+    "logout": "Sair",
+    "aboutHeading": "Sobre",
+    "photoAlt": "Foto de {{name}}"
   },
   "koro": {
     "basic": "Básico",
@@ -405,7 +431,9 @@
     "IMMEDIATE": "Imediata",
     "NEXT_WEEK": "Semana que vem",
     "END_OF_MONTH": "Fim do mês",
-    "NEXT_MONTH": "Mês que vem"
+    "NEXT_MONTH": "Mês que vem",
+    "nextAvailable": "{{date}}",
+    "noneSoon": "Não"
   },
   "condition": {
     "NEW": "Novo",
@@ -447,12 +475,39 @@
     "orderCount_other": "{{count}} pedidos"
   },
   "wishes": {
-    "offerHelp": "Posso ajudar",
-    "helping": "Ajudando",
-    "helperCount_one": "{{count}} ajudante",
-    "helperCount_other": "{{count}} ajudantes",
-    "noHelpers": "Sem ajudantes ainda.",
-    "helpersHeading": "Ajudantes"
+    "respond": "Responder",
+    "respondPlaceholder": "Escolha como ajudar",
+    "kind": {
+      "haveThis": "Tenho isto",
+      "knowWhere": "Sei onde",
+      "canMake": "Posso fazer para você"
+    },
+    "responseCount_one": "{{count}} resposta",
+    "responseCount_other": "{{count}} respostas",
+    "responsesHeading": "Respostas",
+    "noResponses": "Ainda não há respostas.",
+    "yourAnswer": "Você já respondeu",
+    "status": {
+      "PENDING": "Pendente",
+      "ACCEPTED": "Aceita"
+    },
+    "accept": "Aceitar",
+    "resolve": "Marcar como resolvido",
+    "notifyGroup": "Avisar o grupo",
+    "respondingWithListing": "Você está publicando um item para responder a um pedido.",
+    "messageLabel": "Mensagem",
+    "messageRequired": "Escreva uma mensagem.",
+    "urlLabel": "Link (opcional)",
+    "feeLabel": "Oferta ou preço (opcional)",
+    "knowWhereTitle": "Sei onde",
+    "canMakeTitle": "Posso fazer para você",
+    "submit": "Enviar resposta",
+    "responseSent": "Resposta enviada.",
+    "errorResponding": "Não foi possível enviar a resposta.",
+    "acceptedToast": "Resposta aceita.",
+    "errorAccepting": "Não foi possível aceitar a resposta.",
+    "resolvedToast": "Pedido marcado como resolvido.",
+    "errorResolving": "Não foi possível marcar como resolvido."
   },
   "swap": {
     "offerItems": "Selecionar itens para oferecer",
@@ -463,7 +518,12 @@
     "swapAccepted": "Troca concluída! Os itens foram trocados.",
     "swapRejected": "Solicitação de troca recusada.",
     "enableSwap": "Ativar troca de itens",
-    "swapCollection": "Coleção de troca"
+    "swapCollection": "Coleção de troca",
+    "minimumNotMetBody_one": "Adicione mais {{count}} item a esta coleção antes de propor uma troca.",
+    "minimumNotMetBody_other": "Adicione mais {{count}} itens a esta coleção antes de propor uma troca.",
+    "minimumNotMetLabel": "Adicione mais itens primeiro",
+    "requireMinimumHelper": "Os convidados (e você) precisam adicionar pelo menos 3 itens próprios a esta coleção antes de poder propor uma troca.",
+    "requireMinimumLabel": "Exigir 3 itens antes de trocar"
   },
   "share": {
     "enableShare": "Exclusivamente coisas tipo SHARE",
@@ -501,7 +561,6 @@
   "broadcast": {
     "heading": "Difusão",
     "openButton": "Enviar mensagem aos convidados",
-    "subjectLabel": "Assunto",
     "messageLabel": "Mensagem",
     "sendButton": "Enviar difusão",
     "sending": "Enviando...",
@@ -546,5 +605,31 @@
     "copied": "Link copiado para a área de transferência.",
     "copyError": "Não conseguimos copiar o link. Tente novamente ou use outra opção.",
     "linkError": "Não conseguimos gerar o link. Tente novamente."
+  },
+  "gallery": {
+    "uploadLabel": "Mais fotos",
+    "uploadHelper": "Adicione até {{max}} fotos extras",
+    "maxImages": "Máximo de {{max}} fotos.",
+    "thumbAlt": "Foto da galeria {{index}}"
+  },
+  "tags": {
+    "add": "Adicionar"
+  },
+  "errorBoundary": {
+    "title": "Algo deu errado",
+    "body": "Ocorreu um erro inesperado. Tente recarregar a página ou voltar ao início.",
+    "reload": "Recarregar página",
+    "home": "Ir para o início"
+  },
+  "popin": {
+    "title": "Entra aí!",
+    "description": "Digite seu e-mail e te enviaremos um link mágico. Um clique e você está dentro — sem senha, sem complicação.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "voce@email.com",
+    "join": "Entra aí",
+    "joining": "Enviando…",
+    "magicLinkSent": "Link enviado! Confira sua caixa de entrada e clique no link para entrar.",
+    "alreadyHaveAccount": "Já tem uma conta? Fazer login →",
+    "errorSendingLink": "Erro ao enviar o link."
   }
 }

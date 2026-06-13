@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FileInput, Button } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../services/api';
 import { resizeImage } from '../utils/resizeImage';
+
+const MAX_IMAGES = 8;
 
 // HDS only supports fi, sv, en — everything else falls back to en
 function hdsLang(lang) {
@@ -11,49 +13,45 @@ function hdsLang(lang) {
 }
 
 /**
- * Single-image upload component backed by Cloudinary direct upload.
- * Images wider or taller than 1216 px are resized on the client before upload.
- * Shows a preview with a Remove button after upload or when an existing image
- * is present. Removing clears the field without deleting from Cloudinary.
+ * Multi-image gallery upload (additional photos beyond the cover thumbnail).
+ * Backed by Cloudinary direct upload (folder oiueei/things), client-resized to
+ * 1216px like ImageUpload. Max 8 images. Things only.
+ *
+ * Items are {publicId, url} pairs so the parent can both preview each photo and
+ * submit the ordered list of public_ids (`items.map(i => i.publicId)`).
  *
  * Props:
- *   id          – HTML id for the FileInput
- *   label       – visible label text
- *   onChange    – called with the new public_id (or '') on upload / remove
- *   currentUrl  – full URL of the current saved image (for the initial preview)
- *   folder      – Cloudinary upload folder (default 'oiueei/users')
- *   helperText  – optional helper text shown below the input
+ *   items     – current array of {publicId, url}
+ *   onChange  – called with the updated array on add / remove
  */
-export default function ImageUpload({ id, label, onChange, currentUrl, folder = 'oiueei/users', helperText }) {
+export default function GalleryUpload({ items = [], onChange }) {
   const { t, i18n } = useTranslation();
   const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
-  const [previewUrl, setPreviewUrl] = useState(currentUrl || null);
 
-  // Sync preview when the parent reloads with a new currentUrl
-  useEffect(() => {
-    setPreviewUrl(currentUrl || null);
-  }, [currentUrl]);
-
-  const handleRemove = () => {
-    setPreviewUrl(null);
-    onChange('');
+  const handleRemove = (index) => {
+    onChange(items.filter((_, i) => i !== index));
   };
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
-    const file = await resizeImage(files[0]);
+    setFileInputKey((k) => k + 1); // reset so HDS file list never shows
 
-    setFileInputKey((k) => k + 1); // reset immediately so HDS file list never shows
+    if (items.length >= MAX_IMAGES) {
+      setError(t('gallery.maxImages', { max: MAX_IMAGES }));
+      return;
+    }
+
+    const file = await resizeImage(files[0]);
     setUploading(true);
     setError(null);
 
     try {
       const sigRes = await apiFetch('/api/v1/upload/signature/', {
         method: 'POST',
-        body: JSON.stringify({ folder }),
+        body: JSON.stringify({ folder: 'oiueei/things' }),
       });
       if (!sigRes.ok) throw new Error('signature_failed');
       const { signature, timestamp, api_key, cloud_name } = await sigRes.json();
@@ -63,7 +61,7 @@ export default function ImageUpload({ id, label, onChange, currentUrl, folder = 
       formData.append('api_key', api_key);
       formData.append('timestamp', String(timestamp));
       formData.append('signature', signature);
-      formData.append('folder', folder);
+      formData.append('folder', 'oiueei/things');
 
       const uploadRes = await fetch(
         `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
@@ -72,8 +70,7 @@ export default function ImageUpload({ id, label, onChange, currentUrl, folder = 
       if (!uploadRes.ok) throw new Error('upload_failed');
       const data = await uploadRes.json();
 
-      setPreviewUrl(data.secure_url);
-      onChange(data.public_id);
+      onChange([...items, { publicId: data.public_id, url: data.secure_url }]);
     } catch {
       setError(t('upload.uploadError'));
     } finally {
@@ -90,32 +87,35 @@ export default function ImageUpload({ id, label, onChange, currentUrl, folder = 
 
   return (
     <div className="image-upload" style={wrapperStyle}>
-      {previewUrl && (
-        <div className="image-upload-preview">
-          <img src={previewUrl} alt="" />
-          <Button
-            variant="supplementary"
-            iconLeft={<span>✕</span>}
-            size="small"
-            onClick={handleRemove}
-            style={{ marginTop: 'var(--spacing-xs)' }}
-          >
-            {t('upload.remove')}
-          </Button>
-        </div>
+      {items.length > 0 && (
+        <ul className="gallery-thumbs">
+          {items.map((item, i) => (
+            <li key={item.publicId || i} className="gallery-thumb">
+              <img src={item.url} alt={t('gallery.thumbAlt', { index: i + 1 })} />
+              <Button
+                variant="supplementary"
+                iconLeft={<span aria-hidden="true">✕</span>}
+                size="small"
+                onClick={() => handleRemove(i)}
+              >
+                {t('upload.remove')}
+              </Button>
+            </li>
+          ))}
+        </ul>
       )}
-      {!previewUrl && (
+      {items.length < MAX_IMAGES && (
         <FileInput
           key={fileInputKey}
-          id={id}
-          label={label}
+          id="gallery-upload"
+          label={t('gallery.uploadLabel')}
           accept="image/*"
           multiple={false}
           onChange={handleFiles}
           disabled={uploading}
           language={hdsLang(i18n.language)}
           buttonLabel={t('upload.addFile')}
-          helperText={uploading ? t('upload.uploading') : (helperText || t('upload.acceptHint'))}
+          helperText={uploading ? t('upload.uploading') : t('gallery.uploadHelper', { max: MAX_IMAGES })}
           errorText={error || undefined}
           invalid={!!error}
         />

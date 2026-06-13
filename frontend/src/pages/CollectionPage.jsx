@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Linkbox, Notification, Tag, TextArea, TextInput } from 'hds-react';
+import { Button, Koros, Linkbox, Notification, Tag, TextArea } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -18,7 +18,6 @@ export default function CollectionPage() {
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
   const [broadcastOpen, setBroadcastOpen] = useState(false);
-  const [broadcastSubject, setBroadcastSubject] = useState('');
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState(null);
@@ -75,12 +74,11 @@ export default function CollectionPage() {
     try {
       const res = await apiFetch(`/api/v1/collections/${code}/broadcast/`, {
         method: 'POST',
-        body: JSON.stringify({ subject: broadcastSubject, message: broadcastMessage }),
+        body: JSON.stringify({ message: broadcastMessage }),
       });
       const data = await res.json();
       if (res.ok) {
         setBroadcastResult({ type: 'success', message: t('broadcast.sent', { count: data.recipients }) });
-        setBroadcastSubject('');
         setBroadcastMessage('');
       } else {
         setBroadcastResult({ type: 'error', message: data.error || t('common.error') });
@@ -262,14 +260,6 @@ export default function CollectionPage() {
             </Button>
           ) : (
             <div className="form-grid">
-              <TextInput
-                id="broadcast-subject"
-                label={t('broadcast.subjectLabel')}
-                value={broadcastSubject}
-                onChange={(e) => setBroadcastSubject(e.target.value)}
-                maxLength={64}
-                required
-              />
               <TextArea
                 id="broadcast-message"
                 label={t('broadcast.messageLabel')}
@@ -293,7 +283,7 @@ export default function CollectionPage() {
                 <Button
                   style={btnStyle}
                   onClick={handleBroadcast}
-                  disabled={broadcastSending || !broadcastSubject.trim() || !broadcastMessage.trim()}
+                  disabled={broadcastSending || !broadcastMessage.trim()}
                 >
                   {broadcastSending ? t('broadcast.sending') : t('broadcast.sendButton')}
                 </Button>

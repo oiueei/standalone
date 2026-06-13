@@ -73,6 +73,22 @@ class Thing(models.Model):
         default=None,
         help_text="Attached documents: [{public_id, filename, content_type}]. Max 5.",
     )
+    gallery = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "Additional photos beyond the cover thumbnail: an ordered list of "
+            "Cloudinary public_ids. Max 8. Things only (not collections)."
+        ),
+    )
+    tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "Owner-defined tags assigned to this thing — a subset of its "
+            "collection's tag vocabulary (Collection.tags). Max 12."
+        ),
+    )
     is_endless = models.BooleanField(default=False)
     deal = models.ManyToManyField(
         "User",
@@ -111,6 +127,39 @@ class Thing(models.Model):
             self.deal.remove(user)
         except User.DoesNotExist:
             pass
+
+    def availability_window(self, horizon_days=90):
+        """Live availability for date-based things (LEND/RENT) from the booking calendar.
+
+        Returns ``{"available_today": bool, "next_available": date|None}`` for
+        DATE_BASED_TYPES, or ``None`` for any other type (where a booking calendar
+        doesn't apply). Prefetch-aware: reuses ``self._blocked_periods`` when the
+        view prefetched it, otherwise issues a single ``get_blocked_periods`` query.
+        Result is memoised on the instance so the two serializer fields that read
+        it don't recompute.
+        """
+        if hasattr(self, "_availability_window_cache"):
+            return self._availability_window_cache
+
+        from core.models.booking import DATE_BASED_TYPES, BookingPeriod
+
+        if self.type not in DATE_BASED_TYPES:
+            self._availability_window_cache = None
+            return None
+
+        if hasattr(self, "_blocked_periods"):
+            blocked = self._blocked_periods
+        else:
+            blocked = list(BookingPeriod.get_blocked_periods(self.code))
+
+        from core.services.booking_service import compute_availability
+
+        available_today, next_available = compute_availability(blocked, horizon_days=horizon_days)
+        self._availability_window_cache = {
+            "available_today": available_today,
+            "next_available": next_available,
+        }
+        return self._availability_window_cache
 
     def can_view(self, user_code):
         """

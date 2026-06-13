@@ -57,6 +57,14 @@ class Collection(models.Model):
     is_minimalist = models.BooleanField(default=False)
     swap_minimum_items = models.PositiveIntegerField(default=0)
     allowed_thing_types = models.JSONField(default=list, blank=True)
+    tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "Owner-defined tag vocabulary for this collection: an ordered list of "
+            "free-text labels. Things in the collection may be tagged with a subset. Max 12."
+        ),
+    )
     thumbnail = models.CharField(max_length=255, blank=True, default="")
     pause_message = models.CharField(max_length=256, blank=True, default="")
     share_token = models.CharField(max_length=22, blank=True, null=True, unique=True)

@@ -69,6 +69,84 @@ body {
   height: 60px;
 }
 
+/* In the creator-profile photo hero the bottom wave overlaps the photo slightly
+   so its troughs reveal the photo (not the hero background) beneath the wave. */
+.form-hero--photo .form-hero-koros {
+  margin-top: -14px;
+  position: relative;
+  z-index: 3;
+}
+
+/* Creator-profile hero with a photo — a single LAYERED hero at every width:
+   the photo is a full-bleed background (z0); a colour_03 Koros wedge (rotated
+   135deg) sits above it (z1), carving a diagonal so the text reads on the colour
+   band while the photo shows through the wedge; the title/name/buttons sit on top
+   (z2). No breakpoint switch — same layering on mobile and desktop. */
+.form-hero--photo {
+  overflow: hidden;
+}
+
+/* z2 — content on top */
+.form-hero--photo .form-hero-split {
+  position: relative;
+  z-index: 2;
+}
+
+/* z0 — photo as a full-bleed background */
+.hero-photo-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* z1 — the colour_03 wedge: a large solid fill block plus the Koros wave,
+   rotated 135deg as one unit and anchored at the hero centre (translateY sizes
+   it). The block is over-sized so the colour band fully covers the upper-left
+   triangle at any hero size; the Koros keeps its natural 85px height so its fill
+   meets the block with no gap. */
+.hero-photo-diag {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2400px;
+  height: 1200px;
+  margin-left: -1200px;
+  margin-top: -600px;
+  transform: rotate(135deg) translateY(100px);
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.hero-photo-diag-fill {
+  position: absolute;
+  left: 0;
+  top: 560px;
+  width: 100%;
+  height: 1800px;
+  background-color: var(--color-black-5);
+}
+
+.hero-photo-diag-koros {
+  position: absolute;
+  left: 0;
+  top: 515px;
+  width: 100%;
+  height: 85px;
+}
+
+.hero-photo-diag-koros svg {
+  width: 100%;
+  height: 85px;
+}
+
 .form-page {
   min-height: 100vh;
   background-color: var(--color-black-5);
@@ -395,6 +473,114 @@ div[class*="Linkbox-module_linkbox"] {
   display: flex;
   gap: var(--spacing-s);
   flex-wrap: wrap;
+}
+
+/* Image carousel ("Image pagination") — shown on ThingPage when a thing has
+   more than one photo. Cover first, then gallery. */
+.image-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  align-items: flex-start;
+}
+
+.image-carousel-viewport {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+}
+
+.image-carousel-image {
+  display: block;
+  width: 100%;
+}
+
+.image-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--color-black-90);
+  cursor: pointer;
+}
+
+.image-carousel-arrow:hover {
+  background: var(--color-white);
+}
+
+.image-carousel-arrow--prev {
+  left: var(--spacing-2-xs);
+}
+
+.image-carousel-arrow--next {
+  right: var(--spacing-2-xs);
+}
+
+.image-carousel-arrow:disabled {
+  color: var(--color-black-40);
+  background: rgba(255, 255, 255, 0.6);
+  cursor: default;
+}
+
+/* Card variant: matches the collection-grid cover (.thing-card-image) sizing */
+.image-carousel--card {
+  width: 100%;
+}
+
+.image-carousel-viewport--card {
+  display: block;
+  width: calc(100% - 2 * var(--spacing-s));
+  max-width: none;
+  margin: var(--spacing-s) var(--spacing-s) 0;
+}
+
+.image-carousel-image--card {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+/* Collection tag editor (TagInput) — chip row of removable HDS Tags */
+.tag-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2-xs);
+  margin-top: var(--spacing-s);
+}
+
+/* Gallery upload thumbnails (Add/Edit thing) */
+.gallery-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+  list-style: none;
+  margin: 0 0 var(--spacing-s);
+  padding: 0;
+}
+
+.gallery-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2-xs);
+}
+
+.gallery-thumb img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 .faq-grid {
@@ -749,6 +935,18 @@ figure[class*="Highlight-module_highlight"] {
 }
 
 /* Markdown text */
+
+/* Profile "about" Markdown box renders at body-l */
+.about-markdown {
+  font-size: var(--fontsize-body-l);
+  line-height: var(--lineheight-l);
+}
+
+/* Welcome page body copy (description + persona paragraphs) at body-l */
+.welcome-content p {
+  font-size: var(--fontsize-body-l);
+  line-height: var(--lineheight-l);
+}
 
 .markdown-text ul,
 .markdown-text ol {

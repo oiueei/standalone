@@ -5,7 +5,13 @@ Unit tests for OIUEEI validators.
 import pytest
 from rest_framework import serializers
 
-from core.validators import ImageIdField, SafeHeadlineField, validate_headline, validate_image_id
+from core.validators import (
+    ImageIdField,
+    SafeHeadlineField,
+    SafeTextField,
+    validate_headline,
+    validate_image_id,
+)
 
 
 class TestValidateImageId:
@@ -144,3 +150,25 @@ class TestSafeHeadlineField:
         field = SafeHeadlineField()
         with pytest.raises(serializers.ValidationError):
             field.to_internal_value("<script>bad</script>")
+
+
+class TestSafeTextField:
+    """Tests for SafeTextField serializer field (used by the User `about` Markdown bio)."""
+
+    def test_accepts_multiline_markdown(self):
+        """Should accept multi-line Markdown (newlines, bold, list dashes, links)."""
+        field = SafeTextField(max_length=2000)
+        value = "Contact me at [my site](https://example.com)\n- one\n- two\n**bold**"
+        assert field.to_internal_value(value) == value
+
+    def test_empty_value_allowed(self):
+        field = SafeTextField(allow_blank=True)
+        assert field.to_internal_value("") == ""
+
+    def test_invalid_with_html(self):
+        """Should reject raw HTML tags (XSS guard) while permitting Markdown."""
+        field = SafeTextField()
+        with pytest.raises(serializers.ValidationError):
+            field.to_internal_value("<script>alert(1)</script>")
+        with pytest.raises(serializers.ValidationError):
+            field.to_internal_value("<iframe src=x></iframe>")

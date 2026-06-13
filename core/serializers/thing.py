@@ -52,8 +52,13 @@ class ThingSerializer(serializers.ModelSerializer):
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
-    helper_count = serializers.SerializerMethodField()
+    response_count = serializers.SerializerMethodField()
+    my_response = serializers.SerializerMethodField()
     document_urls = serializers.SerializerMethodField()
+    gallery_urls = serializers.SerializerMethodField()
+    available_today = serializers.SerializerMethodField()
+    next_available = serializers.SerializerMethodField()
+    collection_tags = serializers.SerializerMethodField()
 
     class Meta:
         model = Thing
@@ -67,6 +72,10 @@ class ThingSerializer(serializers.ModelSerializer):
             "description",
             "thumbnail",
             "thumbnail_url",
+            "gallery",
+            "gallery_urls",
+            "tags",
+            "collection_tags",
             "status",
             "faqs",
             "fee",
@@ -75,6 +84,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "condition",
             "documents",
             "document_urls",
+            "available_today",
+            "next_available",
             "deal",
             "pending_booking",
             "my_pending_booking",
@@ -85,7 +96,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "collection_swap_minimum_items",
             "my_swap_count_in_collection",
             "transfer_count",
-            "helper_count",
+            "response_count",
+            "my_response",
             "is_endless",
         ]
         read_only_fields = [
@@ -183,10 +195,27 @@ class ThingSerializer(serializers.ModelSerializer):
             return obj._transfer_count
         return obj.transfers.count()
 
-    def get_helper_count(self, obj):
+    def get_response_count(self, obj):
+        """Number of answers to a wish (WISH_THING only, null otherwise)."""
         if obj.type != Thing.Type.WISH_THING:
             return None
-        return obj.deal.count()
+        return len(obj.responses.all())
+
+    def get_my_response(self, obj):
+        """The requesting user's own answer to a wish: {code, kind, status} or null."""
+        if obj.type != Thing.Type.WISH_THING:
+            return None
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        for response in obj.responses.all():
+            if response.responder_id == request.user.code:
+                return {
+                    "code": response.code,
+                    "kind": response.kind,
+                    "status": response.status,
+                }
+        return None
 
     def get_document_urls(self, obj):
         if not obj.documents:
@@ -198,6 +227,29 @@ class ThingSerializer(serializers.ModelSerializer):
             url, _ = cloudinary.utils.cloudinary_url(doc["public_id"], resource_type="raw")
             result.append({"filename": doc["filename"], "url": url})
         return result
+
+    def get_gallery_urls(self, obj):
+        return [cloudinary_url(public_id) for public_id in (obj.gallery or [])]
+
+    def get_collection_tags(self, obj):
+        # The tag vocabulary available to this thing — union of its collections'
+        # tags. Feeds the tag picker on the edit form without an extra fetch.
+        seen = set()
+        result = []
+        for collection in obj.collections.all():
+            for tag in collection.tags or []:
+                if tag not in seen:
+                    seen.add(tag)
+                    result.append(tag)
+        return result
+
+    def get_available_today(self, obj):
+        window = obj.availability_window()
+        return window["available_today"] if window else None
+
+    def get_next_available(self, obj):
+        window = obj.availability_window()
+        return window["next_available"] if window else None
 
 
 class ThingCreateSerializer(serializers.ModelSerializer):
@@ -213,6 +265,18 @@ class ThingCreateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    gallery = serializers.ListField(
+        child=ImageIdField(allow_blank=False),
+        max_length=8,
+        required=False,
+        allow_empty=True,
+    )
+    tags = serializers.ListField(
+        child=SafeHeadlineField(max_length=32),
+        max_length=12,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Thing
@@ -221,6 +285,8 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "thumbnail",
+            "gallery",
+            "tags",
             "fee",
             "availability",
             "location",
@@ -250,6 +316,18 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    gallery = serializers.ListField(
+        child=ImageIdField(allow_blank=False),
+        max_length=8,
+        required=False,
+        allow_empty=True,
+    )
+    tags = serializers.ListField(
+        child=SafeHeadlineField(max_length=32),
+        max_length=12,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Thing
@@ -258,6 +336,8 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "thumbnail",
+            "gallery",
+            "tags",
             "status",
             "fee",
             "availability",
@@ -267,6 +347,21 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "is_endless",
         ]
         read_only_fields = ["status"]
+
+    def validate_tags(self, value):
+        """Each tag must belong to the vocabulary of the thing's collection(s)."""
+        if not value:
+            return value
+        available = set()
+        if self.instance is not None:
+            for collection in self.instance.collections.all():
+                available.update(collection.tags or [])
+        invalid = [t for t in value if t not in available]
+        if invalid:
+            raise serializers.ValidationError(
+                f"These tags are not defined by the collection: {invalid}"
+            )
+        return value
 
     def validate_documents(self, value):
         if not value:

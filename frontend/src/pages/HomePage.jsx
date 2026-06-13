@@ -119,6 +119,9 @@ export default function HomePage() {
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredLabel');
       case 'FAQ_HIDDEN': return tFn('home.faqHiddenLabel');
       case 'INVITE_REJECTED': return tFn('home.inviteRejectedLabel');
+      case 'WISH_POSTED': return tFn('home.wishPostedLabel');
+      case 'WISH_RESPONSE': return tFn('home.wishResponseLabel');
+      case 'WISH_ACCEPTED': return tFn('home.wishAcceptedLabel');
       default: return tFn('home.broadcastLabel', { owner_name: p.owner_name, collection_headline: p.collection_headline });
     }
   };
@@ -136,8 +139,27 @@ export default function HomePage() {
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'FAQ_HIDDEN': return tFn('home.faqHiddenBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'INVITE_REJECTED': return tFn('home.inviteRejectedBody', { collection_headline: p.collection_headline, invitee_name: p.invitee_name });
-      default: return tFn('home.broadcastBody', { subject: p.subject, message: p.message });
+      case 'WISH_POSTED': return tFn('home.wishPostedBody', { creator_name: p.creator_name, wish_headline: p.wish_headline });
+      case 'WISH_RESPONSE': return tFn('home.wishResponseBody', { responder_name: p.responder_name, wish_headline: p.wish_headline });
+      case 'WISH_ACCEPTED': return tFn('home.wishAcceptedBody', { owner_name: p.owner_name, wish_headline: p.wish_headline });
+      default: return tFn('home.broadcastBody', { message: p.message });
     }
+  };
+
+  // Deep link to the object that originated a notification: the wish page for
+  // wish notifications, the collection for a broadcast. Returns {to, label} or null.
+  const inboxNotificationLink = (n) => {
+    const p = n.payload || {};
+    if (p.wish_code) {
+      const to = p.collection_code
+        ? `/collections/${p.collection_code}/things/${p.wish_code}`
+        : `/things/${p.wish_code}`;
+      return { to, label: t('home.viewWish') };
+    }
+    if (n.type === 'BROADCAST' && p.collection_code) {
+      return { to: `/collections/${p.collection_code}`, label: t('home.viewCollection') };
+    }
+    return null;
   };
 
   if (error) {
@@ -183,7 +205,7 @@ export default function HomePage() {
             <Link to="/collections/new">
               <Button style={btnStyle}>{t('home.createCollection')}</Button>
             </Link>
-            <Link to="/me/edit">
+            <Link to="/me">
               <Button variant="secondary" style={btnSecondaryStyle}>{t('home.myProfile')}</Button>
             </Link>
             <Link to="/my-bookings">
@@ -201,19 +223,28 @@ export default function HomePage() {
 
         {inboxNotifications.length > 0 && (
           <>
-            {inboxNotifications.map((n) => (
-              <Notification
-                key={n.code}
-                type={inboxNotificationType(n.type)}
-                label={inboxNotificationLabel(n, t)}
-                dismissible
-                closeButtonLabelText={t('home.dismiss')}
-                onClose={() => dismissInboxNotification(n.code)}
-                style={{ marginBottom: 'var(--spacing-s)' }}
-              >
-                {inboxNotificationBody(n, t)}
-              </Notification>
-            ))}
+            {inboxNotifications.map((n) => {
+              const link = inboxNotificationLink(n);
+              return (
+                <Notification
+                  key={n.code}
+                  type={inboxNotificationType(n.type)}
+                  label={inboxNotificationLabel(n, t)}
+                  dismissible
+                  closeButtonLabelText={t('home.dismiss')}
+                  onClose={() => dismissInboxNotification(n.code)}
+                  style={{ marginBottom: 'var(--spacing-s)' }}
+                >
+                  {inboxNotificationBody(n, t)}
+                  {link && (
+                    <>
+                      {' '}
+                      <Link to={link.to}>{link.label}</Link>
+                    </>
+                  )}
+                </Notification>
+              );
+            })}
             <div className="spacer-m" />
           </>
         )}

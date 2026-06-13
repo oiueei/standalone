@@ -421,33 +421,112 @@ def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
-def send_broadcast_email(owner_name, owner_email, collection_headline, subject, message, emails):
+def send_broadcast_email(
+    owner_name, owner_email, collection_headline, collection_code, message, emails
+):
     """Send a broadcast email from a collection owner to all invitees.
 
-    Includes reply-to header so invitees can respond directly to the owner.
+    The subject is auto-generated as "Hey! {collection}" (the owner only writes
+    the message). Carries a reply-to header (the owner) and a link to the
+    collection — the object that originated the message — so recipients can open
+    it in-app.
     """
     safe_owner = escape(owner_name)
     safe_collection = escape(collection_headline)
-    safe_subject = escape(subject)
     safe_message = escape(message)
+    collection_url = f"{_frontend_base_url()}/collections/{collection_code}"
 
-    full_subject = f"[{collection_headline}] {subject}"
+    full_subject = f"Hey! {collection_headline}"
     plain = (
         f"Message from {owner_name} ({collection_headline}):\n\n"
         f"{message}\n\n"
-        f"Reply directly to this email to respond to {owner_name}."
+        f"I can help! {collection_url}"
     )
     html = f"""
         <html>
         <p><strong>{safe_owner}</strong> sent a message to <strong>{safe_collection}</strong>:</p>
-        <p><strong>{safe_subject}</strong></p>
         <p>{safe_message}</p>
-        <p><em>Reply directly to this email to respond to {safe_owner}.</em></p>
+        <p><a href="{collection_url}">I can help!</a></p>
         </html>
         """
 
     for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
         _send(email, full_subject, plain, html, CATEGORY_ACTIVITY, reply_to=[owner_email])
+
+
+def _thing_url(thing):
+    """Build the frontend URL for a thing (collection-scoped when possible)."""
+    base = _frontend_base_url()
+    collection = thing.collections.first()
+    if collection:
+        return f"{base}/collections/{collection.code}/things/{thing.code}"
+    return f"{base}/things/{thing.code}"
+
+
+def send_wish_posted_email(creator_name, wish, emails):
+    """Notify a community that a member posted a new wish (pedido).
+
+    ``emails`` is the list of group members. Respects each recipient's
+    activity opt-out via ``_filter_recipients``.
+    """
+    safe_creator = escape(creator_name)
+    safe_headline = escape(wish.headline)
+    wish_url = _thing_url(wish)
+
+    subject = "A neighbour is looking for something"
+    plain = (
+        f"{creator_name} posted a new wish: '{wish.headline}'. "
+        f"Can you help? View it: {wish_url}"
+    )
+    html = f"""
+        <html>
+        <p><strong>{safe_creator}</strong> posted a new wish:</p>
+        <p><strong>{safe_headline}</strong></p>
+        <p><a href="{wish_url}">See if you can help</a></p>
+        </html>
+        """
+    for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
+        _send(email, subject, plain, html, CATEGORY_ACTIVITY)
+
+
+def send_wish_response_email(responder_name, wish, creator_email):
+    """Notify a wish creator that someone answered their pedido."""
+    safe_responder = escape(responder_name)
+    safe_headline = escape(wish.headline)
+    wish_url = _thing_url(wish)
+
+    subject = "Someone answered your wish"
+    plain = (
+        f"{responder_name} answered your wish '{wish.headline}'. " f"View the answer: {wish_url}"
+    )
+    html = f"""
+        <html>
+        <p><strong>{safe_responder}</strong> answered your wish:</p>
+        <p><strong>{safe_headline}</strong></p>
+        <p><a href="{wish_url}">View the answer</a></p>
+        </html>
+        """
+    _send(creator_email, subject, plain, html, CATEGORY_ACTIVITY)
+
+
+def send_wish_thanks_email(creator_name, wish, responder_email):
+    """Thank the accepted responder when the wish creator marks it resolved."""
+    safe_creator = escape(creator_name)
+    safe_headline = escape(wish.headline)
+
+    subject = "Thanks for your help"
+    plain = (
+        f"{creator_name} marked the wish '{wish.headline}' as resolved "
+        f"and wanted to thank you for your help."
+    )
+    html = f"""
+        <html>
+        <p><strong>{safe_creator}</strong> marked this wish as resolved:</p>
+        <p><strong>{safe_headline}</strong></p>
+        <p>Thanks for helping out!</p>
+        </html>
+        """
+    _send(responder_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_return_reminder_email(requester_name, thing_headline, end_date, owner_email):

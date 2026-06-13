@@ -6,10 +6,10 @@ import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
 
 const PERSONA_LINKS = {
-  Lala: [{ code: 'La1aC1', key: 'personaLalaLink2' }, { code: 'La1aC2', key: 'personaLalaLink1' }],
-  Lele: [{ code: 'L3L3C1', key: 'personaLeleLink1' }, { code: 'L3L3C2', key: 'personaLeleLink2' }],
+  Lala: [{ code: 'La1aC1', key: 'personaLalaLink2' }],
+  Lele: [{ code: 'L3L3C1', key: 'personaLeleLink1' }],
   Lili: [{ code: 'l1l1C1', key: 'personaLiliLink1' }, { code: 'l1l1C2', key: 'personaLiliLink2' }],
-  Lolo: [{ code: 'l0l0C1', key: 'personaLoloLink1' }, { code: 'l0l0C2', key: 'personaLoloLink2' }],
+  Lolo: [{ code: 'l0l0C1', key: 'personaLoloLink1' }],
   Lulu: [{ code: '1u1uC1', key: 'personaLuluLink1' }],
 };
 
@@ -71,7 +71,7 @@ export default function WelcomePage() {
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
-      <div className="page-container">
+      <div className="page-container welcome-content">
         <p>
           {t('welcome.description')}
         </p>

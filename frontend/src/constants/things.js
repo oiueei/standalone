@@ -11,6 +11,17 @@ export const SHARE_TYPE = 'SHARE_THING';
 export const SWAP_TYPE = 'SWAP_THING';
 export const WISH_TYPE = 'WISH_THING';
 
+// Wish "Contestar" answer kinds. HAVE_THIS reuses the publish-listing flow;
+// KNOW_WHERE / CAN_MAKE open a short form (RespondWishPage), keyed by slug.
+export const WISH_RESPONSE_KINDS = ['HAVE_THIS', 'KNOW_WHERE', 'CAN_MAKE'];
+export const WISH_KIND_SLUGS = { KNOW_WHERE: 'know-where', CAN_MAKE: 'can-make' };
+export const WISH_KIND_BY_SLUG = { 'know-where': 'KNOW_WHERE', 'can-make': 'CAN_MAKE' };
+export const WISH_KIND_I18N = {
+  HAVE_THIS: 'haveThis',
+  KNOW_WHERE: 'knowWhere',
+  CAN_MAKE: 'canMake',
+};
+
 export const DATE_TYPES = ['LEND_THING', 'RENT_THING'];
 export const ORDER_TYPE = 'ORDER_THING';
 export const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
@@ -25,4 +36,7 @@ export const TAG_THEMES = {
   taken: { '--tag-background': '#fff4e5', '--tag-color': '#b54708' },
   inactive: { '--tag-background': '#e8e8e8', '--tag-color': '#525252' },
   pending: { '--tag-background': '#fff4e5', '--tag-color': '#b54708' },
+  // Owner-defined collection tags assigned to a thing — neutral bussi tint,
+  // distinct from the amber status tags and grey inactive tag.
+  custom: { '--tag-background': '#eef0ff', '--tag-color': '#0000bf' },
 };

@@ -17,6 +17,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 | `cancel_booking(booking)` | `BookingPeriod` instance | Calls `booking.cancel()`. For single-use types (GIFT, SELL), restores thing to `ACTIVE`. Returns thing. |
 | `accept_booking(booking)` | `BookingPeriod` instance | Calls `booking.accept()`. For single-use types, sets thing to `INACTIVE` and adds requester to `deal` M2M. For `SHARE_THING`, transfers ownership to the requester (`thing.owner = booking.requester_code`); thing stays `ACTIVE`. For `SWAP_THING`, transfers requested thing to requester and all offered things (`booking.offered_things`) to original owner; all things stay `ACTIVE`; creates `ThingTransfer` records for each thing involved. Creates a `ThingTransfer` record (from owner to requester, lent_date = start_date or today). Returns thing. |
 | `reject_booking(booking)` | `BookingPeriod` instance | Calls `booking.reject()`. For single-use types, restores thing to `ACTIVE`. Returns thing. |
+| `compute_availability(blocked_periods, today=None, horizon_days=90)` | iterable of PENDING/ACCEPTED bookings (objects with `start_date`/`end_date`) | **Pure, side-effect-free.** Returns `(available_today: bool, next_available: date|None)` for a date-based thing. Walks forward from `today` (default `timezone.localdate()`), treating each booking range as **inclusive** on both ends (identical to `BookingPeriod.has_overlap()` and the frontend's `isDateBlocked`), and returns the first free day — or `(False, None)` when every day within `horizon_days` is booked. Null-dated rows are skipped. Consumed by `Thing.availability_window()` → the `available_today`/`next_available` serializer fields. |
 
 #### Patterns
 
@@ -41,7 +42,7 @@ Every email belongs to one of three categories. Each function routes through the
 | Category | Constant | User flag | Scope |
 |----------|----------|-----------|-------|
 | **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_revoke_email` |
-| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_return_reminder_email`, `send_delivery_reminder_email`, `send_broadcast_email`, `send_documents_email`, `send_swap_request_email`, `send_swap_confirmation_email` |
+| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_return_reminder_email`, `send_delivery_reminder_email`, `send_broadcast_email`, `send_documents_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
 | **Cat. 3 — News** | `CATEGORY_NEWS` | `User.notify_news` | `send_digest_email`, `send_newsletter_email` |
 
 - **Lookup fallback**: if no `User` matches the recipient email (e.g. a not-yet-registered invitee), `_should_send` returns `True` — all emails reach non-users by default.
@@ -70,7 +71,7 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_faq_question_email(questioner_name, thing, question, owner_email)` | Guest asks a question on a thing | Thing owner |
 | `send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email)` | Owner answers a FAQ | Questioner |
 | `send_faq_hide_email(owner_name, thing_headline, question, questioner_email)` | Owner hides a FAQ | Questioner |
-| `send_broadcast_email(owner_name, owner_email, collection_headline, subject, message, emails)` | Owner sends broadcast to collection | All collection invitees (individually, with Reply-To owner) |
+| `send_broadcast_email(owner_name, owner_email, collection_headline, collection_code, message, emails)` | Owner sends broadcast to collection | All collection invitees (individually, Reply-To owner + a link to the collection). Subject auto-generated as `Hey! {collection}`. |
 | `send_digest_email(collection_headline, collection_code, thing_headlines, emails)` | Daily command (weekly/monthly) | All collection invitees (individually) |
 | `send_newsletter_email(collection_headline, collection_code, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |
 | `send_return_reminder_email(requester_name, thing_headline, end_date, owner_email)` | Daily command (end_date = tomorrow) | Thing owner |
@@ -78,6 +79,9 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_documents_email(requester_email, thing_headline, documents)` | Booking accepted for thing with documents | Requester (download links to Cloudinary raw URLs) |
 | `send_swap_request_email(requester, thing, offered_things, owner_email, accept_link, reject_link)` | Guest proposes a swap | Thing owner (lists offered thing headlines, accept/reject links) |
 | `send_swap_confirmation_email(requester, thing, offered_things, booking)` | Guest proposes a swap | Requester (confirmation of swap proposal) |
+| `send_wish_posted_email(creator_name, wish, emails)` | Member posts a wish with "Avisar al grupo" on | Every group member (individually; activity opt-out applies) |
+| `send_wish_response_email(responder_name, wish, creator_email)` | Member answers a wish | Wish creator |
+| `send_wish_thanks_email(creator_name, wish, responder_email)` | Wish creator marks it resolved | Accepted responder |
 
 #### Patterns
 
@@ -86,7 +90,7 @@ Every email belongs to one of three categories. Each function routes through the
 - **Action links**: Booking and invitation emails include accept/reject links (RSVP-based URLs generated by the calling view). FAQ question emails include a direct link to the thing page.
 - **`from_email=None`**: Uses Django's `DEFAULT_FROM_EMAIL` setting.
 - **Booking email variants**: `send_booking_request_email` and `send_booking_decision_email` adapt their content based on booking type — date-based (start/end), order (delivery + quantity), or simple (no extra fields).
-- **Reply-To header**: `send_broadcast_email()` uses `EmailMultiAlternatives` with `reply_to` so invitees can respond directly to the collection owner. Routed through `_send(..., reply_to=[owner_email])`.
+- **Reply-To header**: `send_broadcast_email()` uses `EmailMultiAlternatives` with `reply_to` so invitees can respond directly to the collection owner (routed through `_send(..., reply_to=[owner_email])`). The visible body links to the collection (`/collections/{code}`) — the object that originated the message — rather than promising an email reply.
 - **Digest emails**: `send_digest_email()` lists new thing headlines in both plain text (bulleted) and HTML (`<ul>/<li>`) formats.
 - **Direct collection links**: `send_digest_email()` and `send_newsletter_email()` link straight to `{frontend_base}/collections/{code}`. Per DESIGN.md §9 we do not track email engagement — links are never wrapped in a redirect or tracking pixel.
 - **Preference pipeline**: every send goes through `_send()` → `_should_send()` + `_with_footer()`. Never call `send_mail` directly from outside this module — the preference check and footer would be bypassed.

@@ -1,12 +1,14 @@
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconHome, IconSwapUser } from 'hds-react';
+import { Button, Notification, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconSpeechbubbleText, IconSwapUser } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import MarkdownText from './MarkdownText';
+import RespondMenu from './RespondMenu';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
+import ImageCarousel from './ImageCarousel';
 
 export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, onUpdateThing }) {
   const { t, i18n } = useTranslation();
@@ -42,15 +44,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const needsPage = isDateBased || isOrder || isSwap || thing.is_endless;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
-  const [helpSubmitting, setHelpSubmitting] = useState(false);
-  const [isHelping, setIsHelping] = useState(false);
-  const [helperCount, setHelperCount] = useState(thing.helper_count || 0);
-
-  useEffect(() => {
-    if (isWish && thing.deal) {
-      setIsHelping(thing.deal.includes(userCode));
-    }
-  }, [isWish, thing.deal, userCode]);
 
   const [bookings, setBookings] = useState([]);
 
@@ -162,24 +155,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     }
   };
 
-  const handleOfferHelp = async () => {
-    setHelpSubmitting(true);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/offer-help/`, { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setIsHelping(data.offering);
-        setHelperCount(data.helper_count);
-      } else {
-        setToast({ type: 'error', message: t('common.connectionError') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setHelpSubmitting(false);
-    }
-  };
-
   const showButton = !isOwner && thing.status !== 'INACTIVE';
   const swapMinimum = thing.collection_swap_minimum_items || 0;
   const swapOwnCount = thing.my_swap_count_in_collection || 0;
@@ -278,15 +253,18 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
 
   return (
     <div className="thing-card">
-      {thing.thumbnail_url && (
-        <Link to={thingPath}>
-          <img
-            src={thing.thumbnail_url}
-            alt={thing.headline}
-            className="thing-card-image"
-          />
-        </Link>
-      )}
+      {(() => {
+        const images = [thing.thumbnail_url, ...(thing.gallery_urls || [])].filter(Boolean);
+        if (images.length === 0) return null;
+        if (images.length === 1) {
+          return (
+            <Link to={thingPath}>
+              <img src={images[0]} alt={thing.headline} className="thing-card-image" />
+            </Link>
+          );
+        }
+        return <ImageCarousel images={images} alt={thing.headline} variant="card" to={thingPath} />;
+      })()}
       <div className="thing-card-body">
         {collectionMode === 'COMMUNITY' && (
           <p className="thing-card-meta">
@@ -299,6 +277,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         {thing.description && (
           <MarkdownText text={thing.description} className="thing-card-description" />
         )}
+        <ThingTags thing={thing} isOwner={isOwner} showType={false} />
         <div className="thing-card-info">
           <div className="thing-card-info-row">
             <IconTicket size="m" aria-hidden="true" />
@@ -312,7 +291,20 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <span>{thing.fee} €</span>
             </div>
           )}
-          {thing.availability && (
+          {isDateBased && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
+              <span>
+                {thing.available_today
+                  ? t('availability.IMMEDIATE')
+                  : thing.next_available
+                    ? t('availability.nextAvailable', { date: new Date(thing.next_available).toLocaleDateString(i18n.language, { day: 'numeric', month: 'numeric' }) })
+                    : t('availability.noneSoon')}
+              </span>
+            </div>
+          )}
+          {!isDateBased && thing.availability && (
             <div className="thing-card-info-row">
               <IconCalendar size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
@@ -333,10 +325,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               <span>{t('condition.' + thing.condition)}</span>
             </div>
           )}
-          {isWish && (
+          {isWish && thing.response_count > 0 && (
             <div className="thing-card-info-row">
-              <IconHome size="m" aria-hidden="true" />
-              <span>{t('wishes.helperCount', { count: helperCount })}</span>
+              <IconSpeechbubbleText size="m" aria-hidden="true" />
+              <span>{t('wishes.responseCount', { count: thing.response_count })}</span>
             </div>
           )}
           {thing.transfer_count > 0 && (
@@ -440,15 +432,18 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             </>
           )}
           {showButton && isWish && (
-            <Button
-              fullWidth
-              disabled={helpSubmitting}
-              style={isHelping ? btnSecondaryStyle : btnStyle}
-              variant={isHelping ? 'secondary' : 'primary'}
-              onClick={handleOfferHelp}
-            >
-              {isHelping ? t('wishes.helping') : t('wishes.offerHelp')}
-            </Button>
+            thing.my_response ? (
+              <p className="thing-card-meta">
+                {t('wishes.yourAnswer')} · {t('wishes.status.' + thing.my_response.status)}
+              </p>
+            ) : (
+              <RespondMenu
+                thingCode={thing.code}
+                collectionCode={collectionCode || thing.collection_code}
+                backPath={collectionCode ? `/collections/${collectionCode}` : '/'}
+                backLabel={collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home')}
+              />
+            )
           )}
           {showButton && !isWish && (
             <Button

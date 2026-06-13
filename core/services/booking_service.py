@@ -5,13 +5,52 @@ Extracts accept/reject logic from views into reusable service functions.
 Uses transaction.atomic to ensure BookingPeriod and Thing updates are consistent.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import transaction
+from django.utils import timezone
 
 from core.models import Thing
 from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
 from core.models.transfer import ThingTransfer
+
+DEFAULT_AVAILABILITY_HORIZON_DAYS = 90
+
+
+def compute_availability(
+    blocked_periods, today=None, horizon_days=DEFAULT_AVAILABILITY_HORIZON_DAYS
+):
+    """Compute live availability for a date-based thing from its blocked periods.
+
+    Pure, side-effect-free helper (easy to unit test). Given an iterable of
+    PENDING/ACCEPTED bookings (objects exposing ``start_date``/``end_date``),
+    returns a ``(available_today, next_available)`` tuple:
+
+    - ``available_today`` (bool): True when *today* falls in no blocked range.
+    - ``next_available`` (date | None): the earliest free day on or after today,
+      or None when every day within ``horizon_days`` is booked.
+
+    Range semantics are **inclusive** on both ends — identical to
+    ``BookingPeriod.has_overlap()`` and the frontend's ``isDateBlocked`` — so a
+    booking ending today blocks today and the next free day is ``end_date + 1``.
+    Rows with a null ``start_date``/``end_date`` (non-date-based bookings) are
+    skipped defensively.
+    """
+    if today is None:
+        today = timezone.localdate()
+
+    ranges = sorted(
+        (b.start_date, b.end_date) for b in blocked_periods if b.start_date and b.end_date
+    )
+
+    horizon = today + timedelta(days=horizon_days)
+    cursor = today
+    while cursor <= horizon:
+        covering = next((r for r in ranges if r[0] <= cursor <= r[1]), None)
+        if covering is None:
+            return (cursor == today, cursor)
+        cursor = covering[1] + timedelta(days=1)
+    return (False, None)
 
 
 def cancel_booking(booking):

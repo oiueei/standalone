@@ -20,7 +20,7 @@ from importlib import import_module
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from core.models import FAQ, Collection, Thing, User
+from core.models import FAQ, Collection, Thing, User, WishResponse
 from core.models.transfer import ThingTransfer
 
 from .seed_data import common
@@ -60,6 +60,7 @@ class Command(BaseCommand):
         self._seed_collections(data.COLLECTIONS)
         self._seed_things(data.THINGS)
         self._seed_faqs(data.FAQS)
+        self._seed_wish_responses(getattr(data, "WISH_RESPONSES", []))
         self._seed_transfers(common.TRANSFERS)
 
         self.stdout.write(
@@ -87,6 +88,8 @@ class Command(BaseCommand):
                     "headline": data["headline"],
                     "theeeme_id": data["theeeme_id"],
                     "koro": data.get("koro", "basic"),
+                    "photo": data.get("photo", ""),
+                    "about": data.get("about", ""),
                 },
             )
 
@@ -105,6 +108,7 @@ class Command(BaseCommand):
                 "newsletter_enabled": data.get("newsletter_enabled", False),
                 "digest_frequency": data.get("digest_frequency", "NONE"),
                 "thumbnail": data.get("thumbnail", ""),
+                "tags": data.get("tags", []),
             }
             col, _ = Collection.objects.update_or_create(code=data["code"], defaults=defaults)
             col.invites.set(User.objects.filter(code__in=data.get("invites", [])))
@@ -123,6 +127,8 @@ class Command(BaseCommand):
                 "availability": data.get("availability", ""),
                 "location": data.get("location", ""),
                 "thumbnail": data.get("thumbnail", ""),
+                "gallery": data.get("gallery", []),
+                "tags": data.get("tags", []),
                 "documents": data.get("documents", []),
                 "is_endless": data.get("is_endless", False),
             }
@@ -137,6 +143,19 @@ class Command(BaseCommand):
                 questioner=User.objects.get(code=data["questioner_code"]),
                 question=data["question"],
                 defaults={"answer": data["answer"], "is_visible": True},
+            )
+
+    def _seed_wish_responses(self, responses):
+        for data in responses:
+            WishResponse.objects.update_or_create(
+                wish=Thing.objects.get(code=data["wish_code"]),
+                responder=User.objects.get(code=data["responder_code"]),
+                kind=data["kind"],
+                defaults={
+                    "message": data.get("message", ""),
+                    "url": data.get("url", ""),
+                    "fee": data.get("fee"),
+                },
             )
 
     def _seed_transfers(self, transfers):

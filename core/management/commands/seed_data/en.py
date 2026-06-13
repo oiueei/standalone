@@ -10,6 +10,15 @@ USERS = [
         "name": "Lala",
         "headline": "Three cheers for second-hand!",
         "theeeme_id": "BUU331",
+        "photo": "la1an1",
+        "about": (
+            "## Hi, I'm Lala 👋\n\n"
+            "Lifelong **second-hand** devotee — one person's clutter is another's "
+            "treasure. Right now I'm clearing the flat before a *sabbatical*, so "
+            "everything must go!\n\n"
+            "- ♻️ Reuse over buy-new\n"
+            "- 🤝 Cash, collect, kindness"
+        ),
     },
     {
         "code": "L3L3oo",
@@ -17,6 +26,12 @@ USERS = [
         "name": "Lele",
         "headline": "Here! Now!! Sharing!!!",
         "theeeme_id": "K0P4R1",
+        "about": (
+            "## Lele's kitchen 🧁\n\n"
+            "I bake **healthy, natural** cakes for mindful celebrations — vegan, "
+            "gluten-free or low-sugar, your call. Sharing sweetness is my love "
+            "language. *Here! Now!! Sharing!!!*"
+        ),
     },
     {
         "code": "l1l13S",
@@ -24,6 +39,12 @@ USERS = [
         "name": "Lili",
         "headline": "Hurrah for the Borrow Shelf! Lili's got your gear!",
         "theeeme_id": "BUU331",
+        "about": (
+            "## Borrow, don't buy 🔧\n\n"
+            "Keeper of the **tool library** and a tinkerer at heart. If it drills, "
+            "steams, climbs or beeps, I've probably got one to lend. Also swapping "
+            "*Arduino* bits — resistance is futile!"
+        ),
     },
     {
         "code": "l0l0oh",
@@ -31,6 +52,12 @@ USERS = [
         "name": "Lolo",
         "headline": "Heathcliff's brooding romance calls! Lolo's book club beckons!",
         "theeeme_id": "BUU331",
+        "about": (
+            "## Plant mum & bookworm 🌿📚\n\n"
+            "Too many **succulent** babies and a soft spot for *Wuthering Heights*. "
+            "Drop by for a free cutting and stay for the book club — Heathcliff's "
+            "brooding awaits."
+        ),
     },
     {
         "code": "1u1ucs",
@@ -38,6 +65,12 @@ USERS = [
         "name": "Lulu",
         "headline": "I know everyone and join every lark – your community spark!",
         "theeeme_id": "BUU331",
+        "about": (
+            "## Your community spark ✨\n\n"
+            "I know everyone and join every lark. Keeper of the **Phantom Shelf** — "
+            "snap it, share it, watch it vanish. If something's happening, *I'm "
+            "already there*."
+        ),
     },
 ]
 
@@ -70,16 +103,16 @@ COLLECTIONS = [
         "thumbnail": "L3L3C1",
     },
     {
-        "code": "L3L3C2",
-        "owner_code": "L3L3oo",
-        "headline": "Lele's Leafy Lounge – Snag a free succulent baby!",
+        "code": "l0l0C1",
+        "owner_code": "l0l0oh",
+        "headline": "Lolo's Leafy Lounge – Snag a free succulent baby!",
         "description": (
             "Plant mum with too many green babies! Drop by to meet my succulent squad "
             "– echeverias, jades, sedums – and I'll gift you a cutting. "
             "Easy-peasy care guide thrown in. Only rule: name your new leafy friend!"
         ),
         "is_minimalist": True,
-        "invites": ["La1aN1", "l1l13S", "l0l0oh"],
+        "invites": ["La1aN1", "l1l13S", "L3L3oo"],
         "is_onboarding": True,
         "allowed_thing_types": ["GIFT_THING"],
         "thumbnail": "L3L3C2",
@@ -113,6 +146,7 @@ COLLECTIONS = [
         "invites": ["La1aN1", "L3L3oo", "l0l0oh", "1u1ucs"],
         "is_onboarding": True,
         "allowed_thing_types": ["SWAP_THING"],
+        "tags": ["sensors", "boards", "shields", "modules"],
         "thumbnail": "l1l1C2",
     },
     {
@@ -145,6 +179,7 @@ THINGS = [
         "headline": "Shaggy Nordic Rug",
         "description": "Nordic meditation nest! Soft wool like a Highland sheep, hygge vibes with patchouli whiff. Just a tenner!",
         "thumbnail": "stffa1",
+        "gallery": ["stffa2"],
         "fee": "20.00",
         "condition": "NEW",
     },
@@ -377,12 +412,12 @@ THINGS = [
         "thumbnail": "lltl15",
         "condition": "FAIR",
     },
-    # --- Lele: succulent gifts (minimalist, is_endless) ---
+    # --- Lolo: succulent gifts (minimalist, is_endless) ---
     {
         "code": "lltl22",
         "type": "GIFT_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C2"],
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
         "headline": "Zebra, Rosie & Jade – my terracotta trio needs new homes!",
         "thumbnail": "lltl22",
         "is_endless": True,
@@ -390,8 +425,8 @@ THINGS = [
     {
         "code": "lltl23",
         "type": "GIFT_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C2"],
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
         "headline": "Her Majesty the Echeveria – dusty pink crown, free pups!",
         "thumbnail": "lltl23",
         "is_endless": True,
@@ -399,8 +434,8 @@ THINGS = [
     {
         "code": "lltl24",
         "type": "GIFT_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C2"],
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
         "headline": "Sunset in a pot – peachy-lilac pup ready to adopt!",
         "thumbnail": "lltl24",
         "is_endless": True,
@@ -408,8 +443,8 @@ THINGS = [
     {
         "code": "lltl25",
         "type": "GIFT_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C2"],
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
         "headline": "The fuzzy dumpling – velvety leaves, zero fuss, free pup!",
         "thumbnail": "lltl25",
         "is_endless": True,
@@ -417,8 +452,8 @@ THINGS = [
     {
         "code": "lltl26",
         "type": "GIFT_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C2"],
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
         "headline": "Straight from my hands to yours – pick your pup!",
         "thumbnail": "lltl26",
         "is_endless": True,
@@ -426,8 +461,8 @@ THINGS = [
     {
         "code": "lltl27",
         "type": "GIFT_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C2"],
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
         "headline": "My mini meadow – five succulent sisters under one roof!",
         "thumbnail": "lltl27",
         "is_endless": True,
@@ -435,8 +470,8 @@ THINGS = [
     {
         "code": "lltl28",
         "type": "GIFT_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C2"],
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
         "headline": "Too many babies, not enough pots – come rescue one!",
         "thumbnail": "lltl28",
         "is_endless": True,
@@ -457,6 +492,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "Grove Shield for Arduino Nano v1.1 (Seeed Studio)",
         "thumbnail": "l1sw01",
+        "tags": ["shields"],
     },
     {
         "code": "l1sw02",
@@ -465,6 +501,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "Grove - Laser PM2.5 Dust Sensor (HM3301)",
         "thumbnail": "l1sw02",
+        "tags": ["sensors"],
     },
     {
         "code": "l1sw03",
@@ -473,6 +510,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "MB102 Breadboard Power Supply Module (HW-131)",
         "thumbnail": "l1sw03",
+        "tags": ["modules"],
     },
     {
         "code": "l1sw04",
@@ -481,6 +519,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "Arduino Nano Screw Terminal Adapter",
         "thumbnail": "l1sw04",
+        "tags": ["shields"],
     },
     {
         "code": "l1sw05",
@@ -489,6 +528,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "Arduino Nano 33 BLE",
         "thumbnail": "l1sw05",
+        "tags": ["boards"],
     },
     {
         "code": "l1sw06",
@@ -497,6 +537,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "CCS811 Indoor Air Quality Sensor",
         "thumbnail": "l1sw06",
+        "tags": ["sensors"],
     },
     {
         "code": "l1sw07",
@@ -505,6 +546,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "Grove's: Temperature & Humidity, Water, Sound, UV, Air",
         "thumbnail": "l1sw07",
+        "tags": ["sensors"],
     },
     {
         "code": "l1sw08",
@@ -513,6 +555,7 @@ THINGS = [
         "collections": ["l1l1C2"],
         "headline": "DFRobot Analogue UV Sensor V2 (Gravity)",
         "thumbnail": "l1sw08",
+        "tags": ["sensors"],
     },
 ]
 
@@ -576,5 +619,16 @@ FAQS = [
         "questioner_code": "La1aN1",
         "question": "How long does it last in the fridge?",
         "answer": "2-3 days",
+    },
+]
+
+# Answers to wishes (a Thing of type WISH_THING). Lele knows where to find Lala's
+# ladder. kind ∈ {HAVE_THIS, KNOW_WHERE, CAN_MAKE}; status defaults to PENDING.
+WISH_RESPONSES = [
+    {
+        "wish_code": "La1aW1",
+        "responder_code": "L3L3oo",
+        "kind": "KNOW_WHERE",
+        "message": "The shed by the bike racks has a folding step ladder — ask Lolo for the key!",
     },
 ]

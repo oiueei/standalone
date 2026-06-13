@@ -42,13 +42,17 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
     owner = serializers.CharField(source="owner_id")
     owner_name = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
+    gallery_urls = serializers.SerializerMethodField()
     pending_booking = serializers.SerializerMethodField()
     my_pending_booking = serializers.SerializerMethodField()
     pending_questions = serializers.SerializerMethodField()
     transfer_count = serializers.SerializerMethodField()
-    helper_count = serializers.SerializerMethodField()
+    response_count = serializers.SerializerMethodField()
+    my_response = serializers.SerializerMethodField()
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
+    available_today = serializers.SerializerMethodField()
+    next_available = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
 
     class Meta:
@@ -63,14 +67,19 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "status",
             "fee",
             "availability",
+            "available_today",
+            "next_available",
             "location",
             "condition",
             "thumbnail_url",
+            "gallery_urls",
+            "tags",
             "pending_booking",
             "my_pending_booking",
             "pending_questions",
             "transfer_count",
-            "helper_count",
+            "response_count",
+            "my_response",
             "collection_swap_minimum_items",
             "my_swap_count_in_collection",
             "deal",
@@ -82,6 +91,9 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
+
+    def get_gallery_urls(self, obj):
+        return [cloudinary_url(public_id) for public_id in (obj.gallery or [])]
 
     def get_pending_booking(self, obj):
         # Use prefetched _pending_bookings if available, otherwise query
@@ -120,10 +132,25 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             return obj._transfer_count
         return obj.transfers.count()
 
-    def get_helper_count(self, obj):
+    def get_response_count(self, obj):
         if obj.type != Thing.Type.WISH_THING:
             return None
-        return obj.deal.count()
+        return len(obj.responses.all())
+
+    def get_my_response(self, obj):
+        if obj.type != Thing.Type.WISH_THING:
+            return None
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        for response in obj.responses.all():
+            if response.responder_id == request.user.code:
+                return {
+                    "code": response.code,
+                    "kind": response.kind,
+                    "status": response.status,
+                }
+        return None
 
     def get_collection_swap_minimum_items(self, obj):
         parent = self.context.get("parent_collection")
@@ -133,6 +160,16 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         # Pre-computed once at the parent CollectionSerializer level — same
         # value for every thing in this collection, so we avoid N queries.
         return self.context.get("my_swap_count_in_collection", 0)
+
+    def get_available_today(self, obj):
+        # Live availability for date-based types (LEND/RENT); null otherwise.
+        # Prefetch-aware via obj._blocked_periods (set by the collection view).
+        window = obj.availability_window()
+        return window["available_today"] if window else None
+
+    def get_next_available(self, obj):
+        window = obj.availability_window()
+        return window["next_available"] if window else None
 
 
 class CollectionInviteSummarySerializer(serializers.ModelSerializer):
@@ -172,6 +209,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "is_minimalist",
             "swap_minimum_items",
             "allowed_thing_types",
+            "tags",
             "thumbnail",
             "thumbnail_url",
             "pause_message",
@@ -225,6 +263,12 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField(required=False, allow_blank=True)
+    tags = serializers.ListField(
+        child=SafeHeadlineField(max_length=32),
+        max_length=12,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Collection
@@ -239,8 +283,12 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "is_minimalist",
             "swap_minimum_items",
             "allowed_thing_types",
+            "tags",
             "thumbnail",
         ]
+
+    def validate_tags(self, value):
+        return _normalize_tags(value)
 
     def validate(self, attrs):
         is_swap = attrs.get("is_swap", False)
@@ -268,6 +316,27 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             )
         _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types)
         return attrs
+
+
+def _normalize_tags(tags):
+    """Trim each tag, drop empties, and dedupe case-insensitively (first wins).
+
+    Used by both collection serializers so the owner-defined tag vocabulary is
+    always clean. The ListField (max_length=12) caps the raw count and
+    SafeHeadlineField rejects HTML / over-length labels before this runs.
+    """
+    seen = set()
+    result = []
+    for raw in tags:
+        label = (raw or "").strip()
+        if not label:
+            continue
+        key = label.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(label)
+    return result
 
 
 def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types):
@@ -341,6 +410,12 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField(required=False, allow_blank=True)
     pause_message = SafeTextField(max_length=256, required=False, allow_blank=True)
+    tags = serializers.ListField(
+        child=SafeHeadlineField(max_length=32),
+        max_length=12,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Collection
@@ -356,6 +431,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "is_minimalist",
             "swap_minimum_items",
             "allowed_thing_types",
+            "tags",
             "thumbnail",
             "pause_message",
         ]
@@ -407,6 +483,25 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
                 )
         return attrs
 
+    def validate_tags(self, value):
+        return _normalize_tags(value)
+
+    def update(self, instance, validated_data):
+        """Cascade-strip: when the owner removes a tag from the collection's
+        vocabulary, drop it from every thing in the collection that still had it
+        (tags are cosmetic, so we silently clean up rather than block the edit)."""
+        new_tags = validated_data.get("tags")
+        old_tags = list(instance.tags or [])
+        collection = super().update(instance, validated_data)
+        if new_tags is not None:
+            removed = set(old_tags) - set(new_tags)
+            if removed:
+                for thing in collection.things.all():
+                    if any(t in removed for t in (thing.tags or [])):
+                        thing.tags = [t for t in thing.tags if t not in removed]
+                        thing.save(update_fields=["tags"])
+        return collection
+
 
 class CollectionInviteSerializer(serializers.Serializer):
     """Serializer for inviting a user to a collection."""
@@ -433,7 +528,10 @@ class CollectionRemoveInviteSerializer(serializers.Serializer):
 
 
 class CollectionBroadcastSerializer(serializers.Serializer):
-    """Serializer for broadcasting a message to collection invitees."""
+    """Serializer for broadcasting a message to collection invitees.
 
-    subject = SafeHeadlineField(max_length=64)
+    The subject is auto-generated ("Hey! {collection}"); only the message is
+    user-provided.
+    """
+
     message = SafeTextField(max_length=256)

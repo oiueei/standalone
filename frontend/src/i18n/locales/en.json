@@ -103,7 +103,7 @@
   "home": {
     "greeting": "Hello, {{name}}",
     "createCollection": "Create collection",
-    "myProfile": "Edit my profile",
+    "myProfile": "My profile",
     "myRequests": "My requests",
     "allThings": "All things",
     "loadingThings": "Loading things...",
@@ -114,7 +114,7 @@
     "declineInvitation": "Decline invitation",
     "dismiss": "Dismiss",
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
-    "broadcastBody": "{{subject}}: {{message}}",
+    "broadcastBody": "{{message}}",
     "collectionDeletedLabel": "Collection deleted",
     "collectionDeletedBody": "\"{{collection_headline}}\" has been deleted by {{owner_name}}.",
     "collectionRevokedLabel": "Removed from collection",
@@ -134,7 +134,15 @@
     "faqHiddenLabel": "Question hidden",
     "faqHiddenBody": "{{owner_name}} hid your question about {{thing_headline}}.",
     "inviteRejectedLabel": "Invitation declined",
-    "inviteRejectedBody": "{{invitee_name}} declined the invitation to {{collection_headline}}."
+    "inviteRejectedBody": "{{invitee_name}} declined the invitation to {{collection_headline}}.",
+    "wishPostedLabel": "New wish",
+    "wishPostedBody": "{{creator_name}} posted a wish: {{wish_headline}}.",
+    "wishResponseLabel": "New answer",
+    "wishResponseBody": "{{responder_name}} answered your wish {{wish_headline}}.",
+    "wishAcceptedLabel": "Answer accepted",
+    "wishAcceptedBody": "{{owner_name}} accepted your answer to {{wish_headline}}.",
+    "viewWish": "View wish",
+    "viewCollection": "I can help!"
   },
   "collectionPage": {
     "editCollection": "Edit collection",
@@ -189,7 +197,11 @@
     "errorShowingQuestion": "Error showing the question.",
     "noPermission": "You do not have permission to view this thing.",
     "notFound": "Thing not found.",
-    "errorLoading": "Error loading thing."
+    "errorLoading": "Error loading thing.",
+    "galleryLabel": "Photos",
+    "galleryImageAlt": "{{name}} — image {{index}} of {{total}}",
+    "galleryPrev": "Previous image",
+    "galleryNext": "Next image"
   },
   "thingCard": {
     "confirmHold": "Confirm hold",
@@ -246,7 +258,10 @@
     "maxHeadline": "Maximum 64 characters.",
     "priceRequired": "Price is required for this type.",
     "maxLocation": "Maximum 32 characters.",
-    "errorCreating": "Error creating thing."
+    "errorCreating": "Error creating thing.",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "Select tags",
+    "tagsHelper": "Choose from this collection's tags"
   },
   "editThing": {
     "pageTitle": "Edit thing",
@@ -273,7 +288,12 @@
     "maxBio": "Maximum 64 characters.",
     "errorLoading": "Error loading profile.",
     "errorSaving": "Error saving.",
-    "emailPreferences": "Email preferences →"
+    "emailPreferences": "Email preferences →",
+    "aboutLabel": "About",
+    "aboutHelper": "Markdown supported",
+    "photoLabel": "Profile photo",
+    "photoHelper": "Shown on your profile, optional",
+    "maxAbout": "Maximum 2000 characters."
   },
   "editCollection": {
     "pageTitle": "Edit collection",
@@ -316,32 +336,32 @@
     "allowedTypesAlbumHelper": "Album mode only accepts gifts.",
     "allowedTypesSwapHelper": "Swap mode only accepts swap things.",
     "allowedTypesShareHelper": "Share-only mode only accepts share things.",
-    "allowedTypesAtLeastOne": "Pick at least one type."
+    "allowedTypesAtLeastOne": "Pick at least one type.",
+    "tagsLabel": "Tags",
+    "tagsPlaceholder": "e.g. Vintage, Kitchen, Outdoor",
+    "tagsHelper": "Optional labels to organise this collection's things"
   },
   "welcome": {
     "greeting": "Hello, {{name}}",
     "pageTitle": "Welcome to OIUEEI!",
-    "description": "OIUEEI is an open-source platform for sharing within trusted communities. Create collections for gifts, sales, loans, orders, events, swaps, wishes and appointments — then invite friends to browse, reserve and interact. Everything stays between people who know each other.",
+    "description": "OIUEEI is an open-source platform for sharing within trusted communities. Create collections for gifts, sales, loans, orders, swaps and wishes — then invite friends to browse, reserve and interact. Everything stays between people who know each other.",
     "createCollection": "Create collection",
     "editProfile": "Edit profile",
     "whoUsesTitle": "Who uses OIUEEI?",
-    "personaLalaTitle": "Lala — The Multitasker.",
-    "personaLalaBody": "Off on sabbatical and clearing out the flat with zero fuss — a tenner each, you come collect, everything gone by the 25th. But Lala also runs a community van-sharing scheme, because not everything needs selling when it can simply be borrowed.",
+    "personaLalaTitle": "Lala — The Declutterer.",
+    "personaLalaBody": "Off on sabbatical and clearing out the flat with zero fuss — a tenner each, you come collect, everything gone by the 25th. Whatever's left goes straight to the local orphanage.",
     "personaLeleTitle": "Lele — The Nurturer.",
-    "personaLeleBody": "Up at five baking architectural cakes with ingredients you can actually pronounce, and — when not in the kitchen — giving away succulent cuttings from a beautifully curated photo album. Order a cake or adopt a plant: both come with care instructions.",
+    "personaLeleBody": "Up at five baking architectural cakes with ingredients you can actually pronounce — vegan, gluten-free or low-sugar, whatever the occasion calls for. Order one for the next celebration and it arrives made to your taste.",
     "personaLiliTitle": "Lili — The Swapper.",
     "personaLiliBody": "She lends drills, steamers and ladders for free because nobody needs a drill every day. She also runs an electronics swap board for Arduino devotees — no cash, just components and mutual respect. Return things clean. That is the deal.",
-    "personaLoloTitle": "Lolo — The Enthusiast.",
-    "personaLoloBody": "Hosts a book club for those who like their heroes tortured and their moors windswept — and also teaches the hammered dulcimer, that dreamy trapezoidal harp. One appointment for a cosy read, another for the loveliest sound in the world.",
+    "personaLoloTitle": "Lolo — The Green Thumb.",
+    "personaLoloBody": "A plant parent with far too many green babies, giving away succulent cuttings from a beautifully curated photo album — echeverias, jades, sedums, the lot. Adopt a pup; the only rule is that you have to name it.",
     "personaLuluTitle": "Lulu — The Connector.",
     "personaLuluBody": "Nobody quite knows where she finds these things or where she goes. Her community shelf fills weekly with objects that have lived a life, ready for a new home. Members get a weekly email digest — because what arrives on the shelf on Monday deserves to be gone by Friday.",
-    "personaLalaLink1": "Vanlife on tap",
     "personaLeleLink1": "Lele's Cakes",
-    "personaLeleLink2": "Lele's Leafy Lounge",
     "personaLiliLink1": "Lili's Borrow Borrow",
     "personaLiliLink2": "Lili's Circuit Swap",
-    "personaLoloLink1": "Lolo's book club",
-    "personaLoloLink2": "Lolo's dulcimer sessions",
+    "personaLoloLink1": "Lolo's Leafy Lounge",
     "personaLuluLink1": "Lulu's Phantom Shelf",
     "personaLalaLink2": "Lala's sabbatical sale"
   },
@@ -402,7 +422,9 @@
     "noPermission": "You do not have permission to view this profile.",
     "notFound": "User not found.",
     "errorLoading": "Error loading profile.",
-    "logout": "Log out"
+    "logout": "Log out",
+    "aboutHeading": "About",
+    "photoAlt": "Photo of {{name}}"
   },
   "koro": {
     "basic": "Basic",
@@ -426,7 +448,9 @@
     "IMMEDIATE": "Immediate",
     "NEXT_WEEK": "Next week",
     "END_OF_MONTH": "End of month",
-    "NEXT_MONTH": "Next month"
+    "NEXT_MONTH": "Next month",
+    "nextAvailable": "{{date}}",
+    "noneSoon": "No"
   },
   "condition": {
     "NEW": "New",
@@ -468,12 +492,39 @@
     "orderCount_other": "{{count}} orders"
   },
   "wishes": {
-    "offerHelp": "I can help",
-    "helping": "Helping",
-    "helperCount_one": "{{count}} helper",
-    "helperCount_other": "{{count}} helpers",
-    "noHelpers": "No helpers yet.",
-    "helpersHeading": "Helpers"
+    "respond": "Answer",
+    "respondPlaceholder": "Choose how to help",
+    "kind": {
+      "haveThis": "I have this",
+      "knowWhere": "I know where",
+      "canMake": "I can make it"
+    },
+    "responseCount_one": "{{count}} answer",
+    "responseCount_other": "{{count}} answers",
+    "responsesHeading": "Answers",
+    "noResponses": "No answers yet.",
+    "yourAnswer": "You've answered",
+    "status": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted"
+    },
+    "accept": "Accept",
+    "resolve": "Mark as resolved",
+    "notifyGroup": "Notify the group",
+    "respondingWithListing": "You're posting a listing to answer a wish.",
+    "messageLabel": "Message",
+    "messageRequired": "Write a message.",
+    "urlLabel": "Link (optional)",
+    "feeLabel": "Offer or price (optional)",
+    "knowWhereTitle": "I know where",
+    "canMakeTitle": "I can make it",
+    "submit": "Send answer",
+    "responseSent": "Answer sent.",
+    "errorResponding": "Couldn't send your answer.",
+    "acceptedToast": "Answer accepted.",
+    "errorAccepting": "Couldn't accept the answer.",
+    "resolvedToast": "Wish marked as resolved.",
+    "errorResolving": "Couldn't mark as resolved."
   },
   "swap": {
     "offerItems": "Select items to offer",
@@ -527,7 +578,6 @@
   "broadcast": {
     "heading": "Broadcast",
     "openButton": "Send a message to guests",
-    "subjectLabel": "Subject",
     "messageLabel": "Message",
     "sendButton": "Send broadcast",
     "sending": "Sending...",
@@ -572,5 +622,14 @@
     "copied": "Invite link copied to clipboard.",
     "copyError": "We couldn't copy the link. Try again or use one of the other options.",
     "linkError": "We couldn't generate the invite link. Please try again."
+  },
+  "gallery": {
+    "uploadLabel": "More photos",
+    "uploadHelper": "Add up to {{max}} extra photos",
+    "maxImages": "Maximum {{max}} photos.",
+    "thumbAlt": "Gallery photo {{index}}"
+  },
+  "tags": {
+    "add": "Add"
   }
 }

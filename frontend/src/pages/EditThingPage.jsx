@@ -16,6 +16,7 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
+import GalleryUpload from '../components/GalleryUpload';
 import DocumentUpload from '../components/DocumentUpload';
 
 export default function EditThingPage() {
@@ -43,7 +44,10 @@ export default function EditThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [isEndless, setIsEndless] = useState(false);
+  const [gallery, setGallery] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [collectionTags, setCollectionTags] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -70,6 +74,12 @@ export default function EditThingPage() {
           setLocation(data.location || '');
           setCondition(data.condition || '');
           if (data.documents) setDocuments(data.documents);
+          if (data.gallery && data.gallery.length) {
+            const urls = data.gallery_urls || [];
+            setGallery(data.gallery.map((publicId, i) => ({ publicId, url: urls[i] })));
+          }
+          if (data.tags) setTags(data.tags);
+          if (data.collection_tags) setCollectionTags(data.collection_tags);
           if (data.is_endless) setIsEndless(true);
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
@@ -116,7 +126,9 @@ export default function EditThingPage() {
       body.location = location.trim();
       body.condition = condition || '';
     }
-    body.documents = documents.length > 0 ? documents : null;
+    body.documents = documents;
+    body.gallery = gallery.map((g) => g.publicId);
+    body.tags = tags;
     if (['GIFT_THING', 'SELL_THING'].includes(thingType)) {
       body.is_endless = isEndless;
     }
@@ -252,6 +264,21 @@ export default function EditThingPage() {
             />
           </>
         )}
+        {collectionTags.length > 0 && (
+          <Select
+            language="en"
+            multiSelect
+            id="edit-thing-tags"
+            texts={{
+              label: t('addThing.tagsLabel'),
+              placeholder: t('addThing.tagsPlaceholder'),
+              assistive: t('addThing.tagsHelper'),
+            }}
+            options={collectionTags.map((tg) => ({ label: tg, value: tg }))}
+            value={tags.map((tg) => ({ label: tg, value: tg }))}
+            onChange={(opts) => setTags(opts.map((o) => o.value))}
+          />
+        )}
         <ImageUpload
           id="edit-thing-thumbnail"
           label={t('upload.thumbnailLabel')}
@@ -260,6 +287,7 @@ export default function EditThingPage() {
           currentUrl={thumbnailUrl}
           folder="oiueei/things"
         />
+        <GalleryUpload items={gallery} onChange={setGallery} />
         <DocumentUpload
           documents={documents}
           onChange={setDocuments}

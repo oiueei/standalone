@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TheeemeSelector from '../components/TheeemeSelector';
 import KoroSelector from '../components/KoroSelector';
+import ImageUpload from '../components/ImageUpload';
 
 export default function EditProfilePage() {
   const { t } = useTranslation();
@@ -22,6 +23,9 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [headline, setHeadline] = useState('');
+  const [about, setAbout] = useState('');
+  const [photo, setPhoto] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [koro, setKoro] = useState('basic');
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
@@ -48,6 +52,9 @@ export default function EditProfilePage() {
           const data = await profileRes.json();
           setName(data.name || '');
           setHeadline(data.headline || '');
+          setAbout(data.about || '');
+          setPhoto(data.photo || '');
+          setPhotoUrl(data.photo_url || '');
           setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
           setNotifyActivity(data.notify_activity ?? true);
@@ -73,6 +80,7 @@ export default function EditProfilePage() {
     const newErrors = {};
     if (name.length > 32) newErrors.name = t('editProfile.maxName');
     if (headline.length > 64) newErrors.headline = t('editProfile.maxBio');
+    if (about.length > 2000) newErrors.about = t('editProfile.maxAbout');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -85,6 +93,8 @@ export default function EditProfilePage() {
     const body = {
       name: name.trim(),
       headline: headline.trim(),
+      about: about.trim(),
+      photo,
       koro,
       notify_activity: notifyActivity,
       notify_news: notifyNews,
@@ -150,6 +160,24 @@ export default function EditProfilePage() {
             invalid={!!errors.headline}
             errorText={errors.headline}
             helperText={`${headline.length}/64`}
+          />
+          <TextArea
+            id="edit-profile-about"
+            label={t('editProfile.aboutLabel')}
+            value={about}
+            onChange={(e) => setAbout(e.target.value)}
+            invalid={!!errors.about}
+            errorText={errors.about}
+            helperText={`${t('editProfile.aboutHelper')} · ${about.length}/2000`}
+            style={{ minHeight: '8rem' }}
+          />
+          <ImageUpload
+            id="edit-profile-photo"
+            label={t('editProfile.photoLabel')}
+            folder="oiueei/users"
+            currentUrl={photoUrl}
+            onChange={setPhoto}
+            helperText={t('editProfile.photoHelper')}
           />
           <TheeemeSelector
             theeemes={theeemes}

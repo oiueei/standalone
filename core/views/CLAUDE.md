@@ -197,7 +197,7 @@ Returns user profile. Own profile returns full data (`UserSerializer`), other pr
 | **Endpoint** | `PUT /api/v1/users/{user_code}/` |
 | **Permission** | `IsAuthenticated` + own profile only |
 
-Updates own profile via `UserUpdateSerializer` (partial update). Accepts optional `theeeme` (Theeeme code), `notify_activity`, and `notify_news` booleans. Returns 403 if attempting to update another user.
+Updates own profile via `UserUpdateSerializer` (partial update). Accepts optional `name`, `headline`, `about` (Markdown bio, max 2000, HTML rejected), `photo` (Cloudinary public_id), `koro`, `theeeme` (Theeeme code), `notify_activity`, and `notify_news`. Returns the full `UserSerializer` (including `photo_url`). Returns 403 if attempting to update another user.
 
 ---
 
@@ -250,7 +250,7 @@ Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on 
 
 **Retrieve:** Uses `thing.can_view(user_code)` — owner, or invited to an ACTIVE collection containing the thing (INACTIVE things are only visible to their owner).
 
-**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING and SHARE_THING are restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. SWAP_THING requires a swap collection (`is_swap=True`) — returns 400 otherwise. Swap collections only accept SWAP_THING — returns 400 for any other type. Minimalist collections (`is_minimalist=True`) only accept GIFT_THING, SHARE_THING, and SWAP_THING — returns 400 for other types — and require a thumbnail (photo) — returns 400 if missing. **Per-collection allowlist** (`Collection.allowed_thing_types`): if non-empty, the thing's type must be in it — returns 400 otherwise. Empty list = no per-collection restriction.
+**Create behaviour:** Optionally accepts `collection_code` in request body. If provided, validates the collection exists and the user can add things — returns 400 on invalid or non-permitted collection. If valid, the thing is automatically added to it. WISH_THING and SHARE_THING are restricted to COMMUNITY collections — returns 400 if no collection or if the collection is PROPRIETARY. SWAP_THING requires a swap collection (`is_swap=True`) — returns 400 otherwise. Swap collections only accept SWAP_THING — returns 400 for any other type. Minimalist collections (`is_minimalist=True`) only accept GIFT_THING, SHARE_THING, and SWAP_THING — returns 400 for other types — and require a thumbnail (photo) — returns 400 if missing. **Per-collection allowlist** (`Collection.allowed_thing_types`): if non-empty, the thing's type must be in it — returns 400 otherwise. Empty list = no per-collection restriction. **Tags**: any `tags` on the thing must belong to the collection's `Collection.tags` vocabulary — returns 400 otherwise (tags require a collection; on update, `ThingUpdateSerializer.validate_tags` checks the union of the thing's collections' tags). Removing a tag from a collection (via `CollectionUpdateSerializer`) cascade-strips it from that collection's things. **Group notice**: for `WISH_THING`, the request body may include `notify_group` (boolean, default `true`); when on, creating the wish in a COMMUNITY collection emails every other group member via `send_wish_posted_email` and bulk-creates a `WISH_POSTED` in-app notification (payload: `wish_headline`, `creator_name`, `wish_code`, `collection_code`) for each.
 
 **`activate` action:** Sets `status = 'ACTIVE'`. Returns 400 if thing is not INACTIVE.
 
@@ -378,11 +378,11 @@ Owner-only management of the public share token. The token is a 22-character URL
 | **Permission** | `IsAuthenticated` + collection owner |
 | **Rate limit** | 5 requests/day per user |
 
-Sends a broadcast email from the collection owner to all invitees. Validates `subject` (SafeHeadlineField, max 64) and `message` (SafeTextField, max 256) via `CollectionBroadcastSerializer`. Returns 400 if the collection has no invitees. Emails include a `Reply-To` header set to the owner's email so invitees can respond directly.
+Sends a broadcast email from the collection owner to all invitees. Validates `message` (SafeTextField, max 256) via `CollectionBroadcastSerializer`; the subject is auto-generated as `Hey! {collection_headline}` (the owner does not provide one). Returns 400 if the collection has no invitees. Emails carry a `Reply-To` header (the owner) and a link to the collection (labelled "I can help!"); the in-app `BROADCAST` notification carries `collection_code` so it can deep-link there too.
 
 **Request body:**
 ```json
-{ "subject": "Meeting tonight", "message": "Bring snacks please" }
+{ "message": "Bring snacks please" }
 ```
 
 **Response (200):**
@@ -496,7 +496,7 @@ Allowed `resource_type` values: `image` (default), `raw` (for document uploads).
 1. Call this endpoint to get a signature.
 2. POST the file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/upload` with the signature parameters. Use `image/upload` for images and `raw/upload` for documents.
 3. Cloudinary returns a `public_id` (e.g. `oiueei/things/abc123`).
-4. Save the `public_id` to the relevant Django model field (`thumbnail`, `hero`, or append to `pictures`).
+4. Save the `public_id` to the relevant Django model field (`thumbnail` cover, the `User.photo` profile photo, or append to a Thing's `gallery` list).
 
 ---
 
@@ -711,33 +711,38 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 
 ## Wish Views (`core/views/wishes.py`)
 
-### WishOfferHelpView
+A wish is a `Thing` of type `WISH_THING` (reusing `ThingViewSet` for create/edit/hide). These views add the structured-answer layer on top: members answer with `WishResponse` objects ("Tengo esto" / "Sé dónde" / "Puedo hacértelo") instead of a reservation, and the creator accepts one and resolves the wish. All return 400 if the target `Thing` is not a `WISH_THING`.
+
+### ThingWishResponseView
 
 | | |
 |---|---|
-| **Endpoint** | `POST /api/v1/things/{thing_code}/offer-help/` |
-| **Permission** | `IsAuthenticated` |
+| **Endpoints** | `GET` and `POST /api/v1/things/{thing_code}/responses/` |
+| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+| **Rate limit** | POST: 20 requests/hour per user |
+| **Pagination** | `StandardResultsPagination` |
 
-Toggles "I can help" for a WISH_THING using the `deal` M2M field. Returns 400 for non-wish things. Returns 403 for users who cannot view the thing. Owner cannot offer help on their own wish.
+`GET` lists answers — the wish creator sees every answer; any other member sees only their own. `POST` answers the wish via `WishResponseCreateSerializer`: `kind=HAVE_THIS` requires `thing_code` (a real listing **owned by the responder** — 400 otherwise); `KNOW_WHERE`/`CAN_MAKE` require `message` (plus optional `url` / `fee`). The owner cannot answer their own wish (400). On success, emails the creator via `send_wish_response_email()` and creates a `WISH_RESPONSE` `InAppNotification`.
 
-**Response:**
-```json
-{ "offering": true, "helper_count": 3 }
-```
-
-### WishHelpersView
+### WishResponseAcceptView
 
 | | |
 |---|---|
-| **Endpoint** | `GET /api/v1/things/{thing_code}/helpers/` |
-| **Permission** | `IsAuthenticated` |
+| **Endpoint** | `POST /api/v1/wish-responses/{code}/accept/` |
+| **Permission** | `IsAuthenticated` + wish creator only |
 
-Lists helpers for a WISH_THING. Returns 400 for non-wish things. Returns 403 for users who cannot view the thing.
+Marks one `WishResponse` `ACCEPTED` (others stay `PENDING`) — this is the "reserve" applied to the answer, not the wish, so two members can't both think they won. Creates a `WISH_ACCEPTED` `InAppNotification` for the responder. Returns 403 for anyone but the wish creator.
 
-**Response:**
-```json
-{ "helper_count": 2, "helpers": [{ "code": "ABC123", "name": "User Name" }] }
-```
+### WishResolveView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/things/{thing_code}/resolve/` |
+| **Permission** | `IsAuthenticated` + wish creator only |
+
+Sets the wish `Thing.status` to `INACTIVE` (so it leaves the active board — the repo's soft-delete pattern), and emails the accepted responder a thank-you via `send_wish_thanks_email()`. Returns 400 if the wish is already resolved (not `ACTIVE`), 403 for non-creators. Reopen with the standard `POST /things/{code}/activate/`.
+
+> The previous "I can help" toggle (`offer-help` / `helpers` endpoints on the `deal` M2M) was replaced by this structured-answer flow.
 
 ---
 

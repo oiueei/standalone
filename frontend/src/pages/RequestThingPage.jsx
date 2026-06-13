@@ -16,7 +16,7 @@ export default function RequestThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const userCode = localStorage.getItem('userCode');
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
@@ -224,6 +224,20 @@ export default function RequestThingPage() {
             <p style={{ color: 'var(--color-error)' }}>{t('swap.offerItems')}</p>
           )}
         </div>
+      )}
+      {isDateBased && (
+        <>
+          <Notification
+            type={thing.available_today ? 'success' : 'info'}
+            size="small"
+            label={`${t('thingPage.availabilityLabel')} ${thing.available_today
+              ? t('availability.IMMEDIATE')
+              : thing.next_available
+                ? t('availability.nextAvailable', { date: new Date(thing.next_available).toLocaleDateString(i18n.language, { day: 'numeric', month: 'numeric' }) })
+                : t('availability.noneSoon')}`}
+          />
+          <div className="spacer-s" />
+        </>
       )}
       {isDateBased && (
         <div className="summary-grid section-mt">

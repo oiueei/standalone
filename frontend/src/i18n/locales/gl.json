@@ -54,7 +54,9 @@
     "notFound": "Páxina non atopada — OIUEEI",
     "deleteCollection": "Eliminar {{headline}} — OIUEEI",
     "deleteCollectionDefault": "Eliminar colección — OIUEEI",
-    "share": "Únete — OIUEEI"
+    "share": "Únete — OIUEEI",
+    "notifications": "Preferencias de correo — OIUEEI",
+    "popin": "Pasa — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -64,7 +66,8 @@
     "magicLinkSent": "Se este correo está rexistrado, enviámosche unha ligazón máxica.",
     "errorSendingLink": "Erro ao enviar a ligazón.",
     "description": "Que é OIUEEI? Unha aplicación web de código aberto para que as persoas compartan as súas pertenzas con amigos e outras persoas. Os usuarios poden crear coleccións (listas de desexos, listas de agasallos, artigos á venda) e compartilas con amigos que poden reservar artigos ou facer preguntas.",
-    "openSource": "OIUEEI é de código aberto. Podes atopar o proxecto en <1>GitHub</1>. Se queres solicitar acceso ou colaborar, ponte en contacto."
+    "openSource": "OIUEEI é de código aberto. Podes atopar o proxecto en <1>GitHub</1>. Se queres solicitar acceso ou colaborar, ponte en contacto.",
+    "popIn": "Novo por aquí? Pasa →"
   },
   "verify": {
     "declined": "Rexeitado",
@@ -83,7 +86,7 @@
   "home": {
     "greeting": "Ola, {{name}}",
     "createCollection": "Crear colección",
-    "myProfile": "Editar o meu perfil",
+    "myProfile": "O meu perfil",
     "myRequests": "As miñas solicitudes",
     "allThings": "Todos os artigos",
     "loadingThings": "Cargando artigos...",
@@ -94,7 +97,7 @@
     "declineInvitation": "Rexeitar invitación",
     "dismiss": "Descartar",
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
-    "broadcastBody": "{{subject}}: {{message}}",
+    "broadcastBody": "{{message}}",
     "collectionDeletedLabel": "Colección eliminada",
     "collectionDeletedBody": "\"{{collection_headline}}\" foi eliminada por {{owner_name}}.",
     "collectionRevokedLabel": "Eliminado da colección",
@@ -114,7 +117,15 @@
     "faqHiddenLabel": "Pregunta agochada",
     "faqHiddenBody": "{{owner_name}} agochou a túa pregunta sobre {{thing_headline}}.",
     "inviteRejectedLabel": "Convite rexeitado",
-    "inviteRejectedBody": "{{invitee_name}} rexeitou o convite a {{collection_headline}}."
+    "inviteRejectedBody": "{{invitee_name}} rexeitou o convite a {{collection_headline}}.",
+    "wishPostedLabel": "Novo pedido",
+    "wishPostedBody": "{{creator_name}} publicou un pedido: {{wish_headline}}.",
+    "wishResponseLabel": "Nova resposta",
+    "wishResponseBody": "{{responder_name}} respondeu ao teu pedido {{wish_headline}}.",
+    "wishAcceptedLabel": "Resposta aceptada",
+    "wishAcceptedBody": "{{owner_name}} aceptou a túa resposta a {{wish_headline}}.",
+    "viewWish": "Ver pedido",
+    "viewCollection": "Podo axudar!"
   },
   "collectionPage": {
     "editCollection": "Editar colección",
@@ -169,7 +180,11 @@
     "errorShowingQuestion": "Erro ao mostrar a pregunta.",
     "noPermission": "Non tes permiso para ver este artigo.",
     "notFound": "Artigo non atopado.",
-    "errorLoading": "Erro ao cargar o artigo."
+    "errorLoading": "Erro ao cargar o artigo.",
+    "galleryLabel": "Fotos",
+    "galleryImageAlt": "{{name}} — imaxe {{index}} de {{total}}",
+    "galleryPrev": "Imaxe anterior",
+    "galleryNext": "Imaxe seguinte"
   },
   "thingCard": {
     "confirmHold": "Confirmar reserva",
@@ -226,7 +241,10 @@
     "maxHeadline": "Máximo 64 caracteres.",
     "priceRequired": "O prezo é obrigatorio para este tipo.",
     "maxLocation": "Máximo 32 caracteres.",
-    "errorCreating": "Erro ao crear o artigo."
+    "errorCreating": "Erro ao crear o artigo.",
+    "tagsLabel": "Etiquetas",
+    "tagsPlaceholder": "Selecciona etiquetas",
+    "tagsHelper": "Escolle entre as etiquetas desta colección"
   },
   "editThing": {
     "pageTitle": "Editar artigo",
@@ -252,7 +270,13 @@
     "maxName": "Máximo 32 caracteres.",
     "maxBio": "Máximo 64 caracteres.",
     "errorLoading": "Erro ao cargar o perfil.",
-    "errorSaving": "Erro ao gardar."
+    "errorSaving": "Erro ao gardar.",
+    "aboutLabel": "Sobre ti",
+    "aboutHelper": "Compatible con Markdown",
+    "photoLabel": "Foto de perfil",
+    "photoHelper": "Móstrase no teu perfil, opcional",
+    "maxAbout": "Máximo 2000 caracteres.",
+    "emailPreferences": "Preferencias de correo →"
   },
   "editCollection": {
     "pageTitle": "Editar colección",
@@ -295,32 +319,32 @@
     "allowedTypesAlbumHelper": "O modo álbum só acepta agasallos.",
     "allowedTypesSwapHelper": "O modo intercambio só acepta cousas de intercambio.",
     "allowedTypesShareHelper": "O modo exclusivamente share só acepta cousas share.",
-    "allowedTypesAtLeastOne": "Escolle polo menos un tipo."
+    "allowedTypesAtLeastOne": "Escolle polo menos un tipo.",
+    "tagsLabel": "Etiquetas",
+    "tagsPlaceholder": "p. ex. Vintage, Cociña, Exterior",
+    "tagsHelper": "Etiquetas opcionais para organizar as cousas desta colección"
   },
   "welcome": {
     "greeting": "Ola, {{name}}",
     "pageTitle": "Benvido a OIUEEI!",
-    "description": "OIUEEI é unha plataforma de código aberto para compartir dentro de comunidades de confianza. Crea coleccións para agasallos, vendas, préstamos, pedidos, eventos, intercambios, desexos e citas — e logo convida amigos a explorar, reservar e interactuar. Todo queda entre persoas que se coñecen.",
+    "description": "OIUEEI é unha plataforma de código aberto para compartir dentro de comunidades de confianza. Crea coleccións para agasallos, vendas, préstamos, pedidos, intercambios e desexos — e logo convida amigos a explorar, reservar e interactuar. Todo queda entre persoas que se coñecen.",
     "createCollection": "Crear colección",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "Quen usa OIUEEI?",
-    "personaLalaTitle": "Lala — A Multitarefa.",
-    "personaLalaBody": "De sabático e desfacéndose de todo sen complicacións — dez euros cada cousa, ti vas buscala, todo pechado antes do día 25. Pero Lala tamén xestiona un esquema comunitario de préstamo de furgoneta, porque non todo precisa venderse cando se pode simplemente prestar.",
+    "personaLalaTitle": "Lala — A Desapegada.",
+    "personaLalaBody": "De sabático e desfacéndose de todo sen complicacións — dez euros cada cousa, ti vas buscala, todo pechado antes do día 25. O que sobre, directo ao orfanato do barrio.",
     "personaLeleTitle": "Lele — A Coidadora.",
-    "personaLeleBody": "Erguida ás cinco da mañá a facer bolos arquitectónicos con ingredientes que se poden pronunciar, e — cando non está na cociña — agasallando estacas de suculentas dun fermoso álbum de fotos. Pide un bolo ou adopta unha planta: as dúas cousas veñen con instrucións de coidado.",
+    "personaLeleBody": "Erguida ás cinco da mañá a facer bolos arquitectónicos con ingredientes que se poden pronunciar — veganos, sen glute ou baixos en azucre, segundo a ocasión. Pide un para a próxima celebración e chega feito ao teu gusto.",
     "personaLiliTitle": "Lili — A Intercambiadora.",
     "personaLiliBody": "Presta taladros, vaporizadores e escaleiras de balde porque ninguén precisa un taladro cada día. Tamén xestiona un taboleiro de intercambio de electrónica para entusiastas de Arduino — sen cartos, só compoñentes e respecto mutuo. Devolve as cousas limpas. Ese é o trato.",
-    "personaLoloTitle": "Lolo — A Entusiasta.",
-    "personaLoloBody": "Organiza un club de lectura para quen lle gustan os heroes atormentados e os páramos batidos polo vento — e tamén imparte clases de dulcémele de martelos, esa preciosa arpa trapezoidal. Unha cita para unha lectura acolledora, outra para o son máis fermoso do mundo.",
+    "personaLoloTitle": "Lolo — A Xardineira.",
+    "personaLoloBody": "Nai de plantas con crías verdes de máis, agasalla estacas de suculentas dun fermoso álbum de fotos — echeverias, jades, sedums, de todo. Adopta unha cría; a única regra é que tes que poñerlle nome.",
     "personaLuluTitle": "Lulu — A Conectora.",
     "personaLuluBody": "Ninguén sabe moi ben onde atopa estas cousas nin a onde vai. A súa estante comunitaria énchese cada semana con obxectos que xa tiveron unha vida, listos para un novo fogar. Os membros reciben un resumo semanal por correo — porque o que chega á estante o luns merece ter marchado antes do venres.",
-    "personaLalaLink1": "A furgoneta compartida",
     "personaLeleLink1": "Os bolos de Lele",
-    "personaLeleLink2": "O viveiro de Lele",
     "personaLiliLink1": "A estante de préstamo de Lili",
     "personaLiliLink2": "O intercambio de electrónica de Lili",
-    "personaLoloLink1": "O club de lectura de Lolo",
-    "personaLoloLink2": "As clases de dulcémele de Lolo",
+    "personaLoloLink1": "O salón verde de Lolo",
     "personaLuluLink1": "A estante fantasma de Lulu",
     "personaLalaLink2": "A venda do sabático de Lala"
   },
@@ -381,7 +405,9 @@
     "noPermission": "Non tes permiso para ver este perfil.",
     "notFound": "Usuario non atopado.",
     "errorLoading": "Erro ao cargar o perfil.",
-    "logout": "Pechar sesión"
+    "logout": "Pechar sesión",
+    "aboutHeading": "Sobre",
+    "photoAlt": "Foto de {{name}}"
   },
   "koro": {
     "basic": "Básico",
@@ -398,14 +424,16 @@
     "RENT_THING": "Alugueiro",
     "LEND_THING": "Préstamo",
     "SHARE_THING": "Compartir",
-    "WISH_THING": "Desexo",
+    "WISH_THING": "Pedido",
     "SWAP_THING": "Intercambio"
   },
   "availability": {
     "IMMEDIATE": "Inmediata",
     "NEXT_WEEK": "A semana que vén",
     "END_OF_MONTH": "Fin de mes",
-    "NEXT_MONTH": "O mes que vén"
+    "NEXT_MONTH": "O mes que vén",
+    "nextAvailable": "{{date}}",
+    "noneSoon": "Non"
   },
   "condition": {
     "NEW": "Novo",
@@ -447,12 +475,39 @@
     "orderCount_other": "{{count}} pedidos"
   },
   "wishes": {
-    "offerHelp": "Podo axudar",
-    "helping": "Axudando",
-    "helperCount_one": "{{count}} axudante",
-    "helperCount_other": "{{count}} axudantes",
-    "noHelpers": "Sen axudantes aínda.",
-    "helpersHeading": "Axudantes"
+    "respond": "Responder",
+    "respondPlaceholder": "Escolle como axudar",
+    "kind": {
+      "haveThis": "Teño isto",
+      "knowWhere": "Sei onde",
+      "canMake": "Pódocho facer"
+    },
+    "responseCount_one": "{{count}} resposta",
+    "responseCount_other": "{{count}} respostas",
+    "responsesHeading": "Respostas",
+    "noResponses": "Aínda non hai respostas.",
+    "yourAnswer": "Xa respondiches",
+    "status": {
+      "PENDING": "Pendente",
+      "ACCEPTED": "Aceptada"
+    },
+    "accept": "Aceptar",
+    "resolve": "Marcar como resolto",
+    "notifyGroup": "Avisar ao grupo",
+    "respondingWithListing": "Estás a publicar un artigo para responder a un pedido.",
+    "messageLabel": "Mensaxe",
+    "messageRequired": "Escribe unha mensaxe.",
+    "urlLabel": "Ligazón (opcional)",
+    "feeLabel": "Oferta ou prezo (opcional)",
+    "knowWhereTitle": "Sei onde",
+    "canMakeTitle": "Pódocho facer",
+    "submit": "Enviar resposta",
+    "responseSent": "Resposta enviada.",
+    "errorResponding": "Non se puido enviar a resposta.",
+    "acceptedToast": "Resposta aceptada.",
+    "errorAccepting": "Non se puido aceptar a resposta.",
+    "resolvedToast": "Pedido marcado como resolto.",
+    "errorResolving": "Non se puido marcar como resolto."
   },
   "swap": {
     "offerItems": "Seleccionar artigos a ofrecer",
@@ -463,7 +518,12 @@
     "swapAccepted": "Intercambio completado! Os artigos foron intercambiados.",
     "swapRejected": "Solicitude de intercambio rexeitada.",
     "enableSwap": "Activar intercambio de artigos",
-    "swapCollection": "Colección de intercambio"
+    "swapCollection": "Colección de intercambio",
+    "minimumNotMetBody_one": "Engade {{count}} artigo máis a esta colección antes de poder propoñer un intercambio.",
+    "minimumNotMetBody_other": "Engade {{count}} artigos máis a esta colección antes de poder propoñer un intercambio.",
+    "minimumNotMetLabel": "Engade máis artigos primeiro",
+    "requireMinimumHelper": "Os convidados (e ti) debedes engadir polo menos 3 artigos propios a esta colección antes de poder propoñer un intercambio.",
+    "requireMinimumLabel": "Esixir 3 artigos antes de intercambiar"
   },
   "share": {
     "enableShare": "Exclusivamente cousas tipo SHARE",
@@ -501,7 +561,6 @@
   "broadcast": {
     "heading": "Difusión",
     "openButton": "Enviar mensaxe aos convidados",
-    "subjectLabel": "Asunto",
     "messageLabel": "Mensaxe",
     "sendButton": "Enviar difusión",
     "sending": "Enviando...",
@@ -546,5 +605,31 @@
     "copied": "Ligazón copiada ao portapapeis.",
     "copyError": "Non puidemos copiar a ligazón. Téntao de novo ou usa outra opción.",
     "linkError": "Non puidemos xerar a ligazón. Téntao de novo."
+  },
+  "gallery": {
+    "uploadLabel": "Máis fotos",
+    "uploadHelper": "Engade ata {{max}} fotos máis",
+    "maxImages": "Máximo {{max}} fotos.",
+    "thumbAlt": "Foto da galería {{index}}"
+  },
+  "tags": {
+    "add": "Engadir"
+  },
+  "errorBoundary": {
+    "title": "Algo saíu mal",
+    "body": "Produciuse un erro inesperado. Proba a recargar a páxina ou volve ao inicio.",
+    "reload": "Recargar páxina",
+    "home": "Ir ao inicio"
+  },
+  "popin": {
+    "title": "Pasa!",
+    "description": "Introduce o teu correo e enviarémosche unha ligazón máxica. Un clic e xa estás dentro — sen contrasinal, sen complicacións.",
+    "emailLabel": "Correo",
+    "emailPlaceholder": "ti@correo.com",
+    "join": "Pasa",
+    "joining": "Enviando…",
+    "magicLinkSent": "Ligazón enviada! Revisa a túa caixa de entrada e fai clic na ligazón para unirte.",
+    "alreadyHaveAccount": "Xa tes conta? Iniciar sesión →",
+    "errorSendingLink": "Erro ao enviar a ligazón."
   }
 }

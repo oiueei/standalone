@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Select,
@@ -8,6 +8,7 @@ import {
   NumberInput,
   Button,
   Koros,
+  Notification,
   ToggleButton,
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
@@ -15,12 +16,17 @@ import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
+import GalleryUpload from '../components/GalleryUpload';
 import DocumentUpload from '../components/DocumentUpload';
 
 export default function AddThingPage() {
   const { t } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
+  const routerLocation = useLocation();
+  // When set, this Add flow is answering a wish ("Tengo esto"): on save we link
+  // the new listing back to the wish as a HAVE_THIS response.
+  const respondWishCode = routerLocation.state?.respondWishCode;
 
   const userCode = localStorage.getItem('userCode');
   useEffect(() => { document.title = t('titles.addThing'); }, [t]);
@@ -45,12 +51,16 @@ export default function AddThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [isEndless, setIsEndless] = useState(false);
+  const [notifyGroup, setNotifyGroup] = useState(true);
+  const [gallery, setGallery] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
   const [collectionAllowedTypes, setCollectionAllowedTypes] = useState([]);
+  const [collectionTags, setCollectionTags] = useState([]);
+  const [tags, setTags] = useState([]);
 
   useEffect(() => {
     if (!userCode) return;
@@ -72,6 +82,7 @@ export default function AddThingPage() {
         }
         const allowed = data.allowed_thing_types || [];
         setCollectionAllowedTypes(allowed);
+        setCollectionTags(data.tags || []);
         // If the allowlist names a single type, pre-select it so the form
         // immediately shows the right downstream fields.
         if (allowed.length === 1) {
@@ -116,8 +127,17 @@ export default function AddThingPage() {
     if (documents.length > 0) {
       body.documents = documents;
     }
+    if (gallery.length > 0) {
+      body.gallery = gallery.map((g) => g.publicId);
+    }
+    if (tags.length > 0) {
+      body.tags = tags;
+    }
     if (['GIFT_THING', 'SELL_THING'].includes(type) && isEndless) {
       body.is_endless = true;
+    }
+    if (type === WISH_TYPE && !respondWishCode) {
+      body.notify_group = notifyGroup;
     }
 
     try {
@@ -126,7 +146,21 @@ export default function AddThingPage() {
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        navigate(`/collections/${code}`);
+        if (respondWishCode) {
+          // Link the new listing to the wish as a "Tengo esto" answer.
+          const created = await res.json();
+          const linkRes = await apiFetch(`/api/v1/things/${respondWishCode}/responses/`, {
+            method: 'POST',
+            body: JSON.stringify({ kind: 'HAVE_THIS', thing_code: created.code }),
+          });
+          if (!linkRes.ok) {
+            setToast({ type: 'error', message: t('wishes.errorResponding') });
+            return;
+          }
+          navigate(routerLocation.state?.backPath || `/collections/${code}`);
+        } else {
+          navigate(`/collections/${code}`);
+        }
       } else {
         setToast({ type: 'error', message: t('addThing.errorCreating') });
       }
@@ -168,6 +202,11 @@ export default function AddThingPage() {
       </div>
       <div className="page-container">
         <h1 className="page-title-xl">{t('addThing.pageTitle')}</h1>
+        {respondWishCode && (
+          <Notification type="info" label={t('wishes.kind.haveThis')} style={{ marginBottom: 'var(--spacing-m)' }}>
+            {t('wishes.respondingWithListing')}
+          </Notification>
+        )}
       <div className="form-grid">
           {!isSwapCollection && !isShareCollection && (
             <Select
@@ -176,6 +215,8 @@ export default function AddThingPage() {
               texts={{ label: t('addThing.typeLabel') }}
               options={TYPE_VALUES.filter(v => {
                 if (v === SWAP_TYPE) return false;
+                // Cannot answer a wish by offering another wish.
+                if (respondWishCode && v === WISH_TYPE) return false;
                 if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
                 if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
                 // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
@@ -197,6 +238,18 @@ export default function AddThingPage() {
                 label={t('endless.label')}
                 checked={isEndless}
                 onChange={(val) => setIsEndless(!val)}
+                variant="inline"
+                theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
+              />
+            </div>
+          )}
+          {type === WISH_TYPE && !respondWishCode && (
+            <div className="toggle-left">
+              <ToggleButton
+                id="add-thing-notify-group"
+                label={t('wishes.notifyGroup')}
+                checked={notifyGroup}
+                onChange={(val) => setNotifyGroup(!val)}
                 variant="inline"
                 theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
               />
@@ -266,6 +319,21 @@ export default function AddThingPage() {
               />
             </>
           )}
+          {collectionTags.length > 0 && (
+            <Select
+              language="en"
+              multiSelect
+              id="add-thing-tags"
+              texts={{
+                label: t('addThing.tagsLabel'),
+                placeholder: t('addThing.tagsPlaceholder'),
+                assistive: t('addThing.tagsHelper'),
+              }}
+              options={collectionTags.map((tg) => ({ label: tg, value: tg }))}
+              value={tags.map((tg) => ({ label: tg, value: tg }))}
+              onChange={(opts) => setTags(opts.map((o) => o.value))}
+            />
+          )}
           <ImageUpload
             id="add-thing-thumbnail"
             label={isMinimalistCollection ? t('minimalist.photoRequired') : t('upload.thumbnailLabel')}
@@ -273,6 +341,9 @@ export default function AddThingPage() {
             onChange={setThumbnail}
             folder="oiueei/things"
           />
+          {!isMinimalistCollection && (
+            <GalleryUpload items={gallery} onChange={setGallery} />
+          )}
           {!isMinimalistCollection && (
             <DocumentUpload
               documents={documents}

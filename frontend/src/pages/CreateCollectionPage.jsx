@@ -5,6 +5,7 @@ import { TextInput, TextArea, Select, Button, Koros, Notification, IconInfoCircl
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
+import TagInput from '../components/TagInput';
 import Toast from '../components/Toast';
 
 export default function CreateCollectionPage() {
@@ -32,6 +33,7 @@ export default function CreateCollectionPage() {
   const [isMinimalist, setIsMinimalist] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [allowedThingTypes, setAllowedThingTypes] = useState([]);
+  const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [errors, setErrors] = useState({});
 
@@ -102,6 +104,7 @@ export default function CreateCollectionPage() {
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       allowed_thing_types: allowedThingTypes,
+      tags,
       thumbnail: thumbnail || '',
     };
     if (description.trim()) body.description = description.trim();
@@ -318,6 +321,13 @@ export default function CreateCollectionPage() {
               invalid={!!errors.allowedThingTypes}
             />
           </div>
+          <TagInput
+            tags={tags}
+            onChange={setTags}
+            label={t('createCollection.tagsLabel')}
+            placeholder={t('createCollection.tagsPlaceholder')}
+            helperText={t('createCollection.tagsHelper')}
+          />
           <ImageUpload
             id="create-collection-thumbnail"
             label={t('upload.thumbnailLabel')}

@@ -57,17 +57,16 @@ class TestCollectionBroadcast:
         """Owner sends broadcast to all invitees."""
         resp = broadcast_setup["owner_client"].post(
             URL.format(broadcast_setup["collection"].code),
-            {"subject": "Meeting tonight", "message": "Bring snacks please"},
+            {"message": "Bring snacks please"},
             format="json",
         )
         assert resp.status_code == 200
         assert resp.data["recipients"] == 2
         assert len(mail.outbox) == 2
 
-        # Check email content
+        # Subject is auto-generated as "Hey! {collection}" (no user-provided subject)
         email = mail.outbox[0]
-        assert "[Broadcast Club]" in email.subject
-        assert "Meeting tonight" in email.subject
+        assert email.subject == "Hey! Broadcast Club"
         assert email.reply_to == ["browner@test.com"]
 
     def test_invitee_cannot_broadcast(self, broadcast_setup):
@@ -99,19 +98,19 @@ class TestCollectionBroadcast:
         assert "No invitees" in resp.data["error"]
 
     def test_broadcast_missing_fields(self, broadcast_setup):
-        """Broadcast without required fields returns 400."""
+        """Broadcast without a message returns 400."""
         resp = broadcast_setup["owner_client"].post(
             URL.format(broadcast_setup["collection"].code),
-            {"subject": "Hello"},
+            {},
             format="json",
         )
         assert resp.status_code == 400
 
     def test_broadcast_html_rejected(self, broadcast_setup):
-        """HTML tags in subject/message are rejected by SafeHeadlineField/SafeTextField."""
+        """HTML tags in the message are rejected by SafeTextField."""
         resp = broadcast_setup["owner_client"].post(
             URL.format(broadcast_setup["collection"].code),
-            {"subject": "<script>alert(1)</script>", "message": "Normal message"},
+            {"message": "<script>alert(1)</script>"},
             format="json",
         )
         assert resp.status_code == 400
@@ -120,7 +119,7 @@ class TestCollectionBroadcast:
         """Broadcast email includes owner name, collection name, and message."""
         broadcast_setup["owner_client"].post(
             URL.format(broadcast_setup["collection"].code),
-            {"subject": "Update", "message": "New items added"},
+            {"message": "New items added"},
             format="json",
         )
         assert len(mail.outbox) == 2
@@ -129,11 +128,15 @@ class TestCollectionBroadcast:
         assert "Owner" in email.body
         assert "Broadcast Club" in email.body
         assert "New items added" in email.body
+        # Link to the collection that originated the message
+        collection_path = f"/collections/{broadcast_setup['collection'].code}"
+        assert collection_path in email.body
         # HTML alternative
         html = email.alternatives[0][0]
         assert "Owner" in html
         assert "Broadcast Club" in html
         assert "New items added" in html
+        assert collection_path in html
 
     def test_broadcast_nonexistent_collection(self, broadcast_setup):
         """Broadcast to non-existent collection returns 404."""

@@ -71,6 +71,8 @@ class User(AbstractBaseUser):
     created = models.DateField(default=date.today)
     last_activity = models.DateField(null=True, blank=True, default=None)
     headline = models.CharField(max_length=64, blank=True, default="")
+    about = models.CharField(max_length=2000, blank=True, default="")
+    photo = models.CharField(max_length=255, blank=True, default="")
     koro = models.CharField(max_length=9, choices=KORO_CHOICES, default="basic")
     theeeme = models.ForeignKey(
         "Theeeme",

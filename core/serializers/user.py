@@ -5,7 +5,8 @@ User serializers for OIUEEI.
 from rest_framework import serializers
 
 from core.models import Theeeme, User
-from core.validators import SafeHeadlineField
+from core.utils import cloudinary_url
+from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,6 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
         required=False,
     )
     theeeme_colors = serializers.SerializerMethodField()
+    photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -33,6 +35,9 @@ class UserSerializer(serializers.ModelSerializer):
             "invited_collections",
             "things",
             "headline",
+            "about",
+            "photo",
+            "photo_url",
             "koro",
             "theeeme",
             "theeeme_colors",
@@ -49,6 +54,9 @@ class UserSerializer(serializers.ModelSerializer):
             "things",
             "theeeme",
         ]
+
+    def get_photo_url(self, obj):
+        return cloudinary_url(obj.photo)
 
     def get_own_collections(self, obj):
         return list(obj.owned_collections.values_list("code", flat=True))
@@ -76,14 +84,21 @@ class UserSerializer(serializers.ModelSerializer):
 class UserPublicSerializer(serializers.ModelSerializer):
     """Public user profile serializer (limited fields)."""
 
+    photo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = [
             "code",
             "name",
             "headline",
+            "about",
+            "photo_url",
             "created",
         ]
+
+    def get_photo_url(self, obj):
+        return cloudinary_url(obj.photo)
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -91,6 +106,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     name = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
     headline = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
+    about = SafeTextField(max_length=2000, required=False, allow_blank=True)
+    photo = ImageIdField(required=False, allow_blank=True)
     theeeme = serializers.SlugRelatedField(
         slug_field="code",
         queryset=Theeeme.objects.all(),
@@ -102,6 +119,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = [
             "name",
             "headline",
+            "about",
+            "photo",
             "koro",
             "theeeme",
             "notify_activity",

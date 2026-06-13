@@ -98,13 +98,14 @@ core/
 
 | Model | Purpose |
 |-------|---------|
-| **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords. `notify_activity` and `notify_news` opt-out booleans control Cat. 2 / Cat. 3 email delivery (magic links and invitations are always sent) |
-| **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things). `is_swap` flag enables item swapping (COMMUNITY only). `is_share` flag restricts to SHARE_THING only (COMMUNITY only, mutually exclusive with `is_swap`). `newsletter_enabled` sends weekly activity newsletter on Mondays (requires `is_share`). `is_minimalist` enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (mutually exclusive with `is_swap`, compatible with `is_share`). `share_token` is a 22-char URL-safe bearer credential generated on demand for the public `/share/{token}` link — never exposed in any read serializer. |
-| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). WISH_THING uses `deal` M2M for help offers (bypasses bookings). WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. `documents` JSONField supports up to 5 file attachments (PDF, Word, Excel, Markdown) stored as Cloudinary raw uploads; download links are emailed to the requester on booking acceptance |
+| **User** | Custom user with `code` as PK (6-char alphanumeric). Magic link auth, no passwords. `notify_activity` and `notify_news` opt-out booleans control Cat. 2 / Cat. 3 email delivery (magic links and invitations are always sent). Optional profile extras: `about` (free Markdown bio) and `photo` (Cloudinary profile photo, exposed as `photo_url`) |
+| **Collection** | Lists of things owned by a user. Shared via M2M `invites`. FK to `Theeeme`. Mode: PROPRIETARY (only owner adds things) or COMMUNITY (invited users can add their own things). `is_swap` flag enables item swapping (COMMUNITY only). `is_share` flag restricts to SHARE_THING only (COMMUNITY only, mutually exclusive with `is_swap`). `newsletter_enabled` sends weekly activity newsletter on Mondays (requires `is_share`). `is_minimalist` enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (mutually exclusive with `is_swap`, compatible with `is_share`). `share_token` is a 22-char URL-safe bearer credential generated on demand for the public `/share/{token}` link — never exposed in any read serializer. `tags` is an owner-defined free-text tag vocabulary (max 12) that the collection's things can be tagged with; removing a tag here cascade-strips it from those things. |
+| **Thing** | Items in collections. Types: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING. `status` controls both visibility and reservation state (ACTIVE/TAKEN/INACTIVE). WISH_THING ("Pedido") is a request a member posts on a community board: instead of a reservation it collects structured `WishResponse` answers; resolving it sets `status=INACTIVE` so it leaves the active board. WISH_THING and SHARE_THING are restricted to COMMUNITY collections. SHARE_THING transfers ownership to the requester on booking acceptance; after the first transfer, only the collection owner can hide it. SWAP_THING enables item swapping in swap collections (`is_swap=True`); requester offers own things, on acceptance all things transfer ownership bilaterally. `documents` JSONField supports up to 5 file attachments (PDF, Word, Excel, Markdown) stored as Cloudinary raw uploads; download links are emailed to the requester on booking acceptance. `gallery` JSONField holds up to 8 additional photos (exposed as `gallery_urls`), shown as an image carousel. For date-based types (LEND/RENT), `available_today`/`next_available` expose live availability computed from the booking calendar. `tags` holds owner-defined labels chosen from the collection's `tags` vocabulary, shown as HDS Tags on the card and detail |
 | **FAQ** | Questions/answers about things. FK to Thing and User (questioner) |
 | **Theeeme** | Colour palettes (6 HDS colour token names) for customising collections |
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
 | **BookingPeriod** | Unified booking model for all thing types (72h expiry). FKs to Thing, User (requester), User (owner). `offered_things` M2M for SWAP_THING exchange proposals |
+| **WishResponse** | An answer to a wish (WISH_THING). FK to Thing (`wish`) and User (`responder`). `kind`: HAVE_THIS (links a real listing via FK `thing`), KNOW_WHERE (text + `url`), CAN_MAKE (text + `fee`). `status`: PENDING or ACCEPTED. The creator accepts one answer; accepting is scoped to the answer, not the wish |
 
 ## Key Relationships
 
@@ -116,6 +117,9 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 - `Collection.theeeme` -> FK to Theeeme (PROTECT)
 - `Thing.owner` -> FK to User
 - `Thing.deal` -> M2M to User (via `thing_deals` table)
+- `WishResponse.wish` -> FK to Thing (a WISH_THING; reverse `responses`)
+- `WishResponse.responder` -> FK to User (reverse `wish_responses`)
+- `WishResponse.thing` -> FK to Thing (the offered listing, HAVE_THIS only; SET_NULL)
 - `FAQ.thing` -> FK to Thing
 - `FAQ.questioner` -> FK to User
 - `BookingPeriod.thing_code` -> FK to Thing
@@ -140,7 +144,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/api/v1/users/{user_code}/` | View profile (requires collection connection) |
-| PUT | `/api/v1/users/{user_code}/` | Update own profile (name, headline, koro, theeeme, `notify_activity`, `notify_news`) |
+| PUT | `/api/v1/users/{user_code}/` | Update own profile (name, headline, `about` Markdown bio, `photo`, koro, theeeme, `notify_activity`, `notify_news`) |
 | GET | `/api/v1/notifications/token/{token}/` | Read `notify_activity`/`notify_news` via signed token (no login required; linked from every Cat. 2/3 email footer) |
 | PATCH | `/api/v1/notifications/token/{token}/` | Update `notify_activity`/`notify_news` via signed token |
 
@@ -164,15 +168,17 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/api/v1/things/` | List own things |
-| POST | `/api/v1/things/` | Create thing |
+| POST | `/api/v1/things/` | Create thing (`WISH_THING` may set `notify_group`, default true, to email the collection group) |
 | GET | `/api/v1/things/{code}/` | View thing (owner or invited) |
 | PUT | `/api/v1/things/{code}/` | Update thing (owner only) |
 | DELETE | `/api/v1/things/{code}/` | Delete thing (owner only) |
 | POST | `/api/v1/things/{code}/request/` | Request reservation (invited only) |
 | GET | `/api/v1/things/{code}/calendar/` | View booking calendar (LEND/RENT/SHARE) |
 | GET | `/api/v1/things/{code}/transfers/` | View transfer history and stats (Loan Chain). For SHARE_THING in COMMUNITY collections, includes `original_owner`, `original_owner_name`, and `is_share_in_community` fields |
-| POST | `/api/v1/things/{code}/offer-help/` | Toggle "I can help" for WISH_THING |
-| GET | `/api/v1/things/{code}/helpers/` | List helpers for WISH_THING |
+| GET | `/api/v1/things/{code}/responses/` | List answers to a wish (creator sees all; a responder sees their own) |
+| POST | `/api/v1/things/{code}/responses/` | Answer a wish — `kind` HAVE_THIS / KNOW_WHERE / CAN_MAKE (invited, not owner; rate limited: 20/h). Emails the creator |
+| POST | `/api/v1/things/{code}/resolve/` | Mark a wish resolved (creator only): hides it from the active board and thanks the accepted responder |
+| POST | `/api/v1/wish-responses/{code}/accept/` | Accept one answer to a wish (creator only) |
 | GET | `/api/v1/invited-things/` | List things from invited collections |
 
 ### Bookings
@@ -302,6 +308,7 @@ python manage.py send_digests
 | Rate Limiting | Thing request | 10 req/hour per user |
 | Rate Limiting | Broadcast | 5 req/day per user |
 | Rate Limiting | FAQ question | 20 req/hour per user |
+| Rate Limiting | Wish response | 20 req/hour per user |
 | Rate Limiting | Notifications token | GET 20/min, PATCH 10/min per IP |
 | Headers | HSTS | 1-year strict transport security with preload |
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |

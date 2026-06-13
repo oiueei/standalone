@@ -13,9 +13,11 @@ from rest_framework.viewsets import ModelViewSet
 
 from core.models import Collection, Thing
 from core.models.booking import BookingPeriod
+from core.models.notification import InAppNotification
 from core.pagination import StandardResultsPagination
 from core.permissions import IsThingOwner
 from core.serializers import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
+from core.services.email_service import send_wish_posted_email
 
 
 class ThingViewSet(ModelViewSet):
@@ -39,11 +41,22 @@ class ThingViewSet(ModelViewSet):
             .prefetch_related(
                 "collections",
                 "faq_set",
+                "responses",
                 "deal",
                 Prefetch(
                     "bookings",
                     queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
                     to_attr="_pending_bookings",
+                ),
+                Prefetch(
+                    "bookings",
+                    queryset=BookingPeriod.objects.filter(
+                        status__in=[
+                            BookingPeriod.Status.PENDING,
+                            BookingPeriod.Status.ACCEPTED,
+                        ]
+                    ).order_by("start_date"),
+                    to_attr="_blocked_periods",
                 ),
             )
             .order_by("-created")
@@ -157,6 +170,15 @@ class ThingViewSet(ModelViewSet):
                 self._create_error = "Swap things can only be created in swap collections"
                 return
 
+        # Tags must come from the collection's owner-defined vocabulary.
+        tags = serializer.validated_data.get("tags", [])
+        if tags:
+            available = set(collection.tags) if collection else set()
+            invalid = [t for t in tags if t not in available]
+            if invalid:
+                self._create_error = f"These tags are not defined by the collection: {invalid}"
+                return
+
         thing = Thing.objects.create(
             owner=self.request.user,
             **serializer.validated_data,
@@ -164,10 +186,46 @@ class ThingViewSet(ModelViewSet):
 
         if collection:
             collection.things.add(thing)
+            if thing.type == Thing.Type.WISH_THING and self._wants_group_notice():
+                self._broadcast_new_wish(thing, collection)
 
         # Store created thing for create response
         self._created_thing = thing
         self._create_error = None
+
+    def _wants_group_notice(self):
+        """Whether to broadcast a new wish to the group ('Avisar al grupo')."""
+        raw = self.request.data.get("notify_group", True)
+        if isinstance(raw, bool):
+            return raw
+        return str(raw).lower() not in ("false", "0", "")
+
+    def _broadcast_new_wish(self, wish, collection):
+        """Notify every group member (except the creator) about a new wish."""
+        # Dedupe by code: the owner may also appear in the invites M2M.
+        by_code = {m.code: m for m in collection.invites.all()}
+        by_code[collection.owner_id] = collection.owner
+        members = [m for code, m in by_code.items() if code != self.request.user.code]
+        if not members:
+            return
+
+        creator_name = self.request.user.name or self.request.user.email
+        send_wish_posted_email(creator_name, wish, [m.email for m in members])
+        InAppNotification.objects.bulk_create(
+            [
+                InAppNotification(
+                    user=member,
+                    type=InAppNotification.WISH_POSTED,
+                    payload={
+                        "wish_headline": wish.headline,
+                        "creator_name": creator_name,
+                        "wish_code": wish.code,
+                        "collection_code": collection.code,
+                    },
+                )
+                for member in members
+            ]
+        )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -232,11 +290,22 @@ class InvitedThingsView(ListAPIView):
             .prefetch_related(
                 "collections",
                 "faq_set",
+                "responses",
                 "deal",
                 Prefetch(
                     "bookings",
                     queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
                     to_attr="_pending_bookings",
+                ),
+                Prefetch(
+                    "bookings",
+                    queryset=BookingPeriod.objects.filter(
+                        status__in=[
+                            BookingPeriod.Status.PENDING,
+                            BookingPeriod.Status.ACCEPTED,
+                        ]
+                    ).order_by("start_date"),
+                    to_attr="_blocked_periods",
                 ),
             )
             .distinct()

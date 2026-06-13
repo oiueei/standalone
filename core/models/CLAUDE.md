@@ -18,6 +18,8 @@ The `User` model represents a person who can own collections, be invited to othe
 | `created` | DateField | Auto | Date the user was created |
 | `last_activity` | DateField | No | Date of last login/activity. Null until the user's first verify — `update_last_activity()` populates it. |
 | `headline` | CharField(64) | No | Short bio/tagline |
+| `about` | CharField(2000) | No | Free-form Markdown profile content (contact info, social links, extra info). Optional; any user may set it. Rendered with the frontend `MarkdownText` component; written through `SafeTextField` (rejects raw HTML, allows Markdown). |
+| `photo` | CharField(255) | No | Cloudinary public_id for the optional profile photo. Exposed read-side as `photo_url`. When present, the `/:code` profile hero becomes a two-column split on desktop — text beside the photo, separated by a vertical Koros divider (rotated 90°, filled with theeeme `color_03`) — stacking vertically on mobile. |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, broadcasts. Default: `True` |
@@ -30,7 +32,7 @@ The `User` model represents a person who can own collections, be invited to othe
 
 1. **Email is mandatory and unique** - A user must have an email address, and no two users can share the same email. This is enforced at the database level with `unique=True`.
 
-2. **Optional profile fields** - The `headline` and `thumbnail` fields are optional and default to empty strings.
+2. **Optional profile fields** - The `headline`, `about`, and `photo` fields are optional and default to empty strings.
 
 3. **Relationships via FK/M2M** - Owned collections are accessed via `user.owned_collections.all()` (Collection FK reverse). Invited collections via `user.invited_to_collections.all()` (Collection M2M reverse). Owned things via `user.owned_things.all()` (Thing FK reverse).
 
@@ -96,6 +98,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `is_minimalist` | BooleanField | No | If True, enables photo-album mode: only GIFT/SHARE/SWAP things allowed, thumbnail required (default: False). Mutually exclusive with `is_swap`. Compatible with `is_share`. |
 | `swap_minimum_items` | PositiveIntegerField | No | Number of own SWAP_THINGs (status ACTIVE or TAKEN) a user must already have in this collection before they can propose a swap. Default `0` (no requirement). Only meaningful when `is_swap=True` — the serializer rejects `>0` for non-swap collections. Enforced in `core/views/reservations.py::_handle_swap_request`. The frontend reads `collection_swap_minimum_items` and `my_swap_count_in_collection` (both exposed on `ThingSerializer` and `CollectionThingSummarySerializer`) to disable the "Propose swap" button and surface an inline `Notification` before the user submits. The check applies to **every** requester, including the collection owner — owners propose swaps on guests' things and the rule is symmetric. |
 | `allowed_thing_types` | JSONField (list) | No | Per-collection allowlist of Thing types that may be added. Default `[]` (no restriction — anything that the mode/flags otherwise permit). When non-empty, `core/views/things.py::ThingViewSet.create` rejects any thing whose type is not in the list with 400. The Create/Edit Collection forms enforce "pick at least one" for both PROPRIETARY and COMMUNITY (without `is_swap`/`is_share`); PROPRIETARY+album forces the list to exactly `["GIFT_THING"]`; COMMUNITY+album narrows to `["GIFT_THING", "SHARE_THING"]` (SWAP needs `is_swap`, mutually exclusive with album). When `is_swap` or `is_share` is on, the flag itself restricts the type and the multi-select is hidden — the backend rejects any non-empty `allowed_thing_types` in that case to keep the rules unambiguous. The Update serializer also runs an orphan check: narrowing the list while existing things would no longer fit returns 400 with a message naming the offending types. |
+| `tags` | JSONField (list) | No | Owner-defined tag vocabulary for the collection — an ordered list of free-text labels (max 12, ≤32 chars each, no HTML; trimmed + deduped case-insensitively in the serializer). Things in the collection may be tagged with a subset (`Thing.tags`). Removing a tag here cascade-strips it from the collection's things. Default `[]`. |
 | `thumbnail` | CharField(255) | No | Cloudinary image ID for the collection thumbnail (default: empty string). |
 | `pause_message` | CharField(256) | No | Owner's message to guests explaining why the collection is paused (default: empty string). Non-empty = paused. |
 | `share_token` | CharField(22) | No | URL-safe public share token (`secrets.token_urlsafe(16)` → 22 chars). Nullable, unique. Generated on demand the first time the owner opens the share menu. Anyone with the token can join the collection via `POST /api/v1/auth/pop-in/` with `share_token`. **Bearer credential — must never appear in any read serializer.** |
@@ -314,7 +317,9 @@ The `Thing` model represents an item in a collection.
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |
 | `description` | CharField(256) | No | Description of the thing |
-| `thumbnail` | CharField(255) | No | Cloudinary image ID for thumbnail |
+| `thumbnail` | CharField(255) | No | Cloudinary image ID for the cover thumbnail |
+| `gallery` | JSONField (list) | No | Additional photos beyond the cover `thumbnail`: an ordered list of Cloudinary public_ids. Max 8 (enforced in the serializer). Exposed read-side as `gallery_urls`. Things only (not Collections). Default `[]`. The frontend renders cover + gallery as an "Image pagination" carousel on `ThingPage` **and** inside the collection-grid cards (`ThingLinkbox`) when there is more than one photo. |
+| `tags` | JSONField (list) | No | Owner-defined tags assigned to this thing — a subset of its collection's `Collection.tags` vocabulary (validated on create/update). Max 12. Rendered as HDS `Tag`s on the card and detail. Default `[]`. |
 | `status` | CharField(8) | No | Status: ACTIVE, TAKEN, INACTIVE |
 | `fee` | DecimalField | No | Price/fee (for SELL/RENT types) |
 | `availability` | CharField(12) | No | Availability: IMMEDIATE, NEXT_WEEK, END_OF_MONTH, NEXT_MONTH. Only for GIFT/SELL/LEND/SHARE types. |
@@ -322,7 +327,7 @@ The `Thing` model represents an item in a collection.
 | `condition` | CharField(12) | No | Condition: NEW, GOOD, FAIR, USED, WELL_USED, ALMOST_JUNK. Only for GIFT/SELL/LEND/SHARE types. |
 | `documents` | JSONField | No | Attached documents: `[{"public_id": "...", "filename": "...", "content_type": "..."}]`. Max 5. Allowed types: PDF, Word, Excel, Markdown. Max 1 MB each (enforced client-side). Stored in Cloudinary raw uploads. Download links sent via email on booking acceptance. |
 | `is_endless` | BooleanField | No | GIFT_THING and SELL_THING only. When True: multiple simultaneous PENDING bookings from different users are allowed, thing status never changes to TAKEN, no ThingTransfer is created on acceptance, thing remains ACTIVE forever (until owner hides or deletes it). Default: False. |
-| `deal` | ManyToManyField(User) | No | Users who have reserved. For WISH_THING: helpers |
+| `deal` | ManyToManyField(User) | No | Users who have reserved (not used by WISH_THING — wishes use `WishResponse`) |
 
 ### Status
 
@@ -338,6 +343,7 @@ The `Thing` model represents an item in a collection.
 - `can_view(user_code)` - Check if user can view. Returns `False` if status is `INACTIVE` (unless user is owner) or if the collection is INACTIVE. Uses query: `self.collections.filter(invites__code=user_code, status='ACTIVE').exists()`
 - `reserve(user_code)` - Add user to `deal` M2M. Does NOT change `status` (status is managed by the booking service)
 - `release(user_code)` - Remove user from `deal` M2M.
+- `availability_window(horizon_days=90)` - For date-based types (LEND/RENT) only, returns `{"available_today": bool, "next_available": date|None}` computed from the booking calendar via `core.services.booking_service.compute_availability`; returns `None` for all other types. Prefetch-aware (reuses `self._blocked_periods` when set, else queries `BookingPeriod.get_blocked_periods`) and memoised on the instance. Backs the `available_today` / `next_available` serializer fields.
 
 ### Reverse Relations
 
@@ -405,7 +411,7 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 
 | Type | Created when | Recipient | Payload fields |
 |------|-------------|-----------|----------------|
-| `BROADCAST` | Owner sends a broadcast to collection | Each invitee | `owner_name`, `collection_headline`, `subject`, `message` |
+| `BROADCAST` | Owner sends a broadcast to collection | Each invitee | `owner_name`, `collection_headline`, `message`, `collection_code` |
 | `COLLECTION_DELETED` | Owner deletes a collection | Each invitee | `collection_headline`, `owner_name` |
 | `COLLECTION_REVOKED` | Owner removes a guest from collection | Removed user | `collection_headline`, `owner_name` |
 | `BOOKING_ACCEPTED` | Owner accepts a hold request | Requester | `thing_headline`, `owner_name` |
@@ -416,6 +422,11 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 | `FAQ_ANSWERED` | Owner answers a FAQ | Questioner | `thing_headline`, `owner_name` |
 | `FAQ_HIDDEN` | Owner hides a FAQ | Questioner | `thing_headline`, `owner_name` |
 | `INVITE_REJECTED` | Invitee declines a collection invite | Collection owner | `collection_headline`, `invitee_name` |
+| `WISH_POSTED` | Member posts a wish with "Avisar al grupo" on | Each group member | `wish_headline`, `creator_name`, `wish_code`, `collection_code` |
+| `WISH_RESPONSE` | Member answers a wish | Wish creator | `wish_headline`, `responder_name`, `wish_code`, `collection_code` |
+| `WISH_ACCEPTED` | Creator accepts an answer | Responder | `wish_headline`, `owner_name`, `wish_code`, `collection_code` |
+
+The three wish payloads carry `wish_code` + `collection_code` so the HomePage inbox banner can render a deep link to `/collections/{collection_code}/things/{wish_code}` (the wish page).
 
 ### Business Rules
 
@@ -427,3 +438,44 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 ### Reverse Relations
 
 - `user.inbox_notifications` — All in-app notifications for a user (InAppNotification.user FK reverse)
+
+---
+
+## WishResponse
+
+A `WishResponse` is a member's structured answer to a **wish** (a `Thing` of type `WISH_THING`). It is the closest analogue to `FAQ` (a parent-FK + user-FK + text + state), and replaces the old "I can help" toggle.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
+| `wish` | ForeignKey(Thing) | **Yes** | The wish being answered (a `WISH_THING`). `db_column='wish'`, reverse `responses`, CASCADE |
+| `responder` | ForeignKey(User) | **Yes** | The member answering. Reverse `wish_responses`, CASCADE |
+| `created` | DateTimeField | Auto | Timestamp (`timezone.now`) |
+| `kind` | CharField(10) | **Yes** | `HAVE_THIS` / `KNOW_WHERE` / `CAN_MAKE` (TextChoices) |
+| `thing` | ForeignKey(Thing) | No | For `HAVE_THIS`: the real listing offered (its own GIFT/SELL/LEND mode). `db_column='offered_thing'`, reverse `offered_in_responses`, **SET_NULL** |
+| `message` | CharField(256) | No | Free text for `KNOW_WHERE` / `CAN_MAKE` |
+| `url` | CharField(255) | No | Optional link for `KNOW_WHERE` |
+| `fee` | DecimalField(10,2) | No | Optional offer/price for `CAN_MAKE` |
+| `status` | CharField(8) | No | `PENDING` (default) or `ACCEPTED` |
+
+### Business Rules
+
+1. **Owner cannot answer their own wish** — enforced at the view (400).
+2. **HAVE_THIS must offer the responder's own listing** — the offered `thing` must belong to the responder (400 otherwise).
+3. **Acceptance is per-answer, not per-wish** — the creator marks one `WishResponse` `ACCEPTED`; this is the "reserve" applied to the answer so two members can't both think they won.
+4. **Resolution hides the wish** — `WishResolveView` sets `Thing.status = INACTIVE`; the row itself is not deleted.
+5. **SET_NULL on the offered thing** — deleting the offered listing leaves the answer intact with `thing = NULL`.
+6. **Ordering** — newest-first (`-created`). Table: `wish_responses`.
+
+### Methods
+
+- `is_responder(user_code)` — True if the user authored this answer.
+- `accept()` — sets `status = ACCEPTED` and saves.
+
+### Reverse Relations
+
+- `thing.responses` — answers to a wish (`WishResponse.wish` FK reverse)
+- `thing.offered_in_responses` — answers that offer this thing (`WishResponse.thing` FK reverse)
+- `user.wish_responses` — answers authored by a user (`WishResponse.responder` FK reverse)

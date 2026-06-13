@@ -54,7 +54,9 @@
     "notFound": "Pàgina no trobada — OIUEEI",
     "deleteCollection": "Eliminar {{headline}} — OIUEEI",
     "deleteCollectionDefault": "Eliminar col·lecció — OIUEEI",
-    "share": "Uneix-te — OIUEEI"
+    "share": "Uneix-te — OIUEEI",
+    "notifications": "Preferències d'email — OIUEEI",
+    "popin": "Passa — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -64,7 +66,8 @@
     "magicLinkSent": "Si aquest correu està registrat, t'hem enviat un enllaç màgic.",
     "errorSendingLink": "Error en enviar l'enllaç.",
     "description": "Què és OIUEEI? Una aplicació web de codi obert perquè les persones comparteixin les seves pertinences amb amics i altres persones. Els usuaris poden crear col·leccions (llistes de desitjos, llistes de regals, articles en venda) i compartir-les amb amics que poden reservar articles o fer preguntes.",
-    "openSource": "OIUEEI és de codi obert. Pots trobar el projecte a <1>GitHub</1>. Si vols sol·licitar accés o col·laborar, posa't en contacte."
+    "openSource": "OIUEEI és de codi obert. Pots trobar el projecte a <1>GitHub</1>. Si vols sol·licitar accés o col·laborar, posa't en contacte.",
+    "popIn": "Nou per aquí? Passa →"
   },
   "verify": {
     "declined": "Rebutjat",
@@ -83,7 +86,7 @@
   "home": {
     "greeting": "Hola, {{name}}",
     "createCollection": "Crear col·lecció",
-    "myProfile": "Editar el meu perfil",
+    "myProfile": "El meu perfil",
     "myRequests": "Les meves sol·licituds",
     "allThings": "Tots els articles",
     "loadingThings": "Carregant articles...",
@@ -94,7 +97,7 @@
     "declineInvitation": "Rebutjar invitació",
     "dismiss": "Descartar",
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
-    "broadcastBody": "{{subject}}: {{message}}",
+    "broadcastBody": "{{message}}",
     "collectionDeletedLabel": "Col·lecció eliminada",
     "collectionDeletedBody": "\"{{collection_headline}}\" ha estat eliminada per {{owner_name}}.",
     "collectionRevokedLabel": "Eliminat de la col·lecció",
@@ -114,7 +117,15 @@
     "faqHiddenLabel": "Pregunta amagada",
     "faqHiddenBody": "{{owner_name}} ha amagat la teva pregunta sobre {{thing_headline}}.",
     "inviteRejectedLabel": "Invitació rebutjada",
-    "inviteRejectedBody": "{{invitee_name}} ha rebutjat la invitació a {{collection_headline}}."
+    "inviteRejectedBody": "{{invitee_name}} ha rebutjat la invitació a {{collection_headline}}.",
+    "wishPostedLabel": "Nova petició",
+    "wishPostedBody": "{{creator_name}} ha publicat una petició: {{wish_headline}}.",
+    "wishResponseLabel": "Nova resposta",
+    "wishResponseBody": "{{responder_name}} ha respost la teva petició {{wish_headline}}.",
+    "wishAcceptedLabel": "Resposta acceptada",
+    "wishAcceptedBody": "{{owner_name}} ha acceptat la teva resposta a {{wish_headline}}.",
+    "viewWish": "Veure la petició",
+    "viewCollection": "Puc ajudar!"
   },
   "collectionPage": {
     "editCollection": "Editar col·lecció",
@@ -169,7 +180,11 @@
     "errorShowingQuestion": "Error en mostrar la pregunta.",
     "noPermission": "No tens permís per veure aquest article.",
     "notFound": "Article no trobat.",
-    "errorLoading": "Error en carregar l'article."
+    "errorLoading": "Error en carregar l'article.",
+    "galleryLabel": "Fotos",
+    "galleryImageAlt": "{{name}} — imatge {{index}} de {{total}}",
+    "galleryPrev": "Imatge anterior",
+    "galleryNext": "Imatge següent"
   },
   "thingCard": {
     "confirmHold": "Confirmar reserva",
@@ -226,7 +241,10 @@
     "maxHeadline": "Màxim 64 caràcters.",
     "priceRequired": "El preu és obligatori per a aquest tipus.",
     "maxLocation": "Màxim 32 caràcters.",
-    "errorCreating": "Error en crear l'article."
+    "errorCreating": "Error en crear l'article.",
+    "tagsLabel": "Etiquetes",
+    "tagsPlaceholder": "Selecciona etiquetes",
+    "tagsHelper": "Tria entre les etiquetes d'aquesta col·lecció"
   },
   "editThing": {
     "pageTitle": "Editar article",
@@ -252,7 +270,13 @@
     "maxName": "Màxim 32 caràcters.",
     "maxBio": "Màxim 64 caràcters.",
     "errorLoading": "Error en carregar el perfil.",
-    "errorSaving": "Error en desar."
+    "errorSaving": "Error en desar.",
+    "aboutLabel": "Sobre tu",
+    "aboutHelper": "Compatible amb Markdown",
+    "photoLabel": "Foto de perfil",
+    "photoHelper": "Es mostra al teu perfil, opcional",
+    "maxAbout": "Màxim 2000 caràcters.",
+    "emailPreferences": "Preferències d'email →"
   },
   "editCollection": {
     "pageTitle": "Editar col·lecció",
@@ -295,32 +319,32 @@
     "allowedTypesAlbumHelper": "El mode àlbum només accepta regals.",
     "allowedTypesSwapHelper": "El mode intercanvi només accepta coses d'intercanvi.",
     "allowedTypesShareHelper": "El mode exclusivament share només accepta coses share.",
-    "allowedTypesAtLeastOne": "Tria almenys un tipus."
+    "allowedTypesAtLeastOne": "Tria almenys un tipus.",
+    "tagsLabel": "Etiquetes",
+    "tagsPlaceholder": "p. ex. Vintage, Cuina, Exterior",
+    "tagsHelper": "Etiquetes opcionals per organitzar les coses d'aquesta col·lecció"
   },
   "welcome": {
     "greeting": "Hola, {{name}}",
     "pageTitle": "Benvingut a OIUEEI!",
-    "description": "OIUEEI és una plataforma de codi obert per compartir dins de comunitats de confiança. Crea col·leccions per a regals, vendes, préstecs, comandes, esdeveniments, intercanvis, desitjos i cites — i convida amics a explorar, reservar i interactuar. Tot queda entre persones que es coneixen.",
+    "description": "OIUEEI és una plataforma de codi obert per compartir dins de comunitats de confiança. Crea col·leccions per a regals, vendes, préstecs, comandes, intercanvis i desitjos — i convida amics a explorar, reservar i interactuar. Tot queda entre persones que es coneixen.",
     "createCollection": "Crear col·lecció",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "Qui fa servir OIUEEI?",
-    "personaLalaTitle": "Lala — La Multitasca.",
-    "personaLalaBody": "De sabàtic i buidant el pis sense complicacions — deu euros cada cosa, tu ho recolls, tot tancat abans del 25. Però la Lala també gestiona un sistema comunitari de préstec de furgoneta, perquè no tot cal vendre-ho quan es pot simplement deixar.",
+    "personaLalaTitle": "Lala — La Despresa.",
+    "personaLalaBody": "De sabàtic i buidant el pis sense complicacions — deu euros cada cosa, tu ho recolls, tot tancat abans del 25. El que sobri, directe a l'orfenat del barri.",
     "personaLeleTitle": "Lele — La Cuidadora.",
-    "personaLeleBody": "Aixecada a les cinc coent pastissos arquitectònics amb ingredients que hom pot pronunciar, i — quan no és a la cuina — regalant esqueixos de suculentes d'un preciós àlbum de fotos. Encarrega un pastís o adopta una planta: totes dues coses venen amb instruccions de cura.",
+    "personaLeleBody": "Aixecada a les cinc coent pastissos arquitectònics amb ingredients que hom pot pronunciar — vegans, sense gluten o baixos en sucre, segons l'ocasió. Encarrega'n un per a la propera celebració i arriba fet al teu gust.",
     "personaLiliTitle": "Lili — La Intercanviadora.",
     "personaLiliBody": "Deixa trepants, vaporetes i escales de franc perquè ningú necessita un trepant cada dia. També gestiona un tauler d'intercanvi d'electrònica per a entusiastes d'Arduino — sense diners, només components i respecte mutu. Retorna les coses netes. Això és el tracte.",
-    "personaLoloTitle": "Lolo — L'Entusiasta.",
-    "personaLoloBody": "Organitza un club de lectura per als qui els agraden els herois turmentats i els erms batuts pel vent — i també dóna classes de dulcimer de martells, aquella preciosa arpa trapezoïdal. Una cita per a una lectura acollidora, una altra per al so més bonic del món.",
+    "personaLoloTitle": "Lolo — La Jardinera.",
+    "personaLoloBody": "Mare planta amb massa cries verdes, regala esqueixos de suculentes d'un preciós àlbum de fotos — echeverias, jades, sedums, de tot. Adopta una cria; l'única regla és que li has de posar nom.",
     "personaLuluTitle": "Lulu — La Connectora.",
     "personaLuluBody": "Ningú no sap gaire bé on troba aquestes coses ni on va. El seu prestatge comunitari s'omple cada setmana amb objectes que han tingut una vida, a punt per a una nova llar. Els membres reben un resum setmanal per correu — perquè allò que arriba al prestatge el dilluns mereix haver marxat el divendres.",
-    "personaLalaLink1": "La furgoneta compartida",
     "personaLeleLink1": "Els pastissos de la Lele",
-    "personaLeleLink2": "El viver de la Lele",
     "personaLiliLink1": "El banc d'eines de la Lili",
     "personaLiliLink2": "L'intercanvi d'electrònica de la Lili",
-    "personaLoloLink1": "El club de lectura de la Lolo",
-    "personaLoloLink2": "Les classes de dulcimer de la Lolo",
+    "personaLoloLink1": "El saló verd de la Lolo",
     "personaLuluLink1": "El prestatge fantasma de la Lulu",
     "personaLalaLink2": "La venda del sabàtic de la Lala"
   },
@@ -381,7 +405,9 @@
     "noPermission": "No tens permís per veure aquest perfil.",
     "notFound": "Usuari no trobat.",
     "errorLoading": "Error en carregar el perfil.",
-    "logout": "Tancar sessió"
+    "logout": "Tancar sessió",
+    "aboutHeading": "Sobre",
+    "photoAlt": "Foto de {{name}}"
   },
   "koro": {
     "basic": "Bàsic",
@@ -398,14 +424,16 @@
     "RENT_THING": "Lloguer",
     "LEND_THING": "Préstec",
     "SHARE_THING": "Compartir",
-    "WISH_THING": "Desig",
+    "WISH_THING": "Petició",
     "SWAP_THING": "Intercanvi"
   },
   "availability": {
     "IMMEDIATE": "Immediata",
     "NEXT_WEEK": "La setmana que ve",
     "END_OF_MONTH": "Fi de mes",
-    "NEXT_MONTH": "El mes que ve"
+    "NEXT_MONTH": "El mes que ve",
+    "nextAvailable": "{{date}}",
+    "noneSoon": "No"
   },
   "condition": {
     "NEW": "Nou",
@@ -447,12 +475,39 @@
     "orderCount_other": "{{count}} comandes"
   },
   "wishes": {
-    "offerHelp": "Puc ajudar",
-    "helping": "Ajudant",
-    "helperCount_one": "{{count}} ajudant",
-    "helperCount_other": "{{count}} ajudants",
-    "noHelpers": "Sense ajudants encara.",
-    "helpersHeading": "Ajudants"
+    "respond": "Respondre",
+    "respondPlaceholder": "Tria com ajudar",
+    "kind": {
+      "haveThis": "Tinc això",
+      "knowWhere": "Sé on",
+      "canMake": "T'ho puc fer"
+    },
+    "responseCount_one": "{{count}} resposta",
+    "responseCount_other": "{{count}} respostes",
+    "responsesHeading": "Respostes",
+    "noResponses": "Encara no hi ha respostes.",
+    "yourAnswer": "Ja has respost",
+    "status": {
+      "PENDING": "Pendent",
+      "ACCEPTED": "Acceptada"
+    },
+    "accept": "Acceptar",
+    "resolve": "Marcar com a resolt",
+    "notifyGroup": "Avisar el grup",
+    "respondingWithListing": "Estàs publicant un article per respondre una petició.",
+    "messageLabel": "Missatge",
+    "messageRequired": "Escriu un missatge.",
+    "urlLabel": "Enllaç (opcional)",
+    "feeLabel": "Oferta o preu (opcional)",
+    "knowWhereTitle": "Sé on",
+    "canMakeTitle": "T'ho puc fer",
+    "submit": "Enviar resposta",
+    "responseSent": "Resposta enviada.",
+    "errorResponding": "No s'ha pogut enviar la resposta.",
+    "acceptedToast": "Resposta acceptada.",
+    "errorAccepting": "No s'ha pogut acceptar la resposta.",
+    "resolvedToast": "Petició marcada com a resolta.",
+    "errorResolving": "No s'ha pogut marcar com a resolt."
   },
   "swap": {
     "offerItems": "Seleccionar articles a oferir",
@@ -463,7 +518,12 @@
     "swapAccepted": "Intercanvi completat! Els articles han estat intercanviats.",
     "swapRejected": "Sol·licitud d'intercanvi rebutjada.",
     "enableSwap": "Activar intercanvi d'articles",
-    "swapCollection": "Col·lecció d'intercanvi"
+    "swapCollection": "Col·lecció d'intercanvi",
+    "minimumNotMetBody_one": "Afegeix {{count}} article més a aquesta col·lecció abans de poder proposar un intercanvi.",
+    "minimumNotMetBody_other": "Afegeix {{count}} articles més a aquesta col·lecció abans de poder proposar un intercanvi.",
+    "minimumNotMetLabel": "Afegeix més articles primer",
+    "requireMinimumHelper": "Els convidats (i tu) heu d'afegir almenys 3 articles propis a aquesta col·lecció abans de poder proposar un intercanvi.",
+    "requireMinimumLabel": "Exigir 3 articles abans d'intercanviar"
   },
   "share": {
     "enableShare": "Exclusivament coses tipus SHARE",
@@ -501,7 +561,6 @@
   "broadcast": {
     "heading": "Difusió",
     "openButton": "Enviar missatge als convidats",
-    "subjectLabel": "Assumpte",
     "messageLabel": "Missatge",
     "sendButton": "Enviar difusió",
     "sending": "Enviant...",
@@ -546,5 +605,31 @@
     "copied": "Enllaç copiat al porta-retalls.",
     "copyError": "No hem pogut copiar l'enllaç. Torna-ho a provar o fes servir una altra opció.",
     "linkError": "No hem pogut generar l'enllaç. Torna-ho a provar."
+  },
+  "gallery": {
+    "uploadLabel": "Més fotos",
+    "uploadHelper": "Afegeix fins a {{max}} fotos més",
+    "maxImages": "Màxim {{max}} fotos.",
+    "thumbAlt": "Foto de la galeria {{index}}"
+  },
+  "tags": {
+    "add": "Afegeix"
+  },
+  "errorBoundary": {
+    "title": "Alguna cosa ha anat malament",
+    "body": "S'ha produït un error inesperat. Prova de recarregar la pàgina o torna a l'inici.",
+    "reload": "Recarregar la pàgina",
+    "home": "Anar a l'inici"
+  },
+  "popin": {
+    "title": "Passa!",
+    "description": "Introdueix el teu correu i t'enviarem un enllaç màgic. Un clic i ja hi ets — sense contrasenya, sense complicacions.",
+    "emailLabel": "Correu",
+    "emailPlaceholder": "tu@correu.com",
+    "join": "Passa",
+    "joining": "Enviant…",
+    "magicLinkSent": "Enllaç enviat! Revisa la safata d'entrada i fes clic a l'enllaç per unir-te.",
+    "alreadyHaveAccount": "Ja tens un compte? Inicia sessió →",
+    "errorSendingLink": "Error en enviar l'enllaç."
   }
 }

@@ -41,7 +41,7 @@ from .views.things import InvitedThingsView, ThingViewSet
 from .views.transfers import ThingTransferView
 from .views.upload import CloudinarySignatureView
 from .views.users import UserDetailView
-from .views.wishes import WishHelpersView, WishOfferHelpView
+from .views.wishes import ThingWishResponseView, WishResolveView, WishResponseAcceptView
 
 
 def health_check(request):
@@ -119,15 +119,21 @@ urlpatterns = [
         ThingTransferView.as_view(),
         name="thing-transfers",
     ),
+    # Wishes (a Thing of type WISH_THING)
     path(
-        "things/<str:thing_code>/offer-help/",
-        WishOfferHelpView.as_view(),
-        name="wish-offer-help",
+        "things/<str:thing_code>/responses/",
+        ThingWishResponseView.as_view(),
+        name="wish-responses",
     ),
     path(
-        "things/<str:thing_code>/helpers/",
-        WishHelpersView.as_view(),
-        name="wish-helpers",
+        "things/<str:thing_code>/resolve/",
+        WishResolveView.as_view(),
+        name="wish-resolve",
+    ),
+    path(
+        "wish-responses/<str:code>/accept/",
+        WishResponseAcceptView.as_view(),
+        name="wish-response-accept",
     ),
     # Bookings
     path("my-bookings/", MyBookingsView.as_view(), name="my-bookings"),

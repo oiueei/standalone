@@ -14,15 +14,17 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
+import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, WISH_KIND_I18N } from '../constants/things';
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
 import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
+import RespondMenu from '../components/RespondMenu';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
 import MarkdownText from '../components/MarkdownText';
+import ImageCarousel from '../components/ImageCarousel';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -53,9 +55,8 @@ export default function ThingPage() {
   const [transfers, setTransfers] = useState(null);
 
   // Wish state
-  const [helpers, setHelpers] = useState(null);
-  const [isHelping, setIsHelping] = useState(false);
-  const [helpSubmitting, setHelpSubmitting] = useState(false);
+  const [responses, setResponses] = useState([]);
+  const [actioning, setActioning] = useState(false);
 
   useEffect(() => {
     if (!userCode) {
@@ -105,15 +106,12 @@ export default function ThingPage() {
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
-    if (!thing) return;
-    if (thing.type === WISH_TYPE) {
-      if (thing.deal) setIsHelping(thing.deal.includes(userCode));
-      apiFetch(`/api/v1/things/${thing.code}/helpers/`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => { if (data) setHelpers(data); })
-        .catch(() => {});
-    }
-  }, [thing, userCode]);
+    if (!thing || thing.type !== WISH_TYPE) return;
+    apiFetch(`/api/v1/things/${thing.code}/responses/`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (data) setResponses(data.results || data); })
+      .catch(() => {});
+  }, [thing]);
 
   useEffect(() => {
     if (!thing || !userCode) return;
@@ -269,24 +267,40 @@ export default function ThingPage() {
     }
   };
 
-  const handleOfferHelp = async () => {
-    setHelpSubmitting(true);
+  const handleAcceptResponse = async (responseCode) => {
+    setActioning(true);
+    setToast(null);
     try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/offer-help/`, { method: 'POST' });
+      const res = await apiFetch(`/api/v1/wish-responses/${responseCode}/accept/`, { method: 'POST' });
       if (res.ok) {
-        const data = await res.json();
-        setIsHelping(data.offering);
-        setHelpers((prev) => prev ? { ...prev, helper_count: data.helper_count } : prev);
-        // Re-fetch helpers list
-        const hlpRes = await apiFetch(`/api/v1/things/${thing.code}/helpers/`);
-        if (hlpRes.ok) setHelpers(await hlpRes.json());
+        const updated = await res.json();
+        setResponses((prev) => prev.map((r) => (r.code === responseCode ? { ...r, status: updated.status } : r)));
+        setToast({ type: 'success', message: t('wishes.acceptedToast') });
       } else {
-        setToast({ type: 'error', message: t('common.connectionError') });
+        setToast({ type: 'error', message: t('wishes.errorAccepting') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
-      setHelpSubmitting(false);
+      setActioning(false);
+    }
+  };
+
+  const handleResolve = async () => {
+    setActioning(true);
+    setToast(null);
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/resolve/`, { method: 'POST' });
+      if (res.ok) {
+        setThing((prev) => ({ ...prev, status: 'INACTIVE' }));
+        setToast({ type: 'success', message: t('wishes.resolvedToast') });
+      } else {
+        setToast({ type: 'error', message: t('wishes.errorResolving') });
+      }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setActioning(false);
     }
   };
 
@@ -394,15 +408,14 @@ export default function ThingPage() {
       <div className="page-container">
 
       <div className="form-grid">
-        {thing.thumbnail_url && (
-          <img
-            src={thing.thumbnail_url}
-            alt={thing.headline}
-            className="detail-image"
-          />
-        )}
-
-        <ThingTags thing={thing} isOwner={isOwner} showType={false} />
+        {(() => {
+          const images = [thing.thumbnail_url, ...(thing.gallery_urls || [])].filter(Boolean);
+          if (images.length === 0) return null;
+          if (images.length === 1) {
+            return <img src={images[0]} alt={thing.headline} className="detail-image" />;
+          }
+          return <ImageCarousel images={images} alt={thing.headline} />;
+        })()}
 
         <p className="thing-card-meta">
           {new Date(thing.created).toLocaleDateString(i18n.language)}
@@ -426,6 +439,8 @@ export default function ThingPage() {
           </div>
         )}
 
+        <ThingTags thing={thing} isOwner={isOwner} showType={false} />
+
         <div className="thing-card-info">
           <div className="thing-card-info-row">
             <IconTicket size="m" aria-hidden="true" />
@@ -439,7 +454,22 @@ export default function ThingPage() {
               <span>{thing.fee} €</span>
             </div>
           )}
-          {thing.availability && (
+          {/* Live availability (date-based things): computed from the booking calendar */}
+          {isDateBased && (
+            <div className="thing-card-info-row">
+              <IconCalendar size="m" aria-hidden="true" />
+              <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
+              <span>
+                {thing.available_today
+                  ? t('availability.IMMEDIATE')
+                  : thing.next_available
+                    ? t('availability.nextAvailable', { date: new Date(thing.next_available).toLocaleDateString(i18n.language, { day: 'numeric', month: 'numeric' }) })
+                    : t('availability.noneSoon')}
+              </span>
+            </div>
+          )}
+          {/* Static availability hint (non-date types only) */}
+          {!isDateBased && thing.availability && (
             <div className="thing-card-info-row">
               <IconCalendar size="m" aria-hidden="true" />
               <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
@@ -554,17 +584,20 @@ export default function ThingPage() {
           </div>
         )}
 
-        {/* Offer help button for wish things */}
+        {/* Answer ("Contestar") menu for wishes */}
         {showButton && isWish && (
-          <Button
-            fullWidth
-            disabled={helpSubmitting}
-            style={isHelping ? btnSecondaryStyle : btnStyle}
-            variant={isHelping ? 'secondary' : 'primary'}
-            onClick={handleOfferHelp}
-          >
-            {isHelping ? t('wishes.helping') : t('wishes.offerHelp')}
-          </Button>
+          thing.my_response ? (
+            <p className="thing-card-meta">
+              {t('wishes.yourAnswer')} · {t('wishes.status.' + thing.my_response.status)}
+            </p>
+          ) : (
+            <RespondMenu
+              thingCode={thing.code}
+              collectionCode={collectionCode}
+              backPath={code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`}
+              backLabel={thing.headline}
+            />
+          )
         )}
 
         {/* Reservation button for non-wish invited users */}
@@ -605,22 +638,65 @@ export default function ThingPage() {
           </div>
         )}
 
-        {/* Helpers section for wish things */}
-        {isWish && helpers && (
+        {/* Responses section for wishes (creator sees all; responder sees own) */}
+        {isWish && (isOwner || thing.my_response) && (
           <>
             <div className="spacer-m" />
             <hr />
             <div className="spacer-m" />
-            <h2>{t('wishes.helpersHeading')}</h2>
-            <p>{t('wishes.helperCount', { count: helpers.helper_count })}</p>
-            {helpers.helpers.length > 0 ? (
-              <ul className="thing-card-bookings">
-                {helpers.helpers.map((h) => (
-                  <li key={h.code}>{h.name}</li>
-                ))}
-              </ul>
+            <h2>{t('wishes.responsesHeading')}</h2>
+            {responses.length === 0 ? (
+              <p>{t('wishes.noResponses')}</p>
             ) : (
-              <p>{t('wishes.noHelpers')}</p>
+              <div className="faq-grid">
+                {responses.map((r) => (
+                  <div key={r.code}>
+                    <p className="thing-card-meta">
+                      <strong>{r.responder_name}</strong>
+                      {' · '}{t('wishes.kind.' + WISH_KIND_I18N[r.kind])}
+                      {' · '}
+                      <span style={{ color: r.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
+                        {t('wishes.status.' + r.status)}
+                      </span>
+                    </p>
+                    {r.kind === 'HAVE_THIS' && r.thing && (
+                      <p>
+                        <Link to={code ? `/collections/${code}/things/${r.thing}` : `/things/${r.thing}`}>
+                          {r.thing_headline}
+                        </Link>
+                        {r.thing_type && <> ({t('types.' + r.thing_type)})</>}
+                      </p>
+                    )}
+                    {r.message && <MarkdownText text={r.message} />}
+                    {r.url && (
+                      <p><a href={r.url} target="_blank" rel="noopener noreferrer">{r.url}</a></p>
+                    )}
+                    {r.fee && <p>{r.fee} €</p>}
+                    {isOwner && r.status === 'PENDING' && (
+                      <Button
+                        disabled={actioning}
+                        onClick={() => handleAcceptResponse(r.code)}
+                        style={{ ...btnStyle, width: '100%' }}
+                      >
+                        {t('wishes.accept')}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {isOwner && thing.status === 'ACTIVE' && (
+              <>
+                <div className="spacer-m" />
+                <Button
+                  variant="secondary"
+                  disabled={actioning}
+                  onClick={handleResolve}
+                  style={{ ...btnSecondaryStyle, width: '100%' }}
+                >
+                  {t('wishes.resolve')}
+                </Button>
+              </>
             )}
           </>
         )}

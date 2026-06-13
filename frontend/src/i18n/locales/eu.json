@@ -54,7 +54,9 @@
     "notFound": "Orrialdea ez da aurkitu — OIUEEI",
     "deleteCollection": "Ezabatu {{headline}} — OIUEEI",
     "deleteCollectionDefault": "Ezabatu bilduma — OIUEEI",
-    "share": "Sartu — OIUEEI"
+    "share": "Sartu — OIUEEI",
+    "notifications": "Email lehentasunak — OIUEEI",
+    "popin": "Sartu — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -64,7 +66,8 @@
     "magicLinkSent": "Helbide hau erregistratuta badago, esteka magiko bat bidali da.",
     "errorSendingLink": "Errorea esteka bidaltzean.",
     "description": "Zer da OIUEEI? Kode irekiko web-aplikazio bat jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko. Erabiltzaileek bildumak sor ditzakete (desio-zerrendak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten.",
-    "openSource": "OIUEEI kode irekikoa da. Proiektua <1>GitHub</1>-en aurki dezakezu. Sarbidea eskatu edo lagundu nahi baduzu, jar zaitez harremanetan."
+    "openSource": "OIUEEI kode irekikoa da. Proiektua <1>GitHub</1>-en aurki dezakezu. Sarbidea eskatu edo lagundu nahi baduzu, jar zaitez harremanetan.",
+    "popIn": "Hemen berria zara? Sartu →"
   },
   "verify": {
     "declined": "Ukatua",
@@ -83,7 +86,7 @@
   "home": {
     "greeting": "Kaixo, {{name}}",
     "createCollection": "Bilduma sortu",
-    "myProfile": "Nire profila editatu",
+    "myProfile": "Nire profila",
     "myRequests": "Nire eskaerak",
     "allThings": "Gauza guztiak",
     "loadingThings": "Gauzak kargatzen...",
@@ -94,7 +97,7 @@
     "declineInvitation": "Gonbidapena ukatu",
     "dismiss": "Itxi",
     "broadcastLabel": "{{owner_name}} — {{collection_headline}}",
-    "broadcastBody": "{{subject}}: {{message}}",
+    "broadcastBody": "{{message}}",
     "collectionDeletedLabel": "Bilduma ezabatua",
     "collectionDeletedBody": "\"{{collection_headline}}\" {{owner_name}}-k ezabatu du.",
     "collectionRevokedLabel": "Kolekziotik kendu zaituzte",
@@ -114,7 +117,15 @@
     "faqHiddenLabel": "Galdera ezkutatu da",
     "faqHiddenBody": "{{owner_name}}-k {{thing_headline}}-ri buruzko zure galdera ezkutatu du.",
     "inviteRejectedLabel": "Gonbidapena ukatua",
-    "inviteRejectedBody": "{{invitee_name}}-k {{collection_headline}}-ren gonbidapena ukatu du."
+    "inviteRejectedBody": "{{invitee_name}}-k {{collection_headline}}-ren gonbidapena ukatu du.",
+    "wishPostedLabel": "Eskaera berria",
+    "wishPostedBody": "{{creator_name}}(e)k eskaera bat argitaratu du: {{wish_headline}}.",
+    "wishResponseLabel": "Erantzun berria",
+    "wishResponseBody": "{{responder_name}}(e)k zure {{wish_headline}} eskaerari erantzun dio.",
+    "wishAcceptedLabel": "Erantzuna onartua",
+    "wishAcceptedBody": "{{owner_name}}(e)k {{wish_headline}} eskaerari emandako zure erantzuna onartu du.",
+    "viewWish": "Ikusi eskaera",
+    "viewCollection": "Lagun dezaket!"
   },
   "collectionPage": {
     "editCollection": "Bilduma editatu",
@@ -169,7 +180,11 @@
     "errorShowingQuestion": "Errorea galdera erakustean.",
     "noPermission": "Ez duzu baimen hau gauza ikusteko.",
     "notFound": "Gauza ez da aurkitu.",
-    "errorLoading": "Errorea gauza kargatzean."
+    "errorLoading": "Errorea gauza kargatzean.",
+    "galleryLabel": "Argazkiak",
+    "galleryImageAlt": "{{name}} — {{index}}/{{total}} irudia",
+    "galleryPrev": "Aurreko irudia",
+    "galleryNext": "Hurrengo irudia"
   },
   "thingCard": {
     "confirmHold": "Erreserba baieztatn",
@@ -226,7 +241,10 @@
     "maxHeadline": "Gehienez 64 karaktere.",
     "priceRequired": "Prezioa beharrezkoa da mota honentzat.",
     "maxLocation": "Gehienez 32 karaktere.",
-    "errorCreating": "Errorea gauza sortzen."
+    "errorCreating": "Errorea gauza sortzen.",
+    "tagsLabel": "Etiketak",
+    "tagsPlaceholder": "Hautatu etiketak",
+    "tagsHelper": "Aukeratu bilduma honetako etiketen artean"
   },
   "editThing": {
     "pageTitle": "Gauza editatu",
@@ -252,7 +270,13 @@
     "maxName": "Gehienez 32 karaktere.",
     "maxBio": "Gehienez 64 karaktere.",
     "errorLoading": "Errorea profila kargatzean.",
-    "errorSaving": "Errorea gordetzen."
+    "errorSaving": "Errorea gordetzen.",
+    "aboutLabel": "Zuri buruz",
+    "aboutHelper": "Markdown onartzen da",
+    "photoLabel": "Profileko argazkia",
+    "photoHelper": "Zure profilean agertzen da, aukerakoa",
+    "maxAbout": "Gehienez 2000 karaktere.",
+    "emailPreferences": "Email lehentasunak →"
   },
   "editCollection": {
     "pageTitle": "Bilduma editatu",
@@ -295,32 +319,32 @@
     "allowedTypesAlbumHelper": "Album moduak opariak bakarrik onartzen ditu.",
     "allowedTypesSwapHelper": "Truke moduak truke gauzak bakarrik onartzen ditu.",
     "allowedTypesShareHelper": "Esklusiboki share moduak share gauzak bakarrik onartzen ditu.",
-    "allowedTypesAtLeastOne": "Aukeratu gutxienez mota bat."
+    "allowedTypesAtLeastOne": "Aukeratu gutxienez mota bat.",
+    "tagsLabel": "Etiketak",
+    "tagsPlaceholder": "adib.: Vintage, Sukaldea, Kanpokoa",
+    "tagsHelper": "Bilduma honetako gauzak antolatzeko aukerako etiketak"
   },
   "welcome": {
     "greeting": "Kaixo, {{name}}",
     "pageTitle": "Ongi etorri OIUEEIra!",
-    "description": "OIUEEI kode irekiko plataforma bat da konfiantzazko komunitateetan partekatzeko. Sortu bildumak opariak, salmentak, maileguak, eskaerak, ekitaldiak, trukeak, nahiak eta hitzorduetarako — eta gonbidatu lagunak arakatzera, erreserbatzera eta elkarreraginean aritzera. Dena ezagutzen diren pertsonen artean gelditzen da.",
+    "description": "OIUEEI kode irekiko plataforma bat da konfiantzazko komunitateetan partekatzeko. Sortu bildumak opariak, salmentak, maileguak, eskaerak, trukeak eta nahiak partekatzeko — eta gonbidatu lagunak arakatzera, erreserbatzera eta elkarreraginean aritzera. Dena ezagutzen diren pertsonen artean gelditzen da.",
     "createCollection": "Bilduma sortu",
     "editProfile": "Profila editatu",
     "whoUsesTitle": "Nork erabiltzen du OIUEEI?",
-    "personaLalaTitle": "Lala — Multitaskerra.",
-    "personaLalaBody": "Oporretara joatekoa da eta dena saltzen du zailtasunik gabe — hamar euro gauza bakoitzeko, zuk jasotzen duzu, dena 25erako amaituta. Baina Lalak ere furgonetaren partekatze komunitarioko eskema bat kudeatzen du, ez dago-eta dena saldu beharrik mailegatu besterik ez badezakegu.",
+    "personaLalaTitle": "Lala — Saltzailea.",
+    "personaLalaBody": "Oporretara joatekoa da eta dena saltzen du zailtasunik gabe — hamar euro gauza bakoitzeko, zuk jasotzen duzu, dena 25erako amaituta. Geratzen dena, zuzenean auzoko umezurztegira.",
     "personaLeleTitle": "Lele — Zaintzailea.",
-    "personaLeleBody": "Goizeko bostetan esnatuta pastela arkitektonikoak egiten ditu ahoskatzen diren osagaiekin, eta — sukaldetik kanpo dagoenean — sukulento-txertatxoak oparituz album eder batetik. Eskatu pastela edo adoptatu landarea: biak zaintzeko argibideekin etorriko dira.",
+    "personaLeleBody": "Goizeko bostetan esnatuta pastel arkitektonikoak egiten ditu ahoskatzen diren osagaiekin — beganoak, glutenik gabeak edo azukre gutxikoak, unearen arabera. Eskatu bat hurrengo ospakizunerako eta zure gustura eginda iritsiko da.",
     "personaLiliTitle": "Lili — Trukatzailea.",
     "personaLiliBody": "Zulagailuak, lurrun-garbigailuak eta eskailerak doan mailegutzen ditu, inork ez baitu zulagailua egunero behar. Arduino zaleen elektronika-truke txartela ere kudeatzen du — dirurik gabe, osagaiak eta elkarrekiko errespetua baino ez. Itzuli gauzak garbi. Hori da akordioa.",
-    "personaLoloTitle": "Lolo — Zaletua.",
-    "personaLoloBody": "Liburu-kluba antolatzen du heroi atormentatuak eta haize-bideetako lurraldeak gustatzen zaizkienen tzat — eta dulzimer-klaseak ere ematen ditu, harparen forma trapezoidal hori. Hitzordu bat irakurketa lasai baterako, beste bat munduko soinu politenaren truke.",
+    "personaLoloTitle": "Lolo — Lorezaina.",
+    "personaLoloBody": "Landare-ama, ume berde gehiegirekin, sukulento-txertatxoak oparitzen ditu album eder batetik — echeveriak, jadeak, sedumak, denetarik. Adoptatu txertatxo bat; arau bakarra izena jartzea da.",
     "personaLuluTitle": "Lulu — Konektatzailea.",
     "personaLuluBody": "Inork ez daki ondo non aurkitzen dituen gauza hauek ezta nora joaten den ere. Bere komunitate-apalategia astero betetzen da bizitza bat izandako objektuekin, etxe berri baten zain. Kideek astero e-posta laburpena jasotzen dute — astelehenetatik apategira iristen dena ostiraleko baino lehen joan behar da-eta.",
-    "personaLalaLink1": "Furgonetaren partekatze eskema",
     "personaLeleLink1": "Leleren pastelak",
-    "personaLeleLink2": "Leleren landare-albuma",
     "personaLiliLink1": "Liliren mailegutze-apalategia",
     "personaLiliLink2": "Liliren elektronika-trukea",
-    "personaLoloLink1": "Loloren liburu-kluba",
-    "personaLoloLink2": "Loloren dulzimer-saioak",
+    "personaLoloLink1": "Loloren landare-saloia",
     "personaLuluLink1": "Luluren apalategi fantasma",
     "personaLalaLink2": "Lalaren sabatiko-salmenta"
   },
@@ -381,7 +405,9 @@
     "noPermission": "Ez duzu baimen hau profila ikusteko.",
     "notFound": "Erabiltzailea ez da aurkitu.",
     "errorLoading": "Errorea profila kargatzean.",
-    "logout": "Saioa itxi"
+    "logout": "Saioa itxi",
+    "aboutHeading": "Honi buruz",
+    "photoAlt": "Argazkia: {{name}}"
   },
   "koro": {
     "basic": "Oinarrizkoa",
@@ -398,14 +424,16 @@
     "RENT_THING": "Alokairua",
     "LEND_THING": "Mailegua",
     "SHARE_THING": "Partekatzeko",
-    "WISH_THING": "Nahia",
+    "WISH_THING": "Eskaera",
     "SWAP_THING": "Trukea"
   },
   "availability": {
     "IMMEDIATE": "Berehala",
     "NEXT_WEEK": "Datorren astean",
     "END_OF_MONTH": "Hilaren amaieran",
-    "NEXT_MONTH": "Datorren hilean"
+    "NEXT_MONTH": "Datorren hilean",
+    "nextAvailable": "{{date}}",
+    "noneSoon": "Ez"
   },
   "condition": {
     "NEW": "Berria",
@@ -447,12 +475,39 @@
     "orderCount_other": "{{count}} eskaera"
   },
   "wishes": {
-    "offerHelp": "Lagundu dezaket",
-    "helping": "Laguntzen",
-    "helperCount_one": "{{count}} laguntzaile",
-    "helperCount_other": "{{count}} laguntzaile",
-    "noHelpers": "Oraindik laguntzailerik ez.",
-    "helpersHeading": "Laguntzaileak"
+    "respond": "Erantzun",
+    "respondPlaceholder": "Aukeratu nola lagundu",
+    "kind": {
+      "haveThis": "Hau daukat",
+      "knowWhere": "Badakit non",
+      "canMake": "Egin diezazuket"
+    },
+    "responseCount_one": "Erantzun {{count}}",
+    "responseCount_other": "{{count}} erantzun",
+    "responsesHeading": "Erantzunak",
+    "noResponses": "Oraindik ez dago erantzunik.",
+    "yourAnswer": "Dagoeneko erantzun duzu",
+    "status": {
+      "PENDING": "Zain",
+      "ACCEPTED": "Onartua"
+    },
+    "accept": "Onartu",
+    "resolve": "Markatu konponduta",
+    "notifyGroup": "Jakinarazi taldeari",
+    "respondingWithListing": "Eskaera bati erantzuteko artikulu bat argitaratzen ari zara.",
+    "messageLabel": "Mezua",
+    "messageRequired": "Idatzi mezu bat.",
+    "urlLabel": "Esteka (aukerakoa)",
+    "feeLabel": "Eskaintza edo prezioa (aukerakoa)",
+    "knowWhereTitle": "Badakit non",
+    "canMakeTitle": "Egin diezazuket",
+    "submit": "Bidali erantzuna",
+    "responseSent": "Erantzuna bidali da.",
+    "errorResponding": "Ezin izan da erantzuna bidali.",
+    "acceptedToast": "Erantzuna onartu da.",
+    "errorAccepting": "Ezin izan da erantzuna onartu.",
+    "resolvedToast": "Eskaera konponduta gisa markatu da.",
+    "errorResolving": "Ezin izan da konponduta markatu."
   },
   "swap": {
     "offerItems": "Eskaintzeko artikuluak hautatu",
@@ -463,7 +518,12 @@
     "swapAccepted": "Trukea osatuta! Artikuluak trukatu dira.",
     "swapRejected": "Truke-eskaera baztertua.",
     "enableSwap": "Artikuluen trukea gaitu",
-    "swapCollection": "Truke-bilduma"
+    "swapCollection": "Truke-bilduma",
+    "minimumNotMetBody_one": "Gehitu beste {{count}} artikulu bilduma honetan trukea proposatu ahal izateko.",
+    "minimumNotMetBody_other": "Gehitu beste {{count}} artikulu bilduma honetan trukea proposatu ahal izateko.",
+    "minimumNotMetLabel": "Gehitu artikulu gehiago lehenik",
+    "requireMinimumHelper": "Gonbidatuek (eta zuk) gutxienez zeuen 3 artikulu gehitu behar dituzue bilduma honetan trukea proposatu ahal izateko.",
+    "requireMinimumLabel": "Eskatu 3 artikulu trukatu aurretik"
   },
   "share": {
     "enableShare": "Soilik SHARE motako gauzak",
@@ -501,7 +561,6 @@
   "broadcast": {
     "heading": "Hedapena",
     "openButton": "Mezua bidali gonbidatuei",
-    "subjectLabel": "Gaia",
     "messageLabel": "Mezua",
     "sendButton": "Hedapena bidali",
     "sending": "Bidaltzen...",
@@ -546,5 +605,31 @@
     "copied": "Esteka arbelean kopiatua.",
     "copyError": "Ezin izan dugu esteka kopiatu. Saiatu berriro edo erabili beste aukera bat.",
     "linkError": "Ezin izan dugu esteka sortu. Saiatu berriro."
+  },
+  "gallery": {
+    "uploadLabel": "Argazki gehiago",
+    "uploadHelper": "Gehitu {{max}} argazki gehiago gehienez",
+    "maxImages": "Gehienez {{max}} argazki.",
+    "thumbAlt": "Galeriako {{index}}. argazkia"
+  },
+  "tags": {
+    "add": "Gehitu"
+  },
+  "errorBoundary": {
+    "title": "Zerbait gaizki joan da",
+    "body": "Ustekabeko errore bat gertatu da. Saiatu orria birkargatzen, edo itzuli hasierara.",
+    "reload": "Birkargatu orria",
+    "home": "Joan hasierara"
+  },
+  "popin": {
+    "title": "Sartu!",
+    "description": "Idatzi zure e-posta eta esteka magiko bat bidaliko dizugu. Klik bat eta barruan zaude — pasahitzik gabe, korapilorik gabe.",
+    "emailLabel": "E-posta",
+    "emailPlaceholder": "zu@email.com",
+    "join": "Sartu",
+    "joining": "Bidaltzen…",
+    "magicLinkSent": "Esteka bidalita! Begiratu zure sarrera-ontzia eta egin klik estekan sartzeko.",
+    "alreadyHaveAccount": "Konturik baduzu? Hasi saioa →",
+    "errorSendingLink": "Errorea esteka bidaltzean."
   }
 }

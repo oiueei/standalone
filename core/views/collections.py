@@ -46,11 +46,22 @@ def _optimise_collection_queryset(queryset):
             .annotate(_transfer_count=Count("transfers", distinct=True))
             .prefetch_related(
                 "faq_set",
+                "responses",
                 "deal",
                 Prefetch(
                     "bookings",
                     queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
                     to_attr="_pending_bookings",
+                ),
+                Prefetch(
+                    "bookings",
+                    queryset=BookingPeriod.objects.filter(
+                        status__in=[
+                            BookingPeriod.Status.PENDING,
+                            BookingPeriod.Status.ACCEPTED,
+                        ]
+                    ).order_by("start_date"),
+                    to_attr="_blocked_periods",
                 ),
             ),
         ),
@@ -527,7 +538,6 @@ class CollectionBroadcastView(APIView):
         serializer = CollectionBroadcastSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        subject = serializer.validated_data["subject"]
         message = serializer.validated_data["message"]
 
         # Gather invitee emails
@@ -545,7 +555,7 @@ class CollectionBroadcastView(APIView):
             owner_name=owner_name,
             owner_email=request.user.email,
             collection_headline=collection.headline,
-            subject=subject,
+            collection_code=collection.code,
             message=message,
             emails=invitee_emails,
         )
@@ -558,8 +568,8 @@ class CollectionBroadcastView(APIView):
                     payload={
                         "collection_headline": collection.headline,
                         "owner_name": owner_name,
-                        "subject": subject,
                         "message": message,
+                        "collection_code": collection.code,
                     },
                 )
                 for invitee in collection.invites.all()

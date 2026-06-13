@@ -283,3 +283,42 @@ class TestSendDigestsCommand:
         call_command("send_digests", stdout=out)
 
         assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db
+class TestSeedDemoCommand:
+    """Tests for the seed_demo management command (demo data integrity)."""
+
+    SUCCULENTS = {"lltl22", "lltl23", "lltl24", "lltl25", "lltl26", "lltl27", "lltl28"}
+
+    def test_maps_gallery_key(self):
+        """Regression guard: _seed_things must copy the `gallery` key onto the model."""
+        call_command("seed_demo")
+        assert Thing.objects.get(code="stffa1").gallery == ["stffa2"]
+
+    def test_maps_tags_key(self):
+        """Regression guard: _seed_collections and _seed_things must copy `tags`."""
+        call_command("seed_demo")
+        assert "modules" in Collection.objects.get(code="l1l1C2").tags
+        assert Thing.objects.get(code="l1sw02").tags == ["sensors"]
+
+    def test_maps_user_photo_key(self):
+        """Regression guard: _seed_users must copy the `photo` key onto the user."""
+        call_command("seed_demo")
+        assert User.objects.get(code="La1aN1").photo == "la1an1"
+
+    def test_lolo_owns_succulent_collection(self):
+        call_command("seed_demo")
+        coll = Collection.objects.get(code="l0l0C1")
+        assert coll.owner_id == "l0l0oh"
+        codes = set(coll.things.values_list("code", flat=True))
+        assert self.SUCCULENTS <= codes
+        assert all(t.owner_id == "l0l0oh" for t in coll.things.filter(code__in=self.SUCCULENTS))
+        invites = set(coll.invites.values_list("code", flat=True))
+        assert "L3L3oo" in invites and "l0l0oh" not in invites
+
+    def test_is_idempotent(self):
+        call_command("seed_demo")
+        counts = (User.objects.count(), Collection.objects.count(), Thing.objects.count())
+        call_command("seed_demo")
+        assert (User.objects.count(), Collection.objects.count(), Thing.objects.count()) == counts

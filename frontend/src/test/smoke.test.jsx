@@ -11,6 +11,9 @@ const MOCK_USER = {
   email: 'test@example.com',
   name: 'Test User',
   headline: '',
+  about: 'Contact me at [my site](https://example.com)\n- one\n- two',
+  photo: 'oiueei/users/abc',
+  photo_url: 'https://res.cloudinary.com/demo/image/upload/oiueei/users/abc.jpg',
   thumbnail: '',
   koro: 'basic',
   notify_activity: true,
@@ -33,6 +36,7 @@ const MOCK_COLLECTION = {
   owner: 'ABC123',
   owner_name: 'Test User',
   thumbnail_url: '',
+  tags: ['Vintage', 'Kitchen'],
   things: [],
   invites: [],
 };
@@ -49,7 +53,16 @@ const MOCK_THING = {
   availability: '',
   location: '',
   condition: '',
-  thumbnail_url: '',
+  thumbnail_url: 'https://res.cloudinary.com/demo/image/upload/oiueei/things/cover.jpg',
+  gallery: ['oiueei/things/g1', 'oiueei/things/g2'],
+  gallery_urls: [
+    'https://res.cloudinary.com/demo/image/upload/oiueei/things/g1.jpg',
+    'https://res.cloudinary.com/demo/image/upload/oiueei/things/g2.jpg',
+  ],
+  available_today: null,
+  next_available: null,
+  tags: ['Vintage'],
+  collection_tags: ['Vintage', 'Kitchen'],
   pending_questions: 0,
   my_pending_booking: null,
   pending_booking: null,
@@ -123,6 +136,7 @@ import CollectionPage from '../pages/CollectionPage';
 import ThingPage from '../pages/ThingPage';
 import EditThingPage from '../pages/EditThingPage';
 import RequestThingPage from '../pages/RequestThingPage';
+import RespondWishPage from '../pages/RespondWishPage';
 import UserPage from '../pages/UserPage';
 import SharePage from '../pages/SharePage';
 import PopInPage from '../pages/PopInPage';
@@ -207,6 +221,16 @@ smokeAndAxe('DeleteThingPage', DeleteThingPage, {
 smokeAndAxe('RequestThingPage', RequestThingPage, {
   path: '/things/:thingCode/request',
   entry: '/things/THG001/request',
+});
+
+smokeAndAxe('RespondWishPage (know-where)', RespondWishPage, {
+  path: '/things/:thingCode/respond/:kind',
+  entry: '/things/THG001/respond/know-where',
+});
+
+smokeAndAxe('RespondWishPage (can-make)', RespondWishPage, {
+  path: '/things/:thingCode/respond/:kind',
+  entry: '/things/THG001/respond/can-make',
 });
 
 smokeAndAxe('UserPage', UserPage, {
