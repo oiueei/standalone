@@ -612,7 +612,7 @@ export default function ThingPage() {
               ? t('common.sending')
               : (thing.status === 'TAKEN' || requested || (isShare && !!thing.my_pending_booking))
                 ? t('thingCard.waitingForConfirmation')
-                : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+                : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}
           </Button>
         )}
         {showButton && swapMinimumNotMet && (

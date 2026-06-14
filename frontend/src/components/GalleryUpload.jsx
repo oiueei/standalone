@@ -39,41 +39,51 @@ export default function GalleryUpload({ items = [], onChange }) {
     if (!files || files.length === 0) return;
     setFileInputKey((k) => k + 1); // reset so HDS file list never shows
 
-    if (items.length >= MAX_IMAGES) {
+    const remaining = MAX_IMAGES - items.length;
+    if (remaining <= 0) {
       setError(t('gallery.maxImages', { max: MAX_IMAGES }));
       return;
     }
 
-    const file = await resizeImage(files[0]);
+    // Allow selecting several photos at once; only take what fits under the cap.
+    const selected = Array.from(files).slice(0, remaining);
+    const truncated = files.length > remaining;
     setUploading(true);
     setError(null);
 
+    const uploaded = [];
     try {
-      const sigRes = await apiFetch('/api/v1/upload/signature/', {
-        method: 'POST',
-        body: JSON.stringify({ folder: 'oiueei/things' }),
-      });
-      if (!sigRes.ok) throw new Error('signature_failed');
-      const { signature, timestamp, api_key, cloud_name } = await sigRes.json();
+      for (const original of selected) {
+        const file = await resizeImage(original);
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('api_key', api_key);
-      formData.append('timestamp', String(timestamp));
-      formData.append('signature', signature);
-      formData.append('folder', 'oiueei/things');
+        const sigRes = await apiFetch('/api/v1/upload/signature/', {
+          method: 'POST',
+          body: JSON.stringify({ folder: 'oiueei/things' }),
+        });
+        if (!sigRes.ok) throw new Error('signature_failed');
+        const { signature, timestamp, api_key, cloud_name } = await sigRes.json();
 
-      const uploadRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
-        { method: 'POST', body: formData }
-      );
-      if (!uploadRes.ok) throw new Error('upload_failed');
-      const data = await uploadRes.json();
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('api_key', api_key);
+        formData.append('timestamp', String(timestamp));
+        formData.append('signature', signature);
+        formData.append('folder', 'oiueei/things');
 
-      onChange([...items, { publicId: data.public_id, url: data.secure_url }]);
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+          { method: 'POST', body: formData }
+        );
+        if (!uploadRes.ok) throw new Error('upload_failed');
+        const data = await uploadRes.json();
+        uploaded.push({ publicId: data.public_id, url: data.secure_url });
+      }
+      // Selected more than the remaining slots — keep what fit, flag the cap.
+      if (truncated) setError(t('gallery.maxImages', { max: MAX_IMAGES }));
     } catch {
       setError(t('upload.uploadError'));
     } finally {
+      if (uploaded.length) onChange([...items, ...uploaded]);
       setUploading(false);
     }
   };
@@ -104,22 +114,26 @@ export default function GalleryUpload({ items = [], onChange }) {
           ))}
         </ul>
       )}
-      {items.length < MAX_IMAGES && (
-        <FileInput
-          key={fileInputKey}
-          id="gallery-upload"
-          label={t('gallery.uploadLabel')}
-          accept="image/*"
-          multiple={false}
-          onChange={handleFiles}
-          disabled={uploading}
-          language={hdsLang(i18n.language)}
-          buttonLabel={t('upload.addFile')}
-          helperText={uploading ? t('upload.uploading') : t('gallery.uploadHelper', { max: MAX_IMAGES })}
-          errorText={error || undefined}
-          invalid={!!error}
-        />
-      )}
+      <FileInput
+        key={fileInputKey}
+        id="gallery-upload"
+        label={t('gallery.uploadLabel')}
+        accept="image/*"
+        multiple
+        onChange={handleFiles}
+        disabled={uploading || items.length >= MAX_IMAGES}
+        language={hdsLang(i18n.language)}
+        buttonLabel={t('upload.addFile')}
+        helperText={
+          uploading
+            ? t('upload.uploading')
+            : items.length >= MAX_IMAGES
+              ? t('gallery.maxImages', { max: MAX_IMAGES })
+              : t('gallery.uploadHelper', { max: MAX_IMAGES })
+        }
+        errorText={error || undefined}
+        invalid={!!error}
+      />
     </div>
   );
 }

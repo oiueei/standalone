@@ -75,8 +75,16 @@ export default function WelcomePage() {
         <p>
           {t('welcome.description')}
         </p>
+        <div className="spacer-m" />
+        <p>
+          {t('welcome.createShare')}
+        </p>
         <div className="spacer-xl" />
         <h2>{t('welcome.whoUsesTitle')}</h2>
+        <div className="spacer-s" />
+        <p>
+          {t('welcome.exampleIntro')}
+        </p>
         <div className="spacer-s" />
         {['Lala', 'Lele', 'Lili', 'Lolo', 'Lulu'].map((name, i) => (
           <div key={name}>
@@ -98,6 +106,12 @@ export default function WelcomePage() {
             </div>
           </div>
         ))}
+        <div className="spacer-xl" />
+        <div className="button-row-wide">
+          <Link to="/">
+            <Button style={btnStyle}>{t('welcome.enterCta')}</Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

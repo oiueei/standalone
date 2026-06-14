@@ -230,7 +230,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 style={btnStyle}
                 onClick={isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
               >
-                {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+                {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}
               </Button>
             )}
           </div>
@@ -452,7 +452,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               style={btnStyle}
               onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
-              {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+              {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}
             </Button>
           )}
           {showButton && swapMinimumNotMet && (

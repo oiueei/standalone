@@ -152,7 +152,7 @@ export default function EditProfilePage() {
             errorText={errors.name}
             helperText={`${name.length}/32`}
           />
-          <TextArea
+          <TextInput
             id="edit-profile-headline"
             label={t('editProfile.bioLabel')}
             value={headline}

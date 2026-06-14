@@ -308,7 +308,7 @@ export default function RequestThingPage() {
       <div className="spacer-xs" />
       <div className="form-grid">
         <Button fullWidth disabled={submitting || (isSwap && selectedOfferings.length === 0)} onClick={handleSubmit} style={btnStyle}>
-          {submitting ? t('common.sending') : isSwap ? t('swap.swapButton') : t('thingCard.hold')}
+          {submitting ? t('common.sending') : isSwap ? t('swap.swapButton') : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}
         </Button>
         <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
           {t('common.cancel')}

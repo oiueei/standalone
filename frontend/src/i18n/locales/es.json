@@ -194,7 +194,17 @@
     "waitingForConfirmation": "Esperando confirmación",
     "confirmed": "Confirmado",
     "pending": "Pendiente",
-    "qty": "uds"
+    "qty": "uds",
+    "action": {
+      "GIFT_THING": "Pedir",
+      "SELL_THING": "Comprar",
+      "ORDER_THING": "Encargar",
+      "RENT_THING": "Alquilar",
+      "LEND_THING": "Tomar prestado",
+      "SHARE_THING": "Quedármelo",
+      "SWAP_THING": "Intercambiar",
+      "WISH_THING": "Contestar"
+    }
   },
   "thingTags": {
     "requested": "Solicitado",
@@ -328,9 +338,11 @@
     "greeting": "Hola, {{name}}",
     "pageTitle": "¡Bienvenido a OIUEEI!",
     "description": "OIUEEI es una plataforma de código abierto para compartir dentro de comunidades de confianza. Crea colecciones para regalos, ventas, préstamos, pedidos, intercambios y deseos — luego invita a amigos a explorar, reservar e interactuar. Todo queda entre personas que se conocen.",
+    "createShare": "OIUEEI gira en torno a tus propias colecciones. Crea una para lo que quieras compartir —regalos, ventas, préstamos, pedidos, intercambios o deseos— e invita a tus círculos: familia, amigos, vecinos, tu calle. Solo quienes invites pueden verla y participar.",
     "createCollection": "Crear colección",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "¿Quién usa OIUEEI?",
+    "exampleIntro": "Para enseñarte cómo funciona, te hemos compartido algunas colecciones de ejemplo. Conoce a las personas de abajo y entra en sus colecciones — sigue leyendo y lo entenderás.",
     "personaLalaTitle": "Lala — La Desapegada.",
     "personaLalaBody": "De sabático y vaciando el piso sin complicaciones — diez euros cada cosa, tú lo recoges, todo cerrado antes del 25. Lo que sobre, directo al orfanato del barrio.",
     "personaLeleTitle": "Lele — La Cuidadora.",
@@ -346,7 +358,8 @@
     "personaLiliLink2": "El intercambio de electrónica de Lili",
     "personaLoloLink1": "El salón verde de Lolo",
     "personaLuluLink1": "El estante fantasma de Lulu",
-    "personaLalaLink2": "La venta del sabático de Lala"
+    "personaLalaLink2": "La venta del sabático de Lala",
+    "enterCta": "Entrar y ver cómo funciona"
   },
   "myBookings": {
     "pageTitle": "Mis solicitudes",

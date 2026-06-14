@@ -194,7 +194,17 @@
     "waitingForConfirmation": "Esperant confirmació",
     "confirmed": "Confirmat",
     "pending": "Pendent",
-    "qty": "ut"
+    "qty": "ut",
+    "action": {
+      "GIFT_THING": "Demanar",
+      "SELL_THING": "Comprar",
+      "ORDER_THING": "Encarregar",
+      "RENT_THING": "Llogar",
+      "LEND_THING": "Demanar prestat",
+      "SHARE_THING": "Quedar-m'ho",
+      "SWAP_THING": "Intercanviar",
+      "WISH_THING": "Respondre"
+    }
   },
   "thingTags": {
     "requested": "Sol·licitat",
@@ -328,9 +338,11 @@
     "greeting": "Hola, {{name}}",
     "pageTitle": "Benvingut a OIUEEI!",
     "description": "OIUEEI és una plataforma de codi obert per compartir dins de comunitats de confiança. Crea col·leccions per a regals, vendes, préstecs, comandes, intercanvis i desitjos — i convida amics a explorar, reservar i interactuar. Tot queda entre persones que es coneixen.",
+    "createShare": "OIUEEI gira al voltant de les teves pròpies col·leccions. Crea'n una per a allò que vulguis compartir —regals, vendes, préstecs, comandes, intercanvis o desitjos— i convida els teus cercles: família, amics, veïns, el teu carrer. Només qui convidis pot veure-la i participar-hi.",
     "createCollection": "Crear col·lecció",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "Qui fa servir OIUEEI?",
+    "exampleIntro": "Per ensenyar-te com funciona, t'hem compartit algunes col·leccions d'exemple. Coneix les persones de sota i entra a les seves col·leccions — continua llegint i ho entendràs.",
     "personaLalaTitle": "Lala — La Despresa.",
     "personaLalaBody": "De sabàtic i buidant el pis sense complicacions — deu euros cada cosa, tu ho recolls, tot tancat abans del 25. El que sobri, directe a l'orfenat del barri.",
     "personaLeleTitle": "Lele — La Cuidadora.",
@@ -346,7 +358,8 @@
     "personaLiliLink2": "L'intercanvi d'electrònica de la Lili",
     "personaLoloLink1": "El saló verd de la Lolo",
     "personaLuluLink1": "El prestatge fantasma de la Lulu",
-    "personaLalaLink2": "La venda del sabàtic de la Lala"
+    "personaLalaLink2": "La venda del sabàtic de la Lala",
+    "enterCta": "Entra i mira com funciona"
   },
   "myBookings": {
     "pageTitle": "Les meves sol·licituds",

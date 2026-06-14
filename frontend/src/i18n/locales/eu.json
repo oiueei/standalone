@@ -194,7 +194,17 @@
     "waitingForConfirmation": "Baieztatzen itxaron",
     "confirmed": "Baieztatuta",
     "pending": "Zain",
-    "qty": "kant."
+    "qty": "kant.",
+    "action": {
+      "GIFT_THING": "Eskatu",
+      "SELL_THING": "Erosi",
+      "ORDER_THING": "Enkargatu",
+      "RENT_THING": "Alokatu",
+      "LEND_THING": "Mailegatu",
+      "SHARE_THING": "Hartu",
+      "SWAP_THING": "Trukatu",
+      "WISH_THING": "Erantzun"
+    }
   },
   "thingTags": {
     "requested": "Eskatuta",
@@ -328,9 +338,11 @@
     "greeting": "Kaixo, {{name}}",
     "pageTitle": "Ongi etorri OIUEEIra!",
     "description": "OIUEEI kode irekiko plataforma bat da konfiantzazko komunitateetan partekatzeko. Sortu bildumak opariak, salmentak, maileguak, eskaerak, trukeak eta nahiak partekatzeko — eta gonbidatu lagunak arakatzera, erreserbatzera eta elkarreraginean aritzera. Dena ezagutzen diren pertsonen artean gelditzen da.",
+    "createShare": "OIUEEI zure bildumen inguruan dabil. Sortu bat partekatu nahi duzun ororako —opariak, salmentak, maileguak, eskaerak, trukeak edo nahiak— eta gonbidatu zure zirkuluak: familia, lagunak, auzokoak, zure kalea. Gonbidatzen dituzunek soilik ikus eta parte har dezakete.",
     "createCollection": "Bilduma sortu",
     "editProfile": "Profila editatu",
     "whoUsesTitle": "Nork erabiltzen du OIUEEI?",
+    "exampleIntro": "Nola dabilen erakusteko, adibidezko bilduma batzuk partekatu ditugu zurekin. Ezagutu beheko pertsonak eta sartu haien bildumetan — irakurtzen jarraitu eta ulertuko duzu.",
     "personaLalaTitle": "Lala — Saltzailea.",
     "personaLalaBody": "Oporretara joatekoa da eta dena saltzen du zailtasunik gabe — hamar euro gauza bakoitzeko, zuk jasotzen duzu, dena 25erako amaituta. Geratzen dena, zuzenean auzoko umezurztegira.",
     "personaLeleTitle": "Lele — Zaintzailea.",
@@ -346,7 +358,8 @@
     "personaLiliLink2": "Liliren elektronika-trukea",
     "personaLoloLink1": "Loloren landare-saloia",
     "personaLuluLink1": "Luluren apalategi fantasma",
-    "personaLalaLink2": "Lalaren sabatiko-salmenta"
+    "personaLalaLink2": "Lalaren sabatiko-salmenta",
+    "enterCta": "Sartu eta ikusi nola dabilen"
   },
   "myBookings": {
     "pageTitle": "Nire eskaerak",

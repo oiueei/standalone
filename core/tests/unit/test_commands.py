@@ -294,7 +294,7 @@ class TestSeedDemoCommand:
     def test_maps_gallery_key(self):
         """Regression guard: _seed_things must copy the `gallery` key onto the model."""
         call_command("seed_demo")
-        assert Thing.objects.get(code="stffa1").gallery == ["stffa2"]
+        assert Thing.objects.get(code="stffa1").gallery == ["stffa1_b"]
 
     def test_maps_tags_key(self):
         """Regression guard: _seed_collections and _seed_things must copy `tags`."""

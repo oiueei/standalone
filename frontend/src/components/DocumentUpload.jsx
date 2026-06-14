@@ -114,22 +114,26 @@ export default function DocumentUpload({ documents = [], onChange }) {
           ))}
         </ul>
       )}
-      {documents.length < MAX_FILES && (
-        <FileInput
-          key={fileInputKey}
-          id="document-upload"
-          label={t('documents.uploadLabel')}
-          accept={ACCEPT}
-          multiple={false}
-          onChange={handleFiles}
-          disabled={uploading}
-          language={hdsLang(i18n.language)}
-          buttonLabel={t('upload.addFile')}
-          helperText={uploading ? t('upload.uploading') : t('documents.uploadHelper')}
-          errorText={error || undefined}
-          invalid={!!error}
-        />
-      )}
+      <FileInput
+        key={fileInputKey}
+        id="document-upload"
+        label={t('documents.uploadLabel')}
+        accept={ACCEPT}
+        multiple={false}
+        onChange={handleFiles}
+        disabled={uploading || documents.length >= MAX_FILES}
+        language={hdsLang(i18n.language)}
+        buttonLabel={t('upload.addFile')}
+        helperText={
+          uploading
+            ? t('upload.uploading')
+            : documents.length >= MAX_FILES
+              ? t('documents.maxFiles')
+              : t('documents.uploadHelper')
+        }
+        errorText={error || undefined}
+        invalid={!!error}
+      />
     </div>
   );
 }
