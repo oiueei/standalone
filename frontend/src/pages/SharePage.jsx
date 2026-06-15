@@ -31,6 +31,9 @@ export default function SharePage() {
         localStorage.removeItem('seenWelcome');
         setStatus('success');
         setMessage(t('share.magicLinkSent'));
+      } else if (res.status === 429) {
+        setStatus('error');
+        setMessage(t('common.tooManyAttempts'));
       } else {
         setStatus('error');
         setMessage(t('share.errorSendingLink'));

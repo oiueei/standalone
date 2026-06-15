@@ -26,6 +26,12 @@ export default function VerifyPage() {
   } : undefined;
 
   useEffect(() => {
+    let settled = false;
+    // Don't let a stalled network leave the user stuck on "Verifying…" forever:
+    // after 15s with no response, fall through to the existing error screen.
+    const timer = setTimeout(() => {
+      if (!settled) setError(t('common.connectionError'));
+    }, 15000);
     const verify = async () => {
       try {
         const res = await fetch(`/api/v1/auth/verify/${code}/`);
@@ -59,9 +65,13 @@ export default function VerifyPage() {
         }
       } catch {
         setError(t('common.connectionError'));
+      } finally {
+        settled = true;
+        clearTimeout(timer);
       }
     };
     verify();
+    return () => clearTimeout(timer);
   }, [code, navigate, t]);
 
   if (success) {

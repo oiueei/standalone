@@ -29,6 +29,9 @@ export default function PopInPage() {
         localStorage.removeItem('seenWelcome');
         setStatus('success');
         setMessage(t('popin.magicLinkSent'));
+      } else if (res.status === 429) {
+        setStatus('error');
+        setMessage(t('common.tooManyAttempts'));
       } else {
         setStatus('error');
         setMessage(t('popin.errorSendingLink'));

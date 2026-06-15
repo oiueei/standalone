@@ -10,7 +10,7 @@ import {
   ToggleButton,
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -130,8 +130,11 @@ export default function EditThingPage() {
       });
       if (res.ok) {
         navigate(returnPath);
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('editThing.errorSaving') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('editThing.errorSaving') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

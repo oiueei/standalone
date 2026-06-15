@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { TextInput, TextArea, Select, Button, Notification, IconInfoCircle, ToggleButton } from 'hds-react';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import ImageUpload from '../components/ImageUpload';
 import TagInput from '../components/TagInput';
@@ -110,8 +110,11 @@ export default function CreateCollectionPage() {
       if (res.ok) {
         const data = await res.json();
         navigate(`/collections/${data.code}`);
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('createCollection.errorCreating') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('createCollection.errorCreating') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

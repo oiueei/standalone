@@ -11,7 +11,7 @@ import {
   ToggleButton,
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
@@ -155,8 +155,11 @@ export default function AddThingPage() {
         } else {
           navigate(`/collections/${code}`);
         }
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('addThing.errorCreating') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('addThing.errorCreating') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

@@ -14,7 +14,7 @@ import {
   TextArea,
 } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, WISH_KIND_I18N } from '../constants/things';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
 import PageLayout from '../components/PageLayout';
@@ -191,8 +191,11 @@ export default function ThingPage() {
       if (res.ok) {
         setRequested(true);
         setToast({ type: 'success', message: t('thingPage.holdRequested') });
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else if (res.status === 400) {
-        setToast({ type: 'error', message: t('thingPage.invalidRequest') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('thingPage.invalidRequest') });
       } else {
         setToast({ type: 'error', message: t('thingPage.errorSendingRequest') });
       }
@@ -314,8 +317,11 @@ export default function ThingPage() {
         setFaqs((prev) => [...prev, newFaq]);
         setFaqQuestion('');
         setToast({ type: 'success', message: t('thingPage.questionSent') });
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('thingPage.errorSendingQuestion') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('thingPage.errorSendingQuestion') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -339,8 +345,11 @@ export default function ThingPage() {
         setFaqs((prev) => prev.map((f) => (f.code === faqCode ? { ...f, ...updated } : f)));
         setAnswerTexts((prev) => ({ ...prev, [faqCode]: '' }));
         setToast({ type: 'success', message: t('thingPage.answerSent') });
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('thingPage.errorSendingAnswer') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('thingPage.errorSendingAnswer') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

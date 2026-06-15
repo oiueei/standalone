@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Button, ToggleButton } from 'hds-react';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -104,8 +104,11 @@ export default function EditProfilePage() {
       });
       if (res.ok) {
         navigate('/');
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('editProfile.errorSaving') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('editProfile.errorSaving') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

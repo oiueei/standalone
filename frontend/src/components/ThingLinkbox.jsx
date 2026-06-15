@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield, IconSpeechbubbleText, IconSwapUser } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import MarkdownText from './MarkdownText';
 import RespondMenu from './RespondMenu';
 import useTheeeme from '../hooks/useTheeeme';
@@ -68,8 +68,11 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       if (res.ok) {
         setRequested(true);
         setToast({ type: 'success', message: t('thingPage.holdRequested') });
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else if (res.status === 400) {
-        setToast({ type: 'error', message: t('thingPage.invalidRequest') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('thingPage.invalidRequest') });
       } else {
         setToast({ type: 'error', message: t('thingPage.errorSendingRequest') });
       }

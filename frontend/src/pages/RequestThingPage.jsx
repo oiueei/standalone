@@ -113,6 +113,8 @@ export default function RequestThingPage() {
       });
       if (res.ok) {
         setSuccess(true);
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else if (res.status === 400) {
         const data = await res.json();
         let message = data.detail;

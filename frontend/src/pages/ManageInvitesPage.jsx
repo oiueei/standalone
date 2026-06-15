@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextInput, Button, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -79,8 +79,11 @@ export default function ManageInvitesPage() {
         setPendingInvites((prev) => [...prev, { email: inviteEmail.trim() }]);
         setInviteEmail('');
         setToast({ type: 'success', message: t('manageInvites.invitationSent') });
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('manageInvites.errorSending') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('manageInvites.errorSending') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });

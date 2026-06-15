@@ -28,6 +28,9 @@ export default function LoginPage() {
       if (res.ok) {
         setStatus('success');
         setMessage(t('login.magicLinkSent'));
+      } else if (res.status === 429) {
+        setStatus('error');
+        setMessage(t('common.tooManyAttempts'));
       } else {
         setStatus('error');
         setMessage(t('login.errorSendingLink'));
@@ -84,9 +87,16 @@ export default function LoginPage() {
           <Link to="/popin">{t('login.popIn')}</Link>
         </p>
         {status ? (
-          <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
-            {message}
-          </Notification>
+          <>
+            <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
+              {message}
+            </Notification>
+            <div style={{ marginTop: 'var(--spacing-s)' }}>
+              <Button variant="secondary" onClick={() => { setStatus(null); setMessage(''); }}>
+                {t('login.tryAnotherEmail')}
+              </Button>
+            </div>
+          </>
         ) : (
           <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
             <TextInput

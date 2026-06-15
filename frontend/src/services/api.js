@@ -29,6 +29,35 @@ function refreshTokens() {
   return refreshPromise;
 }
 
+/**
+ * Best user-facing message from a failed API response body.
+ *
+ * DRF sends `{detail}`, our views often use `{error}`, and serializer errors come
+ * as `{non_field_errors: [...]}` or `{field: [...]}`. Returns the most specific
+ * string, or `null` when there is no usable body — callers fall back to their own
+ * i18n copy. A 429 has no useful body, so callers should map `res.status === 429`
+ * to their own "too many attempts" message before calling this.
+ */
+export async function extractApiError(res) {
+  try {
+    const data = await res.json();
+    if (!data) return null;
+    if (typeof data === 'string') return data;
+    if (data.detail) return data.detail;
+    if (data.error) return data.error;
+    if (Array.isArray(data.non_field_errors) && data.non_field_errors.length) {
+      return String(data.non_field_errors[0]);
+    }
+    for (const value of Object.values(data)) {
+      if (Array.isArray(value) && value.length) return String(value[0]);
+      if (typeof value === 'string') return value;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function apiFetch(url, options = {}) {
   const headers = { ...options.headers };
 

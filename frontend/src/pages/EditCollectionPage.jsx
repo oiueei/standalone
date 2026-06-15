@@ -158,6 +158,8 @@ export default function EditCollectionPage() {
       });
       if (res.ok) {
         navigate(`/collections/${code}`);
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else if (res.status === 400) {
         // Backend rejects narrowing if it would orphan existing things — surface
         // its detail (which names the offending types) so the user can act on it.

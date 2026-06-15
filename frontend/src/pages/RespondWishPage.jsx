@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, NumberInput, TextArea, TextInput } from 'hds-react';
 import { WISH_KIND_BY_SLUG } from '../constants/things';
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
@@ -61,8 +61,11 @@ export default function RespondWishPage() {
       });
       if (res.ok) {
         setSent(true);
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        setToast({ type: 'error', message: t('wishes.errorResponding') });
+        const detail = await extractApiError(res);
+        setToast({ type: 'error', message: detail || t('wishes.errorResponding') });
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
