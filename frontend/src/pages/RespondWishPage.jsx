@@ -18,7 +18,6 @@ export default function RespondWishPage() {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const userCode = localStorage.getItem('userCode');
   const kind = WISH_KIND_BY_SLUG[kindSlug];
 
   const [message, setMessage] = useState('');
@@ -34,9 +33,8 @@ export default function RespondWishPage() {
 
   useEffect(() => { document.title = title; }, [title]);
   useEffect(() => {
-    if (!userCode) navigate('/login');
-    else if (!kind) navigate('/');
-  }, [userCode, kind, navigate]);
+    if (!kind) navigate('/');
+  }, [kind, navigate]);
 
   const backPath = location.state?.backPath
     || (code ? `/collections/${code}/things/${thingCode}` : `/things/${thingCode}`);

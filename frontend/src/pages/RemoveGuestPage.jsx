@@ -11,16 +11,14 @@ export default function RemoveGuestPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const userCode = localStorage.getItem('userCode');
   const backPath = `/collections/${code}/invites`;
   const backLabel = location.state?.backLabel || t('removeGuest.guests');
   const guestCode = location.state?.guestCode;
   const guestName = location.state?.guestName || 'this guest';
 
   useEffect(() => {
-    if (!userCode) navigate('/login');
     if (!guestCode) navigate(backPath);
-  }, [userCode, guestCode, navigate, backPath]);
+  }, [guestCode, navigate, backPath]);
 
   useEffect(() => {
     document.title = t('titles.removeGuest');

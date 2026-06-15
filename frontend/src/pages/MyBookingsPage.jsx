@@ -35,12 +35,6 @@ export default function MyBookingsPage() {
   };
 
   useEffect(() => {
-    const userCode = localStorage.getItem('userCode');
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
-
     const fetchBookings = async () => {
       try {
         const res = await apiFetch('/api/v1/my-bookings/');

@@ -17,12 +17,6 @@ export default function HomePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const userCode = localStorage.getItem('userCode');
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
-
     const fetchMe = async () => {
       try {
         const res = await apiFetch('/api/v1/auth/me/');

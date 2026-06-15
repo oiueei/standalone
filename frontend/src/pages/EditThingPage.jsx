@@ -55,10 +55,6 @@ export default function EditThingPage() {
   const [thingCollectionHeadline, setThingCollectionHeadline] = useState('');
 
   useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
     const fetchThing = async () => {
       try {
         const res = await apiFetch(`/api/v1/things/${thingCode}/`);

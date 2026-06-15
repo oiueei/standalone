@@ -32,11 +32,6 @@ export default function ManageInvitesPage() {
   const [resending, setResending] = useState(null);
 
   useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
-
     const fetchCollection = async () => {
       try {
         const res = await apiFetch(`/api/v1/collections/${code}/`);

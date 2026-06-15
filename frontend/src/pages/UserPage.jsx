@@ -19,11 +19,6 @@ export default function UserPage() {
   useEffect(() => { document.title = user ? t('titles.user', { name: user.name || 'Profile' }) : t('titles.user', { name: 'Profile' }); }, [user, t]);
 
   useEffect(() => {
-    if (!localStorage.getItem('userCode')) {
-      navigate('/login');
-      return;
-    }
-
     if (!userCode) {
       // If no userCode yet, fetch /me to get it
       apiFetch('/api/v1/auth/me/')

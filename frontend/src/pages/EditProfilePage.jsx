@@ -36,11 +36,6 @@ export default function EditProfilePage() {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
-
     const fetchData = async () => {
       try {
         const [profileRes, theemesRes] = await Promise.all([

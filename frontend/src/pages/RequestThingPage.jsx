@@ -21,12 +21,6 @@ export default function RequestThingPage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
 
-  useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-    }
-  }, [userCode, navigate]);
-
   const [thing, setThing] = useState(null);
   useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);
   const [startDate, setStartDate] = useState(location.state?.prefillDate || '');

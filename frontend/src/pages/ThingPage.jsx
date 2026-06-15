@@ -59,11 +59,6 @@ export default function ThingPage() {
   const [actioning, setActioning] = useState(false);
 
   useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
-
     const fetchThing = async () => {
       try {
         const res = await apiFetch(`/api/v1/things/${thingCode}/`);

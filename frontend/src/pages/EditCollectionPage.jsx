@@ -82,11 +82,6 @@ export default function EditCollectionPage() {
   })();
 
   useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
-
     const fetchData = async () => {
       try {
         const collectionRes = await apiFetch(`/api/v1/collections/${code}/`);

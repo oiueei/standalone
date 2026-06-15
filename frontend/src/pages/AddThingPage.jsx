@@ -31,12 +31,6 @@ export default function AddThingPage() {
   const userCode = localStorage.getItem('userCode');
   useEffect(() => { document.title = t('titles.addThing'); }, [t]);
 
-  useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-    }
-  }, [userCode, navigate]);
-
   const [collectionHeadline, setCollectionHeadline] = useState('');
   const [collectionMode, setCollectionMode] = useState('');
   const [isSwapCollection, setIsSwapCollection] = useState(false);

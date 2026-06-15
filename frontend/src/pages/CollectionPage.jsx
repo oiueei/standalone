@@ -30,12 +30,6 @@ export default function CollectionPage() {
   }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
-    const userCode = localStorage.getItem('userCode');
-    if (!userCode) {
-      navigate('/login');
-      return;
-    }
-
     const fetchCollection = async () => {
       try {
         const res = await apiFetch(`/api/v1/collections/${code}/`);

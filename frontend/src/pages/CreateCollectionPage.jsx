@@ -15,14 +15,7 @@ export default function CreateCollectionPage() {
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
-  const userCode = localStorage.getItem('userCode');
   const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-
-  useEffect(() => {
-    if (!userCode) {
-      navigate('/login');
-    }
-  }, [userCode, navigate]);
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');

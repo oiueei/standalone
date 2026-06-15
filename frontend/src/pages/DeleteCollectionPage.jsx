@@ -15,10 +15,6 @@ export default function DeleteCollectionPage() {
   const backPath = location.state?.backPath || `/collections/${code}/edit`;
   const backLabel = location.state?.backLabel || t('common.back');
 
-  useEffect(() => {
-    if (!userCode) navigate('/login');
-  }, [userCode, navigate]);
-
   const [collection, setCollection] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);

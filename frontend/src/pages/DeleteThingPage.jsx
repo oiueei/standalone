@@ -15,10 +15,6 @@ export default function DeleteThingPage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
 
-  useEffect(() => {
-    if (!userCode) navigate('/login');
-  }, [userCode, navigate]);
-
   const [thing, setThing] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
