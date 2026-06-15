@@ -13,11 +13,7 @@ from core.models import Collection, Thing, User
 from core.models.booking import BookingPeriod
 from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
-from core.services.booking_service import (
-    accept_booking,
-    finalize_booking_decision,
-    reject_booking,
-)
+from core.services.booking_service import accept_booking, finalize_booking_decision, reject_booking
 
 
 @pytest.fixture
