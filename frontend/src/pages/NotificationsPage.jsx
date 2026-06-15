@@ -5,6 +5,7 @@ import { Button, Koros, Notification, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function NotificationsPage() {
   const { t } = useTranslation();
@@ -13,7 +14,7 @@ export default function NotificationsPage() {
 
   useEffect(() => { document.title = t('titles.notifications'); }, [t]);
 
-  const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const { tc: theeemeColors, koro, btnStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [notifyActivity, setNotifyActivity] = useState(true);
@@ -72,13 +73,6 @@ export default function NotificationsPage() {
 
   if (loading) return <LoadingSpinner />;
 
-  const btnStyle = theeemeColors.color_01 ? {
-    '--background-color': `var(--color-${theeemeColors.color_01})`,
-    '--background-color-hover': `var(--color-${theeemeColors.color_01}-dark)`,
-    '--color': theeemeColors.color_06 ? `var(--color-${theeemeColors.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${theeemeColors.color_01})`,
-  } : undefined;
-
   return (
     <div
       className="form-page"
@@ -94,7 +88,7 @@ export default function NotificationsPage() {
         />
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
         />
       </div>

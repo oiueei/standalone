@@ -8,6 +8,7 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
+import useTheeeme from '../hooks/useTheeeme';
 
 const STATUS_THEMES = {
   PENDING: TAG_THEMES.pending,
@@ -20,6 +21,7 @@ const STATUS_THEMES = {
 export default function MyBookingsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { tc, koro } = useTheeeme();
   const [bookings, setBookings] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
@@ -83,8 +85,6 @@ export default function MyBookingsPage() {
   if (!bookings) {
     return <LoadingSpinner />;
   }
-
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
 
   const rows = bookings.map((b) => ({
     _id: b.code,
@@ -166,7 +166,7 @@ export default function MyBookingsPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

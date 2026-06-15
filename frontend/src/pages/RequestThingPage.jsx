@@ -6,6 +6,7 @@ import { DATE_TYPES, ORDER_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
+import useTheeeme from '../hooks/useTheeeme';
 
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0);
@@ -18,6 +19,7 @@ export default function RequestThingPage() {
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const userCode = localStorage.getItem('userCode');
+  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
 
@@ -141,21 +143,6 @@ export default function RequestThingPage() {
   const isOrder = thing.type === ORDER_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
 
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
-
   return (
     <div
       className="form-page"
@@ -171,7 +158,7 @@ export default function RequestThingPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

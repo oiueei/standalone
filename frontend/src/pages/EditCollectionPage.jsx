@@ -8,12 +8,14 @@ import ImageUpload from '../components/ImageUpload';
 import TagInput from '../components/TagInput';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function EditCollectionPage() {
   const { t } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
+  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
   const [loading, setLoading] = useState(true);
   const [headline, setHeadline] = useState('');
   useEffect(() => { document.title = headline ? t('titles.editCollection', { headline }) : t('titles.editCollectionDefault'); }, [headline, t]);
@@ -177,21 +179,6 @@ export default function EditCollectionPage() {
     return <LoadingSpinner />;
   }
 
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
-
   const handlePauseToggle = async () => {
     setPauseSubmitting(true);
     setToast(null);
@@ -229,7 +216,7 @@ export default function EditCollectionPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

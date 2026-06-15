@@ -7,6 +7,7 @@ import BackLink from '../components/BackLink';
 import ImageUpload from '../components/ImageUpload';
 import TagInput from '../components/TagInput';
 import Toast from '../components/Toast';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function CreateCollectionPage() {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export default function CreateCollectionPage() {
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
-  const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const { tc: theeemeColors, koro } = useTheeeme();
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -133,7 +134,7 @@ export default function CreateCollectionPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
         />
       </div>

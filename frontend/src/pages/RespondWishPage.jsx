@@ -6,6 +6,7 @@ import { WISH_KIND_BY_SLUG } from '../constants/things';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
+import useTheeeme from '../hooks/useTheeeme';
 
 /**
  * Short answer form for a wish: "Sé dónde" (message + link) and
@@ -40,15 +41,7 @@ export default function RespondWishPage() {
     || (code ? `/collections/${code}/things/${thingCode}` : `/things/${thingCode}`);
   const backLabel = location.state?.backLabel || t('common.back');
 
-  const tc = (() => {
-    try { return JSON.parse(localStorage.getItem('theeemeColors')) || {}; } catch { return {}; }
-  })();
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
+  const { tc, koro, btnStyle } = useTheeeme();
 
   const handleSubmit = async () => {
     if (!message.trim()) {
@@ -92,7 +85,7 @@ export default function RespondWishPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

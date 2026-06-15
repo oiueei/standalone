@@ -8,12 +8,14 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import ShareCollectionMenu from '../components/ShareCollectionMenu';
 import ThingLinkbox from '../components/ThingLinkbox';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function CollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
   const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite && !localStorage.getItem('seenWelcome'));
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
@@ -84,20 +86,6 @@ export default function CollectionPage() {
   };
 
   const isOwner = localStorage.getItem('userCode') === collection.owner;
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
 
   return (
     <div
@@ -170,7 +158,7 @@ export default function CollectionPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

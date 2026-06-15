@@ -3,6 +3,7 @@ import { FileInput, Button } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../services/api';
 import { resizeImage } from '../utils/resizeImage';
+import useTheeeme from '../hooks/useTheeeme';
 
 // HDS only supports fi, sv, en — everything else falls back to en
 function hdsLang(lang) {
@@ -26,7 +27,7 @@ function hdsLang(lang) {
  */
 export default function ImageUpload({ id, label, onChange, currentUrl, folder = 'oiueei/users', helperText }) {
   const { t, i18n } = useTranslation();
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const { tc } = useTheeeme();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);

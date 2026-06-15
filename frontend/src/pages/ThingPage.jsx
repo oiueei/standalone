@@ -25,12 +25,14 @@ import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
 import MarkdownText from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const userCode = localStorage.getItem('userCode');
+  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
 
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
@@ -367,21 +369,6 @@ export default function ThingPage() {
     }
   };
 
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
-
   return (
     <div
       className="form-page"
@@ -396,7 +383,7 @@ export default function ThingPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

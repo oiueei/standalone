@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FileInput, Button } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../services/api';
+import useTheeeme from '../hooks/useTheeeme';
 
 const MAX_SIZE = 1024 * 1024; // 1 MB
 const MAX_FILES = 5;
@@ -23,7 +24,7 @@ function hdsLang(lang) {
  */
 export default function DocumentUpload({ documents = [], onChange }) {
   const { t, i18n } = useTranslation();
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const { tc } = useTheeeme();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);

@@ -5,6 +5,7 @@ import { Button, Koros } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
 import Toast from '../components/Toast';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function DeleteThingPage() {
   const { t } = useTranslation();
@@ -12,6 +13,7 @@ export default function DeleteThingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const userCode = localStorage.getItem('userCode');
+  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
 
@@ -50,21 +52,6 @@ export default function DeleteThingPage() {
 
   if (!thing) return null;
 
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
-
   return (
     <div
       className="form-page"
@@ -80,7 +67,7 @@ export default function DeleteThingPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

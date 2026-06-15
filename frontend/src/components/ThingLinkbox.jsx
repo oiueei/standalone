@@ -6,6 +6,7 @@ import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../con
 import { apiFetch } from '../services/api';
 import MarkdownText from './MarkdownText';
 import RespondMenu from './RespondMenu';
+import useTheeeme from '../hooks/useTheeeme';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
 import ImageCarousel from './ImageCarousel';
@@ -22,20 +23,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const [activePendingCode, setActivePendingCode] = useState(thing.pending_booking);
 
   const isOwner = thing.owner === userCode;
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
   const isWish = thing.type === WISH_TYPE;
   const isShare = thing.type === SHARE_TYPE;
   const isSwap = thing.type === SWAP_TYPE;

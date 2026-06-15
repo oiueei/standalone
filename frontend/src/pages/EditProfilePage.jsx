@@ -9,6 +9,7 @@ import Toast from '../components/Toast';
 import TheeemeSelector from '../components/TheeemeSelector';
 import KoroSelector from '../components/KoroSelector';
 import ImageUpload from '../components/ImageUpload';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function EditProfilePage() {
   const { t } = useTranslation();
@@ -18,7 +19,7 @@ export default function EditProfilePage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
   const userCode = localStorage.getItem('userCode');
-  const theeemeColors = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
+  const { tc: theeemeColors, koro: savedKoro } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -131,7 +132,7 @@ export default function EditProfilePage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={savedKoro}
           style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
         />
       </div>

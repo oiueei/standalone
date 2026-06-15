@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Koros } from 'hds-react';
 import BackLink from '../components/BackLink';
 import { apiFetch } from '../services/api';
+import useTheeeme from '../hooks/useTheeeme';
 
 const PERSONA_LINKS = {
   Lala: [{ code: 'La1aC1', key: 'personaLalaLink2' }],
@@ -27,20 +28,7 @@ export default function WelcomePage() {
       .then((data) => setUserName(data.name || data.email || ''))
       .catch(() => {});
   }, []);
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
+  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
 
   return (
     <div
@@ -67,7 +55,7 @@ export default function WelcomePage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>

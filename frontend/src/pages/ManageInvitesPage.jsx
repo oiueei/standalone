@@ -7,19 +7,14 @@ import BackLink from '../components/BackLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function ManageInvitesPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const userCode = localStorage.getItem('userCode');
-  const tc = JSON.parse(localStorage.getItem('theeemeColors') || '{}');
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
+  const { tc, koro, btnStyle } = useTheeeme();
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
@@ -113,7 +108,7 @@ export default function ManageInvitesPage() {
         </div>
         <Koros
           className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
+          type={koro}
           style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
         />
       </div>
