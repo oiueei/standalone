@@ -8,6 +8,8 @@ export default function TooltipButton({ tooltip, onClick, disabled, children }) 
       style={{ position: 'relative', display: 'inline-flex' }}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
+      onFocus={() => setVisible(true)}
+      onBlur={() => setVisible(false)}
     >
       <button
         aria-label={tooltip}

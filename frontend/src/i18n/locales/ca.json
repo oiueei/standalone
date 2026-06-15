@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "OIUEEI",
+    "skipToContent": "Vés al contingut",
     "error": "Error",
     "done": "Fet",
     "close": "Tancar",

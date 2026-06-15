@@ -22,8 +22,9 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import RespondMenu from '../components/RespondMenu';
 import ThingTags from '../components/ThingTags';
 import Toast from '../components/Toast';
-import MarkdownText from '../components/MarkdownText';
+import MarkdownText, { sanitizeUrl } from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
+import { onImageError } from '../utils/imageFallback';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function ThingPage() {
@@ -419,7 +420,7 @@ export default function ThingPage() {
           const images = [thing.thumbnail_url, ...(thing.gallery_urls || [])].filter(Boolean);
           if (images.length === 0) return null;
           if (images.length === 1) {
-            return <img src={images[0]} alt={thing.headline} className="detail-image" />;
+            return <img src={images[0]} alt={thing.headline} className="detail-image" loading="lazy" onError={onImageError} />;
           }
           return <ImageCarousel images={images} alt={thing.headline} />;
         })()}
@@ -676,7 +677,7 @@ export default function ThingPage() {
                     )}
                     {r.message && <MarkdownText text={r.message} />}
                     {r.url && (
-                      <p><a href={r.url} target="_blank" rel="noopener noreferrer">{r.url}</a></p>
+                      <p><a href={sanitizeUrl(r.url)} target="_blank" rel="noopener noreferrer">{r.url}</a></p>
                     )}
                     {r.fee && <p>{r.fee} €</p>}
                     {isOwner && r.status === 'PENDING' && (

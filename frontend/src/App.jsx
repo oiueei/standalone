@@ -3,8 +3,9 @@ import 'hds-design-tokens';
 import 'hds-core/lib/base.css';
 import './fonts/oiueei-fonts.css';
 import './styles/oiueei-theme.css';
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import LoginPage from './pages/LoginPage';
 import VerifyPage from './pages/VerifyPage';
@@ -33,7 +34,36 @@ import NotFoundPage from './pages/NotFoundPage';
 import RequireAuth from './components/RequireAuth';
 import './App.css';
 
+/**
+ * On every route change (but not the initial mount), move focus to the main
+ * landmark and scroll to top so keyboard and screen-reader users start at the
+ * new page's content rather than wherever focus was left on the previous page.
+ *
+ * The initial mount is skipped on purpose: stealing focus into `<main>` on load
+ * would make the skip link — which precedes `<main>` — unreachable by the first
+ * forward Tab, defeating its purpose. On a fresh load focus stays at the top so
+ * the skip link is the first tab stop.
+ */
+function RouteFocusReset() {
+  const { pathname } = useLocation();
+  // Seed with the initial path so the first mount is a no-op. Comparing the
+  // path (rather than a "first render" boolean) is also robust to StrictMode's
+  // double effect-invocation in dev, which re-runs the effect with the same
+  // path and would otherwise defeat a boolean guard.
+  const prevPath = useRef(pathname);
+  useEffect(() => {
+    if (prevPath.current === pathname) return;
+    prevPath.current = pathname;
+    const main = document.getElementById('main');
+    if (main) main.focus();
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
+  const { t } = useTranslation();
+
   useEffect(() => {
     fetch('/api/v1/auth/me/', { credentials: 'same-origin' }).catch(() => {});
   }, []);
@@ -47,7 +77,10 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
+      <a href="#main" className="skip-link">{t('common.skipToContent')}</a>
+      <RouteFocusReset />
+      <main id="main" tabIndex={-1}>
+        <Routes>
         {/* Public routes — reachable without signing in */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/logout" element={<LogoutPage />} />
@@ -95,7 +128,8 @@ function App() {
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+        </Routes>
+      </main>
     </BrowserRouter>
   );
 }

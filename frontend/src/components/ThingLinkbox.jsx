@@ -10,6 +10,7 @@ import useTheeeme from '../hooks/useTheeeme';
 import ThingTags from './ThingTags';
 import Toast from './Toast';
 import ImageCarousel from './ImageCarousel';
+import { onImageError } from '../utils/imageFallback';
 
 export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, onUpdateThing }) {
   const { t, i18n } = useTranslation();
@@ -181,6 +182,8 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               src={thing.thumbnail_url}
               alt={thing.headline}
               className="thing-card-image-minimalist"
+              loading="lazy"
+              onError={onImageError}
             />
           )}
           <div className="thing-card-minimalist-buttons">
@@ -250,7 +253,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
         if (images.length === 1) {
           return (
             <Link to={thingPath}>
-              <img src={images[0]} alt={thing.headline} className="thing-card-image" />
+              <img src={images[0]} alt={thing.headline} className="thing-card-image" loading="lazy" onError={onImageError} />
             </Link>
           );
         }

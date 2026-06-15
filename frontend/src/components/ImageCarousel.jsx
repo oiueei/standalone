@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IconAngleLeft, IconAngleRight } from 'hds-react';
+import { onImageError } from '../utils/imageFallback';
 
 /**
  * Lightweight image carousel for a thing's photos ("Image pagination" in the DS).
@@ -35,11 +36,14 @@ export default function ImageCarousel({ images = [], alt = '', variant = 'detail
     touchStartX.current = null;
   };
 
+  const announce = t('thingPage.galleryImageAlt', { name: alt, index: index + 1, total: count });
   const img = (
     <img
       className={isCard ? 'image-carousel-image image-carousel-image--card' : 'detail-image image-carousel-image'}
       src={images[index]}
-      alt={t('thingPage.galleryImageAlt', { name: alt, index: index + 1, total: count })}
+      alt={announce}
+      loading="lazy"
+      onError={onImageError}
     />
   );
 
@@ -54,6 +58,7 @@ export default function ImageCarousel({ images = [], alt = '', variant = 'detail
         if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
       }}
     >
+      <span className="sr-only" aria-live="polite">{announce}</span>
       <div
         className={`image-carousel-viewport${isCard ? ' image-carousel-viewport--card' : ''}`}
         onTouchStart={onTouchStart}

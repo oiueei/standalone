@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "OIUEEI",
+    "skipToContent": "Edukira saltatu",
     "error": "Errorea",
     "done": "Eginda",
     "close": "Itxi",

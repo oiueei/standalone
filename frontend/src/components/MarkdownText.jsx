@@ -88,8 +88,8 @@ function markdownToHtml(text) {
   return output.join('');
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- pure helper co-located for unit tests (markdown.test.jsx)
-export { markdownToHtml };
+// eslint-disable-next-line react-refresh/only-export-components -- pure helpers co-located for unit tests (markdown.test.jsx) and reuse (sanitizeUrl on ThingPage)
+export { markdownToHtml, sanitizeUrl };
 
 export default function MarkdownText({ text, className = '' }) {
   if (!text) return null;

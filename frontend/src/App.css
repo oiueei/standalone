@@ -1047,3 +1047,38 @@ figure[class*="Highlight-module_highlight"] {
   font-size: var(--fontsize-body-m);
   color: var(--color-black-70);
 }
+
+/* Accessibility: skip-to-content link, off-screen until focused. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: var(--spacing-s);
+  z-index: 1100;
+  padding: var(--spacing-2-xs) var(--spacing-s);
+  background-color: var(--color-black-90);
+  color: var(--color-white);
+  border-radius: 2px;
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: var(--spacing-s);
+}
+
+/* The main landmark is focused on route change (RouteFocusReset); the content
+   change and scroll-to-top already signal the move, so suppress the outline. */
+main:focus {
+  outline: none;
+}
+
+/* Screen-reader-only text (visually hidden, still announced). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

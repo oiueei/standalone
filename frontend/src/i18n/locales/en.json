@@ -7,6 +7,7 @@
   },
   "common": {
     "appName": "OIUEEI",
+    "skipToContent": "Skip to content",
     "error": "Error",
     "done": "Done",
     "close": "Close",
