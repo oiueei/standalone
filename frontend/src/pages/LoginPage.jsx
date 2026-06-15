@@ -79,6 +79,7 @@ export default function LoginPage() {
             i18nKey="login.openSource"
             components={[
               <span key="0" />,
+              // eslint-disable-next-line jsx-a11y/anchor-has-content -- the link text is injected by <Trans> from the i18n string at runtime
               <a key="1" href="https://github.com/oiueei/standalone" target="_blank" rel="noopener noreferrer" />,
             ]}
           />

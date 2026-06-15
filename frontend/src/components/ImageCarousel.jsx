@@ -48,6 +48,7 @@ export default function ImageCarousel({ images = [], alt = '', variant = 'detail
   );
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- carousel group: arrow keys bubble up from the focusable prev/next buttons, the standard DS pattern
     <div
       className={`image-carousel${isCard ? ' image-carousel--card' : ''}`}
       role="group"
