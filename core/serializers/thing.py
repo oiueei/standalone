@@ -35,29 +35,116 @@ class DocumentSerializer(serializers.Serializer):
         return value
 
 
-class ThingSerializer(serializers.ModelSerializer):
+class ThingComputedFieldsMixin(serializers.Serializer):
+    """Computed read-only thing fields shared by ThingSerializer and
+    CollectionThingSummarySerializer.
+
+    Every getter here is prefetch-aware — it reuses the ``_pending_bookings``,
+    ``_transfer_count``, ``faq_set``, ``responses`` and ``_blocked_periods``
+    caches set by the views — so serialising a list of things stays free of N+1
+    queries. Fields whose logic genuinely differs between the two serializers
+    (``thumbnail_url`` and the two swap-gate fields) deliberately stay on each
+    serializer rather than here.
+    """
+
+    owner_name = serializers.SerializerMethodField()
+    gallery_urls = serializers.SerializerMethodField()
+    pending_booking = serializers.SerializerMethodField()
+    my_pending_booking = serializers.SerializerMethodField()
+    pending_questions = serializers.SerializerMethodField()
+    transfer_count = serializers.SerializerMethodField()
+    response_count = serializers.SerializerMethodField()
+    my_response = serializers.SerializerMethodField()
+    available_today = serializers.SerializerMethodField()
+    next_available = serializers.SerializerMethodField()
+
+    def get_owner_name(self, obj):
+        return obj.owner.display_name
+
+    def get_gallery_urls(self, obj):
+        return [cloudinary_url(public_id) for public_id in (obj.gallery or [])]
+
+    def get_pending_booking(self, obj):
+        # Use prefetched _pending_bookings if available, otherwise query
+        if hasattr(obj, "_pending_bookings"):
+            bookings = obj._pending_bookings
+            return bookings[0].code if bookings else None
+        booking = BookingPeriod.objects.filter(
+            thing_code=obj,
+            status=BookingPeriod.Status.PENDING,
+        ).first()
+        return booking.code if booking else None
+
+    def get_my_pending_booking(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        # Reuse the prefetched PENDING bookings (all requesters) when present.
+        if hasattr(obj, "_pending_bookings"):
+            for b in obj._pending_bookings:
+                if b.requester_code_id == request.user.code:
+                    return b.code
+            return None
+        booking = BookingPeriod.objects.filter(
+            thing_code=obj,
+            requester_code=request.user,
+            status=BookingPeriod.Status.PENDING,
+        ).first()
+        return booking.code if booking else None
+
+    def get_pending_questions(self, obj):
+        # Use prefetched faq_set cache if available
+        return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
+
+    def get_transfer_count(self, obj):
+        if hasattr(obj, "_transfer_count"):
+            return obj._transfer_count
+        return obj.transfers.count()
+
+    def get_response_count(self, obj):
+        """Number of answers to a wish (WISH_THING only, null otherwise)."""
+        if obj.type != Thing.Type.WISH_THING:
+            return None
+        return len(obj.responses.all())
+
+    def get_my_response(self, obj):
+        """The requesting user's own answer to a wish: {code, kind, status} or null."""
+        if obj.type != Thing.Type.WISH_THING:
+            return None
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        for response in obj.responses.all():
+            if response.responder_id == request.user.code:
+                return {
+                    "code": response.code,
+                    "kind": response.kind,
+                    "status": response.status,
+                }
+        return None
+
+    def get_available_today(self, obj):
+        window = obj.availability_window()
+        return window["available_today"] if window else None
+
+    def get_next_available(self, obj):
+        window = obj.availability_window()
+        return window["next_available"] if window else None
+
+
+class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
     """Full thing serializer."""
 
     thumbnail_url = serializers.SerializerMethodField()
     owner = serializers.CharField(source="owner_id")
-    owner_name = serializers.SerializerMethodField()
     faqs = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
-    pending_booking = serializers.SerializerMethodField()
-    my_pending_booking = serializers.SerializerMethodField()
-    pending_questions = serializers.SerializerMethodField()
     collection_code = serializers.SerializerMethodField()
     collection_headline = serializers.SerializerMethodField()
     collection_owner = serializers.SerializerMethodField()
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
-    transfer_count = serializers.SerializerMethodField()
-    response_count = serializers.SerializerMethodField()
-    my_response = serializers.SerializerMethodField()
     document_urls = serializers.SerializerMethodField()
-    gallery_urls = serializers.SerializerMethodField()
-    available_today = serializers.SerializerMethodField()
-    next_available = serializers.SerializerMethodField()
     collection_tags = serializers.SerializerMethodField()
 
     class Meta:
@@ -108,39 +195,8 @@ class ThingSerializer(serializers.ModelSerializer):
             "deal",
         ]
 
-    def get_owner_name(self, obj):
-        return obj.owner.display_name
-
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail)
-
-    def get_pending_booking(self, obj):
-        # Use prefetched _pending_bookings if available, otherwise query
-        if hasattr(obj, "_pending_bookings"):
-            bookings = obj._pending_bookings
-            return bookings[0].code if bookings else None
-        booking = BookingPeriod.objects.filter(
-            thing_code=obj,
-            status=BookingPeriod.Status.PENDING,
-        ).first()
-        return booking.code if booking else None
-
-    def get_my_pending_booking(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return None
-        # Reuse the prefetched PENDING bookings (all requesters) when present.
-        if hasattr(obj, "_pending_bookings"):
-            for b in obj._pending_bookings:
-                if b.requester_code_id == request.user.code:
-                    return b.code
-            return None
-        booking = BookingPeriod.objects.filter(
-            thing_code=obj,
-            requester_code=request.user,
-            status=BookingPeriod.Status.PENDING,
-        ).first()
-        return booking.code if booking else None
 
     def get_collection_code(self, obj):
         # Use prefetched collections cache if available
@@ -186,37 +242,6 @@ class ThingSerializer(serializers.ModelSerializer):
         # Use prefetched faq_set cache if available
         return [faq.code for faq in obj.faq_set.all()]
 
-    def get_pending_questions(self, obj):
-        # Use prefetched faq_set cache if available
-        return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
-
-    def get_transfer_count(self, obj):
-        if hasattr(obj, "_transfer_count"):
-            return obj._transfer_count
-        return obj.transfers.count()
-
-    def get_response_count(self, obj):
-        """Number of answers to a wish (WISH_THING only, null otherwise)."""
-        if obj.type != Thing.Type.WISH_THING:
-            return None
-        return len(obj.responses.all())
-
-    def get_my_response(self, obj):
-        """The requesting user's own answer to a wish: {code, kind, status} or null."""
-        if obj.type != Thing.Type.WISH_THING:
-            return None
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return None
-        for response in obj.responses.all():
-            if response.responder_id == request.user.code:
-                return {
-                    "code": response.code,
-                    "kind": response.kind,
-                    "status": response.status,
-                }
-        return None
-
     def get_document_urls(self, obj):
         if not obj.documents:
             return []
@@ -227,9 +252,6 @@ class ThingSerializer(serializers.ModelSerializer):
             url, _ = cloudinary.utils.cloudinary_url(doc["public_id"], resource_type="raw")
             result.append({"filename": doc["filename"], "url": url})
         return result
-
-    def get_gallery_urls(self, obj):
-        return [cloudinary_url(public_id) for public_id in (obj.gallery or [])]
 
     def get_collection_tags(self, obj):
         # The tag vocabulary available to this thing — union of its collections'
@@ -242,14 +264,6 @@ class ThingSerializer(serializers.ModelSerializer):
                     seen.add(tag)
                     result.append(tag)
         return result
-
-    def get_available_today(self, obj):
-        window = obj.availability_window()
-        return window["available_today"] if window else None
-
-    def get_next_available(self, obj):
-        window = obj.availability_window()
-        return window["next_available"] if window else None
 
 
 class ThingCreateSerializer(serializers.ModelSerializer):

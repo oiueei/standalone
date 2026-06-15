@@ -5,7 +5,7 @@ Collection serializers for OIUEEI.
 from rest_framework import serializers
 
 from core.models import RSVP, Collection, Thing, User
-from core.models.booking import BookingPeriod
+from core.serializers.thing import ThingComputedFieldsMixin
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
@@ -36,23 +36,13 @@ COMMUNITY_THING_TYPES = (
 COMMUNITY_MINIMALIST_THING_TYPES = (Thing.Type.GIFT_THING, Thing.Type.SHARE_THING)
 
 
-class CollectionThingSummarySerializer(serializers.ModelSerializer):
+class CollectionThingSummarySerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
     """Lightweight thing serializer for collection listings."""
 
     owner = serializers.CharField(source="owner_id")
-    owner_name = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
-    gallery_urls = serializers.SerializerMethodField()
-    pending_booking = serializers.SerializerMethodField()
-    my_pending_booking = serializers.SerializerMethodField()
-    pending_questions = serializers.SerializerMethodField()
-    transfer_count = serializers.SerializerMethodField()
-    response_count = serializers.SerializerMethodField()
-    my_response = serializers.SerializerMethodField()
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
-    available_today = serializers.SerializerMethodField()
-    next_available = serializers.SerializerMethodField()
     deal = serializers.SlugRelatedField(slug_field="code", many=True, read_only=True)
 
     class Meta:
@@ -86,71 +76,8 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
             "created",
         ]
 
-    def get_owner_name(self, obj):
-        return obj.owner.display_name
-
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
-
-    def get_gallery_urls(self, obj):
-        return [cloudinary_url(public_id) for public_id in (obj.gallery or [])]
-
-    def get_pending_booking(self, obj):
-        # Use prefetched _pending_bookings if available, otherwise query
-        if hasattr(obj, "_pending_bookings"):
-            bookings = obj._pending_bookings
-            return bookings[0].code if bookings else None
-        booking = BookingPeriod.objects.filter(
-            thing_code=obj,
-            status=BookingPeriod.Status.PENDING,
-        ).first()
-        return booking.code if booking else None
-
-    def get_my_pending_booking(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return None
-        # Reuse the prefetched PENDING bookings (all requesters) when present.
-        if hasattr(obj, "_pending_bookings"):
-            for b in obj._pending_bookings:
-                if b.requester_code_id == request.user.code:
-                    return b.code
-            return None
-        booking = BookingPeriod.objects.filter(
-            thing_code=obj,
-            requester_code=request.user,
-            status=BookingPeriod.Status.PENDING,
-        ).first()
-        return booking.code if booking else None
-
-    def get_pending_questions(self, obj):
-        # Use prefetched faq_set cache if available
-        return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
-
-    def get_transfer_count(self, obj):
-        if hasattr(obj, "_transfer_count"):
-            return obj._transfer_count
-        return obj.transfers.count()
-
-    def get_response_count(self, obj):
-        if obj.type != Thing.Type.WISH_THING:
-            return None
-        return len(obj.responses.all())
-
-    def get_my_response(self, obj):
-        if obj.type != Thing.Type.WISH_THING:
-            return None
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return None
-        for response in obj.responses.all():
-            if response.responder_id == request.user.code:
-                return {
-                    "code": response.code,
-                    "kind": response.kind,
-                    "status": response.status,
-                }
-        return None
 
     def get_collection_swap_minimum_items(self, obj):
         parent = self.context.get("parent_collection")
@@ -160,16 +87,6 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         # Pre-computed once at the parent CollectionSerializer level — same
         # value for every thing in this collection, so we avoid N queries.
         return self.context.get("my_swap_count_in_collection", 0)
-
-    def get_available_today(self, obj):
-        # Live availability for date-based types (LEND/RENT); null otherwise.
-        # Prefetch-aware via obj._blocked_periods (set by the collection view).
-        window = obj.availability_window()
-        return window["available_today"] if window else None
-
-    def get_next_available(self, obj):
-        window = obj.availability_window()
-        return window["next_available"] if window else None
 
 
 class CollectionInviteSummarySerializer(serializers.ModelSerializer):
