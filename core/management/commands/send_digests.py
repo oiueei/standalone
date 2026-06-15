@@ -66,12 +66,16 @@ class Command(BaseCommand):
             if not invitee_emails:
                 continue
 
-            send_digest_email(
-                collection_headline=collection.headline,
-                collection_code=collection.code,
-                thing_headlines=headlines,
-                emails=invitee_emails,
-            )
+            try:
+                send_digest_email(
+                    collection_headline=collection.headline,
+                    collection_code=collection.code,
+                    thing_headlines=headlines,
+                    emails=invitee_emails,
+                )
+            except Exception as exc:
+                self.stderr.write(self.style.WARNING(f"Digest failed for {collection.code}: {exc}"))
+                continue
             count += len(invitee_emails)
 
         return count
@@ -119,13 +123,19 @@ class Command(BaseCommand):
             if not new_thing_headlines and not transfer_entries:
                 continue
 
-            send_newsletter_email(
-                collection_headline=collection.headline,
-                collection_code=collection.code,
-                new_thing_headlines=new_thing_headlines,
-                transfer_entries=transfer_entries,
-                emails=invitee_emails,
-            )
+            try:
+                send_newsletter_email(
+                    collection_headline=collection.headline,
+                    collection_code=collection.code,
+                    new_thing_headlines=new_thing_headlines,
+                    transfer_entries=transfer_entries,
+                    emails=invitee_emails,
+                )
+            except Exception as exc:
+                self.stderr.write(
+                    self.style.WARNING(f"Newsletter failed for {collection.code}: {exc}")
+                )
+                continue
             count += len(invitee_emails)
 
         return count

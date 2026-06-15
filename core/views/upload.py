@@ -9,6 +9,8 @@ the binary file data.
 import time
 
 import cloudinary
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -36,6 +38,7 @@ class CloudinarySignatureView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
     def post(self, request):
         folder = request.data.get("folder", "oiueei/users")
         if folder not in ALLOWED_FOLDERS:

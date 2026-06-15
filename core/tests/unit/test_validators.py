@@ -11,6 +11,7 @@ from core.validators import (
     SafeTextField,
     validate_headline,
     validate_image_id,
+    validate_text,
 )
 
 
@@ -136,6 +137,48 @@ class TestValidateHeadline:
         with pytest.raises(serializers.ValidationError):
             validate_headline('<div onmouseover="alert(1)">')
 
+    def test_invalid_with_line_breaks(self):
+        """Should reject CR/LF (header-injection guard for email subjects)."""
+        with pytest.raises(serializers.ValidationError):
+            validate_headline("Hello\r\nBcc: victim@example.com")
+        with pytest.raises(serializers.ValidationError):
+            validate_headline("Line one\nLine two")
+
+    def test_invalid_with_unsafe_link_scheme(self):
+        """Should reject dangerous URL schemes in Markdown links."""
+        with pytest.raises(serializers.ValidationError):
+            validate_headline("[click](javascript:alert(1))")
+        with pytest.raises(serializers.ValidationError):
+            validate_headline("[x](data:text/plain,hello)")
+
+
+class TestValidateText:
+    """Tests for validate_text (multi-line Markdown fields)."""
+
+    def test_allows_newlines(self):
+        """Should permit line breaks (Markdown paragraphs/lists)."""
+        assert validate_text("a\nb\nc") == "a\nb\nc"
+
+    def test_allows_safe_markdown_links(self):
+        """Should permit http(s) Markdown links."""
+        value = "See [my site](https://example.org/path?q=1)"
+        assert validate_text(value) == value
+
+    def test_rejects_html(self):
+        """Should reject raw HTML tags."""
+        with pytest.raises(serializers.ValidationError):
+            validate_text("<script>alert(1)</script>")
+
+    def test_rejects_unsafe_scheme(self):
+        """Should reject dangerous URL schemes in Markdown links."""
+        with pytest.raises(serializers.ValidationError):
+            validate_text("[x](javascript:alert(1))")
+
+    def test_empty_value_allowed(self):
+        """Should accept empty values."""
+        assert validate_text("") == ""
+        assert validate_text(None) is None
+
 
 class TestSafeHeadlineField:
     """Tests for SafeHeadlineField serializer field."""
@@ -172,3 +215,15 @@ class TestSafeTextField:
             field.to_internal_value("<script>alert(1)</script>")
         with pytest.raises(serializers.ValidationError):
             field.to_internal_value("<iframe src=x></iframe>")
+
+    def test_invalid_with_unsafe_link_scheme(self):
+        """Should reject dangerous URL schemes in Markdown links."""
+        field = SafeTextField()
+        with pytest.raises(serializers.ValidationError):
+            field.to_internal_value("[click me](javascript:alert(document.cookie))")
+
+    def test_allows_newlines_with_safe_links(self):
+        """Multi-line Markdown plus http(s) links must pass."""
+        field = SafeTextField(max_length=2000)
+        value = "Para 1\n\nPara 2 with [a link](https://example.org/path?q=1)"
+        assert field.to_internal_value(value) == value

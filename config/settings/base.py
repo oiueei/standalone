@@ -225,4 +225,5 @@ CLOUDINARY_CLOUD_NAME = cloudinary.config().cloud_name or ""
 # Security Headers
 X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
+# X-XSS-Protection (SECURE_BROWSER_XSS_FILTER) intentionally omitted: the header
+# is deprecated and the strong CSP (script-src 'self') already supersedes it.

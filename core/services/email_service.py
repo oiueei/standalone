@@ -18,7 +18,7 @@ import logging
 import smtplib
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives, send_mail
+from django.core.mail import BadHeaderError, EmailMultiAlternatives, send_mail
 from django.utils.html import escape
 
 logger = logging.getLogger(__name__)
@@ -107,9 +107,10 @@ def _send(to_email, subject, plain, html, category, reply_to=None):
     """Send a single email through the category + footer pipeline.
 
     Returns True if the email was dispatched, False if the recipient opted out
-    or the send failed. A failed send (SMTP error / timeout / socket error) is
-    logged and swallowed — it never propagates, so it cannot 500 a user action
-    whose DB work has already committed, nor abort a multi-recipient loop.
+    or the send failed. A failed send (SMTP error / timeout / socket error / bad
+    header) is logged and swallowed — it never propagates, so it cannot 500 a
+    user action whose DB work has already committed, nor abort a multi-recipient
+    loop or a nightly cron.
     """
     if not _should_send(to_email, category):
         return False
@@ -129,9 +130,11 @@ def _send(to_email, subject, plain, html, category, reply_to=None):
                 recipient_list=[to_email],
                 html_message=html,
             )
-    except (smtplib.SMTPException, OSError) as exc:
+    except (smtplib.SMTPException, OSError, BadHeaderError) as exc:
         # OSError covers socket.timeout/connection errors (socket.timeout is an
-        # OSError subclass). A dead/slow provider degrades gracefully here.
+        # OSError subclass). BadHeaderError (a ValueError) guards against a CR/LF
+        # that slipped into the subject — caught here so one tainted row can never
+        # abort a multi-recipient loop or a nightly digest/newsletter cron.
         logger.error("Email send failed (to=%s, subject=%r): %s", to_email, subject, exc)
         return False
     return True

@@ -498,6 +498,7 @@ class TokenRefreshView(APIView):
 
     permission_classes = [AllowAny]
 
+    @method_decorator(ratelimit(key="ip", rate="10/m", method="POST", block=True))
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
