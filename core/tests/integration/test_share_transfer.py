@@ -3,6 +3,7 @@ Integration tests for SHARE_THING ownership transfer feature.
 """
 
 from datetime import date, timedelta
+from unittest.mock import patch
 
 import pytest
 from rest_framework.test import APIClient
@@ -10,8 +11,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Collection, Thing, User
 from core.models.booking import BookingPeriod
+from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
-from core.services.booking_service import accept_booking, reject_booking
+from core.services.booking_service import (
+    accept_booking,
+    finalize_booking_decision,
+    reject_booking,
+)
 
 
 @pytest.fixture
@@ -412,3 +418,42 @@ class TestShareTransferStats:
         assert share_thing.owner == user2
         booking2.refresh_from_db()
         assert booking2.status == BookingPeriod.Status.PENDING
+
+    def test_accept_share_auto_declines_conflicting_sibling(
+        self,
+        user,
+        user2,
+        user3,
+        share_thing,
+        community_collection,
+    ):
+        """Accepting one SHARE request auto-declines the others and warmly notifies them."""
+        community_collection.invites.add(user2)
+        community_collection.invites.add(user3)
+        winner = BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type="SHARE_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+        )
+        sibling = BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type="SHARE_THING",
+            requester_code=user3,
+            requester_email=user3.email,
+            owner_code=user,
+        )
+
+        with (
+            patch("core.services.email_service.send_booking_decision_email"),
+            patch("core.services.email_service.send_booking_unavailable_email") as mock_unavailable,
+        ):
+            assert finalize_booking_decision(winner, accepted=True) is not None
+
+        sibling.refresh_from_db()
+        assert sibling.status == BookingPeriod.Status.REJECTED
+        assert InAppNotification.objects.filter(
+            user=user3, type=InAppNotification.Type.BOOKING_UNAVAILABLE
+        ).exists()
+        mock_unavailable.assert_called_once()

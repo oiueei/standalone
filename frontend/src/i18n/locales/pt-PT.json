@@ -106,6 +106,8 @@
     "bookingAcceptedBody": "{{owner_name}} confirmou a tua reserva de {{thing_headline}}.",
     "bookingRejectedLabel": "Reserva recusada",
     "bookingRejectedBody": "{{owner_name}} recusou a tua reserva de {{thing_headline}}.",
+    "bookingUnavailableLabel": "Já foi",
+    "bookingUnavailableBody": "{{thing_headline}} ficou com outra pessoa desta vez — as coisas vão e vêm, fica atento!",
     "bookingRequestedLabel": "Novo pedido de reserva",
     "bookingRequestedBody": "{{requester_name}} pediu {{thing_headline}}.",
     "swapRequestedLabel": "Nova proposta de troca",

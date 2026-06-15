@@ -186,12 +186,41 @@ def reject_booking(booking):
     return thing
 
 
+def _delete_booking_rsvps(booking_code):
+    """Invalidate every accept/reject RSVP link for a booking."""
+    RSVP.objects.filter(
+        target_code=booking_code,
+        action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
+    ).delete()
+
+
+def _decline_conflicting_siblings(booking):
+    """Reject other PENDING bookings for the same, now-transferred, thing.
+
+    Only meaningful for ownership-transferring types (SHARE/SWAP): once the thing
+    has changed hands, any other pending request for it can no longer be fulfilled.
+    Returns the list of bookings actually declined so the caller can notify each
+    requester. Each rejection is race-safe — reject_booking re-checks the PENDING
+    status under a row lock and no-ops (returns None) on anything already handled.
+    """
+    siblings = list(
+        BookingPeriod.objects.filter(
+            thing_code=booking.thing_code_id,
+            status=BookingPeriod.Status.PENDING,
+        ).exclude(code=booking.code)
+    )
+    return [sibling for sibling in siblings if reject_booking(sibling) is not None]
+
+
 def finalize_booking_decision(booking, accepted):
     """Apply an owner's accept/reject decision and run the shared side-effects.
 
     Wraps accept_booking()/reject_booking() (which perform the locked, race-safe
     status transition) and, on success, notifies the requester (in-app + email)
-    and invalidates the booking's outstanding accept/reject RSVP links. Shared by
+    and invalidates the booking's outstanding accept/reject RSVP links. On accept
+    of an ownership-transferring type (SHARE/SWAP), every other pending request
+    for the same thing can no longer be fulfilled, so each is auto-declined and
+    its requester is told warmly (their RSVP links are invalidated too). Shared by
     the email/RSVP path (VerifyLinkView) and the in-app API path
     (BookingActionView) so this money/ownership-sensitive sequence lives in one
     place.
@@ -200,7 +229,10 @@ def finalize_booking_decision(booking, accepted):
     concurrent transition already handled it) — each caller turns None into its
     own "expired or already processed" response.
     """
-    from core.services.email_service import send_booking_decision_email
+    from core.services.email_service import (
+        send_booking_decision_email,
+        send_booking_unavailable_email,
+    )
 
     thing = accept_booking(booking) if accepted else reject_booking(booking)
     if thing is None:
@@ -217,10 +249,16 @@ def finalize_booking_decision(booking, accepted):
         payload={"thing_headline": thing.headline, "owner_name": owner_name},
     )
     send_booking_decision_email(booking, thing, accepted=accepted)
+    _delete_booking_rsvps(booking.code)
 
-    # Invalidate every accept/reject RSVP for this booking (the used link and its sibling).
-    RSVP.objects.filter(
-        target_code=booking.code,
-        action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
-    ).delete()
+    if accepted and booking.thing_type in (Thing.Type.SHARE_THING, Thing.Type.SWAP_THING):
+        for sibling in _decline_conflicting_siblings(booking):
+            InAppNotification.objects.create(
+                user=sibling.requester_code,
+                type=InAppNotification.Type.BOOKING_UNAVAILABLE,
+                payload={"thing_headline": thing.headline},
+            )
+            send_booking_unavailable_email(sibling, thing)
+            _delete_booking_rsvps(sibling.code)
+
     return thing

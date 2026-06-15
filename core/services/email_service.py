@@ -284,6 +284,28 @@ def send_booking_decision_email(booking, thing, accepted=True):
     _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
+def send_booking_unavailable_email(booking, thing):
+    """Tell a requester their pending request can no longer be fulfilled.
+
+    Sent when the owner gave or swapped the thing to someone else, so this
+    requester's PENDING booking was auto-declined. Warm, non-blaming tone.
+    """
+    safe_headline = escape(thing.headline)
+
+    subject = "Someone got there first"
+    plain = (
+        f"'{thing.headline}' went to someone else this time. "
+        "No worries — things come and go around here, so keep an eye out!"
+    )
+    html = f"""
+        <html>
+        <p><strong>{safe_headline}</strong> went to someone else this time.</p>
+        <p>No worries — things come and go around here, so keep an eye out!</p>
+        </html>
+        """
+    _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY)
+
+
 def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
     """Send notification to collection owner that an invite was declined."""
     safe_invitee = escape(invitee_name)

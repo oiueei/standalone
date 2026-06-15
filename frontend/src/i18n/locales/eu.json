@@ -106,6 +106,8 @@
     "bookingAcceptedBody": "{{owner_name}}-k {{thing_headline}}-ren erreserba baieztatua du.",
     "bookingRejectedLabel": "Erreserba ukatua",
     "bookingRejectedBody": "{{owner_name}}-k {{thing_headline}}-ren erreserba ukatu du.",
+    "bookingUnavailableLabel": "Hartuta dago",
+    "bookingUnavailableBody": "{{thing_headline}} beste norbaitentzat izan da oraingoan — gauzak joan-etorrian dabiltza, egon adi!",
     "bookingRequestedLabel": "Erreserba-eskaera berria",
     "bookingRequestedBody": "{{requester_name}}-k {{thing_headline}} eskatu du.",
     "swapRequestedLabel": "Truke-proposamen berria",

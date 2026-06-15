@@ -106,6 +106,8 @@
     "bookingAcceptedBody": "{{owner_name}} ha confirmat la teva reserva de {{thing_headline}}.",
     "bookingRejectedLabel": "Reserva rebutjada",
     "bookingRejectedBody": "{{owner_name}} ha rebutjat la teva reserva de {{thing_headline}}.",
+    "bookingUnavailableLabel": "Ja no hi és",
+    "bookingUnavailableBody": "{{thing_headline}} ha estat per a una altra persona aquesta vegada — les coses van i venen, estigues atent!",
     "bookingRequestedLabel": "Nova sol·licitud de reserva",
     "bookingRequestedBody": "{{requester_name}} ha sol·licitat {{thing_headline}}.",
     "swapRequestedLabel": "Nova proposta d'intercanvi",

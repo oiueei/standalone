@@ -114,6 +114,7 @@ export default function HomePage() {
       case 'BOOKING_ACCEPTED': return tFn('home.bookingAcceptedLabel');
       case 'BOOKING_REJECTED': return tFn('home.bookingRejectedLabel');
       case 'BOOKING_REQUESTED': return tFn('home.bookingRequestedLabel');
+      case 'BOOKING_UNAVAILABLE': return tFn('home.bookingUnavailableLabel');
       case 'SWAP_REQUESTED': return tFn('home.swapRequestedLabel');
       case 'FAQ_QUESTION': return tFn('home.faqQuestionLabel');
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredLabel');
@@ -134,6 +135,7 @@ export default function HomePage() {
       case 'BOOKING_ACCEPTED': return tFn('home.bookingAcceptedBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'BOOKING_REJECTED': return tFn('home.bookingRejectedBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'BOOKING_REQUESTED': return tFn('home.bookingRequestedBody', { thing_headline: p.thing_headline, requester_name: p.requester_name });
+      case 'BOOKING_UNAVAILABLE': return tFn('home.bookingUnavailableBody', { thing_headline: p.thing_headline });
       case 'SWAP_REQUESTED': return tFn('home.swapRequestedBody', { thing_headline: p.thing_headline, requester_name: p.requester_name });
       case 'FAQ_QUESTION': return tFn('home.faqQuestionBody', { thing_headline: p.thing_headline, questioner_name: p.questioner_name });
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });

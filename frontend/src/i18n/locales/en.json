@@ -123,6 +123,8 @@
     "bookingAcceptedBody": "{{owner_name}} confirmed your hold on {{thing_headline}}.",
     "bookingRejectedLabel": "Hold declined",
     "bookingRejectedBody": "{{owner_name}} declined your hold on {{thing_headline}}.",
+    "bookingUnavailableLabel": "Already taken",
+    "bookingUnavailableBody": "{{thing_headline}} went to someone else this time — things come and go, so keep an eye out!",
     "bookingRequestedLabel": "New hold request",
     "bookingRequestedBody": "{{requester_name}} requested {{thing_headline}}.",
     "swapRequestedLabel": "New swap proposal",
