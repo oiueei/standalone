@@ -21,6 +21,7 @@ from core.pagination import StandardResultsPagination
 from core.serializers import WishResponseCreateSerializer, WishResponseSerializer
 from core.serializers.thing import ThingSerializer
 from core.services.email_service import send_wish_response_email, send_wish_thanks_email
+from core.views._helpers import deny_if_cannot_view
 
 
 def _get_wish(thing_code):
@@ -49,11 +50,9 @@ class ThingWishResponseView(APIView):
         if error:
             return error
 
-        if not wish.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorised to view this wish"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = deny_if_cannot_view(wish, request.user.code, "Not authorised to view this wish")
+        if denied:
+            return denied
 
         responses = wish.responses.select_related("responder", "thing")
         if not wish.is_owner(request.user.code):
@@ -76,11 +75,9 @@ class ThingWishResponseView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not wish.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorised to answer this wish"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = deny_if_cannot_view(wish, request.user.code, "Not authorised to answer this wish")
+        if denied:
+            return denied
 
         serializer = WishResponseCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

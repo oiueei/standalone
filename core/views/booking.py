@@ -12,7 +12,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import Thing
 from core.models.booking import BookingPeriod
 from core.models.rsvp import RSVP
 from core.pagination import StandardResultsPagination
@@ -23,6 +22,7 @@ from core.serializers.booking import (
     MyBookingSerializer,
 )
 from core.services.booking_service import cancel_booking, finalize_booking_decision
+from core.views._helpers import get_viewable_thing
 
 
 class ThingCalendarView(APIView):
@@ -35,14 +35,11 @@ class ThingCalendarView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, thing_code):
-        thing = get_object_or_404(Thing, code=thing_code)
-
-        # Check if user can view this thing
-        if not thing.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorized to view this thing"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        thing, denied = get_viewable_thing(
+            thing_code, request.user.code, "Not authorized to view this thing"
+        )
+        if denied:
+            return denied
 
         # Get blocked periods
         blocked_periods = BookingPeriod.get_blocked_periods(thing_code)

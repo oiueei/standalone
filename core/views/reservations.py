@@ -8,7 +8,6 @@ real codes (booking_code, thing_code) in URLs.
 
 from django.conf import settings
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import status
@@ -26,6 +25,7 @@ from core.services.email_service import (
     send_swap_confirmation_email,
     send_swap_request_email,
 )
+from core.views._helpers import get_viewable_thing
 
 
 class ThingRequestView(APIView):
@@ -44,14 +44,11 @@ class ThingRequestView(APIView):
 
     @method_decorator(ratelimit(key="user", rate="10/h", method="POST", block=True))
     def post(self, request, thing_code):
-        thing = get_object_or_404(Thing, code=thing_code)
-
-        # Check if user can view this thing (is invited to collection)
-        if not thing.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorized to request this thing"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        thing, denied = get_viewable_thing(
+            thing_code, request.user.code, "Not authorized to request this thing"
+        )
+        if denied:
+            return denied
 
         # Owner cannot request their own thing
         if thing.is_owner(request.user.code):

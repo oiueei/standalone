@@ -2,7 +2,6 @@
 Transfer views for OIUEEI — thing journey/lending history.
 """
 
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,6 +9,7 @@ from rest_framework.views import APIView
 from core.models import Collection, Thing
 from core.models.transfer import ThingTransfer
 from core.serializers.transfer import ThingTransferStatsSerializer
+from core.views._helpers import get_viewable_thing
 
 
 class ThingTransferView(APIView):
@@ -23,10 +23,9 @@ class ThingTransferView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, thing_code):
-        thing = get_object_or_404(Thing, code=thing_code)
-
-        if not thing.can_view(request.user.code):
-            return Response({"detail": "Not authorised."}, status=403)
+        thing, denied = get_viewable_thing(thing_code, request.user.code, "Not authorised.")
+        if denied:
+            return denied
 
         transfers = (
             ThingTransfer.objects.filter(thing=thing)

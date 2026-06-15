@@ -19,6 +19,7 @@ from core.services.email_service import (
     send_faq_hide_email,
     send_faq_question_email,
 )
+from core.views._helpers import deny_if_cannot_view
 
 
 class ThingFAQListView(APIView):
@@ -38,12 +39,11 @@ class ThingFAQListView(APIView):
     def get(self, request, thing_code):
         thing = self.get_thing(thing_code)
 
-        # Check if user can view the thing
-        if not thing.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorized to view this thing's FAQs"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = deny_if_cannot_view(
+            thing, request.user.code, "Not authorized to view this thing's FAQs"
+        )
+        if denied:
+            return denied
 
         # Get visible FAQs (or all if owner)
         if thing.is_owner(request.user.code):
@@ -75,12 +75,11 @@ class ThingFAQListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check if user can view the thing (must be invited to ask questions)
-        if not thing.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorized to ask questions about this thing"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = deny_if_cannot_view(
+            thing, request.user.code, "Not authorized to ask questions about this thing"
+        )
+        if denied:
+            return denied
 
         serializer = FAQCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -122,12 +121,9 @@ class FAQDetailView(APIView):
         # Get the thing to check access
         thing = faq.thing
 
-        # Check if user can view the thing
-        if not thing.can_view(request.user.code):
-            return Response(
-                {"error": "Not authorized to view this FAQ"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = deny_if_cannot_view(thing, request.user.code, "Not authorized to view this FAQ")
+        if denied:
+            return denied
 
         # Check visibility for non-owners
         if not faq.is_visible:
