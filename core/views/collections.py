@@ -117,7 +117,7 @@ class CollectionViewSet(ModelViewSet):
         return obj
 
     def perform_destroy(self, instance):
-        owner_name = instance.owner.name or instance.owner.email
+        owner_name = instance.owner.display_name
         headline = instance.headline
         invitees = list(instance.invites.all())
 
@@ -304,7 +304,7 @@ class CollectionInviteView(APIView):
         reject_link = f"{rsvp_base}/{reject_rsvp.code}"
 
         send_collection_invite_email(
-            request.user.name or request.user.email,
+            request.user.display_name,
             collection.headline,
             email,
             accept_link,
@@ -346,7 +346,7 @@ class CollectionInviteView(APIView):
             # Send notification email and in-app notification to removed user
             try:
                 user = User.objects.get(code=user_code)
-                owner_name = request.user.name or request.user.email
+                owner_name = request.user.display_name
                 send_collection_revoke_email(owner_name, collection.headline, user.email)
                 InAppNotification.objects.create(
                     user=user,
@@ -449,7 +449,7 @@ class MyPendingInvitationsView(APIView):
                     "reject_code": reject_rsvp.code if reject_rsvp else None,
                     "collection_code": collection.code,
                     "collection_headline": collection.headline,
-                    "owner_name": collection.owner.name or collection.owner.email,
+                    "owner_name": collection.owner.display_name,
                 }
             )
 
@@ -549,7 +549,7 @@ class CollectionBroadcastView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        owner_name = request.user.name or request.user.email
+        owner_name = request.user.display_name
 
         send_broadcast_email(
             owner_name=owner_name,

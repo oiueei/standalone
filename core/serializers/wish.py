@@ -44,7 +44,7 @@ class WishResponseSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_responder_name(self, obj):
-        return obj.responder.name or obj.responder.email
+        return obj.responder.display_name
 
     def get_thing_headline(self, obj):
         return obj.thing.headline if obj.thing else None

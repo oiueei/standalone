@@ -87,7 +87,7 @@ class CollectionThingSummarySerializer(serializers.ModelSerializer):
         ]
 
     def get_owner_name(self, obj):
-        return obj.owner.name or obj.owner.email
+        return obj.owner.display_name
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
@@ -229,7 +229,7 @@ class CollectionSerializer(serializers.ModelSerializer):
         ]
 
     def get_owner_name(self, obj):
-        return obj.owner.name or obj.owner.email
+        return obj.owner.display_name
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None

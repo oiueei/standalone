@@ -114,8 +114,8 @@ class Command(BaseCommand):
                 {
                     "date": t.lent_date,
                     "thing": t.thing.headline,
-                    "from_name": t.from_user.name or t.from_user.email,
-                    "to_name": t.to_user.name or t.to_user.email,
+                    "from_name": t.from_user.display_name,
+                    "to_name": t.to_user.display_name,
                 }
                 for t in transfers
             ]

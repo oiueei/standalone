@@ -105,6 +105,11 @@ class User(AbstractBaseUser):
     def __str__(self):
         return f"{self.code} ({self.email})"
 
+    @property
+    def display_name(self):
+        """Human-facing name: the chosen name, falling back to the email."""
+        return self.name or self.email
+
     def has_perm(self, perm, obj=None):
         return self.is_superuser
 

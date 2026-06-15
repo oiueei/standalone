@@ -167,4 +167,4 @@ class MyBookingSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):
         ]
 
     def get_owner_name(self, obj):
-        return obj.owner_code.name or obj.owner_code.email
+        return obj.owner_code.display_name

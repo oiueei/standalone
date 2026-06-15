@@ -209,7 +209,7 @@ class ThingViewSet(ModelViewSet):
         if not members:
             return
 
-        creator_name = self.request.user.name or self.request.user.email
+        creator_name = self.request.user.display_name
         send_wish_posted_email(creator_name, wish, [m.email for m in members])
         InAppNotification.objects.bulk_create(
             [

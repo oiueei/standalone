@@ -203,7 +203,7 @@ def send_collection_revoke_email(owner_name, collection_headline, email):
 
 def send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link):
     """Send booking request email to owner with accept/reject links."""
-    requester_name = requester.name or requester.email
+    requester_name = requester.display_name
     safe_requester_name = escape(requester_name)
     safe_headline = escape(thing.headline)
 
@@ -325,7 +325,7 @@ def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
 def send_booking_confirmation_email(requester, thing, booking):
     """Send booking confirmation email to the requester."""
     safe_headline = escape(thing.headline)
-    owner_name = thing.owner.name or thing.owner.email
+    owner_name = thing.owner.display_name
     safe_owner = escape(owner_name)
 
     base_url = _frontend_base_url()
@@ -628,7 +628,7 @@ def send_swap_request_email(
     requester, thing, offered_things, owner_email, accept_link, reject_link
 ):
     """Send swap request email to owner with offered thing headlines."""
-    requester_name = requester.name or requester.email
+    requester_name = requester.display_name
     safe_requester_name = escape(requester_name)
     safe_headline = escape(thing.headline)
     offered_names = ", ".join(t.headline for t in offered_things)

@@ -377,7 +377,7 @@ class ThingRequestView(APIView):
             type=InAppNotification.Type.SWAP_REQUESTED,
             payload={
                 "thing_headline": thing.headline,
-                "requester_name": requester.name or requester.email,
+                "requester_name": requester.display_name,
             },
         )
 
@@ -399,6 +399,6 @@ class ThingRequestView(APIView):
             type=InAppNotification.Type.BOOKING_REQUESTED,
             payload={
                 "thing_headline": thing.headline,
-                "requester_name": requester.name or requester.email,
+                "requester_name": requester.display_name,
             },
         )

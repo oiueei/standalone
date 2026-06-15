@@ -238,7 +238,7 @@ def finalize_booking_decision(booking, accepted):
     if thing is None:
         return None
 
-    owner_name = booking.owner_code.name or booking.owner_code.email
+    owner_name = booking.owner_code.display_name
     InAppNotification.objects.create(
         user=booking.requester_code,
         type=(

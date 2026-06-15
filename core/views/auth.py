@@ -254,7 +254,7 @@ class VerifyLinkView(APIView):
         if rsvp.target_code:
             try:
                 collection = Collection.objects.get(code=rsvp.target_code)
-                invitee_name = user.name or user.email
+                invitee_name = user.display_name
                 send_invite_rejected_email(
                     invitee_name,
                     collection.headline,

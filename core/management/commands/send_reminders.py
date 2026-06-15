@@ -32,7 +32,7 @@ class Command(BaseCommand):
         for booking in return_bookings:
             thing = booking.thing_code
             requester = booking.requester_code
-            requester_name = requester.name or requester.email
+            requester_name = requester.display_name
             send_return_reminder_email(
                 requester_name=requester_name,
                 thing_headline=thing.headline,
@@ -50,7 +50,7 @@ class Command(BaseCommand):
         for booking in delivery_bookings:
             thing = booking.thing_code
             requester = booking.requester_code
-            requester_name = requester.name or requester.email
+            requester_name = requester.display_name
             send_delivery_reminder_email(
                 requester_name=requester_name,
                 thing_headline=thing.headline,

@@ -28,10 +28,10 @@ class ThingTransferSerializer(serializers.ModelSerializer):
         ]
 
     def get_from_user_name(self, obj):
-        return obj.from_user.name or obj.from_user.email
+        return obj.from_user.display_name
 
     def get_to_user_name(self, obj):
-        return obj.to_user.name or obj.to_user.email
+        return obj.to_user.display_name
 
 
 class ThingTransferStatsSerializer(serializers.Serializer):

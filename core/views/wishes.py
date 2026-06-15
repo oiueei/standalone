@@ -113,7 +113,7 @@ class ThingWishResponseView(APIView):
         # Notify the wish creator by email and in-app.
         creator = wish.owner
         if creator and creator.email:
-            responder_name = request.user.name or request.user.email
+            responder_name = request.user.display_name
             send_wish_response_email(responder_name, wish, creator.email)
             collection = wish.collections.first()
             InAppNotification.objects.create(
@@ -170,7 +170,7 @@ class WishResponseAcceptView(APIView):
                 type=InAppNotification.Type.WISH_ACCEPTED,
                 payload={
                     "wish_headline": wish.headline,
-                    "owner_name": request.user.name or request.user.email,
+                    "owner_name": request.user.display_name,
                     "wish_code": wish.code,
                     "collection_code": collection.code if collection else None,
                 },
@@ -215,7 +215,7 @@ class WishResolveView(APIView):
             .first()
         )
         if accepted and accepted.responder and accepted.responder.email:
-            creator_name = request.user.name or request.user.email
+            creator_name = request.user.display_name
             send_wish_thanks_email(creator_name, wish, accepted.responder.email)
 
         return Response(ThingSerializer(wish).data)

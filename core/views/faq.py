@@ -94,7 +94,7 @@ class ThingFAQListView(APIView):
         # Notify owner by email and in-app
         owner = thing.owner
         if owner and owner.email:
-            questioner_name = request.user.name or request.user.email
+            questioner_name = request.user.display_name
             send_faq_question_email(questioner_name, thing, faq.question, owner.email)
             InAppNotification.objects.create(
                 user=owner,
@@ -170,7 +170,7 @@ class FAQAnswerView(APIView):
         # Notify questioner by email and in-app
         questioner = faq.questioner
         if questioner and questioner.email:
-            owner_name = request.user.name or request.user.email
+            owner_name = request.user.display_name
             send_faq_answer_email(
                 owner_name, thing.headline, faq.question, faq.answer, questioner.email
             )
@@ -214,7 +214,7 @@ class FAQVisibilityView(APIView):
             # Notify questioner by email and in-app
             questioner = faq.questioner
             if questioner and questioner.email:
-                owner_name = request.user.name or request.user.email
+                owner_name = request.user.display_name
                 send_faq_hide_email(owner_name, thing.headline, faq.question, questioner.email)
                 InAppNotification.objects.create(
                     user=questioner,
