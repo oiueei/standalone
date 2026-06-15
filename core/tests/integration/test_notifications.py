@@ -197,7 +197,9 @@ def test_booking_accept_via_api_creates_in_app_notification(two_users, thing_wit
         resp = client.post(f"/api/v1/bookings/{booking.code}/accept/")
 
     assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.BOOKING_ACCEPTED)
+    notif = InAppNotification.objects.get(
+        user=requester, type=InAppNotification.Type.BOOKING_ACCEPTED
+    )
     assert notif.payload["thing_headline"] == thing.headline
     assert notif.payload["owner_name"] == owner.name
 
@@ -213,7 +215,9 @@ def test_booking_reject_via_api_creates_in_app_notification(two_users, thing_wit
         resp = client.post(f"/api/v1/bookings/{booking.code}/reject/")
 
     assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.BOOKING_REJECTED)
+    notif = InAppNotification.objects.get(
+        user=requester, type=InAppNotification.Type.BOOKING_REJECTED
+    )
     assert notif.payload["thing_headline"] == thing.headline
 
 
@@ -235,7 +239,7 @@ def test_booking_accept_via_rsvp_creates_in_app_notification(two_users, thing_wi
 
     assert resp.status_code == status.HTTP_200_OK
     assert InAppNotification.objects.filter(
-        user=requester, type=InAppNotification.BOOKING_ACCEPTED
+        user=requester, type=InAppNotification.Type.BOOKING_ACCEPTED
     ).exists()
 
 
@@ -252,7 +256,7 @@ def test_booking_request_creates_in_app_notification_for_owner(two_users, thing_
         resp = client.post(f"/api/v1/things/{thing.code}/request/", {}, format="json")
 
     assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.BOOKING_REQUESTED)
+    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.Type.BOOKING_REQUESTED)
     assert notif.payload["thing_headline"] == thing.headline
     assert notif.payload["requester_name"] == requester.name
 
@@ -269,7 +273,7 @@ def test_faq_question_creates_in_app_notification_for_owner(two_users, thing_wit
         )
 
     assert resp.status_code == status.HTTP_201_CREATED
-    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.FAQ_QUESTION)
+    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.Type.FAQ_QUESTION)
     assert notif.payload["thing_headline"] == thing.headline
     assert notif.payload["questioner_name"] == requester.name
 
@@ -290,7 +294,7 @@ def test_faq_answer_creates_in_app_notification_for_questioner(two_users, thing_
         resp = client.post(f"/api/v1/faq/{faq.code}/answer/", {"answer": "Yes!"}, format="json")
 
     assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.FAQ_ANSWERED)
+    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.Type.FAQ_ANSWERED)
     assert notif.payload["thing_headline"] == thing.headline
 
 
@@ -310,7 +314,7 @@ def test_faq_hide_creates_in_app_notification_for_questioner(two_users, thing_wi
         resp = client.post(f"/api/v1/faq/{faq.code}/hide/")
 
     assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.FAQ_HIDDEN)
+    notif = InAppNotification.objects.get(user=requester, type=InAppNotification.Type.FAQ_HIDDEN)
     assert notif.payload["thing_headline"] == thing.headline
 
 
@@ -330,7 +334,7 @@ def test_invite_rejected_creates_in_app_notification_for_owner(two_users):
         resp = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
 
     assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.INVITE_REJECTED)
+    notif = InAppNotification.objects.get(user=owner, type=InAppNotification.Type.INVITE_REJECTED)
     assert notif.payload["collection_headline"] == collection.headline
     assert notif.payload["invitee_name"] == invitee.name
 
@@ -350,7 +354,9 @@ def test_collection_revoke_creates_in_app_notification_for_removed_user(two_user
         )
 
     assert resp.status_code == status.HTTP_200_OK
-    notif = InAppNotification.objects.get(user=invitee, type=InAppNotification.COLLECTION_REVOKED)
+    notif = InAppNotification.objects.get(
+        user=invitee, type=InAppNotification.Type.COLLECTION_REVOKED
+    )
     assert notif.payload["collection_headline"] == collection.headline
 
 
@@ -365,13 +371,13 @@ def test_inbox_get_returns_notifications_for_authenticated_user(two_users):
     InAppNotification.objects.create(
         code="NTF001",
         user=owner,
-        type=InAppNotification.BOOKING_ACCEPTED,
+        type=InAppNotification.Type.BOOKING_ACCEPTED,
         payload={"thing_headline": "Widget"},
     )
     InAppNotification.objects.create(
         code="NTF002",
         user=requester,
-        type=InAppNotification.BOOKING_REJECTED,
+        type=InAppNotification.Type.BOOKING_REJECTED,
         payload={"thing_headline": "Gadget"},
     )
     client = _make_client(owner)
@@ -381,7 +387,7 @@ def test_inbox_get_returns_notifications_for_authenticated_user(two_users):
     assert resp.status_code == status.HTTP_200_OK
     assert len(resp.data) == 1
     assert resp.data[0]["code"] == "NTF001"
-    assert resp.data[0]["type"] == InAppNotification.BOOKING_ACCEPTED
+    assert resp.data[0]["type"] == InAppNotification.Type.BOOKING_ACCEPTED
     assert resp.data[0]["payload"]["thing_headline"] == "Widget"
 
 
@@ -409,7 +415,7 @@ def test_inbox_delete_removes_notification(two_users):
     notif = InAppNotification.objects.create(
         code="NTF003",
         user=owner,
-        type=InAppNotification.BOOKING_ACCEPTED,
+        type=InAppNotification.Type.BOOKING_ACCEPTED,
         payload={},
     )
     client = _make_client(owner)
@@ -426,7 +432,7 @@ def test_inbox_delete_cannot_remove_other_users_notification(two_users):
     notif = InAppNotification.objects.create(
         code="NTF004",
         user=owner,
-        type=InAppNotification.BOOKING_ACCEPTED,
+        type=InAppNotification.Type.BOOKING_ACCEPTED,
         payload={},
     )
     client = _make_client(requester)

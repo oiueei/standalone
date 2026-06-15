@@ -131,7 +131,7 @@ class CollectionViewSet(ModelViewSet):
             [
                 InAppNotification(
                     user=invitee,
-                    type=InAppNotification.COLLECTION_DELETED,
+                    type=InAppNotification.Type.COLLECTION_DELETED,
                     payload={"collection_headline": headline, "owner_name": owner_name},
                 )
                 for invitee in invitees
@@ -350,7 +350,7 @@ class CollectionInviteView(APIView):
                 send_collection_revoke_email(owner_name, collection.headline, user.email)
                 InAppNotification.objects.create(
                     user=user,
-                    type=InAppNotification.COLLECTION_REVOKED,
+                    type=InAppNotification.Type.COLLECTION_REVOKED,
                     payload={"collection_headline": collection.headline, "owner_name": owner_name},
                 )
             except User.DoesNotExist:
@@ -564,7 +564,7 @@ class CollectionBroadcastView(APIView):
             [
                 InAppNotification(
                     user=invitee,
-                    type=InAppNotification.BROADCAST,
+                    type=InAppNotification.Type.BROADCAST,
                     payload={
                         "collection_headline": collection.headline,
                         "owner_name": owner_name,

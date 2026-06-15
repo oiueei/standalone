@@ -73,7 +73,7 @@ class TestWishCreateBroadcast:
         assert s["invitee2"].email in recipients
         assert s["invitee"].email not in recipients
         notif = InAppNotification.objects.filter(
-            type=InAppNotification.WISH_POSTED, user=s["owner"]
+            type=InAppNotification.Type.WISH_POSTED, user=s["owner"]
         ).first()
         assert notif is not None
         # Payload carries the deep-link data (wish + collection codes).
@@ -95,7 +95,9 @@ class TestWishCreateBroadcast:
         )
         assert res.status_code == 201
         assert len(mail.outbox) == 0
-        assert not InAppNotification.objects.filter(type=InAppNotification.WISH_POSTED).exists()
+        assert not InAppNotification.objects.filter(
+            type=InAppNotification.Type.WISH_POSTED
+        ).exists()
 
 
 @pytest.mark.django_db
@@ -114,7 +116,7 @@ class TestWishRespond:
         # the creator gets an email + in-app notification
         assert s["owner"].email in {addr for m in mail.outbox for addr in m.to}
         assert InAppNotification.objects.filter(
-            type=InAppNotification.WISH_RESPONSE, user=s["owner"]
+            type=InAppNotification.Type.WISH_RESPONSE, user=s["owner"]
         ).exists()
 
     def test_can_make_response(self, wish_setup):
@@ -256,7 +258,7 @@ class TestWishAccept:
         assert res.status_code == 200
         assert res.data["status"] == "ACCEPTED"
         assert InAppNotification.objects.filter(
-            type=InAppNotification.WISH_ACCEPTED, user=s["invitee"]
+            type=InAppNotification.Type.WISH_ACCEPTED, user=s["invitee"]
         ).exists()
 
     def test_non_owner_cannot_accept(self, wish_setup):

@@ -18,9 +18,12 @@ skip_glob = ["*/migrations/*"]
 
 [tool.coverage.run]
 source = ["core"]
+branch = true
 omit = ["*/migrations/*", "*/tests/*"]
 
 [tool.coverage.report]
+fail_under = 80
+show_missing = true
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",

@@ -268,7 +268,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
       <div className="thing-card-body">
         {collectionMode === 'COMMUNITY' && (
           <p className="thing-card-meta">
-            {thing.owner_name}{thing.created && ` · ${new Date(thing.created).toLocaleDateString('es', { day: '2-digit', month: '2-digit' })}`}
+            {thing.owner_name}{thing.created && ` · ${new Date(thing.created).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })}`}
           </p>
         )}
         <h3 className="thing-card-headline">

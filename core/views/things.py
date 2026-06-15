@@ -215,7 +215,7 @@ class ThingViewSet(ModelViewSet):
             [
                 InAppNotification(
                     user=member,
-                    type=InAppNotification.WISH_POSTED,
+                    type=InAppNotification.Type.WISH_POSTED,
                     payload={
                         "wish_headline": wish.headline,
                         "creator_name": creator_name,

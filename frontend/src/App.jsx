@@ -52,6 +52,7 @@ function App() {
         <Route path="/logout" element={<LogoutPage />} />
         <Route path="/verify/:code" element={<VerifyPage />} />
         <Route path="/rsvp/:code" element={<VerifyPage />} />
+        <Route path="/magic-link/:code" element={<VerifyPage />} />
         <Route path="/me" element={<UserPage />} />
         <Route path="/me/edit" element={<EditProfilePage />} />
         <Route path="/me/notifications/:token" element={<NotificationsPage />} />

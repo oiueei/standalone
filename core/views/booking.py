@@ -180,9 +180,9 @@ class BookingActionView(APIView):
         InAppNotification.objects.create(
             user=booking.requester_code,
             type=(
-                InAppNotification.BOOKING_ACCEPTED
+                InAppNotification.Type.BOOKING_ACCEPTED
                 if accepted
-                else InAppNotification.BOOKING_REJECTED
+                else InAppNotification.Type.BOOKING_REJECTED
             ),
             payload={"thing_headline": thing.headline, "owner_name": owner_name},
         )

@@ -99,9 +99,7 @@ class RequestLinkView(APIView):
         )
 
         # Send magic link email
-        magic_link_base = getattr(
-            settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/magic-link"
-        )
+        magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.code}"
 
         send_magic_link_email(email, magic_link)
@@ -268,7 +266,7 @@ class VerifyLinkView(APIView):
                 )
                 InAppNotification.objects.create(
                     user=collection.owner,
-                    type=InAppNotification.INVITE_REJECTED,
+                    type=InAppNotification.Type.INVITE_REJECTED,
                     payload={
                         "collection_headline": collection.headline,
                         "invitee_name": invitee_name,
@@ -337,9 +335,9 @@ class VerifyLinkView(APIView):
         InAppNotification.objects.create(
             user=booking.requester_code,
             type=(
-                InAppNotification.BOOKING_ACCEPTED
+                InAppNotification.Type.BOOKING_ACCEPTED
                 if accepted
-                else InAppNotification.BOOKING_REJECTED
+                else InAppNotification.Type.BOOKING_REJECTED
             ),
             payload={"thing_headline": thing.headline, "owner_name": owner_name},
         )
@@ -426,9 +424,7 @@ class PopInView(APIView):
                 collection.invites.add(user)
 
         rsvp = RSVP.objects.create(user_code=user, user_email=email)
-        magic_link_base = getattr(
-            settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/magic-link"
-        )
+        magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.code}"
         send_magic_link_email(email, magic_link)
 

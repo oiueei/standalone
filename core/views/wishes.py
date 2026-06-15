@@ -118,7 +118,7 @@ class ThingWishResponseView(APIView):
             collection = wish.collections.first()
             InAppNotification.objects.create(
                 user=creator,
-                type=InAppNotification.WISH_RESPONSE,
+                type=InAppNotification.Type.WISH_RESPONSE,
                 payload={
                     "wish_headline": wish.headline,
                     "responder_name": responder_name,
@@ -167,7 +167,7 @@ class WishResponseAcceptView(APIView):
             collection = wish.collections.first()
             InAppNotification.objects.create(
                 user=responder,
-                type=InAppNotification.WISH_ACCEPTED,
+                type=InAppNotification.Type.WISH_ACCEPTED,
                 payload={
                     "wish_headline": wish.headline,
                     "owner_name": request.user.name or request.user.email,

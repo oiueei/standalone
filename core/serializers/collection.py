@@ -291,30 +291,15 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         return _normalize_tags(value)
 
     def validate(self, attrs):
-        is_swap = attrs.get("is_swap", False)
-        is_share = attrs.get("is_share", False)
-        is_minimalist = attrs.get("is_minimalist", False)
-        newsletter_enabled = attrs.get("newsletter_enabled", False)
-        swap_minimum_items = attrs.get("swap_minimum_items", 0)
-        mode = attrs.get("mode", Collection.Mode.PROPRIETARY)
-        allowed_thing_types = attrs.get("allowed_thing_types", [])
-        if is_swap and is_share:
-            raise serializers.ValidationError(
-                "A collection cannot be both swap-only and share-only."
-            )
-        if (is_swap or is_share) and mode != Collection.Mode.COMMUNITY:
-            raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
-        if newsletter_enabled and not is_share:
-            raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
-        if is_minimalist and is_swap:
-            raise serializers.ValidationError(
-                "A collection cannot be both minimalist and swap-only."
-            )
-        if swap_minimum_items > 0 and not is_swap:
-            raise serializers.ValidationError(
-                "swap_minimum_items can only be set on swap collections."
-            )
-        _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types)
+        _validate_collection_flags(
+            mode=attrs.get("mode", Collection.Mode.PROPRIETARY),
+            is_swap=attrs.get("is_swap", False),
+            is_share=attrs.get("is_share", False),
+            is_minimalist=attrs.get("is_minimalist", False),
+            newsletter_enabled=attrs.get("newsletter_enabled", False),
+            swap_minimum_items=attrs.get("swap_minimum_items", 0),
+            allowed_thing_types=attrs.get("allowed_thing_types", []),
+        )
         return attrs
 
 
@@ -403,6 +388,35 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
         )
 
 
+def _validate_collection_flags(
+    *,
+    mode,
+    is_swap,
+    is_share,
+    is_minimalist,
+    newsletter_enabled,
+    swap_minimum_items,
+    allowed_thing_types,
+):
+    """Shared flag-consistency rules for collection create/update validate().
+
+    Both serializers resolve the effective flag values differently (create uses
+    plain defaults, update falls back to the existing instance) and then call this
+    with the resolved values, so the rules live in exactly one place.
+    """
+    if is_swap and is_share:
+        raise serializers.ValidationError("A collection cannot be both swap-only and share-only.")
+    if (is_swap or is_share) and mode != Collection.Mode.COMMUNITY:
+        raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
+    if newsletter_enabled and not is_share:
+        raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
+    if is_minimalist and is_swap:
+        raise serializers.ValidationError("A collection cannot be both minimalist and swap-only.")
+    if swap_minimum_items > 0 and not is_swap:
+        raise serializers.ValidationError("swap_minimum_items can only be set on swap collections.")
+    _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types)
+
+
 class CollectionUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating a collection."""
 
@@ -452,23 +466,15 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "allowed_thing_types",
             instance.allowed_thing_types if instance else [],
         )
-        if is_swap and is_share:
-            raise serializers.ValidationError(
-                "A collection cannot be both swap-only and share-only."
-            )
-        if (is_swap or is_share) and mode != Collection.Mode.COMMUNITY:
-            raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
-        if newsletter_enabled and not is_share:
-            raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
-        if is_minimalist and is_swap:
-            raise serializers.ValidationError(
-                "A collection cannot be both minimalist and swap-only."
-            )
-        if swap_minimum_items > 0 and not is_swap:
-            raise serializers.ValidationError(
-                "swap_minimum_items can only be set on swap collections."
-            )
-        _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types)
+        _validate_collection_flags(
+            mode=mode,
+            is_swap=is_swap,
+            is_share=is_share,
+            is_minimalist=is_minimalist,
+            newsletter_enabled=newsletter_enabled,
+            swap_minimum_items=swap_minimum_items,
+            allowed_thing_types=allowed_thing_types,
+        )
         # Orphan check: if this is an update narrowing the list, every existing
         # thing currently in the collection must keep a valid slot in the new
         # list. Otherwise the rule would become incoherent ("type X is not

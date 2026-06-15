@@ -374,7 +374,7 @@ class ThingRequestView(APIView):
         send_swap_confirmation_email(requester, thing, offered_things, booking)
         InAppNotification.objects.create(
             user=thing.owner,
-            type=InAppNotification.SWAP_REQUESTED,
+            type=InAppNotification.Type.SWAP_REQUESTED,
             payload={
                 "thing_headline": thing.headline,
                 "requester_name": requester.name or requester.email,
@@ -396,7 +396,7 @@ class ThingRequestView(APIView):
         send_booking_confirmation_email(requester, thing, booking)
         InAppNotification.objects.create(
             user=thing.owner,
-            type=InAppNotification.BOOKING_REQUESTED,
+            type=InAppNotification.Type.BOOKING_REQUESTED,
             payload={
                 "thing_headline": thing.headline,
                 "requester_name": requester.name or requester.email,

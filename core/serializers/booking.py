@@ -10,7 +10,29 @@ from core.models.booking import BookingPeriod
 from core.models.thing import Thing
 
 
-class BookingPeriodSerializer(serializers.ModelSerializer):
+class SwapOfferedFieldsMixin(serializers.Serializer):
+    """Shared swap fields: the codes/headlines of the things offered in exchange.
+
+    Both return ``None`` for non-swap bookings, so the same two
+    ``SerializerMethodField``s can be reused by every booking serializer that
+    exposes a swap proposal (full owner view, owner calendar, requester view).
+    """
+
+    offered_thing_codes = serializers.SerializerMethodField()
+    offered_thing_headlines = serializers.SerializerMethodField()
+
+    def get_offered_thing_codes(self, obj):
+        if obj.thing_type != Thing.Type.SWAP_THING:
+            return None
+        return list(obj.offered_things.values_list("code", flat=True))
+
+    def get_offered_thing_headlines(self, obj):
+        if obj.thing_type != Thing.Type.SWAP_THING:
+            return None
+        return list(obj.offered_things.values_list("headline", flat=True))
+
+
+class BookingPeriodSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):
     """Full booking period serializer (for owner view)."""
 
     thing_code = serializers.CharField(source="thing_code_id")
@@ -18,8 +40,6 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
     requester_code = serializers.CharField(source="requester_code_id")
     requester_name = serializers.CharField(source="requester_code.name", read_only=True)
     owner_code = serializers.CharField(source="owner_code_id")
-    offered_thing_codes = serializers.SerializerMethodField()
-    offered_thing_headlines = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -42,16 +62,6 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "offered_thing_headlines",
         ]
 
-    def get_offered_thing_codes(self, obj):
-        if obj.thing_type != Thing.Type.SWAP_THING:
-            return None
-        return list(obj.offered_things.values_list("code", flat=True))
-
-    def get_offered_thing_headlines(self, obj):
-        if obj.thing_type != Thing.Type.SWAP_THING:
-            return None
-        return list(obj.offered_things.values_list("headline", flat=True))
-
 
 class BookingPeriodCalendarSerializer(serializers.ModelSerializer):
     """Calendar view serializer (limited info for guests)."""
@@ -65,13 +75,11 @@ class BookingPeriodCalendarSerializer(serializers.ModelSerializer):
         ]
 
 
-class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
+class BookingPeriodOwnerCalendarSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):
     """Calendar view serializer for owner (includes requester info)."""
 
     requester_code = serializers.CharField(source="requester_code_id")
     requester_name = serializers.SerializerMethodField()
-    offered_thing_codes = serializers.SerializerMethodField()
-    offered_thing_headlines = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -91,16 +99,6 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
 
     def get_requester_name(self, obj):
         return obj.requester_code.name or obj.requester_email
-
-    def get_offered_thing_codes(self, obj):
-        if obj.thing_type != Thing.Type.SWAP_THING:
-            return None
-        return list(obj.offered_things.values_list("code", flat=True))
-
-    def get_offered_thing_headlines(self, obj):
-        if obj.thing_type != Thing.Type.SWAP_THING:
-            return None
-        return list(obj.offered_things.values_list("headline", flat=True))
 
 
 class ThingRequestWithDatesSerializer(serializers.Serializer):
@@ -141,15 +139,13 @@ class ThingOrderSerializer(serializers.Serializer):
         return value
 
 
-class MyBookingSerializer(serializers.ModelSerializer):
+class MyBookingSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):
     """Serializer for user's own booking requests."""
 
     thing_code = serializers.CharField(source="thing_code_id")
     thing_headline = serializers.CharField(source="thing_code.headline", read_only=True)
     owner_code = serializers.CharField(source="owner_code_id")
     owner_name = serializers.SerializerMethodField()
-    offered_thing_codes = serializers.SerializerMethodField()
-    offered_thing_headlines = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -172,13 +168,3 @@ class MyBookingSerializer(serializers.ModelSerializer):
 
     def get_owner_name(self, obj):
         return obj.owner_code.name or obj.owner_code.email
-
-    def get_offered_thing_codes(self, obj):
-        if obj.thing_type != Thing.Type.SWAP_THING:
-            return None
-        return list(obj.offered_things.values_list("code", flat=True))
-
-    def get_offered_thing_headlines(self, obj):
-        if obj.thing_type != Thing.Type.SWAP_THING:
-            return None
-        return list(obj.offered_things.values_list("headline", flat=True))

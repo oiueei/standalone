@@ -98,7 +98,7 @@ class ThingFAQListView(APIView):
             send_faq_question_email(questioner_name, thing, faq.question, owner.email)
             InAppNotification.objects.create(
                 user=owner,
-                type=InAppNotification.FAQ_QUESTION,
+                type=InAppNotification.Type.FAQ_QUESTION,
                 payload={"thing_headline": thing.headline, "questioner_name": questioner_name},
             )
 
@@ -176,7 +176,7 @@ class FAQAnswerView(APIView):
             )
             InAppNotification.objects.create(
                 user=questioner,
-                type=InAppNotification.FAQ_ANSWERED,
+                type=InAppNotification.Type.FAQ_ANSWERED,
                 payload={"thing_headline": thing.headline, "owner_name": owner_name},
             )
 
@@ -218,7 +218,7 @@ class FAQVisibilityView(APIView):
                 send_faq_hide_email(owner_name, thing.headline, faq.question, questioner.email)
                 InAppNotification.objects.create(
                     user=questioner,
-                    type=InAppNotification.FAQ_HIDDEN,
+                    type=InAppNotification.Type.FAQ_HIDDEN,
                     payload={"thing_headline": thing.headline, "owner_name": owner_name},
                 )
 
