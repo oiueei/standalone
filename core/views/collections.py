@@ -34,6 +34,7 @@ from core.services.email_service import (
     send_collection_invite_email,
     send_collection_revoke_email,
 )
+from core.views._helpers import require_collection_owner
 
 
 def _optimise_collection_queryset(queryset):
@@ -98,7 +99,11 @@ class CollectionViewSet(ModelViewSet):
         return CollectionSerializer
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy", "remove_thing"):
+        # remove_thing is intentionally NOT gated by IsCollectionOwner here: its
+        # rule is broader (in COMMUNITY mode a thing's own owner may remove it), so
+        # it is enforced inline in the action. It also fetches via get_object_or_404,
+        # so an object-level permission would never run for it anyway (the I3 footgun).
+        if self.action in ("update", "partial_update", "destroy"):
             return [IsAuthenticated(), IsCollectionOwner()]
         return [IsAuthenticated()]
 
@@ -255,11 +260,11 @@ class CollectionInviteView(APIView):
     def post(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
 
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can invite users"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = require_collection_owner(
+            collection, request.user.code, "Only the owner can invite users"
+        )
+        if denied:
+            return denied
 
         serializer = CollectionInviteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -322,11 +327,11 @@ class CollectionInviteView(APIView):
     def delete(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
 
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can remove invites"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = require_collection_owner(
+            collection, request.user.code, "Only the owner can remove invites"
+        )
+        if denied:
+            return denied
 
         serializer = CollectionRemoveInviteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -474,11 +479,11 @@ class CollectionShareLinkView(APIView):
     def post(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
 
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can manage the share link"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = require_collection_owner(
+            collection, request.user.code, "Only the owner can manage the share link"
+        )
+        if denied:
+            return denied
 
         rotate = bool(request.data.get("rotate"))
 
@@ -500,11 +505,11 @@ class CollectionShareLinkView(APIView):
     def delete(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
 
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can manage the share link"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = require_collection_owner(
+            collection, request.user.code, "Only the owner can manage the share link"
+        )
+        if denied:
+            return denied
 
         if collection.share_token:
             collection.share_token = None
@@ -528,11 +533,11 @@ class CollectionBroadcastView(APIView):
     def post(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
 
-        if not collection.is_owner(request.user.code):
-            return Response(
-                {"error": "Only the owner can send broadcasts"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        denied = require_collection_owner(
+            collection, request.user.code, "Only the owner can send broadcasts"
+        )
+        if denied:
+            return denied
 
         serializer = CollectionBroadcastSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

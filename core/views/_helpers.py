@@ -27,3 +27,16 @@ def get_viewable_thing(code, user_code, message):
     """
     thing = get_object_or_404(Thing, code=code)
     return thing, deny_if_cannot_view(thing, user_code, message)
+
+
+def require_collection_owner(collection, user_code, message):
+    """Return a 403 ``{"error": message}`` Response if ``user_code`` is not the
+    collection owner, else ``None``.
+
+    Used by the collection APIViews (invite, share-link, broadcast) instead of the
+    ``IsCollectionOwner`` DRF permission so each keeps its own specific ``{"error":
+    ...}`` message rather than DRF's generic ``{"detail": ...}`` body.
+    """
+    if not collection.is_owner(user_code):
+        return Response({"error": message}, status=status.HTTP_403_FORBIDDEN)
+    return None
