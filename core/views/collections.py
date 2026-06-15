@@ -299,9 +299,8 @@ class CollectionInviteView(APIView):
         )
 
         # Send invitation email with accept and reject links
-        rsvp_base = getattr(settings, "RSVP_BASE_URL", "http://localhost:3000/rsvp")
-        accept_link = f"{rsvp_base}/{accept_rsvp.code}"
-        reject_link = f"{rsvp_base}/{reject_rsvp.code}"
+        accept_link = accept_rsvp.action_link()
+        reject_link = reject_rsvp.action_link()
 
         send_collection_invite_email(
             request.user.display_name,

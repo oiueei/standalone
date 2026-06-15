@@ -72,6 +72,10 @@ class RSVP(models.Model):
         expiry_time = self.created + timedelta(hours=expiry_hours)
         return timezone.now() < expiry_time
 
+    def action_link(self):
+        """The ``/rsvp/<code>`` URL used in emails to resolve this RSVP."""
+        return f"{settings.RSVP_BASE_URL}/{self.code}"
+
     @classmethod
     def create_for_booking(cls, action, booking, owner_email):
         """
@@ -105,4 +109,15 @@ class RSVP(models.Model):
             action=action,
             target_code=booking.code,
             context=context,
+        )
+
+    @classmethod
+    def create_booking_pair(cls, booking, owner_email):
+        """Create the accept + reject RSVP pair for a booking decision.
+
+        Returns ``(accept_rsvp, reject_rsvp)``.
+        """
+        return (
+            cls.create_for_booking(cls.Action.BOOKING_ACCEPT, booking, owner_email),
+            cls.create_for_booking(cls.Action.BOOKING_REJECT, booking, owner_email),
         )

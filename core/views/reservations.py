@@ -6,7 +6,6 @@ Email links use RSVP codes as intermediaries to avoid exposing
 real codes (booking_code, thing_code) in URLs.
 """
 
-from django.conf import settings
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
@@ -358,12 +357,9 @@ class ThingRequestView(APIView):
 
     def _send_swap_email(self, requester, thing, offered_things, booking, owner_email):
         """Send swap request email to owner with RSVP-protected links."""
-        rsvp_accept = RSVP.create_for_booking(RSVP.Action.BOOKING_ACCEPT, booking, owner_email)
-        rsvp_reject = RSVP.create_for_booking(RSVP.Action.BOOKING_REJECT, booking, owner_email)
-
-        base_url = settings.RSVP_BASE_URL
-        accept_link = f"{base_url}/{rsvp_accept.code}"
-        reject_link = f"{base_url}/{rsvp_reject.code}"
+        rsvp_accept, rsvp_reject = RSVP.create_booking_pair(booking, owner_email)
+        accept_link = rsvp_accept.action_link()
+        reject_link = rsvp_reject.action_link()
 
         send_swap_request_email(
             requester, thing, offered_things, owner_email, accept_link, reject_link
@@ -380,14 +376,9 @@ class ThingRequestView(APIView):
 
     def _send_booking_email(self, requester, thing, booking, owner_email):
         """Send booking request email to owner with RSVP-protected links."""
-        # Create RSVP tokens for accept/reject links
-        rsvp_accept = RSVP.create_for_booking(RSVP.Action.BOOKING_ACCEPT, booking, owner_email)
-        rsvp_reject = RSVP.create_for_booking(RSVP.Action.BOOKING_REJECT, booking, owner_email)
-
-        # Build links
-        base_url = settings.RSVP_BASE_URL
-        accept_link = f"{base_url}/{rsvp_accept.code}"
-        reject_link = f"{base_url}/{rsvp_reject.code}"
+        rsvp_accept, rsvp_reject = RSVP.create_booking_pair(booking, owner_email)
+        accept_link = rsvp_accept.action_link()
+        reject_link = rsvp_reject.action_link()
 
         send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link)
         send_booking_confirmation_email(requester, thing, booking)
