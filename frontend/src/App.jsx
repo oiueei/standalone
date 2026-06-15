@@ -30,6 +30,7 @@ import WelcomePage from './pages/WelcomePage';
 import PopInPage from './pages/PopInPage';
 import SharePage from './pages/SharePage';
 import NotFoundPage from './pages/NotFoundPage';
+import RequireAuth from './components/RequireAuth';
 import './App.css';
 
 function App() {
@@ -47,37 +48,52 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        {/* Public routes — reachable without signing in */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/logout" element={<LogoutPage />} />
         <Route path="/verify/:code" element={<VerifyPage />} />
         <Route path="/rsvp/:code" element={<VerifyPage />} />
         <Route path="/magic-link/:code" element={<VerifyPage />} />
-        <Route path="/me" element={<UserPage />} />
-        <Route path="/me/edit" element={<EditProfilePage />} />
         <Route path="/me/notifications/:token" element={<NotificationsPage />} />
-        <Route path="/collections/new" element={<CreateCollectionPage />} />
-        <Route path="/collections/:code" element={<CollectionPage />} />
-        <Route path="/collections/:code/edit" element={<EditCollectionPage />} />
-        <Route path="/collections/:code/delete" element={<DeleteCollectionPage />} />
-        <Route path="/collections/:code/invites" element={<ManageInvitesPage />} />
-        <Route path="/collections/:code/add" element={<AddThingPage />} />
-        <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
-        <Route path="/collections/:code/things/:thingCode/edit" element={<EditThingPage />} />
-        <Route path="/collections/:code/things/:thingCode/request" element={<RequestThingPage />} />
-        <Route path="/collections/:code/things/:thingCode/respond/:kind" element={<RespondWishPage />} />
-        <Route path="/collections/:code/things/:thingCode/delete" element={<DeleteThingPage />} />
-        <Route path="/collections/:code/invites/remove" element={<RemoveGuestPage />} />
-        <Route path="/things/:thingCode" element={<ThingPage />} />
-        <Route path="/things/:thingCode/edit" element={<EditThingPage />} />
-        <Route path="/things/:thingCode/request" element={<RequestThingPage />} />
-        <Route path="/things/:thingCode/respond/:kind" element={<RespondWishPage />} />
-        <Route path="/things/:thingCode/delete" element={<DeleteThingPage />} />
-        <Route path="/my-bookings" element={<MyBookingsPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/popin" element={<PopInPage />} />
         <Route path="/share/:token" element={<SharePage />} />
-        <Route path="/:userCode" element={<UserPage />} />
+
+        {/* Protected routes — RequireAuth redirects to /login when signed out */}
+        <Route element={<RequireAuth />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/me" element={<UserPage />} />
+          <Route path="/me/edit" element={<EditProfilePage />} />
+          <Route path="/collections/new" element={<CreateCollectionPage />} />
+          <Route path="/collections/:code" element={<CollectionPage />} />
+          <Route path="/collections/:code/edit" element={<EditCollectionPage />} />
+          <Route path="/collections/:code/delete" element={<DeleteCollectionPage />} />
+          <Route path="/collections/:code/invites" element={<ManageInvitesPage />} />
+          <Route path="/collections/:code/add" element={<AddThingPage />} />
+          <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
+          <Route path="/collections/:code/things/:thingCode/edit" element={<EditThingPage />} />
+          <Route
+            path="/collections/:code/things/:thingCode/request"
+            element={<RequestThingPage />}
+          />
+          <Route
+            path="/collections/:code/things/:thingCode/respond/:kind"
+            element={<RespondWishPage />}
+          />
+          <Route
+            path="/collections/:code/things/:thingCode/delete"
+            element={<DeleteThingPage />}
+          />
+          <Route path="/collections/:code/invites/remove" element={<RemoveGuestPage />} />
+          <Route path="/things/:thingCode" element={<ThingPage />} />
+          <Route path="/things/:thingCode/edit" element={<EditThingPage />} />
+          <Route path="/things/:thingCode/request" element={<RequestThingPage />} />
+          <Route path="/things/:thingCode/respond/:kind" element={<RespondWishPage />} />
+          <Route path="/things/:thingCode/delete" element={<DeleteThingPage />} />
+          <Route path="/my-bookings" element={<MyBookingsPage />} />
+          <Route path="/:userCode" element={<UserPage />} />
+        </Route>
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
