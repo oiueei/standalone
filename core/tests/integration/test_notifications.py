@@ -193,7 +193,7 @@ def test_booking_accept_via_api_creates_in_app_notification(two_users, thing_wit
     booking = _make_booking(owner, requester, thing)
     client = _make_client(owner)
 
-    with patch("core.views.booking.send_booking_decision_email"):
+    with patch("core.services.email_service.send_booking_decision_email"):
         resp = client.post(f"/api/v1/bookings/{booking.code}/accept/")
 
     assert resp.status_code == status.HTTP_200_OK
@@ -211,7 +211,7 @@ def test_booking_reject_via_api_creates_in_app_notification(two_users, thing_wit
     booking = _make_booking(owner, requester, thing)
     client = _make_client(owner)
 
-    with patch("core.views.booking.send_booking_decision_email"):
+    with patch("core.services.email_service.send_booking_decision_email"):
         resp = client.post(f"/api/v1/bookings/{booking.code}/reject/")
 
     assert resp.status_code == status.HTTP_200_OK
@@ -234,7 +234,7 @@ def test_booking_accept_via_rsvp_creates_in_app_notification(two_users, thing_wi
     )
     client = APIClient()
 
-    with patch("core.views.auth.send_booking_decision_email"):
+    with patch("core.services.email_service.send_booking_decision_email"):
         resp = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
 
     assert resp.status_code == status.HTTP_200_OK

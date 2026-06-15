@@ -23,12 +23,8 @@ from core.models import RSVP, Collection, User
 from core.models.booking import BookingPeriod
 from core.models.notification import InAppNotification
 from core.serializers import RequestLinkSerializer, UserSerializer
-from core.services.booking_service import accept_booking, reject_booking
-from core.services.email_service import (
-    send_booking_decision_email,
-    send_invite_rejected_email,
-    send_magic_link_email,
-)
+from core.services.booking_service import finalize_booking_decision
+from core.services.email_service import send_invite_rejected_email, send_magic_link_email
 from core.utils import get_client_ip
 
 security_logger = logging.getLogger("security")
@@ -319,9 +315,7 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Process booking and send email
-        owner_name = booking.owner_code.name or booking.owner_code.email
-        thing = accept_booking(booking) if accepted else reject_booking(booking)
+        thing = finalize_booking_decision(booking, accepted=accepted)
 
         # A concurrent request (this link racing the in-app action, or the
         # sibling link) already transitioned this booking — the service no-ops.
@@ -331,23 +325,6 @@ class VerifyLinkView(APIView):
                 {"error": "Booking expired or already processed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        InAppNotification.objects.create(
-            user=booking.requester_code,
-            type=(
-                InAppNotification.Type.BOOKING_ACCEPTED
-                if accepted
-                else InAppNotification.Type.BOOKING_REJECTED
-            ),
-            payload={"thing_headline": thing.headline, "owner_name": owner_name},
-        )
-        send_booking_decision_email(booking, thing, accepted=accepted)
-
-        # Delete all accept/reject RSVPs for this booking (invalidate sibling link)
-        RSVP.objects.filter(
-            target_code=booking_code,
-            action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
-        ).delete()
 
         # Build response
         action_name = "BOOKING_ACCEPT" if accepted else "BOOKING_REJECT"

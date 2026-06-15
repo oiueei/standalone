@@ -14,7 +14,6 @@ from rest_framework.views import APIView
 
 from core.models import Thing
 from core.models.booking import BookingPeriod
-from core.models.notification import InAppNotification
 from core.models.rsvp import RSVP
 from core.pagination import StandardResultsPagination
 from core.serializers.booking import (
@@ -23,8 +22,7 @@ from core.serializers.booking import (
     BookingPeriodSerializer,
     MyBookingSerializer,
 )
-from core.services.booking_service import accept_booking, cancel_booking, reject_booking
-from core.services.email_service import send_booking_decision_email
+from core.services.booking_service import cancel_booking, finalize_booking_decision
 
 
 class ThingCalendarView(APIView):
@@ -164,9 +162,8 @@ class BookingActionView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        owner_name = request.user.name or request.user.email
         accepted = action == "accept"
-        thing = accept_booking(booking) if accepted else reject_booking(booking)
+        thing = finalize_booking_decision(booking, accepted=accepted)
 
         # A concurrent request (double-click, or email link racing this call)
         # already transitioned this booking — the service no-ops and returns None.
@@ -175,22 +172,5 @@ class BookingActionView(APIView):
                 {"error": "Booking expired or already processed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        send_booking_decision_email(booking, thing, accepted=accepted)
-        InAppNotification.objects.create(
-            user=booking.requester_code,
-            type=(
-                InAppNotification.Type.BOOKING_ACCEPTED
-                if accepted
-                else InAppNotification.Type.BOOKING_REJECTED
-            ),
-            payload={"thing_headline": thing.headline, "owner_name": owner_name},
-        )
-
-        # Invalidate any outstanding RSVP links for this booking
-        RSVP.objects.filter(
-            target_code=booking_code,
-            action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
-        ).delete()
 
         return Response({"status": "ok"}, status=status.HTTP_200_OK)

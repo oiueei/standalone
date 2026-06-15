@@ -1694,7 +1694,7 @@ class TestAuthViewEdgeCases:
             target_code=booking.code,
         )
 
-        with patch("core.views.auth.send_booking_decision_email"):
+        with patch("core.services.email_service.send_booking_decision_email"):
             response = api_client.get(f"/api/v1/auth/verify/{accept_rsvp.code}/")
 
         assert response.status_code == status.HTTP_200_OK
@@ -1723,7 +1723,7 @@ class TestAuthViewEdgeCases:
             target_code=booking.code,
         )
 
-        with patch("core.views.auth.send_booking_decision_email"):
+        with patch("core.services.email_service.send_booking_decision_email"):
             response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.code}/")
 
         assert response.status_code == status.HTTP_200_OK

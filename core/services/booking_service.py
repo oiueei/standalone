@@ -10,8 +10,9 @@ from datetime import date, timedelta
 from django.db import transaction
 from django.utils import timezone
 
-from core.models import Thing
+from core.models import RSVP, Thing
 from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
+from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
 
 DEFAULT_AVAILABILITY_HORIZON_DAYS = 90
@@ -172,4 +173,44 @@ def reject_booking(booking):
         if booking.thing_type in SINGLE_USE_TYPES and not thing.is_endless:
             thing.status = Thing.Status.ACTIVE
             thing.save(update_fields=["status"])
+    return thing
+
+
+def finalize_booking_decision(booking, accepted):
+    """Apply an owner's accept/reject decision and run the shared side-effects.
+
+    Wraps accept_booking()/reject_booking() (which perform the locked, race-safe
+    status transition) and, on success, notifies the requester (in-app + email)
+    and invalidates the booking's outstanding accept/reject RSVP links. Shared by
+    the email/RSVP path (VerifyLinkView) and the in-app API path
+    (BookingActionView) so this money/ownership-sensitive sequence lives in one
+    place.
+
+    Returns the updated Thing, or None when the booking was no longer PENDING (a
+    concurrent transition already handled it) — each caller turns None into its
+    own "expired or already processed" response.
+    """
+    from core.services.email_service import send_booking_decision_email
+
+    thing = accept_booking(booking) if accepted else reject_booking(booking)
+    if thing is None:
+        return None
+
+    owner_name = booking.owner_code.name or booking.owner_code.email
+    InAppNotification.objects.create(
+        user=booking.requester_code,
+        type=(
+            InAppNotification.Type.BOOKING_ACCEPTED
+            if accepted
+            else InAppNotification.Type.BOOKING_REJECTED
+        ),
+        payload={"thing_headline": thing.headline, "owner_name": owner_name},
+    )
+    send_booking_decision_email(booking, thing, accepted=accepted)
+
+    # Invalidate every accept/reject RSVP for this booking (the used link and its sibling).
+    RSVP.objects.filter(
+        target_code=booking.code,
+        action__in=[RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT],
+    ).delete()
     return thing
