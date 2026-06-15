@@ -23,12 +23,13 @@ export default defineConfig(({ mode }) => ({
         'src/i18n/**',
       ],
       // Ratchet floor: set just below the suite's current coverage so it guards
-      // against regression without blocking. Raise it as coverage grows.
+      // against regression without blocking. Raise it as coverage grows. Bumped
+      // after the characterisation tests lifted coverage to ~51/44/38/54.
       thresholds: {
-        statements: 40,
-        branches: 28,
-        functions: 30,
-        lines: 42,
+        statements: 48,
+        branches: 40,
+        functions: 35,
+        lines: 50,
       },
     },
   },
