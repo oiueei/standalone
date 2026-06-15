@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Notification, Tag, Table, IconCrossCircle } from 'hds-react';
+import { Button, Notification, Tag, Table, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
 import { TAG_THEMES } from '../constants/things';
 import PageLayout from '../components/PageLayout';
@@ -21,8 +21,10 @@ const STATUS_THEMES = {
 export default function MyBookingsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { tc } = useTheeeme();
+  const { tc, btnSecondaryStyle } = useTheeeme();
   const [bookings, setBookings] = useState(null);
+  const [next, setNext] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
   const [cancelling, setCancelling] = useState(null);
@@ -43,6 +45,7 @@ export default function MyBookingsPage() {
         if (res.ok) {
           const data = await res.json();
           setBookings(data.results);
+          setNext(data.next || null);
         } else {
           setError(t('myBookings.errorLoading'));
         }
@@ -71,6 +74,24 @@ export default function MyBookingsPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setCancelling(null);
+    }
+  };
+
+  const loadMore = async () => {
+    if (!next || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      // `next` is an absolute DRF URL; strip the origin so it goes through the
+      // Vite proxy in dev and stays same-origin (sends auth cookies) everywhere.
+      const path = next.replace(/^https?:\/\/[^/]+/, '');
+      const res = await apiFetch(path);
+      if (res.ok) {
+        const data = await res.json();
+        setBookings((prev) => [...prev, ...(data.results || [])]);
+        setNext(data.next || null);
+      }
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -181,6 +202,15 @@ export default function MyBookingsPage() {
                 </>
               );
             })()}
+          </>
+        )}
+
+        {next && (
+          <>
+            <div className="spacer-s" />
+            <Button variant="secondary" onClick={loadMore} disabled={loadingMore} style={btnSecondaryStyle}>
+              {t('common.loadMore')}
+            </Button>
           </>
         )}
 

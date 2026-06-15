@@ -9,6 +9,7 @@
     "warning": "Atenció",
     "connectionError": "Error de connexió.",
     "tooManyAttempts": "Massa intents — espera un moment i torna-ho a provar.",
+    "loadMore": "Mostra més",
     "home": "Inici",
     "collection": "Col·lecció",
     "profile": "Perfil",

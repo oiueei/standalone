@@ -15,6 +15,7 @@
     "warning": "Warning",
     "connectionError": "Connection error.",
     "tooManyAttempts": "Too many attempts — please wait a moment and try again.",
+    "loadMore": "Load more",
     "home": "Home",
     "collection": "Collection",
     "profile": "Profile",

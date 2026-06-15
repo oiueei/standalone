@@ -47,6 +47,8 @@ export default function ThingPage() {
 
   // FAQ state
   const [faqs, setFaqs] = useState([]);
+  const [faqsNext, setFaqsNext] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [faqQuestion, setFaqQuestion] = useState('');
   const [faqSubmitting, setFaqSubmitting] = useState(false);
   const [answerTexts, setAnswerTexts] = useState({});
@@ -57,6 +59,7 @@ export default function ThingPage() {
 
   // Wish state
   const [responses, setResponses] = useState([]);
+  const [responsesNext, setResponsesNext] = useState(null);
   const [actioning, setActioning] = useState(false);
 
   useEffect(() => {
@@ -83,6 +86,7 @@ export default function ThingPage() {
         if (res.ok) {
           const data = await res.json();
           setFaqs(data.results || data);
+          setFaqsNext(data.next || null);
         }
       } catch { /* silently fail */ }
     };
@@ -105,9 +109,39 @@ export default function ThingPage() {
     if (!thing || thing.type !== WISH_TYPE) return;
     apiFetch(`/api/v1/things/${thing.code}/responses/`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (data) setResponses(data.results || data); })
+      .then((data) => { if (data) { setResponses(data.results || data); setResponsesNext(data.next || null); } })
       .catch(() => {});
   }, [thing]);
+
+  const loadMoreFaqs = async () => {
+    if (!faqsNext || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await apiFetch(faqsNext.replace(/^https?:\/\/[^/]+/, ''));
+      if (res.ok) {
+        const data = await res.json();
+        setFaqs((prev) => [...prev, ...(data.results || [])]);
+        setFaqsNext(data.next || null);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMoreResponses = async () => {
+    if (!responsesNext || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await apiFetch(responsesNext.replace(/^https?:\/\/[^/]+/, ''));
+      if (res.ok) {
+        const data = await res.json();
+        setResponses((prev) => [...prev, ...(data.results || [])]);
+        setResponsesNext(data.next || null);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!thing || !userCode) return;
@@ -658,6 +692,14 @@ export default function ThingPage() {
                 ))}
               </div>
             )}
+            {responsesNext && (
+              <>
+                <div className="spacer-s" />
+                <Button variant="secondary" onClick={loadMoreResponses} disabled={loadingMore} style={btnSecondaryStyle}>
+                  {t('common.loadMore')}
+                </Button>
+              </>
+            )}
             {isOwner && thing.status === 'ACTIVE' && (
               <>
                 <div className="spacer-m" />
@@ -752,6 +794,14 @@ export default function ThingPage() {
               </div>
             ))}
           </div>
+        )}
+        {faqsNext && (
+          <>
+            <div className="spacer-s" />
+            <Button variant="secondary" onClick={loadMoreFaqs} disabled={loadingMore} style={btnSecondaryStyle}>
+              {t('common.loadMore')}
+            </Button>
+          </>
         )}
 
 
