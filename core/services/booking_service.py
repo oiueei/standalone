@@ -105,8 +105,18 @@ def accept_booking(booking):
         booking = BookingPeriod.objects.select_for_update().get(code=booking.code)
         if booking.status != BookingPeriod.Status.PENDING:
             return None
-        booking.accept()
         thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
+        # Ownership re-validation for ownership-transferring types (SHARE/SWAP):
+        # the booking snapshots owner_code at request time. If an earlier accepted
+        # booking already transferred the thing away, this one is stale — bail out
+        # like an already-processed booking so a second accept can never transfer
+        # from a no-longer-owner (the row lock above serialises concurrent accepts).
+        if (
+            booking.thing_type in (Thing.Type.SHARE_THING, Thing.Type.SWAP_THING)
+            and thing.owner_id != booking.owner_code_id
+        ):
+            return None
+        booking.accept()
         if booking.thing_type in SINGLE_USE_TYPES:
             if not thing.is_endless:
                 thing.status = Thing.Status.INACTIVE

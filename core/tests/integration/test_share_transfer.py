@@ -369,3 +369,46 @@ class TestShareTransferStats:
         assert data["original_owner"] == user.code
         assert data["unique_homes"] == 3
         assert data["total_transfers"] == 2
+
+    def test_stale_share_booking_after_transfer_is_no_op(
+        self,
+        user,
+        user2,
+        user3,
+        share_thing,
+        community_collection,
+    ):
+        """A SHARE booking to the original owner is stale once the thing has moved.
+
+        Two guests request the same shared thing while `user` still owns it.
+        Accepting the first transfers ownership to user2; accepting the second
+        (still snapshotting owner_code=user) must be a no-op — the thing cannot be
+        transferred a second time from a user who no longer owns it.
+        """
+        community_collection.invites.add(user2)
+        community_collection.invites.add(user3)
+        booking1 = BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type="SHARE_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+        )
+        booking2 = BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type="SHARE_THING",
+            requester_code=user3,
+            requester_email=user3.email,
+            owner_code=user,
+        )
+
+        assert accept_booking(booking1) is not None
+        share_thing.refresh_from_db()
+        assert share_thing.owner == user2
+
+        # booking2 still points at the original owner, who no longer holds it.
+        assert accept_booking(booking2) is None
+        share_thing.refresh_from_db()
+        assert share_thing.owner == user2
+        booking2.refresh_from_db()
+        assert booking2.status == BookingPeriod.Status.PENDING
