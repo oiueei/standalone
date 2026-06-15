@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Checkbox, DateInput, Koros, Notification, NumberInput } from 'hds-react';
+import { Button, Checkbox, DateInput, Notification, NumberInput } from 'hds-react';
 import { DATE_TYPES, ORDER_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -19,7 +19,7 @@ export default function RequestThingPage() {
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const userCode = localStorage.getItem('userCode');
-  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
 
@@ -144,25 +144,11 @@ export default function RequestThingPage() {
   const isSwap = thing.type === SWAP_TYPE;
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      title={t('request.pageTitle', { headline: thing.headline })}
+      backTo={backPath}
+      backLabel={backLabel}
     >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={backPath} label={backLabel} />
-          <h1 className="form-hero-title">{t('request.pageTitle', { headline: thing.headline })}</h1>
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
       {success ? (
         <>
           <Notification label={t('request.successLabel')} type="success">
@@ -299,7 +285,6 @@ export default function RequestThingPage() {
       <Toast toast={toast} onClose={() => setToast(null)} />
       </>
       )}
-      </div>
-    </div>
+    </PageLayout>
   );
 }

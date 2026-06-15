@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Notification, ToggleButton } from 'hds-react';
+import { Button, Notification, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -14,7 +15,7 @@ export default function NotificationsPage() {
 
   useEffect(() => { document.title = t('titles.notifications'); }, [t]);
 
-  const { tc: theeemeColors, koro, btnStyle } = useTheeeme();
+  const { tc: theeemeColors, btnStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [notifyActivity, setNotifyActivity] = useState(true);
@@ -74,25 +75,7 @@ export default function NotificationsPage() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div
-      className="form-page"
-      style={theeemeColors.color_02 ? { backgroundColor: `var(--color-${theeemeColors.color_02})` } : undefined}
-    >
-      <div
-        className="form-hero"
-        style={theeemeColors.color_03 ? { backgroundColor: `var(--color-${theeemeColors.color_03})` } : undefined}
-      >
-        <div
-          className="form-hero-content"
-          style={theeemeColors.color_05 ? { '--hero-text-color': `var(--color-${theeemeColors.color_05})` } : undefined}
-        />
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
+    <PageLayout>
         <h1 className="page-title-xl">{t('notifications.pageTitle')}</h1>
 
         {invalidToken ? (
@@ -148,7 +131,6 @@ export default function NotificationsPage() {
           </>
         )}
         <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

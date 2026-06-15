@@ -7,12 +7,11 @@ import {
   TextArea,
   NumberInput,
   Button,
-  Koros,
   ToggleButton,
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
@@ -25,7 +24,7 @@ export default function EditThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
-  const { tc, koro, btnStyle } = useTheeeme();
+  const { tc, btnStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
@@ -146,24 +145,7 @@ export default function EditThingPage() {
   }
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
-    >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={returnPath} label={returnLabel} />
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
+    <PageLayout backTo={returnPath} backLabel={returnLabel}>
         <h1 className="page-title-xl">{t('editThing.pageTitle')}</h1>
       <div className="form-grid">
         <Select
@@ -305,7 +287,6 @@ export default function EditThingPage() {
         </Button>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

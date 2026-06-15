@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Button, Koros, ToggleButton } from 'hds-react';
+import { TextInput, TextArea, Button, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TheeemeSelector from '../components/TheeemeSelector';
@@ -19,7 +19,7 @@ export default function EditProfilePage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
   const userCode = localStorage.getItem('userCode');
-  const { tc: theeemeColors, koro: savedKoro } = useTheeeme();
+  const { tc: theeemeColors } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -119,24 +119,7 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div
-      className="form-page"
-      style={theeemeColors.color_02 ? { backgroundColor: `var(--color-${theeemeColors.color_02})` } : undefined}
-    >
-      <div
-        className="form-hero"
-        style={theeemeColors.color_03 ? { backgroundColor: `var(--color-${theeemeColors.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={theeemeColors.color_05 ? { '--hero-text-color': `var(--color-${theeemeColors.color_05})` } : undefined}>
-          <BackLink to={backPath} label={backLabel} />
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={savedKoro}
-          style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
+    <PageLayout backTo={backPath} backLabel={backLabel}>
         <h1 className="page-title-xl">{t('editProfile.pageTitle')}</h1>
         <div className="form-grid">
           <TextInput
@@ -233,7 +216,6 @@ export default function EditProfilePage() {
           </Button>
         </div>
         <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

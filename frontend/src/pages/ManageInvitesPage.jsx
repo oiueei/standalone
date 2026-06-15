@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, Button, Koros, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
+import { TextInput, Button, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
@@ -14,7 +14,7 @@ export default function ManageInvitesPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const userCode = localStorage.getItem('userCode');
-  const { tc, koro, btnStyle } = useTheeeme();
+  const { tc, btnStyle } = useTheeeme();
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
@@ -94,25 +94,11 @@ export default function ManageInvitesPage() {
   }
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      title={t('manageInvites.pageTitle')}
+      backTo={`/collections/${code}`}
+      backLabel={collectionHeadline || t('common.collection')}
     >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={`/collections/${code}`} label={collectionHeadline || t('common.collection')} />
-          <h1 className="form-hero-title">{t('manageInvites.pageTitle')}</h1>
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
       {invites.length === 0 && pendingInvites.length === 0 ? (
         <p>{t('manageInvites.noGuests')}</p>
       ) : (() => {
@@ -200,7 +186,6 @@ export default function ManageInvitesPage() {
       )}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

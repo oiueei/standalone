@@ -7,13 +7,12 @@ import {
   TextArea,
   NumberInput,
   Button,
-  Koros,
   Notification,
   ToggleButton,
 } from 'hds-react';
 import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import ImageUpload from '../components/ImageUpload';
 import GalleryUpload from '../components/GalleryUpload';
@@ -167,27 +166,13 @@ export default function AddThingPage() {
   };
 
   // Theeeme colors from localStorage (set by HomePage on login)
-  const { tc, koro, btnStyle } = useTheeeme();
+  const { tc, btnStyle } = useTheeeme();
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      backTo={`/collections/${code}`}
+      backLabel={collectionHeadline || t('common.collection')}
     >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={`/collections/${code}`} label={collectionHeadline || t('common.collection')} />
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
         <h1 className="page-title-xl">{t('addThing.pageTitle')}</h1>
         {respondWishCode && (
           <Notification type="info" label={t('wishes.kind.haveThis')} style={{ marginBottom: 'var(--spacing-m)' }}>
@@ -346,7 +331,6 @@ export default function AddThingPage() {
       </div>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

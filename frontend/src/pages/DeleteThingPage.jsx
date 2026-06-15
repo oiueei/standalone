@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros } from 'hds-react';
+import { Button } from 'hds-react';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -13,7 +13,7 @@ export default function DeleteThingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const userCode = localStorage.getItem('userCode');
-  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
 
@@ -53,37 +53,22 @@ export default function DeleteThingPage() {
   if (!thing) return null;
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      title={t('deleteThing.pageTitle', { headline: thing.headline })}
+      backTo={backPath}
+      backLabel={backLabel}
     >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={backPath} label={backLabel} />
-          <h1 className="form-hero-title">{t('deleteThing.pageTitle', { headline: thing.headline })}</h1>
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
+      <p>{t('deleteThing.warning')}</p>
+      <div className="spacer-xs" />
+      <div className="form-grid">
+        <Button fullWidth disabled={deleting} onClick={handleDelete} style={btnStyle}>
+          {deleting ? t('common.deleting') : t('common.delete')}
+        </Button>
+        <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
+          {t('common.cancel')}
+        </Button>
       </div>
-      <div className="page-container">
-        <p>{t('deleteThing.warning')}</p>
-        <div className="spacer-xs" />
-        <div className="form-grid">
-          <Button fullWidth disabled={deleting} onClick={handleDelete} style={btnStyle}>
-            {deleting ? t('common.deleting') : t('common.delete')}
-          </Button>
-          <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
-            {t('common.cancel')}
-          </Button>
-        </div>
-        <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+      <Toast toast={toast} onClose={() => setToast(null)} />
+    </PageLayout>
   );
 }

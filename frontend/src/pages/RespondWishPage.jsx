@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Notification, NumberInput, TextArea, TextInput } from 'hds-react';
+import { Button, Notification, NumberInput, TextArea, TextInput } from 'hds-react';
 import { WISH_KIND_BY_SLUG } from '../constants/things';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -41,7 +41,7 @@ export default function RespondWishPage() {
     || (code ? `/collections/${code}/things/${thingCode}` : `/things/${thingCode}`);
   const backLabel = location.state?.backLabel || t('common.back');
 
-  const { tc, koro, btnStyle } = useTheeeme();
+  const { btnStyle } = useTheeeme();
 
   const handleSubmit = async () => {
     if (!message.trim()) {
@@ -72,24 +72,7 @@ export default function RespondWishPage() {
   };
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
-    >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={backPath} label={backLabel} />
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
+    <PageLayout backTo={backPath} backLabel={backLabel}>
         <h1 className="page-title-xl">{title}</h1>
 
         {sent ? (
@@ -138,7 +121,6 @@ export default function RespondWishPage() {
         )}
 
         <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

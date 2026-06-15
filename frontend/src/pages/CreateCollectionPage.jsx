@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Koros, Notification, IconInfoCircle, ToggleButton } from 'hds-react';
+import { TextInput, TextArea, Select, Button, Notification, IconInfoCircle, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import ImageUpload from '../components/ImageUpload';
 import TagInput from '../components/TagInput';
 import Toast from '../components/Toast';
@@ -16,7 +16,7 @@ export default function CreateCollectionPage() {
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
-  const { tc: theeemeColors, koro } = useTheeeme();
+  const { tc: theeemeColors } = useTheeeme();
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -121,24 +121,7 @@ export default function CreateCollectionPage() {
   };
 
   return (
-    <div
-      className="form-page"
-      style={theeemeColors.color_02 ? { backgroundColor: `var(--color-${theeemeColors.color_02})` } : undefined}
-    >
-      <div
-        className="form-hero"
-        style={theeemeColors.color_03 ? { backgroundColor: `var(--color-${theeemeColors.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={theeemeColors.color_05 ? { '--hero-text-color': `var(--color-${theeemeColors.color_05})` } : undefined}>
-          <BackLink to={backPath} label={backLabel} />
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={theeemeColors.color_02 ? { fill: `var(--color-${theeemeColors.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
+    <PageLayout backTo={backPath} backLabel={backLabel}>
         <h1 className="page-title-xl">{t('createCollection.pageTitle')}</h1>
         <div className="form-grid">
           <TextInput
@@ -346,7 +329,6 @@ export default function CreateCollectionPage() {
           </Button>
         </div>
         <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

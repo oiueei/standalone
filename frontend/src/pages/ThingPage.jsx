@@ -10,7 +10,6 @@ import {
   IconLocation,
   IconShield,
   IconTicket,
-  Koros,
   Notification,
   TextArea,
 } from 'hds-react';
@@ -18,7 +17,7 @@ import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, WISH_KIND_I18
 import { apiFetch } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import RespondMenu from '../components/RespondMenu';
 import ThingTags from '../components/ThingTags';
@@ -32,7 +31,7 @@ export default function ThingPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const userCode = localStorage.getItem('userCode');
-  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
+  const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
 
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
@@ -370,24 +369,7 @@ export default function ThingPage() {
   };
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
-    >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={backPath} label={backLabel} />
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
+    <PageLayout backTo={backPath} backLabel={backLabel}>
 
       <div className="form-grid">
         {(() => {
@@ -838,7 +820,6 @@ export default function ThingPage() {
       </div>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }

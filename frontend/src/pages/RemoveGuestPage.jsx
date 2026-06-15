@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { Button, Koros } from 'hds-react';
+import { Button } from 'hds-react';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -48,40 +48,25 @@ export default function RemoveGuestPage() {
     }
   };
 
-  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      title={t('removeGuest.pageTitle', { name: guestName })}
+      backTo={backPath}
+      backLabel={backLabel}
     >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={backPath} label={backLabel} />
-          <h1 className="form-hero-title">{t('removeGuest.pageTitle', { name: guestName })}</h1>
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
+      <p><Trans i18nKey="removeGuest.warning" values={{ name: guestName }} components={[<strong key="0" />]} /></p>
+      <div className="spacer-xs" />
+      <div className="form-grid">
+        <Button fullWidth disabled={removing} onClick={handleRemove} style={btnStyle}>
+          {removing ? t('common.removing') : t('common.remove')}
+        </Button>
+        <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
+          {t('common.cancel')}
+        </Button>
       </div>
-      <div className="page-container">
-        <p><Trans i18nKey="removeGuest.warning" values={{ name: guestName }} components={[<strong key="0" />]} /></p>
-        <div className="spacer-xs" />
-        <div className="form-grid">
-          <Button fullWidth disabled={removing} onClick={handleRemove} style={btnStyle}>
-            {removing ? t('common.removing') : t('common.remove')}
-          </Button>
-          <Button variant="secondary" fullWidth onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
-            {t('common.cancel')}
-          </Button>
-        </div>
-        <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+      <Toast toast={toast} onClose={() => setToast(null)} />
+    </PageLayout>
   );
 }

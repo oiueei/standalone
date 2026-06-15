@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, Koros, ToggleButton } from 'hds-react';
+import { TextInput, TextArea, Select, Button, ToggleButton } from 'hds-react';
 import { apiFetch } from '../services/api';
-import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import ImageUpload from '../components/ImageUpload';
 import TagInput from '../components/TagInput';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,7 +15,7 @@ export default function EditCollectionPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
-  const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
+  const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
   const [loading, setLoading] = useState(true);
   const [headline, setHeadline] = useState('');
   useEffect(() => { document.title = headline ? t('titles.editCollection', { headline }) : t('titles.editCollectionDefault'); }, [headline, t]);
@@ -203,24 +203,10 @@ export default function EditCollectionPage() {
   };
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      backTo={`/collections/${code}`}
+      backLabel={headline || t('common.collection')}
     >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <BackLink to={`/collections/${code}`} label={headline || t('common.collection')} />
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
         <h1 className="page-title-xl">{t('editCollection.pageTitle')}</h1>
       <div className="form-grid">
         <TextInput
@@ -457,7 +443,6 @@ export default function EditCollectionPage() {
         </div>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    </div>
+    </PageLayout>
   );
 }
