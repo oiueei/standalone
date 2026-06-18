@@ -12,6 +12,12 @@ Each email belongs to one of three categories (see `_should_send`):
 
 Cat. 2 and Cat. 3 emails include a footer with a tokenised link to /me/notifications
 that lets recipients change preferences without logging in.
+
+HTML bodies are rendered from the autoescaping ``email/layout.html`` template via
+small block builders (``_para``/``_strong``/``_field``/``_list``/``_links``/
+``_heading``), so user-supplied values are escaped by the template engine — no
+manual ``escape()`` in the body composition. Plain-text bodies (no XSS surface)
+stay as plain strings.
 """
 
 import logging
@@ -20,6 +26,7 @@ import smtplib
 from django.conf import settings
 from django.core.mail import BadHeaderError, EmailMultiAlternatives, send_mail
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.template.loader import render_to_string
 from django.utils.html import escape
 
 from core.utils import redact_email
@@ -165,6 +172,65 @@ def _send(to_email, subject, plain, html, category, reply_to=None):
     return True
 
 
+# --- HTML body composition (autoescaped via email/layout.html) -----------------
+
+
+def _para(text):
+    """A paragraph of (autoescaped) text."""
+    return {"type": "para", "text": text}
+
+
+def _strong(text):
+    """A paragraph holding a single bold value (used for the focal headline)."""
+    return {"type": "strong", "text": text}
+
+
+def _field(label, value):
+    """A ``Label: value`` line."""
+    return {"type": "field", "label": label, "value": value}
+
+
+def _heading(text):
+    """A section heading (``<h3>``)."""
+    return {"type": "heading", "text": text}
+
+
+def _list(items):
+    """A bullet list."""
+    return {"type": "list", "items": list(items)}
+
+
+def _links(*links):
+    """A row of links, each ``(url, label)``, joined by ``|``."""
+    return {"type": "links", "links": [{"url": url, "label": label} for url, label in links]}
+
+
+def _render_email(blocks):
+    """Render the HTML body from a list of blocks through the autoescaping layout."""
+    return render_to_string("email/layout.html", {"blocks": blocks})
+
+
+def _booking_detail_blocks(booking):
+    """Date/quantity detail blocks shared by the three booking emails."""
+    if booking.start_date and booking.end_date:
+        return [_field("Dates", f"{booking.start_date} - {booking.end_date}")]
+    if booking.delivery_date:
+        return [
+            _field("Quantity", booking.quantity),
+            _field("Delivery date", booking.delivery_date),
+        ]
+    return []
+
+
+def _thing_url(thing):
+    """Build the frontend URL for a thing (collection-scoped when possible)."""
+    base = _frontend_base_url()
+    collection = thing.collections.first()
+    if collection:
+        return f"{base}/collections/{collection.code}/things/{thing.code}"
+    return f"{base}/things/{thing.code}"
+
+
 # --- Category 1: Mandatory -----------------------------------------------------
 
 
@@ -172,12 +238,12 @@ def send_magic_link_email(email, magic_link):
     """Send magic link authentication email."""
     subject = "Hello, welcome to OIUEEI!"
     plain = f"Hello! Click here to sign in: {magic_link}"
-    html = f"""
-        <html>
-        <p>Hello! Click here to sign in:</p>
-        <a href="{magic_link}">Sign in</a>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para("Hello! Click here to sign in:"),
+            _links((magic_link, "Sign in")),
+        ]
+    )
     _send(email, subject, plain, html, CATEGORY_MANDATORY)
 
 
@@ -185,41 +251,32 @@ def send_collection_invite_email(
     inviter_name, collection_headline, email, accept_link, reject_link
 ):
     """Send collection invitation email with accept and reject links."""
-    safe_inviter = escape(inviter_name)
-    safe_headline = escape(collection_headline)
-
     subject = "You have an invitation to OIUEEI!"
     plain = (
         f"You have been invited to view: {collection_headline}. "
         f"Accept invitation: {accept_link} | Decline invitation: {reject_link}"
     )
-    html = f"""
-        <html>
-        <p>{safe_inviter} has invited you to view:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p>
-            <a href="{accept_link}">Accept invitation</a> |
-            <a href="{reject_link}">Decline invitation</a>
-        </p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{inviter_name} has invited you to view:"),
+            _strong(collection_headline),
+            _links((accept_link, "Accept invitation"), (reject_link, "Decline invitation")),
+        ]
+    )
     _send(email, subject, plain, html, CATEGORY_MANDATORY)
 
 
 def send_collection_revoke_email(owner_name, collection_headline, email):
     """Send collection access revoked notification email."""
-    safe_owner = escape(owner_name)
-    safe_headline = escape(collection_headline)
-
     subject = "Your access has been revoked"
     plain = f"{owner_name} has revoked your access to '{collection_headline}'."
-    html = f"""
-        <html>
-        <p>{safe_owner} has revoked your access to:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p>You will no longer be able to view this collection.</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{owner_name} has revoked your access to:"),
+            _strong(collection_headline),
+            _para("You will no longer be able to view this collection."),
+        ]
+    )
     _send(email, subject, plain, html, CATEGORY_MANDATORY)
 
 
@@ -229,83 +286,62 @@ def send_collection_revoke_email(owner_name, collection_headline, email):
 def send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link):
     """Send booking request email to owner with accept/reject links."""
     requester_name = requester.display_name
-    safe_requester_name = escape(requester_name)
-    safe_headline = escape(thing.headline)
 
     if booking.start_date and booking.end_date:
-        safe_start = escape(str(booking.start_date))
-        safe_end = escape(str(booking.end_date))
         plain = (
             f"{requester_name} has requested to hold '{thing.headline}' "
             f"from {booking.start_date} to {booking.end_date}. "
             f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
         )
-        html_extra = f"<p>Dates: {safe_start} - {safe_end}</p>"
     elif booking.delivery_date:
-        safe_quantity = escape(str(booking.quantity))
-        safe_delivery = escape(str(booking.delivery_date))
         plain = (
             f"{requester_name} has requested {booking.quantity}x '{thing.headline}' "
             f"for {booking.delivery_date}. "
             f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
         )
-        html_extra = f"<p>Quantity: {safe_quantity}</p><p>Delivery date: {safe_delivery}</p>"
     else:
         plain = (
             f"{requester_name} has requested to hold '{thing.headline}'. "
             f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
         )
-        html_extra = ""
 
     subject = "You have a pending hold request"
-    html = f"""
-        <html>
-        <p><strong>{safe_requester_name}</strong> has requested:</p>
-        <p><strong>{safe_headline}</strong></p>
-        {html_extra}
-        <p>
-            <a href="{accept_link}">Confirm hold</a> |
-            <a href="{reject_link}">Cancel hold</a>
-        </p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{requester_name} has requested:"),
+            _strong(thing.headline),
+            *_booking_detail_blocks(booking),
+            _links((accept_link, "Confirm hold"), (reject_link, "Cancel hold")),
+        ]
+    )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_booking_decision_email(booking, thing, accepted=True):
     """Send booking accept/reject notification email to requester."""
     decision_word = "confirmed" if accepted else "cancelled"
-    safe_decision_word = escape(decision_word)
-    safe_headline = escape(thing.headline)
 
     if booking.start_date and booking.end_date:
-        safe_start = escape(str(booking.start_date))
-        safe_end = escape(str(booking.end_date))
         plain = (
             f"Your hold request for '{thing.headline}' "
             f"from {booking.start_date} to {booking.end_date} has been {decision_word}."
         )
-        html_extra = f"<p>Dates: {safe_start} - {safe_end}</p>"
     elif booking.delivery_date:
-        safe_quantity = escape(str(booking.quantity))
-        safe_delivery = escape(str(booking.delivery_date))
         plain = (
             f"Your order of {booking.quantity}x '{thing.headline}' "
             f"for {booking.delivery_date} has been {decision_word}."
         )
-        html_extra = f"<p>Quantity: {safe_quantity}</p><p>Delivery date: {safe_delivery}</p>"
     else:
         plain = f"Your hold request for '{thing.headline}' has been {decision_word}."
-        html_extra = ""
 
     subject = "We have news"
-    html = f"""
-        <html>
-        <p>Your request has been <strong>{safe_decision_word}</strong>:</p>
-        <p><strong>{safe_headline}</strong></p>
-        {html_extra}
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"Your request has been {decision_word}:"),
+            _strong(thing.headline),
+            *_booking_detail_blocks(booking),
+        ]
+    )
     _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
@@ -315,159 +351,117 @@ def send_booking_unavailable_email(booking, thing):
     Sent when the owner gave or swapped the thing to someone else, so this
     requester's PENDING booking was auto-declined. Warm, non-blaming tone.
     """
-    safe_headline = escape(thing.headline)
-
     subject = "Someone got there first"
     plain = (
         f"'{thing.headline}' went to someone else this time. "
         "No worries — things come and go around here, so keep an eye out!"
     )
-    html = f"""
-        <html>
-        <p><strong>{safe_headline}</strong> went to someone else this time.</p>
-        <p>No worries — things come and go around here, so keep an eye out!</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{thing.headline} went to someone else this time."),
+            _para("No worries — things come and go around here, so keep an eye out!"),
+        ]
+    )
     _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
     """Send notification to collection owner that an invite was declined."""
-    safe_invitee = escape(invitee_name)
-    safe_headline = escape(collection_headline)
-
     subject = "Your invitation was rejected"
     plain = f"{invitee_name} has declined the invitation to '{collection_headline}'."
-    html = f"""
-        <html>
-        <p><strong>{safe_invitee}</strong> has declined your invitation to:</p>
-        <p><strong>{safe_headline}</strong></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{invitee_name} has declined your invitation to:"),
+            _strong(collection_headline),
+        ]
+    )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_booking_confirmation_email(requester, thing, booking):
     """Send booking confirmation email to the requester."""
-    safe_headline = escape(thing.headline)
     owner_name = thing.owner.display_name
-    safe_owner = escape(owner_name)
-
-    base_url = _frontend_base_url()
+    thing_url = _thing_url(thing)
     collection = thing.collections.first()
-    if collection:
-        thing_url = f"{base_url}/collections/{collection.code}/things/{thing.code}"
-    else:
-        thing_url = f"{base_url}/things/{thing.code}"
-    safe_collection = escape(collection.headline) if collection else None
 
     if booking.start_date and booking.end_date:
-        safe_start = escape(str(booking.start_date))
-        safe_end = escape(str(booking.end_date))
         plain = (
             f"You've put a hold on '{thing.headline}' from "
             f"{booking.start_date} to {booking.end_date}. "
             f"We've let {owner_name} know — they'll get back to you soon. "
             f"View thing: {thing_url}"
         )
-        html_extra = f"<p>Dates: {safe_start} — {safe_end}</p>"
     elif booking.delivery_date:
-        safe_quantity = escape(str(booking.quantity))
-        safe_delivery = escape(str(booking.delivery_date))
         plain = (
             f"You've requested {booking.quantity}x '{thing.headline}' for {booking.delivery_date}. "
             f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
         )
-        html_extra = f"<p>Quantity: {safe_quantity}</p><p>Delivery: {safe_delivery}</p>"
     else:
         plain = (
             f"You've put a hold on '{thing.headline}'. "
             f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
         )
-        html_extra = ""
-
-    collection_line = (
-        f"<p>Part of: <strong>{safe_collection}</strong></p>" if safe_collection else ""
-    )
 
     subject = "Hold request sent"
-    html = f"""
-        <html>
-        <p>You've put a hold on:</p>
-        <p><strong>{safe_headline}</strong></p>
-        {collection_line}
-        {html_extra}
-        <p>We've let <strong>{safe_owner}</strong> know — they'll get back to you soon.</p>
-        <p><a href="{thing_url}">View thing</a></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para("You've put a hold on:"),
+            _strong(thing.headline),
+            *([_field("Part of", collection.headline)] if collection else []),
+            *_booking_detail_blocks(booking),
+            _para(f"We've let {owner_name} know — they'll get back to you soon."),
+            _links((thing_url, "View thing")),
+        ]
+    )
     _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_faq_question_email(questioner_name, thing, question, owner_email):
     """Send FAQ question notification email to thing owner."""
-    safe_questioner = escape(questioner_name)
-    safe_headline = escape(thing.headline)
-    safe_question = escape(question)
-
-    base_url = _frontend_base_url()
-    collection = thing.collections.first()
-    if collection:
-        thing_url = f"{base_url}/collections/{collection.code}/things/{thing.code}"
-    else:
-        thing_url = f"{base_url}/things/{thing.code}"
+    thing_url = _thing_url(thing)
 
     subject = "There is a question to be answered"
     plain = (
         f"{questioner_name} has asked about '{thing.headline}': {question} "
         f"View thing: {thing_url}"
     )
-    html = f"""
-        <html>
-        <p><strong>{safe_questioner}</strong> has asked a question about:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p>Question: {safe_question}</p>
-        <p><a href="{thing_url}">View and reply</a></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{questioner_name} has asked a question about:"),
+            _strong(thing.headline),
+            _field("Question", question),
+            _links((thing_url, "View and reply")),
+        ]
+    )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email):
     """Send FAQ answer notification email to questioner."""
-    safe_owner = escape(owner_name)
-    safe_headline = escape(thing_headline)
-    safe_question = escape(question)
-    safe_answer = escape(answer)
-
     subject = "Your question has been answered"
     plain = f"{owner_name} has replied: {answer}"
-    html = f"""
-        <html>
-        <p><strong>{safe_owner}</strong> has replied to your question about:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p>Your question: {safe_question}</p>
-        <p>Reply: {safe_answer}</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{owner_name} has replied to your question about:"),
+            _strong(thing_headline),
+            _field("Your question", question),
+            _field("Reply", answer),
+        ]
+    )
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     """Send FAQ hidden notification email to questioner."""
-    safe_owner = escape(owner_name)
-    safe_headline = escape(thing_headline)
-    safe_question = escape(question)
-
     subject = "Your question has been hidden"
     plain = f"{owner_name} has hidden your question: {question}"
-    html = f"""
-        <html>
-        <p><strong>{safe_owner}</strong> has hidden your question about:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p>Question: {safe_question}</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{owner_name} has hidden your question about:"),
+            _strong(thing_headline),
+            _field("Question", question),
+        ]
+    )
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
@@ -481,9 +475,6 @@ def send_broadcast_email(
     collection — the object that originated the message — so recipients can open
     it in-app.
     """
-    safe_owner = escape(owner_name)
-    safe_collection = escape(collection_headline)
-    safe_message = escape(message)
     collection_url = f"{_frontend_base_url()}/collections/{collection_code}"
 
     full_subject = f"Hey! {collection_headline}"
@@ -492,25 +483,16 @@ def send_broadcast_email(
         f"{message}\n\n"
         f"I can help! {collection_url}"
     )
-    html = f"""
-        <html>
-        <p><strong>{safe_owner}</strong> sent a message to <strong>{safe_collection}</strong>:</p>
-        <p>{safe_message}</p>
-        <p><a href="{collection_url}">I can help!</a></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{owner_name} sent a message to {collection_headline}:"),
+            _para(message),
+            _links((collection_url, "I can help!")),
+        ]
+    )
 
     for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
         _send(email, full_subject, plain, html, CATEGORY_ACTIVITY, reply_to=[owner_email])
-
-
-def _thing_url(thing):
-    """Build the frontend URL for a thing (collection-scoped when possible)."""
-    base = _frontend_base_url()
-    collection = thing.collections.first()
-    if collection:
-        return f"{base}/collections/{collection.code}/things/{thing.code}"
-    return f"{base}/things/{thing.code}"
 
 
 def send_wish_posted_email(creator_name, wish, emails):
@@ -519,8 +501,6 @@ def send_wish_posted_email(creator_name, wish, emails):
     ``emails`` is the list of group members. Respects each recipient's
     activity opt-out via ``_filter_recipients``.
     """
-    safe_creator = escape(creator_name)
-    safe_headline = escape(wish.headline)
     wish_url = _thing_url(wish)
 
     subject = "A neighbour is looking for something"
@@ -528,92 +508,79 @@ def send_wish_posted_email(creator_name, wish, emails):
         f"{creator_name} posted a new wish: '{wish.headline}'. "
         f"Can you help? View it: {wish_url}"
     )
-    html = f"""
-        <html>
-        <p><strong>{safe_creator}</strong> posted a new wish:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p><a href="{wish_url}">See if you can help</a></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{creator_name} posted a new wish:"),
+            _strong(wish.headline),
+            _links((wish_url, "See if you can help")),
+        ]
+    )
     for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
         _send(email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_wish_response_email(responder_name, wish, creator_email):
     """Notify a wish creator that someone answered their pedido."""
-    safe_responder = escape(responder_name)
-    safe_headline = escape(wish.headline)
     wish_url = _thing_url(wish)
 
     subject = "Someone answered your wish"
     plain = (
         f"{responder_name} answered your wish '{wish.headline}'. " f"View the answer: {wish_url}"
     )
-    html = f"""
-        <html>
-        <p><strong>{safe_responder}</strong> answered your wish:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p><a href="{wish_url}">View the answer</a></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{responder_name} answered your wish:"),
+            _strong(wish.headline),
+            _links((wish_url, "View the answer")),
+        ]
+    )
     _send(creator_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_wish_thanks_email(creator_name, wish, responder_email):
     """Thank the accepted responder when the wish creator marks it resolved."""
-    safe_creator = escape(creator_name)
-    safe_headline = escape(wish.headline)
-
     subject = "Thanks for your help"
     plain = (
         f"{creator_name} marked the wish '{wish.headline}' as resolved "
         f"and wanted to thank you for your help."
     )
-    html = f"""
-        <html>
-        <p><strong>{safe_creator}</strong> marked this wish as resolved:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p>Thanks for helping out!</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{creator_name} marked this wish as resolved:"),
+            _strong(wish.headline),
+            _para("Thanks for helping out!"),
+        ]
+    )
     _send(responder_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_return_reminder_email(requester_name, thing_headline, end_date, owner_email):
     """Remind the owner that a booking ends tomorrow."""
-    safe_requester = escape(requester_name)
-    safe_headline = escape(thing_headline)
-    safe_date = escape(str(end_date))
-
     subject = "Reminder: a hold ends tomorrow"
     plain = f"Reminder: {requester_name}'s hold on '{thing_headline}' ends {end_date}."
-    html = f"""
-        <html>
-        <p>Reminder: <strong>{safe_requester}</strong>'s hold on
-        <strong>{safe_headline}</strong> ends <strong>{safe_date}</strong>.</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"Reminder: {requester_name}'s hold on {thing_headline} ends {end_date}."),
+        ]
+    )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email):
     """Remind the owner that a delivery is due tomorrow."""
-    safe_requester = escape(requester_name)
-    safe_headline = escape(thing_headline)
-    safe_date = escape(str(delivery_date))
-
     subject = "Reminder: a delivery is due tomorrow"
     plain = (
         f"Reminder: {requester_name}'s order of '{thing_headline}' "
         f"is due for delivery {delivery_date}."
     )
-    html = f"""
-        <html>
-        <p>Reminder: <strong>{safe_requester}</strong>'s order of
-        <strong>{safe_headline}</strong> is due for delivery
-        <strong>{safe_date}</strong>.</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(
+                f"Reminder: {requester_name}'s order of {thing_headline} "
+                f"is due for delivery {delivery_date}."
+            ),
+        ]
+    )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
@@ -626,12 +593,10 @@ def send_documents_email(requester_email, thing):
     signed-in requester downloads each one. (A tokenised direct link for
     unauthenticated recipients is the separate L9/R16 work in Fase 16.)
     """
-    safe_headline = escape(thing.headline)
     thing_url = _thing_url(thing)
     filenames = [doc.get("filename", "document") for doc in (thing.documents or [])]
 
     plain_list = "\n".join(f"  - {name}" for name in filenames)
-    html_list = "".join(f"<li>{escape(name)}</li>" for name in filenames)
 
     subject = f"Documents for {thing.headline}"
     plain = (
@@ -639,13 +604,13 @@ def send_documents_email(requester_email, thing):
         f"{plain_list}\n\n"
         f"Log in to OIUEEI and open the item to download them: {thing_url}"
     )
-    html = f"""
-        <html>
-        <p>The documents for <strong>{safe_headline}</strong> are ready:</p>
-        <ul>{html_list}</ul>
-        <p><a href="{thing_url}">Log in to OIUEEI and open the item to download them</a></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"The documents for {thing.headline} are ready:"),
+            _list(filenames),
+            _links((thing_url, "Log in to OIUEEI and open the item to download them")),
+        ]
+    )
     _send(requester_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
@@ -654,10 +619,7 @@ def send_swap_request_email(
 ):
     """Send swap request email to owner with offered thing headlines."""
     requester_name = requester.display_name
-    safe_requester_name = escape(requester_name)
-    safe_headline = escape(thing.headline)
     offered_names = ", ".join(t.headline for t in offered_things)
-    offered_html = "".join(f"<li>{escape(t.headline)}</li>" for t in offered_things)
 
     subject = "You have a swap request"
     plain = (
@@ -665,26 +627,21 @@ def send_swap_request_email(
         f"for: {offered_names}. "
         f"Confirm swap: {accept_link} | Cancel swap: {reject_link}"
     )
-    html = f"""
-        <html>
-        <p><strong>{safe_requester_name}</strong> wants to swap:</p>
-        <p><strong>{safe_headline}</strong></p>
-        <p>In exchange for:</p>
-        <ul>{offered_html}</ul>
-        <p>
-            <a href="{accept_link}">Confirm swap</a> |
-            <a href="{reject_link}">Cancel swap</a>
-        </p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"{requester_name} wants to swap:"),
+            _strong(thing.headline),
+            _para("In exchange for:"),
+            _list(t.headline for t in offered_things),
+            _links((accept_link, "Confirm swap"), (reject_link, "Cancel swap")),
+        ]
+    )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_swap_confirmation_email(requester, thing, offered_things, booking):
     """Send swap request confirmation to the requester."""
-    safe_headline = escape(thing.headline)
     offered_names = ", ".join(t.headline for t in offered_things)
-    offered_html = "".join(f"<li>{escape(t.headline)}</li>" for t in offered_things)
 
     subject = "Swap request sent"
     plain = (
@@ -692,15 +649,16 @@ def send_swap_confirmation_email(requester, thing, offered_things, booking):
         f"(offering: {offered_names}) has been sent. "
         f"The owner will get back to you soon."
     )
-    html = f"""
-        <html>
-        <p>Your swap request has been sent!</p>
-        <p>You requested: <strong>{safe_headline}</strong></p>
-        <p>You offered:</p>
-        <ul>{offered_html}</ul>
-        <p>The owner will get back to you soon.</p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para("Your swap request has been sent!"),
+            _para("You requested:"),
+            _strong(thing.headline),
+            _para("You offered:"),
+            _list(t.headline for t in offered_things),
+            _para("The owner will get back to you soon."),
+        ]
+    )
     _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
@@ -709,12 +667,10 @@ def send_swap_confirmation_email(requester, thing, offered_things, booking):
 
 def send_digest_email(collection_headline, collection_code, thing_headlines, emails):
     """Send a digest email listing new things added to a collection."""
-    safe_collection = escape(collection_headline)
     base_url = _frontend_base_url()
     collection_url = f"{base_url}/collections/{collection_code}"
 
     things_plain = "\n".join(f"  - {h}" for h in thing_headlines)
-    things_html = "".join(f"<li>{escape(h)}</li>" for h in thing_headlines)
 
     subject = f"What's new in {collection_headline}"
     plain = (
@@ -722,13 +678,13 @@ def send_digest_email(collection_headline, collection_code, thing_headlines, ema
         f"{things_plain}\n\n"
         f"View collection: {collection_url}"
     )
-    html = f"""
-        <html>
-        <p>New things in <strong>{safe_collection}</strong>:</p>
-        <ul>{things_html}</ul>
-        <p><a href="{collection_url}">View collection</a></p>
-        </html>
-        """
+    html = _render_email(
+        [
+            _para(f"New things in {collection_headline}:"),
+            _list(thing_headlines),
+            _links((collection_url, "View collection")),
+        ]
+    )
 
     for email in _filter_recipients(emails, CATEGORY_NEWS):
         _send(email, subject, plain, html, CATEGORY_NEWS)
@@ -747,49 +703,41 @@ def send_newsletter_email(
         transfer_entries: List of dicts with keys: date, thing, from_name, to_name.
         emails: List of recipient email addresses.
     """
-    safe_collection = escape(collection_headline)
     base_url = _frontend_base_url()
     collection_url = f"{base_url}/collections/{collection_code}"
 
+    blocks = [_para(f"Newsletter for {collection_headline}:")]
+    plain_blocks = []
+
     if new_thing_headlines:
         things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)
-        things_html = "".join(f"<li>{escape(h)}</li>" for h in new_thing_headlines)
-        block1_plain = f"New things:\n{things_plain}\n\n"
-        block1_html = f"<h3>New things</h3><ul>{things_html}</ul>"
-    else:
-        block1_plain = ""
-        block1_html = ""
+        plain_blocks.append(f"New things:\n{things_plain}\n")
+        blocks.append(_heading("New things"))
+        blocks.append(_list(new_thing_headlines))
 
     if transfer_entries:
         transfers_plain = "\n".join(
             f"  - {t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
             for t in transfer_entries
         )
-        transfers_html = "".join(
-            f"<li>{escape(str(t['date']))} — {escape(t['thing'])}: "
-            f"{escape(t['from_name'])} → {escape(t['to_name'])}</li>"
-            for t in transfer_entries
+        plain_blocks.append(f"Ownership changes:\n{transfers_plain}\n")
+        blocks.append(_heading("Ownership changes"))
+        blocks.append(
+            _list(
+                f"{t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
+                for t in transfer_entries
+            )
         )
-        block2_plain = f"Ownership changes:\n{transfers_plain}\n\n"
-        block2_html = f"<h3>Ownership changes</h3><ul>{transfers_html}</ul>"
-    else:
-        block2_plain = ""
-        block2_html = ""
+
+    blocks.append(_links((collection_url, "View collection")))
 
     subject = f"Weekly newsletter: {collection_headline}"
     plain = (
         f"Newsletter for {collection_headline}:\n\n"
-        f"{block1_plain}{block2_plain}"
+        f"{''.join(b + chr(10) for b in plain_blocks)}"
         f"View collection: {collection_url}"
     )
-    html = f"""
-        <html>
-        <p>Newsletter for <strong>{safe_collection}</strong>:</p>
-        {block1_html}
-        {block2_html}
-        <p><a href="{collection_url}">View collection</a></p>
-        </html>
-        """
+    html = _render_email(blocks)
 
     for email in _filter_recipients(emails, CATEGORY_NEWS):
         _send(email, subject, plain, html, CATEGORY_NEWS)

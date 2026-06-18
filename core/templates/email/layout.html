@@ -1,0 +1,18 @@
+{# Shared HTML email layout. Django autoescaping is on by default, so every
+   value rendered here ({{ ... }}) is HTML-escaped automatically — email bodies
+   no longer rely on manual escape() calls in Python (R16). #}
+<html>
+{% for b in blocks %}{% if b.type == "para" %}
+<p>{{ b.text }}</p>
+{% elif b.type == "strong" %}
+<p><strong>{{ b.text }}</strong></p>
+{% elif b.type == "field" %}
+<p>{{ b.label }}: {{ b.value }}</p>
+{% elif b.type == "heading" %}
+<h3>{{ b.text }}</h3>
+{% elif b.type == "list" %}
+<ul>{% for item in b.items %}<li>{{ item }}</li>{% endfor %}</ul>
+{% elif b.type == "links" %}
+<p>{% for l in b.links %}<a href="{{ l.url }}">{{ l.label }}</a>{% if not forloop.last %} | {% endif %}{% endfor %}</p>
+{% endif %}{% endfor %}
+</html>
