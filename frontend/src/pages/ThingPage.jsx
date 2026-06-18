@@ -5,11 +5,6 @@ import {
   Button,
   Fieldset,
   Highlight,
-  IconCalendar,
-  IconEuroSign,
-  IconLocation,
-  IconShield,
-  IconTicket,
   Notification,
   TextArea,
 } from 'hds-react';
@@ -21,11 +16,14 @@ import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import RespondMenu from '../components/RespondMenu';
 import ThingTags from '../components/ThingTags';
+import ThingInfoRows from '../components/ThingInfoRows';
+import OwnerBookingsList from '../components/OwnerBookingsList';
 import Toast from '../components/Toast';
 import MarkdownText, { sanitizeUrl } from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
 import useTheeeme from '../hooks/useTheeeme';
+import useThingBooking from '../hooks/useThingBooking';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -39,12 +37,23 @@ export default function ThingPage() {
   const [toast, setToast] = useState(null);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
-  // Reservation state
-  const [submitting, setSubmitting] = useState(false);
-  const [requested, setRequested] = useState(false);
-  const [bookingAction, setBookingAction] = useState(false);
-  const [bookings, setBookings] = useState([]);
-  const [activePendingCode, setActivePendingCode] = useState(null);
+  // Reservation engine (shared with ThingLinkbox)
+  const {
+    submitting,
+    requested,
+    bookingAction,
+    bookings,
+    activePendingCode,
+    handleRequest,
+    handleActivate,
+    handleBookingAction,
+  } = useThingBooking(thing, {
+    isOwner: thing?.owner === userCode,
+    onThingChange: (patch) => setThing((prev) => ({ ...prev, ...patch })),
+    setToast,
+    bookingKeepsStatus: isDateType(thing?.type) || thing?.type === ORDER_TYPE,
+    activateSuccessMessage: t('thingPage.thingReactivated'),
+  });
 
   // FAQ state
   const [faqs, setFaqs] = useState([]);
@@ -64,11 +73,16 @@ export default function ThingPage() {
   const [actioning, setActioning] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
+
     const fetchThing = async () => {
       try {
-        const res = await apiFetch(`/api/v1/things/${thingCode}/`);
+        const res = await apiFetch(`/api/v1/things/${thingCode}/`, { signal });
         if (res.ok) {
-          setThing(await res.json());
+          const data = await res.json();
+          if (signal.aborted) return;
+          setThing(data);
         } else if (res.status === 403) {
           setError(t('thingPage.noPermission'));
         } else if (res.status === 404) {
@@ -77,15 +91,16 @@ export default function ThingPage() {
           setError(t('thingPage.errorLoading'));
         }
       } catch {
-        setError(t('common.connectionError'));
+        if (!signal.aborted) setError(t('common.connectionError'));
       }
     };
 
     const fetchFaqs = async () => {
       try {
-        const res = await apiFetch(`/api/v1/things/${thingCode}/faq/`);
+        const res = await apiFetch(`/api/v1/things/${thingCode}/faq/`, { signal });
         if (res.ok) {
           const data = await res.json();
+          if (signal.aborted) return;
           setFaqs(data.results || data);
           setFaqsNext(data.next || null);
         }
@@ -94,9 +109,11 @@ export default function ThingPage() {
 
     const fetchTransfers = async () => {
       try {
-        const res = await apiFetch(`/api/v1/things/${thingCode}/transfers/`);
+        const res = await apiFetch(`/api/v1/things/${thingCode}/transfers/`, { signal });
         if (res.ok) {
-          setTransfers(await res.json());
+          const data = await res.json();
+          if (signal.aborted) return;
+          setTransfers(data);
         }
       } catch { /* silently fail */ }
     };
@@ -104,6 +121,7 @@ export default function ThingPage() {
     fetchThing();
     fetchFaqs();
     fetchTransfers();
+    return () => controller.abort();
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
@@ -143,32 +161,6 @@ export default function ThingPage() {
       setLoadingMore(false);
     }
   };
-
-  useEffect(() => {
-    if (!thing || !userCode) return;
-    const ownerView = thing.owner === userCode;
-    if (!ownerView) return;
-    const isDateBased = isDateType(thing.type);
-    const isOrder = thing.type === ORDER_TYPE;
-    const isSwapThing = thing.type === SWAP_TYPE;
-    if (ownerView && !isDateBased && !isOrder && !isSwapThing && thing.status !== 'TAKEN') return;
-    apiFetch(`/api/v1/things/${thing.code}/calendar/`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const future = data.filter((b) => {
-          if (!b.end_date && !b.delivery_date) return true;
-          const d = new Date(b.end_date || b.delivery_date);
-          d.setHours(0, 0, 0, 0);
-          return d >= today;
-        });
-        const firstPending = future.find((b) => b.status === 'PENDING');
-        setBookings(future);
-        setActivePendingCode(firstPending?.code || null);
-      })
-      .catch(() => {});
-  }, [thing, userCode]);
 
   if (error) {
     return (
@@ -214,92 +206,6 @@ export default function ThingPage() {
   const deletePath = code
     ? `/collections/${code}/things/${thing.code}/delete`
     : `/things/${thing.code}/delete`;
-
-  const handleRequest = async () => {
-    setSubmitting(true);
-    setToast(null);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/request/`, {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      if (res.ok) {
-        setRequested(true);
-        setToast({ type: 'success', message: t('thingPage.holdRequested') });
-      } else if (res.status === 429) {
-        setToast({ type: 'error', message: t('common.tooManyAttempts') });
-      } else if (res.status === 400) {
-        const detail = await extractApiError(res);
-        setToast({ type: 'error', message: detail || t('thingPage.invalidRequest') });
-      } else {
-        setToast({ type: 'error', message: t('thingPage.errorSendingRequest') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleActivate = async () => {
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/activate/`, { method: 'POST' });
-      if (res.ok) {
-        setThing((prev) => ({ ...prev, status: 'ACTIVE', deal: [] }));
-        setToast({ type: 'success', message: t('thingPage.thingReactivated') });
-      } else {
-        setToast({ type: 'error', message: t('thingPage.errorReactivatingThing') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    }
-  };
-
-  const handleBookingAction = async (action) => {
-    const code = activePendingCode;
-    setBookingAction(true);
-    try {
-      const res = await apiFetch(`/api/v1/bookings/${code}/${action}/`, { method: 'POST' });
-      if (res.ok) {
-        const isDateBased = isDateType(thing.type);
-        const isOrder = thing.type === ORDER_TYPE;
-        if (isDateBased || isOrder) {
-          if (action === 'accept') {
-            const updated = bookings.map((b) => b.code === code ? { ...b, status: 'ACCEPTED' } : b);
-            const nextPending = updated.find((b) => b.code !== code && b.status === 'PENDING');
-            setBookings(updated);
-            setActivePendingCode(nextPending?.code || null);
-          } else {
-            const remaining = bookings.filter((b) => b.code !== code);
-            const nextPending = remaining.find((b) => b.status === 'PENDING');
-            setBookings(remaining);
-            setActivePendingCode(nextPending?.code || null);
-          }
-        } else {
-          if (action === 'accept') {
-            const updated = bookings.map((b) => b.code === code ? { ...b, status: 'ACCEPTED' } : b);
-            const nextPending = updated.find((b) => b.code !== code && b.status === 'PENDING');
-            setBookings(updated);
-            setActivePendingCode(nextPending?.code || null);
-            setThing((prev) => ({ ...prev, status: 'INACTIVE', pending_booking: nextPending?.code || null }));
-          } else {
-            const remaining = bookings.filter((b) => b.code !== code);
-            const nextPending = remaining.find((b) => b.status === 'PENDING');
-            setBookings(remaining);
-            setActivePendingCode(nextPending?.code || null);
-            setThing((prev) => ({ ...prev, status: 'ACTIVE', pending_booking: nextPending?.code || null }));
-          }
-        }
-        setToast({ type: 'success', message: action === 'accept' ? t('thingPage.holdConfirmed') : t('thingPage.holdCancelled') });
-      } else {
-        setToast({ type: 'error', message: action === 'accept' ? t('thingPage.errorConfirmingHold') : t('thingPage.errorCancellingHold') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setBookingAction(false);
-    }
-  };
 
   const handleAcceptResponse = async (responseCode) => {
     setActioning(true);
@@ -449,88 +355,10 @@ export default function ThingPage() {
 
         <ThingTags thing={thing} isOwner={isOwner} showType={false} />
 
-        <div className="thing-card-info">
-          <div className="thing-card-info-row">
-            <IconTicket size="m" aria-hidden="true" />
-            <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
-            <span>{t('types.' + thing.type)}</span>
-          </div>
-          {thing.fee && (
-            <div className="thing-card-info-row">
-              <IconEuroSign size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('thingPage.priceLabel')}</span>
-              <span>{thing.fee} €</span>
-            </div>
-          )}
-          {/* Live availability (date-based things): computed from the booking calendar */}
-          {isDateBased && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
-              <span>
-                {thing.available_today
-                  ? t('availability.IMMEDIATE')
-                  : thing.next_available
-                    ? t('availability.nextAvailable', { date: new Date(thing.next_available).toLocaleDateString(i18n.language, { day: 'numeric', month: 'numeric' }) })
-                    : t('availability.noneSoon')}
-              </span>
-            </div>
-          )}
-          {/* Static availability hint (non-date types only) */}
-          {!isDateBased && thing.availability && (
-            <div className="thing-card-info-row">
-              <IconCalendar size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
-              <span>{t('availability.' + thing.availability)}</span>
-            </div>
-          )}
-          {thing.location && (
-            <div className="thing-card-info-row">
-              <IconLocation size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('thingPage.locationLabel')}</span>
-              <span>{thing.location}</span>
-            </div>
-          )}
-          {thing.condition && (
-            <div className="thing-card-info-row">
-              <IconShield size="m" aria-hidden="true" />
-              <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
-              <span>{t('condition.' + thing.condition)}</span>
-            </div>
-          )}
-        </div>
+        <ThingInfoRows thing={thing} isDateBased={isDateBased} />
 
         {/* Owner bookings list */}
-        {isOwner && bookings.length > 0 && (() => {
-          const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
-          return (
-            <ul className="thing-card-bookings">
-              {bookings.map((b) => {
-                const isActive = isOwner && b.code === activePendingCode;
-                const showStar = isActive && pendingCount > 1;
-                return (
-                  <li key={b.code} style={{ fontWeight: isActive ? 'bold' : 'normal' }}>
-                    {isOwner && b.requester_name && <>{b.requester_name}. </>}
-                    {b.created && <>{new Date(b.created).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}. </>}
-                    {b.start_date && b.end_date && (
-                      <>
-                        {new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}
-                      </>
-                    )}
-                    {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
-                    {b.offered_thing_headlines && b.offered_thing_headlines.length > 0 && (
-                      <><br />{t('swap.offeredItems')}: {b.offered_thing_headlines.join(', ')}</>
-                    )}
-                    {' '}
-                    <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
-                      ({b.status === 'ACCEPTED' ? t('thingCard.confirmed') : t('thingCard.pending')}){showStar ? ' *' : ''}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          );
-        })()}
+        <OwnerBookingsList bookings={bookings} activePendingCode={activePendingCode} isOwner={isOwner} />
 
         {/* Owner actions */}
         {isOwner && thing.status === 'ACTIVE' && (
