@@ -59,7 +59,9 @@ class ThingComputedFieldsMixin(serializers.Serializer):
     next_available = serializers.SerializerMethodField()
 
     def get_owner_name(self, obj):
-        return obj.owner.display_name
+        # Bare name, never the email fallback — this is shown to co-members in
+        # the community grid, so display_name's email fallback would leak it (L2).
+        return obj.owner.name
 
     def get_gallery_urls(self, obj):
         return [cloudinary_url(public_id) for public_id in (obj.gallery or [])]

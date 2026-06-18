@@ -34,7 +34,7 @@ from core.services.email_service import (
     send_collection_invite_email,
     send_collection_revoke_email,
 )
-from core.views._helpers import require_collection_owner
+from core.views._helpers import require_collection_owner, type_validity_error
 
 
 def _optimise_collection_queryset(queryset):
@@ -192,6 +192,12 @@ class CollectionViewSet(ModelViewSet):
                 {"error": "Thing is already in this collection"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # The thing's type must be valid for this collection — same rules as
+        # create/update, so add-thing can't smuggle in a forbidden type (L4).
+        type_error = type_validity_error(thing.type, collection)
+        if type_error:
+            return Response({"error": type_error}, status=status.HTTP_400_BAD_REQUEST)
 
         collection.things.add(thing)
 

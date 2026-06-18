@@ -153,8 +153,13 @@ def _send(to_email, subject, plain, html, category, reply_to=None):
         # OSError subclass). BadHeaderError (a ValueError) guards against a CR/LF
         # that slipped into the subject — caught here so one tainted row can never
         # abort a multi-recipient loop or a nightly digest/newsletter cron.
+        # Log the exception class only — str(exc) (e.g. SMTPRecipientsRefused)
+        # can carry the raw recipient address, which would defeat redaction (M5).
         logger.error(
-            "Email send failed (to=%s, subject=%r): %s", redact_email(to_email), subject, exc
+            "Email send failed (to=%s, subject=%r): %s",
+            redact_email(to_email),
+            subject,
+            type(exc).__name__,
         )
         return False
     return True

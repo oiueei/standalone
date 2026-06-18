@@ -69,7 +69,9 @@ class WishResponseCreateSerializer(serializers.Serializer):
     thing_code = serializers.CharField(required=False, allow_blank=True)
     message = SafeTextField(max_length=256, required=False, allow_blank=True)
     url = serializers.URLField(max_length=255, required=False, allow_blank=True)
-    fee = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    fee = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
+    )
 
     def validate(self, data):
         kind = data["kind"]

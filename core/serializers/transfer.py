@@ -28,10 +28,12 @@ class ThingTransferSerializer(serializers.ModelSerializer):
         ]
 
     def get_from_user_name(self, obj):
-        return obj.from_user.display_name
+        # Bare name, not display_name — the journey is shown community-wide, so
+        # the email fallback would leak addresses (L2).
+        return obj.from_user.name
 
     def get_to_user_name(self, obj):
-        return obj.to_user.display_name
+        return obj.to_user.name
 
 
 class ThingTransferStatsSerializer(serializers.Serializer):

@@ -49,12 +49,14 @@ class ThingTransferView(APIView):
         current_holder_name = None
         if current_transfer:
             current_holder = current_transfer.to_user_id
-            current_holder_name = current_transfer.to_user.display_name
+            # Bare name, not display_name — shown community-wide in the journey,
+            # so the email fallback would leak addresses (L2).
+            current_holder_name = current_transfer.to_user.name
 
         # Original owner = from_user of the oldest transfer
         oldest = transfers.order_by("lent_date").first()
         original_owner = oldest.from_user_id if oldest else None
-        original_owner_name = (oldest.from_user.display_name) if oldest else None
+        original_owner_name = (oldest.from_user.name) if oldest else None
 
         # Is this a SHARE_THING in a COMMUNITY collection?
         is_share_in_community = (

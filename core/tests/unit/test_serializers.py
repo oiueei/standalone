@@ -131,6 +131,15 @@ class TestThingSerializer:
         assert data["headline"] == "My Thing"
         assert "thumbnail_url" in data
 
+    def test_owner_name_does_not_leak_email(self):
+        """L2: owner_name uses the bare name, never the email fallback — it's
+        shown to co-members, so a no-name owner must not expose their address."""
+        owner = User.objects.create(code="NMLES1", email="nameless@example.com", name="")
+        thing = Thing.objects.create(code="THNG09", owner=owner, headline="Y")
+        data = ThingSerializer(thing).data
+        assert data["owner_name"] == ""
+        assert "nameless@example.com" not in str(data)
+
     def test_serialize_thing_with_collection(self):
         """Should include collection_code and collection_headline."""
         user = User.objects.create(code="OWN001", email="owner@example.com")

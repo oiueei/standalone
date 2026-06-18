@@ -3,19 +3,26 @@ Utility functions for OIUEEI.
 """
 
 import hashlib
+import hmac
 import secrets
 import string
 
+from django.conf import settings
+
 
 def redact_email(email):
-    """Return a stable, non-reversible tag for an email, safe to write to logs.
+    """Return a keyed, non-reversible tag for an email, safe to write to logs.
 
-    A short SHA-256 prefix — never the address itself — so ops can still correlate
-    events for the same user (same email → same tag) without writing PII to logs (M5).
+    An HMAC-SHA256 (keyed by ``SECRET_KEY``) prefix — never the address — so ops
+    can still correlate events for the same user (same email → same tag) without
+    writing PII, and without the tag being recoverable via a dictionary attack on
+    a bare hash of a low-entropy email (M5). Tags change if ``SECRET_KEY`` rotates.
     """
     if not email:
         return "email#none"
-    digest = hashlib.sha256(email.strip().lower().encode()).hexdigest()[:12]
+    digest = hmac.new(
+        settings.SECRET_KEY.encode(), email.strip().lower().encode(), hashlib.sha256
+    ).hexdigest()[:12]
     return f"email#{digest}"
 
 

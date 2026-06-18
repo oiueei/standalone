@@ -234,6 +234,18 @@ class TestSwapRequest:
         owner_swap_thing.refresh_from_db()
         assert owner_swap_thing.type == "SWAP_THING"
 
+    def test_add_thing_forbidden_type_rejected(self, authenticated_client, user, swap_collection):
+        """L4: the add-thing endpoint also re-validates type — a non-SWAP thing
+        can't be added to a swap collection (closes the create/update bypass)."""
+        gift = Thing.objects.create(code="GFT099", type="GIFT_THING", owner=user, headline="G")
+        res = authenticated_client.post(
+            f"/api/v1/collections/{swap_collection.code}/add-thing/",
+            {"thing_code": gift.code},
+            format="json",
+        )
+        assert res.status_code == 400
+        assert not swap_collection.things.filter(code=gift.code).exists()
+
     def test_swap_request_unowned_thing(
         self,
         auth_client_user2,

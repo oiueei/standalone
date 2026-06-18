@@ -138,7 +138,9 @@ class CollectionSerializer(serializers.ModelSerializer):
         ]
 
     def get_owner_name(self, obj):
-        return obj.owner.display_name
+        # Bare name, not display_name — guests see this, so the email fallback
+        # would leak the owner's address (L2).
+        return obj.owner.name
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
