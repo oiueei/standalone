@@ -270,6 +270,16 @@ Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on 
 
 Lists things from collections where the current user is invited. Only returns ACTIVE or TAKEN things (excludes INACTIVE). Only returns things from ACTIVE collections. Uses `.distinct()` to avoid duplicates.
 
+### ThingBulkCreateView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/collections/{collection_code}/things/bulk/` |
+| **Permission** | `IsAuthenticated` + `collection.can_add_thing()` |
+| **Rate limit** | `10/h` per user |
+
+CSV bulk-add (F-9). Body is `{"rows": [{type, headline, description, fee, availability, location, condition, is_endless}, ...]}` (max 100 rows), parsed and previewed client-side by `BulkAddCsv`. Each row is validated with `ThingBulkRowSerializer` (the project's Safe* fields + a `reject_spreadsheet_formula` CSV-injection guard on free-text fields) and `type_validity_error`; if **any** row fails the request returns `400 {"errors": [{row, errors}]}` and **nothing** is created. On full success every row is created in one `transaction.atomic()` and the response is `201 {"created": N, "codes": [...]}`. Album (`is_minimalist`) collections are rejected (every item needs a photo, which a CSV can't carry). Photos, gallery, documents and tags are not importable from CSV.
+
 ---
 
 ## Collection Views (`core/views/collections.py`)

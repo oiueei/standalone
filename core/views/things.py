@@ -2,9 +2,12 @@
 Thing views for OIUEEI.
 """
 
+from django.db import transaction
 from django.db.models import Count, Prefetch
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -19,7 +22,12 @@ from core.models.booking import BookingPeriod
 from core.models.notification import InAppNotification
 from core.pagination import StandardResultsPagination
 from core.permissions import IsThingOwner
-from core.serializers import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
+from core.serializers import (
+    ThingBulkRowSerializer,
+    ThingCreateSerializer,
+    ThingSerializer,
+    ThingUpdateSerializer,
+)
 from core.services.email_service import send_wish_posted_email
 from core.utils import signed_document_url
 from core.views._helpers import type_validity_error
@@ -270,6 +278,79 @@ class DocumentDownloadView(APIView):
         if not url:
             raise Http404("Document not found.")
         return HttpResponseRedirect(url)
+
+
+class ThingBulkCreateView(APIView):
+    """
+    POST /api/v1/collections/{collection_code}/things/bulk/
+
+    Create many things in one atomic transaction from a CSV the client parsed and
+    previewed (F-9). Either every row is created or none is. Free-text fields are
+    guarded against spreadsheet-formula (CSV) injection, and the import is
+    rate-limited per user. Only the owner (or a member who can add things) may
+    import. Body: ``{"rows": [{type, headline, ...}, ...]}``.
+    """
+
+    permission_classes = [IsAuthenticated]
+    MAX_ROWS = 100
+
+    @method_decorator(ratelimit(key="user", rate="10/h", method="POST", block=True))
+    def post(self, request, collection_code):
+        collection = get_object_or_404(Collection, code=collection_code)
+        if not collection.can_add_thing(request.user.code):
+            return Response(
+                {"error": "You do not have permission to add things to this collection."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        # Album collections require a photo per item, which a CSV can't carry —
+        # mirror the single-create rule rather than create photo-less things.
+        if collection.is_minimalist:
+            return Response(
+                {
+                    "error": (
+                        "CSV import isn't available for album collections — "
+                        "each item needs a photo."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        rows = request.data.get("rows") if isinstance(request.data, dict) else None
+        if not isinstance(rows, list) or not rows:
+            return Response({"error": "No rows to import."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(rows) > self.MAX_ROWS:
+            return Response(
+                {"error": f"At most {self.MAX_ROWS} rows can be imported at once."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate every row first; report all failures by row index and create
+        # nothing unless the whole batch is valid (all-or-nothing).
+        validated = []
+        errors = []
+        for index, row in enumerate(rows):
+            serializer = ThingBulkRowSerializer(data=row)
+            if not serializer.is_valid():
+                errors.append({"row": index, "errors": serializer.errors})
+                continue
+            thing_type = serializer.validated_data.get("type", Thing.Type.GIFT_THING)
+            type_error = type_validity_error(thing_type, collection)
+            if type_error:
+                errors.append({"row": index, "errors": {"type": [type_error]}})
+                continue
+            validated.append(serializer.validated_data)
+
+        if errors:
+            return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            created = [Thing.objects.create(owner=request.user, **data) for data in validated]
+            collection.things.add(*created)
+
+        return Response(
+            {"created": len(created), "codes": [thing.code for thing in created]},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class InvitedThingsView(ListAPIView):

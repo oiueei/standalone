@@ -7,7 +7,13 @@ from rest_framework import serializers
 from core.models import Thing
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
-from core.validators import ImageIdField, SafeHeadlineField, SafeTextField, validate_image_id
+from core.validators import (
+    ImageIdField,
+    SafeHeadlineField,
+    SafeTextField,
+    reject_spreadsheet_formula,
+    validate_image_id,
+)
 
 ALLOWED_DOCUMENT_TYPES = {
     "application/pdf",
@@ -419,3 +425,51 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
         for document in documents:
             document["type"] = "authenticated"
         return documents
+
+
+class ThingBulkRowSerializer(serializers.ModelSerializer):
+    """One row of a CSV bulk import (F-9).
+
+    Reuses the project's safe text fields (HTML / line-break / unsafe-scheme
+    rejection) and adds a CSV-injection guard on each free-text field. Only the
+    plain text/scalar columns are importable from a CSV — photos, gallery,
+    documents and tags are not part of a bulk upload.
+    """
+
+    headline = SafeHeadlineField(max_length=64)
+    description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
+    fee = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
+    )
+
+    class Meta:
+        model = Thing
+        fields = [
+            "type",
+            "headline",
+            "description",
+            "fee",
+            "availability",
+            "location",
+            "condition",
+            "is_endless",
+        ]
+
+    def validate_type(self, value):
+        # Wishes notify the whole group when posted; bulk-importing them silently
+        # would skip that, so they must be added individually.
+        if value == Thing.Type.WISH_THING:
+            raise serializers.ValidationError(
+                "Wishes can't be bulk-imported — add them individually so the group is notified."
+            )
+        return value
+
+    def validate_headline(self, value):
+        return reject_spreadsheet_formula(value)
+
+    def validate_description(self, value):
+        return reject_spreadsheet_formula(value)
+
+    def validate_location(self, value):
+        return reject_spreadsheet_formula(value)

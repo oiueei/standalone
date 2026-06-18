@@ -631,6 +631,20 @@
     "qrHelper": "Jarri telefonoaren kamera kode honen aurrean gonbidapen-esteka irekitzeko.",
     "qrClose": "Itxi"
   },
+  "bulkAdd": {
+    "heading": "Gehitu hainbat batera (CSV)",
+    "help": "Igo \"headline\" zutabea (nahitaezkoa) duen CSV bat. Aukerako zutabeak: type, description, fee, availability, location, condition.",
+    "fileLabel": "CSV fitxategia",
+    "empty": "Ez da errenkadarik aurkitu fitxategian.",
+    "tooMany": "Gehienez {{max}} elementu inporta ditzakezu aldi berean.",
+    "headlineRequired": "Errenkada bakoitzak izenburua behar du.",
+    "parseError": "Ezin izan dugu CSVa irakurri. Egiaztatu formatua eta saiatu berriro.",
+    "preview": "Aurrebista ({{count}})",
+    "importing": "Inportatzen…",
+    "import": "Gehitu {{count}} elementu",
+    "error": "Errenkada batzuk ezin izan dira inportatu. Egiaztatu fitxategia eta saiatu berriro.",
+    "rowErrors": "Errenkada hauek ezin izan dira inportatu (egiaztatu beren zutabeak): {{rows}}"
+  },
   "gallery": {
     "uploadLabel": "Argazki gehiago",
     "uploadHelper": "Gehitu {{max}} argazki gehiago gehienez",

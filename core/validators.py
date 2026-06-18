@@ -117,3 +117,24 @@ class SafeTextField(serializers.CharField):
     def to_internal_value(self, data):
         value = super().to_internal_value(data)
         return validate_text(value)
+
+
+# Characters a spreadsheet treats as the start of a formula (CSV injection).
+_FORMULA_PREFIXES = ("=", "+", "-", "@")
+
+
+def reject_spreadsheet_formula(value):
+    """
+    Reject text whose first non-space character would make a spreadsheet execute
+    it as a formula if the data were ever exported to CSV (CSV injection).
+
+    Applied to free-text fields imported via the bulk CSV upload (F-9): a row is
+    rejected (so the user fixes the source) rather than silently mangled. The
+    existing ``Safe*`` fields already strip HTML and line breaks; this adds the
+    leading ``= + - @`` guard on top.
+    """
+    if value and value.lstrip()[:1] in _FORMULA_PREFIXES:
+        raise serializers.ValidationError(
+            "This field cannot start with =, +, - or @ (spreadsheet formula injection)."
+        )
+    return value

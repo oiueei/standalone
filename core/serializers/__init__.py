@@ -18,7 +18,12 @@ from .collection import (
 )
 from .faq import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
 from .theeeme import TheeemeSerializer
-from .thing import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
+from .thing import (
+    ThingBulkRowSerializer,
+    ThingCreateSerializer,
+    ThingSerializer,
+    ThingUpdateSerializer,
+)
 from .transfer import ThingTransferSerializer, ThingTransferStatsSerializer
 from .user import UserPublicSerializer, UserSerializer, UserUpdateSerializer
 from .wish import WishResponseCreateSerializer, WishResponseSerializer
@@ -39,6 +44,7 @@ __all__ = [
     "ThingSerializer",
     "ThingCreateSerializer",
     "ThingUpdateSerializer",
+    "ThingBulkRowSerializer",
     "FAQSerializer",
     "FAQCreateSerializer",
     "FAQAnswerSerializer",

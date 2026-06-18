@@ -6,6 +6,7 @@ import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE 
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import ThingForm from '../components/ThingForm';
+import BulkAddCsv from '../components/BulkAddCsv';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -228,6 +229,13 @@ export default function AddThingPage() {
           {submitting ? t('common.creating') : t('common.create')}
         </Button>
       </div>
+
+      {!isMinimalistCollection && !respondWishCode && (
+        <section className="bulk-add-section">
+          <h2>{t('bulkAdd.heading')}</h2>
+          <BulkAddCsv collectionCode={code} onImported={() => navigate(`/collections/${code}`)} />
+        </section>
+      )}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
     </PageLayout>

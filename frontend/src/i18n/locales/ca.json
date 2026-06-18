@@ -631,6 +631,20 @@
     "qrHelper": "Apunta la càmera del mòbil a aquest codi per obrir l'enllaç d'invitació.",
     "qrClose": "Tanca"
   },
+  "bulkAdd": {
+    "heading": "Afegir-ne diversos alhora (CSV)",
+    "help": "Puja un CSV amb una columna \"headline\" (obligatòria). Columnes opcionals: type, description, fee, availability, location, condition.",
+    "fileLabel": "Fitxer CSV",
+    "empty": "No s'han trobat files al fitxer.",
+    "tooMany": "Pots importar fins a {{max}} elements alhora.",
+    "headlineRequired": "Cada fila necessita un títol.",
+    "parseError": "No hem pogut llegir el CSV. Revisa el format i torna-ho a provar.",
+    "preview": "Vista prèvia ({{count}})",
+    "importing": "Important…",
+    "import": "Afegir {{count}} elements",
+    "error": "Algunes files no s'han pogut importar. Revisa el fitxer i torna-ho a provar.",
+    "rowErrors": "Aquestes files no s'han pogut importar (revisa'n les columnes): {{rows}}"
+  },
   "gallery": {
     "uploadLabel": "Més fotos",
     "uploadHelper": "Afegeix fins a {{max}} fotos més",

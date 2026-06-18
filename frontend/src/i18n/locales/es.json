@@ -631,6 +631,20 @@
     "qrHelper": "Apunta la cámara del móvil a este código para abrir el enlace de invitación.",
     "qrClose": "Cerrar"
   },
+  "bulkAdd": {
+    "heading": "Añadir varios a la vez (CSV)",
+    "help": "Sube un CSV con una columna \"headline\" (obligatoria). Columnas opcionales: type, description, fee, availability, location, condition.",
+    "fileLabel": "Archivo CSV",
+    "empty": "No se encontraron filas en el archivo.",
+    "tooMany": "Puedes importar hasta {{max}} elementos a la vez.",
+    "headlineRequired": "Cada fila necesita un título.",
+    "parseError": "No pudimos leer el CSV. Revisa el formato e inténtalo de nuevo.",
+    "preview": "Vista previa ({{count}})",
+    "importing": "Importando…",
+    "import": "Añadir {{count}} elementos",
+    "error": "Algunas filas no se pudieron importar. Revisa el archivo e inténtalo de nuevo.",
+    "rowErrors": "Estas filas no se pudieron importar (revisa sus columnas): {{rows}}"
+  },
   "gallery": {
     "uploadLabel": "Más fotos",
     "uploadHelper": "Añade hasta {{max}} fotos más",

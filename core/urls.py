@@ -37,7 +37,12 @@ from .views.inbox import InboxView
 from .views.notifications import NotificationsByTokenView
 from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
-from .views.things import DocumentDownloadView, InvitedThingsView, ThingViewSet
+from .views.things import (
+    DocumentDownloadView,
+    InvitedThingsView,
+    ThingBulkCreateView,
+    ThingViewSet,
+)
 from .views.transfers import ThingTransferView
 from .views.upload import CloudinarySignatureView
 from .views.users import UserDetailView
@@ -101,6 +106,11 @@ urlpatterns = [
         "collections/<str:collection_code>/share-link/",
         CollectionShareLinkView.as_view(),
         name="collection-share-link",
+    ),
+    path(
+        "collections/<str:collection_code>/things/bulk/",
+        ThingBulkCreateView.as_view(),
+        name="collection-things-bulk",
     ),
     # Upload
     path("upload/signature/", CloudinarySignatureView.as_view(), name="upload-signature"),

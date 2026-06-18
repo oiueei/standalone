@@ -631,6 +631,20 @@
     "qrHelper": "Aponta a câmara do telemóvel a este código para abrir a ligação de convite.",
     "qrClose": "Fechar"
   },
+  "bulkAdd": {
+    "heading": "Adicionar vários de uma vez (CSV)",
+    "help": "Carrega um CSV com uma coluna \"headline\" (obrigatória). Colunas opcionais: type, description, fee, availability, location, condition.",
+    "fileLabel": "Ficheiro CSV",
+    "empty": "Não foram encontradas linhas no ficheiro.",
+    "tooMany": "Podes importar até {{max}} itens de uma vez.",
+    "headlineRequired": "Cada linha precisa de um título.",
+    "parseError": "Não conseguimos ler o CSV. Verifica o formato e tenta novamente.",
+    "preview": "Pré-visualização ({{count}})",
+    "importing": "A importar…",
+    "import": "Adicionar {{count}} itens",
+    "error": "Algumas linhas não puderam ser importadas. Verifica o ficheiro e tenta novamente.",
+    "rowErrors": "Estas linhas não puderam ser importadas (verifica as colunas): {{rows}}"
+  },
   "gallery": {
     "uploadLabel": "Mais fotografias",
     "uploadHelper": "Adicione até {{max}} fotografias adicionais",

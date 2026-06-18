@@ -648,6 +648,20 @@
     "qrHelper": "Point a phone camera at this code to open the invite link.",
     "qrClose": "Close"
   },
+  "bulkAdd": {
+    "heading": "Add many at once (CSV)",
+    "help": "Upload a CSV with a \"headline\" column (required). Optional columns: type, description, fee, availability, location, condition.",
+    "fileLabel": "CSV file",
+    "empty": "No rows found in that file.",
+    "tooMany": "You can import up to {{max}} items at once.",
+    "headlineRequired": "Every row needs a headline.",
+    "parseError": "We couldn't read that CSV. Check the format and try again.",
+    "preview": "Preview ({{count}})",
+    "importing": "Importing…",
+    "import": "Add {{count}} items",
+    "error": "Some rows couldn't be imported. Check the file and try again.",
+    "rowErrors": "These rows couldn't be imported (check their columns): {{rows}}"
+  },
   "gallery": {
     "uploadLabel": "More photos",
     "uploadHelper": "Add up to {{max}} extra photos",
