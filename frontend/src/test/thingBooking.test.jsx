@@ -160,22 +160,31 @@ describe('ThingLinkbox — guest reservation button', () => {
 // ThingLinkbox — status / pause gating
 // ════════════════════════════════════════════════════════════════════════
 describe('ThingLinkbox — status and pause gating', () => {
-  // NOTE: a TAKEN thing always renders "Waiting for confirmation" — there is no
-  // "Reserved" label in the code (frontend/CLAUDE.md mentions one, but no such
-  // i18n key / branch exists). Locked to current behaviour.
-  test('TAKEN disables the button and shows "Waiting for confirmation"', () => {
+  // A TAKEN thing is disabled for everyone, but the label is audience-specific:
+  // only the viewer holding the pending booking (my_pending_booking / local
+  // `requested`) sees "Waiting for confirmation"; everyone else sees "Not
+  // available", so the disabled button explains itself.
+  test('TAKEN shows "Not available" to a non-requester and disables the button', () => {
     const thing = makeThing({ status: 'TAKEN' });
+    renderLinkbox({ thing, userCode: 'GUEST1' });
+
+    const btn = screen.getByRole('button', { name: 'Not available' });
+    expect(btn).toBeDisabled();
+  });
+
+  test('TAKEN shows "Waiting for confirmation" to the requester (my_pending_booking)', () => {
+    const thing = makeThing({ status: 'TAKEN', my_pending_booking: 'BK9' });
     renderLinkbox({ thing, userCode: 'GUEST1' });
 
     const btn = screen.getByRole('button', { name: 'Waiting for confirmation' });
     expect(btn).toBeDisabled();
   });
 
-  test('isPaused disables the hold button but keeps the action label', () => {
+  test('isPaused disables the hold button and labels it "Paused"', () => {
     const thing = makeThing({ type: 'GIFT_THING' });
     renderLinkbox({ thing, userCode: 'GUEST1', isPaused: true });
 
-    const btn = screen.getByRole('button', { name: 'Claim' });
+    const btn = screen.getByRole('button', { name: 'Paused' });
     expect(btn).toBeDisabled();
   });
 });
@@ -184,7 +193,7 @@ describe('ThingLinkbox — status and pause gating', () => {
 // ThingLinkbox — swap minimum-items gate
 // ════════════════════════════════════════════════════════════════════════
 describe('ThingLinkbox — swap minimum gate', () => {
-  test('below the minimum disables the button and shows the notification', () => {
+  test('below the minimum disables the button, labels the gap, and shows the notification', () => {
     const thing = makeThing({
       type: 'SWAP_THING',
       collection_swap_minimum_items: 3,
@@ -192,7 +201,9 @@ describe('ThingLinkbox — swap minimum gate', () => {
     });
     renderLinkbox({ thing, userCode: 'GUEST1' });
 
-    expect(screen.getByRole('button', { name: 'Swap' })).toBeDisabled();
+    // The disabled button now states the gap (P1-2) instead of the action verb,
+    // and the detailed notification still appears below it.
+    expect(screen.getByRole('button', { name: 'Need 2 more items' })).toBeDisabled();
     expect(screen.getByText('Upload more items first')).toBeInTheDocument();
   });
 

@@ -190,6 +190,18 @@ export default function ThingPage() {
   const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
   const swapItemsMissing = swapMinimumNotMet ? swapMinimum - swapOwnCount : 0;
   const buttonDisabled = thing.status === 'TAKEN' || submitting || requested || (isShare && !!thing.my_pending_booking) || swapMinimumNotMet;
+  // Only the viewer who holds the pending booking sees "waiting"; everyone else
+  // sees why the disabled button can't be used, so the cause travels with it.
+  const isMine = requested || !!thing.my_pending_booking;
+  const buttonLabel = submitting
+    ? t('common.sending')
+    : isMine
+      ? t('thingCard.waitingForConfirmation')
+      : thing.status === 'TAKEN'
+        ? t('thingCard.notAvailable')
+        : swapMinimumNotMet
+          ? t('thingCard.needMoreItems', { count: swapItemsMissing })
+          : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') });
 
   const editPath = code
     ? `/collections/${code}/things/${thing.code}/edit`
@@ -444,11 +456,7 @@ export default function ThingPage() {
             style={btnStyle}
             onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
           >
-            {submitting
-              ? t('common.sending')
-              : (thing.status === 'TAKEN' || requested || (isShare && !!thing.my_pending_booking))
-                ? t('thingCard.waitingForConfirmation')
-                : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}
+            {buttonLabel}
           </Button>
         )}
         {showButton && swapMinimumNotMet && (

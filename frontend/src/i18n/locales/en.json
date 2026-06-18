@@ -218,6 +218,10 @@
     "confirmed": "Confirmed",
     "pending": "Pending",
     "qty": "qty",
+    "notAvailable": "Not available",
+    "paused": "Paused",
+    "needMoreItems_one": "Need {{count}} more item",
+    "needMoreItems_other": "Need {{count}} more items",
     "action": {
       "GIFT_THING": "Claim",
       "SELL_THING": "Buy",

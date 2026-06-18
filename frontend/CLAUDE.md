@@ -171,19 +171,22 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
 - **Owner bookings display**: fetches `GET /api/v1/things/{code}/calendar/` on mount for date-based/order types and for any TAKEN thing (GIFT/SELL with a pending request). Shows future pending and confirmed bookings with requester name, request date, date ranges/delivery info, and status. Bookings with no dates (GIFT/SELL) are always shown regardless of date. The active pending booking is tracked in local `activePendingCode` state (initialised from `thing.pending_booking`, then synced to the first PENDING from the calendar on load) and marked bold with `*` when multiple pending exist.
 - **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary). Secondary buttons always have a white background (`--background-color: white`); the theeeme `color_01` is used for the border, and `color_04` for the text.
 - **Owner button matrix** (based on `thing.status`):
-  - `ACTIVE` (no pending hold): "Edit" (**primary**), "Hide" (secondary). "Hide" is suppressed when pending bookings exist. For SHARE_THING after transfer (`transfer_count > 0`), "Hide" is only shown to the collection owner (not the thing owner).
+  - `ACTIVE` (no pending hold): "Edit" (**primary**), "Delete" (secondary). "Delete" is suppressed when pending bookings exist. For SHARE_THING after transfer (`transfer_count > 0`), "Delete" is only shown to the collection owner (not the thing owner). There is no dedicated "Hide" button — hiding a thing is done by setting it `INACTIVE` from `EditThingPage`.
   - `ACTIVE` (date-based/order with pending hold): "Confirm hold" (primary) + "Cancel hold" (secondary) targeting `activePendingCode`, then "Edit" (secondary).
   - `TAKEN`: "Confirm hold" (primary), "Cancel hold" (secondary), "Edit" (secondary). After each accept/cancel, `activePendingCode` advances to the next pending.
   - `INACTIVE`: "Reactivate" (primary, calls `POST /api/v1/things/{code}/activate/`), "Edit" (secondary), "Delete" (secondary, navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`).
 - **Wish answer menu** (non-owners, WISH_THING only): renders `<RespondMenu>` — the "Contestar" dropdown (HDS `Select`) with three options (Tengo esto / Sé dónde / Puedo hacértelo). "Tengo esto" routes to `AddThingPage` in respond mode (publishes a listing, links it back as a HAVE_THIS answer); the other two route to `RespondWishPage`. When the viewer has already answered (`thing.my_response`), a small status line replaces the menu. The card also shows a `response_count` row (`IconSpeechbubbleText`) when there are answers.
-- **Reservation button** logic (non-owners, non-wish only):
-  - `ACTIVE`: enabled "Hold" button. Disabled (but still showing "Hold") when `isPaused` prop is true.
-  - `TAKEN`: disabled button. Label is "Waiting for confirmation" if `thing.my_pending_booking` (or local `requested` state) is set, otherwise "Reserved".
+- **Reservation button** logic (non-owners, non-wish only). The label is computed once (`buttonLabel`) so a disabled button always states its reason (P1-2):
+  - `ACTIVE`: enabled button showing the per-type action verb (`thingCard.action.{type}`, default `thingCard.hold`).
+  - `TAKEN`: disabled. Label is "Waiting for confirmation" to the viewer holding the pending booking (`thing.my_pending_booking` or local `requested`), and "Not available" (`thingCard.notAvailable`) to everyone else.
+  - **Paused**: when `isPaused`, disabled and labelled "Paused" (`thingCard.paused`).
+  - **Below the swap minimum**: disabled and labelled "Need {N} more items" (`thingCard.needMoreItems`); the detailed `swap.minimumNotMet*` notification still renders below.
   - `INACTIVE`: not shown (guests cannot see INACTIVE things).
-  - `isPaused` prop: passed from `CollectionPage` via `collection.is_paused`. Disables all Hold/propose-swap buttons for non-owners without changing button label.
+  - `isPaused` prop: passed from `CollectionPage` via `collection.is_paused`. Disables all Hold/propose-swap buttons for non-owners.
 - **Reservation request** adapts to thing type:
   - `GIFT_THING`, `SELL_THING` — button submits directly via `POST /api/v1/things/{code}/request/`, no extra fields.
-  - `LEND_THING`, `RENT_THING`, `SHARE_THING` — button navigates to `RequestThingPage` for date selection.
+  - `LEND_THING`, `RENT_THING` — button navigates to `RequestThingPage` for date selection.
+  - `SHARE_THING` — button submits directly via `POST /api/v1/things/{code}/request/` (no dates). Ownership transfers to the requester on the owner's **accept**; the thing stays `ACTIVE` so it keeps circulating (it is `needsPage`-excluded, unlike LEND/RENT).
   - `ORDER_THING` — button navigates to `RequestThingPage` for delivery date and quantity.
   - `SWAP_THING` — "Propose swap" button navigates to `RequestThingPage` for swap item selection. Owner bookings display shows offered thing headlines for swap requests. **Minimum-items gate**: when `thing.collection_swap_minimum_items > 0` and `thing.my_swap_count_in_collection` is below it, the button is disabled and an inline HDS `Notification` (`type="info"`, `size="small"`) is rendered below it via `swap.minimumNotMetLabel` + `swap.minimumNotMetBody` (with `count` interpolation). The same gate is mirrored in `ThingPage`. Backend backstops it in `core/views/reservations.py::_handle_swap_request`.
 - **Back navigation**: passes `{ state: { backPath, backLabel } }` to RequestThingPage and ThingPage based on context (collection headline or home).
@@ -201,13 +204,13 @@ Detail page for a thing with full information and FAQs section.
 - **Back link**: shows collection headline or "Home" depending on navigation context (via `location.state.backLabel`).
 - **Owner bookings display**: fetches `GET /api/v1/things/{thingCode}/calendar/` for date-based/order types and for any TAKEN thing (GIFT/SELL). Same logic as ThingLinkbox: filters past bookings, syncs `activePendingCode` to the first PENDING from the calendar, shows bookings list with requester name, request date, date ranges/delivery info, and status. Active pending booking is bold; starred when multiple pending exist.
 - **Owner actions:** Full parity with ThingLinkbox button matrix:
-  - `ACTIVE` (no pending): "Edit" (**primary**) + "Hide" (secondary, suppressed when pending bookings exist).
+  - `ACTIVE` (no pending): "Edit" (**primary**) + "Delete" (secondary, suppressed when pending bookings exist). No "Hide" button — hiding is setting the thing `INACTIVE` via `EditThingPage`.
   - `ACTIVE` (date-based/order with pending): "Confirm hold" + "Cancel hold" + "Edit" (secondary).
   - `TAKEN`: "Confirm hold" (primary) → "Cancel hold" (secondary) → "Edit" (secondary). `activePendingCode` advances to next pending after each action.
   - `INACTIVE`: "Reactivate" (primary) + "Edit" (secondary) + "Delete" (secondary).
   - Delete navigates to `DeleteThingPage` with `{ state: { backPath, backLabel } }`.
 - **Wish answers:** For WISH_THING, non-owners see the `<RespondMenu>` "Contestar" dropdown (or a status line if they already answered via `thing.my_response`). A **Responses** section lists answers (the creator sees all via `GET /things/{code}/responses/`; a responder sees only their own) with responder name, kind, message/link/price, and the linked listing for "Tengo esto". The creator gets an **Accept** button per pending answer (`POST /wish-responses/{code}/accept/`) and a **Marcar como resuelto** button (`POST /things/{code}/resolve/`), which hides the wish.
-- **Reservation:** For non-wish types, non-owners see "Hold" button (or "Propose swap" for SWAP_THING). GIFT/SELL types submit directly; date-based, order, and swap types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`. Owner bookings for SWAP_THING display offered thing headlines.
+- **Reservation:** For non-wish types, non-owners see "Hold" button (or "Propose swap" for SWAP_THING). GIFT/SELL/SHARE types submit directly via `POST .../request/`; date-based (LEND/RENT), order, and swap types navigate to `RequestThingPage` with `{ state: { backPath, backLabel } }`. Owner bookings for SWAP_THING display offered thing headlines.
 - **FAQs section:**
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
   - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
@@ -223,7 +226,7 @@ Detail page for a thing with full information and FAQs section.
 - **Page title**: `Hold: {thing.headline}` with fee display when present.
 - **Form fields** adapt to thing type:
   - `SWAP_THING` — Fetches user's own SWAP_THING items in the same collection. Shows HDS `Checkbox` per item for multi-select. Submits `{ offered_thing_codes: [...] }`. "Propose swap" button disabled until at least one item selected.
-  - `LEND_THING`, `RENT_THING`, `SHARE_THING` — `DateInput` for start and end dates with blocked-date validation.
+  - `LEND_THING`, `RENT_THING` — `DateInput` for start and end dates with blocked-date validation. (SHARE_THING never routes here — it submits directly from the card/detail page.)
   - `ORDER_THING` — `DateInput` for delivery date + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates fetched from calendar API.
 - **Buttons**: Cancel (navigates back) + Hold/Propose swap (submits request).

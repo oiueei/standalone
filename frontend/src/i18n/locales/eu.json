@@ -201,6 +201,10 @@
     "confirmed": "Baieztatuta",
     "pending": "Zain",
     "qty": "kant.",
+    "notAvailable": "Ez dago eskuragarri",
+    "paused": "Pausatuta",
+    "needMoreItems_one": "Beste {{count}} artikulu behar duzu",
+    "needMoreItems_other": "Beste {{count}} artikulu behar dituzu",
     "action": {
       "GIFT_THING": "Eskatu",
       "SELL_THING": "Erosi",

@@ -201,6 +201,10 @@
     "confirmed": "Confirmado",
     "pending": "Pendiente",
     "qty": "uds",
+    "notAvailable": "No disponible",
+    "paused": "Pausada",
+    "needMoreItems_one": "Necesitas {{count}} artículo más",
+    "needMoreItems_other": "Necesitas {{count}} artículos más",
     "action": {
       "GIFT_THING": "Pedir",
       "SELL_THING": "Comprar",

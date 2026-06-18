@@ -55,6 +55,21 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
   const swapItemsMissing = swapMinimumNotMet ? swapMinimum - swapOwnCount : 0;
   const buttonDisabled = isPaused || thing.status === 'TAKEN' || submitting || requested || swapMinimumNotMet;
+  // The current viewer holds the pending booking (locally requested, or returned
+  // by the serializer). Only they see "waiting"; everyone else sees a reason the
+  // disabled button can't be used — so the cause travels with the control (P1-2).
+  const isMine = requested || !!thing.my_pending_booking;
+  const buttonLabel = submitting
+    ? t('common.sending')
+    : isMine
+      ? t('thingCard.waitingForConfirmation')
+      : thing.status === 'TAKEN'
+        ? t('thingCard.notAvailable')
+        : isPaused
+          ? t('thingCard.paused')
+          : swapMinimumNotMet
+            ? t('thingCard.needMoreItems', { count: swapItemsMissing })
+            : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') });
 
   const editPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}/edit`
@@ -126,7 +141,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 style={btnStyle}
                 onClick={isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
               >
-                {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}
+                {buttonLabel}
               </Button>
             )}
           </div>
@@ -277,7 +292,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               style={btnStyle}
               onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
             >
-              {submitting ? t('common.sending') : (thing.status === 'TAKEN' || requested) ? t('thingCard.waitingForConfirmation') : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}
+              {buttonLabel}
             </Button>
           )}
           {showButton && swapMinimumNotMet && (
