@@ -49,6 +49,8 @@ class TestAuthViews:
         assert response.data["user"]["code"] == user.code
         assert "access_token" in response.cookies
         assert "refresh_token" in response.cookies
+        # L11: auth is JWT-only — no shadow Django session is opened.
+        assert "sessionid" not in response.cookies
 
     def test_verify_link_invalid(self, api_client):
         """Should reject invalid RSVP code."""
@@ -120,6 +122,22 @@ class TestAuthViews:
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Successfully logged out"
+
+    def test_logout_blacklists_refresh_from_cookie(self, authenticated_client, user):
+        """M4: logout reads the refresh token from its cookie (now scoped to
+        /api/v1/auth/ so it reaches logout) and blacklists it — reusing it to
+        refresh must 401."""
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = str(RefreshToken.for_user(user))
+        authenticated_client.cookies["refresh_token"] = refresh
+        logout_resp = authenticated_client.post("/api/v1/auth/logout/")
+        assert logout_resp.status_code == status.HTTP_200_OK
+
+        # The blacklisted token can no longer be exchanged for a new pair.
+        authenticated_client.cookies["refresh_token"] = refresh
+        refresh_resp = authenticated_client.post("/api/v1/auth/refresh/")
+        assert refresh_resp.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_logout_with_invalid_refresh_token(self, authenticated_client):
         """Should logout successfully even when refresh token is invalid."""

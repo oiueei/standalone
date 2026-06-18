@@ -62,7 +62,7 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 4. RSVP is deleted after use (one-time use).
 
 **Internal helpers:**
-- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, generates JWT, calls `login()`. Returns `(user, refresh, user_data)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`.
+- `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, mints a JWT. Returns `(user, refresh, user_data)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`. Auth is JWT-cookie-only — it deliberately does **not** open a Django session (no `login()`); the admin site has its own session, so a shadow session would be needless attack surface.
 - `_handle_booking_action(rsvp, accepted)` — Shared by `BOOKING_ACCEPT` and `BOOKING_REJECT` handlers. Looks up booking, validates via `is_valid()`, calls `accept_booking()`/`reject_booking()` service, sends decision email, deletes sibling RSVPs.
 
 **MAGIC_LINK response (200):**
@@ -155,7 +155,7 @@ Returns the current authenticated user's full profile via `UserSerializer`. Upda
 | **Endpoint** | `POST /api/v1/auth/logout/` |
 | **Permission** | `IsAuthenticated` |
 
-Logs out the current user. Reads the refresh token from the `refresh_token` HttpOnly cookie, blacklists it, and clears both `access_token` and `refresh_token` cookies.
+Logs out the current user. Reads the refresh token from the `refresh_token` HttpOnly cookie (scoped to `/api/v1/auth/` so it actually reaches this endpoint — `REFRESH_COOKIE_PATH`), blacklists it so it can't be reused to refresh, and clears both `access_token` and `refresh_token` cookies.
 
 ### TokenRefreshView
 

@@ -52,6 +52,12 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "apikey")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@YOUR-DOMAIN.com")
 
+# Dispatch magic-link emails off the request thread (see base.EMAIL_SEND_ASYNC /
+# core.views.auth._send_magic_link) so request-link returns in constant time and
+# can't be used as an email-enumeration timing oracle (L10). Other emails stay
+# synchronous; EMAIL_TIMEOUT bounds the SMTP socket in both cases.
+EMAIL_SEND_ASYNC = True
+
 # Static files with WhiteNoise
 # React build output (frontend/dist/) is included so collectstatic picks it up
 STATICFILES_DIRS = [BASE_DIR / "frontend" / "dist"]  # noqa: F405

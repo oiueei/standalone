@@ -200,6 +200,11 @@ AUTH_USER_MODEL = "core.User"
 
 # Magic Link settings
 MAGIC_LINK_EXPIRY_HOURS = 24
+# Send magic-link emails off the request thread (constant-time response, so the
+# request-link timing can't reveal whether an email is registered — L10).
+# Off by default so dev/test send synchronously and stay deterministic;
+# production.py turns it on.
+EMAIL_SEND_ASYNC = False
 MAGIC_LINK_BASE_URL = os.environ.get(
     "MAGIC_LINK_BASE_URL",
     "http://localhost:3000/verify",

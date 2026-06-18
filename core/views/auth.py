@@ -7,9 +7,10 @@ exposing real codes (booking_code, thing_code, etc.) in URLs.
 """
 
 import logging
+import threading
 
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import status
@@ -28,6 +29,11 @@ from core.services.email_service import send_invite_rejected_email, send_magic_l
 from core.utils import get_client_ip
 
 security_logger = logging.getLogger("security")
+
+# The refresh cookie is scoped to the auth namespace (not just /refresh/) so it
+# also reaches /auth/logout/ — otherwise logout never receives the refresh token
+# and can't blacklist it. Set, refreshed and cleared at this exact path.
+REFRESH_COOKIE_PATH = "/api/v1/auth/"
 
 
 def _set_auth_cookies(response, refresh):
@@ -52,8 +58,27 @@ def _set_auth_cookies(response, refresh):
         secure=is_secure,
         samesite="Lax",
         max_age=7 * 86400,
-        path="/api/v1/auth/refresh/",
+        path=REFRESH_COOKIE_PATH,
     )
+
+
+def _send_magic_link(email, magic_link):
+    """Send the magic-link email, off the request thread in production.
+
+    request-link only sends for a registered email, so a synchronous SMTP round
+    trip would make "registered" responses measurably slower than "not
+    registered" ones — a timing oracle for email enumeration (L10). When
+    ``EMAIL_SEND_ASYNC`` is on (production), dispatch to a daemon thread so the
+    response returns in constant time regardless. The send touches no DB
+    (magic-link email is Cat. 1 / mandatory) and already swallows its own errors.
+    Elsewhere it sends synchronously to keep tests deterministic.
+    """
+    if getattr(settings, "EMAIL_SEND_ASYNC", False):
+        threading.Thread(
+            target=send_magic_link_email, args=(email, magic_link), daemon=True
+        ).start()
+    else:
+        send_magic_link_email(email, magic_link)
 
 
 def email_ratelimit_key(group, request):
@@ -112,7 +137,7 @@ class RequestLinkView(APIView):
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.token}"
 
-        send_magic_link_email(email, magic_link)
+        _send_magic_link(email, magic_link)
 
         return Response(
             {"message": unified_message},
@@ -175,9 +200,12 @@ class VerifyLinkView(APIView):
         return handler(request, rsvp)
 
     def _authenticate_user(self, request, rsvp):
-        """Authenticate a user via RSVP: validate, generate JWT, login, delete RSVP.
+        """Authenticate a user via RSVP: validate and mint a JWT.
 
         Returns (user, refresh, user_data) on success, or a Response on failure.
+        Auth is JWT-cookie based — we deliberately do NOT open a Django session
+        (no ``login()``): nothing in the API relies on it, and the admin site has
+        its own session, so a shadow session would only be extra attack surface.
         """
         user = rsvp.user_code
         if not user:
@@ -190,7 +218,6 @@ class VerifyLinkView(APIView):
         user.update_last_activity()
 
         refresh = RefreshToken.for_user(user)
-        login(request, user)
 
         user_data = UserSerializer(user).data
         return user, refresh, user_data
@@ -418,7 +445,7 @@ class PopInView(APIView):
         rsvp = RSVP.objects.create(user_code=user, user_email=email)
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.token}"
-        send_magic_link_email(email, magic_link)
+        _send_magic_link(email, magic_link)
 
         security_logger.info(
             f"Pop-in request for {email} from IP {ip} "
@@ -474,6 +501,9 @@ class LogoutView(APIView):
             status=status.HTTP_200_OK,
         )
         response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path=REFRESH_COOKIE_PATH)
+        # Also clear any refresh cookie still stored at the previous narrower path
+        # so pre-deploy sessions aren't left with a stranded cookie.
         response.delete_cookie("refresh_token", path="/api/v1/auth/refresh/")
         return response
 
@@ -511,6 +541,9 @@ class TokenRefreshView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
             response.delete_cookie("access_token", path="/")
+            response.delete_cookie("refresh_token", path=REFRESH_COOKIE_PATH)
+            # Also clear any refresh cookie still stored at the previous narrower
+            # path so pre-deploy sessions aren't left with a stranded cookie.
             response.delete_cookie("refresh_token", path="/api/v1/auth/refresh/")
             return response
 
