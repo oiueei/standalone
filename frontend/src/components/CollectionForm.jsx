@@ -5,6 +5,7 @@ import {
   COMMUNITY_TYPES,
   COMMUNITY_MINIMALIST_TYPES,
   isLockedToSingleType,
+  reconcileAllowedTypes,
 } from '../constants/things';
 
 /**
@@ -66,9 +67,11 @@ export default function CollectionForm({
               // Turning ON swap clears the mutually-exclusive share flag;
               // turning OFF clears the swap-specific minimum-items rule.
               if (next) { setIsShare(false); } else { setRequireMinimumSwapItems(false); }
-              // is_swap forces the type — auto-fill SWAP_THING so the locked
-              // select shows it. Toggling off resets so the user re-picks.
-              setAllowedThingTypes(next ? ['SWAP_THING'] : []);
+              // is_swap forces SWAP_THING (locked); turning off keeps whatever of
+              // the previous selection is still valid in the wider community set.
+              setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, {
+                mode, isSwap: next, isShare: next ? false : isShare, isMinimalist,
+              }));
             }}
             variant="inline"
             theme={toggleTheme}
@@ -99,7 +102,9 @@ export default function CollectionForm({
               // Turning ON share clears the mutually-exclusive swap flag;
               // turning OFF clears the share-only newsletter setting.
               if (next) setIsSwap(false); else setNewsletterEnabled(false);
-              setAllowedThingTypes(next ? ['SHARE_THING'] : []);
+              setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, {
+                mode, isShare: next, isSwap: next ? false : isSwap, isMinimalist,
+              }));
             }}
             variant="inline"
             theme={toggleTheme}
@@ -126,14 +131,12 @@ export default function CollectionForm({
           onChange={(val) => {
             const next = !val;
             setIsMinimalist(next);
-            // PROPRIETARY+album → only GIFT_THING is valid, auto-fill and lock.
-            // COMMUNITY+album narrows the list to [GIFT, SHARE] but leaves the
-            // selection to the user — reset so they pick from the smaller set.
-            if (mode === 'PROPRIETARY') {
-              setAllowedThingTypes(next ? ['GIFT_THING'] : []);
-            } else {
-              setAllowedThingTypes([]);
-            }
+            // PROPRIETARY+album locks to GIFT_THING; COMMUNITY+album narrows to
+            // [GIFT, SHARE]. Either way, keep the still-valid part of the
+            // previous selection instead of wiping it (P1-5).
+            setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, {
+              mode, isSwap, isShare, isMinimalist: next,
+            }));
           }}
           variant="inline"
           theme={toggleTheme}

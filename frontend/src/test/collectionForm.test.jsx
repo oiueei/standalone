@@ -11,6 +11,7 @@ vi.mock('../services/api', () => ({
 }));
 
 import { apiFetch } from '../services/api';
+import { reconcileAllowedTypes } from '../constants/things';
 import CreateCollectionPage from '../pages/CreateCollectionPage';
 import EditCollectionPage from '../pages/EditCollectionPage';
 
@@ -75,6 +76,25 @@ describe('CreateCollectionPage', () => {
     expect(screen.queryByRole('button', { name: 'Exclusively SHARE things' })).toBeNull();
     expect(screen.getByRole('button', { name: /Album mode/ })).toBeInTheDocument();
     expect(container.querySelector('.multiselect-locked')).toBeNull();
+  });
+
+  // P1-5: the mode picker is a radio group with an inline description per option,
+  // not a Select hidden behind an info icon.
+  test('mode radios render with inline descriptions', () => {
+    renderCreate();
+
+    expect(screen.getByRole('radio', { name: 'Proprietary' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Community' })).toBeInTheDocument();
+    expect(screen.getByText('Only you can add things to this list.')).toBeInTheDocument();
+    expect(screen.getByText('Everyone you invite can add their own things too.')).toBeInTheDocument();
+  });
+
+  test('selecting the Community mode radio reveals the COMMUNITY toggles', () => {
+    renderCreate();
+
+    expect(screen.queryByRole('button', { name: 'Enable item swapping' })).toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: 'Community' }));
+    expect(screen.getByRole('button', { name: 'Enable item swapping' })).toBeInTheDocument();
   });
 
   // Toggling minimalist ON in PROPRIETARY locks the allowed-types select to a
@@ -187,5 +207,39 @@ describe('EditCollectionPage — load + pause + submit', () => {
       const body = JSON.parse(call[1].body);
       expect(body).toMatchObject({ headline: 'New Name', mode: 'PROPRIETARY' });
     });
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// reconcileAllowedTypes — P1-5: preserve the valid selection across mode/flag
+// changes instead of wiping it.
+// ════════════════════════════════════════════════════════════════════════
+describe('reconcileAllowedTypes', () => {
+  test('PROPRIETARY → COMMUNITY keeps the still-valid types', () => {
+    expect(reconcileAllowedTypes(
+      ['GIFT_THING', 'SELL_THING'],
+      { mode: 'COMMUNITY', isSwap: false, isShare: false, isMinimalist: false },
+    )).toEqual(['GIFT_THING', 'SELL_THING']);
+  });
+
+  test('COMMUNITY → PROPRIETARY drops the COMMUNITY-only types', () => {
+    expect(reconcileAllowedTypes(
+      ['GIFT_THING', 'SHARE_THING', 'WISH_THING'],
+      { mode: 'PROPRIETARY', isSwap: false, isShare: false, isMinimalist: false },
+    )).toEqual(['GIFT_THING']);
+  });
+
+  test('enabling album in COMMUNITY narrows to the GIFT/SHARE intersection', () => {
+    expect(reconcileAllowedTypes(
+      ['GIFT_THING', 'SELL_THING', 'WISH_THING'],
+      { mode: 'COMMUNITY', isSwap: false, isShare: false, isMinimalist: true },
+    )).toEqual(['GIFT_THING']);
+  });
+
+  test('a locked combination (swap) snaps to its forced single type', () => {
+    expect(reconcileAllowedTypes(
+      ['GIFT_THING', 'SELL_THING'],
+      { mode: 'COMMUNITY', isSwap: true, isShare: false, isMinimalist: false },
+    )).toEqual(['SWAP_THING']);
   });
 });

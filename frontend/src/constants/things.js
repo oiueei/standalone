@@ -51,6 +51,24 @@ export const isLockedToSingleType = ({ mode, isSwap, isShare, isMinimalist }) =>
   || (mode === 'COMMUNITY' && (isSwap || isShare))
 );
 
+// The set of thing types valid for a given mode/flag combination. Locked
+// combinations (swap, share, PROPRIETARY+album) collapse to a single type.
+export const allowedTypesFor = ({ mode, isSwap, isShare, isMinimalist }) => {
+  if (mode === 'PROPRIETARY') return isMinimalist ? ['GIFT_THING'] : PROPRIETARY_TYPES;
+  if (isSwap) return ['SWAP_THING'];
+  if (isShare) return ['SHARE_THING'];
+  return isMinimalist ? COMMUNITY_MINIMALIST_TYPES : COMMUNITY_TYPES;
+};
+
+// When the mode/flags change, keep the selection the user already made instead of
+// wiping it (P1-5): locked combinations snap to their forced single type, while
+// unlocked ones keep the still-valid intersection of the previous selection.
+export const reconcileAllowedTypes = (prev, next) => {
+  const valid = allowedTypesFor(next);
+  if (isLockedToSingleType(next)) return [...valid];
+  return prev.filter((t) => valid.includes(t));
+};
+
 export const TAG_THEMES = {
   taken: { '--tag-background': '#fff4e5', '--tag-color': '#b54708' },
   inactive: { '--tag-background': '#e8e8e8', '--tag-color': '#525252' },

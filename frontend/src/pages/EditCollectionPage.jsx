@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button } from 'hds-react';
-import { isLockedToSingleType } from '../constants/things';
+import { TextInput, TextArea, Select, Button, RadioButton } from 'hds-react';
+import { isLockedToSingleType, reconcileAllowedTypes } from '../constants/things';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
@@ -39,6 +39,7 @@ export default function EditCollectionPage() {
   const [pauseSubmitting, setPauseSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [toast, setToast] = useState(null);
 
   const STATUS_OPTIONS = [
@@ -47,8 +48,8 @@ export default function EditCollectionPage() {
   ];
 
   const MODE_OPTIONS = [
-    { label: t('editCollection.modeProprietary'), value: 'PROPRIETARY' },
-    { label: t('editCollection.modeCommunity'), value: 'COMMUNITY' },
+    { label: t('editCollection.modeProprietary'), description: t('createCollection.modeProprietaryDesc'), value: 'PROPRIETARY' },
+    { label: t('editCollection.modeCommunity'), description: t('createCollection.modeCommunityDesc'), value: 'COMMUNITY' },
   ];
 
   const DIGEST_OPTIONS = [
@@ -58,6 +59,25 @@ export default function EditCollectionPage() {
   ];
 
   const locked = isLockedToSingleType({ mode, isSwap, isShare, isMinimalist });
+
+  // Live "pick at least one" feedback once a submit has been attempted (P1-5).
+  const allowedTypesError = submitAttempted && !locked && allowedThingTypes.length === 0
+    ? t('createCollection.allowedTypesAtLeastOne')
+    : '';
+
+  const handleModeChange = (newMode) => {
+    if (newMode === mode) return;
+    const nextFlags = {
+      mode: newMode,
+      isSwap: newMode === 'COMMUNITY' ? isSwap : false,
+      isShare: newMode === 'COMMUNITY' ? isShare : false,
+      isMinimalist: newMode === 'COMMUNITY' ? isMinimalist : false,
+    };
+    setMode(newMode);
+    if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); setRequireMinimumSwapItems(false); }
+    // Keep the still-valid part of the selection instead of wiping it (P1-5).
+    setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, nextFlags));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,14 +115,13 @@ export default function EditCollectionPage() {
   }, [userCode, code, navigate, t]);
 
   const validate = () => {
+    setSubmitAttempted(true);
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('editCollection.maxHeadline');
-    if (!locked && allowedThingTypes.length === 0) {
-      newErrors.allowedThingTypes = t('createCollection.allowedTypesAtLeastOne');
-    }
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const allowedTypesOk = locked || allowedThingTypes.length > 0;
+    return Object.keys(newErrors).length === 0 && allowedTypesOk;
   };
 
   const handleSubmit = async () => {
@@ -217,23 +236,27 @@ export default function EditCollectionPage() {
             }
           }}
         />
-        <Select
-                language="en"
-          id="edit-collection-mode"
-          texts={{ label: t('editCollection.modeLabel') }}
-          helper={t('editCollection.modeHelper')}
-          options={MODE_OPTIONS}
-          value={mode}
-          onChange={(selectedOptions) => {
-            if (selectedOptions.length > 0) {
-              const newMode = selectedOptions[0].value;
-              setMode(newMode);
-              if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); setRequireMinimumSwapItems(false); }
-              // Reset the allowlist on mode change — v1 only wires it for PROPRIETARY.
-              setAllowedThingTypes([]);
-            }
-          }}
-        />
+        <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+          <legend style={{ fontWeight: 700, fontSize: 'var(--fontsize-body-m)', marginBottom: 'var(--spacing-2-xs)', padding: 0 }}>
+            {t('editCollection.modeLabel')}
+          </legend>
+          {MODE_OPTIONS.map((opt) => (
+            <div key={opt.value} style={{ marginBottom: 'var(--spacing-xs)' }}>
+              <RadioButton
+                id={`edit-collection-mode-${opt.value.toLowerCase()}`}
+                name="edit-collection-mode"
+                value={opt.value}
+                label={opt.label}
+                checked={mode === opt.value}
+                onChange={() => handleModeChange(opt.value)}
+                aria-describedby={`edit-collection-mode-${opt.value.toLowerCase()}-desc`}
+              />
+              <p id={`edit-collection-mode-${opt.value.toLowerCase()}-desc`} style={{ margin: '0 0 0 var(--spacing-l)', fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-70)' }}>
+                {opt.description}
+              </p>
+            </div>
+          ))}
+        </fieldset>
         <CollectionForm
           idPrefix="edit-collection"
           mode={mode}
@@ -249,7 +272,7 @@ export default function EditCollectionPage() {
           setRequireMinimumSwapItems={setRequireMinimumSwapItems}
           allowedThingTypes={allowedThingTypes}
           setAllowedThingTypes={setAllowedThingTypes}
-          errors={errors}
+          errors={{ ...errors, allowedThingTypes: allowedTypesError }}
           theeemeColor01={tc.color_01}
         />
         <TagInput
