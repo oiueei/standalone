@@ -213,7 +213,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 | **Permission** | `AllowAny` |
 | **Rate limits** | GET: 20/min per IP. PATCH: 10/min per IP. |
 
-Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on a specific user. The token is the user's 6-char `prefs_token` (persistent, no expiry), produced by `core.services.email_service.make_notifications_token()`; every Cat. 2 / Cat. 3 email footer contains a link of the form `/me/notifications/{token}`.
+Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on a specific user. The token is a `TimestampSigner` signature over the user's code (salt `notifications-prefs`, ~1-year TTL — no stored column), produced by `core.services.email_service.make_notifications_token()` and resolved by `verify_notifications_token()`; every Cat. 2 / Cat. 3 email footer contains a link of the form `/me/notifications/{token}`.
 
 **Behaviour:**
 - Resolves the token via `verify_notifications_token()`. Returns 401 `{ "detail": "Invalid or expired link" }` if invalid.

@@ -15,7 +15,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/rsvp/:code` | `VerifyPage` | Alias for /verify/:code |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
 | `/me/edit` | `EditProfilePage` | Edit own profile |
-| `/me/notifications/:token` | `NotificationsPage` | Manage email preferences via 6-char `prefs_token` from email footer link. Without `:token` redirects to `/me/edit`. |
+| `/me/notifications/:token` | `NotificationsPage` | Manage email preferences via a signed (`TimestampSigner`, ~1y TTL) token from the email footer link. Without `:token` redirects to `/me/edit`. |
 | `/collections/new` | `CreateCollectionPage` | Create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
 | `/collections/:code/edit` | `EditCollectionPage` | Edit a collection |
@@ -325,7 +325,7 @@ Detail page for a thing with full information and FAQs section.
 ### NotificationsPage (`src/pages/NotificationsPage.jsx`)
 
 - **API:** `GET /api/v1/notifications/token/{token}/`, `PATCH /api/v1/notifications/token/{token}/`.
-- Accessible from `/me/notifications/:token` — the 6-char `prefs_token` is included in the footer of every Cat. 2 / Cat. 3 email for unauthenticated preference editing.
+- Accessible from `/me/notifications/:token` — a signed (`TimestampSigner`, ~1y TTL) token is included in the footer of every Cat. 2 / Cat. 3 email for unauthenticated preference editing.
 - **Without `:token`**: redirects immediately to `/me/edit` (preferences are now embedded in EditProfilePage).
 - **Token mode**: no `userCode` required in localStorage, no BackLink. Invalid tokens render a `Notification type="error"` with a fallback message and no form.
 - **Form:** three HDS `ToggleButton` components (wrapped in `.toggle-left`):

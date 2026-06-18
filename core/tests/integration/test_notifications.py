@@ -146,6 +146,21 @@ def test_notifications_token_rejects_invalid(db):
     assert resp.status_code == 401
 
 
+def test_notifications_token_is_salt_scoped(db, noti_user):
+    """L3: the prefs token is a TimestampSigner signature scoped to the
+    'notifications-prefs' salt — a valid one resolves to the user, but a
+    signature minted with another salt (or garbage) is rejected."""
+    from django.core.signing import TimestampSigner
+
+    from core.services.email_service import verify_notifications_token
+
+    assert verify_notifications_token(make_notifications_token(noti_user)) == noti_user.code
+    # Same payload, different salt → not a valid prefs token here.
+    other = TimestampSigner(salt="something-else").sign(noti_user.code)
+    assert verify_notifications_token(other) is None
+    assert verify_notifications_token("garbage") is None
+
+
 # ---------------------------------------------------------------------------
 # InAppNotification creation tests
 # ---------------------------------------------------------------------------

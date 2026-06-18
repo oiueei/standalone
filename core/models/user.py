@@ -86,7 +86,6 @@ class User(AbstractBaseUser):
     # Notification preferences (see core/services/email_service.py categories)
     notify_activity = models.BooleanField(default=True)
     notify_news = models.BooleanField(default=True)
-    prefs_token = models.CharField(max_length=6, unique=True, default=generate_id)
 
     # Required for Django auth
     is_active = models.BooleanField(default=True)

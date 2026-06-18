@@ -19,6 +19,7 @@ import smtplib
 
 from django.conf import settings
 from django.core.mail import BadHeaderError, EmailMultiAlternatives, send_mail
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.utils.html import escape
 
 logger = logging.getLogger(__name__)
@@ -28,17 +29,32 @@ CATEGORY_ACTIVITY = "activity"
 CATEGORY_NEWS = "news"
 
 
+_PREFS_TOKEN_SALT = "notifications-prefs"
+_PREFS_TOKEN_MAX_AGE = 60 * 60 * 24 * 365  # ~1 year
+
+
 def make_notifications_token(user):
-    """Return the user's short prefs_token for the email footer link."""
-    return user.prefs_token
+    """Return a signed, expiring token for the email-footer preferences link.
+
+    A ``TimestampSigner`` signature over the user's code (salt
+    ``notifications-prefs``) rather than a stored column: it carries a ~1-year
+    TTL and needs no DB lookup or per-user secret to mint. Its blast radius is
+    limited to toggling the two notification booleans (see NotificationsByTokenView).
+    """
+    return TimestampSigner(salt=_PREFS_TOKEN_SALT).sign(user.code)
 
 
 def verify_notifications_token(token):
-    """Return user_code if the token matches a known prefs_token, else None."""
+    """Return the user_code for a valid, unexpired token, else None."""
     from core.models import User
 
-    user = User.objects.filter(prefs_token=token).first()
-    return user.code if user else None
+    try:
+        user_code = TimestampSigner(salt=_PREFS_TOKEN_SALT).unsign(
+            token, max_age=_PREFS_TOKEN_MAX_AGE
+        )
+    except (BadSignature, SignatureExpired):
+        return None
+    return user_code if User.objects.filter(code=user_code).exists() else None
 
 
 def _lookup_user(email):
