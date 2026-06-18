@@ -4,7 +4,7 @@
 
 - **Single Django app**: All code lives in `core/`
 - **Settings**: Split into `base.py`, `development.py`, `production.py` under `config/settings/`
-- **Code style**: black (100-char lines), isort (black profile), flake8
+- **Code style**: Ruff (100-char lines) — `ruff check` (lint + import sort) and `ruff format`; replaces black/isort/flake8. Pre-commit hooks in `.pre-commit-config.yaml` (run `pre-commit install`).
 - **Test structure**: `core/tests/unit/`, `core/tests/integration/`, `core/tests/scenarios/`
 - **Coverage minimum**: 80% enforced by CI
 - **All PKs**: 6-character alphanumeric codes generated via `secrets.choice()` (not auto-increment)

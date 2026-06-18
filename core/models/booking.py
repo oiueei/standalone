@@ -99,8 +99,7 @@ class BookingPeriod(models.Model):
         if self.delivery_date:
             qty = f"x{self.quantity}" if self.quantity else ""
             return (
-                f"Order {self.code} for {self.thing_code_id} "
-                f"(delivery: {self.delivery_date}) {qty}"
+                f"Order {self.code} for {self.thing_code_id} (delivery: {self.delivery_date}) {qty}"
             )
         return f"Booking {self.code} for {self.thing_code_id}"
 

@@ -51,8 +51,7 @@ def type_validity_error(thing_type, collection):
         and not collection.is_community()
     ):
         return (
-            f"{thing_type.replace('_', ' ').title()}s can only be created"
-            " in community collections"
+            f"{thing_type.replace('_', ' ').title()}s can only be created in community collections"
         )
     if collection.is_swap and thing_type != Thing.Type.SWAP_THING:
         return "Only swap things can be added to a swap collection"

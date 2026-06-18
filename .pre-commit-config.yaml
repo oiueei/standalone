@@ -1,0 +1,11 @@
+# Run `pre-commit install` once to enable. Mirrors the CI lint step: Ruff
+# replaces black + isort + flake8 (formatting, import-sorting and linting).
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.17
+    hooks:
+      - id: ruff
+        name: ruff (lint + import sort)
+        args: [--fix]
+      - id: ruff-format
+        name: ruff (format)

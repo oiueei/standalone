@@ -47,7 +47,7 @@ class TestListEndpointQueryBudgets:
         assert len(r2.data["things"]) == 6
 
         assert len(big) == len(small), (
-            f"N+1 on collection detail: {len(small)} queries for 2 things, " f"{len(big)} for 6"
+            f"N+1 on collection detail: {len(small)} queries for 2 things, {len(big)} for 6"
         )
 
     def test_things_list_has_no_per_thing_queries(self, authenticated_client, user, collection):

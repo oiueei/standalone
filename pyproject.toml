@@ -1,20 +1,19 @@
-[tool.black]
+[tool.ruff]
 line-length = 100
-target-version = ['py312']
-include = '\.pyi?$'
-extend-exclude = '''
-(
-    migrations
-    | \.venv
-    | venv
-)
-'''
+target-version = "py312"
+extend-exclude = ["**/migrations/**"]
 
-[tool.isort]
-profile = "black"
-line_length = 100
-skip = [".git", ".venv", "venv", "migrations", "__pycache__", "node_modules"]
-skip_glob = ["*/migrations/*"]
+[tool.ruff.lint]
+# E/W (pycodestyle) + F (pyflakes) cover what flake8 enforced; I adds isort.
+select = ["E", "F", "I", "W"]
+ignore = ["E203"]  # whitespace before ':' — conflicts with the formatter's slicing style
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"core/management/commands/seed_data/*.py" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "config"]
 
 [tool.coverage.run]
 source = ["core"]

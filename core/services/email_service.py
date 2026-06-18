@@ -422,8 +422,7 @@ def send_faq_question_email(questioner_name, thing, question, owner_email):
 
     subject = "There is a question to be answered"
     plain = (
-        f"{questioner_name} has asked about '{thing.headline}': {question} "
-        f"View thing: {thing_url}"
+        f"{questioner_name} has asked about '{thing.headline}': {question} View thing: {thing_url}"
     )
     html = _render_email(
         [
@@ -505,8 +504,7 @@ def send_wish_posted_email(creator_name, wish, emails):
 
     subject = "A neighbour is looking for something"
     plain = (
-        f"{creator_name} posted a new wish: '{wish.headline}'. "
-        f"Can you help? View it: {wish_url}"
+        f"{creator_name} posted a new wish: '{wish.headline}'. Can you help? View it: {wish_url}"
     )
     html = _render_email(
         [
@@ -524,9 +522,7 @@ def send_wish_response_email(responder_name, wish, creator_email):
     wish_url = _thing_url(wish)
 
     subject = "Someone answered your wish"
-    plain = (
-        f"{responder_name} answered your wish '{wish.headline}'. " f"View the answer: {wish_url}"
-    )
+    plain = f"{responder_name} answered your wish '{wish.headline}'. View the answer: {wish_url}"
     html = _render_email(
         [
             _para(f"{responder_name} answered your wish:"),
