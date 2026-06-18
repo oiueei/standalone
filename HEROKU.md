@@ -237,13 +237,18 @@ heroku config:set \
 | `EMAIL_HOST_PASSWORD` | SMTP password or API key |
 | `DEFAULT_FROM_EMAIL` | Sender address |
 
-## Booking Expiration
+## Scheduled jobs (cron)
 
-Pending bookings expire after 72 hours. Run the cleanup command periodically using [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler):
+The app relies on four management commands run on [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler). Heroku Scheduler config lives in the dashboard, so the intended schedule is versioned here — keep the dashboard in sync with this table.
 
-```
-python manage.py expire_bookings
-```
+| Command | Cadence | What it does |
+|---|---|---|
+| `python manage.py expire_bookings` | every 10 min (or hourly) | Expires PENDING bookings past 72h; restores single-use things to ACTIVE. |
+| `python manage.py close_transfers` | daily | Sets `returned_date` on transfers whose ACCEPTED booking's `end_date` has passed. |
+| `python manage.py send_reminders` | daily | Return/delivery reminders for bookings due tomorrow. |
+| `python manage.py send_digests` | daily | Weekly digests + newsletters (Mondays) and monthly digests (1st); the command no-ops on other days. |
+
+The daily commands are safe to run every day — each checks the date internally and no-ops when there's nothing to do.
 
 ## Troubleshooting
 
