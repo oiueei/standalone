@@ -55,6 +55,49 @@ class TestMagicLinkFlow:
 
 
 @pytest.mark.django_db
+class TestInAppInvitationFlow:
+    """Scenario: a logged-in user accepts a collection invite from the HomePage
+    in-app banner. The codes my-invitations hands back must be resolvable by the
+    (token-only) verify endpoint — guards the H1 regression where it returned the
+    6-char PK and the in-app accept/decline links 401'd."""
+
+    def test_my_invitations_codes_resolve_via_verify(self, api_client):
+        from core.models import Collection
+
+        owner = User.objects.create(email="owner@example.com", name="Owner")
+        invitee = User.objects.create(email="invitee@example.com", name="Guest")
+        collection = Collection.objects.create(owner=owner, headline="Shared list")
+        RSVP.objects.create(
+            user_code=invitee,
+            user_email=invitee.email,
+            action=RSVP.Action.COLLECTION_INVITE,
+            target_code=collection.code,
+        )
+        RSVP.objects.create(
+            user_code=invitee,
+            user_email=invitee.email,
+            action=RSVP.Action.COLLECTION_REJECT,
+            target_code=collection.code,
+        )
+
+        # Authenticate as the invitee and read the in-app pending invitations.
+        api_client.cookies["access_token"] = str(RefreshToken.for_user(invitee).access_token)
+        inv_resp = api_client.get("/api/v1/my-invitations/")
+        assert inv_resp.status_code == status.HTTP_200_OK
+        assert len(inv_resp.data) == 1
+        accept_code = inv_resp.data[0]["accept_code"]
+        reject_code = inv_resp.data[0]["reject_code"]
+        # Must be the high-entropy token, not the 6-char PK.
+        assert len(accept_code) == 26
+        assert len(reject_code) == 26
+
+        # The value the frontend forwards to /verify/ must resolve, not 401.
+        verify_resp = api_client.get(f"/api/v1/auth/verify/{accept_code}/")
+        assert verify_resp.status_code == status.HTTP_200_OK
+        assert collection.invites.filter(code=invitee.code).exists()
+
+
+@pytest.mark.django_db
 class TestCreateCollectionFlow:
     """
     Scenario: Create collection and add things.

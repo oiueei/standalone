@@ -449,8 +449,11 @@ class MyPendingInvitationsView(APIView):
             reject_rsvp = reject_rsvps_by_target.get(accept_rsvp.target_code)
             result.append(
                 {
-                    "accept_code": accept_rsvp.code,
-                    "reject_code": reject_rsvp.code if reject_rsvp else None,
+                    # The high-entropy token, not the 6-char PK — the frontend
+                    # feeds these straight to /verify/<value>/, which now resolves
+                    # RSVPs by token only.
+                    "accept_code": accept_rsvp.token,
+                    "reject_code": reject_rsvp.token if reject_rsvp else None,
                     "collection_code": collection.code,
                     "collection_headline": collection.headline,
                     "owner_name": collection.owner.display_name,
