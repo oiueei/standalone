@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-from core.utils import generate_id
+from core.utils import generate_id, generate_token
 
 
 class RSVP(models.Model):
@@ -38,6 +38,10 @@ class RSVP(models.Model):
         BOOKING_REJECT = "BOOKING_REJECT", "Booking Reject"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
+    # High-entropy (~134-bit) token that backs every email action link. The
+    # 6-char PK (~31 bits) stays for joins/target lookups, but URLs use this so
+    # magic links and accept/reject links can't be brute-forced.
+    token = models.CharField(max_length=26, unique=True, default=generate_token)
     created = models.DateTimeField(default=timezone.now)
     user_code = models.ForeignKey(
         "User",
@@ -73,8 +77,12 @@ class RSVP(models.Model):
         return timezone.now() < expiry_time
 
     def action_link(self):
-        """The ``/rsvp/<code>`` URL used in emails to resolve this RSVP."""
-        return f"{settings.RSVP_BASE_URL}/{self.code}"
+        """The ``/rsvp/<token>`` URL used in emails to resolve this RSVP.
+
+        Uses the high-entropy ``token`` (not the 6-char PK) so the link can't be
+        brute-forced.
+        """
+        return f"{settings.RSVP_BASE_URL}/{self.token}"
 
     @classmethod
     def create_for_booking(cls, action, booking, owner_email):

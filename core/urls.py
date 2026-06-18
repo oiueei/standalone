@@ -58,13 +58,13 @@ urlpatterns = [
     # Auth & RSVP Actions
     path("auth/request-link/", RequestLinkView.as_view(), name="request-link"),
     path("auth/pop-in/", PopInView.as_view(), name="pop-in"),
-    path("auth/verify/<str:rsvp_code>/", VerifyLinkView.as_view(), name="verify-link"),
+    path("auth/verify/<str:token>/", VerifyLinkView.as_view(), name="verify-link"),
     path("auth/me/", MeView.as_view(), name="me"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     # RSVP action endpoint (unified handler for all email-based actions)
     # Handles: MAGIC_LINK, COLLECTION_INVITE, BOOKING_ACCEPT/REJECT
-    path("rsvp/<str:rsvp_code>/", VerifyLinkView.as_view(), name="rsvp-action"),
+    path("rsvp/<str:token>/", VerifyLinkView.as_view(), name="rsvp-action"),
     # Users
     path("users/<str:user_code>/", UserDetailView.as_view(), name="user-detail"),
     # In-app notification inbox

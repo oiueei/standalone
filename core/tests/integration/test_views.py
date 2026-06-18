@@ -44,7 +44,7 @@ class TestAuthViews:
 
     def test_verify_link_valid(self, api_client, rsvp, user):
         """Should verify valid RSVP and set auth cookies."""
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["user"]["code"] == user.code
         assert "access_token" in response.cookies
@@ -54,6 +54,37 @@ class TestAuthViews:
         """Should reject invalid RSVP code."""
         response = api_client.get("/api/v1/auth/verify/INVALID/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_six_char_pk_does_not_authenticate(self, api_client, rsvp):
+        """H1: the old 6-char PK is no longer a valid magic link — only the
+        high-entropy token resolves an RSVP. Presenting the PK must 401."""
+        assert rsvp.code != rsvp.token
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "access_token" not in response.cookies
+
+    def test_magic_link_token_is_high_entropy(self, rsvp):
+        """H1: the RSVP token is 26 lowercase alphanumerics (~134 bits), distinct
+        from the 6-char uppercase PK."""
+        import string
+
+        assert len(rsvp.token) == 26
+        allowed = set(string.ascii_lowercase + string.digits)
+        assert set(rsvp.token) <= allowed
+        assert rsvp.token != rsvp.code
+
+    def test_email_ratelimit_key_lowercases_email(self):
+        """H1 per-account throttle keys on the lowercased email; malformed → ''."""
+        from types import SimpleNamespace
+
+        from core.views.auth import email_ratelimit_key
+
+        assert (
+            email_ratelimit_key(None, SimpleNamespace(data={"email": " Lala@Oiueei.ORG "}))
+            == "lala@oiueei.org"
+        )
+        assert email_ratelimit_key(None, SimpleNamespace(data={})) == ""
+        assert email_ratelimit_key(None, SimpleNamespace(data={"email": None})) == ""
 
     def test_me_authenticated(self, authenticated_client, user):
         """Should return current user."""
@@ -343,7 +374,7 @@ class TestCollectionViews:
         )
 
         # Verify the link
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
 
         # User should now be in invites
@@ -1274,7 +1305,7 @@ class TestReservationViews:
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
 
         # Accept via RSVP link
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Booking accepted"
@@ -1311,7 +1342,7 @@ class TestReservationViews:
         rsvp = RSVP.create_for_booking("BOOKING_REJECT", booking, user.email)
 
         # Reject via RSVP link
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Booking rejected"
@@ -1348,7 +1379,7 @@ class TestReservationViews:
         # Create RSVP for accept action
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
 
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "Booking expired or already processed"
@@ -1620,7 +1651,7 @@ class TestAuthViewEdgeCases:
         rsvp.created = timezone.now() - timedelta(hours=25)
         rsvp.save(update_fields=["created"])
 
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert not RSVP.objects.filter(code=rsvp.code).exists()
 
@@ -1631,7 +1662,7 @@ class TestAuthViewEdgeCases:
             user_email=user.email,
             action="UNKNOWN_ACTION",
         )
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert not RSVP.objects.filter(code=rsvp.code).exists()
 
@@ -1654,7 +1685,7 @@ class TestAuthViewEdgeCases:
         )
 
         with patch("core.views.auth.send_invite_rejected_email") as mock_email:
-            response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.code}/")
+            response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "COLLECTION_REJECT"
@@ -1670,7 +1701,7 @@ class TestAuthViewEdgeCases:
             action="COLLECTION_REJECT",
             target_code="NOCODE",
         )
-        response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
 
     def test_booking_accept_via_rsvp(self, api_client, user, user2, thing, collection):
@@ -1695,12 +1726,16 @@ class TestAuthViewEdgeCases:
         )
 
         with patch("core.services.email_service.send_booking_decision_email"):
-            response = api_client.get(f"/api/v1/auth/verify/{accept_rsvp.code}/")
+            response = api_client.get(f"/api/v1/auth/verify/{accept_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_ACCEPT"
         booking.refresh_from_db()
         assert booking.status == "ACCEPTED"
+        # Single-action (H1): a booking token performs the action only — it must
+        # never authenticate the owner as a side effect (no auth cookies set).
+        assert "access_token" not in response.cookies
+        assert "refresh_token" not in response.cookies
 
     def test_booking_reject_via_rsvp(self, api_client, user, user2, thing, collection):
         """Booking reject RSVP should reject the booking."""
@@ -1724,7 +1759,7 @@ class TestAuthViewEdgeCases:
         )
 
         with patch("core.services.email_service.send_booking_decision_email"):
-            response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.code}/")
+            response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_REJECT"
@@ -1739,7 +1774,7 @@ class TestAuthViewEdgeCases:
             action="BOOKING_ACCEPT",
             target_code="NOCODE",
         )
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -1865,5 +1900,5 @@ class TestPopInView:
             action="BOOKING_ACCEPT",
             target_code=booking.code,
         )
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_400_BAD_REQUEST

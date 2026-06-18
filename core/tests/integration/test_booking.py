@@ -456,7 +456,7 @@ class TestBookingAcceptReject:
         # Create RSVP for accept action (as would be done when sending email)
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
 
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Booking accepted"
@@ -479,7 +479,7 @@ class TestBookingAcceptReject:
         # Create RSVP for reject action
         rsvp = RSVP.create_for_booking("BOOKING_REJECT", booking, user.email)
 
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Booking rejected"
@@ -505,7 +505,7 @@ class TestBookingAcceptReject:
         # Create RSVP for accept action
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
 
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "expired" in response.data["error"].lower()
@@ -525,7 +525,7 @@ class TestBookingAcceptReject:
         # Create RSVP for accept action
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
 
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -592,7 +592,7 @@ class TestLendingThingStatusNotTaken:
 
         # Accept via RSVP
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
-        api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         lend_thing.refresh_from_db()
         assert lend_thing.status == "ACTIVE"
@@ -798,7 +798,7 @@ class TestSingleUseThingCompleteFlow:
         assert accept_rsvp.user_email == user.email
 
         # Step 2: Owner accepts via RSVP
-        response = api_client.get(f"/api/v1/rsvp/{accept_rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{accept_rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_ACCEPT"
 
@@ -829,7 +829,7 @@ class TestSingleUseThingCompleteFlow:
 
         # Step 2: Owner rejects via RSVP
         reject_rsvp = RSVP.objects.get(target_code=booking_code, action="BOOKING_REJECT")
-        response = api_client.get(f"/api/v1/rsvp/{reject_rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{reject_rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_REJECT"
 
@@ -879,7 +879,7 @@ class TestSingleUseThingCompleteFlow:
 
         # Owner rejects
         reject_rsvp = RSVP.objects.get(target_code=booking_code, action="BOOKING_REJECT")
-        api_client.get(f"/api/v1/rsvp/{reject_rsvp.code}/")
+        api_client.get(f"/api/v1/rsvp/{reject_rsvp.token}/")
 
         # Create user3
         user3 = User.objects.create(
@@ -1057,7 +1057,7 @@ class TestOrderThingFlow:
 
         # Step 2: Accept via RSVP
         accept_rsvp = RSVP.objects.get(target_code=booking_code, action="BOOKING_ACCEPT")
-        response = api_client.get(f"/api/v1/rsvp/{accept_rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{accept_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_ACCEPT"
@@ -1090,7 +1090,7 @@ class TestOrderThingFlow:
 
         # Reject via RSVP
         reject_rsvp = RSVP.objects.get(target_code=booking_code, action="BOOKING_REJECT")
-        response = api_client.get(f"/api/v1/rsvp/{reject_rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{reject_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_REJECT"
@@ -1176,7 +1176,7 @@ class TestDateBasedThingCompleteFlow:
         # Step 2: Owner accepts via RSVP
         mail.outbox.clear()
         accept_rsvp = RSVP.objects.get(target_code=booking_code, action="BOOKING_ACCEPT")
-        response = api_client.get(f"/api/v1/rsvp/{accept_rsvp.code}/")
+        response = api_client.get(f"/api/v1/rsvp/{accept_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["start_date"] == str(start)
@@ -1216,7 +1216,7 @@ class TestDateBasedThingCompleteFlow:
         # Step 2: Owner rejects
         mail.outbox.clear()
         reject_rsvp = RSVP.objects.get(target_code=booking_code, action="BOOKING_REJECT")
-        api_client.get(f"/api/v1/rsvp/{reject_rsvp.code}/")
+        api_client.get(f"/api/v1/rsvp/{reject_rsvp.token}/")
 
         # Verify rejection email sent to requester
         assert len(mail.outbox) == 1
@@ -1254,7 +1254,7 @@ class TestDateBasedThingCompleteFlow:
 
         # Accept via RSVP
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
-        api_client.get(f"/api/v1/rsvp/{rsvp.code}/")
+        api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
 
         share_thing.refresh_from_db()
         assert share_thing.status == "ACTIVE"

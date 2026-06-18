@@ -215,7 +215,8 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
+| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID. Used for DB joins/target lookups, **not** in URLs. |
+| `token` | CharField(26) | Auto | Unique high-entropy URL token (~134 bits): 26 lowercase alphanumerics via `generate_token()`. Backs every email action link (`action_link()` and the magic link) so links can't be brute-forced the way the 6-char PK (~31 bits) could. |
 | `created` | DateTimeField | Auto | Timestamp when RSVP was created |
 | `user_code` | ForeignKey(User) | **Yes** | User this RSVP is for |
 | `user_email` | CharField(64) | **Yes** | Email address of the recipient |
@@ -237,7 +238,7 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 
 1. **One-time use** - RSVPs are deleted after being used.
 2. **24h expiry** - RSVPs expire after `MAGIC_LINK_EXPIRY_HOURS` (default 24 hours).
-3. **RSVP codes obfuscate URLs** - Email links use `code` instead of exposing real codes.
+3. **RSVP tokens obfuscate URLs** - Email links use the high-entropy `token` (≈134 bits) — never the 6-char PK or real object codes — so they resist both enumeration and brute force.
 4. **RSVP for ALL email communications** - Every email that requires user action uses an RSVP.
 5. **Sibling RSVP cleanup** - Collection invite/reject RSVPs are created in pairs. Using either one deletes both to invalidate the other link.
 

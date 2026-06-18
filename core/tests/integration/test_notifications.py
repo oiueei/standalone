@@ -235,7 +235,7 @@ def test_booking_accept_via_rsvp_creates_in_app_notification(two_users, thing_wi
     client = APIClient()
 
     with patch("core.services.email_service.send_booking_decision_email"):
-        resp = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        resp = client.get(f"/api/v1/auth/verify/{rsvp.token}/")
 
     assert resp.status_code == status.HTTP_200_OK
     assert InAppNotification.objects.filter(
@@ -331,7 +331,7 @@ def test_invite_rejected_creates_in_app_notification_for_owner(two_users):
     client = APIClient()
 
     with patch("core.views.auth.send_invite_rejected_email"):
-        resp = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        resp = client.get(f"/api/v1/auth/verify/{rsvp.token}/")
 
     assert resp.status_code == status.HTTP_200_OK
     notif = InAppNotification.objects.get(user=owner, type=InAppNotification.Type.INVITE_REJECTED)

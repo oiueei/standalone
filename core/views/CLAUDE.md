@@ -12,7 +12,7 @@ This document describes the behaviour, endpoints, permissions, and business logi
 |---|---|
 | **Endpoint** | `POST /api/v1/auth/request-link/` |
 | **Permission** | `AllowAny` |
-| **Rate limit** | 5 requests/minute per IP |
+| **Rate limit** | 5 requests/minute per IP **and** 5 requests/hour per account (the requested email, lowercased — `email_ratelimit_key`) so one mailbox can't be flooded from rotating IPs. |
 
 Requests a magic link for passwordless authentication.
 
@@ -39,9 +39,11 @@ Requests a magic link for passwordless authentication.
 
 | | |
 |---|---|
-| **Endpoint** | `GET /api/v1/auth/verify/{rsvp_code}/` (also aliased at `GET /api/v1/rsvp/{rsvp_code}/`) |
+| **Endpoint** | `GET /api/v1/auth/verify/{token}/` (also aliased at `GET /api/v1/rsvp/{token}/`) |
 | **Permission** | `AllowAny` |
 | **Rate limit** | 10 requests/minute per IP |
+
+The URL segment is the RSVP's high-entropy `token` (≈134 bits), not the 6-char PK — the PK can no longer resolve an RSVP.
 
 Processes all RSVP-based actions. Routes to the appropriate handler based on `rsvp.action`:
 
@@ -54,7 +56,7 @@ Processes all RSVP-based actions. Routes to the appropriate handler based on `rs
 | `BOOKING_REJECT` | `_handle_booking_reject` | Rejects booking via `reject_booking()` service |
 
 **Common behaviour:**
-1. Looks up RSVP by code. Returns 401 if not found.
+1. Looks up RSVP by `token` (the high-entropy URL token, not the PK). Returns 401 if not found.
 2. Checks `rsvp.is_valid()` (24h expiry). Deletes and returns 401 if expired.
 3. Delegates to action handler.
 4. RSVP is deleted after use (one-time use).
@@ -800,8 +802,9 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 
 ### Rate Limiting
 
-- `/auth/request-link/` — 5 requests per minute per IP
-- `/auth/verify/{code}/` — 10 requests per minute per IP
+- `/auth/request-link/` — 5 requests per minute per IP **and** 5 per hour per account (email)
+- `/auth/pop-in/` — 5 requests per minute per IP **and** 5 per hour per account (email)
+- `/auth/verify/{token}/` — 10 requests per minute per IP
 - `/collections/{code}/invite/` POST — 30 requests per hour per user
 - `/things/{code}/request/` POST — 10 requests per hour per user
 - `/things/{code}/faq/` POST — 20 requests per hour per user
@@ -813,7 +816,7 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 
 1. **ID generation** — Uses `secrets.choice()` for cryptographically secure random IDs.
 2. **SECRET_KEY** — Required from environment variable, not hardcoded.
-3. **RSVP obfuscation** — Real codes never exposed in URLs.
+3. **RSVP obfuscation + high-entropy links** — Email/magic links carry the RSVP's 26-char (~134-bit) `token` via `generate_token()`, never the 6-char PK or real object codes, so they resist both enumeration and brute force.
 4. **Security logging** — Auth events logged with IP addresses.
 5. **Production hardening** — HSTS, secure cookies, SSL redirect, custom admin path, JSON-only renderer.
 

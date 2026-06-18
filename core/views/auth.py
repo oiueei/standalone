@@ -56,6 +56,19 @@ def _set_auth_cookies(response, refresh):
     )
 
 
+def email_ratelimit_key(group, request):
+    """Per-account rate-limit key: the requested email, lowercased.
+
+    Complements the per-IP limit so a single mailbox can't be flooded with
+    magic-link emails from rotating IPs. Empty/malformed requests share one
+    bucket (they 400 in the body anyway).
+    """
+    try:
+        return (request.data.get("email") or "").strip().lower()
+    except Exception:
+        return ""
+
+
 class RequestLinkView(APIView):
     """
     POST /api/v1/auth/request-link/
@@ -65,6 +78,7 @@ class RequestLinkView(APIView):
     permission_classes = [AllowAny]
 
     @method_decorator(ratelimit(key="ip", rate="5/m", method="POST", block=True))
+    @method_decorator(ratelimit(key=email_ratelimit_key, rate="5/h", method="POST", block=True))
     def post(self, request):
         serializer = RequestLinkSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -96,7 +110,7 @@ class RequestLinkView(APIView):
 
         # Send magic link email
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
-        magic_link = f"{magic_link_base}/{rsvp.code}"
+        magic_link = f"{magic_link_base}/{rsvp.token}"
 
         send_magic_link_email(email, magic_link)
 
@@ -121,11 +135,11 @@ class VerifyLinkView(APIView):
     permission_classes = [AllowAny]
 
     @method_decorator(ratelimit(key="ip", rate="10/m", method="GET", block=True))
-    def get(self, request, rsvp_code):
+    def get(self, request, token):
         ip = get_client_ip(request)
 
         try:
-            rsvp = RSVP.objects.get(code=rsvp_code)
+            rsvp = RSVP.objects.get(token=token)
         except RSVP.DoesNotExist:
             security_logger.warning(f"Invalid RSVP code attempted from IP {ip}")
             return Response(
@@ -370,6 +384,7 @@ class PopInView(APIView):
     permission_classes = [AllowAny]
 
     @method_decorator(ratelimit(key="ip", rate="5/m", method="POST", block=True))
+    @method_decorator(ratelimit(key=email_ratelimit_key, rate="5/h", method="POST", block=True))
     def post(self, request):
         serializer = RequestLinkSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -402,7 +417,7 @@ class PopInView(APIView):
 
         rsvp = RSVP.objects.create(user_code=user, user_email=email)
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
-        magic_link = f"{magic_link_base}/{rsvp.code}"
+        magic_link = f"{magic_link_base}/{rsvp.token}"
         send_magic_link_email(email, magic_link)
 
         security_logger.info(

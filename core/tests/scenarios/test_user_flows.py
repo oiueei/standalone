@@ -38,7 +38,7 @@ class TestMagicLinkFlow:
         rsvp = RSVP.objects.get(user_code=user)
 
         # Step 2: Verify magic link
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["user"]["code"] == user.code
         assert "access_token" in response.cookies
@@ -165,7 +165,7 @@ class TestShareCollectionFlow:
         from core.models import RSVP
 
         rsvp = RSVP.objects.get(user_email="friend@example.com", action="COLLECTION_INVITE")
-        response = client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        response = client.get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
 
         # Step 4: Friend views shared collections
@@ -200,7 +200,7 @@ class TestShareCollectionFlow:
             action="BOOKING_ACCEPT",
             target_code=booking_code,
         )
-        response = client.get(f"/api/v1/rsvp/{accept_rsvp.code}/")
+        response = client.get(f"/api/v1/rsvp/{accept_rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_ACCEPT"
 
@@ -269,7 +269,7 @@ class TestFAQFlow:
 
         # Friend accepts invitation by verifying RSVP
         rsvp = RSVP.objects.get(user_email="friend2@example.com", action="COLLECTION_INVITE")
-        client.get(f"/api/v1/auth/verify/{rsvp.code}/")
+        client.get(f"/api/v1/auth/verify/{rsvp.token}/")
 
         # Step 1: Friend asks question
         client.cookies.clear()
@@ -329,7 +329,7 @@ class TestCompleteUserJourney:
         alice_rsvp = RSVP.objects.get(user_code=alice)
 
         # Alice verifies and gets auth cookies
-        response = client.get(f"/api/v1/auth/verify/{alice_rsvp.code}/")
+        response = client.get(f"/api/v1/auth/verify/{alice_rsvp.token}/")
         alice_token = RefreshToken.for_user(alice)
 
         # Alice updates profile
@@ -391,12 +391,12 @@ class TestCompleteUserJourney:
         # === Bob and Charlie accept invitations ===
 
         bob_rsvp = RSVP.objects.get(user_email="bob@example.com", action="COLLECTION_INVITE")
-        client.get(f"/api/v1/auth/verify/{bob_rsvp.code}/")
+        client.get(f"/api/v1/auth/verify/{bob_rsvp.token}/")
 
         charlie_rsvp = RSVP.objects.get(
             user_email="charlie@example.com", action="COLLECTION_INVITE"
         )
-        client.get(f"/api/v1/auth/verify/{charlie_rsvp.code}/")
+        client.get(f"/api/v1/auth/verify/{charlie_rsvp.token}/")
 
         # === Bob logs in and requests an item ===
 
@@ -419,7 +419,7 @@ class TestCompleteUserJourney:
             action="BOOKING_ACCEPT",
             target_code=bob_booking_code,
         )
-        client.get(f"/api/v1/rsvp/{bob_accept_rsvp.code}/")
+        client.get(f"/api/v1/rsvp/{bob_accept_rsvp.token}/")
 
         # === Charlie asks a question ===
 
@@ -459,7 +459,7 @@ class TestCompleteUserJourney:
             action="BOOKING_ACCEPT",
             target_code=charlie_booking_code,
         )
-        client.get(f"/api/v1/rsvp/{charlie_accept_rsvp.code}/")
+        client.get(f"/api/v1/rsvp/{charlie_accept_rsvp.token}/")
 
         # === Final state verification ===
 

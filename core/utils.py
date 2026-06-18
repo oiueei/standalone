@@ -12,6 +12,20 @@ def generate_id():
     return "".join(secrets.choice(chars) for _ in range(6))
 
 
+def generate_token():
+    """Generate a high-entropy URL token for email/magic links.
+
+    26 lowercase alphanumeric characters from a 36-symbol alphabet via
+    ``secrets.choice`` → ~134 bits of entropy (log2(36**26)). Used for the RSVP
+    ``token`` column that backs every email action link, so the link can't be
+    brute-forced the way the 6-char PK (~31 bits) could. Lowercase-only keeps the
+    alphabet unambiguous in URLs and avoids the entropy collapse of
+    ``token_urlsafe().lower()``.
+    """
+    chars = string.ascii_lowercase + string.digits
+    return "".join(secrets.choice(chars) for _ in range(26))
+
+
 def get_client_ip(request):
     """Get client IP address from request.
 
