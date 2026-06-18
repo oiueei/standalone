@@ -1,22 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Select,
-  TextInput,
-  TextArea,
-  NumberInput,
-  Button,
-  Notification,
-  ToggleButton,
-} from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { Button, Notification } from 'hds-react';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
+import ThingForm from '../components/ThingForm';
 import Toast from '../components/Toast';
-import ImageUpload from '../components/ImageUpload';
-import GalleryUpload from '../components/GalleryUpload';
-import DocumentUpload from '../components/DocumentUpload';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function AddThingPage() {
@@ -171,6 +161,17 @@ export default function AddThingPage() {
   // Theeeme colors from localStorage (set by HomePage on login)
   const { tc, btnStyle } = useTheeeme();
 
+  const typeOptions = TYPE_VALUES.filter((v) => {
+    if (v === SWAP_TYPE) return false;
+    // Cannot answer a wish by offering another wish.
+    if (respondWishCode && v === WISH_TYPE) return false;
+    if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
+    if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
+    // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
+    if (collectionAllowedTypes.length > 0 && !collectionAllowedTypes.includes(v)) return false;
+    return true;
+  }).map((v) => ({ label: t('types.' + v), value: v }));
+
   return (
     <PageLayout
       backTo={`/collections/${code}`}
@@ -183,148 +184,43 @@ export default function AddThingPage() {
           </Notification>
         )}
       <div className="form-grid">
-          {!isSwapCollection && !isShareCollection && (
-            <Select
-                language="en"
-              id="add-thing-type"
-              texts={{ label: t('addThing.typeLabel') }}
-              options={TYPE_VALUES.filter(v => {
-                if (v === SWAP_TYPE) return false;
-                // Cannot answer a wish by offering another wish.
-                if (respondWishCode && v === WISH_TYPE) return false;
-                if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
-                if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
-                // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
-                if (collectionAllowedTypes.length > 0 && !collectionAllowedTypes.includes(v)) return false;
-                return true;
-              }).map(v => ({ label: t('types.' + v), value: v }))}
-              value={type}
-              onChange={(selectedOptions) => {
-                if (selectedOptions.length > 0) {
-                  setType(selectedOptions[0].value);
-                }
-              }}
-            />
-          )}
-          {['GIFT_THING', 'SELL_THING'].includes(type) && (
-            <div className="toggle-left">
-              <ToggleButton
-                id="add-thing-is-endless"
-                label={t('endless.label')}
-                checked={isEndless}
-                onChange={(val) => setIsEndless(!val)}
-                variant="inline"
-                theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-              />
-            </div>
-          )}
-          {type === WISH_TYPE && !respondWishCode && (
-            <div className="toggle-left">
-              <ToggleButton
-                id="add-thing-notify-group"
-                label={t('wishes.notifyGroup')}
-                checked={notifyGroup}
-                onChange={(val) => setNotifyGroup(!val)}
-                variant="inline"
-                theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-              />
-            </div>
-          )}
-          <TextInput
-            id="add-thing-headline"
-            label={t('addThing.titleLabel')}
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            required
-            invalid={!!errors.headline}
-            errorText={errors.headline}
-            helperText={`${headline.length}/64`}
+          <ThingForm
+            idPrefix="add-thing"
+            theeemeColor01={tc.color_01}
+            errors={errors}
+            minimalist={isMinimalistCollection}
+            typeOptions={typeOptions}
+            showTypeSelector={!isSwapCollection && !isShareCollection}
+            type={type}
+            setType={setType}
+            isEndless={isEndless}
+            setIsEndless={setIsEndless}
+            showNotifyGroup={type === WISH_TYPE && !respondWishCode}
+            notifyGroup={notifyGroup}
+            setNotifyGroup={setNotifyGroup}
+            headline={headline}
+            setHeadline={setHeadline}
+            description={description}
+            setDescription={setDescription}
+            fee={fee}
+            setFee={setFee}
+            availability={availability}
+            setAvailability={setAvailability}
+            condition={condition}
+            setCondition={setCondition}
+            location={location}
+            setLocation={setLocation}
+            collectionTags={collectionTags}
+            tags={tags}
+            setTags={setTags}
+            imageLabel={isMinimalistCollection ? t('minimalist.photoRequired') : t('upload.thumbnailLabel')}
+            thumbnail={thumbnail}
+            setThumbnail={setThumbnail}
+            gallery={gallery}
+            setGallery={setGallery}
+            documents={documents}
+            setDocuments={setDocuments}
           />
-          <TextArea
-            id="add-thing-description"
-            label={t('addThing.descriptionLabel')}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            helperText={`${description.length}/256`}
-          />
-          {FEE_TYPES.includes(type) && !isMinimalistCollection && (
-            <NumberInput
-              id="add-thing-fee"
-              label={t('addThing.priceLabel')}
-              value={fee === '' ? '' : Number(fee)}
-              onChange={(e) => setFee(e.target.value)}
-              min={0}
-              unit="EUR"
-              required
-              invalid={!!errors.fee}
-              errorText={errors.fee}
-            />
-          )}
-          {FEE_TYPES.includes(type) && DETAIL_TYPES.includes(type) && !isMinimalistCollection && (
-            <div className="spacer-xxxx" />
-          )}
-          {DETAIL_TYPES.includes(type) && !isMinimalistCollection && (
-            <>
-              <Select
-                language="en"
-                id="add-thing-availability"
-                texts={{ label: t('addThing.availabilityLabel') }}
-                options={AVAILABILITY_VALUES.map(v => ({ label: t('availability.' + v), value: v }))}
-                value={availability}
-                onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
-                clearable
-              />
-              <Select
-                language="en"
-                id="add-thing-condition"
-                texts={{ label: t('addThing.conditionLabel') }}
-                options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}
-                value={condition}
-                onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
-                clearable
-              />
-              <TextInput
-                id="add-thing-location"
-                label={t('addThing.locationLabel')}
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                helperText={`${location.length}/32`}
-                invalid={!!errors.location}
-                errorText={errors.location}
-              />
-            </>
-          )}
-          {collectionTags.length > 0 && (
-            <Select
-              language="en"
-              multiSelect
-              id="add-thing-tags"
-              texts={{
-                label: t('addThing.tagsLabel'),
-                placeholder: t('addThing.tagsPlaceholder'),
-                assistive: t('addThing.tagsHelper'),
-              }}
-              options={collectionTags.map((tg) => ({ label: tg, value: tg }))}
-              value={tags.map((tg) => ({ label: tg, value: tg }))}
-              onChange={(opts) => setTags(opts.map((o) => o.value))}
-            />
-          )}
-          <ImageUpload
-            id="add-thing-thumbnail"
-            label={isMinimalistCollection ? t('minimalist.photoRequired') : t('upload.thumbnailLabel')}
-            value={thumbnail}
-            onChange={setThumbnail}
-            folder="oiueei/things"
-          />
-          {!isMinimalistCollection && (
-            <GalleryUpload items={gallery} onChange={setGallery} />
-          )}
-          {!isMinimalistCollection && (
-            <DocumentUpload
-              documents={documents}
-              onChange={setDocuments}
-            />
-          )}
       </div>
 
       <div className="form-actions">

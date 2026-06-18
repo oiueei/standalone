@@ -1,22 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Select,
-  TextInput,
-  TextArea,
-  NumberInput,
-  Button,
-  ToggleButton,
-} from 'hds-react';
-import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
+import { Button } from 'hds-react';
+import { TYPE_VALUES, FEE_TYPES, DETAIL_TYPES } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ThingForm from '../components/ThingForm';
 import Toast from '../components/Toast';
-import ImageUpload from '../components/ImageUpload';
-import GalleryUpload from '../components/GalleryUpload';
-import DocumentUpload from '../components/DocumentUpload';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function EditThingPage() {
@@ -147,126 +138,45 @@ export default function EditThingPage() {
     return <LoadingSpinner />;
   }
 
+  const typeOptions = TYPE_VALUES.map((v) => ({ label: t('types.' + v), value: v }));
+
   return (
     <PageLayout backTo={returnPath} backLabel={returnLabel}>
         <h1 className="page-title-xl">{t('editThing.pageTitle')}</h1>
       <div className="form-grid">
-        <Select
-                language="en"
-          id="edit-thing-type"
-          texts={{ label: t('addThing.typeLabel') }}
-          options={TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))}
-          value={thingType}
-          onChange={(selectedOptions) => {
-            if (selectedOptions.length > 0) {
-              setThingType(selectedOptions[0].value);
-            }
-          }}
-        />
-        {['GIFT_THING', 'SELL_THING'].includes(thingType) && (
-          <div className="toggle-left">
-            <ToggleButton
-              id="edit-thing-is-endless"
-              label={t('endless.label')}
-              checked={isEndless}
-              onChange={(val) => setIsEndless(!val)}
-              variant="inline"
-              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-            />
-          </div>
-        )}
-        <TextInput
-          id="edit-thing-headline"
-          label={t('addThing.titleLabel')}
-          value={headline}
-          onChange={(e) => setHeadline(e.target.value)}
-          required
-          invalid={!!errors.headline}
-          errorText={errors.headline}
-          helperText={`${headline.length}/64`}
-        />
-        <TextArea
-          id="edit-thing-description"
-          label={t('addThing.descriptionLabel')}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          helperText={`${description.length}/256`}
-        />
-        {FEE_TYPES.includes(thingType) && (
-          <NumberInput
-            id="edit-thing-fee"
-            label={t('addThing.priceLabel')}
-            value={fee === '' ? '' : Number(fee)}
-            onChange={(e) => setFee(e.target.value)}
-            min={0}
-            step={0.01}
-            unit="EUR"
-            required
-            invalid={!!errors.fee}
-            errorText={errors.fee}
-          />
-        )}
-        {FEE_TYPES.includes(thingType) && DETAIL_TYPES.includes(thingType) && (
-          <div className="spacer-xxxx" />
-        )}
-        {DETAIL_TYPES.includes(thingType) && (
-          <>
-            <Select
-                language="en"
-              id="edit-thing-availability"
-              texts={{ label: t('addThing.availabilityLabel') }}
-              options={AVAILABILITY_VALUES.map(v => ({ label: t('availability.' + v), value: v }))}
-              value={availability}
-              onChange={(sel) => setAvailability(sel.length > 0 ? sel[0].value : '')}
-              clearable
-            />
-            <Select
-                language="en"
-              id="edit-thing-condition"
-              texts={{ label: t('addThing.conditionLabel') }}
-              options={CONDITION_VALUES.map(v => ({ label: t('condition.' + v), value: v }))}
-              value={condition}
-              onChange={(sel) => setCondition(sel.length > 0 ? sel[0].value : '')}
-              clearable
-            />
-            <TextInput
-              id="edit-thing-location"
-              label={t('addThing.locationLabel')}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              helperText={`${location.length}/32`}
-              invalid={!!errors.location}
-              errorText={errors.location}
-            />
-          </>
-        )}
-        {collectionTags.length > 0 && (
-          <Select
-            language="en"
-            multiSelect
-            id="edit-thing-tags"
-            texts={{
-              label: t('addThing.tagsLabel'),
-              placeholder: t('addThing.tagsPlaceholder'),
-              assistive: t('addThing.tagsHelper'),
-            }}
-            options={collectionTags.map((tg) => ({ label: tg, value: tg }))}
-            value={tags.map((tg) => ({ label: tg, value: tg }))}
-            onChange={(opts) => setTags(opts.map((o) => o.value))}
-          />
-        )}
-        <ImageUpload
-          id="edit-thing-thumbnail"
-          label={t('upload.thumbnailLabel')}
-          value={thumbnail}
-          onChange={setThumbnail}
-          currentUrl={thumbnailUrl}
-          folder="oiueei/things"
-        />
-        <GalleryUpload items={gallery} onChange={setGallery} />
-        <DocumentUpload
+        <ThingForm
+          idPrefix="edit-thing"
+          theeemeColor01={tc.color_01}
+          errors={errors}
+          typeOptions={typeOptions}
+          type={thingType}
+          setType={setThingType}
+          isEndless={isEndless}
+          setIsEndless={setIsEndless}
+          headline={headline}
+          setHeadline={setHeadline}
+          description={description}
+          setDescription={setDescription}
+          fee={fee}
+          setFee={setFee}
+          feeStep={0.01}
+          availability={availability}
+          setAvailability={setAvailability}
+          condition={condition}
+          setCondition={setCondition}
+          location={location}
+          setLocation={setLocation}
+          collectionTags={collectionTags}
+          tags={tags}
+          setTags={setTags}
+          imageLabel={t('upload.thumbnailLabel')}
+          thumbnail={thumbnail}
+          setThumbnail={setThumbnail}
+          thumbnailUrl={thumbnailUrl}
+          gallery={gallery}
+          setGallery={setGallery}
           documents={documents}
-          onChange={setDocuments}
+          setDocuments={setDocuments}
         />
       </div>
       <div className="form-actions">

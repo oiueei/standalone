@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, ToggleButton } from 'hds-react';
+import { TextInput, TextArea, Select, Button } from 'hds-react';
+import { isLockedToSingleType } from '../constants/things';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
+import CollectionForm from '../components/CollectionForm';
 import ImageUpload from '../components/ImageUpload';
 import TagInput from '../components/TagInput';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -55,33 +57,7 @@ export default function EditCollectionPage() {
     { label: t('editCollection.digestMonthly'), value: 'MONTHLY' },
   ];
 
-  // Type lists per mode/album combination. SWAP_THING is excluded everywhere
-  // because it requires `is_swap=True`, which forces the value via its flag.
-  const PROPRIETARY_TYPES = [
-    'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING',
-    'LEND_THING',
-  ];
-  const COMMUNITY_TYPES = [
-    'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING', 'LEND_THING',
-    'SHARE_THING', 'WISH_THING',
-  ];
-  const COMMUNITY_MINIMALIST_TYPES = ['GIFT_THING', 'SHARE_THING'];
-
-  const isLockedToSingleType = (
-    (mode === 'PROPRIETARY' && isMinimalist)
-    || (mode === 'COMMUNITY' && (isSwap || isShare))
-  );
-  const ALLOWED_TYPES_OPTIONS = (() => {
-    if (mode === 'PROPRIETARY') {
-      return isMinimalist
-        ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
-        : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }));
-    }
-    if (isSwap) return [{ label: t('types.SWAP_THING'), value: 'SWAP_THING' }];
-    if (isShare) return [{ label: t('types.SHARE_THING'), value: 'SHARE_THING' }];
-    const list = isMinimalist ? COMMUNITY_MINIMALIST_TYPES : COMMUNITY_TYPES;
-    return list.map((v) => ({ label: t('types.' + v), value: v }));
-  })();
+  const locked = isLockedToSingleType({ mode, isSwap, isShare, isMinimalist });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,7 +98,7 @@ export default function EditCollectionPage() {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('editCollection.maxHeadline');
-    if (!isLockedToSingleType && allowedThingTypes.length === 0) {
+    if (!locked && allowedThingTypes.length === 0) {
       newErrors.allowedThingTypes = t('createCollection.allowedTypesAtLeastOne');
     }
     setErrors(newErrors);
@@ -258,112 +234,24 @@ export default function EditCollectionPage() {
             }
           }}
         />
-        {mode === 'COMMUNITY' && (
-          <div className="toggle-left">
-            <ToggleButton
-              id="edit-collection-swap"
-              label={t('swap.enableSwap')}
-              checked={isSwap}
-              onChange={(val) => {
-                const next = !val;
-                setIsSwap(next);
-                // Turning ON swap clears the mutually-exclusive share flag;
-                // turning OFF clears the swap-specific minimum-items rule.
-                if (next) { setIsShare(false); } else { setRequireMinimumSwapItems(false); }
-                setAllowedThingTypes(next ? ['SWAP_THING'] : []);
-              }}
-              variant="inline"
-              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-            />
-          </div>
-        )}
-        {mode === 'COMMUNITY' && isSwap && (
-          <div className="toggle-left">
-            <ToggleButton
-              id="edit-collection-swap-minimum"
-              label={<>{t('swap.requireMinimumLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('swap.requireMinimumHelper')}</span></>}
-              checked={requireMinimumSwapItems}
-              onChange={(val) => setRequireMinimumSwapItems(!val)}
-              variant="inline"
-              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-            />
-          </div>
-        )}
-        {mode === 'COMMUNITY' && (
-          <div className="toggle-left">
-            <ToggleButton
-              id="edit-collection-share"
-              label={t('share.enableShare')}
-              checked={isShare}
-              onChange={(val) => {
-                const next = !val;
-                setIsShare(next);
-                // Turning ON share clears the mutually-exclusive swap flag;
-                // turning OFF clears the share-only newsletter setting.
-                if (next) setIsSwap(false); else setNewsletterEnabled(false);
-                setAllowedThingTypes(next ? ['SHARE_THING'] : []);
-              }}
-              variant="inline"
-              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-            />
-          </div>
-        )}
-        {mode === 'COMMUNITY' && isShare && (
-          <div className="toggle-left">
-            <ToggleButton
-              id="edit-collection-newsletter"
-              label={t('newsletter.enableNewsletter')}
-              checked={newsletterEnabled}
-              onChange={(val) => setNewsletterEnabled(!val)}
-              variant="inline"
-              theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-            />
-          </div>
-        )}
-        <div className="toggle-left">
-          <ToggleButton
-            id="edit-collection-minimalist"
-            label={t('minimalist.enableMinimalist')}
-            checked={isMinimalist}
-            onChange={(val) => {
-              const next = !val;
-              setIsMinimalist(next);
-              if (mode === 'PROPRIETARY') {
-                setAllowedThingTypes(next ? ['GIFT_THING'] : []);
-              } else {
-                setAllowedThingTypes([]);
-              }
-            }}
-            variant="inline"
-            theme={tc.color_01 ? { '--toggle-button-color': `var(--color-${tc.color_01})` } : undefined}
-          />
-        </div>
-        <div className={isLockedToSingleType ? 'multiselect-locked' : undefined}>
-          <Select
-            language="en"
-            multiSelect
-            id="edit-collection-allowed-thing-types"
-            texts={{
-              label: t('createCollection.allowedTypesLabel'),
-              placeholder: t('createCollection.allowedTypesPlaceholder'),
-              assistive: (() => {
-                if (mode === 'PROPRIETARY' && isMinimalist) return t('createCollection.allowedTypesAlbumHelper');
-                if (mode === 'COMMUNITY' && isSwap) return t('createCollection.allowedTypesSwapHelper');
-                if (mode === 'COMMUNITY' && isShare) return t('createCollection.allowedTypesShareHelper');
-                return t('createCollection.allowedTypesHelper');
-              })(),
-              error: errors.allowedThingTypes,
-            }}
-            options={ALLOWED_TYPES_OPTIONS}
-            value={allowedThingTypes.map((v) => ({
-              label: t('types.' + v),
-              value: v,
-            }))}
-            onChange={(opts) => setAllowedThingTypes(opts.map((o) => o.value))}
-            disabled={isLockedToSingleType}
-            invalid={!!errors.allowedThingTypes}
-          />
-        </div>
+        <CollectionForm
+          idPrefix="edit-collection"
+          mode={mode}
+          isSwap={isSwap}
+          setIsSwap={setIsSwap}
+          isShare={isShare}
+          setIsShare={setIsShare}
+          newsletterEnabled={newsletterEnabled}
+          setNewsletterEnabled={setNewsletterEnabled}
+          isMinimalist={isMinimalist}
+          setIsMinimalist={setIsMinimalist}
+          requireMinimumSwapItems={requireMinimumSwapItems}
+          setRequireMinimumSwapItems={setRequireMinimumSwapItems}
+          allowedThingTypes={allowedThingTypes}
+          setAllowedThingTypes={setAllowedThingTypes}
+          errors={errors}
+          theeemeColor01={tc.color_01}
+        />
         <TagInput
           tags={tags}
           onChange={setTags}
