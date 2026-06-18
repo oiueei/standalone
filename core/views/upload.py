@@ -1,11 +1,27 @@
 """
 Upload views — generates Cloudinary signed upload parameters.
 
-The frontend calls this endpoint to get a short-lived signature, then
-posts the image file directly to Cloudinary's API. Django never handles
-the binary file data.
+The frontend calls this endpoint to get a short-lived signature, then posts the
+file directly to Cloudinary's API. Django never handles the binary file data.
+
+The signature binds every upload parameter, so a client cannot change them
+without breaking it (verified against the live account):
+
+- ``public_id`` is generated server-side, so a client cannot choose an arbitrary
+  id (which could overwrite another asset) — only store the id Cloudinary
+  returns.
+- ``allowed_formats`` restricts what Cloudinary will accept: image folders take
+  raster photo formats only (SVG is excluded — it can carry script), document
+  folders take office/PDF/Markdown formats only.
+- ``resource_type`` is derived from the folder, not trusted from the client.
+- Documents upload as ``type=authenticated`` (private): their plain delivery URL
+  404s and they are only reachable through the gated, signed download endpoint.
+
+Note: Cloudinary's ``max_file_size`` upload parameter is not enforced on this
+account/plan (verified), so the per-file size cap stays a client-side check.
 """
 
+import secrets
 import time
 
 import cloudinary
@@ -16,13 +32,23 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections", "oiueei/documents"}
+DOCUMENTS_FOLDER = "oiueei/documents"
+
+# Raster photo formats only — SVG and other script-bearing/non-photo formats are
+# excluded so an <img>-rendered upload can never carry active content.
+IMAGE_FORMATS = "jpg,jpeg,png,webp,gif,heic,heif,avif,bmp,tif,tiff"
+# Mirrors the document upload component's accept list and the serializer's
+# content-type allowlist.
+DOCUMENT_FORMATS = "pdf,doc,docx,xls,xlsx,md"
 
 
 class CloudinarySignatureView(APIView):
     """
     POST /api/v1/upload/signature/
 
-    Returns a signed set of upload parameters for a direct browser-to-Cloudinary upload.
+    Returns a signed set of upload parameters for a direct browser-to-Cloudinary
+    upload. The client must send back the signed parameters verbatim (folder,
+    public_id, allowed_formats, and — for documents — type) alongside the file.
 
     Request body:
         { "folder": "oiueei/things" }
@@ -32,7 +58,12 @@ class CloudinarySignatureView(APIView):
             "signature": "...",
             "timestamp": 1234567890,
             "api_key": "...",
-            "cloud_name": "..."
+            "cloud_name": "...",
+            "folder": "oiueei/things",
+            "public_id": "<server-generated>",
+            "allowed_formats": "jpg,jpeg,png,...",
+            "resource_type": "image",
+            "type": "authenticated"   # documents only
         }
     """
 
@@ -44,24 +75,38 @@ class CloudinarySignatureView(APIView):
         if folder not in ALLOWED_FOLDERS:
             folder = "oiueei/users"
 
-        resource_type = request.data.get("resource_type", "image")
-        if resource_type not in ("image", "raw"):
-            resource_type = "image"
-
+        is_document = folder == DOCUMENTS_FOLDER
+        resource_type = "raw" if is_document else "image"
+        allowed_formats = DOCUMENT_FORMATS if is_document else IMAGE_FORMATS
+        # Random id within the folder; `folder` is sent separately, so the public_id
+        # itself carries no folder prefix (Cloudinary prepends `folder`).
+        public_id = secrets.token_urlsafe(16)
         timestamp = int(time.time())
-        params_to_sign = {"folder": folder, "timestamp": timestamp}
+
+        params_to_sign = {
+            "allowed_formats": allowed_formats,
+            "folder": folder,
+            "public_id": public_id,
+            "timestamp": timestamp,
+        }
+        if is_document:
+            params_to_sign["type"] = "authenticated"
 
         signature = cloudinary.utils.api_sign_request(
             params_to_sign, cloudinary.config().api_secret
         )
 
-        return Response(
-            {
-                "signature": signature,
-                "timestamp": timestamp,
-                "api_key": cloudinary.config().api_key,
-                "cloud_name": cloudinary.config().cloud_name,
-                "folder": folder,
-                "resource_type": resource_type,
-            }
-        )
+        response = {
+            "signature": signature,
+            "timestamp": timestamp,
+            "api_key": cloudinary.config().api_key,
+            "cloud_name": cloudinary.config().cloud_name,
+            "folder": folder,
+            "public_id": public_id,
+            "allowed_formats": allowed_formats,
+            "resource_type": resource_type,
+        }
+        if is_document:
+            response["type"] = "authenticated"
+
+        return Response(response)

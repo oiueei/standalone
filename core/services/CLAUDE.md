@@ -27,7 +27,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 - **`is_endless` guard**: For GIFT/SELL things where `thing.is_endless=True`, all status changes (TAKEN on request, INACTIVE on accept, ACTIVE on reject/cancel) and ThingTransfer creation are skipped. The thing remains ACTIVE at all times and accumulates multiple simultaneous PENDING bookings from different users. `expire_old_pending()` also excludes endless things from the TAKEN→ACTIVE restore.
 - **SHARE_THING ownership transfer**: On acceptance, `thing.owner` is changed to the requester. The thing stays `ACTIVE` so the new owner can continue sharing it. This enables a chain of ownership transfers within a community collection.
 - **SWAP_THING bilateral transfer**: On acceptance, the requested thing transfers to the requester, and all offered things transfer to the original owner. All things stay `ACTIVE`. `ThingTransfer` records are created for every thing involved (requested + offered).
-- **Document delivery on acceptance**: After any booking acceptance, if the thing has `documents`, `send_documents_email()` is called to send download links to the requester.
+- **Document delivery on acceptance**: After any booking acceptance, if the thing has `documents`, `send_documents_email()` is called to tell the requester their documents are ready and link them to the item. The email no longer embeds Cloudinary URLs — documents are private and downloaded through the gated, signed, expiring `DocumentDownloadView`.
 
 ---
 
@@ -76,7 +76,7 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_newsletter_email(collection_headline, collection_code, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |
 | `send_return_reminder_email(requester_name, thing_headline, end_date, owner_email)` | Daily command (end_date = tomorrow) | Thing owner |
 | `send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email)` | Daily command (delivery_date = tomorrow) | Thing owner |
-| `send_documents_email(requester_email, thing_headline, documents)` | Booking accepted for thing with documents | Requester (download links to Cloudinary raw URLs) |
+| `send_documents_email(requester_email, thing)` | Booking accepted for thing with documents | Requester (filenames + a link to the item; documents download via the gated, signed, expiring endpoint — no Cloudinary URLs in the email) |
 | `send_swap_request_email(requester, thing, offered_things, owner_email, accept_link, reject_link)` | Guest proposes a swap | Thing owner (lists offered thing headlines, accept/reject links) |
 | `send_swap_confirmation_email(requester, thing, offered_things, booking)` | Guest proposes a swap | Requester (confirmation of swap proposal) |
 | `send_wish_posted_email(creator_name, wish, emails)` | Member posts a wish with "Avisar al grupo" on | Every group member (individually; activity opt-out applies) |

@@ -159,7 +159,7 @@ def accept_booking(booking):
     if thing.documents:
         from core.services.email_service import send_documents_email
 
-        send_documents_email(booking.requester_email, thing.headline, thing.documents)
+        send_documents_email(booking.requester_email, thing)
 
     return thing
 

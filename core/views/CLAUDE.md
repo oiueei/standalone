@@ -471,16 +471,14 @@ Shows a previously hidden FAQ.
 | **Endpoint** | `POST /api/v1/upload/signature/` |
 | **Permission** | `IsAuthenticated` |
 
-Generates a short-lived Cloudinary signed upload signature so the frontend can upload images directly to Cloudinary without routing the binary data through Django.
+Generates a short-lived Cloudinary signed upload signature so the frontend can upload files directly to Cloudinary without routing the binary data through Django. The signature binds every parameter, so a client cannot tamper with them: the **`public_id` is generated server-side** (preventing arbitrary ids / overwrites), `allowed_formats` restricts accepted formats (raster photo formats for image folders — SVG excluded; PDF/Office/Markdown for the documents folder), `resource_type` is derived from the folder (not client-trusted), and documents upload as **`type=authenticated`** (private — see `DocumentDownloadView`). Cloudinary's `max_file_size` is not enforced on the current plan, so the per-file size cap stays a client-side check.
 
 **Request body:**
 ```json
-{ "folder": "oiueei/things", "resource_type": "image" }
+{ "folder": "oiueei/things" }
 ```
 
-Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`, `oiueei/documents`. Any other value falls back to `oiueei/users`.
-
-Allowed `resource_type` values: `image` (default), `raw` (for document uploads). Any other value falls back to `image`.
+Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`, `oiueei/documents`. Any other value falls back to `oiueei/users`. `resource_type` is derived from the folder (`raw` for `oiueei/documents`, otherwise `image`) — it is no longer taken from the client.
 
 **Response:**
 ```json
@@ -488,17 +486,30 @@ Allowed `resource_type` values: `image` (default), `raw` (for document uploads).
     "signature": "abc123...",
     "timestamp": 1234567890,
     "api_key": "...",
-    "cloud_name": "hixm8hed8",
+    "cloud_name": "...",
     "folder": "oiueei/things",
-    "resource_type": "image"
+    "public_id": "<server-generated>",
+    "allowed_formats": "jpg,jpeg,png,...",
+    "resource_type": "image",
+    "type": "authenticated"
 }
 ```
+(`type` is returned for the documents folder only.)
 
 **Frontend upload flow:**
-1. Call this endpoint to get a signature.
-2. POST the file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/upload` with the signature parameters. Use `image/upload` for images and `raw/upload` for documents.
-3. Cloudinary returns a `public_id` (e.g. `oiueei/things/abc123`).
-4. Save the `public_id` to the relevant Django model field (`thumbnail` cover, the `User.photo` profile photo, or append to a Thing's `gallery` list).
+1. Call this endpoint to get the signed parameters.
+2. POST the file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/upload`, sending the signed parameters back verbatim (`folder`, `public_id`, `allowed_formats`, and — for documents — `type`).
+3. Cloudinary returns the final `public_id` (folder-prefixed, with the file extension for raw documents) — store **that** returned value.
+4. Save the `public_id` to the relevant Django model field (`thumbnail` cover, the `User.photo` profile photo, append to a Thing's `gallery`, or a Thing `documents` entry).
+
+### DocumentDownloadView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/things/{thing_code}/documents/{index}/download/` |
+| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+
+Documents are uploaded privately (`type=authenticated`), so their plain Cloudinary URL 404s — this gated endpoint is the only way to obtain a working URL. It checks the caller can view the thing, then 302-redirects to a short-lived (5 min) signed `private_download_url` minted by `core.utils.signed_document_url()`. `ThingSerializer.document_urls` points here (never at a raw Cloudinary URL), and the raw `documents` array (carrying public_ids) is serialised to the owner only.
 
 ---
 

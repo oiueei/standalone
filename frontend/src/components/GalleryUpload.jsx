@@ -62,17 +62,22 @@ export default function GalleryUpload({ items = [], onChange }) {
           body: JSON.stringify({ folder: 'oiueei/things' }),
         });
         if (!sigRes.ok) throw new Error('signature_failed');
-        const { signature, timestamp, api_key, cloud_name } = await sigRes.json();
+        const { signature, timestamp, api_key, cloud_name, folder, public_id, allowed_formats, resource_type } =
+          await sigRes.json();
 
+        // Send back exactly the server-signed parameters — changing any of them
+        // (public_id, allowed_formats) would break the signature.
         const formData = new FormData();
         formData.append('file', file);
         formData.append('api_key', api_key);
         formData.append('timestamp', String(timestamp));
         formData.append('signature', signature);
-        formData.append('folder', 'oiueei/things');
+        formData.append('folder', folder);
+        formData.append('public_id', public_id);
+        formData.append('allowed_formats', allowed_formats);
 
         const uploadRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+          `https://api.cloudinary.com/v1_1/${cloud_name}/${resource_type}/upload`,
           { method: 'POST', body: formData }
         );
         if (!uploadRes.ok) throw new Error('upload_failed');

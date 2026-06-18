@@ -617,33 +617,33 @@ def send_delivery_reminder_email(requester_name, thing_headline, delivery_date, 
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
-def send_documents_email(requester_email, thing_headline, documents):
-    """Send document download links to the requester after booking acceptance."""
-    import cloudinary.utils
+def send_documents_email(requester_email, thing):
+    """Tell the requester their documents are ready, after booking acceptance.
 
-    safe_headline = escape(thing_headline)
+    The documents are private and only downloadable through the authenticated,
+    gated, short-lived download endpoint, so the email no longer embeds eternal
+    Cloudinary URLs (M2). It lists the filenames and links to the item, where a
+    signed-in requester downloads each one. (A tokenised direct link for
+    unauthenticated recipients is the separate L9/R16 work in Fase 16.)
+    """
+    safe_headline = escape(thing.headline)
+    thing_url = _thing_url(thing)
+    filenames = [doc.get("filename", "document") for doc in (thing.documents or [])]
 
-    doc_links = []
-    for doc in documents:
-        url, _ = cloudinary.utils.cloudinary_url(doc["public_id"], resource_type="raw")
-        doc_links.append({"filename": doc["filename"], "url": url})
+    plain_list = "\n".join(f"  - {name}" for name in filenames)
+    html_list = "".join(f"<li>{escape(name)}</li>" for name in filenames)
 
-    plain_links = "\n".join(f"  - {d['filename']}: {d['url']}" for d in doc_links)
-    html_links = "".join(
-        f'<li><a href="{d["url"]}">{escape(d["filename"])}</a></li>' for d in doc_links
-    )
-
-    subject = f"Documents for {thing_headline}"
+    subject = f"Documents for {thing.headline}"
     plain = (
-        f"Here are the documents for '{thing_headline}':\n\n"
-        f"{plain_links}\n\n"
-        f"Log in to OIUEEI to see more."
+        f"The documents for '{thing.headline}' are ready:\n\n"
+        f"{plain_list}\n\n"
+        f"Log in to OIUEEI and open the item to download them: {thing_url}"
     )
     html = f"""
         <html>
-        <p>Here are the documents for <strong>{safe_headline}</strong>:</p>
-        <ul>{html_links}</ul>
-        <p>Log in to OIUEEI to see more.</p>
+        <p>The documents for <strong>{safe_headline}</strong> are ready:</p>
+        <ul>{html_list}</ul>
+        <p><a href="{thing_url}">Log in to OIUEEI and open the item to download them</a></p>
         </html>
         """
     _send(requester_email, subject, plain, html, CATEGORY_ACTIVITY)

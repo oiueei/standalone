@@ -3,6 +3,7 @@ Thing views for OIUEEI.
 """
 
 from django.db.models import Count, Prefetch
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
@@ -10,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from core.models import Collection, Thing
@@ -19,6 +21,7 @@ from core.pagination import StandardResultsPagination
 from core.permissions import IsThingOwner
 from core.serializers import ThingCreateSerializer, ThingSerializer, ThingUpdateSerializer
 from core.services.email_service import send_wish_posted_email
+from core.utils import signed_document_url
 from core.views._helpers import type_validity_error
 
 
@@ -208,7 +211,7 @@ class ThingViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(
-            ThingSerializer(self._created_thing).data,
+            ThingSerializer(self._created_thing, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -220,7 +223,7 @@ class ThingViewSet(ModelViewSet):
         thing.status = Thing.Status.ACTIVE
         thing.save(update_fields=["status"])
         thing.deal.clear()
-        return Response(ThingSerializer(thing).data)
+        return Response(ThingSerializer(thing, context=self.get_serializer_context()).data)
 
     @action(detail=True, methods=["post"], url_path="hide")
     def hide(self, request, code=None):
@@ -236,7 +239,37 @@ class ThingViewSet(ModelViewSet):
             )
         thing.status = Thing.Status.INACTIVE
         thing.save(update_fields=["status"])
-        return Response(ThingSerializer(thing).data)
+        return Response(ThingSerializer(thing, context=self.get_serializer_context()).data)
+
+
+class DocumentDownloadView(APIView):
+    """
+    GET /api/v1/things/{thing_code}/documents/{index}/download/
+
+    Redirect a viewer to a short-lived signed Cloudinary URL for the thing's Nth
+    document. Documents are uploaded privately (``type=authenticated``), so this
+    authorisation-gated endpoint is the only way to obtain a working URL, and the
+    URL it mints expires — it can't be bookmarked, shared, or leaked for long.
+    Anyone who can view the thing can download its documents (same audience as
+    the serialised ``document_urls``).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, thing_code, index):
+        thing = get_object_or_404(Thing, code=thing_code)
+        if not thing.can_view(request.user.code):
+            return Response(
+                {"error": "You do not have permission to view this document."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        documents = thing.documents or []
+        if index < 0 or index >= len(documents):
+            raise Http404("Document not found.")
+        url = signed_document_url(documents[index])
+        if not url:
+            raise Http404("Document not found.")
+        return HttpResponseRedirect(url)
 
 
 class InvitedThingsView(ListAPIView):

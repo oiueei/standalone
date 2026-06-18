@@ -75,3 +75,36 @@ def cloudinary_url(image_id):
 
     url, _ = cloudinary.utils.cloudinary_url(image_id, fetch_format="auto", quality="auto")
     return url
+
+
+# Documents are uploaded privately (Cloudinary type=authenticated): their plain
+# delivery URL 404s, so the only way to fetch one is a short-lived signed URL
+# minted on demand by the gated download view. Five minutes is long enough to
+# start a download yet short enough that a leaked URL dies quickly.
+DOCUMENT_URL_TTL_SECONDS = 300
+
+
+def signed_document_url(doc, ttl_seconds=DOCUMENT_URL_TTL_SECONDS):
+    """Mint a short-lived, signed Cloudinary download URL for a stored document.
+
+    ``doc`` is a stored ``{public_id, filename, content_type, type}`` dict. New
+    documents carry ``type='authenticated'`` (private); legacy documents stored
+    before this change have no ``type`` and were public ``upload`` assets — both
+    are served through the same signed, expiring download API so the underlying
+    Cloudinary URL is never eternal nor exposed in API responses or emails (M2).
+    Returns ``None`` when the document has no ``public_id``.
+    """
+    import time
+
+    import cloudinary.utils
+
+    public_id = doc.get("public_id")
+    if not public_id:
+        return None
+    return cloudinary.utils.private_download_url(
+        public_id,
+        "",
+        resource_type="raw",
+        type=doc.get("type", "upload"),
+        expires_at=int(time.time()) + ttl_seconds,
+    )

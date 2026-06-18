@@ -146,6 +146,7 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
     collection_owner = serializers.SerializerMethodField()
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
     document_urls = serializers.SerializerMethodField()
     collection_tags = serializers.SerializerMethodField()
 
@@ -244,16 +245,29 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
         # Use prefetched faq_set cache if available
         return [faq.code for faq in obj.faq_set.all()]
 
+    def get_documents(self, obj):
+        # Raw document entries carry Cloudinary public_ids; expose them only to the
+        # owner (they back the owner's edit form). Other viewers get gated, signed
+        # links via `document_urls` and never see the public_ids — otherwise a
+        # leaked legacy public_id could be used to rebuild an eternal raw URL (M2).
+        request = self.context.get("request")
+        if request and request.user.is_authenticated and obj.is_owner(request.user.code):
+            return obj.documents
+        return None
+
     def get_document_urls(self, obj):
+        # Point at the gated download endpoint rather than a raw Cloudinary URL:
+        # documents are private, and the endpoint mints a short-lived signed URL
+        # per request, so no eternal/guessable URL is ever exposed here (M2).
         if not obj.documents:
             return []
-        import cloudinary.utils
-
-        result = []
-        for doc in obj.documents:
-            url, _ = cloudinary.utils.cloudinary_url(doc["public_id"], resource_type="raw")
-            result.append({"filename": doc["filename"], "url": url})
-        return result
+        return [
+            {
+                "filename": doc["filename"],
+                "url": f"/api/v1/things/{obj.code}/documents/{index}/download/",
+            }
+            for index, doc in enumerate(obj.documents)
+        ]
 
     def get_collection_tags(self, obj):
         # The tag vocabulary available to this thing — union of its collections'
@@ -320,7 +334,13 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             return value
         serializer = DocumentSerializer(data=value, many=True)
         serializer.is_valid(raise_exception=True)
-        return serializer.validated_data
+        documents = serializer.validated_data
+        # Documents upload privately (Cloudinary type=authenticated); record the
+        # delivery type server-side so the download view mints a signed,
+        # expiring authenticated URL. Client-sent `type` is ignored (M2).
+        for document in documents:
+            document["type"] = "authenticated"
+        return documents
 
 
 class ThingUpdateSerializer(serializers.ModelSerializer):
@@ -392,4 +412,10 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             return value
         serializer = DocumentSerializer(data=value, many=True)
         serializer.is_valid(raise_exception=True)
-        return serializer.validated_data
+        documents = serializer.validated_data
+        # Documents upload privately (Cloudinary type=authenticated); record the
+        # delivery type server-side so the download view mints a signed,
+        # expiring authenticated URL. Client-sent `type` is ignored (M2).
+        for document in documents:
+            document["type"] = "authenticated"
+        return documents

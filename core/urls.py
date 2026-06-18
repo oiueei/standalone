@@ -37,7 +37,7 @@ from .views.inbox import InboxView
 from .views.notifications import NotificationsByTokenView
 from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
-from .views.things import InvitedThingsView, ThingViewSet
+from .views.things import DocumentDownloadView, InvitedThingsView, ThingViewSet
 from .views.transfers import ThingTransferView
 from .views.upload import CloudinarySignatureView
 from .views.users import UserDetailView
@@ -118,6 +118,11 @@ urlpatterns = [
         "things/<str:thing_code>/transfers/",
         ThingTransferView.as_view(),
         name="thing-transfers",
+    ),
+    path(
+        "things/<str:thing_code>/documents/<int:index>/download/",
+        DocumentDownloadView.as_view(),
+        name="thing-document-download",
     ),
     # Wishes (a Thing of type WISH_THING)
     path(

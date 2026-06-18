@@ -37,6 +37,20 @@ export default function ThingPage() {
   const [toast, setToast] = useState(null);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
+  // Document links point at the auth-gated download endpoint (which 302-redirects
+  // to a short-lived signed Cloudinary URL). A plain anchor can't refresh an
+  // expired access token, so warm it via apiFetch first, then navigate.
+  const handleDownloadDocument = async (e, url) => {
+    e.preventDefault();
+    try {
+      const res = await apiFetch('/api/v1/auth/me/');
+      if (!res.ok) throw new Error('refresh_failed');
+      window.location.href = url;
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    }
+  };
+
   // Reservation engine (shared with ThingLinkbox)
   const {
     submitting,
@@ -358,7 +372,13 @@ export default function ThingPage() {
             <ul className="document-list">
               {thing.document_urls.map((doc, i) => (
                 <li key={i} className="document-list-item">
-                  <a href={doc.url} target="_blank" rel="noopener noreferrer">{doc.filename}</a>
+                  <a
+                    href={doc.url}
+                    rel="noopener noreferrer"
+                    onClick={(e) => handleDownloadDocument(e, doc.url)}
+                  >
+                    {doc.filename}
+                  </a>
                 </li>
               ))}
             </ul>
