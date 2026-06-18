@@ -6,6 +6,7 @@ from datetime import date, timedelta
 from io import StringIO
 
 import pytest
+import time_machine
 from django.core.management import call_command
 
 from core.models.booking import BookingPeriod
@@ -110,8 +111,14 @@ class TestTransferCreatedOnBookingAccept:
         assert transfer.returned_date is None
         assert transfer.booking == booking
 
+    @time_machine.travel(date(2026, 6, 15))
     def test_accept_gift_creates_transfer(self, user, user2, thing):
-        """Accepting a gift booking should create a transfer with today's date."""
+        """Accepting a gift booking should create a transfer with today's date.
+
+        Time is frozen so the ``lent_date`` (set to "today" by the service) is
+        asserted against a fixed date rather than a re-evaluated ``date.today()``
+        that could tick over a midnight boundary mid-test.
+        """
         booking = self._make_booking(thing, user, user2, thing_type="GIFT_THING")
 
         accept_booking(booking)
@@ -119,7 +126,7 @@ class TestTransferCreatedOnBookingAccept:
         transfer = ThingTransfer.objects.get(thing=thing)
         assert transfer.from_user == user
         assert transfer.to_user == user2
-        assert transfer.lent_date == date.today()
+        assert transfer.lent_date == date(2026, 6, 15)
         assert transfer.returned_date is None
 
     def test_accept_twice_is_idempotent(self, user, user2, thing):
@@ -141,8 +148,12 @@ class TestTransferCreatedOnBookingAccept:
 class TestCloseTransfersCommand:
     """Tests for close_transfers management command."""
 
+    @time_machine.travel(date(2026, 6, 15))
     def test_close_ended_transfers(self, user, user2, thing):
-        """Should close transfers for bookings that have ended."""
+        """Should close transfers for bookings that have ended.
+
+        Frozen time pins the ``returned_date`` the command stamps (= today) to a
+        fixed date for a deterministic assertion."""
         booking = BookingPeriod.objects.create(
             thing_code=thing,
             thing_type="LEND_THING",
@@ -165,7 +176,7 @@ class TestCloseTransfersCommand:
         call_command("close_transfers", stdout=out)
 
         transfer = ThingTransfer.objects.get(thing=thing)
-        assert transfer.returned_date == date.today()
+        assert transfer.returned_date == date(2026, 6, 15)
         assert "Closed 1 transfers" in out.getvalue()
 
     def test_no_transfers_to_close(self):

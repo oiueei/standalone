@@ -401,4 +401,6 @@ QR codes for collection share links are rendered client-side with [qrcode.react]
 
 CSV files for bulk-adding things are parsed client-side with [PapaParse](https://github.com/mholt/PapaParse) by Matt Holt, licensed under the [MIT License](https://github.com/mholt/PapaParse/blob/master/LICENSE).
 
+The backend test suite builds model fixtures with [factory_boy](https://github.com/FactoryBoy/factory_boy) and freezes time deterministically with [time-machine](https://github.com/adamchainz/time-machine) by Adam Johnson, both licensed under the [MIT License](https://github.com/FactoryBoy/factory_boy/blob/master/LICENSE) (development-only dependencies).
+
 This project is co-written with [Claude Code](https://claude.ai/code) by [Anthropic](https://www.anthropic.com/).

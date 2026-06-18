@@ -18,57 +18,45 @@ from core.validators import (
 class TestValidateImageId:
     """Tests for validate_image_id function."""
 
-    def test_valid_alphanumeric(self):
-        """Should accept alphanumeric characters."""
-        assert validate_image_id("abc123") == "abc123"
-        assert validate_image_id("ABC123") == "ABC123"
-        assert validate_image_id("ABCDEF") == "ABCDEF"
-        assert validate_image_id("123456") == "123456"
-
-    def test_valid_with_underscores(self):
-        """Should accept underscores."""
-        assert validate_image_id("abc_123") == "abc_123"
-        assert validate_image_id("_test_") == "_test_"
-
-    def test_valid_with_hyphens(self):
-        """Should accept hyphens."""
-        assert validate_image_id("abc-123") == "abc-123"
-        assert validate_image_id("-test-") == "-test-"
-
-    def test_valid_mixed(self):
-        """Should accept mix of valid characters."""
-        assert validate_image_id("abc_123-XYZ") == "abc_123-XYZ"
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "abc123",
+            "ABC123",
+            "ABCDEF",
+            "123456",
+            "abc_123",
+            "_test_",
+            "abc-123",
+            "-test-",
+            "abc_123-XYZ",
+        ],
+    )
+    def test_valid_values_pass_through(self, value):
+        """Alphanumerics, underscores and hyphens are accepted unchanged."""
+        assert validate_image_id(value) == value
 
     def test_empty_value_allowed(self):
         """Should accept empty values."""
         assert validate_image_id("") == ""
         assert validate_image_id(None) is None
 
-    def test_invalid_with_html(self):
-        """Should reject HTML tags."""
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "<script>alert(1)</script>",  # HTML
+            "../etc/passwd",  # path traversal (unix)
+            "..\\windows\\system32",  # path traversal (windows)
+            "abc 123",  # spaces
+            "abc@123",  # special chars
+            "abc#123",
+            "abc$123",
+        ],
+    )
+    def test_invalid_values_raise(self, value):
+        """HTML, path traversal, spaces and special characters are rejected."""
         with pytest.raises(serializers.ValidationError):
-            validate_image_id("<script>alert(1)</script>")
-
-    def test_invalid_with_path_traversal(self):
-        """Should reject path traversal attempts."""
-        with pytest.raises(serializers.ValidationError):
-            validate_image_id("../etc/passwd")
-        with pytest.raises(serializers.ValidationError):
-            validate_image_id("..\\windows\\system32")
-
-    def test_invalid_with_spaces(self):
-        """Should reject spaces."""
-        with pytest.raises(serializers.ValidationError):
-            validate_image_id("abc 123")
-
-    def test_invalid_with_special_chars(self):
-        """Should reject special characters."""
-        with pytest.raises(serializers.ValidationError):
-            validate_image_id("abc@123")
-        with pytest.raises(serializers.ValidationError):
-            validate_image_id("abc#123")
-        with pytest.raises(serializers.ValidationError):
-            validate_image_id("abc$123")
+            validate_image_id(value)
 
 
 class TestImageIdField:
@@ -99,57 +87,43 @@ class TestImageIdField:
 class TestValidateHeadline:
     """Tests for validate_headline function."""
 
-    def test_valid_plain_text(self):
-        """Should accept plain text."""
-        assert validate_headline("Hello World") == "Hello World"
-        assert validate_headline("My Collection 2024") == "My Collection 2024"
-
-    def test_valid_with_punctuation(self):
-        """Should accept punctuation."""
-        assert validate_headline("Hello, World!") == "Hello, World!"
-        assert validate_headline("What's up?") == "What's up?"
-
-    def test_valid_with_unicode(self):
-        """Should accept unicode characters."""
-        assert validate_headline("Boda de Maria") == "Boda de Maria"
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "Hello World",
+            "My Collection 2024",
+            "Hello, World!",
+            "What's up?",
+            "Boda de Maria",  # unicode
+        ],
+    )
+    def test_valid_values_pass_through(self, value):
+        """Plain text, punctuation and unicode are accepted unchanged."""
+        assert validate_headline(value) == value
 
     def test_empty_value_allowed(self):
         """Should accept empty values."""
         assert validate_headline("") == ""
         assert validate_headline(None) is None
 
-    def test_invalid_with_script_tags(self):
-        """Should reject script tags."""
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "<script>alert(1)</script>",  # script tag
+            "<b>Bold</b>",  # any HTML tag
+            "<a href='bad'>Link</a>",
+            "<img src=x onerror=alert(1)>",
+            '<div onmouseover="alert(1)">',  # event handler
+            "Hello\r\nBcc: victim@example.com",  # CRLF header injection
+            "Line one\nLine two",  # bare LF
+            "[click](javascript:alert(1))",  # javascript: scheme
+            "[x](data:text/plain,hello)",  # data: scheme
+        ],
+    )
+    def test_invalid_values_raise(self, value):
+        """HTML tags, event handlers, CR/LF and dangerous link schemes are rejected."""
         with pytest.raises(serializers.ValidationError):
-            validate_headline("<script>alert(1)</script>")
-
-    def test_invalid_with_html_tags(self):
-        """Should reject any HTML tags."""
-        with pytest.raises(serializers.ValidationError):
-            validate_headline("<b>Bold</b>")
-        with pytest.raises(serializers.ValidationError):
-            validate_headline("<a href='bad'>Link</a>")
-        with pytest.raises(serializers.ValidationError):
-            validate_headline("<img src=x onerror=alert(1)>")
-
-    def test_invalid_with_event_handlers(self):
-        """Should reject event handler attempts."""
-        with pytest.raises(serializers.ValidationError):
-            validate_headline('<div onmouseover="alert(1)">')
-
-    def test_invalid_with_line_breaks(self):
-        """Should reject CR/LF (header-injection guard for email subjects)."""
-        with pytest.raises(serializers.ValidationError):
-            validate_headline("Hello\r\nBcc: victim@example.com")
-        with pytest.raises(serializers.ValidationError):
-            validate_headline("Line one\nLine two")
-
-    def test_invalid_with_unsafe_link_scheme(self):
-        """Should reject dangerous URL schemes in Markdown links."""
-        with pytest.raises(serializers.ValidationError):
-            validate_headline("[click](javascript:alert(1))")
-        with pytest.raises(serializers.ValidationError):
-            validate_headline("[x](data:text/plain,hello)")
+            validate_headline(value)
 
 
 class TestValidateText:

@@ -2,9 +2,10 @@
 Unit tests for OIUEEI models.
 """
 
-from datetime import timedelta
+from datetime import date, timedelta
 
 import pytest
+import time_machine
 from django.utils import timezone
 
 from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
@@ -72,18 +73,19 @@ class TestUserModel:
         assert user.invited_to_collections.count() == 0
         assert user.owned_things.count() == 0
 
+    @time_machine.travel(date(2026, 6, 15))
     def test_update_last_activity(self):
         """Should update last activity date.
 
         New users start with `last_activity = None` so the first verify is
         detectable as a true first login (powers the analytics `signup` event).
+        Time is frozen so the assertion compares against a fixed date, not a
+        ``date.today()`` re-evaluated after a possible midnight rollover.
         """
-        from datetime import date
-
         user = User.objects.create(email="test@example.com")
         assert user.last_activity is None
         user.update_last_activity()
-        assert user.last_activity == date.today()
+        assert user.last_activity == date(2026, 6, 15)
 
     def test_user_email_must_be_unique(self):
         """Duplicate email should raise IntegrityError."""
@@ -111,12 +113,12 @@ class TestUserModel:
         )
         assert user.headline == "My headline"
 
+    @time_machine.travel(date(2026, 6, 15))
     def test_user_created_date_persisted(self):
-        """Creation date should be persisted automatically."""
-        from datetime import date
-
+        """Creation date should be persisted automatically (frozen for a stable
+        assertion across midnight)."""
         user = User.objects.create(email="test@example.com")
-        assert user.created == date.today()
+        assert user.created == date(2026, 6, 15)
 
     def test_user_name_is_optional(self):
         """User name should default to empty string."""
@@ -522,56 +524,30 @@ class TestBookingPeriodModel:
         assert booking.code in result
         assert thing.code in result
 
-    def test_is_date_based(self):
-        """Should identify date-based booking types."""
+    @pytest.mark.parametrize(
+        "thing_type,date_based,single_use,repeatable",
+        [
+            ("LEND_THING", True, False, False),
+            ("GIFT_THING", False, True, False),
+            ("ORDER_THING", False, False, True),
+        ],
+    )
+    def test_booking_type_classification(self, thing_type, date_based, single_use, repeatable):
+        """is_date_based / is_single_use / is_repeatable classify each type."""
         from core.models.booking import BookingPeriod
 
         owner = self._create_user()
         thing = self._create_thing(owner)
         booking = BookingPeriod.objects.create(
             thing_code=thing,
-            thing_type="LEND_THING",
+            thing_type=thing_type,
             requester_code=self._create_user("REQ001"),
             requester_email="req@example.com",
             owner_code=owner,
         )
-        assert booking.is_date_based() is True
-        assert booking.is_single_use() is False
-        assert booking.is_repeatable() is False
-
-    def test_is_single_use(self):
-        """Should identify single-use booking types."""
-        from core.models.booking import BookingPeriod
-
-        owner = self._create_user()
-        thing = self._create_thing(owner)
-        booking = BookingPeriod.objects.create(
-            thing_code=thing,
-            thing_type="GIFT_THING",
-            requester_code=self._create_user("REQ001"),
-            requester_email="req@example.com",
-            owner_code=owner,
-        )
-        assert booking.is_single_use() is True
-        assert booking.is_date_based() is False
-        assert booking.is_repeatable() is False
-
-    def test_is_repeatable(self):
-        """Should identify repeatable booking types."""
-        from core.models.booking import BookingPeriod
-
-        owner = self._create_user()
-        thing = self._create_thing(owner)
-        booking = BookingPeriod.objects.create(
-            thing_code=thing,
-            thing_type="ORDER_THING",
-            requester_code=self._create_user("REQ001"),
-            requester_email="req@example.com",
-            owner_code=owner,
-        )
-        assert booking.is_repeatable() is True
-        assert booking.is_date_based() is False
-        assert booking.is_single_use() is False
+        assert booking.is_date_based() is date_based
+        assert booking.is_single_use() is single_use
+        assert booking.is_repeatable() is repeatable
 
     def test_expire(self):
         """Should mark booking as expired."""

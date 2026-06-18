@@ -147,16 +147,27 @@ class TestBookingCalendarView:
 class TestBookingRequest:
     """Tests for booking request creation."""
 
-    def test_guest_can_request_booking_for_lend(self, user, user2, lend_thing, collection):
-        """Guest can request booking for LEND_THING with dates."""
+    @pytest.mark.parametrize(
+        "thing_fixture,days",
+        [
+            ("lend_thing", 3),  # LEND_THING
+            ("rent_thing", 5),  # RENT_THING (same date-based flow as lend)
+            ("share_thing", 1),  # SHARE_THING
+        ],
+    )
+    def test_guest_can_request_date_based_booking(
+        self, request, user, user2, collection, thing_fixture, days
+    ):
+        """A guest can request a date-based booking for LEND/RENT/SHARE things."""
+        thing = request.getfixturevalue(thing_fixture)
         collection.add_invite(user2.code)
 
         client2 = get_client_for_user(user2)
         response = client2.post(
-            f"/api/v1/things/{lend_thing.code}/request/",
+            f"/api/v1/things/{thing.code}/request/",
             {
                 "start_date": str(date.today()),
-                "end_date": str(date.today() + timedelta(days=3)),
+                "end_date": str(date.today() + timedelta(days=days)),
             },
             format="json",
         )
@@ -164,40 +175,6 @@ class TestBookingRequest:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Booking request sent"
         assert "booking_code" in response.data
-
-    def test_guest_can_request_booking_for_rent(self, user, user2, rent_thing, collection):
-        """Guest can request booking for RENT_THING (same as lend)."""
-        collection.add_invite(user2.code)
-
-        client2 = get_client_for_user(user2)
-        response = client2.post(
-            f"/api/v1/things/{rent_thing.code}/request/",
-            {
-                "start_date": str(date.today()),
-                "end_date": str(date.today() + timedelta(days=5)),
-            },
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["message"] == "Booking request sent"
-
-    def test_guest_can_request_booking_for_share(self, user, user2, share_thing, collection):
-        """Guest can request booking for SHARE_THING."""
-        collection.add_invite(user2.code)
-
-        client2 = get_client_for_user(user2)
-        response = client2.post(
-            f"/api/v1/things/{share_thing.code}/request/",
-            {
-                "start_date": str(date.today()),
-                "end_date": str(date.today() + timedelta(days=1)),
-            },
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["message"] == "Booking request sent"
 
     def test_owner_cannot_request_own_thing(self, authenticated_client, lend_thing):
         """Owner cannot request booking for their own thing."""

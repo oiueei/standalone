@@ -5,9 +5,9 @@ Unit tests for OIUEEI management commands.
 from datetime import date, datetime, time, timedelta
 from datetime import timezone as dt_timezone
 from io import StringIO
-from unittest.mock import patch
 
 import pytest
+import time_machine
 from django.core import mail
 from django.core.management import call_command
 from django.utils import timezone
@@ -208,13 +208,10 @@ class TestSendDigestsCommand:
 
         return collection, owner, invitee
 
-    @patch("core.management.commands.send_digests.date")
-    def test_weekly_digest_on_monday(self, mock_date):
+    @time_machine.travel(date(2026, 4, 20))  # 2026-04-20 is a Monday
+    def test_weekly_digest_on_monday(self):
         """Should send weekly digest on Mondays."""
-        monday = date(2026, 4, 20)  # 2026-04-20 is a Monday
-        mock_date.today.return_value = monday
-        mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
-
+        monday = date(2026, 4, 20)
         self._setup_collection_with_things("DGW", "WEEKLY", thing_days_ago=3, anchor_date=monday)
 
         out = StringIO()
@@ -225,13 +222,9 @@ class TestSendDigestsCommand:
         assert "DGWinv@test.com" in mail.outbox[0].to
         assert "Sent 1 digest" in out.getvalue()
 
-    @patch("core.management.commands.send_digests.date")
-    def test_weekly_digest_not_on_tuesday(self, mock_date):
+    @time_machine.travel(date(2026, 4, 21))  # a Tuesday
+    def test_weekly_digest_not_on_tuesday(self):
         """Should not send weekly digest on non-Mondays."""
-        tuesday = date(2026, 4, 21)  # Tuesday
-        mock_date.today.return_value = tuesday
-        mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
-
         self._setup_collection_with_things("DGX", "WEEKLY", thing_days_ago=3)
 
         out = StringIO()
@@ -240,13 +233,10 @@ class TestSendDigestsCommand:
         assert len(mail.outbox) == 0
         assert "Sent 0 digest" in out.getvalue()
 
-    @patch("core.management.commands.send_digests.date")
-    def test_monthly_digest_on_first(self, mock_date):
+    @time_machine.travel(date(2026, 5, 1))  # the 1st of the month
+    def test_monthly_digest_on_first(self):
         """Should send monthly digest on the 1st of the month."""
-        first = date(2026, 5, 1)  # 1st May
-        mock_date.today.return_value = first
-        mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
-
+        first = date(2026, 5, 1)
         self._setup_collection_with_things("DGM", "MONTHLY", thing_days_ago=15, anchor_date=first)
 
         out = StringIO()
@@ -255,13 +245,9 @@ class TestSendDigestsCommand:
         assert len(mail.outbox) == 1
         assert "Sent 1 digest" in out.getvalue()
 
-    @patch("core.management.commands.send_digests.date")
-    def test_skips_none_frequency(self, mock_date):
+    @time_machine.travel(date(2026, 4, 20))  # a Monday
+    def test_skips_none_frequency(self):
         """Should not send digests for collections with NONE frequency."""
-        monday = date(2026, 4, 20)
-        mock_date.today.return_value = monday
-        mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
-
         self._setup_collection_with_things("DGN", "NONE", thing_days_ago=3)
 
         out = StringIO()
@@ -269,13 +255,10 @@ class TestSendDigestsCommand:
 
         assert len(mail.outbox) == 0
 
-    @patch("core.management.commands.send_digests.date")
-    def test_skips_when_no_new_things(self, mock_date):
+    @time_machine.travel(date(2026, 4, 20))  # a Monday
+    def test_skips_when_no_new_things(self):
         """Should not send digest when no new things in the period."""
         monday = date(2026, 4, 20)
-        mock_date.today.return_value = monday
-        mock_date.side_effect = lambda *a, **kw: date(*a, **kw)
-
         # Thing created 30 days ago — outside the weekly window
         self._setup_collection_with_things("DGO", "WEEKLY", thing_days_ago=30, anchor_date=monday)
 
