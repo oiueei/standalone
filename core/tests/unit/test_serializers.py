@@ -261,3 +261,37 @@ class TestFAQCreateSerializer:
         """Should reject missing question."""
         serializer = FAQCreateSerializer(data={})
         assert not serializer.is_valid()
+
+
+class TestInputBounds:
+    """L7: numeric/date input bounds on thing fee and booking dates."""
+
+    def test_negative_fee_rejected(self):
+        serializer = ThingCreateSerializer(
+            data={"type": "SELL_THING", "headline": "X", "fee": "-5.00"}
+        )
+        assert not serializer.is_valid()
+        assert "fee" in serializer.errors
+
+    def test_dates_beyond_three_months_rejected(self):
+        from datetime import date, timedelta
+
+        from core.serializers.booking import ThingRequestWithDatesSerializer
+
+        far = date.today() + timedelta(days=120)
+        serializer = ThingRequestWithDatesSerializer(
+            data={"start_date": str(date.today()), "end_date": str(far)}
+        )
+        assert not serializer.is_valid()
+        assert "end_date" in serializer.errors
+
+    def test_dates_within_three_months_accepted(self):
+        from datetime import date, timedelta
+
+        from core.serializers.booking import ThingRequestWithDatesSerializer
+
+        soon = date.today() + timedelta(days=30)
+        serializer = ThingRequestWithDatesSerializer(
+            data={"start_date": str(date.today()), "end_date": str(soon)}
+        )
+        assert serializer.is_valid()

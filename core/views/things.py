@@ -6,6 +6,7 @@ from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -92,6 +93,47 @@ class ThingViewSet(ModelViewSet):
             self.check_object_permissions(self.request, obj)
         return obj
 
+    @staticmethod
+    def _type_validity_error(thing_type, collection):
+        """Error message if ``thing_type`` isn't valid for ``collection`` (or for
+        no collection, when ``collection`` is None), else None. Shared by create
+        and update so a PATCH can't move a thing to a type the collection forbids (L4)."""
+        if collection is None:
+            if thing_type in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING):
+                return (
+                    f"{thing_type.replace('_', ' ').title()}s can only be created"
+                    " in community collections"
+                )
+            if thing_type == Thing.Type.SWAP_THING:
+                return "Swap things can only be created in swap collections"
+            return None
+        if (
+            thing_type in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING)
+            and not collection.is_community()
+        ):
+            return (
+                f"{thing_type.replace('_', ' ').title()}s can only be created"
+                " in community collections"
+            )
+        if collection.is_swap and thing_type != Thing.Type.SWAP_THING:
+            return "Only swap things can be added to a swap collection"
+        if thing_type == Thing.Type.SWAP_THING and not collection.is_swap:
+            return "Swap things can only be created in swap collections"
+        if collection.is_share and thing_type != Thing.Type.SHARE_THING:
+            return "Only share things can be added to a share collection"
+        if collection.is_minimalist and thing_type not in (
+            Thing.Type.GIFT_THING,
+            Thing.Type.SHARE_THING,
+            Thing.Type.SWAP_THING,
+        ):
+            return "Only gift, share, and swap things can be added to a minimalist collection"
+        if collection.allowed_thing_types and thing_type not in collection.allowed_thing_types:
+            return (
+                f"This collection does not accept {thing_type.replace('_', ' ').title()}s."
+                " The owner has restricted it to specific types."
+            )
+        return None
+
     def perform_create(self, serializer):
         collection_code = self.request.data.get("collection_code")
         collection = None
@@ -110,64 +152,21 @@ class ThingViewSet(ModelViewSet):
                 self._create_error = "Collection not found"
                 return
 
-            # WISH_THING and SHARE_THING are only allowed in COMMUNITY collections
-            if (
-                thing_type in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING)
-                and not collection.is_community()
-            ):
-                self._create_error = (
-                    f"{thing_type.replace('_', ' ').title()}s can only be created"
-                    " in community collections"
-                )
+            # Type must be valid for the collection (community-only types, swap/
+            # share/album restrictions, per-collection allowlist) — shared with update.
+            err = self._type_validity_error(thing_type, collection)
+            if err:
+                self._create_error = err
                 return
-
-            # Swap collection: only SWAP_THING allowed
-            if collection.is_swap and thing_type != Thing.Type.SWAP_THING:
-                self._create_error = "Only swap things can be added to a swap collection"
-                return
-
-            # SWAP_THING requires a swap collection
-            if thing_type == Thing.Type.SWAP_THING and not collection.is_swap:
-                self._create_error = "Swap things can only be created in swap collections"
-                return
-
-            # Share collection: only SHARE_THING allowed
-            if collection.is_share and thing_type != Thing.Type.SHARE_THING:
-                self._create_error = "Only share things can be added to a share collection"
-                return
-
-            # Minimalist collection: only GIFT/SHARE/SWAP allowed, thumbnail required
-            if collection.is_minimalist:
-                allowed = (Thing.Type.GIFT_THING, Thing.Type.SHARE_THING, Thing.Type.SWAP_THING)
-                if thing_type not in allowed:
-                    self._create_error = (
-                        "Only gift, share, and swap things can be added"
-                        " to a minimalist collection"
-                    )
-                    return
-                if not serializer.validated_data.get("thumbnail"):
-                    self._create_error = "A photo is required for things in minimalist collections"
-                    return
-
-            # Per-collection allowlist (set on creation/edit). Empty list means
-            # "no restriction", typically the case for COMMUNITY collections in
-            # v1 — the multi-select UI is wired only for PROPRIETARY for now.
-            if collection.allowed_thing_types and thing_type not in collection.allowed_thing_types:
-                self._create_error = (
-                    f"This collection does not accept {thing_type.replace('_', ' ').title()}s."
-                    " The owner has restricted it to specific types."
-                )
+            # Minimalist collections additionally require a photo (create-time only).
+            if collection.is_minimalist and not serializer.validated_data.get("thumbnail"):
+                self._create_error = "A photo is required for things in minimalist collections"
                 return
         else:
-            # WISH_THING, SHARE_THING, and SWAP_THING require specific collections
-            if thing_type in (Thing.Type.WISH_THING, Thing.Type.SHARE_THING):
-                self._create_error = (
-                    f"{thing_type.replace('_', ' ').title()}s can only be created"
-                    " in community collections"
-                )
-                return
-            if thing_type == Thing.Type.SWAP_THING:
-                self._create_error = "Swap things can only be created in swap collections"
+            # No collection: WISH/SHARE/SWAP require a specific collection.
+            err = self._type_validity_error(thing_type, None)
+            if err:
+                self._create_error = err
                 return
 
         # Tags must come from the collection's owner-defined vocabulary.
@@ -192,6 +191,18 @@ class ThingViewSet(ModelViewSet):
         # Store created thing for create response
         self._created_thing = thing
         self._create_error = None
+
+    def perform_update(self, serializer):
+        # The type stays editable, but a PATCH can't move a thing to a type its
+        # collection forbids — re-validate against every collection it's in (L4).
+        thing = serializer.instance
+        new_type = serializer.validated_data.get("type", thing.type)
+        if new_type != thing.type:
+            for collection in list(thing.collections.all()) or [None]:
+                err = self._type_validity_error(new_type, collection)
+                if err:
+                    raise ValidationError({"type": err})
+        serializer.save()
 
     def _wants_group_notice(self):
         """Whether to broadcast a new wish to the group ('Avisar al grupo')."""

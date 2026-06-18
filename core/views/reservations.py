@@ -17,7 +17,11 @@ from rest_framework.views import APIView
 from core.models import RSVP, Collection, Thing
 from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
 from core.models.notification import InAppNotification
-from core.serializers.booking import ThingOrderSerializer, ThingRequestWithDatesSerializer
+from core.serializers.booking import (
+    ThingOrderSerializer,
+    ThingRequestWithDatesSerializer,
+    ThingSwapRequestSerializer,
+)
 from core.services.email_service import (
     send_booking_confirmation_email,
     send_booking_request_email,
@@ -263,12 +267,13 @@ class ThingRequestView(APIView):
 
     def _handle_swap_request(self, request, thing, owner_email):
         """Handle SWAP_THING requests — requester offers their own things in exchange."""
-        offered_codes = request.data.get("offered_thing_codes", [])
-        if not offered_codes or not isinstance(offered_codes, list):
+        swap_ser = ThingSwapRequestSerializer(data=request.data)
+        if not swap_ser.is_valid():
             return Response(
-                {"error": "You must offer at least one thing to swap"},
+                {"error": "You must offer between 1 and 20 things to swap"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        offered_codes = swap_ser.validated_data["offered_thing_codes"]
 
         # Find the collection this thing belongs to
         thing_collection = thing.collections.filter(is_swap=True).first()

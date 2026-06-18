@@ -2,12 +2,16 @@
 Booking serializers for OIUEEI.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 from rest_framework import serializers
 
 from core.models.booking import BookingPeriod
 from core.models.thing import Thing
+
+# Bookings/orders can't be placed more than ~3 months ahead — matches the
+# frontend's today+90 cap and the availability horizon (L7).
+MAX_BOOKING_HORIZON_DAYS = 90
 
 
 class SwapOfferedFieldsMixin(serializers.Serializer):
@@ -123,6 +127,11 @@ class ThingRequestWithDatesSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     {"end_date": "End date must be on or after start date"}
                 )
+            horizon = date.today() + timedelta(days=MAX_BOOKING_HORIZON_DAYS)
+            if end_date > horizon:
+                raise serializers.ValidationError(
+                    {"end_date": "Dates can be at most 3 months ahead"}
+                )
         return data
 
 
@@ -133,10 +142,22 @@ class ThingOrderSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1, max_value=99)
 
     def validate_delivery_date(self, value):
-        """Validate that delivery_date is today or in the future."""
+        """Validate that delivery_date is today or in the future, within 3 months."""
         if value < date.today():
             raise serializers.ValidationError("Delivery date must be today or in the future")
+        if value > date.today() + timedelta(days=MAX_BOOKING_HORIZON_DAYS):
+            raise serializers.ValidationError("Delivery date can be at most 3 months ahead")
         return value
+
+
+class ThingSwapRequestSerializer(serializers.Serializer):
+    """Validates a SWAP request's offered items: a bounded list of thing codes (L5)."""
+
+    offered_thing_codes = serializers.ListField(
+        child=serializers.CharField(max_length=6),
+        min_length=1,
+        max_length=20,
+    )
 
 
 class MyBookingSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):

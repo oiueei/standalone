@@ -291,6 +291,10 @@ class ThingCreateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    # Non-negative, bounded to the model's 10-digit / 2-decimal range (L7).
+    fee = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
+    )
 
     class Meta:
         model = Thing
@@ -341,6 +345,10 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
         max_length=12,
         required=False,
         allow_empty=True,
+    )
+    # Non-negative, bounded to the model's 10-digit / 2-decimal range (L7).
+    fee = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
     )
 
     class Meta:

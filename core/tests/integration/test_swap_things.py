@@ -207,6 +207,33 @@ class TestSwapRequest:
         )
         assert res.status_code == 400
 
+    def test_swap_request_too_many_offerings(
+        self, auth_client_user2, swap_collection, owner_swap_thing, user2
+    ):
+        """L5: the offered-items list is bounded — more than 20 is rejected
+        before any thing lookup."""
+        swap_collection.invites.add(user2)
+        res = auth_client_user2.post(
+            f"/api/v1/things/{owner_swap_thing.code}/request/",
+            {"offered_thing_codes": [f"S{i:05d}" for i in range(21)]},
+            format="json",
+        )
+        assert res.status_code == 400
+
+    def test_patch_type_forbidden_by_collection_rejected(
+        self, authenticated_client, swap_collection, owner_swap_thing
+    ):
+        """L4: a PATCH can't move a thing to a type its collection forbids — a
+        swap collection only accepts SWAP_THING."""
+        res = authenticated_client.patch(
+            f"/api/v1/things/{owner_swap_thing.code}/",
+            {"type": "GIFT_THING"},
+            format="json",
+        )
+        assert res.status_code == 400
+        owner_swap_thing.refresh_from_db()
+        assert owner_swap_thing.type == "SWAP_THING"
+
     def test_swap_request_unowned_thing(
         self,
         auth_client_user2,
