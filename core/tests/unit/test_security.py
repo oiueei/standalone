@@ -4,7 +4,8 @@ Unit tests for OIUEEI security features.
 
 import string
 
-from django.test import RequestFactory
+import pytest
+from django.test import Client, RequestFactory
 
 from core.middleware import SecurityHeadersMiddleware
 from core.utils import generate_id, get_client_ip, redact_email
@@ -179,3 +180,11 @@ class TestRedactEmail:
         # Distinct emails produce distinct tags; empty is handled.
         assert tag != redact_email("other@disroot.org")
         assert redact_email("") == "email#none"
+
+
+@pytest.mark.django_db
+def test_admin_login_page_still_loads():
+    """M3: wrapping the admin login with a POST rate limit must not break the
+    login page — a GET still renders (the limit only throttles POST attempts)."""
+    resp = Client().get("/oiueei-admin/login/")
+    assert resp.status_code == 200

@@ -8,6 +8,14 @@ from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, path, re_path
+from django_ratelimit.decorators import ratelimit
+
+# Throttle admin login attempts (M3): wrap the admin site's login view with an
+# IP-keyed POST rate limit so the password form can't be brute-forced. Applied
+# before `admin.site.urls` is built below so get_urls() picks up the wrapper.
+# (django-ratelimit only — no django-axes; MFA is deferred. The admin path is
+# also non-default, see below.)
+admin.site.login = ratelimit(key="ip", rate="5/m", method="POST", block=True)(admin.site.login)
 
 urlpatterns = [
     path("oiueei-admin/", admin.site.urls),
