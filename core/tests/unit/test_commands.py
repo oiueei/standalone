@@ -322,3 +322,28 @@ class TestSeedDemoCommand:
         counts = (User.objects.count(), Collection.objects.count(), Thing.objects.count())
         call_command("seed_demo")
         assert (User.objects.count(), Collection.objects.count(), Thing.objects.count()) == counts
+
+    def test_skeleton_and_locales_stay_in_sync(self):
+        """R17: every structural skeleton row has matching localised text in both
+        languages — no untranslated skeleton row, no orphan text."""
+        from core.management.commands.seed_demo import _MERGE_KEYS, load_seed_data
+
+        en, es = load_seed_data("en"), load_seed_data("es")
+        for entity, key in _MERGE_KEYS.items():
+            en_rows, es_rows = getattr(en, entity), getattr(es, entity)
+            assert len(en_rows) == len(es_rows) > 0
+            assert {r[key] for r in en_rows} == {r[key] for r in es_rows}
+
+    def test_merge_yields_structure_and_text(self):
+        """R17: merged rows carry both skeleton fields and localised text, and the
+        languages genuinely differ in their text."""
+        from core.management.commands.seed_demo import load_seed_data
+
+        en = {t["code"]: t for t in load_seed_data("en").THINGS}
+        es = {t["code"]: t for t in load_seed_data("es").THINGS}
+        sample = en["stffa1"]
+        assert sample["type"] == "SELL_THING" and sample["owner_code"] == "La1aN1"  # skeleton
+        assert sample["headline"] and sample["headline"] != es["stffa1"]["headline"]  # text
+        doc = en["lltl01"]["documents"][0]
+        assert doc["public_id"] == "lltl01"  # structural id, same across locales
+        assert doc["filename"] != es["lltl01"]["documents"][0]["filename"]  # filename translated

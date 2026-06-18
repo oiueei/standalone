@@ -1,11 +1,450 @@
 """
-Non-translatable demo data shared across all language variants.
+Structural demo-data skeleton shared across all language variants.
 
-TRANSFERS has no user-facing text, so it lives here instead of being
-duplicated in each language file.
+Only fields that DON'T change between languages live here (codes, types,
+ownership, relationships, flags, prices, image ids, tags, …). The translatable
+text for each entity lives in the per-locale modules (en.py, es.py) and is
+merged onto this skeleton by `seed_demo.load_seed_data`. Adding a language means
+translating text only — never re-declaring structure (R17).
 """
 
 from datetime import date
+
+USERS = [
+    {
+        "code": "La1aN1",
+        "email": "lala@mail.com",
+        "name": "Lala",
+        "theeeme_id": "BUU331",
+        "photo": "la1an1",
+    },
+    {
+        "code": "L3L3oo",
+        "email": "lele@mail.com",
+        "name": "Lele",
+        "theeeme_id": "K0P4R1",
+    },
+    {
+        "code": "l1l13S",
+        "email": "lili@mail.com",
+        "name": "Lili",
+        "theeeme_id": "BUU331",
+    },
+    {
+        "code": "l0l0oh",
+        "email": "lolo@mail.com",
+        "name": "Lolo",
+        "theeeme_id": "BUU331",
+    },
+    {
+        "code": "1u1ucs",
+        "email": "lulu@mail.com",
+        "name": "Lulu",
+        "theeeme_id": "BUU331",
+    },
+]
+
+COLLECTIONS = [
+    {
+        "code": "La1aC1",
+        "owner_code": "La1aN1",
+        "invites": ["L3L3oo"],
+        "is_onboarding": True,
+        "allowed_thing_types": ["SELL_THING"],
+        "thumbnail": "La1aC1",
+    },
+    {
+        "code": "L3L3C1",
+        "owner_code": "L3L3oo",
+        "invites": ["La1aN1"],
+        "is_onboarding": True,
+        "allowed_thing_types": ["ORDER_THING"],
+        "thumbnail": "L3L3C1",
+    },
+    {
+        "code": "l0l0C1",
+        "owner_code": "l0l0oh",
+        "is_minimalist": True,
+        "invites": ["La1aN1", "l1l13S", "L3L3oo"],
+        "is_onboarding": True,
+        "allowed_thing_types": ["GIFT_THING"],
+        "thumbnail": "L3L3C2",
+    },
+    {
+        "code": "l1l1C1",
+        "owner_code": "l1l13S",
+        "invites": ["La1aN1"],
+        "is_onboarding": True,
+        "allowed_thing_types": ["LEND_THING"],
+        "thumbnail": "l1l1C1",
+    },
+    {
+        "code": "l1l1C2",
+        "owner_code": "l1l13S",
+        "mode": "COMMUNITY",
+        "is_swap": True,
+        "invites": ["La1aN1", "L3L3oo", "l0l0oh", "1u1ucs"],
+        "is_onboarding": True,
+        "allowed_thing_types": ["SWAP_THING"],
+        "tags": ["sensors", "boards", "shields", "modules"],
+        "thumbnail": "l1l1C2",
+    },
+    {
+        "code": "1u1uC1",
+        "owner_code": "1u1ucs",
+        "mode": "COMMUNITY",
+        "is_share": True,
+        "newsletter_enabled": True,
+        "digest_frequency": "WEEKLY",
+        "invites": ["La1aN1", "L3L3oo", "l1l13S", "l0l0oh"],
+        "is_onboarding": True,
+        "allowed_thing_types": ["SHARE_THING"],
+        "thumbnail": "1u1uC1",
+    },
+]
+
+THINGS = [
+    {
+        "code": "stffa1",
+        "type": "SELL_THING",
+        "owner_code": "La1aN1",
+        "collections": ["La1aC1"],
+        "thumbnail": "stffa1_a",
+        "gallery": ["stffa1_b"],
+        "fee": "20.00",
+        "condition": "NEW",
+    },
+    {
+        "code": "stffa2",
+        "type": "SELL_THING",
+        "owner_code": "La1aN1",
+        "collections": ["La1aC1"],
+        "thumbnail": "stffa2",
+        "fee": "30.00",
+        "availability": "IMMEDIATE",
+    },
+    {
+        "code": "stffa3",
+        "type": "SELL_THING",
+        "owner_code": "La1aN1",
+        "collections": ["La1aC1"],
+        "thumbnail": "stffa3",
+        "fee": "10.00",
+        "condition": "GOOD",
+        "availability": "NEXT_WEEK",
+    },
+    {
+        "code": "stffa4",
+        "type": "SELL_THING",
+        "owner_code": "La1aN1",
+        "collections": ["La1aC1"],
+        "thumbnail": "stffa4",
+        "fee": "10.00",
+        "availability": "IMMEDIATE",
+        "location": "Barcelona",
+    },
+    {
+        "code": "stffa5",
+        "type": "SELL_THING",
+        "owner_code": "La1aN1",
+        "collections": ["La1aC1"],
+        "thumbnail": "stffa5",
+        "fee": "20.00",
+        "condition": "NEW",
+    },
+    {
+        "code": "cksle1",
+        "type": "ORDER_THING",
+        "owner_code": "L3L3oo",
+        "collections": ["L3L3C1"],
+        "thumbnail": "cksle1",
+        "fee": "5.00",
+    },
+    {
+        "code": "cksle2",
+        "type": "ORDER_THING",
+        "owner_code": "L3L3oo",
+        "collections": ["L3L3C1"],
+        "thumbnail": "cksle2",
+        "fee": "40.00",
+    },
+    {
+        "code": "cksle3",
+        "type": "ORDER_THING",
+        "owner_code": "L3L3oo",
+        "collections": ["L3L3C1"],
+        "thumbnail": "cksle3",
+        "fee": "60.00",
+    },
+    {
+        "code": "cksle4",
+        "type": "ORDER_THING",
+        "owner_code": "L3L3oo",
+        "collections": ["L3L3C1"],
+        "thumbnail": "cksle4",
+        "fee": "45.00",
+    },
+    {
+        "code": "cksle5",
+        "type": "ORDER_THING",
+        "owner_code": "L3L3oo",
+        "collections": ["L3L3C1"],
+        "thumbnail": "cksle5",
+        "fee": "5.00",
+    },
+    {
+        "code": "lltl01",
+        "type": "LEND_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C1"],
+        "condition": "NEW",
+    },
+    {
+        "code": "lltl02",
+        "type": "LEND_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C1"],
+        "condition": "GOOD",
+    },
+    {
+        "code": "lltl03",
+        "type": "LEND_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C1"],
+        "condition": "NEW",
+    },
+    {
+        "code": "lltl04",
+        "type": "LEND_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C1"],
+        "condition": "USED",
+    },
+    {
+        "code": "lltl05",
+        "type": "LEND_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C1"],
+        "condition": "FAIR",
+    },
+    {
+        "code": "lltl11",
+        "type": "SHARE_THING",
+        "owner_code": "La1aN1",
+        "collections": ["1u1uC1"],
+        "thumbnail": "lltl11",
+        "condition": "NEW",
+    },
+    {
+        "code": "lltl12",
+        "type": "SHARE_THING",
+        "owner_code": "L3L3oo",
+        "collections": ["1u1uC1"],
+        "thumbnail": "lltl12",
+        "condition": "GOOD",
+    },
+    {
+        "code": "lltl13",
+        "type": "SHARE_THING",
+        "owner_code": "l1l13S",
+        "collections": ["1u1uC1"],
+        "thumbnail": "lltl13",
+        "condition": "NEW",
+    },
+    {
+        "code": "lltl14",
+        "type": "SHARE_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["1u1uC1"],
+        "thumbnail": "lltl14",
+        "condition": "USED",
+    },
+    {
+        "code": "lltl15",
+        "type": "SHARE_THING",
+        "owner_code": "1u1ucs",
+        "collections": ["1u1uC1"],
+        "thumbnail": "lltl15",
+        "condition": "FAIR",
+    },
+    {
+        "code": "lltl22",
+        "type": "GIFT_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
+        "thumbnail": "lltl22",
+        "is_endless": True,
+    },
+    {
+        "code": "lltl23",
+        "type": "GIFT_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
+        "thumbnail": "lltl23",
+        "is_endless": True,
+    },
+    {
+        "code": "lltl24",
+        "type": "GIFT_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
+        "thumbnail": "lltl24",
+        "is_endless": True,
+    },
+    {
+        "code": "lltl25",
+        "type": "GIFT_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
+        "thumbnail": "lltl25",
+        "is_endless": True,
+    },
+    {
+        "code": "lltl26",
+        "type": "GIFT_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
+        "thumbnail": "lltl26",
+        "is_endless": True,
+    },
+    {
+        "code": "lltl27",
+        "type": "GIFT_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
+        "thumbnail": "lltl27",
+        "is_endless": True,
+    },
+    {
+        "code": "lltl28",
+        "type": "GIFT_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l0l0C1"],
+        "thumbnail": "lltl28",
+        "is_endless": True,
+    },
+    {
+        "code": "La1aW1",
+        "type": "WISH_THING",
+        "owner_code": "La1aN1",
+        "collections": ["1u1uC1"],
+    },
+    {
+        "code": "l1sw01",
+        "type": "SWAP_THING",
+        "owner_code": "La1aN1",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw01",
+        "tags": ["shields"],
+    },
+    {
+        "code": "l1sw02",
+        "type": "SWAP_THING",
+        "owner_code": "L3L3oo",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw02",
+        "tags": ["sensors"],
+    },
+    {
+        "code": "l1sw03",
+        "type": "SWAP_THING",
+        "owner_code": "l0l0oh",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw03",
+        "tags": ["modules"],
+    },
+    {
+        "code": "l1sw04",
+        "type": "SWAP_THING",
+        "owner_code": "1u1ucs",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw04",
+        "tags": ["shields"],
+    },
+    {
+        "code": "l1sw05",
+        "type": "SWAP_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw05",
+        "tags": ["boards"],
+    },
+    {
+        "code": "l1sw06",
+        "type": "SWAP_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw06",
+        "tags": ["sensors"],
+    },
+    {
+        "code": "l1sw07",
+        "type": "SWAP_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw07",
+        "tags": ["sensors"],
+    },
+    {
+        "code": "l1sw08",
+        "type": "SWAP_THING",
+        "owner_code": "l1l13S",
+        "collections": ["l1l1C2"],
+        "thumbnail": "l1sw08",
+        "tags": ["sensors"],
+    },
+]
+
+FAQS = [
+    {
+        "thing_code": "stffa1",
+        "questioner_code": "L3L3oo",
+    },
+    {
+        "thing_code": "stffa2",
+        "questioner_code": "L3L3oo",
+    },
+    {
+        "thing_code": "stffa3",
+        "questioner_code": "L3L3oo",
+    },
+    {
+        "thing_code": "stffa4",
+        "questioner_code": "L3L3oo",
+    },
+    {
+        "thing_code": "stffa5",
+        "questioner_code": "L3L3oo",
+    },
+    {
+        "thing_code": "cksle1",
+        "questioner_code": "La1aN1",
+    },
+    {
+        "thing_code": "cksle2",
+        "questioner_code": "La1aN1",
+    },
+    {
+        "thing_code": "cksle3",
+        "questioner_code": "La1aN1",
+    },
+    {
+        "thing_code": "cksle4",
+        "questioner_code": "La1aN1",
+    },
+    {
+        "thing_code": "cksle5",
+        "questioner_code": "La1aN1",
+    },
+]
+
+WISH_RESPONSES = [
+    {
+        "wish_code": "La1aW1",
+        "responder_code": "L3L3oo",
+        "kind": "KNOW_WHERE",
+    },
+]
 
 # ThingTransfer chain — (thing_code, from_code, to_code, lent_date, returned_date)
 TRANSFERS = [
