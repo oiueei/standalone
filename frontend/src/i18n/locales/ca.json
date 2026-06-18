@@ -625,7 +625,11 @@
     "whatsappText": "T'invito a \"{{headline}}\" a OIUEEI: {{url}}",
     "copied": "Enllaç copiat al porta-retalls.",
     "copyError": "No hem pogut copiar l'enllaç. Torna-ho a provar o fes servir una altra opció.",
-    "linkError": "No hem pogut generar l'enllaç. Torna-ho a provar."
+    "linkError": "No hem pogut generar l'enllaç. Torna-ho a provar.",
+    "qr": "Codi QR",
+    "qrTitle": "Escaneja per unir-te a {{headline}}",
+    "qrHelper": "Apunta la càmera del mòbil a aquest codi per obrir l'enllaç d'invitació.",
+    "qrClose": "Tanca"
   },
   "gallery": {
     "uploadLabel": "Més fotos",

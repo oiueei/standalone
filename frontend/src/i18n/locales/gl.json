@@ -625,7 +625,11 @@
     "whatsappText": "Convídote a \"{{headline}}\" en OIUEEI: {{url}}",
     "copied": "Ligazón copiada ao portapapeis.",
     "copyError": "Non puidemos copiar a ligazón. Téntao de novo ou usa outra opción.",
-    "linkError": "Non puidemos xerar a ligazón. Téntao de novo."
+    "linkError": "Non puidemos xerar a ligazón. Téntao de novo.",
+    "qr": "Código QR",
+    "qrTitle": "Escanea para unirte a {{headline}}",
+    "qrHelper": "Apunta a cámara do móbil a este código para abrir a ligazón de invitación.",
+    "qrClose": "Pechar"
   },
   "gallery": {
     "uploadLabel": "Máis fotos",

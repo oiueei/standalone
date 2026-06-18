@@ -625,7 +625,11 @@
     "whatsappText": "\"{{headline}}\"-ra gonbidatzen zaitut OIUEEI-n: {{url}}",
     "copied": "Esteka arbelean kopiatua.",
     "copyError": "Ezin izan dugu esteka kopiatu. Saiatu berriro edo erabili beste aukera bat.",
-    "linkError": "Ezin izan dugu esteka sortu. Saiatu berriro."
+    "linkError": "Ezin izan dugu esteka sortu. Saiatu berriro.",
+    "qr": "QR kodea",
+    "qrTitle": "Eskaneatu {{headline}}-ra elkartzeko",
+    "qrHelper": "Jarri telefonoaren kamera kode honen aurrean gonbidapen-esteka irekitzeko.",
+    "qrClose": "Itxi"
   },
   "gallery": {
     "uploadLabel": "Argazki gehiago",

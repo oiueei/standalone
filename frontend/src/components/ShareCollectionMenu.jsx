@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconEnvelope, IconShare, IconWhatsapp, Select } from 'hds-react';
+import { Button, Dialog, IconCamera, IconEnvelope, IconShare, IconWhatsapp, Select } from 'hds-react';
+import { QRCodeSVG } from 'qrcode.react';
+import useTheeeme from '../hooks/useTheeeme';
 import { apiFetch } from '../services/api';
 import Toast from './Toast';
 
@@ -12,13 +14,19 @@ import Toast from './Toast';
  * value, so the Select behaves as a one-shot menu of share actions.
  *
  * The backend `share_token` is generated on demand the first time the
- * owner triggers any of the three actions (privacy: collections that are
+ * owner triggers any of the actions (privacy: collections that are
  * never shared by link never have a token in the database). The URL is
  * cached locally for the rest of the session to avoid extra round trips.
+ *
+ * The "QR code" action opens an HDS Dialog rendering a QR of the same
+ * public share link via `qrcode.react` (client-side, no network). It is
+ * handy for sharing in person — a guest scans it with their phone camera.
  */
 export default function ShareCollectionMenu({ collectionCode, collectionHeadline, ownerName }) {
   const { t, i18n } = useTranslation();
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
   const [toast, setToast] = useState(null);
+  const [qrUrl, setQrUrl] = useState(null);
   const cachedUrlRef = useRef(null);
 
   const ensureShareUrl = async () => {
@@ -69,6 +77,7 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
       if (action === 'email') return handleEmail(url);
       if (action === 'copy') return handleCopy(url);
       if (action === 'whatsapp') return handleWhatsApp(url);
+      if (action === 'qr') return setQrUrl(url);
     } catch {
       setToast({ type: 'error', message: t('shareMenu.linkError') });
     }
@@ -90,7 +99,15 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
       label: t('shareMenu.whatsapp'),
       iconStart: <IconWhatsapp aria-hidden="true" />,
     },
+    {
+      value: 'qr',
+      label: t('shareMenu.qr'),
+      iconStart: <IconCamera aria-hidden="true" />,
+    },
   ];
+
+  const qrTitle = t('shareMenu.qrTitle', { headline: collectionHeadline });
+  const titleId = `share-qr-title-${collectionCode}`;
 
   return (
     <>
@@ -109,8 +126,39 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
             trigger(picked.value);
           }
         }}
-        visibleOptions={3}
+        visibleOptions={4}
       />
+      {qrUrl && (
+        <Dialog
+          id={`share-qr-${collectionCode}`}
+          aria-labelledby={titleId}
+          isOpen
+          close={() => setQrUrl(null)}
+          closeButtonLabelText={t('shareMenu.qrClose')}
+        >
+          <Dialog.Header id={titleId} title={qrTitle} />
+          <Dialog.Content>
+            <p>{t('shareMenu.qrHelper')}</p>
+            <div className="share-qr-code">
+              <QRCodeSVG value={qrUrl} size={232} level="M" marginSize={2} title={qrTitle} />
+            </div>
+            <p className="share-qr-url">{qrUrl}</p>
+          </Dialog.Content>
+          <Dialog.ActionButtons>
+            <Button onClick={() => setQrUrl(null)} style={btnStyle}>
+              {t('shareMenu.qrClose')}
+            </Button>
+            <Button
+              variant="secondary"
+              iconStart={<IconShare aria-hidden="true" />}
+              onClick={() => handleCopy(qrUrl)}
+              style={btnSecondaryStyle}
+            >
+              {t('shareMenu.copy')}
+            </Button>
+          </Dialog.ActionButtons>
+        </Dialog>
+      )}
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
     </>
   );

@@ -1082,3 +1082,24 @@ main:focus {
   white-space: nowrap;
   border: 0;
 }
+
+/* QR code in the share-collection dialog (ShareCollectionMenu). */
+.share-qr-code {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-s) 0;
+}
+
+.share-qr-code svg {
+  width: 232px;
+  max-width: 100%;
+  height: auto;
+}
+
+.share-qr-url {
+  margin: 0;
+  text-align: center;
+  word-break: break-all;
+  color: var(--color-black-60);
+  font-size: var(--fontsize-body-s);
+}

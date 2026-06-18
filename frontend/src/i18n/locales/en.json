@@ -642,7 +642,11 @@
     "whatsappText": "I'm inviting you to \"{{headline}}\" on OIUEEI: {{url}}",
     "copied": "Invite link copied to clipboard.",
     "copyError": "We couldn't copy the link. Try again or use one of the other options.",
-    "linkError": "We couldn't generate the invite link. Please try again."
+    "linkError": "We couldn't generate the invite link. Please try again.",
+    "qr": "QR code",
+    "qrTitle": "Scan to join {{headline}}",
+    "qrHelper": "Point a phone camera at this code to open the invite link.",
+    "qrClose": "Close"
   },
   "gallery": {
     "uploadLabel": "More photos",

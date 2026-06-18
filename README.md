@@ -397,4 +397,6 @@ Main pages are validated with [axe DevTools](https://www.deque.com/axe/devtools/
 
 This project uses components and design tokens from the [Helsinki Design System](https://hds.hel.fi/) by the [City of Helsinki](https://github.com/City-of-Helsinki), licensed under the [MIT License](https://github.com/City-of-Helsinki/helsinki-design-system/blob/master/LICENSE).
 
+QR codes for collection share links are rendered client-side with [qrcode.react](https://github.com/zpao/qrcode.react) by Paul O'Shannessy, licensed under the [MIT License](https://github.com/zpao/qrcode.react/blob/main/LICENSE).
+
 This project is co-written with [Claude Code](https://claude.ai/code) by [Anthropic](https://www.anthropic.com/).

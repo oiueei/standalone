@@ -625,7 +625,11 @@
     "whatsappText": "Estou te convidando para \"{{headline}}\" no OIUEEI: {{url}}",
     "copied": "Link copiado para a área de transferência.",
     "copyError": "Não conseguimos copiar o link. Tente novamente ou use outra opção.",
-    "linkError": "Não conseguimos gerar o link. Tente novamente."
+    "linkError": "Não conseguimos gerar o link. Tente novamente.",
+    "qr": "Código QR",
+    "qrTitle": "Escaneie para entrar em {{headline}}",
+    "qrHelper": "Aponte a câmera do celular para este código para abrir o link de convite.",
+    "qrClose": "Fechar"
   },
   "gallery": {
     "uploadLabel": "Mais fotos",
