@@ -46,6 +46,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Apply CSP/Permissions-Policy in every environment, not just production (I5).
+    # Production additionally inserts WhiteNoise right after this so the SPA shell
+    # it serves still gets these headers.
+    "core.middleware.SecurityHeadersMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -116,6 +120,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # counters would multiply per worker and reset on every dyno cycle.
 # DatabaseCache reuses the existing PostgreSQL add-on at zero extra cost;
 # the cache table is created by migration (see core/migrations).
+# Note (I7): DatabaseCache increments are not atomic, so under heavy concurrency
+# a rate-limit counter can slightly under-count (a few requests over the limit).
+# Accepted: the limits are coarse abuse-prevention, not exact quotas.
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",

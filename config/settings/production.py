@@ -6,10 +6,17 @@ Uses PostgreSQL and configured for Heroku deployment.
 import os
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F401, F403
 
 DEBUG = False
+
+# Fail fast if production is started with a weak or placeholder SECRET_KEY — the
+# CI test key, or anything too short to be a real Django-generated secret. base.py
+# already requires it to be set; this additionally enforces production-grade entropy.
+if len(SECRET_KEY) < 50 or SECRET_KEY.startswith("test-secret-key"):  # noqa: F405
+    raise ImproperlyConfigured("SECRET_KEY must be a strong production value (>= 50 characters).")
 
 # Database: PostgreSQL via DATABASE_URL
 DATABASES = {
@@ -62,12 +69,11 @@ EMAIL_SEND_ASYNC = True
 # React build output (frontend/dist/) is included so collectstatic picks it up
 STATICFILES_DIRS = [BASE_DIR / "frontend" / "dist"]  # noqa: F405
 
-# SecurityHeadersMiddleware must be inserted BEFORE WhiteNoiseMiddleware.
-# WhiteNoise short-circuits the middleware chain for static files (including the
-# React SPA's index.html), so any middleware inserted after it never runs for
-# those responses. CSP and Permissions-Policy headers would be missing from the
-# app shell if the order were reversed.
-MIDDLEWARE.insert(1, "core.middleware.SecurityHeadersMiddleware")  # noqa: F405
+# WhiteNoise serves the static React build. It goes right AFTER the
+# SecurityHeadersMiddleware (added in base at index 1), never before it: WhiteNoise
+# short-circuits the middleware chain for static files (including the SPA's
+# index.html), so any middleware after it never runs for those responses — CSP and
+# Permissions-Policy would be missing from the app shell if the order were reversed.
 MIDDLEWARE.insert(2, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
 STORAGES = {
     "staticfiles": {

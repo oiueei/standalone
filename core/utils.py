@@ -53,6 +53,13 @@ def get_client_ip(request):
     appended by the load balancer — not the first, which is attacker-controlled.
     Taking the rightmost IP prevents X-Forwarded-For spoofing that would otherwise
     bypass IP-based rate limiting.
+
+    Assumption (I6): exactly ONE trusted proxy hop sits in front of the app (the
+    Heroku router), so the last XFF entry is the genuine client. If the deployment
+    ever gains another trusted proxy (e.g. a CDN in front of Heroku), this must
+    take the Nth-from-last entry instead — revisit it then. The value is used only
+    as a rate-limit bucket key, so a malformed header degrades to a coarse key, not
+    a security bypass.
     """
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
