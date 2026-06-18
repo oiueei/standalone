@@ -384,3 +384,59 @@ class TestDocumentDownload:
     def test_download_requires_authentication(self, api_client, thing_with_docs):
         res = api_client.get(f"/api/v1/things/{thing_with_docs.code}/documents/0/download/")
         assert res.status_code in (401, 403)
+
+    # --- L9: emailed download links work via a signed token, no login ---
+
+    def test_valid_token_allows_unauthenticated_download(self, api_client, thing_with_docs):
+        from core.utils import make_document_token
+
+        token = make_document_token(thing_with_docs.code)
+        res = api_client.get(
+            f"/api/v1/things/{thing_with_docs.code}/documents/0/download/?token={token}"
+        )
+        assert res.status_code == 302
+        assert "api.cloudinary.com" in res["Location"]
+
+    def test_invalid_token_is_rejected(self, api_client, thing_with_docs):
+        res = api_client.get(
+            f"/api/v1/things/{thing_with_docs.code}/documents/0/download/?token=garbage"
+        )
+        assert res.status_code == 403
+
+    def test_token_is_scoped_to_its_thing(self, api_client, thing_with_docs, thing):
+        from core.utils import make_document_token
+
+        # A token minted for a different thing must not unlock this one.
+        other_token = make_document_token(thing.code)
+        res = api_client.get(
+            f"/api/v1/things/{thing_with_docs.code}/documents/0/download/?token={other_token}"
+        )
+        assert res.status_code == 403
+
+    def test_document_token_round_trips(self):
+        from core.utils import make_document_token, verify_document_token
+
+        assert verify_document_token(make_document_token("ABC123")) == "ABC123"
+        assert verify_document_token("nonsense") is None
+        assert verify_document_token(None) is None
+
+    def test_anonymous_tokenless_request_does_not_leak_existence(self, api_client, thing_with_docs):
+        # Both an existing thing and a missing one return 403 (not 404) to an
+        # anonymous, tokenless caller, so the AllowAny endpoint is no existence oracle.
+        existing = api_client.get(f"/api/v1/things/{thing_with_docs.code}/documents/0/download/")
+        missing = api_client.get("/api/v1/things/ZZZZZZ/documents/0/download/")
+        assert existing.status_code == 403
+        assert missing.status_code == 403
+
+    def test_documents_email_links_carry_a_download_token(self, thing_with_docs):
+        from django.core import mail
+
+        from core.services.email_service import send_documents_email
+
+        mail.outbox.clear()
+        send_documents_email("req@example.com", thing_with_docs)
+        assert len(mail.outbox) == 1
+        body = mail.outbox[0].body
+        assert f"/api/v1/things/{thing_with_docs.code}/documents/0/download/" in body
+        assert "token=" in body
+        assert "30 days" in body

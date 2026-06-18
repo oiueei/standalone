@@ -8,6 +8,7 @@ import secrets
 import string
 
 from django.conf import settings
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 
 
 def redact_email(email):
@@ -75,6 +76,35 @@ def cloudinary_url(image_id):
 
     url, _ = cloudinary.utils.cloudinary_url(image_id, fetch_format="auto", quality="auto")
     return url
+
+
+_DOCUMENT_TOKEN_SALT = "document-download"
+DOCUMENT_TOKEN_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
+
+
+def make_document_token(thing_code):
+    """Signed, reusable (~30-day) token authorising document downloads from an
+    email link without the recipient logging in.
+
+    A ``TimestampSigner`` signature over the thing's code (no stored column): it
+    is scoped to that one item, so it grants access to that thing's documents
+    only, and it expires after 30 days. Used by the gated download view to let an
+    emailed "download" link work for a not-yet-authenticated recipient (L9).
+    """
+    return TimestampSigner(salt=_DOCUMENT_TOKEN_SALT).sign(thing_code)
+
+
+def verify_document_token(token):
+    """Return the thing_code a document token authorises, or None if the token is
+    missing, malformed, tampered, or older than 30 days."""
+    if not token:
+        return None
+    try:
+        return TimestampSigner(salt=_DOCUMENT_TOKEN_SALT).unsign(
+            token, max_age=DOCUMENT_TOKEN_MAX_AGE
+        )
+    except (BadSignature, SignatureExpired):
+        return None
 
 
 # Documents are uploaded privately (Cloudinary type=authenticated): their plain

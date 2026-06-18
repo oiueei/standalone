@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -29,7 +29,7 @@ from core.serializers import (
     ThingUpdateSerializer,
 )
 from core.services.email_service import send_wish_posted_email
-from core.utils import signed_document_url
+from core.utils import signed_document_url, verify_document_token
 from core.views._helpers import type_validity_error
 
 
@@ -258,15 +258,28 @@ class DocumentDownloadView(APIView):
     document. Documents are uploaded privately (``type=authenticated``), so this
     authorisation-gated endpoint is the only way to obtain a working URL, and the
     URL it mints expires — it can't be bookmarked, shared, or leaked for long.
-    Anyone who can view the thing can download its documents (same audience as
-    the serialised ``document_urls``).
+
+    Access is granted to (a) a signed-in user who can view the thing — the same
+    audience as the serialised ``document_urls``; or (b) the bearer of a valid
+    ``?token=`` for this thing, so the download links in the booking-acceptance
+    email work for a recipient who isn't logged in (L9). The token is scoped to
+    the thing and expires after ~30 days.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, thing_code, index):
+        token_ok = verify_document_token(request.query_params.get("token")) == thing_code
+        user = request.user
+        # Refuse an anonymous, tokenless caller before the lookup, so a 404-vs-403
+        # can't be used to probe which thing codes exist (this is an AllowAny view).
+        if not token_ok and not user.is_authenticated:
+            return Response(
+                {"error": "You do not have permission to view this document."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         thing = get_object_or_404(Thing, code=thing_code)
-        if not thing.can_view(request.user.code):
+        if not token_ok and not thing.can_view(user.code):
             return Response(
                 {"error": "You do not have permission to view this document."},
                 status=status.HTTP_403_FORBIDDEN,

@@ -12,6 +12,8 @@
 <h3>{{ b.text }}</h3>
 {% elif b.type == "list" %}
 <ul>{% for item in b.items %}<li>{{ item }}</li>{% endfor %}</ul>
+{% elif b.type == "linklist" %}
+<ul>{% for l in b.links %}<li><a href="{{ l.url }}">{{ l.label }}</a></li>{% endfor %}</ul>
 {% elif b.type == "links" %}
 <p>{% for l in b.links %}<a href="{{ l.url }}">{{ l.label }}</a>{% if not forloop.last %} | {% endif %}{% endfor %}</p>
 {% endif %}{% endfor %}
