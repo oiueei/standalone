@@ -26,7 +26,7 @@ from core.models.notification import InAppNotification
 from core.serializers import RequestLinkSerializer, UserSerializer
 from core.services.booking_service import finalize_booking_decision
 from core.services.email_service import send_invite_rejected_email, send_magic_link_email
-from core.utils import get_client_ip
+from core.utils import get_client_ip, redact_email
 
 security_logger = logging.getLogger("security")
 
@@ -117,15 +117,14 @@ class RequestLinkView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            security_logger.warning(
-                f"Magic link request for non-existent user: {email} from IP {ip}"
-            )
+            # Don't log the address of a non-registered email (M5) — just the IP.
+            security_logger.warning(f"Magic link request for unregistered email from IP {ip}")
             return Response(
                 {"message": unified_message},
                 status=status.HTTP_200_OK,
             )
 
-        security_logger.info(f"Magic link requested for {email} from IP {ip}")
+        security_logger.info(f"Magic link requested for {redact_email(email)} from IP {ip}")
 
         # Create RSVP
         rsvp = RSVP.objects.create(
@@ -233,7 +232,7 @@ class VerifyLinkView(APIView):
 
         rsvp.delete()
 
-        security_logger.info(f"User {user.email} logged in via magic link from IP {ip}")
+        security_logger.info(f"User {user.code} logged in via magic link from IP {ip}")
 
         response = Response(
             {
@@ -448,7 +447,7 @@ class PopInView(APIView):
         _send_magic_link(email, magic_link)
 
         security_logger.info(
-            f"Pop-in request for {email} from IP {ip} "
+            f"Pop-in request for {redact_email(email)} from IP {ip} "
             f"(new_user={created}, via_share={joined_via_share})"
         )
 

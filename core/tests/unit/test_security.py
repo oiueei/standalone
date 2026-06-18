@@ -7,7 +7,7 @@ import string
 from django.test import RequestFactory
 
 from core.middleware import SecurityHeadersMiddleware
-from core.utils import generate_id, get_client_ip
+from core.utils import generate_id, get_client_ip, redact_email
 
 
 class TestSecureIdGeneration:
@@ -163,3 +163,19 @@ class TestSecurityHeadersMiddleware:
         assert "object-src 'none'" in csp
         assert "base-uri 'self'" in csp
         assert "form-action 'self'" in csp
+
+
+class TestRedactEmail:
+    """M5: emails are reduced to a stable, non-reversible tag for logs."""
+
+    def test_redacts_to_stable_non_reversible_tag(self):
+        tag = redact_email("Lala@Disroot.ORG")
+        assert tag.startswith("email#")
+        # The address (local part + domain) never appears.
+        assert "lala" not in tag.lower()
+        assert "disroot" not in tag.lower()
+        # Stable + case/whitespace-insensitive, so events for one user correlate.
+        assert tag == redact_email(" lala@disroot.org ")
+        # Distinct emails produce distinct tags; empty is handled.
+        assert tag != redact_email("other@disroot.org")
+        assert redact_email("") == "email#none"

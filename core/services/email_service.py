@@ -22,6 +22,8 @@ from django.core.mail import BadHeaderError, EmailMultiAlternatives, send_mail
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.utils.html import escape
 
+from core.utils import redact_email
+
 logger = logging.getLogger(__name__)
 
 CATEGORY_MANDATORY = "mandatory"
@@ -151,7 +153,9 @@ def _send(to_email, subject, plain, html, category, reply_to=None):
         # OSError subclass). BadHeaderError (a ValueError) guards against a CR/LF
         # that slipped into the subject — caught here so one tainted row can never
         # abort a multi-recipient loop or a nightly digest/newsletter cron.
-        logger.error("Email send failed (to=%s, subject=%r): %s", to_email, subject, exc)
+        logger.error(
+            "Email send failed (to=%s, subject=%r): %s", redact_email(to_email), subject, exc
+        )
         return False
     return True
 

@@ -2,8 +2,21 @@
 Utility functions for OIUEEI.
 """
 
+import hashlib
 import secrets
 import string
+
+
+def redact_email(email):
+    """Return a stable, non-reversible tag for an email, safe to write to logs.
+
+    A short SHA-256 prefix — never the address itself — so ops can still correlate
+    events for the same user (same email → same tag) without writing PII to logs (M5).
+    """
+    if not email:
+        return "email#none"
+    digest = hashlib.sha256(email.strip().lower().encode()).hexdigest()[:12]
+    return f"email#{digest}"
 
 
 def generate_id():

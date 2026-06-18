@@ -4,7 +4,7 @@ Collection serializers for OIUEEI.
 
 from rest_framework import serializers
 
-from core.models import RSVP, Collection, Thing, User
+from core.models import RSVP, Collection, Thing
 from core.serializers.thing import ThingComputedFieldsMixin
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
@@ -89,14 +89,6 @@ class CollectionThingSummarySerializer(ThingComputedFieldsMixin, serializers.Mod
         return self.context.get("my_swap_count_in_collection", 0)
 
 
-class CollectionInviteSummarySerializer(serializers.ModelSerializer):
-    """Lightweight serializer for invited users."""
-
-    class Meta:
-        model = User
-        fields = ["code", "email", "name"]
-
-
 class CollectionSerializer(serializers.ModelSerializer):
     """Full collection serializer."""
 
@@ -104,7 +96,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     owner_name = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
-    invites = CollectionInviteSummarySerializer(many=True, read_only=True)
+    invites = serializers.SerializerMethodField()
     pending_invites = serializers.SerializerMethodField()
     is_paused = serializers.BooleanField(read_only=True)
 
@@ -166,7 +158,22 @@ class CollectionSerializer(serializers.ModelSerializer):
             things = things.exclude(status=Thing.Status.INACTIVE)
         return CollectionThingSummarySerializer(things, many=True, context=ctx).data
 
+    def _requester_is_owner(self, obj):
+        request = self.context.get("request")
+        return bool(request and request.user.is_authenticated and obj.is_owner(request.user.code))
+
+    def get_invites(self, obj):
+        members = obj.invites.all()
+        if self._requester_is_owner(obj):
+            return [{"code": u.code, "email": u.email, "name": u.name} for u in members]
+        # Co-members' emails are owner-only (L2); guests get only code + name —
+        # enough for the member count, no PII.
+        return [{"code": u.code, "name": u.name} for u in members]
+
     def get_pending_invites(self, obj):
+        # Pending invitees and their emails are owner-management data only.
+        if not self._requester_is_owner(obj):
+            return []
         rsvps = RSVP.objects.filter(
             action=RSVP.Action.COLLECTION_INVITE,
             target_code=obj.code,

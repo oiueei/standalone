@@ -288,6 +288,37 @@ class TestCollectionViews:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["headline"] == collection.headline
 
+    def test_member_emails_are_owner_only(self, authenticated_client, user2, collection):
+        """L2: a guest sees the member count + names but NOT co-members' emails,
+        and no pending-invite list; the owner sees both."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        from core.models import RSVP
+
+        collection.add_invite(user2.code)
+        RSVP.objects.create(
+            user_code=user2,
+            user_email="pending@oiueei.org",
+            action=RSVP.Action.COLLECTION_INVITE,
+            target_code=collection.code,
+        )
+
+        # Owner: full invite details + pending invites.
+        owner_resp = authenticated_client.get(f"/api/v1/collections/{collection.code}/")
+        assert owner_resp.status_code == status.HTTP_200_OK
+        assert any("email" in inv for inv in owner_resp.data["invites"])
+        assert len(owner_resp.data["pending_invites"]) >= 1
+
+        # Guest (an invited member): same member count, no emails, no pending list.
+        guest = APIClient()
+        guest.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+        guest_resp = guest.get(f"/api/v1/collections/{collection.code}/")
+        assert guest_resp.status_code == status.HTTP_200_OK
+        assert len(guest_resp.data["invites"]) == len(owner_resp.data["invites"])
+        assert all("email" not in inv for inv in guest_resp.data["invites"])
+        assert guest_resp.data["pending_invites"] == []
+
     def test_update_collection(self, authenticated_client, collection):
         """Should update collection."""
         response = authenticated_client.put(
