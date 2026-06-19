@@ -553,6 +553,7 @@
   },
   "swap": {
     "offerItems": "Select items to offer",
+    "selectAtLeastOne": "Select at least one item to offer.",
     "selectItems": "Choose your items to swap",
     "noItemsToOffer": "You have no items to offer in this collection",
     "swapButton": "Propose swap",

@@ -536,6 +536,7 @@
   },
   "swap": {
     "offerItems": "Seleccionar artículos a ofrecer",
+    "selectAtLeastOne": "Elige al menos un artículo para ofrecer.",
     "selectItems": "Elige tus artículos para intercambiar",
     "noItemsToOffer": "No tienes artículos para ofrecer en esta colección",
     "swapButton": "Proponer intercambio",

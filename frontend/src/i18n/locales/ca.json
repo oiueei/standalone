@@ -536,6 +536,7 @@
   },
   "swap": {
     "offerItems": "Seleccionar articles a oferir",
+    "selectAtLeastOne": "Selecciona almenys un article per oferir.",
     "selectItems": "Tria els teus articles per intercanviar",
     "noItemsToOffer": "No tens articles per oferir en aquesta col·lecció",
     "swapButton": "Proposar intercanvi",

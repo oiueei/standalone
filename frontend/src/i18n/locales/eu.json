@@ -536,6 +536,7 @@
   },
   "swap": {
     "offerItems": "Eskaintzeko artikuluak hautatu",
+    "selectAtLeastOne": "Hautatu eskaintzeko gutxienez artikulu bat.",
     "selectItems": "Aukeratu zure artikuluak trukatzeko",
     "noItemsToOffer": "Ez duzu artikulurik eskaintzeko bilduma honetan",
     "swapButton": "Trukea proposatu",

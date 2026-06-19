@@ -190,7 +190,9 @@ export default function RequestThingPage() {
             ))
           )}
           {attempted && selectedOfferings.length === 0 && (
-            <p style={{ color: 'var(--color-error)' }}>{t('swap.offerItems')}</p>
+            <p id="swap-offer-error" role="alert" style={{ color: 'var(--color-error)' }}>
+              {t('swap.selectAtLeastOne')}
+            </p>
           )}
         </div>
       )}
@@ -268,6 +270,7 @@ export default function RequestThingPage() {
             label={t('request.quantityLabel')}
             value={quantity}
             onChange={(e) => setQuantity(Number(e.target.value))}
+            required
             min={1}
             step={1}
           />

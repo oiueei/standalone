@@ -39,7 +39,7 @@ export default function AddThingPage() {
   const [notifyGroup, setNotifyGroup] = useState(true);
   const [gallery, setGallery] = useState([]);
   const [documents, setDocuments] = useState([]);
-  const [errors, setErrors] = useState({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -77,20 +77,24 @@ export default function AddThingPage() {
       .catch(() => {});
   }, [userCode, code]);
 
-  const validate = () => {
+  const computeErrors = () => {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('addThing.titleRequired');
-    if (headline.length > 64) newErrors.headline = t('addThing.maxHeadline');
+    else if (headline.length > 64) newErrors.headline = t('addThing.maxHeadline');
     if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
       newErrors.fee = t('addThing.priceRequired');
     }
     if (location.length > 32) newErrors.location = t('addThing.maxLocation');
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
+  // Errors surface only after the first submit attempt, then recompute on every
+  // render so fixing a field clears its error immediately (live validation).
+  const errors = submitAttempted ? computeErrors() : {};
+
   const handleSubmit = async () => {
-    if (!validate()) return;
+    setSubmitAttempted(true);
+    if (Object.keys(computeErrors()).length > 0) return;
     setSubmitting(true);
     setToast(null);
 
