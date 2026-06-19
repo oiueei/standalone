@@ -216,37 +216,19 @@ See [HEROKU.md](HEROKU.md) for a complete step-by-step guide covering buildpacks
 ## Development
 
 ```bash
-# Setup
+# 1. Setup
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements/development.txt
 cp .env.example .env  # Configure environment variables
 
-# Run backend server
-python manage.py runserver
-
-# Run frontend (in a separate terminal)
-cd frontend
-npm install
-npm run dev  # Starts on http://localhost:3000
-
-# Run backend tests
-pytest -v --cov=core --cov-fail-under=80
-
-# Run frontend tests (smoke + accessibility)
-cd frontend
-npm test
-
-# Linting
-black .
-isort .
-flake8 .
-
-# Migrations
+# 2. Database (run before starting the servers)
 python manage.py makemigrations core
 python manage.py migrate
 
-# Seed demo data (Lala, Lele, Lili, Lolo, Lulu and their collections — idempotent)
+# 3. Seed demo data — recommended before exploring the app or running the frontend.
+#    Without it the Welcome page example collections and the /popin demo land on empty/404 pages.
+#    (Lala, Lele, Lili, Lolo, Lulu and their collections — idempotent.)
 python manage.py seed_demo                 # English (default)
 python manage.py seed_demo --lang=es       # Spanish
 python manage.py seed_demo --lang=es --reset   # wipe demos, re-seed in Spanish
@@ -256,17 +238,23 @@ python manage.py seed_demo --lang=es --reset   # wipe demos, re-seed in Spanish
 # Adding a new language: copy core/management/commands/seed_data/en.py to e.g. ca.py,
 # translate the text fields, add the code to SUPPORTED_LANGS in seed_demo.py.
 
+# 4. Run the servers
+python manage.py runserver                 # backend → http://localhost:8000
+cd frontend && npm install && npm run dev  # frontend → http://localhost:3000 (separate terminal)
+
+# 5. Tests & linting
+pytest -v --cov=core --cov-fail-under=80   # backend tests
+cd frontend && npm test                    # frontend tests (smoke + accessibility)
+ruff check .                               # lint + import sort (replaces flake8 + isort)
+ruff format .                              # formatting (replaces black)
+
 # Create admin user
 python manage.py createsuperuser
 
-# Expire stale bookings (run via Heroku Scheduler in production)
-python manage.py expire_bookings
-
-# Send return/delivery reminders (run daily via Heroku Scheduler)
-python manage.py send_reminders
-
-# Send weekly/monthly digest emails (run daily via Heroku Scheduler)
-python manage.py send_digests
+# Scheduled jobs (run via Heroku Scheduler in production)
+python manage.py expire_bookings   # expire stale bookings
+python manage.py send_reminders    # return/delivery reminders (daily)
+python manage.py send_digests      # weekly/monthly digest emails (daily)
 ```
 
 ## Environment Variables
@@ -288,6 +276,14 @@ python manage.py send_digests
 | `SHARE_LINK_BASE_URL` | No | Base URL for public collection share links (default: `http://localhost:3000/share` / `https://YOUR-DOMAIN.com/share`) |
 | `CLOUDINARY_URL` | Uploads | Cloudinary credentials for image uploads: `cloudinary://api_key:api_secret@cloud_name` (free account at cloudinary.com) |
 
+## Onboarding & access
+
+OIUEEI has no open public self-registration on its main model — accounts are created only by an owner's action. There are three distinct ways in:
+
+- **`/login` — for people who already have an account.** Enter your email and receive a magic link. The endpoint always returns `200` (it never reveals whether an email is registered), but a link is only ever sent to an existing account; it never creates users.
+- **Owner-controlled invites and public share links — the real membership model.** A collection owner either invites someone by email (the account is created when they accept) or enables a public `/share/{token}` link, with an optional QR code, that the owner can rotate or revoke. Anyone with that link joins only that one collection.
+- **`/popin` — a separate, intentional demo gate.** It deliberately lets anyone in: it creates an account on the spot, adds them to the `is_onboarding` demo collections (Lala/Lele/Lili/Lolo/Lulu) and emails a magic link. This is how the live demo at [oiueei.com/popin](https://www.oiueei.com/popin) works; it is not open registration for the main product.
+
 ## Security
 
 ### Implemented Measures
@@ -296,7 +292,7 @@ python manage.py send_digests
 |----------|---------|-------------|
 | Authentication | Magic Link | Passwordless auth via email (24h expiry, one-time use) |
 | Authentication | JWT | HttpOnly cookie-based. 1-hour access, 7-day refresh with rotation and blacklist |
-| Authentication | Invite-Only | New users must be invited to a collection first |
+| Authentication | Invite-Only | New accounts come from an owner's invitation to a collection or an owner-enabled public share link/QR. The `/popin` demo endpoint is a separate, intentional open onboarding gate. |
 | Authorization | DRF Permissions | Custom `IsThingOwner`, `IsCollectionOwner` permission classes |
 | Authorization | IDOR Protection | Profile access only via collection connections |
 | Input Validation | XSS Prevention | HTML escaped in emails via `django.utils.html.escape()`. Headlines sanitized |

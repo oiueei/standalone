@@ -807,7 +807,7 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 
 ### Authentication & Authorisation
 
-1. **Invite-only registration** — Users cannot self-register. They must be invited to a collection first.
+1. **Invite-only registration (owner-controlled), with a separate demo gate** — There is no open public self-registration on the main model. Accounts are created when a collection owner invites someone (`POST /collections/{code}/invite/`) or when a visitor uses an owner-enabled public share link (`POST /auth/pop-in/` with a `share_token`, from `/share/{token}`). `/login` (`POST /auth/request-link/`) only mails magic links to already-registered accounts and never creates users. The separate `/popin` endpoint (`POST /auth/pop-in/` with no token) is an intentional open demo/onboarding gate that creates an account for anyone and adds them to the `is_onboarding` demo collections.
 2. **Magic link authentication** — Passwordless via email. RSVPs expire after 24 hours and are one-time use.
 3. **JWT tokens** — HttpOnly cookie-based. Access tokens expire after 1 hour. Refresh tokens expire after 7 days. Tokens are rotated on refresh via `POST /api/v1/auth/refresh/`, old tokens blacklisted.
 4. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections.
