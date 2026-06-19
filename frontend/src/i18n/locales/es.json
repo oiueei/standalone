@@ -393,6 +393,7 @@
     "statusRejected": "Rechazada",
     "statusCancelled": "Cancelada",
     "statusExpired": "Caducada",
+    "expiredHelper": "Esta solicitud caducó automáticamente porque el propietario no respondió en un plazo de 72 horas (3 días).",
     "pastRequests": "Solicitudes anteriores"
   },
   "manageInvites": {
@@ -618,6 +619,7 @@
     "messageLabel": "Mensaje a los invitados",
     "messageHelper": "Explica a los invitados por qué la colección está pausada. Máximo 256 caracteres.",
     "pauseButton": "Pausar colección",
+    "messageRequiredHint": "Añade un mensaje para tus invitados antes de poder pausar la colección.",
     "resumeButton": "Reanudar colección",
     "pausing": "Pausando...",
     "resuming": "Reanudando...",

@@ -393,6 +393,7 @@
     "statusRejected": "Rejeitada",
     "statusCancelled": "Cancelada",
     "statusExpired": "Expirada",
+    "expiredHelper": "Este pedido expirou automaticamente porque o proprietário não respondeu em 72 horas (3 dias).",
     "pastRequests": "Pedidos anteriores"
   },
   "manageInvites": {
@@ -618,6 +619,7 @@
     "messageLabel": "Mensagem para os convidados",
     "messageHelper": "Informe os convidados sobre o motivo da pausa. Máximo de 256 caracteres.",
     "pauseButton": "Pausar coleção",
+    "messageRequiredHint": "Adiciona uma mensagem para os teus convidados antes de poderes pausar a coleção.",
     "resumeButton": "Retomar coleção",
     "pausing": "A pausar...",
     "resuming": "A retomar...",

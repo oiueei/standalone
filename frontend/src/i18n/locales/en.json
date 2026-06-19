@@ -410,6 +410,7 @@
     "statusRejected": "Rejected",
     "statusCancelled": "Cancelled",
     "statusExpired": "Expired",
+    "expiredHelper": "This request expired automatically because the owner didn't reply within 72 hours (3 days).",
     "pastRequests": "Past requests"
   },
   "manageInvites": {
@@ -635,6 +636,7 @@
     "messageLabel": "Message to guests",
     "messageHelper": "Let guests know why the collection is paused. Maximum 256 characters.",
     "pauseButton": "Pause collection",
+    "messageRequiredHint": "Add a message for your guests before you can pause the collection.",
     "resumeButton": "Resume collection",
     "pausing": "Pausing...",
     "resuming": "Resuming...",

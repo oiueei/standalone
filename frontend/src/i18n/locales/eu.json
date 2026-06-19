@@ -393,6 +393,7 @@
     "statusRejected": "Baztertua",
     "statusCancelled": "Bertan behera",
     "statusExpired": "Iraungita",
+    "expiredHelper": "Eskaera hau automatikoki iraungi da, jabeak ez baitu 72 orduren (3 egunen) barruan erantzun.",
     "pastRequests": "Aurreko eskaerak"
   },
   "manageInvites": {
@@ -618,6 +619,7 @@
     "messageLabel": "Gonbidatuei mezua",
     "messageHelper": "Jakinarazi gonbidatuei bilduma zergatik pausatu den. 256 karaktere gehienez.",
     "pauseButton": "Bilduma pausatu",
+    "messageRequiredHint": "Idatzi gonbidatuentzako mezu bat bilduma pausatu ahal izateko.",
     "resumeButton": "Bilduma berreskuratu",
     "pausing": "Pausatzen...",
     "resuming": "Berreskuratzen...",

@@ -154,6 +154,11 @@ export default function MyBookingsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2-xs)' }}>
           <Tag>{t('types.' + row._type)}</Tag>
           <Tag theme={STATUS_THEMES[row._status]}>{STATUS_LABELS[row._status] || row._status}</Tag>
+          {row._status === 'EXPIRED' && (
+            <p style={{ margin: 0, fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-60)' }}>
+              {t('myBookings.expiredHelper')}
+            </p>
+          )}
         </div>
       ),
     },

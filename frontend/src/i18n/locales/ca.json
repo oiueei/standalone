@@ -393,6 +393,7 @@
     "statusRejected": "Rebutjada",
     "statusCancelled": "Cancel·lada",
     "statusExpired": "Caducada",
+    "expiredHelper": "Aquesta sol·licitud ha caducat automàticament perquè el propietari no ha respost en 72 hores (3 dies).",
     "pastRequests": "Sol·licituds anteriors"
   },
   "manageInvites": {
@@ -618,6 +619,7 @@
     "messageLabel": "Missatge als convidats",
     "messageHelper": "Explica als convidats per què la col·lecció està pausada. Màxim 256 caràcters.",
     "pauseButton": "Pausar col·lecció",
+    "messageRequiredHint": "Afegeix un missatge per als convidats abans de poder pausar la col·lecció.",
     "resumeButton": "Reprendre col·lecció",
     "pausing": "Pausant...",
     "resuming": "Reprenent...",

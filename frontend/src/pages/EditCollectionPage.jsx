@@ -341,6 +341,11 @@ export default function EditCollectionPage() {
             {pauseMessage}
           </blockquote>
         )}
+        {!isPaused && !pauseMessage.trim() && (
+          <p style={{ marginTop: 'var(--spacing-s)', fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-60)' }}>
+            {t('pause.messageRequiredHint')}
+          </p>
+        )}
         <div style={{ marginTop: 'var(--spacing-m)' }}>
           <Button
             variant="secondary"
