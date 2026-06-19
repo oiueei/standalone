@@ -236,7 +236,7 @@ Unauthenticated endpoint scoped to editing `notify_activity` / `notify_news` on 
 |--------|----------|------------|
 | `list` | `GET /api/v1/things/` | `IsAuthenticated` |
 | `create` | `POST /api/v1/things/` | `IsAuthenticated` |
-| `retrieve` | `GET /api/v1/things/{code}/` | `IsAuthenticated` + `can_view()` |
+| `retrieve` | `GET /api/v1/things/{code}/` | `AllowAny` + `can_view()` — anonymous-safe: visible when the thing sits in a PUBLIC, ACTIVE collection |
 | `update` | `PUT /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
 | `partial_update` | `PATCH /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingOwner` |
 | `destroy` | `DELETE /api/v1/things/{code}/` | `IsAuthenticated` + `_can_delete()` |
@@ -295,7 +295,7 @@ CSV bulk-add (F-9). Body is `{"rows": [{type, headline, description, fee, availa
 |--------|----------|------------|
 | `list` | `GET /api/v1/collections/` | `IsAuthenticated` |
 | `create` | `POST /api/v1/collections/` | `IsAuthenticated` |
-| `retrieve` | `GET /api/v1/collections/{code}/` | `IsAuthenticated` + `can_view()` |
+| `retrieve` | `GET /api/v1/collections/{code}/` | `AllowAny` + `can_view()` — anonymous-safe: a PUBLIC, ACTIVE collection is readable without login |
 | `update` | `PUT /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
 | `partial_update` | `PATCH /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
 | `destroy` | `DELETE /api/v1/collections/{code}/` | `IsAuthenticated` + `IsCollectionOwner` |
@@ -812,6 +812,7 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 3. **JWT tokens** — HttpOnly cookie-based. Access tokens expire after 1 hour. Refresh tokens expire after 7 days. Tokens are rotated on refresh via `POST /api/v1/auth/refresh/`, old tokens blacklisted.
 4. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections.
 5. **Custom DRF permissions** — `IsThingOwner` and `IsCollectionOwner` in `core/permissions.py`.
+6. **Public collections (anonymous read)** — a collection with `visibility=PUBLIC` (and ACTIVE) is readable without authentication. The read endpoints `CollectionViewSet.retrieve`, `ThingViewSet.retrieve`, the FAQ list (GET on `ThingFAQListView`), `ThingTransferView` and `ThingCalendarView` are `AllowAny`, each gated by an **anonymous-safe** `can_view` (a `viewer_code(request)` helper passes the user's code, or `None` for a visitor, into the model guard — `None` matches PUBLIC collections only). Every *write/act* endpoint (reserve, ask a question, answer, add a thing, manage invites/visibility) still requires authentication plus membership/ownership, so an anonymous visitor may browse a public collection but must log in to act. INACTIVE things are excluded from the serialised `things` for any non-owner, and the collection *list* (`GET /collections/`) stays private (it returns only the caller's own collections).
 
 ### Input Validation
 

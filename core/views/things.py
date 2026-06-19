@@ -30,7 +30,7 @@ from core.serializers import (
 )
 from core.services.email_service import send_wish_posted_email
 from core.utils import signed_document_url, verify_document_token
-from core.views._helpers import type_validity_error
+from core.views._helpers import type_validity_error, viewer_code
 
 
 class ThingViewSet(ModelViewSet):
@@ -85,6 +85,10 @@ class ThingViewSet(ModelViewSet):
     def get_permissions(self):
         if self.action in ("update", "partial_update", "activate"):
             return [IsAuthenticated(), IsThingOwner()]
+        # Anonymous read for retrieve; can_view() still gates it (a thing is only
+        # visible without membership when it sits in a PUBLIC, ACTIVE collection).
+        if self.action == "retrieve":
+            return [AllowAny()]
         return [IsAuthenticated()]
 
     def _can_delete(self, thing, user_code):
@@ -96,7 +100,7 @@ class ThingViewSet(ModelViewSet):
     def get_object(self):
         obj = get_object_or_404(Thing, code=self.kwargs[self.lookup_field])
         if self.action == "retrieve":
-            if not obj.can_view(self.request.user.code):
+            if not obj.can_view(viewer_code(self.request)):
                 self.permission_denied(self.request)
         elif self.action == "destroy":
             if not self._can_delete(obj, self.request.user.code):

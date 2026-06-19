@@ -8,7 +8,7 @@ Accept/reject can also be done by the owner via authenticated API endpoints.
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -22,7 +22,7 @@ from core.serializers.booking import (
     MyBookingSerializer,
 )
 from core.services.booking_service import cancel_booking, finalize_booking_decision
-from core.views._helpers import get_viewable_thing
+from core.views._helpers import get_viewable_thing, viewer_code
 
 
 class ThingCalendarView(APIView):
@@ -32,11 +32,11 @@ class ThingCalendarView(APIView):
     Owner sees full details, guests see only dates and status.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, thing_code):
         thing, denied = get_viewable_thing(
-            thing_code, request.user.code, "Not authorized to view this thing"
+            thing_code, viewer_code(request), "Not authorized to view this thing"
         )
         if denied:
             return denied
@@ -45,7 +45,7 @@ class ThingCalendarView(APIView):
         blocked_periods = BookingPeriod.get_blocked_periods(thing_code)
 
         # Owner sees full details; guests see only dates and status.
-        if thing.is_owner(request.user.code):
+        if thing.is_owner(viewer_code(request)):
             # The owner serializer reads requester_code.name and the swap offers
             # per period — pull both in up front so the calendar stays a fixed
             # number of queries regardless of how many bookings it lists.

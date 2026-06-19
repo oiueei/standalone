@@ -7,6 +7,18 @@ from rest_framework.response import Response
 from core.models import Thing
 
 
+def viewer_code(request):
+    """The requesting user's code, or ``None`` for an anonymous visitor.
+
+    The public-read endpoints accept anonymous callers, but ``request.user`` is
+    then an ``AnonymousUser`` with no ``.code``. Centralise the guard so each
+    view passes a real code — or ``None`` — straight into the ``can_view``
+    helpers (which treat ``None`` as "anonymous": PUBLIC collections only).
+    """
+    user = request.user
+    return user.code if user.is_authenticated else None
+
+
 def deny_if_cannot_view(obj, user_code, message):
     """Return a 403 ``{"error": message}`` Response if ``user_code`` cannot view
     ``obj`` (a Thing, including a wish), else ``None``.

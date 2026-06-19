@@ -186,8 +186,13 @@ class CollectionSerializer(serializers.ModelSerializer):
                 status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
                 collections=obj,
             ).count()
+        is_owner = bool(
+            request and request.user.is_authenticated and obj.is_owner(request.user.code)
+        )
         things = obj.things.all()
-        if request and not obj.is_owner(request.user.code):
+        # Non-owners (including anonymous visitors on a PUBLIC collection) never
+        # see INACTIVE things; only skip the filter for internal, request-less use.
+        if request and not is_owner:
             things = things.exclude(status=Thing.Status.INACTIVE)
         return CollectionThingSummarySerializer(things, many=True, context=ctx).data
 

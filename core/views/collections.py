@@ -18,7 +18,7 @@ from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -45,7 +45,7 @@ from core.services.email_service import (
     send_collection_revoke_email,
 )
 from core.validators import SafeHeadlineField
-from core.views._helpers import require_collection_owner, type_validity_error
+from core.views._helpers import require_collection_owner, type_validity_error, viewer_code
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +118,10 @@ class CollectionViewSet(ModelViewSet):
         # so an object-level permission would never run for it anyway (the I3 footgun).
         if self.action in ("update", "partial_update", "destroy"):
             return [IsAuthenticated(), IsCollectionOwner()]
+        # Anonymous read is allowed for retrieve; can_view() (below) still gates
+        # it — only PUBLIC, ACTIVE collections are visible without membership.
+        if self.action == "retrieve":
+            return [AllowAny()]
         return [IsAuthenticated()]
 
     def get_object(self):
@@ -127,7 +131,7 @@ class CollectionViewSet(ModelViewSet):
             # gates access so invited (non-owner) users can still retrieve.
             qs = _optimise_collection_queryset(Collection.objects.all())
             obj = get_object_or_404(qs, code=self.kwargs[self.lookup_field])
-            if not obj.can_view(self.request.user.code):
+            if not obj.can_view(viewer_code(self.request)):
                 self.permission_denied(self.request)
             return obj
         obj = get_object_or_404(Collection, code=self.kwargs[self.lookup_field])

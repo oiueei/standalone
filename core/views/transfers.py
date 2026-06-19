@@ -2,14 +2,14 @@
 Transfer views for OIUEEI — thing journey/lending history.
 """
 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import Collection, Thing
 from core.models.transfer import ThingTransfer
 from core.serializers.transfer import ThingTransferStatsSerializer
-from core.views._helpers import get_viewable_thing
+from core.views._helpers import get_viewable_thing, viewer_code
 
 
 class ThingTransferView(APIView):
@@ -20,10 +20,10 @@ class ThingTransferView(APIView):
     Permission: must be able to view the thing (owner or invited).
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, thing_code):
-        thing, denied = get_viewable_thing(thing_code, request.user.code, "Not authorised.")
+        thing, denied = get_viewable_thing(thing_code, viewer_code(request), "Not authorised.")
         if denied:
             return denied
 

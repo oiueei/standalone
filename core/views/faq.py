@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -19,7 +19,7 @@ from core.services.email_service import (
     send_faq_hide_email,
     send_faq_question_email,
 )
-from core.views._helpers import deny_if_cannot_view
+from core.views._helpers import deny_if_cannot_view, viewer_code
 
 
 class ThingFAQListView(APIView):
@@ -31,22 +31,28 @@ class ThingFAQListView(APIView):
     Ask a question about a thing.
     """
 
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        # Listing questions (GET) is part of the public "social layer" — anyone
+        # who can view the thing may read them. Asking a question (POST) needs auth.
+        if self.request.method == "POST":
+            return [IsAuthenticated()]
+        return [AllowAny()]
 
     def get_thing(self, thing_code):
         return get_object_or_404(Thing, code=thing_code)
 
     def get(self, request, thing_code):
         thing = self.get_thing(thing_code)
+        viewer = viewer_code(request)
 
         denied = deny_if_cannot_view(
-            thing, request.user.code, "Not authorized to view this thing's FAQs"
+            thing, viewer, "Not authorized to view this thing's FAQs"
         )
         if denied:
             return denied
 
         # Get visible FAQs (or all if owner)
-        if thing.is_owner(request.user.code):
+        if thing.is_owner(viewer):
             faqs = FAQ.objects.filter(thing=thing).select_related("questioner").order_by("-created")
         else:
             faqs = (
