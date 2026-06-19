@@ -34,6 +34,8 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     submitting,
     requested,
     bookingAction,
+    bookingActionVerb,
+    activating,
     bookings,
     activePendingCode,
     handleRequest,
@@ -107,26 +109,26 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             {isOwner && thing.status === 'ACTIVE' && activePendingCode && (
               <>
                 <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
-                  {t('thingCard.confirmHold')}
+                  {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
                 </Button>
                 <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
-                  {t('thingCard.cancelHold')}
+                  {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
                 </Button>
               </>
             )}
             {isOwner && thing.status === 'TAKEN' && (
               <>
                 <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                  {t('thingCard.confirmHold')}
+                  {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
                 </Button>
                 <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-                  {t('thingCard.cancelHold')}
+                  {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
                 </Button>
               </>
             )}
             {isOwner && thing.status === 'INACTIVE' && (
-              <Button fullWidth onClick={handleActivate} style={btnStyle}>
-                {t('thingCard.reactivate')}
+              <Button fullWidth disabled={activating} onClick={handleActivate} style={btnStyle}>
+                {activating ? t('thingCard.reactivating') : t('thingCard.reactivate')}
               </Button>
             )}
             {isOwner && thing.status === 'ACTIVE' && !activePendingCode && canDelete && (
@@ -217,10 +219,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
               {needsPage && activePendingCode && (
                 <>
                   <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
-                    {t('thingCard.confirmHold')}
+                    {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
                   </Button>
                   <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
-                    {t('thingCard.cancelHold')}
+                    {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
                   </Button>
                 </>
               )}
@@ -241,10 +243,10 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           {isOwner && thing.status === 'TAKEN' && (
             <>
               <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                {t('thingCard.confirmHold')}
+                {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
               </Button>
               <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-                {t('thingCard.cancelHold')}
+                {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
               </Button>
               <Link to={editPath} style={{ display: 'contents' }}>
                 <Button variant="secondary" fullWidth style={btnSecondaryStyle}>{t('common.edit')}</Button>
@@ -253,8 +255,8 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           )}
           {isOwner && thing.status === 'INACTIVE' && (
             <>
-              <Button fullWidth onClick={handleActivate} style={btnStyle}>
-                {t('thingCard.reactivate')}
+              <Button fullWidth disabled={activating} onClick={handleActivate} style={btnStyle}>
+                {activating ? t('thingCard.reactivating') : t('thingCard.reactivate')}
               </Button>
               <Link to={editPath} style={{ display: 'contents' }}>
                 <Button variant="secondary" fullWidth style={btnSecondaryStyle}>{t('common.edit')}</Button>

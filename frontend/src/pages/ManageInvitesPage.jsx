@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextInput, Button, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
@@ -25,6 +25,8 @@ export default function ManageInvitesPage() {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [resending, setResending] = useState(null);
+  const inviteLockRef = useRef(false);
+  const resendLockRef = useRef(false);
 
   useEffect(() => {
     const fetchCollection = async () => {
@@ -49,6 +51,8 @@ export default function ManageInvitesPage() {
   }, [userCode, code, navigate, t]);
 
   const handleResend = async (email) => {
+    if (resendLockRef.current) return;
+    resendLockRef.current = true;
     setResending(email);
     try {
       const res = await apiFetch(`/api/v1/collections/${code}/invite/`, {
@@ -64,10 +68,13 @@ export default function ManageInvitesPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setResending(null);
+      resendLockRef.current = false;
     }
   };
 
   const handleInvite = async () => {
+    if (inviteLockRef.current) return;
+    inviteLockRef.current = true;
     setInviteLoading(true);
     setToast(null);
     try {
@@ -89,6 +96,7 @@ export default function ManageInvitesPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setInviteLoading(false);
+      inviteLockRef.current = false;
     }
   };
 

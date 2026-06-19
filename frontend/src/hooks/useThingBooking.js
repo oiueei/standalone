@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DATE_TYPES, ORDER_TYPE, SWAP_TYPE } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
@@ -50,6 +50,14 @@ export default function useThingBooking(thing, {
   const [bookingAction, setBookingAction] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [activePendingCode, setActivePendingCode] = useState(initialActivePending);
+  const [activating, setActivating] = useState(false);
+  const [bookingActionVerb, setBookingActionVerb] = useState(null);
+
+  // Synchronous re-entrancy locks: `disabled`/`submitting` only updates after a
+  // re-render, so a fast double-click could fire two requests before that lands.
+  const requestLockRef = useRef(false);
+  const activateLockRef = useRef(false);
+  const bookingLockRef = useRef(false);
 
   const code = thing?.code;
   const type = thing?.type;
@@ -85,6 +93,8 @@ export default function useThingBooking(thing, {
   }, [code, status, isEndless, isOwner, isDateBased, isOrder, isSwap, fetchOnEndless]);
 
   const handleRequest = async () => {
+    if (requestLockRef.current) return;
+    requestLockRef.current = true;
     setSubmitting(true);
     setToast(null);
     try {
@@ -107,10 +117,14 @@ export default function useThingBooking(thing, {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setSubmitting(false);
+      requestLockRef.current = false;
     }
   };
 
   const handleActivate = async () => {
+    if (activateLockRef.current) return;
+    activateLockRef.current = true;
+    setActivating(true);
     try {
       const res = await apiFetch(`/api/v1/things/${code}/activate/`, { method: 'POST' });
       if (res.ok) {
@@ -123,12 +137,18 @@ export default function useThingBooking(thing, {
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setActivating(false);
+      activateLockRef.current = false;
     }
   };
 
   const handleBookingAction = async (action, bookingCode) => {
+    if (bookingLockRef.current) return;
+    bookingLockRef.current = true;
     const targetCode = bookingCode || activePendingCode;
     setBookingAction(targetCode);
+    setBookingActionVerb(action);
     try {
       const res = await apiFetch(`/api/v1/bookings/${targetCode}/${action}/`, { method: 'POST' });
       if (res.ok) {
@@ -157,6 +177,8 @@ export default function useThingBooking(thing, {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setBookingAction(null);
+      setBookingActionVerb(null);
+      bookingLockRef.current = false;
     }
   };
 
@@ -164,6 +186,8 @@ export default function useThingBooking(thing, {
     submitting,
     requested,
     bookingAction,
+    bookingActionVerb,
+    activating,
     bookings,
     activePendingCode,
     handleRequest,

@@ -56,6 +56,8 @@ export default function ThingPage() {
     submitting,
     requested,
     bookingAction,
+    bookingActionVerb,
+    activating,
     bookings,
     activePendingCode,
     handleRequest,
@@ -397,11 +399,11 @@ export default function ThingPage() {
           <div className="button-col">
             {needsPage && activePendingCode && (
               <>
-                <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                  {t('thingCard.confirmHold')}
+                <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+                  {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
                 </Button>
-                <Button fullWidth variant="secondary" disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-                  {t('thingCard.cancelHold')}
+                <Button fullWidth variant="secondary" disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
+                  {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
                 </Button>
               </>
             )}
@@ -420,11 +422,11 @@ export default function ThingPage() {
 
         {isOwner && thing.status === 'TAKEN' && (
           <div className="button-col">
-            <Button fullWidth disabled={bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-              {t('thingCard.confirmHold')}
+            <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+              {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
             </Button>
-            <Button fullWidth variant="secondary" disabled={bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-              {t('thingCard.cancelHold')}
+            <Button fullWidth variant="secondary" disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
+              {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
             </Button>
             <Link to={editPath} style={{ display: 'contents' }}>
               <Button fullWidth variant="secondary" style={btnSecondaryStyle}>{t('common.edit')}</Button>
@@ -434,8 +436,8 @@ export default function ThingPage() {
 
         {isOwner && thing.status === 'INACTIVE' && (
           <div className="button-row">
-            <Button style={{ ...btnStyle, width: '100%' }} onClick={handleActivate}>
-              {t('thingCard.reactivate')}
+            <Button style={{ ...btnStyle, width: '100%' }} disabled={activating} onClick={handleActivate}>
+              {activating ? t('thingCard.reactivating') : t('thingCard.reactivate')}
             </Button>
             <Link to={editPath} style={{ display: 'contents' }}>
               <Button variant="secondary" style={{ ...btnSecondaryStyle, width: '100%' }}>{t('common.edit')}</Button>
