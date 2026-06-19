@@ -1,4 +1,8 @@
 {
+  "stats": {
+    "downloadStats": "Deskargatu estatistikak (CSV)",
+    "downloadStatsError": "Ezin izan dira estatistikak deskargatu."
+  },
   "ageRange": {
     "UP_TO_21": "21 edo gutxiago",
     "22_35": "22–35",

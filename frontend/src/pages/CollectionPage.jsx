@@ -18,6 +18,7 @@ export default function CollectionPage() {
   const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
   const [showWelcome, setShowWelcome] = useState(!!location.state?.fromInvite && !localStorage.getItem('seenWelcome'));
   const [collection, setCollection] = useState(null);
+  const [statsError, setStatsError] = useState(false);
   const [error, setError] = useState('');
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
@@ -85,6 +86,25 @@ export default function CollectionPage() {
     setBroadcastSending(false);
   };
 
+  const handleDownloadStats = async () => {
+    setStatsError(false);
+    try {
+      const res = await apiFetch(`/api/v1/collections/${code}/stats/`);
+      if (!res.ok) throw new Error('stats');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${code}-stats.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setStatsError(true);
+    }
+  };
+
   const isOwner = localStorage.getItem('userCode') === collection.owner;
 
   return (
@@ -134,7 +154,17 @@ export default function CollectionPage() {
               <Link to={`/collections/${code}/invites`}>
                 <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.manageGuests')}</Button>
               </Link>
+              {collection.mode === 'COMMUNITY' && (
+                <Button variant="secondary" style={btnSecondaryStyle} onClick={handleDownloadStats}>
+                  {t('stats.downloadStats')}
+                </Button>
+              )}
             </div>
+            {statsError && (
+              <Notification type="error" size="small" style={{ marginTop: 'var(--spacing-xs)' }}>
+                {t('stats.downloadStatsError')}
+              </Notification>
+            )}
             <div className="spacer-s"></div>
             <div className="share-menu-wrap" style={{ maxWidth: '320px' }}>
               <ShareCollectionMenu

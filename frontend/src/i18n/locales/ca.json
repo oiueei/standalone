@@ -1,4 +1,8 @@
 {
+  "stats": {
+    "downloadStats": "Baixar estadístiques (CSV)",
+    "downloadStatsError": "No s'han pogut baixar les estadístiques."
+  },
   "ageRange": {
     "UP_TO_21": "21 o menys",
     "22_35": "22–35",

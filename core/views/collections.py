@@ -2,13 +2,18 @@
 Collection views for OIUEEI.
 """
 
+import csv
 import logging
 import threading
+from collections import Counter
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Count, Prefetch
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import serializers, status
@@ -22,6 +27,7 @@ from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
 from core.models.collection import generate_share_token
 from core.models.notification import InAppNotification
+from core.models.transfer import ThingTransfer
 from core.permissions import IsCollectionOwner
 from core.serializers import (
     CollectionAddThingSerializer,
@@ -536,6 +542,121 @@ class CollectionBulkInviteView(APIView):
             {"invited": len(invited), "skipped": skipped, "total": len(rows)},
             status=status.HTTP_200_OK,
         )
+
+
+class CollectionStatsView(APIView):
+    """
+    GET /api/v1/collections/{collection_code}/stats/
+
+    Owner-only usage statistics for a COMMUNITY collection, returned as a CSV
+    download (metric,value): a snapshot plus a 90-day window, and — since the
+    optional member demographics exist — an aggregate age-range and postal-code
+    breakdown. Aggregate only; the per-member values live on the guests page.
+    """
+
+    permission_classes = [IsAuthenticated]
+    WINDOW_DAYS = 90
+
+    def get(self, request, collection_code):
+        collection = get_object_or_404(Collection, code=collection_code)
+        denied = require_collection_owner(
+            collection, request.user.code, "Only the owner can view stats"
+        )
+        if denied:
+            return denied
+        if not collection.is_community():
+            return Response(
+                {"error": "Stats are only available for community collections."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        win = self.WINDOW_DAYS
+        since = timezone.now() - timedelta(days=win)
+        since_date = since.date()
+        members = list(collection.invites.all())
+        member_codes = [u.code for u in members]
+
+        rows = [["metric", "value"]]
+        rows.append(["Members", len(members)])
+        rows.append(
+            [
+                "Pending invitations",
+                RSVP.objects.filter(
+                    action=RSVP.Action.COLLECTION_INVITE, target_code=collection_code
+                ).count(),
+            ]
+        )
+        rows.append(["Things total", collection.things.count()])
+        rows.append(["Things active", collection.things.filter(status=Thing.Status.ACTIVE).count()])
+        rows.append(
+            ["Things reserved", collection.things.filter(status=Thing.Status.TAKEN).count()]
+        )
+        rows.append(
+            [f"Things added ({win}d)", collection.things.filter(created__gte=since).count()]
+        )
+        rows.append(
+            [
+                f"Bookings ({win}d)",
+                BookingPeriod.objects.filter(thing_code__collections=collection, created__gte=since)
+                .distinct()
+                .count(),
+            ]
+        )
+        rows.append(
+            [
+                f"Handovers ({win}d)",
+                ThingTransfer.objects.filter(
+                    thing__collections=collection, lent_date__gte=since_date
+                )
+                .distinct()
+                .count(),
+            ]
+        )
+        rows.append(
+            [
+                f"Invitations sent ({win}d)",
+                RSVP.objects.filter(
+                    action=RSVP.Action.COLLECTION_INVITE,
+                    target_code=collection_code,
+                    created__gte=since,
+                ).count(),
+            ]
+        )
+        active = set(
+            Thing.objects.filter(
+                collections=collection, created__gte=since, owner_id__in=member_codes
+            ).values_list("owner_id", flat=True)
+        ) | set(
+            BookingPeriod.objects.filter(
+                thing_code__collections=collection,
+                created__gte=since,
+                requester_code_id__in=member_codes,
+            ).values_list("requester_code_id", flat=True)
+        )
+        rows.append([f"Active members ({win}d)", len(active)])
+
+        age_labels = {
+            "UP_TO_21": "Age 21 or under",
+            "22_35": "Age 22-35",
+            "36_55": "Age 36-55",
+            "56_PLUS": "Age 56 or over",
+        }
+        age_counts = Counter(u.age_range for u in members if u.age_range)
+        for age_code, label in age_labels.items():
+            rows.append([label, age_counts.get(age_code, 0)])
+        rows.append(["Age not specified", sum(1 for u in members if not u.age_range)])
+
+        postal_counts = Counter(u.postal_code for u in members if u.postal_code)
+        for postal, count in postal_counts.most_common(10):
+            # The code follows the literal "Postal " label, so the cell never
+            # starts with =, +, - or @ — no spreadsheet-formula injection.
+            rows.append([f"Postal {postal}", count])
+        rows.append(["Postal not specified", sum(1 for u in members if not u.postal_code)])
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{collection_code}-stats.csv"'
+        csv.writer(response).writerows(rows)
+        return response
 
 
 class InvitedCollectionsView(APIView):

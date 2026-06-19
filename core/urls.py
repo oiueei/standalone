@@ -29,6 +29,7 @@ from .views.collections import (
     CollectionBulkInviteView,
     CollectionInviteView,
     CollectionShareLinkView,
+    CollectionStatsView,
     CollectionViewSet,
     InvitedCollectionsView,
     MyPendingInvitationsView,
@@ -102,6 +103,11 @@ urlpatterns = [
         "collections/<str:collection_code>/invite/bulk/",
         CollectionBulkInviteView.as_view(),
         name="collection-invite-bulk",
+    ),
+    path(
+        "collections/<str:collection_code>/stats/",
+        CollectionStatsView.as_view(),
+        name="collection-stats",
     ),
     path(
         "collections/<str:collection_code>/broadcast/",

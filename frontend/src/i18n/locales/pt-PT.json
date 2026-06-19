@@ -1,4 +1,8 @@
 {
+  "stats": {
+    "downloadStats": "Descarregar estatísticas (CSV)",
+    "downloadStatsError": "Não foi possível descarregar as estatísticas."
+  },
   "ageRange": {
     "UP_TO_21": "21 ou menos",
     "22_35": "22–35",
