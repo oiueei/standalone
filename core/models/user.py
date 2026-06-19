@@ -65,6 +65,12 @@ class User(AbstractBaseUser):
         ("wave", "Wave"),
     ]
 
+    class AgeRange(models.TextChoices):
+        UP_TO_21 = "UP_TO_21", "21 or under"
+        FROM_22_35 = "22_35", "22-35"
+        FROM_36_55 = "36_55", "36-55"
+        FROM_56 = "56_PLUS", "56 or over"
+
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     email = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=32, blank=True, default="")
@@ -86,6 +92,11 @@ class User(AbstractBaseUser):
     # Notification preferences (see core/services/email_service.py categories)
     notify_activity = models.BooleanField(default=True)
     notify_news = models.BooleanField(default=True)
+
+    # Optional demographics, surfaced only inside COMMUNITY collections (shared
+    # with that collection's owner per member, never public). Both default empty.
+    age_range = models.CharField(max_length=8, choices=AgeRange.choices, blank=True, default="")
+    postal_code = models.CharField(max_length=10, blank=True, default="")
 
     # Required for Django auth
     is_active = models.BooleanField(default=True)

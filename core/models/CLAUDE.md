@@ -24,6 +24,8 @@ The `User` model represents a person who can own collections, be invited to othe
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
 | `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, broadcasts. Default: `True` |
 | `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
+| `age_range` | CharField(8) | No | Optional age bracket (`UP_TO_21` / `22_35` / `36_55` / `56_PLUS`). Surfaced only inside COMMUNITY collections — shared with that collection's owner per member, never public. Default empty. |
+| `postal_code` | CharField(10) | No | Optional postal/area code. Same COMMUNITY-only, owner-visible, never-public scope as `age_range`. Default empty. |
 | `is_active` | BooleanField | Auto | Default True |
 | `is_staff` | BooleanField | Auto | Default False |
 | `is_superuser` | BooleanField | Auto | Default False |

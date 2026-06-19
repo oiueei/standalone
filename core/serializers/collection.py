@@ -197,7 +197,18 @@ class CollectionSerializer(serializers.ModelSerializer):
     def get_invites(self, obj):
         members = obj.invites.all()
         if self._requester_is_owner(obj):
-            return [{"code": u.code, "email": u.email, "name": u.name} for u in members]
+            # In a COMMUNITY collection the owner also sees each member's optional
+            # age range and postal code (owner-only, never public). Other modes
+            # and non-owners never receive them.
+            community = obj.is_community()
+            result = []
+            for u in members:
+                member = {"code": u.code, "email": u.email, "name": u.name}
+                if community:
+                    member["age_range"] = u.age_range
+                    member["postal_code"] = u.postal_code
+                result.append(member)
+            return result
         # Co-members' emails are owner-only (L2); guests get only code + name —
         # enough for the member count, no PII.
         return [{"code": u.code, "name": u.name} for u in members]
