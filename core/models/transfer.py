@@ -63,6 +63,12 @@ class ThingTransfer(models.Model):
         app_label = "core"
         db_table = "thing_transfers"
         ordering = ["-lent_date"]
+        indexes = [
+            # The journey view filters by thing and the model always orders by
+            # -lent_date; a composite serves both the lookup and the sort for a
+            # thing whose transfer history grows as it is passed around.
+            models.Index(fields=["thing", "lent_date"], name="transfer_thing_lentdate_idx"),
+        ]
         constraints = [
             # A booking may create at most one transfer per thing. Prevents
             # duplicate ThingTransfer rows if an accept is processed twice

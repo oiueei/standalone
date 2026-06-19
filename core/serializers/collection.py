@@ -89,6 +89,35 @@ class CollectionThingSummarySerializer(ThingComputedFieldsMixin, serializers.Mod
         return self.context.get("my_swap_count_in_collection", 0)
 
 
+class CollectionListSerializer(serializers.ListSerializer):
+    """List serializer that batch-loads the owner-only ``pending_invites``.
+
+    ``pending_invites`` come from the RSVP table keyed by ``target_code`` (a
+    plain CharField, not a FK — so there is no relation to ``prefetch_related``).
+    Serialising a list of an owner's collections would otherwise fire one RSVP
+    query per collection (N+1). Here we fetch them all in a single query and
+    stash them on the shared context for the child serializer to read.
+    """
+
+    def to_representation(self, data):
+        instances = list(data)
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            owned_codes = [c.code for c in instances if c.owner_id == request.user.code]
+            if owned_codes:
+                by_code = {}
+                rows = RSVP.objects.filter(
+                    action=RSVP.Action.COLLECTION_INVITE,
+                    target_code__in=owned_codes,
+                ).values("target_code", "user_code_id", "user_email")
+                for row in rows:
+                    by_code.setdefault(row["target_code"], []).append(
+                        {"code": row["user_code_id"], "email": row["user_email"]}
+                    )
+                self.context["_pending_invites_by_code"] = by_code
+        return super().to_representation(instances)
+
+
 class CollectionSerializer(serializers.ModelSerializer):
     """Full collection serializer."""
 
@@ -102,6 +131,7 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Collection
+        list_serializer_class = CollectionListSerializer
         fields = [
             "code",
             "owner",
@@ -176,6 +206,12 @@ class CollectionSerializer(serializers.ModelSerializer):
         # Pending invitees and their emails are owner-management data only.
         if not self._requester_is_owner(obj):
             return []
+        # Reuse the batch the list serializer pre-loaded, if present (avoids the
+        # per-collection N+1 when serialising a list); fall back to a single
+        # query for the detail endpoint / direct use.
+        cache = self.context.get("_pending_invites_by_code")
+        if cache is not None:
+            return cache.get(obj.code, [])
         rsvps = RSVP.objects.filter(
             action=RSVP.Action.COLLECTION_INVITE,
             target_code=obj.code,

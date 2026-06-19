@@ -240,12 +240,18 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
         first = collections[0] if collections else None
         if not first or not first.is_swap:
             return 0
-        return Thing.objects.filter(
-            owner=request.user,
-            type=Thing.Type.SWAP_THING,
-            status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
-            collections=first,
-        ).count()
+        # The count depends only on (requester, collection), not the specific
+        # thing, so memoise it per collection on the shared context — a things
+        # list in one swap collection then costs one query, not one per thing.
+        cache = self.context.setdefault("_my_swap_count_cache", {})
+        if first.code not in cache:
+            cache[first.code] = Thing.objects.filter(
+                owner=request.user,
+                type=Thing.Type.SWAP_THING,
+                status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
+                collections=first,
+            ).count()
+        return cache[first.code]
 
     def get_faqs(self, obj):
         # Use prefetched faq_set cache if available

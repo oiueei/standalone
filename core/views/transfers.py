@@ -27,14 +27,16 @@ class ThingTransferView(APIView):
         if denied:
             return denied
 
-        transfers = (
+        # Materialise once (ordered most-recent first) and derive every stat in
+        # Python — re-querying with .count()/.filter()/.order_by() on the same
+        # rows would issue three extra round-trips for no benefit.
+        transfers = list(
             ThingTransfer.objects.filter(thing=thing)
             .select_related("from_user", "to_user")
             .order_by("-lent_date")
         )
 
-        # Compute stats
-        total_transfers = transfers.count()
+        total_transfers = len(transfers)
 
         # Unique homes = unique users who have held the item (both from and to)
         user_codes = set()
@@ -43,8 +45,9 @@ class ThingTransferView(APIView):
             user_codes.add(t.to_user_id)
         unique_homes = len(user_codes)
 
-        # Current holder = most recent unreturned transfer's to_user
-        current_transfer = transfers.filter(returned_date__isnull=True).first()
+        # Current holder = most recent unreturned transfer's to_user (the list is
+        # ordered -lent_date, so the first unreturned row is the most recent).
+        current_transfer = next((t for t in transfers if t.returned_date is None), None)
         current_holder = None
         current_holder_name = None
         if current_transfer:
@@ -53,8 +56,8 @@ class ThingTransferView(APIView):
             # so the email fallback would leak addresses (L2).
             current_holder_name = current_transfer.to_user.name
 
-        # Original owner = from_user of the oldest transfer
-        oldest = transfers.order_by("lent_date").first()
+        # Original owner = from_user of the oldest transfer (last in -lent_date order)
+        oldest = transfers[-1] if transfers else None
         original_owner = oldest.from_user_id if oldest else None
         original_owner_name = (oldest.from_user.name) if oldest else None
 

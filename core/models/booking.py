@@ -89,6 +89,13 @@ class BookingPeriod(models.Model):
     class Meta:
         app_label = "core"
         db_table = "booking_periods"
+        indexes = [
+            # has_overlap()/get_blocked_periods() filter by thing + status on
+            # every booking request and calendar view; a thing's booking history
+            # grows over time, so a composite turns those into an index seek
+            # (status alone is already indexed; thing_code alone is the FK index).
+            models.Index(fields=["thing_code", "status"], name="booking_thing_status_idx"),
+        ]
 
     def __str__(self):
         if self.start_date and self.end_date:

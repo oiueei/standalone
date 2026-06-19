@@ -25,15 +25,19 @@ class SwapOfferedFieldsMixin(serializers.Serializer):
     offered_thing_codes = serializers.SerializerMethodField()
     offered_thing_headlines = serializers.SerializerMethodField()
 
+    # Iterate ``offered_things.all()`` rather than ``.values_list()``: the latter
+    # always issues its own query and so bypasses a ``prefetch_related("offered_things")``
+    # cache, re-introducing an N+1 on the booking-list and owner-calendar endpoints.
+    # ``.all()`` reuses the prefetched rows when the view set them up.
     def get_offered_thing_codes(self, obj):
         if obj.thing_type != Thing.Type.SWAP_THING:
             return None
-        return list(obj.offered_things.values_list("code", flat=True))
+        return [t.code for t in obj.offered_things.all()]
 
     def get_offered_thing_headlines(self, obj):
         if obj.thing_type != Thing.Type.SWAP_THING:
             return None
-        return list(obj.offered_things.values_list("headline", flat=True))
+        return [t.headline for t in obj.offered_things.all()]
 
 
 class BookingPeriodSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):
