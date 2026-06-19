@@ -1,4 +1,17 @@
 {
+  "ageRange": {
+    "UP_TO_21": "21 edo gutxiago",
+    "22_35": "22–35",
+    "36_55": "36–55",
+    "56_PLUS": "56 edo gehiago"
+  },
+  "communityProfile": {
+    "heading": "Komunitate-profila",
+    "helper": "Aukerakoa. Parte hartzen duzun komunitate-bildumetako jabeek soilik ikus dezakete — ez da inoiz publiko izaten.",
+    "ageLabel": "Adin-tartea",
+    "ageUnset": "Nahiago dut ez esan",
+    "postalLabel": "Posta-kodea"
+  },
   "bulkInvite": {
     "heading": "Gonbidatu hainbat batera (CSV)",
     "help": "Igo \"email\" zutabea (nahitaezkoa) eta aukerako \"name\" zutabea duen CSV bat.",

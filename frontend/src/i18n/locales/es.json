@@ -1,4 +1,17 @@
 {
+  "ageRange": {
+    "UP_TO_21": "21 o menos",
+    "22_35": "22–35",
+    "36_55": "36–55",
+    "56_PLUS": "56 o más"
+  },
+  "communityProfile": {
+    "heading": "Perfil comunitario",
+    "helper": "Opcional. Solo lo pueden ver los propietarios de las colecciones comunitarias en las que estás — nunca es público.",
+    "ageLabel": "Franja de edad",
+    "ageUnset": "Prefiero no decirlo",
+    "postalLabel": "Código postal"
+  },
   "bulkInvite": {
     "heading": "Invitar a varios a la vez (CSV)",
     "help": "Sube un CSV con una columna \"email\" (obligatoria) y una columna \"name\" opcional.",

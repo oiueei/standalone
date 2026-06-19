@@ -123,6 +123,8 @@ export default function ManageInvitesPage() {
             _email: inv.email,
             _code: inv.code,
             _name: inv.name || inv.email,
+            _ageRange: inv.age_range || '',
+            _postal: inv.postal_code || '',
           })),
           ...pendingInvites.map((p) => ({
             _id: p.code || `pending-${p.email}`,
@@ -135,7 +137,22 @@ export default function ManageInvitesPage() {
           })),
         ];
         const cols = [
-          { key: 'guest', headerName: 'Guest' },
+          {
+            key: 'guest',
+            headerName: 'Guest',
+            transform: (row) => (
+              <div>
+                <div>{row.guest}</div>
+                {(row._ageRange || row._postal) && (
+                  <div style={{ fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-60)' }}>
+                    {[row._ageRange ? t(`ageRange.${row._ageRange}`) : null, row._postal]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
+                )}
+              </div>
+            ),
+          },
           { key: 'status', headerName: 'Status' },
           ...(isOwner ? [{
             key: '_actions',

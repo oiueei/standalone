@@ -12,6 +12,8 @@ import ImageUpload from '../components/ImageUpload';
 import useTheeeme from '../hooks/useTheeeme';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 
+const AGE_RANGES = ['UP_TO_21', '22_35', '36_55', '56_PLUS'];
+
 export default function EditProfilePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -33,6 +35,9 @@ export default function EditProfilePage() {
   const [theeemes, setTheeemes] = useState([]);
   const [notifyActivity, setNotifyActivity] = useState(true);
   const [notifyNews, setNotifyNews] = useState(true);
+  const [ageRange, setAgeRange] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [inCommunity, setInCommunity] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -56,6 +61,9 @@ export default function EditProfilePage() {
           setTheeeme(data.theeeme || '');
           setNotifyActivity(data.notify_activity ?? true);
           setNotifyNews(data.notify_news ?? true);
+          setAgeRange(data.age_range || '');
+          setPostalCode(data.postal_code || '');
+          setInCommunity(!!data.in_community);
         } else {
           setToast({ type: 'error', message: t('editProfile.errorLoading') });
         }
@@ -95,6 +103,8 @@ export default function EditProfilePage() {
       koro,
       notify_activity: notifyActivity,
       notify_news: notifyNews,
+      age_range: ageRange,
+      postal_code: postalCode,
     };
     if (theeeme) body.theeeme = theeeme;
 
@@ -181,6 +191,34 @@ export default function EditProfilePage() {
             }}
           />
         </div>
+        {inCommunity && (
+          <>
+            <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('communityProfile.heading')}</h2>
+            <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('communityProfile.helper')}</p>
+            <div className="form-grid">
+              <Select
+                language="en"
+                id="edit-profile-age"
+                texts={{ label: t('communityProfile.ageLabel') }}
+                options={[
+                  { label: t('communityProfile.ageUnset'), value: '' },
+                  ...AGE_RANGES.map((c) => ({ label: t(`ageRange.${c}`), value: c })),
+                ]}
+                value={ageRange}
+                onChange={(selectedOptions) => {
+                  setAgeRange(selectedOptions.length > 0 ? selectedOptions[0].value : '');
+                }}
+              />
+              <TextInput
+                id="edit-profile-postal"
+                label={t('communityProfile.postalLabel')}
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                maxLength={10}
+              />
+            </div>
+          </>
+        )}
         <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('notifications.pageTitle')}</h2>
         <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('notifications.intro')}</p>
         <div className="form-grid">
