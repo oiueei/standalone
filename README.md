@@ -41,7 +41,7 @@ HDS is designed for City of Helsinki services, so I adapt it to fit OIUEEI's con
 | Layer | HDS baseline | OIUEEI adaptation |
 |---|---|---|
 | Brand colours | Helsinki blue/black palette | Custom palette reflecting OIUEEI identity |
-| Typography | HDS type scale | Same scale, different primary typeface (GraebenbachTRIAL) |
+| Typography | HDS type scale | Same scale, different primary typeface (Curiosa) |
 | Components | Used as-is where possible | Extended or wrapped when sharing-specific UX is needed |
 | Layout & spacing | HDS grid and spacing tokens | Followed as-is |
 | Icons | HDS icon set | Supplemented with domain-specific icons |

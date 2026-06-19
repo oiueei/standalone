@@ -481,7 +481,7 @@ Four non-obvious behaviours:
 
 The project consumes HDS directly from npm and applies three local overrides:
 
-- **Fonts** (`src/fonts/oiueei-fonts.css`) — GraebenbachTRIAL `.otf` files registered as `font-family: HelsinkiGroteskPro` (matching the HDS `--font-default` token) so all HDS components use them transparently.
+- **Fonts** (`src/fonts/oiueei-fonts.css`) — the Curiosa variable font (`CuriosaVariableTest.ttf`, weight + italic axes) registered as `font-family: HelsinkiGroteskPro` (matching the HDS `--font-default` token) so all HDS components use it transparently. The font binary is gitignored (licence); a clone without it falls back to a system sans.
 - **Colors** (`src/styles/oiueei-theme.css`) — CSS custom property overrides for the "Theeemes" color palette, imported after `hds-design-tokens` to take precedence.
 - **Logos & brand assets** (`src/assets/`) — OIUEEI logos, placeholders, and favicon.
 

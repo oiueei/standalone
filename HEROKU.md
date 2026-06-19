@@ -26,20 +26,17 @@ Runtime (single gunicorn process):
 
 ## Font Notice
 
-The GraebenbachTRIAL typeface used in this project is **not included in this repository** — the licence does not permit redistribution. The font files (`frontend/src/fonts/*.otf`) are listed in `.gitignore`.
+The Curiosa typeface used in this project is **not included in this repository** — its licence does not permit redistribution. The font binaries (`frontend/src/fonts/*.ttf` and `*.otf`) are listed in `.gitignore`.
 
 You have two options before deploying:
 
-**Option A — Use the official trial font**
-Download GraebenbachTRIAL directly from the type foundry:
-https://camelot-typefaces.com/graebenbach
-
-Place the `.otf` files in `frontend/src/fonts/`. They will be picked up by Vite during the build.
+**Option A — Supply the font**
+Place `CuriosaVariableTest.ttf` in `frontend/src/fonts/`. It is a variable font (weight + italic axes) and Vite picks it up during the build.
 
 **Option B — Use a different typeface**
-Edit `frontend/src/fonts/oiueei-fonts.css` and replace the `@font-face` declarations with your chosen font. Make sure to update the `font-family` name if it differs from `HelsinkiGrotesk`.
+Edit `frontend/src/fonts/oiueei-fonts.css` and replace the `@font-face` declarations with your chosen font, keeping (or updating) the `HelsinkiGroteskPro` family name so the HDS `--font-default` token resolves to it.
 
-> In either case, the app will work without fonts — browsers will fall back to system fonts. Fonts only affect visual appearance.
+> In either case, the app works without the font — browsers fall back to a system sans. Fonts only affect visual appearance.
 
 ## Fonts in the build
 
