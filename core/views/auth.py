@@ -111,7 +111,10 @@ class RequestLinkView(APIView):
         email = serializer.validated_data["email"].lower()
         ip = get_client_ip(request)
 
-        unified_message = "If this email is registered, a magic link has been sent."
+        unified_message = (
+            "If this email is registered, your magic link is on its way — "
+            "check your inbox, and your spam folder just in case."
+        )
 
         # INVITE-ONLY: Only existing users can request magic links
         try:

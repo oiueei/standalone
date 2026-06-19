@@ -68,7 +68,7 @@
     "emailPlaceholder": "tu@correu.com",
     "signIn": "Entrar",
     "tryAnotherEmail": "Prova amb un altre correu",
-    "magicLinkSent": "Si aquest correu està registrat, t'hem enviat un enllaç màgic.",
+    "magicLinkSent": "Si aquest correu està registrat, l'enllaç màgic ja és en camí — revisa la safata d'entrada i, per si de cas, la carpeta de correu brossa.",
     "errorSendingLink": "Error en enviar l'enllaç.",
     "description": "Què és OIUEEI? Una aplicació web de codi obert perquè les persones comparteixin les seves pertinences amb amics i altres persones. Els usuaris poden crear col·leccions (llistes de desitjos, llistes de regals, articles en venda) i compartir-les amb amics que poden reservar articles o fer preguntes.",
     "openSource": "OIUEEI és de codi obert. Pots trobar el projecte a <1>GitHub</1>. Si vols sol·licitar accés o col·laborar, posa't en contacte.",

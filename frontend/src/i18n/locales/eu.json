@@ -68,7 +68,7 @@
     "emailPlaceholder": "zu@email.com",
     "signIn": "Hasi saioa",
     "tryAnotherEmail": "Saiatu beste email batekin",
-    "magicLinkSent": "Helbide hau erregistratuta badago, esteka magiko bat bidali da.",
+    "magicLinkSent": "Helbide hau erregistratuta badago, zure esteka magikoa bidean da — begiratu zure sarrera-ontzia eta, badaezpada, baita spam karpeta ere.",
     "errorSendingLink": "Errorea esteka bidaltzean.",
     "description": "Zer da OIUEEI? Kode irekiko web-aplikazio bat jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko. Erabiltzaileek bildumak sor ditzakete (desio-zerrendak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten.",
     "openSource": "OIUEEI kode irekikoa da. Proiektua <1>GitHub</1>-en aurki dezakezu. Sarbidea eskatu edo lagundu nahi baduzu, jar zaitez harremanetan.",
