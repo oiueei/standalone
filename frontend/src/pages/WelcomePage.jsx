@@ -21,11 +21,19 @@ export default function WelcomePage() {
     localStorage.setItem('seenWelcome', 'true');
   }, [t]);
   const [userName, setUserName] = useState('');
+  const [accessibleCodes, setAccessibleCodes] = useState(() => new Set());
 
   useEffect(() => {
     apiFetch('/api/v1/auth/me/')
       .then((res) => res.ok ? res.json() : Promise.reject())
       .then((data) => setUserName(data.name || data.email || ''))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    apiFetch('/api/v1/invited-collections/')
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setAccessibleCodes(new Set((data || []).map((c) => c.code))))
       .catch(() => {});
   }, []);
   const { tc, koro, btnStyle, btnSecondaryStyle } = useTheeeme();
@@ -71,7 +79,7 @@ export default function WelcomePage() {
         <h2>{t('welcome.whoUsesTitle')}</h2>
         <div className="spacer-s" />
         <p>
-          {t('welcome.exampleIntro')}
+          {accessibleCodes.size === 0 ? t('welcome.exampleIntroEmpty') : t('welcome.exampleIntro')}
         </p>
         <div className="spacer-s" />
         {['Lala', 'Lele', 'Lili', 'Lolo', 'Lulu'].map((name, i) => (
@@ -81,17 +89,23 @@ export default function WelcomePage() {
               <b>{t(`welcome.persona${name}Title`)}</b>{' '}
               {t(`welcome.persona${name}Body`)}
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-xs)' }}>
-              {PERSONA_LINKS[name].map(({ code, key }) => (
-                <Link
-                  key={code}
-                  to={`/collections/${code}`}
-                  style={{ color: tc.color_01 ? `var(--color-${tc.color_01})` : 'var(--color-bus)', textDecoration: 'underline', fontSize: 'var(--fontsize-body-m)', fontWeight: 700 }}
-                >
-                  {t(`welcome.${key}`)} →
-                </Link>
-              ))}
-            </div>
+            {(() => {
+              const links = PERSONA_LINKS[name].filter(({ code }) => accessibleCodes.has(code));
+              if (links.length === 0) return null;
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-xs)' }}>
+                  {links.map(({ code, key }) => (
+                    <Link
+                      key={code}
+                      to={`/collections/${code}`}
+                      style={{ color: tc.color_01 ? `var(--color-${tc.color_01})` : 'var(--color-bus)', textDecoration: 'underline', fontSize: 'var(--fontsize-body-m)', fontWeight: 700 }}
+                    >
+                      {t(`welcome.${key}`)} →
+                    </Link>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         ))}
         <div className="spacer-xl" />

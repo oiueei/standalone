@@ -273,7 +273,19 @@ export default function HomePage() {
         {myCollections === null ? (
           <p className="text-muted">{t('userPage.loadingCollections')}</p>
         ) : myCollections.filter((c) => c.status === 'ACTIVE').length === 0 ? (
-          <p>{t('userPage.noCollections')} <Link to="/collections/new">{t('userPage.createFirst')}</Link> {t('userPage.toGetStarted')}</p>
+          <div>
+            <p>{t('userPage.noCollections')}</p>
+            <p className="text-muted">{t('userPage.collectionExplainer')}</p>
+            <div className="spacer-m" />
+            <div className="button-row-wide">
+              <Link to="/collections/new">
+                <Button style={btnStyle}>{t('userPage.createFirst')}</Button>
+              </Link>
+              <Link to="/welcome">
+                <Button variant="secondary" style={btnSecondaryStyle}>{t('userPage.learnHow')}</Button>
+              </Link>
+            </div>
+          </div>
         ) : (
           <div className="collections-grid">
             {myCollections.filter((c) => c.status === 'ACTIVE').map((c) => (
