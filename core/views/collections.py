@@ -2,12 +2,16 @@
 Collection views for OIUEEI.
 """
 
+import logging
+import threading
+
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -34,7 +38,10 @@ from core.services.email_service import (
     send_collection_invite_email,
     send_collection_revoke_email,
 )
+from core.validators import SafeHeadlineField
 from core.views._helpers import require_collection_owner, type_validity_error
+
+logger = logging.getLogger(__name__)
 
 
 def _optimise_collection_queryset(queryset):
@@ -393,6 +400,141 @@ class CollectionInviteView(APIView):
         return Response(
             {"error": "User is not invited to this collection"},
             status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+def _send_bulk_invites(inviter_name, headline, recipients):
+    """Send the collection-invite emails for a bulk invite without blocking.
+
+    In production (``EMAIL_SEND_ASYNC``) the whole loop runs on a daemon thread so
+    a large batch doesn't stall the response; elsewhere it sends synchronously to
+    keep tests deterministic. Each send is best-effort and swallows its errors.
+    """
+    if not recipients:
+        return
+
+    def _run():
+        for email, accept_link, reject_link in recipients:
+            try:
+                send_collection_invite_email(
+                    inviter_name, headline, email, accept_link, reject_link
+                )
+            except Exception:
+                pass
+
+    if getattr(settings, "EMAIL_SEND_ASYNC", False):
+        threading.Thread(target=_run, daemon=True).start()
+    else:
+        _run()
+
+
+class CollectionBulkInviteView(APIView):
+    """
+    POST /api/v1/collections/{collection_code}/invite/bulk/
+
+    Invite many guests at once from a client-parsed CSV
+    (``{"invites": [{"email": ..., "name": ...?}, ...]}``). Best-effort: valid,
+    new addresses are invited and emailed; the rest are reported as skipped with a
+    reason (invalid / duplicate / already_member / already_invited) — one bad row
+    never fails the batch. Owner-only, capped at ``MAX_ROWS`` and rate-limited.
+    """
+
+    permission_classes = [IsAuthenticated]
+    MAX_ROWS = 100
+
+    @method_decorator(ratelimit(key="user", rate="5/h", method="POST", block=True))
+    def post(self, request, collection_code):
+        collection = get_object_or_404(Collection, code=collection_code)
+
+        denied = require_collection_owner(
+            collection, request.user.code, "Only the owner can invite users"
+        )
+        if denied:
+            return denied
+
+        rows = request.data.get("invites") if isinstance(request.data, dict) else None
+        if not isinstance(rows, list) or not rows:
+            return Response({"error": "No emails to invite."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(rows) > self.MAX_ROWS:
+            return Response(
+                {"error": f"At most {self.MAX_ROWS} invitations can be sent at once."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        email_field = serializers.EmailField(max_length=64)
+        name_field = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
+
+        skipped = []
+        seen = set()
+        candidates = []  # (email, name) — well-formed and unique within the batch
+        for row in rows:
+            raw_email = (row.get("email") if isinstance(row, dict) else "") or ""
+            try:
+                email = email_field.run_validation(str(raw_email).strip()).lower()
+            except serializers.ValidationError:
+                skipped.append({"email": str(raw_email).strip()[:64], "reason": "invalid"})
+                continue
+            if email in seen:
+                skipped.append({"email": email, "reason": "duplicate"})
+                continue
+            seen.add(email)
+            raw_name = str((row.get("name") if isinstance(row, dict) else "") or "").strip()
+            try:
+                # A malformed name (e.g. HTML) is dropped, not a reason to skip.
+                name = name_field.run_validation(raw_name) if raw_name else ""
+            except serializers.ValidationError:
+                name = ""
+            candidates.append((email, name))
+
+        inviter_name = request.user.display_name
+        invited = []
+        recipients = []  # (email, accept_link, reject_link)
+        with transaction.atomic():
+            for email, name in candidates:
+                defaults = {"email": email}
+                if name:
+                    defaults["name"] = name
+                invited_user, _ = User.objects.get_or_create(email=email, defaults=defaults)
+
+                if collection.is_invited(invited_user.code):
+                    skipped.append({"email": email, "reason": "already_member"})
+                    continue
+                if RSVP.objects.filter(
+                    user_code=invited_user,
+                    target_code=collection_code,
+                    action=RSVP.Action.COLLECTION_INVITE,
+                ).exists():
+                    skipped.append({"email": email, "reason": "already_invited"})
+                    continue
+
+                accept_rsvp = RSVP.objects.create(
+                    user_code=invited_user,
+                    user_email=email,
+                    action=RSVP.Action.COLLECTION_INVITE,
+                    target_code=collection_code,
+                )
+                reject_rsvp = RSVP.objects.create(
+                    user_code=invited_user,
+                    user_email=email,
+                    action=RSVP.Action.COLLECTION_REJECT,
+                    target_code=collection_code,
+                )
+                invited.append(email)
+                recipients.append((email, accept_rsvp.action_link(), reject_rsvp.action_link()))
+
+        _send_bulk_invites(inviter_name, collection.headline, recipients)
+
+        logger.info(
+            "Bulk invite: user=%s collection=%s invited=%d skipped=%d",
+            request.user.code,
+            collection_code,
+            len(invited),
+            len(skipped),
+        )
+
+        return Response(
+            {"invited": len(invited), "skipped": skipped, "total": len(rows)},
+            status=status.HTTP_200_OK,
         )
 
 

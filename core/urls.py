@@ -26,6 +26,7 @@ from .views.booking import (
 )
 from .views.collections import (
     CollectionBroadcastView,
+    CollectionBulkInviteView,
     CollectionInviteView,
     CollectionShareLinkView,
     CollectionViewSet,
@@ -96,6 +97,11 @@ urlpatterns = [
         "collections/<str:collection_code>/invite/",
         CollectionInviteView.as_view(),
         name="collection-invite",
+    ),
+    path(
+        "collections/<str:collection_code>/invite/bulk/",
+        CollectionBulkInviteView.as_view(),
+        name="collection-invite-bulk",
     ),
     path(
         "collections/<str:collection_code>/broadcast/",
