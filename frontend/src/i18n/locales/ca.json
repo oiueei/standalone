@@ -1,4 +1,22 @@
 {
+  "bulkInvite": {
+    "heading": "Convidar-ne diversos alhora (CSV)",
+    "help": "Puja un CSV amb una columna \"email\" (obligatòria) i una columna \"name\" opcional.",
+    "fileLabel": "Fitxer CSV",
+    "empty": "No s'han trobat files al fitxer.",
+    "tooMany": "Pots convidar fins a {{max}} persones alhora.",
+    "emailRequired": "Cada fila necessita un correu.",
+    "parseError": "No hem pogut llegir el CSV. Revisa el format i torna-ho a provar.",
+    "preview": "Vista prèvia ({{count}})",
+    "send": "Enviar {{count}} invitacions",
+    "resultInvited": "{{count}} invitacions enviades.",
+    "resultSkipped": "{{count}} omeses:",
+    "reasonInvalid": "correu no vàlid",
+    "reasonDuplicate": "duplicat",
+    "reasonAlreadyMember": "ja és membre",
+    "reasonAlreadyInvited": "ja convidat",
+    "error": "No hem pogut enviar les invitacions. Revisa el fitxer i torna-ho a provar."
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Vés al contingut",

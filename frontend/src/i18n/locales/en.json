@@ -1,4 +1,22 @@
 {
+  "bulkInvite": {
+    "heading": "Invite many at once (CSV)",
+    "help": "Upload a CSV with an \"email\" column (required) and an optional \"name\" column.",
+    "fileLabel": "CSV file",
+    "empty": "No rows found in that file.",
+    "tooMany": "You can invite up to {{max}} people at once.",
+    "emailRequired": "Every row needs an email.",
+    "parseError": "We couldn't read that CSV. Check the format and try again.",
+    "preview": "Preview ({{count}})",
+    "send": "Send {{count}} invitations",
+    "resultInvited": "{{count}} invitations sent.",
+    "resultSkipped": "{{count}} skipped:",
+    "reasonInvalid": "invalid email",
+    "reasonDuplicate": "duplicate",
+    "reasonAlreadyMember": "already a member",
+    "reasonAlreadyInvited": "already invited",
+    "error": "We couldn't send the invitations. Check the file and try again."
+  },
   "errorBoundary": {
     "title": "Something went wrong",
     "body": "An unexpected error occurred. Try reloading the page, or go back home.",

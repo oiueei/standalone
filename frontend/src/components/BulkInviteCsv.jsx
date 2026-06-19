@@ -1,0 +1,188 @@
+import { useRef, useState } from 'react';
+import { FileInput, Button, Notification } from 'hds-react';
+import { useTranslation } from 'react-i18next';
+import Papa from 'papaparse';
+import { apiFetch } from '../services/api';
+import useTheeeme from '../hooks/useTheeeme';
+
+const MAX_ROWS = 100;
+// An "email" column (required) and an optional "name" column.
+const COLUMNS = ['email', 'name'];
+
+const REASON_KEY = {
+  invalid: 'bulkInvite.reasonInvalid',
+  duplicate: 'bulkInvite.reasonDuplicate',
+  already_member: 'bulkInvite.reasonAlreadyMember',
+  already_invited: 'bulkInvite.reasonAlreadyInvited',
+};
+
+// HDS FileInput only supports fi, sv, en — everything else falls back to en.
+function hdsLang(lang) {
+  if (lang === 'fi' || lang === 'sv') return lang;
+  return 'en';
+}
+
+/**
+ * Bulk-invite collection guests from a CSV. Parses the file client-side with
+ * PapaParse, previews the addresses, then posts them to the best-effort batch
+ * endpoint (`POST /collections/{code}/invite/bulk/`). Valid, new addresses are
+ * invited and emailed; the rest come back as skipped with a reason, which we
+ * surface in the summary.
+ *
+ * Props:
+ *   collectionCode – target collection
+ *   onInvited() – called after a successful send (e.g. to refresh the list)
+ */
+export default function BulkInviteCsv({ collectionCode, onInvited }) {
+  const { t, i18n } = useTranslation();
+  const { btnStyle } = useTheeeme();
+  const [rows, setRows] = useState([]);
+  const [error, setError] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const sendLockRef = useRef(false);
+
+  const handleFiles = (files) => {
+    setError(null);
+    setRows([]);
+    setResult(null);
+    setFileInputKey((k) => k + 1);
+    const file = files && files[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (h) => h.trim().toLowerCase(),
+      complete: (parseResult) => {
+        const parsed = (parseResult.data || [])
+          .map((raw) => {
+            const row = {};
+            for (const col of COLUMNS) {
+              const value = raw[col];
+              if (value !== undefined && String(value).trim() !== '') {
+                row[col] = String(value).trim();
+              }
+            }
+            return row;
+          })
+          .filter((row) => Object.keys(row).length > 0);
+
+        if (parsed.length === 0) {
+          setError(t('bulkInvite.empty'));
+        } else if (parsed.length > MAX_ROWS) {
+          setError(t('bulkInvite.tooMany', { max: MAX_ROWS }));
+        } else if (parsed.some((row) => !row.email)) {
+          setError(t('bulkInvite.emailRequired'));
+        } else {
+          setRows(parsed);
+        }
+      },
+      error: () => setError(t('bulkInvite.parseError')),
+    });
+  };
+
+  const handleSend = async () => {
+    if (sendLockRef.current) return;
+    sendLockRef.current = true;
+    setSending(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/v1/collections/${collectionCode}/invite/bulk/`, {
+        method: 'POST',
+        body: JSON.stringify({ invites: rows }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setResult(data);
+        setRows([]);
+        if (onInvited) onInvited();
+        return;
+      }
+      if (res.status === 429) {
+        setError(t('common.tooManyAttempts'));
+        return;
+      }
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+      setError(data.error || t('bulkInvite.error'));
+    } catch {
+      setError(t('common.connectionError'));
+    } finally {
+      setSending(false);
+      sendLockRef.current = false;
+    }
+  };
+
+  return (
+    <div className="bulk-add">
+      <p className="bulk-add-help">{t('bulkInvite.help')}</p>
+      <FileInput
+        key={fileInputKey}
+        id="bulk-invite-csv"
+        label={t('bulkInvite.fileLabel')}
+        accept=".csv,text/csv"
+        multiple={false}
+        onChange={handleFiles}
+        language={hdsLang(i18n.language)}
+        buttonLabel={t('upload.addFile')}
+        disabled={sending}
+      />
+      {error && (
+        <Notification type="error" size="small" style={{ marginTop: 'var(--spacing-s)' }}>
+          {error}
+        </Notification>
+      )}
+      {result && (
+        <Notification
+          type={result.invited > 0 ? 'success' : 'info'}
+          size="small"
+          style={{ marginTop: 'var(--spacing-s)' }}
+        >
+          {t('bulkInvite.resultInvited', { count: result.invited })}
+          {result.skipped && result.skipped.length > 0 && (
+            <>
+              <div style={{ marginTop: 'var(--spacing-2-xs)' }}>
+                {t('bulkInvite.resultSkipped', { count: result.skipped.length })}
+              </div>
+              <ul style={{ margin: 'var(--spacing-2-xs) 0 0', paddingLeft: 'var(--spacing-m)' }}>
+                {result.skipped.map((s, i) => (
+                  <li key={i}>
+                    {s.email} — {t(REASON_KEY[s.reason] || 'bulkInvite.reasonInvalid')}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </Notification>
+      )}
+      {rows.length > 0 && (
+        <>
+          <h3 className="bulk-add-preview-title">
+            {t('bulkInvite.preview', { count: rows.length })}
+          </h3>
+          <ol className="bulk-add-preview">
+            {rows.map((row, i) => (
+              <li key={i}>
+                {row.email}
+                {row.name ? ` — ${row.name}` : ''}
+              </li>
+            ))}
+          </ol>
+          <Button
+            style={{ ...btnStyle, marginTop: 'var(--spacing-s)' }}
+            disabled={sending}
+            onClick={handleSend}
+          >
+            {sending ? t('common.sending') : t('bulkInvite.send', { count: rows.length })}
+          </Button>
+        </>
+      )}
+    </div>
+  );
+}

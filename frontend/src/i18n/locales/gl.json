@@ -1,4 +1,22 @@
 {
+  "bulkInvite": {
+    "heading": "Convidar varios á vez (CSV)",
+    "help": "Sobe un CSV cunha columna \"email\" (obrigatoria) e unha columna \"name\" opcional.",
+    "fileLabel": "Ficheiro CSV",
+    "empty": "Non se atoparon filas no ficheiro.",
+    "tooMany": "Podes convidar ata {{max}} persoas á vez.",
+    "emailRequired": "Cada fila precisa dun correo.",
+    "parseError": "Non puidemos ler o CSV. Revisa o formato e téntao de novo.",
+    "preview": "Vista previa ({{count}})",
+    "send": "Enviar {{count}} invitacións",
+    "resultInvited": "{{count}} invitacións enviadas.",
+    "resultSkipped": "{{count}} omitidas:",
+    "reasonInvalid": "correo non válido",
+    "reasonDuplicate": "duplicado",
+    "reasonAlreadyMember": "xa é membro",
+    "reasonAlreadyInvited": "xa convidado",
+    "error": "Non puidemos enviar as invitacións. Revisa o ficheiro e téntao de novo."
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Saltar ao contido",

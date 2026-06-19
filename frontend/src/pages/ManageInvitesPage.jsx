@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextInput, Button, Table, IconEnvelope, IconCrossCircle } from 'hds-react';
@@ -7,13 +7,13 @@ import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
+import BulkInviteCsv from '../components/BulkInviteCsv';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function ManageInvitesPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const userCode = localStorage.getItem('userCode');
   const { tc, btnStyle } = useTheeeme();
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
@@ -28,27 +28,28 @@ export default function ManageInvitesPage() {
   const inviteLockRef = useRef(false);
   const resendLockRef = useRef(false);
 
-  useEffect(() => {
-    const fetchCollection = async () => {
-      try {
-        const res = await apiFetch(`/api/v1/collections/${code}/`);
-        if (res.ok) {
-          const data = await res.json();
-          setInvites(data.invites || []);
-          setPendingInvites(data.pending_invites || []);
-          setCollectionHeadline(data.headline || '');
-          setIsOwner(localStorage.getItem('userCode') === data.owner);
-        } else {
-          setToast({ type: 'error', message: t('manageInvites.errorLoading') });
-        }
-      } catch {
-        setToast({ type: 'error', message: t('common.connectionError') });
-      } finally {
-        setLoading(false);
+  const fetchCollection = useCallback(async () => {
+    try {
+      const res = await apiFetch(`/api/v1/collections/${code}/`);
+      if (res.ok) {
+        const data = await res.json();
+        setInvites(data.invites || []);
+        setPendingInvites(data.pending_invites || []);
+        setCollectionHeadline(data.headline || '');
+        setIsOwner(localStorage.getItem('userCode') === data.owner);
+      } else {
+        setToast({ type: 'error', message: t('manageInvites.errorLoading') });
       }
-    };
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setLoading(false);
+    }
+  }, [code, t]);
+
+  useEffect(() => {
     fetchCollection();
-  }, [userCode, code, navigate, t]);
+  }, [fetchCollection]);
 
   const handleResend = async (email) => {
     if (resendLockRef.current) return;
@@ -193,6 +194,9 @@ export default function ManageInvitesPage() {
             {inviteLoading ? t('common.sending') : t('manageInvites.invite')}
           </Button>
         </div>
+        <div className="spacer-m" />
+        <h2>{t('bulkInvite.heading')}</h2>
+        <BulkInviteCsv collectionCode={code} onInvited={fetchCollection} />
         </>
       )}
 

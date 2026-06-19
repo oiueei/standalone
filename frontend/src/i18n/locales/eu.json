@@ -1,4 +1,22 @@
 {
+  "bulkInvite": {
+    "heading": "Gonbidatu hainbat batera (CSV)",
+    "help": "Igo \"email\" zutabea (nahitaezkoa) eta aukerako \"name\" zutabea duen CSV bat.",
+    "fileLabel": "CSV fitxategia",
+    "empty": "Ez da errenkadarik aurkitu fitxategian.",
+    "tooMany": "Gehienez {{max}} pertsona gonbida ditzakezu aldi berean.",
+    "emailRequired": "Errenkada bakoitzak helbide elektronikoa behar du.",
+    "parseError": "Ezin izan dugu CSVa irakurri. Egiaztatu formatua eta saiatu berriro.",
+    "preview": "Aurrebista ({{count}})",
+    "send": "Bidali {{count}} gonbidapen",
+    "resultInvited": "{{count}} gonbidapen bidalita.",
+    "resultSkipped": "{{count}} saltatuta:",
+    "reasonInvalid": "helbide baliogabea",
+    "reasonDuplicate": "bikoiztua",
+    "reasonAlreadyMember": "dagoeneko kidea",
+    "reasonAlreadyInvited": "dagoeneko gonbidatua",
+    "error": "Ezin izan ditugu gonbidapenak bidali. Egiaztatu fitxategia eta saiatu berriro."
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Edukira saltatu",
