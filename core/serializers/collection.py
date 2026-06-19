@@ -141,6 +141,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "description",
             "status",
             "mode",
+            "visibility",
             "digest_frequency",
             "is_swap",
             "is_share",
@@ -249,6 +250,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "headline",
             "description",
             "mode",
+            "visibility",
             "digest_frequency",
             "is_swap",
             "is_share",
@@ -264,6 +266,16 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         return _normalize_tags(value)
 
     def validate(self, attrs):
+        # Default visibility follows the mode when the client doesn't set it:
+        # community collections are born PUBLIC, proprietary ones PRIVATE. The
+        # owner can override either way via the toggle.
+        if not attrs.get("visibility"):
+            mode = attrs.get("mode", Collection.Mode.PROPRIETARY)
+            attrs["visibility"] = (
+                Collection.Visibility.PUBLIC
+                if mode == Collection.Mode.COMMUNITY
+                else Collection.Visibility.PRIVATE
+            )
         _validate_collection_flags(
             mode=attrs.get("mode", Collection.Mode.PROPRIETARY),
             is_swap=attrs.get("is_swap", False),
@@ -411,6 +423,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "description",
             "status",
             "mode",
+            "visibility",
             "digest_frequency",
             "is_swap",
             "is_share",

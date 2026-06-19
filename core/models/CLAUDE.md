@@ -92,6 +92,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 | `description` | CharField(256) | No | Description of the collection |
 | `status` | CharField(8) | No | Status: ACTIVE (default) or INACTIVE |
 | `mode` | CharField(12) | No | Mode: PROPRIETARY (default) or COMMUNITY |
+| `visibility` | CharField(7) | No | Visibility: PUBLIC or PRIVATE. A PUBLIC collection is readable by anyone — including anonymous visitors — at `/collections/{code}`; PRIVATE keeps the invite-only behaviour (403 without membership). New collections default **by mode** in `CollectionCreateSerializer` (COMMUNITY→PUBLIC, PROPRIETARY→PRIVATE) and the owner can toggle either way. The DB-level default is PRIVATE (safe fallback for any non-serializer create path). |
 | `digest_frequency` | CharField(7) | No | Digest email frequency: NONE (default), WEEKLY, or MONTHLY |
 | `is_onboarding` | BooleanField | No | If True, new users joining via `/popin` are added to this collection (default: False) |
 | `is_swap` | BooleanField | No | If True, only SWAP_THING items allowed; enables item swapping (default: False). Only meaningful for COMMUNITY collections. |
@@ -119,7 +120,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 
 5. **Only owner invites/revokes** - The `add_invite()` and `remove_invite()` methods modify the M2M relationship.
 
-6. **Visible only to owner and invites** - The `can_view()` method returns True only if the user is the owner or is in `invites`.
+6. **Visible to owner, invites, and anyone when PUBLIC** - `can_view(user_code)` returns True for the owner, for an invited member, or for **anyone** (including an anonymous visitor, `user_code=None`) when `visibility=PUBLIC` and the collection is ACTIVE. INACTIVE collections remain owner-only regardless of visibility.
 
 7. **Public share link is owner-managed** — `share_token` is generated lazily by `POST /api/v1/collections/{code}/share-link/` and revoked by `DELETE` on the same endpoint. The token grants invitee status to anyone who completes the pop-in flow with it; revoke + rotate invalidate previously shared links immediately. The token is excluded from `CollectionSerializer` so it cannot leak via any read endpoint.
 
@@ -133,8 +134,9 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 - `is_owner(user_code)` - Returns True if user is the owner (`self.owner_id == user_code`)
 - `is_invited(user_code)` - Returns True if user is in invites (`self.invites.filter(code=user_code).exists()`)
 - `is_community()` - Returns True if `mode == "COMMUNITY"`
+- `is_public()` - Returns True if `visibility == "PUBLIC"`
 - `can_add_thing(user_code)` - Returns True if user is owner, OR if collection is COMMUNITY and user is invited
-- `can_view(user_code)` - Returns True if user is owner OR invited
+- `can_view(user_code)` - Returns True if user is owner, OR the collection is PUBLIC and ACTIVE (anonymous-safe — `user_code=None` is accepted), OR the user is invited. INACTIVE collections are owner-only.
 
 ### Validations
 
@@ -343,7 +345,7 @@ The `Thing` model represents an item in a collection.
 ### Methods
 
 - `is_owner(user_code)` - Check if user is the owner (`self.owner_id == user_code`)
-- `can_view(user_code)` - Check if user can view. Returns `False` if status is `INACTIVE` (unless user is owner) or if the collection is INACTIVE. Uses query: `self.collections.filter(invites__code=user_code, status='ACTIVE').exists()`
+- `can_view(user_code)` - Check if user can view. Returns `False` if status is `INACTIVE` (unless user is owner). Otherwise True when the thing sits in an ACTIVE collection that the user is invited to, owns, **or that is PUBLIC** (anonymous-safe — `user_code=None` matches PUBLIC collections only; the membership/ownership terms are dropped for anonymous callers so a `NULL` code can't spuriously match an invitee-less collection).
 - `reserve(user_code)` - Add user to `deal` M2M. Does NOT change `status` (status is managed by the booking service)
 - `release(user_code)` - Remove user from `deal` M2M.
 - `availability_window(horizon_days=90)` - For date-based types (LEND/RENT) only, returns `{"available_today": bool, "next_available": date|None}` computed from the booking calendar via `core.services.booking_service.compute_availability`; returns `None` for all other types. Prefetch-aware (reuses `self._blocked_periods` when set, else queries `BookingPeriod.get_blocked_periods`) and memoised on the instance. Backs the `available_today` / `next_available` serializer fields.

@@ -48,6 +48,7 @@ COLLECTIONS = [
     {
         "code": "La1aC1",
         "owner_code": "La1aN1",
+        "visibility": "PRIVATE",
         "invites": ["L3L3oo"],
         "is_onboarding": True,
         "allowed_thing_types": ["SELL_THING"],
@@ -56,6 +57,7 @@ COLLECTIONS = [
     {
         "code": "L3L3C1",
         "owner_code": "L3L3oo",
+        "visibility": "PRIVATE",
         "invites": ["La1aN1"],
         "is_onboarding": True,
         "allowed_thing_types": ["ORDER_THING"],
@@ -64,6 +66,7 @@ COLLECTIONS = [
     {
         "code": "l0l0C1",
         "owner_code": "l0l0oh",
+        "visibility": "PUBLIC",
         "is_minimalist": True,
         "invites": ["La1aN1", "l1l13S", "L3L3oo"],
         "is_onboarding": True,
@@ -73,6 +76,7 @@ COLLECTIONS = [
     {
         "code": "l1l1C1",
         "owner_code": "l1l13S",
+        "visibility": "PRIVATE",
         "invites": ["La1aN1"],
         "is_onboarding": True,
         "allowed_thing_types": ["LEND_THING"],
@@ -81,6 +85,7 @@ COLLECTIONS = [
     {
         "code": "l1l1C2",
         "owner_code": "l1l13S",
+        "visibility": "PUBLIC",
         "mode": "COMMUNITY",
         "is_swap": True,
         "invites": ["La1aN1", "L3L3oo", "l0l0oh", "1u1ucs"],
@@ -92,6 +97,7 @@ COLLECTIONS = [
     {
         "code": "1u1uC1",
         "owner_code": "1u1ucs",
+        "visibility": "PUBLIC",
         "mode": "COMMUNITY",
         "is_share": True,
         "newsletter_enabled": True,

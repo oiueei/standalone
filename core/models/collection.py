@@ -29,6 +29,10 @@ class Collection(models.Model):
         PROPRIETARY = "PROPRIETARY", "Proprietary"
         COMMUNITY = "COMMUNITY", "Community"
 
+    class Visibility(models.TextChoices):
+        PUBLIC = "PUBLIC", "Public"
+        PRIVATE = "PRIVATE", "Private"
+
     class DigestFrequency(models.TextChoices):
         NONE = "NONE", "None"
         WEEKLY = "WEEKLY", "Weekly"
@@ -47,6 +51,9 @@ class Collection(models.Model):
     description = models.CharField(max_length=256, blank=True, default="")
     status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE)
     mode = models.CharField(max_length=12, choices=Mode.choices, default=Mode.PROPRIETARY)
+    visibility = models.CharField(
+        max_length=7, choices=Visibility.choices, default=Visibility.PRIVATE
+    )
     digest_frequency = models.CharField(
         max_length=7, choices=DigestFrequency.choices, default=DigestFrequency.NONE
     )
@@ -144,6 +151,10 @@ class Collection(models.Model):
         """Check if this is a community collection."""
         return self.mode == self.Mode.COMMUNITY
 
+    def is_public(self):
+        """Check if this collection is publicly readable (anonymous-friendly)."""
+        return self.visibility == self.Visibility.PUBLIC
+
     def can_add_thing(self, user_code):
         """Check if the given user can add things to this collection.
 
@@ -156,10 +167,14 @@ class Collection(models.Model):
     def can_view(self, user_code):
         """Check if the given user can view this collection.
 
-        Inactive collections are only visible to their owner.
+        Owner always; INACTIVE collections only the owner; PUBLIC collections
+        anyone — including anonymous visitors (``user_code=None``); otherwise an
+        invited member only.
         """
         if self.is_owner(user_code):
             return True
         if self.status == self.Status.INACTIVE:
             return False
+        if self.is_public():
+            return True
         return self.is_invited(user_code)

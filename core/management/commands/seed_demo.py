@@ -128,6 +128,7 @@ class Command(BaseCommand):
                 "description": data["description"],
                 "status": "ACTIVE",
                 "mode": data.get("mode", "PROPRIETARY"),
+                "visibility": data.get("visibility", "PRIVATE"),
                 "is_swap": data.get("is_swap", False),
                 "is_share": data.get("is_share", False),
                 "is_minimalist": data.get("is_minimalist", False),

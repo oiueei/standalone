@@ -168,12 +168,15 @@ class Thing(models.Model):
         Visibility rules:
         - Owner can always view their own things
         - Invited users can only view ACTIVE or TAKEN things (not INACTIVE)
+        - Anyone (including anonymous, ``user_code=None``) can view an ACTIVE/TAKEN
+          thing that sits in at least one ACTIVE, PUBLIC collection
 
         Args:
-            user_code: The user_code to check
+            user_code: The user_code to check (None for an anonymous visitor)
 
         Returns:
-            True if user is owner, or is invited and thing is not INACTIVE
+            True if user is owner, or the thing is not INACTIVE and lives in an
+            ACTIVE collection the user is invited to (or that is PUBLIC)
         """
         if self.is_owner(user_code):
             return True
@@ -182,11 +185,16 @@ class Thing(models.Model):
         if self.status == self.Status.INACTIVE:
             return False
 
-        # Check if thing is in any active collection where user is invited or is the owner
+        # Visible if the thing is in any ACTIVE collection where the user is
+        # invited, owns it, or the collection is PUBLIC (anonymous read).
         from core.models.collection import Collection
 
-        return (
-            self.collections.filter(status=Collection.Status.ACTIVE)
-            .filter(models.Q(invites__code=user_code) | models.Q(owner__code=user_code))
-            .exists()
-        )
+        # For an anonymous visitor (user_code=None) the membership/ownership
+        # terms are dropped entirely: ``invites__code=None`` would otherwise
+        # become ``IS NULL`` and, under the OR outer join, spuriously match
+        # any collection that simply has no invitees.
+        access = models.Q(visibility=Collection.Visibility.PUBLIC)
+        if user_code is not None:
+            access |= models.Q(invites__code=user_code) | models.Q(owner__code=user_code)
+
+        return self.collections.filter(status=Collection.Status.ACTIVE).filter(access).exists()
