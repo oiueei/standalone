@@ -47,6 +47,12 @@
     "error": "Zerbait gaizki joan da. Saiatu berriro.",
     "alreadyHaveAccount": "Konturik baduzu? Hasi saioa"
   },
+  "visibility": {
+    "publicLabel": "Bilduma publikoa",
+    "publicHelper": "Esteka duen edonork ikus dezake eta parte hartzeko elkartu daiteke. Desaktibatu gonbidapen bidez soilik mantentzeko.",
+    "publicTag": "Publikoa",
+    "privateTag": "Pribatua"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Edukira saltatu",

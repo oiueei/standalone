@@ -47,6 +47,12 @@
     "error": "Algo foi mal. Téntao de novo.",
     "alreadyHaveAccount": "Xa tes conta? Inicia sesión"
   },
+  "visibility": {
+    "publicLabel": "Colección pública",
+    "publicHelper": "Calquera persoa coa ligazón pode vela e unirse para participar. Desactívao para mantela só por convite.",
+    "publicTag": "Pública",
+    "privateTag": "Privada"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Saltar ao contido",

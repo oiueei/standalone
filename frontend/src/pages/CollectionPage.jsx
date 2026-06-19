@@ -136,6 +136,13 @@ export default function CollectionPage() {
             {collection.is_minimalist && (
               <>{' '}<Tag theme={{ '--tag-background': 'var(--color-summer)', '--tag-color': 'var(--color-black-90)' }}>{t('minimalist.albumTag')}</Tag></>
             )}
+            {isOwner && (
+              <>{' '}<Tag theme={collection.visibility === 'PUBLIC'
+                ? { '--tag-background': 'var(--color-success)', '--tag-color': 'var(--color-white)' }
+                : { '--tag-background': 'var(--color-black-20)', '--tag-color': 'var(--color-black-90)' }}>
+                {collection.visibility === 'PUBLIC' ? t('visibility.publicTag') : t('visibility.privateTag')}
+              </Tag></>
+            )}
           </h1>
           {collection.description && <MarkdownText text={collection.description} className="form-hero-text" />}
           {!isOwner && collection.owner_name && (

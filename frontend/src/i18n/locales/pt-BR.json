@@ -47,6 +47,12 @@
     "error": "Algo deu errado. Tente novamente.",
     "alreadyHaveAccount": "Já tem uma conta? Entrar"
   },
+  "visibility": {
+    "publicLabel": "Coleção pública",
+    "publicHelper": "Qualquer pessoa com o link pode vê-la e participar. Desative para mantê-la apenas por convite.",
+    "publicTag": "Pública",
+    "privateTag": "Privada"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Pular para o conteúdo",

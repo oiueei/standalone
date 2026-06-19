@@ -24,6 +24,7 @@ export default function EditCollectionPage() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [mode, setMode] = useState('PROPRIETARY');
+  const [visibility, setVisibility] = useState('PRIVATE');
   const [digestFrequency, setDigestFrequency] = useState('NONE');
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
@@ -90,6 +91,7 @@ export default function EditCollectionPage() {
           setDescription(data.description || '');
           setStatus(data.status || 'ACTIVE');
           setMode(data.mode || 'PROPRIETARY');
+          setVisibility(data.visibility || 'PRIVATE');
           setDigestFrequency(data.digest_frequency || 'NONE');
           setIsSwap(data.is_swap || false);
           setIsShare(data.is_share || false);
@@ -134,6 +136,7 @@ export default function EditCollectionPage() {
       description: description.trim(),
       status,
       mode,
+      visibility,
       digest_frequency: digestFrequency,
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
@@ -272,6 +275,8 @@ export default function EditCollectionPage() {
           setRequireMinimumSwapItems={setRequireMinimumSwapItems}
           allowedThingTypes={allowedThingTypes}
           setAllowedThingTypes={setAllowedThingTypes}
+          visibility={visibility}
+          setVisibility={setVisibility}
           errors={{ ...errors, allowedThingTypes: allowedTypesError }}
           theeemeColor01={tc.color_01}
         />

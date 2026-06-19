@@ -53,6 +53,12 @@
     "error": "Something went wrong. Please try again.",
     "alreadyHaveAccount": "Already have an account? Sign in"
   },
+  "visibility": {
+    "publicLabel": "Public collection",
+    "publicHelper": "Anyone with the link can view it and join to take part. Turn off to keep it invite-only.",
+    "publicTag": "Public",
+    "privateTag": "Private"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Skip to content",

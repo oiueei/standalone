@@ -34,6 +34,8 @@ export default function CollectionForm({
   setRequireMinimumSwapItems,
   allowedThingTypes,
   setAllowedThingTypes,
+  visibility = 'PRIVATE',
+  setVisibility = () => {},
   errors,
   theeemeColor01,
 }) {
@@ -55,6 +57,16 @@ export default function CollectionForm({
 
   return (
     <>
+      <div className="toggle-left">
+        <ToggleButton
+          id={`${idPrefix}-visibility`}
+          label={<>{t('visibility.publicLabel')}<br/><span style={{ fontSize: 'var(--fontsize-body-s)', fontWeight: 400, color: 'var(--color-black-70)' }}>{t('visibility.publicHelper')}</span></>}
+          checked={visibility === 'PUBLIC'}
+          onChange={(val) => setVisibility(val ? 'PRIVATE' : 'PUBLIC')}
+          variant="inline"
+          theme={toggleTheme}
+        />
+      </div>
       {mode === 'COMMUNITY' && (
         <div className="toggle-left">
           <ToggleButton

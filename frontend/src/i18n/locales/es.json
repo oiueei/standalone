@@ -47,6 +47,12 @@
     "error": "Algo ha ido mal. Inténtalo de nuevo.",
     "alreadyHaveAccount": "¿Ya tienes cuenta? Inicia sesión"
   },
+  "visibility": {
+    "publicLabel": "Colección pública",
+    "publicHelper": "Cualquiera con el enlace puede verla y unirse para participar. Desactívalo para mantenerla solo por invitación.",
+    "publicTag": "Pública",
+    "privateTag": "Privada"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Saltar al contenido",

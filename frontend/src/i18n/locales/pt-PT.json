@@ -47,6 +47,12 @@
     "error": "Algo correu mal. Tente novamente.",
     "alreadyHaveAccount": "Já tem conta? Iniciar sessão"
   },
+  "visibility": {
+    "publicLabel": "Coleção pública",
+    "publicHelper": "Qualquer pessoa com a ligação pode vê-la e participar. Desative para a manter apenas por convite.",
+    "publicTag": "Pública",
+    "privateTag": "Privada"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Saltar para o conteúdo",

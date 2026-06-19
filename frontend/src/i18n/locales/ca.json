@@ -47,6 +47,12 @@
     "error": "Alguna cosa ha anat malament. Torna-ho a provar.",
     "alreadyHaveAccount": "Ja tens un compte? Inicia la sessió"
   },
+  "visibility": {
+    "publicLabel": "Col·lecció pública",
+    "publicHelper": "Qualsevol amb l'enllaç pot veure-la i unir-s'hi per participar. Desactiva-ho per mantenir-la només amb invitació.",
+    "publicTag": "Pública",
+    "privateTag": "Privada"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Vés al contingut",

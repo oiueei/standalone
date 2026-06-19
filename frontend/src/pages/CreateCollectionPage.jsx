@@ -23,6 +23,7 @@ export default function CreateCollectionPage() {
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
   const [mode, setMode] = useState('PROPRIETARY');
+  const [visibility, setVisibility] = useState('PRIVATE');
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
@@ -58,6 +59,9 @@ export default function CreateCollectionPage() {
       isMinimalist: newMode === 'COMMUNITY' ? isMinimalist : false,
     };
     setMode(newMode);
+    // Visibility follows the mode default on create: a community is born public,
+    // a proprietary list private. The owner can still flip the toggle afterwards.
+    setVisibility(newMode === 'COMMUNITY' ? 'PUBLIC' : 'PRIVATE');
     if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
     // Keep the still-valid part of the selection instead of wiping it (P1-5).
     setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, nextFlags));
@@ -82,6 +86,7 @@ export default function CreateCollectionPage() {
     const body = {
       headline: headline.trim(),
       mode,
+      visibility,
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
@@ -171,6 +176,8 @@ export default function CreateCollectionPage() {
             setRequireMinimumSwapItems={setRequireMinimumSwapItems}
             allowedThingTypes={allowedThingTypes}
             setAllowedThingTypes={setAllowedThingTypes}
+            visibility={visibility}
+            setVisibility={setVisibility}
             errors={{ ...errors, allowedThingTypes: allowedTypesError }}
             theeemeColor01={theeemeColors.color_01}
           />

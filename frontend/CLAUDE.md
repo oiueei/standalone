@@ -17,13 +17,13 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/me/edit` | `EditProfilePage` | Edit own profile |
 | `/me/notifications/:token` | `NotificationsPage` | Manage email preferences via a signed (`TimestampSigner`, ~1y TTL) token from the email footer link. Without `:token` redirects to `/me/edit`. |
 | `/collections/new` | `CreateCollectionPage` | Create a new collection |
-| `/collections/:code` | `CollectionPage` | Collection detail with things and invites |
+| `/collections/:code` | `CollectionPage` | Collection detail with things and invites. **Public route** — anonymous read when the collection is PUBLIC (gated server-side by `can_view`). |
 | `/collections/:code/edit` | `EditCollectionPage` | Edit a collection |
 | `/collections/:code/invites` | `ManageInvitesPage` | Manage collection invites |
 | `/collections/:code/add` | `AddThingPage` | Add a thing to a collection |
-| `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context) |
+| `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context). **Public route** — anonymous read on a PUBLIC collection. |
 | `/collections/:code/things/:thingCode/edit` | `EditThingPage` | Edit a thing (from collection context) |
-| `/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (standalone) |
+| `/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (standalone). **Public route** — anonymous read on a PUBLIC collection. |
 | `/things/:thingCode/edit` | `EditThingPage` | Edit a thing (standalone) |
 | `/collections/:code/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (collection context) |
 | `/things/:thingCode/request` | `RequestThingPage` | Request page for date-based/order things (standalone) |
@@ -38,6 +38,8 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/share/:token` | `SharePage` | Public collection share-link landing: enter email, get magic link, join the collection identified by `:token` |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
 | `*` | `NotFoundPage` | 404 page for unknown routes |
+
+**Public read of PUBLIC collections (anonymous visitors):** `/collections/:code`, `/collections/:code/things/:thingCode` and `/things/:thingCode` sit in the **public** route block (outside `RequireAuth`). The backend's `can_view` gates them, so only PUBLIC, ACTIVE collections are readable without a session. When unauthenticated, `CollectionPage` and `ThingPage` hide every owner/member control (add-thing, reserve, ask, respond) — `ThingLinkbox` takes a `canAct` prop and renders read-only cards — and surface the `JoinToAct` prompt instead: it captures an email and POSTs it to `/auth/pop-in/` with the collection code, so the visitor is added to that PUBLIC collection and emailed a magic link (login-to-act auto-join). The owner sets a collection's PUBLIC/PRIVATE state with the **visibility toggle** in the Create/Edit forms (rendered by `CollectionForm`), defaulting by mode on create (COMMUNITY→public, PROPRIETARY→private); a Public/Private `Tag` is shown to the owner in the `CollectionPage` hero.
 
 ---
 
