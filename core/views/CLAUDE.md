@@ -117,7 +117,7 @@ Open-door onboarding. Allows anyone to join OIUEEI without a prior invitation.
 
 **Request body:**
 ```json
-{ "email": "user@example.com", "share_token": "<optional 22-char token>" }
+{ "email": "user@example.com", "share_token": "<optional 22-char token>", "collection_code": "<optional PUBLIC collection code>" }
 ```
 
 **Behaviour:**
@@ -125,9 +125,10 @@ Open-door onboarding. Allows anyone to join OIUEEI without a prior invitation.
 2. Reads optional `share_token` from the body.
 3. `get_or_create` user by email.
 4. If a valid `share_token` is provided **and** the matching `Collection` is `ACTIVE`, adds the user to that collection's `invites` M2M. Invalid, missing, or pointing-to-INACTIVE tokens are silently ignored (anti-enumeration: response shape is identical regardless).
-5. If the user did not join via `share_token`, falls back to adding them to all `is_onboarding=True` collections.
-6. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
-7. Logs request to `security` logger with IP, whether user is new, and whether they joined via share token.
+5. Otherwise, if a `collection_code` is provided and names a **PUBLIC, ACTIVE** collection, adds the user to that collection's `invites` M2M — the login-to-act auto-join: a visitor who tries to act on a public collection is added to it on submission, then logs in via the magic link and can act. A code that is unknown, INACTIVE, or PRIVATE is silently ignored — a code can never be used to enter a private, invite-only collection.
+6. If the user did not join via a token or a public code, falls back to adding them to all `is_onboarding=True` collections.
+7. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
+8. Logs request to `security` logger with IP, whether the user is new, and whether they joined a specific collection.
 
 **Responses:**
 | Status | Condition |

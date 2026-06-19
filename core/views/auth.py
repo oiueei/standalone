@@ -408,6 +408,12 @@ class PopInView(APIView):
     the user is added to that collection's invitees instead of (or in
     addition to) the onboarding collections. Invalid tokens are silently
     ignored — the unified response prevents probing the token space.
+
+    Also accepts optional `collection_code`: a visitor acting on a PUBLIC
+    collection joins it by code (the public "link" is the collection URL, not a
+    share token). Only PUBLIC, ACTIVE collections qualify — a code can never be
+    used to slip into a PRIVATE, invite-only collection — and an unknown or
+    non-public code is silently ignored, same as an invalid share token.
     """
 
     permission_classes = [AllowAny]
@@ -420,13 +426,17 @@ class PopInView(APIView):
 
         email = serializer.validated_data["email"].lower()
         share_token = (request.data.get("share_token") or "").strip() or None
+        collection_code = (request.data.get("collection_code") or "").strip() or None
         ip = get_client_ip(request)
 
         user, created = User.objects.get_or_create(email=email)
 
-        # If a valid share_token is provided, join that collection.
-        # Otherwise, fall back to onboarding collections.
-        joined_via_share = False
+        # Join the relevant collection (if any), else fall back to the onboarding
+        # collections. ``joined`` short-circuits that fallback once we've added
+        # the user to a specific collection.
+        joined = False
+
+        # 1) An owner's share-token link (bearer credential).
         if share_token:
             try:
                 shared_collection = Collection.objects.get(
@@ -437,9 +447,28 @@ class PopInView(APIView):
 
             if shared_collection is not None:
                 shared_collection.invites.add(user)
-                joined_via_share = True
+                joined = True
 
-        if not joined_via_share:
+        # 2) Login-to-act on a PUBLIC collection: the visitor joins it by code.
+        # Strictly PUBLIC + ACTIVE — a code is never a way into a PRIVATE
+        # collection — and an unknown/non-public code is silently ignored so the
+        # unified response can't be used to probe which codes exist.
+        if not joined and collection_code:
+            try:
+                public_collection = Collection.objects.get(
+                    code=collection_code,
+                    status=Collection.Status.ACTIVE,
+                    visibility=Collection.Visibility.PUBLIC,
+                )
+            except Collection.DoesNotExist:
+                public_collection = None
+
+            if public_collection is not None:
+                public_collection.invites.add(user)
+                joined = True
+
+        # 3) No specific target — add to the open demo/onboarding collections.
+        if not joined:
             onboarding_collections = Collection.objects.filter(is_onboarding=True)
             for collection in onboarding_collections:
                 collection.invites.add(user)
@@ -451,7 +480,7 @@ class PopInView(APIView):
 
         security_logger.info(
             f"Pop-in request for {redact_email(email)} from IP {ip} "
-            f"(new_user={created}, via_share={joined_via_share})"
+            f"(new_user={created}, joined_collection={joined})"
         )
 
         return Response(
