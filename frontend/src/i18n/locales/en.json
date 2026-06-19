@@ -304,6 +304,7 @@
     "bioLabel": "Bio",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
+    "languageLabel": "Language",
     "maxName": "Maximum 32 characters.",
     "maxBio": "Maximum 64 characters.",
     "errorLoading": "Error loading profile.",

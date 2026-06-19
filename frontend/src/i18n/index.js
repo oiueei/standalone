@@ -16,8 +16,10 @@ i18n
     fallbackLng: 'en',
     supportedLngs: ['en', 'es', 'ca', 'pt-BR', 'pt-PT', 'eu', 'gl'],
     detection: {
-      order: ['navigator'],
-      caches: [],
+      // Honour a saved choice first, then the browser language; persist the
+      // user's pick so it survives reloads and overrides the browser default.
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
     },
     resources: {
       en: { translation: en },
@@ -30,5 +32,18 @@ i18n
     },
     interpolation: { escapeValue: false },
   });
+
+// Language names shown in their own language (endonyms) for the in-app picker.
+// Order and codes mirror supportedLngs above. Deliberately not i18n keys — a
+// language is always listed in its own language, so these never get translated.
+export const SUPPORTED_LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'ca', name: 'Català' },
+  { code: 'pt-BR', name: 'Português (Brasil)' },
+  { code: 'pt-PT', name: 'Português (Portugal)' },
+  { code: 'eu', name: 'Euskara' },
+  { code: 'gl', name: 'Galego' },
+];
 
 export default i18n;

@@ -287,6 +287,7 @@
     "bioLabel": "Presentación",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
+    "languageLabel": "Idioma",
     "maxName": "Máximo 32 caracteres.",
     "maxBio": "Máximo 64 caracteres.",
     "errorLoading": "Erro ao cargar o perfil.",

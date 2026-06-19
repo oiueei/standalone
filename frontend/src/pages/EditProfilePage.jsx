@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Button, ToggleButton } from 'hds-react';
+import { TextInput, TextArea, Button, ToggleButton, Select } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -10,9 +10,10 @@ import TheeemeSelector from '../components/TheeemeSelector';
 import KoroSelector from '../components/KoroSelector';
 import ImageUpload from '../components/ImageUpload';
 import useTheeeme from '../hooks/useTheeeme';
+import { SUPPORTED_LANGUAGES } from '../i18n';
 
 export default function EditProfilePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   useEffect(() => { document.title = t('titles.editProfile'); }, [t]);
   const location = useLocation();
@@ -167,6 +168,18 @@ export default function EditProfilePage() {
             onChange={setTheeeme}
           />
           <KoroSelector value={koro} onChange={setKoro} />
+          <Select
+            language="en"
+            id="edit-profile-language"
+            texts={{ label: t('editProfile.languageLabel') }}
+            options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
+            value={i18n.resolvedLanguage || i18n.language}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                i18n.changeLanguage(selectedOptions[0].value);
+              }
+            }}
+          />
         </div>
         <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('notifications.pageTitle')}</h2>
         <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('notifications.intro')}</p>
