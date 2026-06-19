@@ -9,7 +9,7 @@
     "sent": "Enviado",
     "warning": "Atención",
     "connectionError": "Error de conexión.",
-    "tooManyAttempts": "Demasiados intentos — esperá un momento y volvé a intentar.",
+    "tooManyAttempts": "Demasiados intentos — espera un momento y vuelve a intentarlo.",
     "loadMore": "Ver más",
     "home": "Inicio",
     "collection": "Colección",
@@ -147,7 +147,7 @@
     "noThings": "Esta colección todavía no tiene artículos.",
     "addOne": "Añadir uno",
     "communityTag": "Comunitaria",
-    "noPermission": "No tienes acceso a esta colección. Puede estar inactiva, o tu acceso puede haber cambiado — revisá tus invitaciones, o contactá al dueño.",
+    "noPermission": "No tienes acceso a esta colección. Puede estar inactiva, o tu acceso puede haber cambiado — revisa tus invitaciones, o contacta con el dueño.",
     "notFound": "Colección no encontrada.",
     "errorLoading": "Error al cargar la colección."
   },
