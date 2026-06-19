@@ -22,6 +22,7 @@ import Toast from '../components/Toast';
 import MarkdownText, { sanitizeUrl } from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
+import JoinToAct from '../components/JoinToAct';
 import useTheeeme from '../hooks/useTheeeme';
 import useThingBooking from '../hooks/useThingBooking';
 
@@ -30,6 +31,7 @@ export default function ThingPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const userCode = localStorage.getItem('userCode');
+  const isAuthenticated = !!userCode;
   const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
 
   const [thing, setThing] = useState(null);
@@ -141,12 +143,14 @@ export default function ThingPage() {
   }, [userCode, thingCode, navigate, t]);
 
   useEffect(() => {
-    if (!thing || thing.type !== WISH_TYPE) return;
+    // Wish responses are member-only (creator-all / responder-own), so skip the
+    // fetch entirely for an anonymous visitor — it would 401 and bounce them to login.
+    if (!thing || thing.type !== WISH_TYPE || !userCode) return;
     apiFetch(`/api/v1/things/${thing.code}/responses/`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => { if (data) { setResponses(data.results || data); setResponsesNext(data.next || null); } })
       .catch(() => {});
-  }, [thing]);
+  }, [thing, userCode]);
 
   const loadMoreFaqs = async () => {
     if (!faqsNext || loadingMore) return;
@@ -200,7 +204,9 @@ export default function ThingPage() {
   const needsPage = isDateBased || isOrder || isSwap;
   const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
-  const showButton = !isOwner && thing.status !== 'INACTIVE';
+  // Anonymous visitors get a read-only page plus the JoinToAct prompt; only
+  // authenticated members see the reserve / respond / ask controls.
+  const showButton = isAuthenticated && !isOwner && thing.status !== 'INACTIVE';
   const swapMinimum = thing.collection_swap_minimum_items || 0;
   const swapOwnCount = thing.my_swap_count_in_collection || 0;
   const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
@@ -504,6 +510,10 @@ export default function ThingPage() {
           </div>
         )}
 
+        {!isAuthenticated && thing.status !== 'INACTIVE' && collectionCode && (
+          <JoinToAct collectionCode={collectionCode} collectionHeadline={thing.collection_headline} />
+        )}
+
         {/* Responses section for wishes (creator sees all; responder sees own) */}
         {isWish && (isOwner || thing.my_response) && (
           <>
@@ -665,7 +675,7 @@ export default function ThingPage() {
 
 
         <div className="spacer-m" />
-        {!isOwner && (
+        {isAuthenticated && !isOwner && (
           <div className="summary-grid section-mt">
             <TextArea
               id="thing-faq-question"

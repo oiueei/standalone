@@ -92,18 +92,23 @@ function App() {
         <Route path="/popin" element={<PopInPage />} />
         <Route path="/share/:token" element={<SharePage />} />
 
+        {/* Public read of PUBLIC collections/things — anonymous visitors can
+            browse; can_view() gates it server-side (PUBLIC + ACTIVE only) and the
+            pages hide every owner/member action behind an auth check. */}
+        <Route path="/collections/:code" element={<CollectionPage />} />
+        <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
+        <Route path="/things/:thingCode" element={<ThingPage />} />
+
         {/* Protected routes — RequireAuth redirects to /login when signed out */}
         <Route element={<RequireAuth />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/me" element={<UserPage />} />
           <Route path="/me/edit" element={<EditProfilePage />} />
           <Route path="/collections/new" element={<CreateCollectionPage />} />
-          <Route path="/collections/:code" element={<CollectionPage />} />
           <Route path="/collections/:code/edit" element={<EditCollectionPage />} />
           <Route path="/collections/:code/delete" element={<DeleteCollectionPage />} />
           <Route path="/collections/:code/invites" element={<ManageInvitesPage />} />
           <Route path="/collections/:code/add" element={<AddThingPage />} />
-          <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
           <Route path="/collections/:code/things/:thingCode/edit" element={<EditThingPage />} />
           <Route
             path="/collections/:code/things/:thingCode/request"
@@ -118,7 +123,6 @@ function App() {
             element={<DeleteThingPage />}
           />
           <Route path="/collections/:code/invites/remove" element={<RemoveGuestPage />} />
-          <Route path="/things/:thingCode" element={<ThingPage />} />
           <Route path="/things/:thingCode/edit" element={<EditThingPage />} />
           <Route path="/things/:thingCode/request" element={<RequestThingPage />} />
           <Route path="/things/:thingCode/respond/:kind" element={<RespondWishPage />} />

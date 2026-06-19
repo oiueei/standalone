@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import ShareCollectionMenu from '../components/ShareCollectionMenu';
 import ThingLinkbox from '../components/ThingLinkbox';
+import JoinToAct from '../components/JoinToAct';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function CollectionPage() {
@@ -106,6 +107,7 @@ export default function CollectionPage() {
   };
 
   const isOwner = localStorage.getItem('userCode') === collection.owner;
+  const isAuthenticated = !!localStorage.getItem('userCode');
 
   return (
     <div
@@ -175,7 +177,7 @@ export default function CollectionPage() {
             </div>
             </>
           )}
-          {!isOwner && collection.mode === 'COMMUNITY' && (
+          {isAuthenticated && !isOwner && collection.mode === 'COMMUNITY' && (
             <>
             <div className="spacer-m"></div>
             <div className="button-row-wide">
@@ -202,6 +204,13 @@ export default function CollectionPage() {
         <Notification label={t('pause.bannerLabel')} type="alert" style={{ marginBottom: 'var(--spacing-m)' }}>
           {collection.pause_message}
         </Notification>
+      )}
+
+      {!isAuthenticated && (
+        <>
+          <JoinToAct collectionCode={code} collectionHeadline={collection.headline} />
+          <div className="spacer-l" />
+        </>
       )}
 
       {showWelcome && (
@@ -242,6 +251,7 @@ export default function CollectionPage() {
               collectionMode={collection.mode}
               minimalist={collection.is_minimalist}
               isPaused={collection.is_paused}
+              canAct={isAuthenticated}
               onDelete={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),

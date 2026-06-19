@@ -40,6 +40,19 @@
     "reload": "Reload page",
     "home": "Go home"
   },
+  "joinToAct": {
+    "heading": "Join to take part",
+    "body": "Sign in to reserve, ask a question or add your own things. Enter your email and we'll send you a magic link — no password, no sign-up form.",
+    "bodyNamed": "Sign in to reserve, ask a question or add your own things to {{collection}}. Enter your email and we'll send you a magic link — no password, no sign-up form.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "join": "Send me a magic link",
+    "joining": "Sending…",
+    "sent": "Check your email",
+    "sentBody": "We've sent you a magic link to join. Open it on this device to start taking part.",
+    "error": "Something went wrong. Please try again.",
+    "alreadyHaveAccount": "Already have an account? Sign in"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Skip to content",

@@ -34,6 +34,19 @@
     "reasonAlreadyInvited": "ja convidat",
     "error": "No hem pogut enviar les invitacions. Revisa el fitxer i torna-ho a provar."
   },
+  "joinToAct": {
+    "heading": "Uneix-t'hi per participar",
+    "body": "Inicia la sessió per reservar, preguntar o afegir les teves coses. Escriu el teu correu i t'enviarem un enllaç màgic: sense contrasenya ni formularis de registre.",
+    "bodyNamed": "Inicia la sessió per reservar, preguntar o afegir les teves coses a {{collection}}. Escriu el teu correu i t'enviarem un enllaç màgic: sense contrasenya ni formularis de registre.",
+    "emailLabel": "Correu electrònic",
+    "emailPlaceholder": "tu@exemple.com",
+    "join": "Envia'm un enllaç màgic",
+    "joining": "Enviant…",
+    "sent": "Comprova el teu correu",
+    "sentBody": "T'hem enviat un enllaç màgic per unir-t'hi. Obre'l en aquest dispositiu per començar a participar.",
+    "error": "Alguna cosa ha anat malament. Torna-ho a provar.",
+    "alreadyHaveAccount": "Ja tens un compte? Inicia la sessió"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Vés al contingut",

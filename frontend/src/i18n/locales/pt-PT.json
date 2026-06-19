@@ -34,6 +34,19 @@
     "reasonAlreadyInvited": "já convidado",
     "error": "Não conseguimos enviar os convites. Verifica o ficheiro e tenta novamente."
   },
+  "joinToAct": {
+    "heading": "Participe",
+    "body": "Inicie sessão para reservar, perguntar ou adicionar as suas próprias coisas. Escreva o seu e-mail e enviamos-lhe uma ligação mágica: sem palavra-passe nem formulário de registo.",
+    "bodyNamed": "Inicie sessão para reservar, perguntar ou adicionar as suas próprias coisas a {{collection}}. Escreva o seu e-mail e enviamos-lhe uma ligação mágica: sem palavra-passe nem formulário de registo.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "voce@exemplo.com",
+    "join": "Enviar-me uma ligação mágica",
+    "joining": "A enviar…",
+    "sent": "Verifique o seu e-mail",
+    "sentBody": "Enviámos-lhe uma ligação mágica para participar. Abra-a neste dispositivo para começar.",
+    "error": "Algo correu mal. Tente novamente.",
+    "alreadyHaveAccount": "Já tem conta? Iniciar sessão"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Saltar para o conteúdo",

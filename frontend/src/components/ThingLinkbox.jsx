@@ -14,7 +14,7 @@ import Toast from './Toast';
 import ImageCarousel from './ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, canAct = true, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
@@ -51,7 +51,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     bookingKeepsStatus: needsPage,
   });
 
-  const showButton = !isOwner && thing.status !== 'INACTIVE';
+  // `canAct` is false for an anonymous visitor on a PUBLIC collection: the card
+  // is read-only and the page-level JoinToAct prompt drives reserve/ask/respond.
+  const showButton = canAct && !isOwner && thing.status !== 'INACTIVE';
   const swapMinimum = thing.collection_swap_minimum_items || 0;
   const swapOwnCount = thing.my_swap_count_in_collection || 0;
   const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;

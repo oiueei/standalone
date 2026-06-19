@@ -34,6 +34,19 @@
     "reasonAlreadyInvited": "dagoeneko gonbidatua",
     "error": "Ezin izan ditugu gonbidapenak bidali. Egiaztatu fitxategia eta saiatu berriro."
   },
+  "joinToAct": {
+    "heading": "Elkartu parte hartzeko",
+    "body": "Hasi saioa erreserbatzeko, galdetzeko edo zure gauzak gehitzeko. Idatzi zure helbide elektronikoa eta esteka magiko bat bidaliko dizugu: pasahitzik eta izena emateko inprimakirik gabe.",
+    "bodyNamed": "Hasi saioa {{collection}} bilduman erreserbatzeko, galdetzeko edo zure gauzak gehitzeko. Idatzi zure helbide elektronikoa eta esteka magiko bat bidaliko dizugu: pasahitzik eta izena emateko inprimakirik gabe.",
+    "emailLabel": "Helbide elektronikoa",
+    "emailPlaceholder": "zu@adibidea.com",
+    "join": "Bidali esteka magiko bat",
+    "joining": "Bidaltzen…",
+    "sent": "Begiratu zure posta",
+    "sentBody": "Esteka magiko bat bidali dizugu elkartzeko. Ireki gailu honetan parte hartzen hasteko.",
+    "error": "Zerbait gaizki joan da. Saiatu berriro.",
+    "alreadyHaveAccount": "Konturik baduzu? Hasi saioa"
+  },
   "common": {
     "appName": "OIUEEI",
     "skipToContent": "Edukira saltatu",
