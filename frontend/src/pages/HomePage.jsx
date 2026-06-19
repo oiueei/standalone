@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification } from 'hds-react';
@@ -14,9 +14,17 @@ export default function HomePage() {
   const [invitedCollections, setInvitedCollections] = useState(null);
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [inboxNotifications, setInboxNotifications] = useState([]);
-  const [error, setError] = useState('');
+  const [offline, setOffline] = useState(false);
 
-  useEffect(() => {
+  const loadDashboard = useCallback(() => {
+    // A failed fetch rejects with a TypeError ("Failed to fetch") only on a real
+    // network/connection error; an HTTP error status resolves normally. Surface
+    // a degraded banner + retry on that (or an explicit offline) instead of a
+    // silent gap or an endless "Loading collections..." spinner.
+    const onNetworkError = (err) => {
+      if (err?.name === 'TypeError' || !navigator.onLine) setOffline(true);
+    };
+
     const fetchMe = async () => {
       try {
         const res = await apiFetch('/api/v1/auth/me/');
@@ -28,8 +36,8 @@ export default function HomePage() {
           localStorage.setItem('seenWelcome', 'true');
           setUser(data);
         }
-      } catch {
-        setError(t('common.connectionError'));
+      } catch (err) {
+        onNetworkError(err);
       }
     };
 
@@ -40,7 +48,7 @@ export default function HomePage() {
           const data = await res.json();
           setMyCollections(data.results);
         }
-      } catch { /* silently fail */ }
+      } catch (err) { onNetworkError(err); }
     };
 
     const fetchInvitedCollections = async () => {
@@ -50,7 +58,7 @@ export default function HomePage() {
           const data = await res.json();
           setInvitedCollections(data);
         }
-      } catch { /* silently fail */ }
+      } catch (err) { onNetworkError(err); }
     };
 
     const fetchPendingInvitations = async () => {
@@ -60,7 +68,7 @@ export default function HomePage() {
           const data = await res.json();
           setPendingInvitations(data);
         }
-      } catch { /* silently fail */ }
+      } catch (err) { onNetworkError(err); }
     };
 
     const fetchInbox = async () => {
@@ -70,7 +78,7 @@ export default function HomePage() {
           const data = await res.json();
           setInboxNotifications(data);
         }
-      } catch { /* silently fail */ }
+      } catch (err) { onNetworkError(err); }
     };
 
     fetchMe();
@@ -78,7 +86,18 @@ export default function HomePage() {
     fetchInvitedCollections();
     fetchPendingInvitations();
     fetchInbox();
-  }, [navigate, t]);
+  }, []);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  useEffect(() => {
+    // Re-fetch automatically when the browser regains connectivity.
+    const onOnline = () => { setOffline(false); loadDashboard(); };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [loadDashboard]);
 
   const dismissInvitation = (acceptCode) => {
     setPendingInvitations((prev) => prev.filter((inv) => inv.accept_code !== acceptCode));
@@ -86,7 +105,11 @@ export default function HomePage() {
 
   const dismissInboxNotification = async (code) => {
     setInboxNotifications((prev) => prev.filter((n) => n.code !== code));
-    try { await apiFetch(`/api/v1/inbox/${code}/`, { method: 'DELETE' }); } catch { /* silently fail */ }
+    try {
+      await apiFetch(`/api/v1/inbox/${code}/`, { method: 'DELETE' });
+    } catch (err) {
+      if (err?.name === 'TypeError' || !navigator.onLine) setOffline(true);
+    }
   };
 
   const ALERT_TYPES = new Set([
@@ -158,16 +181,17 @@ export default function HomePage() {
     return null;
   };
 
-  if (error) {
-    return (
-      <div className="page-container">
-        <Notification label={t('common.error')} type="error">{error}</Notification>
+  const offlineBanner = (
+    <Notification type="alert" label={t('home.offlineLabel')} style={{ marginBottom: 'var(--spacing-s)' }}>
+      {t('home.offlineBody')}
+      <div style={{ marginTop: 'var(--spacing-xs)' }}>
+        <Button size="small" onClick={() => { setOffline(false); loadDashboard(); }}>{t('common.retry')}</Button>
       </div>
-    );
-  }
+    </Notification>
+  );
 
   if (!user) {
-    return <LoadingSpinner />;
+    return offline ? <div className="page-container">{offlineBanner}</div> : <LoadingSpinner />;
   }
 
   const tc = user.theeeme_colors || {};
@@ -216,6 +240,8 @@ export default function HomePage() {
         />
       </div>
       <div className="page-container">
+
+        {offline && offlineBanner}
 
         {inboxNotifications.length > 0 && (
           <>
