@@ -49,5 +49,7 @@ frontend/src/fonts/*.pdf
 .DS_Store
 Thumbs.db
 
-# Claude Code tooling (local workflow scripts, not project code)
+# Claude Code tooling (local workflow scripts and machine-local settings, not project code)
 .claude/workflows/
+.claude/settings.local.json
+frontend/.claude/

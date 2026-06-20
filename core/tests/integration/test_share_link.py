@@ -218,3 +218,37 @@ class TestPopInWithShareToken:
 
         assert resp.status_code == 200
         assert collection.invites.filter(code=existing.code).exists()
+
+
+@pytest.mark.django_db
+class TestStaleCookieAuth:
+    """A live ``access_token`` cookie whose user was wiped (e.g. ``seed_demo
+    --reset`` in dev) must not 401 the AllowAny onboarding endpoints."""
+
+    def _stale_cookie_client(self):
+        ghost = User.objects.create(code="GHOST1", email="ghost@test.com", name="Ghost")
+        token = str(RefreshToken.for_user(ghost).access_token)
+        ghost.delete()  # token stays cryptographically valid, the user is gone
+        client = APIClient()
+        client.cookies["access_token"] = token
+        return client
+
+    def test_pop_in_works_with_stale_cookie_for_deleted_user(self):
+        resp = self._stale_cookie_client().post(
+            POP_IN_URL, {"email": "freshstart@test.com"}, format="json"
+        )
+
+        assert resp.status_code == 200
+        assert User.objects.filter(email="freshstart@test.com").exists()
+
+    def test_request_link_works_with_stale_cookie_for_deleted_user(self):
+        resp = self._stale_cookie_client().post(
+            "/api/v1/auth/request-link/", {"email": "freshstart@test.com"}, format="json"
+        )
+
+        assert resp.status_code == 200
+
+    def test_protected_endpoint_401s_with_stale_cookie(self):
+        resp = self._stale_cookie_client().get("/api/v1/auth/me/")
+
+        assert resp.status_code == 401
