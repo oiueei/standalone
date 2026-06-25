@@ -11,6 +11,22 @@
 
 :root {
   /* ================================================================
+   * TYPOGRAPHY
+   * ================================================================
+   * Override the HDS font-family token VALUE only — the token NAME
+   * (--font-default) is kept so every HDS component keeps resolving it.
+   * The @font-face for "Curiosa" lives in src/fonts/oiueei-fonts.css.
+   *
+   * !important is REQUIRED, not cosmetic: hds-react bundles the full
+   * token set and re-injects `:root { --font-default: HelsinkiGroteskPro… }`
+   * at runtime via CSS-in-JS when components mount, which lands AFTER this
+   * static stylesheet and would otherwise win by source order. HDS declares
+   * it without !important, so an !important override here beats it
+   * deterministically in both dev and production builds.
+   * ================================================================ */
+  --font-default: "Curiosa", Arial, sans-serif !important;
+
+  /* ================================================================
    * BRAND COLORS
    * ================================================================
    * HDS names its brand palette after Helsinki landmarks/transport.

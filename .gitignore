@@ -44,6 +44,7 @@ htmlcov/
 frontend/src/fonts/*.otf
 frontend/src/fonts/*.ttf
 frontend/src/fonts/*.pdf
+frontend/public/fonts/curiosa/
 
 # OS
 .DS_Store

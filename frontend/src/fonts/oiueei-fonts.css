@@ -1,20 +1,30 @@
-/* Curiosa (variable test font) registered under the HDS default family name
-   "HelsinkiGroteskPro", so the whole app inherits it through the --font-default
-   token with no other change. One variable file covers the weight range (wght
-   100–900); the second block maps font-style: italic onto the ital axis.
-   Reversible via git history. */
+/* Curiosa — the OIUEEI brand typeface.
+   Variable font covering the full weight range (wght 100–900); the second
+   block maps font-style: italic onto the same file. Served from
+   /public/fonts/curiosa/ at runtime (Vite). The binary is gitignored
+   (licensed/trial font — self-hosters must supply their own licensed copy);
+   a clone without it falls back to Arial / system sans via the --font-default
+   stack. Drop Curiosa-Variable.woff2 / .woff into the same folder for the
+   optimised web formats — they take precedence over the .ttf via the src
+   cascade. The --font-default token value is overridden in oiueei-theme.css. */
 @font-face {
   font-display: swap;
-  font-family: HelsinkiGroteskPro;
+  font-family: "Curiosa";
   font-style: normal;
   font-weight: 100 900;
-  src: url('./CuriosaVariableTest.ttf') format('truetype');
+  src:
+    url('/fonts/curiosa/Curiosa-Variable.woff2') format('woff2'),
+    url('/fonts/curiosa/Curiosa-Variable.woff') format('woff'),
+    url('/fonts/curiosa/Curiosa-Variable.ttf') format('truetype');
 }
 
 @font-face {
   font-display: swap;
-  font-family: HelsinkiGroteskPro;
+  font-family: "Curiosa";
   font-style: italic;
   font-weight: 100 900;
-  src: url('./CuriosaVariableTest.ttf') format('truetype');
+  src:
+    url('/fonts/curiosa/Curiosa-Variable.woff2') format('woff2'),
+    url('/fonts/curiosa/Curiosa-Variable.woff') format('woff'),
+    url('/fonts/curiosa/Curiosa-Variable.ttf') format('truetype');
 }
