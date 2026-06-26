@@ -18,8 +18,9 @@ body {
 
 .page-title {
   font-size: var(--fontsize-heading-l);
-  font-weight: 700;
+  font-weight: 600;
   line-height: var(--lineheight-m);
+  letter-spacing: -0.4px;
 }
 
 .page-title-xl {
@@ -47,7 +48,7 @@ body {
 
 .form-hero-title {
   font-size: var(--fontsize-heading-xl-mobile);
-  font-weight: 500;
+  font-weight: 400;
   line-height: var(--lineheight-s);
   letter-spacing: -0.8px;
   color: var(--hero-text-color, var(--color-black-90));
@@ -56,7 +57,7 @@ body {
 
 .form-hero-text {
   font-size: var(--fontsize-body-l);
-  line-height: var(--lineheight-l);
+  line-height: 28px;
   color: var(--hero-text-color, var(--color-black-90));
   padding-bottom: var(--spacing-s);
 }
@@ -191,13 +192,13 @@ div[class*="Linkbox-module_linkbox"] {
 
 .thing-card-meta {
   color: var(--color-black-60);
-  font-size: 1rem;
+  font-size: var(--fontsize-body-m);
   line-height: 24px;
 }
 
 .thing-card-headline {
-  font-size: 1.5rem;
-  font-weight: 500;
+  font-size: var(--fontsize-heading-m);
+  font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.2px;
   margin: 0;
@@ -213,7 +214,7 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 .thing-card-description {
-  font-size: 1.125rem;
+  font-size: var(--fontsize-body-l);
   line-height: 28px;
   color: var(--color-black-90);
   display: -webkit-box;
@@ -233,7 +234,7 @@ div[class*="Linkbox-module_linkbox"] {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  font-size: 1.125rem;
+  font-size: var(--fontsize-body-l);
   line-height: 28px;
 }
 
@@ -249,7 +250,7 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 .thing-card-bookings {
-  font-size: 0.875rem;
+  font-size: var(--fontsize-body-s);
   padding-left: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -270,8 +271,41 @@ div[class*="Linkbox-module_linkbox"] {
 
 /* Global button typography */
 .hds-button {
-  font-size: 1.125rem !important;
+  font-size: var(--fontsize-body-l) !important;
   font-weight: 500 !important;
+}
+
+/* HDS input helper text → body-s (down from HDS default body-m) */
+[class*="helper-text"] {
+  font-size: var(--fontsize-body-s) !important;
+}
+
+/* Collection tag filter chips (below the "Things" heading) */
+.tag-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2-xs);
+  margin-bottom: var(--spacing-m);
+}
+
+.tag-chip {
+  border: 1px solid transparent;
+  background-color: #eef0ff;
+  color: #0000bf;
+  border-radius: 999px;
+  padding: var(--spacing-3-xs) var(--spacing-s);
+  font-size: var(--fontsize-body-s);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tag-chip:hover {
+  border-color: #0000bf;
+}
+
+.tag-chip[aria-pressed="true"] {
+  background-color: #0000bf;
+  color: var(--color-white);
 }
 
 .things-grid {
@@ -412,6 +446,11 @@ div[class*="Linkbox-module_linkbox"] {
   gap: var(--spacing-s);
 }
 
+/* Share menu: capped on desktop, full-width on mobile (mirrors .button-row-wide) */
+.share-menu-wrap {
+  max-width: 320px;
+}
+
 @media (max-width: 767px) {
   .button-row-wide {
     flex-direction: column;
@@ -420,6 +459,14 @@ div[class*="Linkbox-module_linkbox"] {
   .button-row-wide > a button,
   .button-row-wide > button {
     width: 100%;
+  }
+  .share-menu-wrap {
+    max-width: 100%;
+  }
+  /* HDS Select root is capped at max-width:420px — let it fill the wrap so the
+     share dropdown goes full-width like the buttons above (same breakpoint). */
+  .share-menu-wrap [class*="Select-module_root"] {
+    max-width: 100%;
   }
 }
 
@@ -606,7 +653,7 @@ figure[class*="Highlight-module_highlight"] {
 }
 
 .faq-meta {
-  font-size: 0.8rem;
+  font-size: var(--fontsize-body-s);
   color: var(--color-black-40);
 }
 
@@ -671,7 +718,7 @@ figure[class*="Highlight-module_highlight"] {
 }
 
 .user-meta {
-  font-size: 0.85rem;
+  font-size: var(--fontsize-body-s);
   color: var(--color-black-40);
   margin-top: var(--spacing-xs);
 }
@@ -939,13 +986,13 @@ figure[class*="Highlight-module_highlight"] {
 /* Profile "about" Markdown box renders at body-l */
 .about-markdown {
   font-size: var(--fontsize-body-l);
-  line-height: var(--lineheight-l);
+  line-height: 28px;
 }
 
 /* Welcome page body copy (description + persona paragraphs) at body-l */
 .welcome-content p {
   font-size: var(--fontsize-body-l);
-  line-height: var(--lineheight-l);
+  line-height: 28px;
 }
 
 .markdown-text ul,

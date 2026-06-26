@@ -130,7 +130,7 @@ export default function DocumentUpload({ documents = [], onChange }) {
         onChange={handleFiles}
         disabled={uploading || documents.length >= MAX_FILES}
         language={hdsLang(i18n.language)}
-        buttonLabel={t('upload.addFile')}
+        buttonLabel={t('upload.addFileGeneric')}
         helperText={
           uploading
             ? t('upload.uploading')

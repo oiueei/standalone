@@ -19,6 +19,8 @@
   "bulkInvite": {
     "heading": "Gonbidatu hainbat batera (CSV)",
     "help": "Igo \"email\" zutabea (nahitaezkoa) eta aukerako \"name\" zutabea duen CSV bat.",
+    "formatTitle": "CSV formatua",
+    "formatBody": "Lehen ilara goiburu bat izan behar da. Gehitu \"email\" zutabe bat (nahitaezkoa) eta aukerako \"name\" zutabe bat. Adibidea:",
     "fileLabel": "CSV fitxategia",
     "empty": "Ez da errenkadarik aurkitu fitxategian.",
     "tooMany": "Gehienez {{max}} pertsona gonbida ditzakezu aldi berean.",
@@ -203,6 +205,9 @@
     "owner": "Jabea.",
     "noThings": "Oraindik ez dago gauzerik bilduma honetan.",
     "addOne": "Gehitu bat",
+    "addManyCsv": "Gehitu hainbat batera (CSV)",
+    "allTags": "Guztiak",
+    "noThingsForTag": "Ez dago etiketa hau duen artikulurik.",
     "communityTag": "Komunitarioa",
     "noPermission": "Ez duzu bilduma honetarako sarbiderik. Baliteke inaktibo egotea edo zure sarbidea aldatu izana — begiratu zure gonbidapenak edo jarri jabearekin harremanetan.",
     "notFound": "Bilduma ez da aurkitu.",
@@ -306,6 +311,7 @@
     "thumbnailLabel": "Miniatura",
     "remove": "Ezabatu",
     "addFile": "Irudia gehitu",
+    "addFileGeneric": "Fitxategia gehitu",
     "acceptHint": "Irudi fitxategiak soilik."
   },
   "addThing": {
@@ -710,7 +716,14 @@
     "importing": "Inportatzen…",
     "import": "Gehitu {{count}} elementu",
     "error": "Errenkada batzuk ezin izan dira inportatu. Egiaztatu fitxategia eta saiatu berriro.",
-    "rowErrors": "Errenkada hauek ezin izan dira inportatu (egiaztatu beren zutabeak): {{rows}}"
+    "rowErrors": "Errenkada hauek ezin izan dira inportatu (egiaztatu beren zutabeak): {{rows}}",
+    "zipNoCsv": "ZIPak CSV fitxategi bat eduki behar du.",
+    "zipMissingImages": "Argazki hauek CSVan aipatzen dira baina ez daude ZIPean: {{files}}",
+    "zipError": "Ezin izan dugu ZIP hori irakurri. Egiaztatu fitxategia eta saiatu berriro.",
+    "imageUploadError": "Argazki batzuk ezin izan dira igo. Egiaztatu irudiak eta saiatu berriro.",
+    "uploadingImages": "Argazkiak igotzen… ({{done}}/{{total}})",
+    "formatBody": "Tag-ak gelaxka bakarrean joaten dira | bidez bereizita (eta bilduman definituta egon behar dute). Argazkietarako, konprimitu CSVa irudiekin batera eta jarri argazki bakoitzaren izena \"photo\" zutabean — honela:",
+    "downloadExample": "Deskargatu adibidea (ZIP)"
   },
   "gallery": {
     "uploadLabel": "Argazki gehiago",

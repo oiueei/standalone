@@ -198,7 +198,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           <MarkdownText text={thing.description} className="thing-card-description" />
         )}
         <ThingTags thing={thing} isOwner={isOwner} showType={false} />
-        <ThingInfoRows thing={thing} isDateBased={isDateBased}>
+        <ThingInfoRows thing={thing} isDateBased={isDateBased} hideType={hideType}>
           {isWish && thing.response_count > 0 && (
             <div className="thing-card-info-row">
               <IconSpeechbubbleText size="m" aria-hidden="true" />

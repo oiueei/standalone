@@ -24,6 +24,7 @@ export default function CollectionPage() {
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState(null);
+  const [activeTag, setActiveTag] = useState(null);
   useEffect(() => { document.title = collection ? t('titles.collection', { headline: collection.headline }) : t('titles.collectionDefault'); }, [collection, t]);
 
   useEffect(() => {
@@ -108,6 +109,18 @@ export default function CollectionPage() {
   const isOwner = localStorage.getItem('userCode') === collection.owner;
   const isAuthenticated = !!localStorage.getItem('userCode');
 
+  // Active (non-inactive) things, optionally narrowed to the selected tag chip.
+  const visibleThings = collection.things.filter((thg) => thg.status !== 'INACTIVE');
+  const collectionTags = collection.tags || [];
+  const effectiveTag = activeTag && collectionTags.includes(activeTag) ? activeTag : null;
+  const shownThings = effectiveTag
+    ? visibleThings.filter((thg) => (thg.tags || []).includes(effectiveTag))
+    : visibleThings;
+  // A collection locked to one thing type makes the per-card "Type = X" row
+  // redundant — hide it (swap/share force a single type; an allowlist of one).
+  const singleType = collection.is_swap || collection.is_share
+    || (collection.allowed_thing_types || []).length === 1;
+
   return (
     <div
       className="form-page"
@@ -172,7 +185,8 @@ export default function CollectionPage() {
               </Notification>
             )}
             <div className="spacer-s"></div>
-            <div className="share-menu-wrap" style={{ maxWidth: '320px' }}>
+            <div className="spacer-l" />
+            <div className="share-menu-wrap">
               <ShareCollectionMenu
                 collectionCode={code}
                 collectionHeadline={collection.headline}
@@ -231,11 +245,45 @@ export default function CollectionPage() {
 
       <h2>{t('collectionPage.things')}</h2>
       <div className="spacer-m" />
-      {collection.things.filter((t) => t.status !== 'INACTIVE').length === 0 ? (
-        <p>{t('collectionPage.noThings')}{(isOwner || collection.mode === 'COMMUNITY') && <> <Link to={`/collections/${code}/add`}>{t('collectionPage.addOne')}</Link>.</>}</p>
+      {visibleThings.length > 0 && collectionTags.length > 0 && (
+        <div className="tag-filter-bar">
+          <button
+            type="button"
+            className="tag-chip"
+            aria-pressed={!effectiveTag}
+            onClick={() => setActiveTag(null)}
+          >
+            {t('collectionPage.allTags')} ({visibleThings.length})
+          </button>
+          {collectionTags.map((tag) => {
+            const count = visibleThings.filter((thg) => (thg.tags || []).includes(tag)).length;
+            return (
+              <button
+                key={tag}
+                type="button"
+                className="tag-chip"
+                aria-pressed={effectiveTag === tag}
+                onClick={() => setActiveTag(effectiveTag === tag ? null : tag)}
+              >
+                {tag} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {visibleThings.length === 0 ? (
+        <>
+          <p>{t('collectionPage.noThings')}{(isOwner || collection.mode === 'COMMUNITY') && <> <Link to={`/collections/${code}/add`}>{t('collectionPage.addOne')}</Link>.</>}</p>
+          <div className="spacer-xxs" />
+          {(isOwner || collection.mode === 'COMMUNITY') && !collection.is_minimalist && (
+            <p><Link to={`/collections/${code}/add#bulk-add`}>{t('collectionPage.addManyCsv')}</Link></p>
+          )}
+        </>
+      ) : shownThings.length === 0 ? (
+        <p>{t('collectionPage.noThingsForTag')}</p>
       ) : (
         <div className="things-grid">
-          {[...collection.things].filter((t) => t.status !== 'INACTIVE').sort((a, b) => {
+          {[...shownThings].sort((a, b) => {
             return new Date(b.created) - new Date(a.created);
           }).map((thing) => (
             <ThingLinkbox
@@ -248,6 +296,7 @@ export default function CollectionPage() {
               collectionMode={collection.mode}
               minimalist={collection.is_minimalist}
               isPaused={collection.is_paused}
+              hideType={singleType}
               canAct={isAuthenticated}
               loginToAct={!isAuthenticated}
               onDelete={(thingCode) => setCollection((prev) => ({
@@ -334,6 +383,7 @@ export default function CollectionPage() {
                 collectionOwner={collection.owner}
                 collectionMode={collection.mode}
                 minimalist={collection.is_minimalist}
+                hideType={singleType}
                 onDelete={(thingCode) => setCollection((prev) => ({
                   ...prev,
                   things: prev.things.filter((t) => t.code !== thingCode),

@@ -8,15 +8,18 @@ import { IconTicket, IconEuroSign, IconCalendar, IconLocation, IconShield } from
  * counts on ThingLinkbox) are passed as `children` and rendered after the core
  * rows inside the same container.
  */
-export default function ThingInfoRows({ thing, isDateBased, children }) {
+export default function ThingInfoRows({ thing, isDateBased, hideType = false, children }) {
   const { t, i18n } = useTranslation();
   return (
     <div className="thing-card-info">
-      <div className="thing-card-info-row">
-        <IconTicket size="m" aria-hidden="true" />
-        <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
-        <span>{t('types.' + thing.type)}</span>
-      </div>
+      {/* Type row — hidden when the collection allows only one thing type (redundant). */}
+      {!hideType && (
+        <div className="thing-card-info-row">
+          <IconTicket size="m" aria-hidden="true" />
+          <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
+          <span>{t('types.' + thing.type)}</span>
+        </div>
+      )}
       {thing.fee && (
         <div className="thing-card-info-row">
           <IconEuroSign size="m" aria-hidden="true" />

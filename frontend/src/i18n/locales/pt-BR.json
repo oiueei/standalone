@@ -19,6 +19,8 @@
   "bulkInvite": {
     "heading": "Convidar várias pessoas de uma vez (CSV)",
     "help": "Envie um CSV com uma coluna \"email\" (obrigatória) e uma coluna \"name\" opcional.",
+    "formatTitle": "Formato do CSV",
+    "formatBody": "A primeira linha deve ser um cabeçalho. Adicione uma coluna \"email\" (obrigatória) e uma coluna \"name\" opcional. Exemplo:",
     "fileLabel": "Arquivo CSV",
     "empty": "Nenhuma linha encontrada no arquivo.",
     "tooMany": "Você pode convidar até {{max}} pessoas de uma vez.",
@@ -203,6 +205,9 @@
     "owner": "Dono.",
     "noThings": "Esta coleção ainda não tem itens.",
     "addOne": "Adicionar um",
+    "addManyCsv": "Adicionar vários de uma vez (CSV)",
+    "allTags": "Todos",
+    "noThingsForTag": "Nenhum item com esta tag.",
     "communityTag": "Comunitária",
     "noPermission": "Você não tem acesso a esta coleção. Pode estar inativa, ou seu acesso pode ter mudado — confira seus convites, ou fale com o dono.",
     "notFound": "Coleção não encontrada.",
@@ -306,6 +311,7 @@
     "thumbnailLabel": "Miniatura",
     "remove": "Remover",
     "addFile": "Adicionar imagem",
+    "addFileGeneric": "Adicionar arquivo",
     "acceptHint": "Apenas ficheiros de imagem."
   },
   "addThing": {
@@ -506,7 +512,7 @@
   "types": {
     "GIFT_THING": "Presente",
     "SELL_THING": "Venda",
-    "ORDER_THING": "Pedido",
+    "ORDER_THING": "Encargo",
     "RENT_THING": "Aluguel",
     "LEND_THING": "Empréstimo",
     "SHARE_THING": "Compartilhar",
@@ -710,7 +716,14 @@
     "importing": "Importando…",
     "import": "Adicionar {{count}} itens",
     "error": "Algumas linhas não puderam ser importadas. Verifique o arquivo e tente novamente.",
-    "rowErrors": "Estas linhas não puderam ser importadas (verifique as colunas): {{rows}}"
+    "rowErrors": "Estas linhas não puderam ser importadas (verifique as colunas): {{rows}}",
+    "zipNoCsv": "O ZIP precisa conter um arquivo CSV.",
+    "zipMissingImages": "Estas fotos são citadas no CSV mas faltam no ZIP: {{files}}",
+    "zipError": "Não conseguimos ler esse ZIP. Verifique o arquivo e tente novamente.",
+    "imageUploadError": "Algumas fotos não puderam ser enviadas. Verifique as imagens e tente novamente.",
+    "uploadingImages": "Enviando fotos… ({{done}}/{{total}})",
+    "formatBody": "As tags vão em uma célula separadas por | (e precisam estar definidas na coleção). Para fotos, compacte o CSV junto com as imagens e coloque o nome de cada foto na coluna \"photo\" — assim:",
+    "downloadExample": "Baixar exemplo (ZIP)"
   },
   "gallery": {
     "uploadLabel": "Mais fotos",

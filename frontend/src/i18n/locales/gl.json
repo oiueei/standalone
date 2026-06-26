@@ -19,6 +19,8 @@
   "bulkInvite": {
     "heading": "Convidar varios á vez (CSV)",
     "help": "Sobe un CSV cunha columna \"email\" (obrigatoria) e unha columna \"name\" opcional.",
+    "formatTitle": "Formato do CSV",
+    "formatBody": "A primeira fila debe ser unha cabeceira. Engade unha columna \"email\" (obrigatoria) e unha columna \"name\" opcional. Exemplo:",
     "fileLabel": "Ficheiro CSV",
     "empty": "Non se atoparon filas no ficheiro.",
     "tooMany": "Podes convidar ata {{max}} persoas á vez.",
@@ -203,6 +205,9 @@
     "owner": "Propietario.",
     "noThings": "Esta colección aínda non ten artigos.",
     "addOne": "Engadir un",
+    "addManyCsv": "Engadir varios á vez (CSV)",
+    "allTags": "Todos",
+    "noThingsForTag": "Non hai artigos con esta etiqueta.",
     "communityTag": "Comunitaria",
     "noPermission": "Non tes acceso a esta colección. Pode estar inactiva, ou o teu acceso pode ter cambiado — revisa as túas invitacións, ou contacta co dono.",
     "notFound": "Colección non atopada.",
@@ -306,6 +311,7 @@
     "thumbnailLabel": "Miniatura",
     "remove": "Eliminar",
     "addFile": "Engadir imaxe",
+    "addFileGeneric": "Engadir ficheiro",
     "acceptHint": "Só ficheiros de imaxe."
   },
   "addThing": {
@@ -506,7 +512,7 @@
   "types": {
     "GIFT_THING": "Agasallo",
     "SELL_THING": "Venda",
-    "ORDER_THING": "Pedido",
+    "ORDER_THING": "Encargo",
     "RENT_THING": "Alugueiro",
     "LEND_THING": "Préstamo",
     "SHARE_THING": "Compartir",
@@ -710,7 +716,14 @@
     "importing": "Importando…",
     "import": "Engadir {{count}} elementos",
     "error": "Algunhas filas non se puideron importar. Revisa o ficheiro e téntao de novo.",
-    "rowErrors": "Estas filas non se puideron importar (revisa as súas columnas): {{rows}}"
+    "rowErrors": "Estas filas non se puideron importar (revisa as súas columnas): {{rows}}",
+    "zipNoCsv": "O ZIP debe conter un ficheiro CSV.",
+    "zipMissingImages": "Estas fotos noméanse no CSV pero faltan no ZIP: {{files}}",
+    "zipError": "Non puidemos ler ese ZIP. Revisa o ficheiro e téntao de novo.",
+    "imageUploadError": "Algunhas fotos non se puideron subir. Revisa as imaxes e téntao de novo.",
+    "uploadingImages": "Subindo fotos… ({{done}}/{{total}})",
+    "formatBody": "As tags van nunha cela separadas por | (e deben estar definidas na colección). Para as fotos, comprime o CSV xunto coas imaxes e pon o nome de cada foto na columna \"photo\" — así:",
+    "downloadExample": "Descargar exemplo (ZIP)"
   },
   "gallery": {
     "uploadLabel": "Máis fotos",

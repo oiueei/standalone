@@ -73,7 +73,7 @@ export default function LoginPage() {
         />
       </div>
       <div className="page-container">
-        <p className="section-mt" style={{ maxWidth: '400px' }}>{t('login.description')}</p>
+        <p className="section-mt" style={{ maxWidth: '400px', fontWeight: 700 }}>{t('login.description')}</p>
         <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
           <Trans
             i18nKey="login.openSource"
@@ -99,7 +99,7 @@ export default function LoginPage() {
             </div>
           </>
         ) : (
-          <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
+          <form onSubmit={handleSubmit} style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
             <TextInput
               id="login-email"
               label={t('login.emailLabel')}

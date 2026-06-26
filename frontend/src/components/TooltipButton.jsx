@@ -36,7 +36,7 @@ export default function TooltipButton({ tooltip, onClick, disabled, children }) 
           color: 'var(--color-white)',
           padding: '4px 8px',
           borderRadius: '2px',
-          fontSize: 'var(--fontsize-body-xs)',
+          fontSize: 'var(--fontsize-body-s)',
           whiteSpace: 'nowrap',
           zIndex: 1000,
           pointerEvents: 'none',

@@ -19,6 +19,8 @@
   "bulkInvite": {
     "heading": "Invite many at once (CSV)",
     "help": "Upload a CSV with an \"email\" column (required) and an optional \"name\" column.",
+    "formatTitle": "CSV format",
+    "formatBody": "The first row must be a header. Add an \"email\" column (required) and an optional \"name\" column. Example:",
     "fileLabel": "CSV file",
     "empty": "No rows found in that file.",
     "tooMany": "You can invite up to {{max}} people at once.",
@@ -220,6 +222,9 @@
     "owner": "Owner.",
     "noThings": "No things in this collection yet.",
     "addOne": "Add one",
+    "addManyCsv": "Add several at once (CSV)",
+    "allTags": "All",
+    "noThingsForTag": "No things with this tag.",
     "communityTag": "Community",
     "noPermission": "You do not have access to this collection. It may be inactive, or your access may have changed — check your invitations, or ask the owner.",
     "notFound": "Collection not found.",
@@ -323,6 +328,7 @@
     "thumbnailLabel": "Thumbnail",
     "remove": "Remove",
     "addFile": "Add a file",
+    "addFileGeneric": "Add file",
     "acceptHint": "Only image files."
   },
   "addThing": {
@@ -727,7 +733,14 @@
     "importing": "Importing…",
     "import": "Add {{count}} items",
     "error": "Some rows couldn't be imported. Check the file and try again.",
-    "rowErrors": "These rows couldn't be imported (check their columns): {{rows}}"
+    "rowErrors": "These rows couldn't be imported (check their columns): {{rows}}",
+    "zipNoCsv": "The ZIP must contain a CSV file.",
+    "zipMissingImages": "These photos are named in the CSV but missing from the ZIP: {{files}}",
+    "zipError": "We couldn't read that ZIP. Check the file and try again.",
+    "imageUploadError": "Some photos couldn't be uploaded. Check the images and try again.",
+    "uploadingImages": "Uploading photos… ({{done}}/{{total}})",
+    "formatBody": "Tags go in one cell separated by | (and must be defined in the collection). For photos, zip the CSV together with the image files and name each photo in the \"photo\" column — like this:",
+    "downloadExample": "Download example (ZIP)"
   },
   "gallery": {
     "uploadLabel": "More photos",

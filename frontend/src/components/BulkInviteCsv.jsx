@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FileInput, Button, Notification } from 'hds-react';
+import { FileInput, Button, Notification, IconInfoCircleFill } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import Papa from 'papaparse';
 import { apiFetch } from '../services/api';
@@ -8,6 +8,15 @@ import useTheeeme from '../hooks/useTheeeme';
 const MAX_ROWS = 100;
 // An "email" column (required) and an optional "name" column.
 const COLUMNS = ['email', 'name'];
+
+// Shown in the format hint popover. Language-agnostic, so it lives here rather
+// than in the i18n bundles.
+const EXAMPLE_CSV = `email,name
+lala@mail.com,
+lele@mail.com,LeLe
+lili@mail.com,Super LiLi
+lolo@mail.com,
+lulu@mail.com,`;
 
 const REASON_KEY = {
   invalid: 'bulkInvite.reasonInvalid',
@@ -41,6 +50,7 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [showFormat, setShowFormat] = useState(false);
   const sendLockRef = useRef(false);
 
   const handleFiles = (files) => {
@@ -121,7 +131,37 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
 
   return (
     <div className="bulk-add">
-      <p className="bulk-add-help">{t('bulkInvite.help')}</p>
+      <div className="bulk-add-help-row">
+        <p className="bulk-add-help">{t('bulkInvite.help')}</p>
+        <span
+          className="bulk-add-info"
+          onMouseEnter={() => setShowFormat(true)}
+          onMouseLeave={() => setShowFormat(false)}
+          onFocus={() => setShowFormat(true)}
+          onBlur={() => setShowFormat(false)}
+        >
+          <button
+            type="button"
+            className="bulk-add-info-button"
+            aria-label={t('bulkInvite.formatTitle')}
+            aria-expanded={showFormat}
+            onClick={() => setShowFormat((v) => !v)}
+          >
+            <IconInfoCircleFill aria-hidden="true" />
+          </button>
+          {showFormat && (
+            <Notification
+              type="info"
+              size="small"
+              label={t('bulkInvite.formatTitle')}
+              className="bulk-add-format-popover"
+            >
+              <p className="bulk-add-format-body">{t('bulkInvite.formatBody')}</p>
+              <pre className="bulk-add-example">{EXAMPLE_CSV}</pre>
+            </Notification>
+          )}
+        </span>
+      </div>
       <FileInput
         key={fileInputKey}
         id="bulk-invite-csv"
@@ -130,7 +170,7 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
         multiple={false}
         onChange={handleFiles}
         language={hdsLang(i18n.language)}
-        buttonLabel={t('upload.addFile')}
+        buttonLabel={t('upload.addFileGeneric')}
         disabled={sending}
       />
       {error && (

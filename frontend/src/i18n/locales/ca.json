@@ -19,6 +19,8 @@
   "bulkInvite": {
     "heading": "Convidar-ne diversos alhora (CSV)",
     "help": "Puja un CSV amb una columna \"email\" (obligatòria) i una columna \"name\" opcional.",
+    "formatTitle": "Format del CSV",
+    "formatBody": "La primera fila ha de ser una capçalera. Afegeix una columna \"email\" (obligatòria) i una columna \"name\" opcional. Exemple:",
     "fileLabel": "Fitxer CSV",
     "empty": "No s'han trobat files al fitxer.",
     "tooMany": "Pots convidar fins a {{max}} persones alhora.",
@@ -203,6 +205,9 @@
     "owner": "Propietari.",
     "noThings": "Aquesta col·lecció encara no té articles.",
     "addOne": "Afegir-ne un",
+    "addManyCsv": "Afegir-ne uns quants alhora (CSV)",
+    "allTags": "Tots",
+    "noThingsForTag": "No hi ha articles amb aquesta etiqueta.",
     "communityTag": "Comunitària",
     "noPermission": "No tens accés a aquesta col·lecció. Pot estar inactiva, o el teu accés pot haver canviat — revisa les teves invitacions, o contacta amb el propietari.",
     "notFound": "Col·lecció no trobada.",
@@ -306,6 +311,7 @@
     "thumbnailLabel": "Miniatura",
     "remove": "Eliminar",
     "addFile": "Afegir imatge",
+    "addFileGeneric": "Afegir fitxer",
     "acceptHint": "Només fitxers d'imatge."
   },
   "addThing": {
@@ -710,7 +716,14 @@
     "importing": "Important…",
     "import": "Afegir {{count}} elements",
     "error": "Algunes files no s'han pogut importar. Revisa el fitxer i torna-ho a provar.",
-    "rowErrors": "Aquestes files no s'han pogut importar (revisa'n les columnes): {{rows}}"
+    "rowErrors": "Aquestes files no s'han pogut importar (revisa'n les columnes): {{rows}}",
+    "zipNoCsv": "El ZIP ha de contenir un fitxer CSV.",
+    "zipMissingImages": "Aquestes fotos s'anomenen al CSV però falten al ZIP: {{files}}",
+    "zipError": "No hem pogut llegir aquest ZIP. Revisa el fitxer i torna-ho a provar.",
+    "imageUploadError": "No s'han pogut pujar algunes fotos. Revisa les imatges i torna-ho a provar.",
+    "uploadingImages": "Pujant fotos… ({{done}}/{{total}})",
+    "formatBody": "Els tags van en una cel·la separats per | (i han d'estar definits a la col·lecció). Per a les fotos, comprimeix el CSV juntament amb les imatges i posa el nom de cada foto a la columna \"photo\" — així:",
+    "downloadExample": "Baixar exemple (ZIP)"
   },
   "gallery": {
     "uploadLabel": "Més fotos",
