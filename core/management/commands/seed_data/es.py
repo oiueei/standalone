@@ -52,8 +52,8 @@ COLLECTIONS = [
     },
     {
         "code": "l1l1C1",
-        "headline": "Préstamos de Lili – ¡hora de las herramientas!",
-        "description": "¿Necesitas taladro, limpiador de vapor, escalera sólida, báscula de equipaje o mega kit de magdalenas? La biblioteca de préstamos de Lili te cubre – gratis para tareas de coliving, se devuelve limpio, por orden de llegada. ¡Sin líos!",
+        "headline": "Préstamos de Lili – ¡hora de compartir las cosas!",
+        "description": "¿Necesitas taladro, limpiador de vapor, escalera sólida, báscula de equipaje o mega kit de magdalenas? La biblioteca de préstamos de Lili te cubre – ¡todo a un coste simbólico!",
     },
     {
         "code": "l1l1C2",
@@ -119,64 +119,119 @@ THINGS = [
         "description": "Cuadrados gruesos de zanahoria con glaseado aterciopelado, en plato rosa con taza Marimekko y té. Un abrazo nórdico en forma de tarta – ¡puro hygge! Ideal para cafés acogedores o meriendas post-ruta.",
     },
     {
-        "code": "lltl01",
-        "headline": "Kit de taladro robusto",
-        "description": "¡Bestia sin cables para desastres DIY! Atraviesa paredes como mantequilla, con juego completo de brocas. ¡Pídelo prestado para tu próximo arreglo casero!",
-        "documents": [
-            {
-                "public_id": "lltl01",
-                "filename": "Kit de taladro robusto.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent01",
+        "headline": "Tren de cartón para jugar",
+        "description": "Tren gigante de cartón hecho a mano. Ideal para fiestas juegos imaginativos o photocall infantil. Se monta y desmonta fácil. Una pieza muy original para los peques.",
     },
     {
-        "code": "lltl02",
-        "headline": "Limpiador de vapor mágico",
-        "description": "¡Chisporrotea mugre de hornos y sofás! Varita eco-mágica que deja todo reluciente. ¡Perfecto para un repaso pre-fiesta!",
-        "documents": [
-            {
-                "public_id": "lltl02",
-                "filename": "Limpiador de vapor mágico.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent02",
+        "headline": "Circuito de tren de madera",
+        "description": "Circuito infantil de tren musical con piezas encajables y pasabolas. Madera resistente y colorida. Estimula la motricidad y el juego. Perfecto para primeras edades.",
     },
     {
-        "code": "lltl03",
-        "headline": "Escalera sólida como una roca",
-        "description": "¡Campeona de seguridad de dos metros, sin bamboleos! Llega a esas telarañas del desván o estanterías altas. ¡Más firme que el apretón de un cura!",
-        "documents": [
-            {
-                "public_id": "lltl03",
-                "filename": "Escalera sólida.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent03",
+        "headline": "Tres en raya artesanal",
+        "description": "Juego de tres en raya hecho con chapas y cartón. Ligero divertido y fácil de transportar. Para jugar en casa o de viaje. Diversión sencilla para todas las edades.",
     },
     {
-        "code": "lltl04",
-        "headline": "Mega kit de magdalenas",
-        "description": "¡Moldes de silicona, bandejas y mangas pasteleras! Hornea bombas de arándanos o maravillas veganas. ¡Kit completo para novatos en la cocina!",
-        "documents": [
-            {
-                "public_id": "lltl04",
-                "filename": "Mega kit de magdalenas.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent04",
+        "headline": "Casita infantil con mesa",
+        "description": "Casita de juego de plástico con puerta ventanas mesa y bancos. Resistente para interior o jardín. Horas de juego simbólico para los peques. Fácil de limpiar.",
     },
     {
-        "code": "lltl05",
-        "headline": "Báscula de equipaje pro",
-        "description": "¡Héroe de bolsillo que te salva de multas en el aeropuerto! Pesa maletas hasta 50 kg. Esencial para viajeros de vuelos baratos.",
-        "documents": [
-            {
-                "public_id": "lltl05",
-                "filename": "Báscula de equipaje pro.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent05",
+        "headline": "Laberinto de canicas",
+        "description": "Laberinto de canicas hecho a mano con cartón y palitos de colores. Pon a prueba el pulso y la paciencia. Un clásico que engancha a grandes y pequeños.",
+    },
+    {
+        "code": "rent06",
+        "headline": "Jardinera vertical de pared",
+        "description": "Set de jardineras verticales apilables para colgar en la pared. Perfectas para hierbas aromáticas o plantas pequeñas en balcones y terrazas. Aprovecha el espacio.",
+    },
+    {
+        "code": "rent07",
+        "headline": "Impresora láser HP LaserJet",
+        "description": "Impresora láser HP LaserJet en blanco y negro. Fiable para documentos puntuales o impresiones rápidas. Lista para usar. Ideal si solo imprimes de vez en cuando.",
+    },
+    {
+        "code": "rent08",
+        "headline": "Consola Nintendo Game Boy",
+        "description": "Consola portátil Nintendo Game Boy clásica. Pura nostalgia para jugar a los títulos de siempre. Funciona con pilas. Una joya retro para echar unas partidas.",
+    },
+    {
+        "code": "rent09",
+        "headline": "Fregona giratoria con cubo",
+        "description": "Fregona giratoria con cubo centrifugador. Escurre sin esfuerzo y deja el suelo casi seco. Cómoda y eficaz para la limpieza del día a día. Mango extensible.",
+    },
+    {
+        "code": "rent10",
+        "headline": "Limpiador de vapor de mano",
+        "description": "Limpiador de vapor portátil con accesorios. Desinfecta sin productos químicos en baños cocinas y juntas. Práctico para limpiezas a fondo puntuales. Fácil de manejar.",
+    },
+    {
+        "code": "rent11",
+        "headline": "Aspirador seco y húmedo",
+        "description": "Aspirador de sólidos y líquidos con ruedas y accesorios. Potente para garajes coches reformas o derrames. Depósito amplio de acero. Para lo que una aspiradora normal no puede.",
+    },
+    {
+        "code": "rent12",
+        "headline": "Taladro atornillador Ryobi",
+        "description": "Taladro atornillador a batería Ryobi. Para montar muebles colgar cuadros o pequeñas reformas en casa. Ligero y manejable. Incluye batería. Perfecto para bricolaje básico.",
+    },
+    {
+        "code": "rent13",
+        "headline": "Kit de herramientas básicas",
+        "description": "Maletín de herramientas para bricolaje: martillo destornilladores alicates llave nivel y cinta métrica. Lo esencial para apaños y montajes en casa. Bien organizado.",
+    },
+    {
+        "code": "rent14",
+        "headline": "Rueda abdominal",
+        "description": "Rueda para ejercitar abdominales y core en casa. Compacta y resistente con agarres acolchados. Ideal para entrenar fuerza sin ir al gimnasio. Fácil de guardar.",
+    },
+    {
+        "code": "rent15",
+        "headline": "Comba para saltar",
+        "description": "Cuerda de saltar con mangos ergonómicos. Perfecta para cardio calentamiento o entrenamiento en cualquier sitio. Ligera y ajustable. Pon el corazón a tope.",
+    },
+    {
+        "code": "rent16",
+        "headline": "Mancuernas 1 kg (par)",
+        "description": "Par de mancuernas de 1 kg recubiertas de neopreno. Agarre suave y antideslizante. Ideales para tonificar pilates o rehabilitación. Cómodas para empezar.",
+    },
+    {
+        "code": "rent17",
+        "headline": "Esterilla de yoga de corcho",
+        "description": "Esterilla de yoga de corcho natural antideslizante con líneas de alineación. Incluye funda de transporte. Buen agarre incluso con sudor. Para yoga pilates o estiramientos.",
+    },
+    {
+        "code": "rent18",
+        "headline": "Set de mancuernas ajustables",
+        "description": "Set de mancuernas y kettlebell ajustables con discos y barras. Adapta el peso a cada ejercicio. Todo en uno para entrenar fuerza en casa. Ahorra espacio.",
+    },
+    {
+        "code": "rent19",
+        "headline": "Set utensilios cocina negro",
+        "description": "Set de 4 utensilios de nylon: espátula cazo batidor y cuchara ranurada. Aptos para todo tipo de sartenes y ollas.",
+    },
+    {
+        "code": "rent20",
+        "headline": "Set utensilios cocina acero",
+        "description": "Set de 6 utensilios de acero inoxidable: espumadera aplastador batidor cazo espátula y tenedor. Completo y resistente.",
+    },
+    {
+        "code": "rent21",
+        "headline": "Cuchillo Santoku Wüsthof",
+        "description": "Cuchillo santoku profesional Wüsthof Classic 17cm. Corte preciso para verduras carne y pescado. En muy buen estado.",
+    },
+    {
+        "code": "rent22",
+        "headline": "Set ollas antiadherentes",
+        "description": "Set de dos ollas antiadherentes con asas ergonómicas. Perfectas para cocinar sin que se pegue nada. Tallas grande y mediana.",
+    },
+    {
+        "code": "rent23",
+        "headline": "Cazo de acero inoxidable",
+        "description": "Cazo de acero inoxidable de calidad profesional. Ideal para salsas y cremas. Fácil de limpiar y muy duradero.",
     },
     {
         "code": "lltl11",
@@ -230,10 +285,6 @@ THINGS = [
     {
         "code": "lltl28",
         "headline": "¡Muchas crías y pocas macetas – ven a rescatar una!",
-    },
-    {
-        "code": "La1aW1",
-        "headline": "¿Alguien tiene una escalerilla? ¡La estantería alta gana! 🪜",
     },
     {
         "code": "l1sw01",
@@ -322,9 +373,4 @@ FAQS = [
     },
 ]
 
-WISH_RESPONSES = [
-    {
-        "wish_code": "La1aW1",
-        "message": "En el trastero junto al aparcabicis hay una escalerilla plegable. ¡Pídele la llave a Lolo!",
-    },
-]
+WISH_RESPONSES = []

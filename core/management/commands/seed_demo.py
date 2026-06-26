@@ -137,6 +137,7 @@ class Command(BaseCommand):
                 "digest_frequency": data.get("digest_frequency", "NONE"),
                 "thumbnail": data.get("thumbnail", ""),
                 "tags": data.get("tags", []),
+                "allowed_thing_types": data.get("allowed_thing_types", []),
             }
             col, _ = Collection.objects.update_or_create(code=data["code"], defaults=defaults)
             col.invites.set(User.objects.filter(code__in=data.get("invites", [])))

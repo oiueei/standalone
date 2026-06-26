@@ -290,6 +290,11 @@ class TestSeedDemoCommand:
         call_command("seed_demo")
         assert User.objects.get(code="La1aN1").photo == "la1an1"
 
+    def test_maps_allowed_thing_types_key(self):
+        """Regression guard: _seed_collections must copy `allowed_thing_types`."""
+        call_command("seed_demo")
+        assert Collection.objects.get(code="l1l1C1").allowed_thing_types == ["RENT_THING"]
+
     def test_lolo_owns_succulent_collection(self):
         call_command("seed_demo")
         coll = Collection.objects.get(code="l0l0C1")
@@ -314,8 +319,10 @@ class TestSeedDemoCommand:
         en, es = load_seed_data("en"), load_seed_data("es")
         for entity, key in _MERGE_KEYS.items():
             en_rows, es_rows = getattr(en, entity), getattr(es, entity)
-            assert len(en_rows) == len(es_rows) > 0
+            assert len(en_rows) == len(es_rows)  # parity (an entity may be empty)
             assert {r[key] for r in en_rows} == {r[key] for r in es_rows}
+        # the core entities must actually be populated (WISH_RESPONSES may be empty)
+        assert en.USERS and en.COLLECTIONS and en.THINGS and en.FAQS
 
     def test_merge_yields_structure_and_text(self):
         """R17: merged rows carry both skeleton fields and localised text, and the
@@ -327,6 +334,3 @@ class TestSeedDemoCommand:
         sample = en["stffa1"]
         assert sample["type"] == "SELL_THING" and sample["owner_code"] == "La1aN1"  # skeleton
         assert sample["headline"] and sample["headline"] != es["stffa1"]["headline"]  # text
-        doc = en["lltl01"]["documents"][0]
-        assert doc["public_id"] == "lltl01"  # structural id, same across locales
-        assert doc["filename"] != es["lltl01"]["documents"][0]["filename"]  # filename translated

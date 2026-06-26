@@ -49,8 +49,8 @@ COLLECTIONS = [
     },
     {
         "code": "l1l1C1",
-        "headline": "Lili's Borrow Borrow – Tool Time Tenants!",
-        "description": "Need a drill, steam cleaner, sturdy ladder, luggage scale or muffin mega-kit? Lili's lending library has your back – borrow free for coliving chores, return clean, first come first served. Sorted!",
+        "headline": "Lili's Lending – time to share our things!",
+        "description": "Need a drill, steam cleaner, sturdy ladder, luggage scale or muffin mega-kit? Lili's lending library has your back – all for a token fee!",
     },
     {
         "code": "l1l1C2",
@@ -116,64 +116,119 @@ THINGS = [
         "description": "Chunky carrot squares with velvety frosting, on a pink plate with Marimekko mug and brew. Proper Nordic hug in cake form – pure hygge! Ideal for cosy cafés or post-cycle nibbles.",
     },
     {
-        "code": "lltl01",
-        "headline": "Sturdy Drill Kit",
-        "description": "Cordless beast for DIY disasters! Powers through walls like butter, full bits included. Borrow for your next home hack!",
-        "documents": [
-            {
-                "public_id": "lltl01",
-                "filename": "Sturdy Drill Kit.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent01",
+        "headline": "Cardboard play train",
+        "description": "Giant handmade cardboard train. Great for parties, imaginative play or a kids' photo booth. Easy to assemble and take apart. A really original piece for the little ones.",
     },
     {
-        "code": "lltl02",
-        "headline": "Steam Cleaner Wizard",
-        "description": "Sizzles grime off ovens and sofas! Eco-magic wand leaves everything sparkling. Perfect for pre-party spruce-ups!",
-        "documents": [
-            {
-                "public_id": "lltl02",
-                "filename": "Steam Cleaner Wizard.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent02",
+        "headline": "Wooden train circuit",
+        "description": "Children's musical train circuit with interlocking pieces and a ball run. Sturdy, colourful wood. Builds motor skills and play. Perfect for the youngest ones.",
     },
     {
-        "code": "lltl03",
-        "headline": "Rock-Solid Ladder",
-        "description": "Six-foot safety champ, wobble-free! Reach those pesky loft cobwebs or high shelves. Steady as a vicar's handshake!",
-        "documents": [
-            {
-                "public_id": "lltl03",
-                "filename": "Rock-Solid Ladder.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent03",
+        "headline": "Handmade tic-tac-toe",
+        "description": "Tic-tac-toe made from bottle caps and cardboard. Light, fun and easy to carry. Play at home or on a trip. Simple fun for all ages.",
     },
     {
-        "code": "lltl04",
-        "headline": "Muffin Mega-Kit",
-        "description": "Silicone moulds, trays and piping bags! Bake blueberry bombs or vegan wonders. Full bake-off kit for kitchen newbies!",
-        "documents": [
-            {
-                "public_id": "lltl04",
-                "filename": "Muffin Mega-Kit.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent04",
+        "headline": "Kids' playhouse with table",
+        "description": "Plastic play house with a door, windows, table and benches. Sturdy for indoors or the garden. Hours of pretend play for little ones. Easy to clean.",
     },
     {
-        "code": "lltl05",
-        "headline": "Luggage Scale Pro",
-        "description": "Pocket hero saves airport fines! Digital whizzer weighs bags up to 50kg. Essential for cheap flight chancers!",
-        "documents": [
-            {
-                "public_id": "lltl05",
-                "filename": "Luggage Scale Pro.pdf",
-                "content_type": "application/pdf",
-            },
-        ],
+        "code": "rent05",
+        "headline": "Marble maze",
+        "description": "Handmade marble maze built from cardboard and colourful sticks. Test your steady hand and patience. A classic that hooks grown-ups and kids alike.",
+    },
+    {
+        "code": "rent06",
+        "headline": "Vertical wall planter",
+        "description": "Set of stackable vertical planters to hang on a wall. Perfect for herbs or small plants on balconies and terraces. Make the most of your space.",
+    },
+    {
+        "code": "rent07",
+        "headline": "HP LaserJet laser printer",
+        "description": "Black-and-white HP LaserJet laser printer. Reliable for the odd document or quick prints. Ready to use. Ideal if you only print now and then.",
+    },
+    {
+        "code": "rent08",
+        "headline": "Nintendo Game Boy console",
+        "description": "Classic Nintendo Game Boy handheld console. Pure nostalgia for the old-school titles. Runs on batteries. A retro gem for a few rounds of play.",
+    },
+    {
+        "code": "rent09",
+        "headline": "Spin mop with bucket",
+        "description": "Spin mop with a spinning bucket. Wrings out effortlessly and leaves floors almost dry. Comfy and effective for everyday cleaning. Extendable handle.",
+    },
+    {
+        "code": "rent10",
+        "headline": "Handheld steam cleaner",
+        "description": "Portable steam cleaner with accessories. Disinfects without chemicals in bathrooms, kitchens and grout. Handy for the odd deep clean. Easy to handle.",
+    },
+    {
+        "code": "rent11",
+        "headline": "Wet & dry vacuum",
+        "description": "Wet-and-dry vacuum with wheels and accessories. Powerful for garages, cars, jobs or spills. Large steel tank. For what a normal vacuum can't handle.",
+    },
+    {
+        "code": "rent12",
+        "headline": "Ryobi cordless drill driver",
+        "description": "Ryobi cordless drill driver. For assembling furniture, hanging pictures or small home jobs. Light and easy to handle. Battery included. Perfect for basic DIY.",
+    },
+    {
+        "code": "rent13",
+        "headline": "Basic tool kit",
+        "description": "Tool case for DIY: hammer, screwdrivers, pliers, wrench, level and tape measure. The essentials for fixes and assembly at home. Neatly organised.",
+    },
+    {
+        "code": "rent14",
+        "headline": "Ab roller wheel",
+        "description": "Wheel for working abs and core at home. Compact and sturdy with padded grips. Great for building strength without the gym. Easy to store.",
+    },
+    {
+        "code": "rent15",
+        "headline": "Skipping rope",
+        "description": "Skipping rope with ergonomic handles. Perfect for cardio, warm-ups or training anywhere. Light and adjustable. Get your heart pumping.",
+    },
+    {
+        "code": "rent16",
+        "headline": "1 kg dumbbells (pair)",
+        "description": "Pair of 1 kg neoprene-coated dumbbells. Soft, non-slip grip. Ideal for toning, pilates or rehab. Comfortable to start with.",
+    },
+    {
+        "code": "rent17",
+        "headline": "Cork yoga mat",
+        "description": "Non-slip natural cork yoga mat with alignment lines. Carry strap included. Good grip even when sweaty. For yoga, pilates or stretching.",
+    },
+    {
+        "code": "rent18",
+        "headline": "Adjustable dumbbell set",
+        "description": "Adjustable dumbbell and kettlebell set with plates and bars. Dial the weight to each exercise. An all-in-one for strength training at home. Space-saving.",
+    },
+    {
+        "code": "rent19",
+        "headline": "Black kitchen utensil set",
+        "description": "Set of 4 nylon utensils: spatula, ladle, whisk and slotted spoon. Safe for all pans and pots.",
+    },
+    {
+        "code": "rent20",
+        "headline": "Steel kitchen utensil set",
+        "description": "Set of 6 stainless steel utensils: skimmer, masher, whisk, ladle, spatula and fork. Complete and sturdy.",
+    },
+    {
+        "code": "rent21",
+        "headline": "Wüsthof Santoku knife",
+        "description": "Professional Wüsthof Classic 17cm santoku knife. Precise cuts for veg, meat and fish. In very good condition.",
+    },
+    {
+        "code": "rent22",
+        "headline": "Non-stick pot set",
+        "description": "Set of two non-stick pots with ergonomic handles. Perfect for cooking with nothing sticking. Large and medium sizes.",
+    },
+    {
+        "code": "rent23",
+        "headline": "Stainless steel saucepan",
+        "description": "Professional-quality stainless steel saucepan. Ideal for sauces and creams. Easy to clean and very durable.",
     },
     {
         "code": "lltl11",
@@ -227,10 +282,6 @@ THINGS = [
     {
         "code": "lltl28",
         "headline": "Too many babies, not enough pots – come rescue one!",
-    },
-    {
-        "code": "La1aW1",
-        "headline": "Hey! Maybe a small ladder, anyone? The top shelf is winning! 🪜",
     },
     {
         "code": "l1sw01",
@@ -319,9 +370,4 @@ FAQS = [
     },
 ]
 
-WISH_RESPONSES = [
-    {
-        "wish_code": "La1aW1",
-        "message": "The shed by the bike racks has a folding step ladder — ask Lolo for the key!",
-    },
-]
+WISH_RESPONSES = []
