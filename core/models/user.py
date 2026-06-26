@@ -93,8 +93,9 @@ class User(AbstractBaseUser):
     notify_activity = models.BooleanField(default=True)
     notify_news = models.BooleanField(default=True)
 
-    # Optional demographics, surfaced only inside COMMUNITY collections (shared
-    # with that collection's owner per member, never public). Both default empty.
+    # Optional demographics. Per member they're shared only with the owner of a
+    # COMMUNITY collection (on the guests page); in aggregate they appear in any
+    # collection owner's stats CSV. Never public. Both default empty.
     age_range = models.CharField(max_length=8, choices=AgeRange.choices, blank=True, default="")
     postal_code = models.CharField(max_length=10, blank=True, default="")
 

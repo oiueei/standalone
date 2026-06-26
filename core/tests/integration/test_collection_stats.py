@@ -1,8 +1,8 @@
 """
-Integration tests for the owner-only COMMUNITY usage-stats CSV.
+Integration tests for the owner-only usage-stats CSV.
 
-Covers the owner + community gate and that the CSV carries the expected snapshot
-counts and the aggregate age/postal breakdown.
+Covers the owner gate (any collection mode), and that the CSV carries the
+expected snapshot counts and the aggregate age/postal breakdown.
 """
 
 import csv as csvlib
@@ -28,12 +28,23 @@ class TestCollectionStats:
         res = authenticated_client2.get(URL.format(code=coll.code))
         assert res.status_code == 403
 
-    def test_proprietary_collection_forbidden(self, authenticated_client, user):
+    def test_proprietary_collection_allowed(self, authenticated_client, user, user2):
+        # Stats are available to the owner of ANY collection, not just COMMUNITY.
         coll = Collection.objects.create(
             code="PROP01", owner=user, headline="P", mode=Collection.Mode.PROPRIETARY
         )
+        user2.age_range = "22_35"
+        user2.postal_code = "48001"
+        user2.save()
+        coll.invites.add(user2)
+
         res = authenticated_client.get(URL.format(code=coll.code))
-        assert res.status_code == 403
+        assert res.status_code == 200
+        assert f"{coll.code}-stats.csv" in res["Content-Disposition"]
+        data = _csv_dict(res)
+        assert data["Members"] == "1"
+        assert data["Age 22-35"] == "1"
+        assert data["Postal 48001"] == "1"
 
     def test_csv_counts_and_demographics(self, authenticated_client, user, user2):
         coll = self._community(user)

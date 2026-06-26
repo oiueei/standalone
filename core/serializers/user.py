@@ -4,7 +4,7 @@ User serializers for OIUEEI.
 
 from rest_framework import serializers
 
-from core.models import Collection, Theeeme, User
+from core.models import Theeeme, User
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
@@ -22,7 +22,6 @@ class UserSerializer(serializers.ModelSerializer):
     )
     theeeme_colors = serializers.SerializerMethodField()
     photo_url = serializers.SerializerMethodField()
-    in_community = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -46,7 +45,6 @@ class UserSerializer(serializers.ModelSerializer):
             "notify_news",
             "age_range",
             "postal_code",
-            "in_community",
         ]
         read_only_fields = [
             "code",
@@ -83,15 +81,6 @@ class UserSerializer(serializers.ModelSerializer):
             "color_05": t.color_05,
             "color_06": t.color_06,
         }
-
-    def get_in_community(self, obj):
-        """True when the user owns or belongs to >=1 COMMUNITY collection — gates
-        the optional age/postal fields in the profile editor."""
-        community = Collection.Mode.COMMUNITY
-        return (
-            obj.owned_collections.filter(mode=community).exists()
-            or obj.invited_to_collections.filter(mode=community).exists()
-        )
 
 
 class UserPublicSerializer(serializers.ModelSerializer):

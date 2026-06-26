@@ -1,15 +1,15 @@
 """
-Integration tests for the optional COMMUNITY profile fields (age range + postal
-code).
+Integration tests for the optional demographic profile fields (age range +
+postal code).
 
-The fields are saved on the user's own profile, exposed back through /auth/me/
-with an `in_community` flag, and are visible — per member — only to the owner of
-a COMMUNITY collection (never to non-owners, never in other modes).
+The fields are saved on the user's own profile and exposed back through
+/auth/me/. Per member they're visible only to the owner of a COMMUNITY
+collection (never to non-owners, never in other modes); in aggregate they feed
+any collection owner's stats CSV.
 """
 
 from core.models import Collection
 
-ME = "/api/v1/auth/me/"
 USER = "/api/v1/users/{code}/"
 COLLECTION = "/api/v1/collections/{code}/"
 
@@ -40,20 +40,6 @@ class TestCommunityProfileFields:
             USER.format(code=user.code), {"postal_code": "<b>x</b>"}, format="json"
         )
         assert res.status_code == 400
-
-    def test_in_community_flag(self, authenticated_client, authenticated_client2, user, user2):
-        # No collections yet → not in any community.
-        res = authenticated_client.get(ME)
-        assert res.data["in_community"] is False
-
-        coll = Collection.objects.create(
-            code="COMM01", owner=user, headline="C", mode=Collection.Mode.COMMUNITY
-        )
-        coll.invites.add(user2)
-
-        # Owner of a community collection → true; an invited member → true.
-        assert authenticated_client.get(ME).data["in_community"] is True
-        assert authenticated_client2.get(ME).data["in_community"] is True
 
     def test_owner_sees_member_demographics_in_community(self, authenticated_client, user, user2):
         coll = Collection.objects.create(

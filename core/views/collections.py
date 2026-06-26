@@ -552,10 +552,11 @@ class CollectionStatsView(APIView):
     """
     GET /api/v1/collections/{collection_code}/stats/
 
-    Owner-only usage statistics for a COMMUNITY collection, returned as a CSV
+    Owner-only usage statistics for any collection, returned as a CSV
     download (metric,value): a snapshot plus a 90-day window, and — since the
     optional member demographics exist — an aggregate age-range and postal-code
-    breakdown. Aggregate only; the per-member values live on the guests page.
+    breakdown. Aggregate only; the per-member values live on the guests page
+    (and stay COMMUNITY-only there).
     """
 
     permission_classes = [IsAuthenticated]
@@ -568,11 +569,6 @@ class CollectionStatsView(APIView):
         )
         if denied:
             return denied
-        if not collection.is_community():
-            return Response(
-                {"error": "Stats are only available for community collections."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
 
         win = self.WINDOW_DAYS
         since = timezone.now() - timedelta(days=win)

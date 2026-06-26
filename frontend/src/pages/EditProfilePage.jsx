@@ -37,7 +37,6 @@ export default function EditProfilePage() {
   const [notifyNews, setNotifyNews] = useState(true);
   const [ageRange, setAgeRange] = useState('');
   const [postalCode, setPostalCode] = useState('');
-  const [inCommunity, setInCommunity] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -63,7 +62,6 @@ export default function EditProfilePage() {
           setNotifyNews(data.notify_news ?? true);
           setAgeRange(data.age_range || '');
           setPostalCode(data.postal_code || '');
-          setInCommunity(!!data.in_community);
         } else {
           setToast({ type: 'error', message: t('editProfile.errorLoading') });
         }
@@ -191,34 +189,30 @@ export default function EditProfilePage() {
             }}
           />
         </div>
-        {inCommunity && (
-          <>
-            <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('communityProfile.heading')}</h2>
-            <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('communityProfile.helper')}</p>
-            <div className="form-grid">
-              <Select
-                language="en"
-                id="edit-profile-age"
-                texts={{ label: t('communityProfile.ageLabel') }}
-                options={[
-                  { label: t('communityProfile.ageUnset'), value: '' },
-                  ...AGE_RANGES.map((c) => ({ label: t(`ageRange.${c}`), value: c })),
-                ]}
-                value={ageRange}
-                onChange={(selectedOptions) => {
-                  setAgeRange(selectedOptions.length > 0 ? selectedOptions[0].value : '');
-                }}
-              />
-              <TextInput
-                id="edit-profile-postal"
-                label={t('communityProfile.postalLabel')}
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                maxLength={10}
-              />
-            </div>
-          </>
-        )}
+        <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('communityProfile.heading')}</h2>
+        <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('communityProfile.helper')}</p>
+        <div className="form-grid">
+          <Select
+            language="en"
+            id="edit-profile-age"
+            texts={{ label: t('communityProfile.ageLabel') }}
+            options={[
+              { label: t('communityProfile.ageUnset'), value: '' },
+              ...AGE_RANGES.map((c) => ({ label: t(`ageRange.${c}`), value: c })),
+            ]}
+            value={ageRange}
+            onChange={(selectedOptions) => {
+              setAgeRange(selectedOptions.length > 0 ? selectedOptions[0].value : '');
+            }}
+          />
+          <TextInput
+            id="edit-profile-postal"
+            label={t('communityProfile.postalLabel')}
+            value={postalCode}
+            onChange={(e) => setPostalCode(e.target.value)}
+            maxLength={10}
+          />
+        </div>
         <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('notifications.pageTitle')}</h2>
         <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('notifications.intro')}</p>
         <div className="form-grid">

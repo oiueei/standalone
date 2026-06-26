@@ -10,8 +10,8 @@
     "56_PLUS": "56 ou mais"
   },
   "communityProfile": {
-    "heading": "Perfil comunitário",
-    "helper": "Opcional. Só os donos das coleções comunitárias das quais você faz parte podem ver isto — nunca é público.",
+    "heading": "Dados demográficos (opcional)",
+    "helper": "Opcional. Só os donos das coleções das quais você faz parte podem ver isto — nunca é público.",
     "ageLabel": "Faixa etária",
     "ageUnset": "Prefiro não dizer",
     "postalLabel": "CEP"

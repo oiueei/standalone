@@ -10,8 +10,8 @@
     "56_PLUS": "56 o más"
   },
   "communityProfile": {
-    "heading": "Perfil comunitario",
-    "helper": "Opcional. Solo lo pueden ver los propietarios de las colecciones comunitarias en las que estás — nunca es público.",
+    "heading": "Datos demográficos (opcional)",
+    "helper": "Opcional. Solo lo pueden ver los propietarios de las colecciones en las que estás — nunca es público.",
     "ageLabel": "Franja de edad",
     "ageUnset": "Prefiero no decirlo",
     "postalLabel": "Código postal"

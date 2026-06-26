@@ -163,11 +163,9 @@ export default function CollectionPage() {
               <Link to={`/collections/${code}/invites`}>
                 <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.manageGuests')}</Button>
               </Link>
-              {collection.mode === 'COMMUNITY' && (
-                <Button variant="secondary" style={btnSecondaryStyle} onClick={handleDownloadStats}>
-                  {t('stats.downloadStats')}
-                </Button>
-              )}
+              <Button variant="secondary" style={btnSecondaryStyle} onClick={handleDownloadStats}>
+                {t('stats.downloadStats')}
+              </Button>
             </div>
             {statsError && (
               <Notification type="error" size="small" style={{ marginTop: 'var(--spacing-xs)' }}>

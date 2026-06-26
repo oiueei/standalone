@@ -10,8 +10,8 @@
     "56_PLUS": "56 or over"
   },
   "communityProfile": {
-    "heading": "Community profile",
-    "helper": "Optional. Only the owners of the community collections you're in can see this — it's never public.",
+    "heading": "Demographics (optional)",
+    "helper": "Optional. Only owners of collections you're in can see this — it's never public.",
     "ageLabel": "Age range",
     "ageUnset": "Prefer not to say",
     "postalLabel": "Postal code"
