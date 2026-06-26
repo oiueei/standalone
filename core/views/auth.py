@@ -435,6 +435,10 @@ class PopInView(APIView):
         # collections. ``joined`` short-circuits that fallback once we've added
         # the user to a specific collection.
         joined = False
+        # When the visitor joins a specific PUBLIC collection by code, stamp it on
+        # the magic-link RSVP so VerifyLinkView redirects them straight back to it
+        # (login-to-act: they came to *act* on that collection).
+        target_collection_code = ""
 
         # 1) An owner's share-token link (bearer credential).
         if share_token:
@@ -466,6 +470,7 @@ class PopInView(APIView):
             if public_collection is not None:
                 public_collection.invites.add(user)
                 joined = True
+                target_collection_code = public_collection.code
 
         # 3) No specific target — add to the open demo/onboarding collections.
         if not joined:
@@ -473,7 +478,9 @@ class PopInView(APIView):
             for collection in onboarding_collections:
                 collection.invites.add(user)
 
-        rsvp = RSVP.objects.create(user_code=user, user_email=email)
+        rsvp = RSVP.objects.create(
+            user_code=user, user_email=email, target_code=target_collection_code
+        )
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.token}"
         _send_magic_link(email, magic_link)

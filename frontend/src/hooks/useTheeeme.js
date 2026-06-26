@@ -17,12 +17,28 @@ import { useMemo } from 'react';
  * - `btnStyle`: primary button (theeeme `color_01` background, `color_06` text).
  * - `btnSecondaryStyle`: secondary button (white background, `color_01` border, `color_04` text).
  */
+// Fallback palette for a viewer with no stored theeeme yet — e.g. an anonymous
+// visitor on a PUBLIC collection, or anyone before their first login. Without it
+// `tc` is `{}`, so `--hero-text-color` stays unset and the hero title falls back
+// to black-90 — invisible on the dark hero. It's a real, coherent theeeme row
+// (the "M&V" palette, code 5BC8W6: black hero + white text + summer/yellow
+// accents) rather than a hand-mixed set of tokens, so every surface matches.
+const DEFAULT_COLORS = {
+  color_01: 'summer',
+  color_02: 'black-5',
+  color_03: 'black',
+  color_04: 'black',
+  color_05: 'white',
+  color_06: 'black',
+};
+
 export default function useTheeeme() {
   const raw = localStorage.getItem('theeemeColors') || '{}';
   const koro = localStorage.getItem('koro') || 'basic';
 
   return useMemo(() => {
-    const tc = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    const tc = parsed && Object.keys(parsed).length > 0 ? parsed : DEFAULT_COLORS;
     const btnStyle = tc.color_01
       ? {
           '--background-color': `var(--color-${tc.color_01})`,

@@ -8,7 +8,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import ShareCollectionMenu from '../components/ShareCollectionMenu';
 import ThingLinkbox from '../components/ThingLinkbox';
-import JoinToAct from '../components/JoinToAct';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function CollectionPage() {
@@ -211,13 +210,6 @@ export default function CollectionPage() {
         </Notification>
       )}
 
-      {!isAuthenticated && (
-        <>
-          <JoinToAct collectionCode={code} collectionHeadline={collection.headline} />
-          <div className="spacer-l" />
-        </>
-      )}
-
       {showWelcome && (
         <div className="linkbox-full-width">
         <Linkbox
@@ -257,6 +249,7 @@ export default function CollectionPage() {
               minimalist={collection.is_minimalist}
               isPaused={collection.is_paused}
               canAct={isAuthenticated}
+              loginToAct={!isAuthenticated}
               onDelete={(thingCode) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.filter((t) => t.code !== thingCode),

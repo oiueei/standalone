@@ -14,7 +14,7 @@ import Toast from './Toast';
 import ImageCarousel from './ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, canAct = true, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, canAct = true, hideType = false, loginToAct = false, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
@@ -53,7 +53,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
 
   // `canAct` is false for an anonymous visitor on a PUBLIC collection: the card
   // is read-only and the page-level JoinToAct prompt drives reserve/ask/respond.
-  const showButton = canAct && !isOwner && thing.status !== 'INACTIVE';
+  const showButton = (canAct || loginToAct) && !isOwner && thing.status !== 'INACTIVE';
+  // Anonymous visitor (loginToAct): show the action buttons, but route each click
+  // to the collection's join page — they log in there and come back able to act.
+  const joinPath = `/collections/${collectionCode || thing.collection_code}/join`;
+  const goJoin = () => navigate(joinPath, { state: { collectionHeadline: collectionHeadline || thing.collection_headline } });
+  const loginButtonDisabled = isPaused || thing.status === 'TAKEN';
   const swapMinimum = thing.collection_swap_minimum_items || 0;
   const swapOwnCount = thing.my_swap_count_in_collection || 0;
   const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
@@ -141,9 +146,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             {showButton && !isWish && (
               <Button
                 fullWidth
-                disabled={buttonDisabled}
+                disabled={loginToAct ? loginButtonDisabled : buttonDisabled}
                 style={btnStyle}
-                onClick={isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
+                onClick={loginToAct ? goJoin : (isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest)}
               >
                 {buttonLabel}
               </Button>
@@ -151,7 +156,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           </div>
         </div>
         <p className="thing-card-caption">{thing.headline}</p>
-        {showButton && swapMinimumNotMet && (
+        {showButton && swapMinimumNotMet && !loginToAct && (
           <Notification
             type="info"
             label={t('swap.minimumNotMetLabel')}
@@ -276,7 +281,9 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
             </>
           )}
           {showButton && isWish && (
-            thing.my_response ? (
+            loginToAct ? (
+              <Button fullWidth style={btnStyle} onClick={goJoin}>{t('wishes.respond')}</Button>
+            ) : thing.my_response ? (
               <p className="thing-card-meta">
                 {t('wishes.yourAnswer')} · {t('wishes.status.' + thing.my_response.status)}
               </p>
@@ -292,14 +299,14 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
           {showButton && !isWish && (
             <Button
               fullWidth
-              disabled={buttonDisabled}
+              disabled={loginToAct ? loginButtonDisabled : buttonDisabled}
               style={btnStyle}
-              onClick={needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest}
+              onClick={loginToAct ? goJoin : (needsPage ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest)}
             >
               {buttonLabel}
             </Button>
           )}
-          {showButton && swapMinimumNotMet && (
+          {showButton && swapMinimumNotMet && !loginToAct && (
             <Notification
               type="info"
               label={t('swap.minimumNotMetLabel')}

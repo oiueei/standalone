@@ -119,3 +119,26 @@ class TestPublicAutoJoin:
         )
         assert resp.status_code == 200
         assert join_setup["public"].invites.filter(code=existing.code).exists()
+
+    def test_public_code_stamps_target_on_rsvp(self, join_setup):
+        # The magic-link RSVP carries the collection as target_code so that, after
+        # verifying, the visitor is redirected straight back to it (login-to-act).
+        join_setup["anon"].post(
+            POP_IN_URL,
+            {"email": "redir@test.com", "collection_code": "JPUB01"},
+            format="json",
+        )
+        user = User.objects.get(email="redir@test.com")
+        rsvp = RSVP.objects.get(user_code=user, action=RSVP.Action.MAGIC_LINK)
+        assert rsvp.target_code == "JPUB01"
+
+    def test_onboarding_fallback_leaves_target_empty(self, join_setup):
+        # No specific public target → no redirect target (lands on home/welcome).
+        join_setup["anon"].post(
+            POP_IN_URL,
+            {"email": "demo@test.com"},
+            format="json",
+        )
+        user = User.objects.get(email="demo@test.com")
+        rsvp = RSVP.objects.get(user_code=user, action=RSVP.Action.MAGIC_LINK)
+        assert rsvp.target_code == ""

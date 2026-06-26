@@ -14,7 +14,7 @@ import useTheeeme from '../hooks/useTheeeme';
  * is needed — and the code only ever joins a PUBLIC collection (the backend
  * silently ignores it otherwise).
  */
-export default function JoinToAct({ collectionCode, collectionHeadline }) {
+export default function JoinToAct({ collectionCode, collectionHeadline, asPage = false }) {
   const { t } = useTranslation();
   const { btnStyle } = useTheeeme();
   const [email, setEmail] = useState('');
@@ -54,24 +54,15 @@ export default function JoinToAct({ collectionCode, collectionHeadline }) {
 
   if (status === 'success') {
     return (
-      <Notification label={t('joinToAct.sent')} type="success" className="join-to-act">
+      <Notification label={t('joinToAct.sent')} type="success" className={asPage ? undefined : 'join-to-act'}>
         {message}
       </Notification>
     );
   }
 
-  return (
-    <section
-      className="join-to-act"
-      style={{
-        border: '1px solid var(--color-black-20)',
-        borderRadius: '4px',
-        padding: 'var(--spacing-m)',
-        maxWidth: '480px',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{t('joinToAct.heading')}</h2>
-      <p>
+  const body = (
+    <>
+      <p style={asPage ? { marginTop: 0 } : undefined}>
         {collectionHeadline
           ? t('joinToAct.bodyNamed', { collection: collectionHeadline })
           : t('joinToAct.body')}
@@ -98,6 +89,26 @@ export default function JoinToAct({ collectionCode, collectionHeadline }) {
       <p style={{ marginBottom: 0 }}>
         <Link to="/login">{t('joinToAct.alreadyHaveAccount')}</Link>
       </p>
+    </>
+  );
+
+  // Page mode (JoinPage): no bordered box or heading — the page hero supplies them.
+  if (asPage) {
+    return <div style={{ maxWidth: '480px' }}>{body}</div>;
+  }
+
+  return (
+    <section
+      className="join-to-act"
+      style={{
+        border: '1px solid var(--color-black-20)',
+        borderRadius: '4px',
+        padding: 'var(--spacing-m)',
+        maxWidth: '480px',
+      }}
+    >
+      <h2 style={{ marginTop: 0 }}>{t('joinToAct.heading')}</h2>
+      {body}
     </section>
   );
 }

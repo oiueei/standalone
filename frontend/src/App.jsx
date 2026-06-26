@@ -30,6 +30,7 @@ import MyBookingsPage from './pages/MyBookingsPage';
 import WelcomePage from './pages/WelcomePage';
 import PopInPage from './pages/PopInPage';
 import SharePage from './pages/SharePage';
+import JoinPage from './pages/JoinPage';
 import NotFoundPage from './pages/NotFoundPage';
 import RequireAuth from './components/RequireAuth';
 import './App.css';
@@ -98,6 +99,7 @@ function App() {
         <Route path="/collections/:code" element={<CollectionPage />} />
         <Route path="/collections/:code/things/:thingCode" element={<ThingPage />} />
         <Route path="/things/:thingCode" element={<ThingPage />} />
+        <Route path="/collections/:code/join" element={<JoinPage />} />
 
         {/* Protected routes — RequireAuth redirects to /login when signed out */}
         <Route element={<RequireAuth />}>

@@ -140,6 +140,38 @@ class TestThingSerializer:
         assert data["owner_name"] == ""
         assert "nameless@example.com" not in str(data)
 
+    def test_owner_email_fallback_only_for_collection_owner(self):
+        """On the community grid a no-name thing owner's email is shown to the
+        collection owner (who already sees co-members' emails) but never to other
+        members or anonymous visitors (L2)."""
+        from django.contrib.auth.models import AnonymousUser
+        from rest_framework.test import APIRequestFactory
+
+        owner = User.objects.create(code="GRDOWN", email="owner@example.com", name="Owner")
+        nameless = User.objects.create(code="GHOST1", email="ghost@example.com", name="")
+        collection = Collection.objects.create(
+            code="GRID01",
+            owner=owner,
+            headline="Community",
+            mode=Collection.Mode.COMMUNITY,
+        )
+        thing = Thing.objects.create(code="GTHNG1", owner=nameless, headline="Z")
+        collection.things.add(thing)
+
+        def owner_name_seen_by(viewer):
+            request = APIRequestFactory().get("/")
+            request.user = viewer
+            data = CollectionSerializer(collection, context={"request": request}).data
+            return data["things"][0]["owner_name"]
+
+        # The collection owner gets the email fallback for a no-name owner.
+        assert owner_name_seen_by(owner) == "ghost@example.com"
+        # A different member never sees the email.
+        other = User.objects.create(code="OTHER1", email="other@example.com", name="Other")
+        assert owner_name_seen_by(other) == ""
+        # Neither does an anonymous visitor (PUBLIC collections are public-readable).
+        assert owner_name_seen_by(AnonymousUser()) == ""
+
     def test_serialize_thing_with_collection(self):
         """Should include collection_code and collection_headline."""
         user = User.objects.create(code="OWN001", email="owner@example.com")

@@ -65,8 +65,25 @@ class ThingComputedFieldsMixin(serializers.Serializer):
     next_available = serializers.SerializerMethodField()
 
     def get_owner_name(self, obj):
-        # Bare name, never the email fallback — this is shown to co-members in
-        # the community grid, so display_name's email fallback would leak it (L2).
+        # Bare name by default — never the email — because this is shown to
+        # co-members (and to anonymous visitors on PUBLIC collections) in the
+        # community grid, where an email fallback would leak it (L2).
+        # Exception: the collection owner already sees co-members' emails
+        # (owner-only `invites`), so when the viewer owns the collection being
+        # serialised (``parent_collection`` is only set on the collection grid)
+        # we fall back to the email for owners who haven't set a name. Standalone
+        # thing endpoints have no ``parent_collection`` → email is never exposed.
+        if obj.owner.name:
+            return obj.owner.name
+        request = self.context.get("request")
+        collection = self.context.get("parent_collection")
+        if (
+            request
+            and request.user.is_authenticated
+            and collection is not None
+            and collection.is_owner(request.user.code)
+        ):
+            return obj.owner.email
         return obj.owner.name
 
     def get_gallery_urls(self, obj):
