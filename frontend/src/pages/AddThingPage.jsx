@@ -22,6 +22,13 @@ export default function AddThingPage() {
   const userCode = localStorage.getItem('userCode');
   useEffect(() => { document.title = t('titles.addThing'); }, [t]);
 
+  // Deep-link from the collection empty state: /add#bulk-add scrolls to the CSV importer.
+  useEffect(() => {
+    if (routerLocation.hash === '#bulk-add') {
+      document.getElementById('bulk-add')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [routerLocation.hash]);
+
   const [collectionHeadline, setCollectionHeadline] = useState('');
   const [collectionMode, setCollectionMode] = useState('');
   const [isSwapCollection, setIsSwapCollection] = useState(false);
@@ -242,7 +249,7 @@ export default function AddThingPage() {
       </div>
 
       {!isMinimalistCollection && !respondWishCode && (
-        <section className="bulk-add-section">
+        <section id="bulk-add" className="bulk-add-section">
           <h2>{t('bulkAdd.heading')}</h2>
           <BulkAddCsv collectionCode={code} onImported={() => navigate(`/collections/${code}`)} />
         </section>

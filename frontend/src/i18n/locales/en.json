@@ -717,8 +717,8 @@
   },
   "bulkAdd": {
     "heading": "Add many at once (CSV)",
-    "help": "Upload a CSV with a \"headline\" column (required). Optional columns: type, description, fee, availability, location, condition.",
-    "fileLabel": "CSV file",
+    "help": "Upload a CSV with a \"headline\" column (required). Optional columns: type, description, fee, availability, location, condition, tags (separate multiple tags with |). To add photos, upload a ZIP with the CSV plus the image files and reference each photo by filename in a \"photo\" column.",
+    "fileLabel": "CSV or ZIP file",
     "empty": "No rows found in that file.",
     "tooMany": "You can import up to {{max}} items at once.",
     "headlineRequired": "Every row needs a headline.",

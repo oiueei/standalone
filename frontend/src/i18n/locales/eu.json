@@ -700,8 +700,8 @@
   },
   "bulkAdd": {
     "heading": "Gehitu hainbat batera (CSV)",
-    "help": "Igo \"headline\" zutabea (nahitaezkoa) duen CSV bat. Aukerako zutabeak: type, description, fee, availability, location, condition.",
-    "fileLabel": "CSV fitxategia",
+    "help": "Igo \"headline\" zutabea (nahitaezkoa) duen CSV bat. Aukerako zutabeak: type, description, fee, availability, location, condition, tags (bereizi tag-ak | erabiliz). Argazkiak gehitzeko, igo CSVa eta irudiak dituen ZIP bat, eta erreferentziatu argazki bakoitza bere fitxategi-izenarekin \"photo\" zutabe batean.",
+    "fileLabel": "CSV edo ZIP fitxategia",
     "empty": "Ez da errenkadarik aurkitu fitxategian.",
     "tooMany": "Gehienez {{max}} elementu inporta ditzakezu aldi berean.",
     "headlineRequired": "Errenkada bakoitzak izenburua behar du.",

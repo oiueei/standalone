@@ -355,6 +355,24 @@ class ThingBulkCreateView(APIView):
             if type_error:
                 errors.append({"row": index, "errors": {"type": [type_error]}})
                 continue
+            # Tags must belong to the collection's vocabulary (mirrors the
+            # single-create subset check in ThingViewSet.perform_create).
+            tags = serializer.validated_data.get("tags", [])
+            if tags:
+                available = set(collection.tags or [])
+                invalid = [tag for tag in tags if tag not in available]
+                if invalid:
+                    errors.append(
+                        {
+                            "row": index,
+                            "errors": {
+                                "tags": [
+                                    f"These tags are not defined by the collection: {invalid}"
+                                ]
+                            },
+                        }
+                    )
+                    continue
             validated.append(serializer.validated_data)
 
         if errors:

@@ -1126,3 +1126,60 @@ main:focus {
 .bulk-add-preview li {
   margin-bottom: var(--spacing-3-xs);
 }
+
+/* CSV format hint: an (i) icon that reveals a Notification popover on hover/focus. */
+.bulk-add-help-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2-xs);
+}
+
+.bulk-add-info {
+  position: relative;
+  display: inline-flex;
+}
+
+.bulk-add-info-button {
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--color-black-60);
+}
+
+.bulk-add-info-button:hover {
+  color: var(--color-black-90);
+}
+
+.bulk-add-format-popover {
+  position: absolute;
+  top: calc(100% + var(--spacing-2-xs));
+  right: 0;
+  z-index: 1000;
+  width: min(360px, 85vw);
+  box-shadow: var(--box-shadow-m, 0 2px 8px rgba(0, 0, 0, 0.15));
+  text-align: left;
+}
+
+.bulk-add-format-body {
+  margin: 0 0 var(--spacing-2-xs);
+}
+
+.bulk-add-example {
+  margin: 0;
+  padding: var(--spacing-2-xs) var(--spacing-xs);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-black-20);
+  border-radius: 2px;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--fontsize-body-s);
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.bulk-add-format {
+  margin-top: var(--spacing-m);
+}

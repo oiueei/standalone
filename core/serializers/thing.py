@@ -437,9 +437,10 @@ class ThingBulkRowSerializer(serializers.ModelSerializer):
     """One row of a CSV bulk import (F-9).
 
     Reuses the project's safe text fields (HTML / line-break / unsafe-scheme
-    rejection) and adds a CSV-injection guard on each free-text field. Only the
-    plain text/scalar columns are importable from a CSV — photos, gallery,
-    documents and tags are not part of a bulk upload.
+    rejection) and adds a CSV-injection guard on each free-text field. Photos,
+    gallery and documents can't be bulk-imported; tags can — a single
+    ``|``-separated cell, validated against the collection's vocabulary in the
+    view (the serializer has no collection context).
     """
 
     headline = SafeHeadlineField(max_length=64)
@@ -448,6 +449,16 @@ class ThingBulkRowSerializer(serializers.ModelSerializer):
     fee = serializers.DecimalField(
         max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
     )
+    tags = serializers.ListField(
+        child=SafeHeadlineField(max_length=32),
+        max_length=12,
+        required=False,
+        allow_empty=True,
+    )
+    # Cover photo public_id. A CSV can't carry binaries, but a ZIP bundle can:
+    # the client unzips, uploads each image to Cloudinary, and sends the resulting
+    # public_id here (validated path-traversal-safe like the single-create path).
+    thumbnail = ImageIdField(required=False, allow_blank=True)
 
     class Meta:
         model = Thing
@@ -459,6 +470,8 @@ class ThingBulkRowSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
+            "tags",
+            "thumbnail",
             "is_endless",
         ]
 
@@ -479,3 +492,9 @@ class ThingBulkRowSerializer(serializers.ModelSerializer):
 
     def validate_location(self, value):
         return reject_spreadsheet_formula(value)
+
+    def validate_tags(self, value):
+        # Guard each tag against spreadsheet-formula (CSV) injection, like the
+        # other free-text fields. The subset-against-collection check runs in
+        # ThingBulkCreateView (the serializer has no collection context).
+        return [reject_spreadsheet_formula(tag) for tag in value] if value else value

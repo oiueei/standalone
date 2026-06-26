@@ -154,3 +154,36 @@ class TestBulkCreate:
         assert res.status_code == 400
         assert "type" in res.data["errors"][0]["errors"]
         assert community.things.count() == 0
+
+    def test_imports_tags_from_collection_vocabulary(self, auth_client, collection):
+        collection.tags = ["Books", "Toys"]
+        collection.save(update_fields=["tags"])
+        rows = [{"type": "GIFT_THING", "headline": "Tagged", "tags": ["Books"]}]
+        res = auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
+        assert res.status_code == 201
+        thing = Thing.objects.get(code=res.data["codes"][0])
+        assert thing.tags == ["Books"]
+
+    def test_rejects_tag_not_in_collection_vocabulary(self, auth_client, collection):
+        collection.tags = ["Books"]
+        collection.save(update_fields=["tags"])
+        rows = [{"type": "GIFT_THING", "headline": "Bad tag", "tags": ["Undefined"]}]
+        res = auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
+        assert res.status_code == 400
+        assert "tags" in res.data["errors"][0]["errors"]
+        assert collection.things.count() == 0
+
+    def test_imports_thumbnail_public_id(self, auth_client, collection):
+        # The ZIP path uploads images to Cloudinary client-side and sends the
+        # resulting public_id here as `thumbnail`.
+        rows = [{"type": "GIFT_THING", "headline": "With photo", "thumbnail": "oiueei/things/abc123"}]
+        res = auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
+        assert res.status_code == 201
+        thing = Thing.objects.get(code=res.data["codes"][0])
+        assert thing.thumbnail == "oiueei/things/abc123"
+
+    def test_rejects_path_traversal_thumbnail(self, auth_client, collection):
+        rows = [{"type": "GIFT_THING", "headline": "Evil", "thumbnail": "../../etc/passwd"}]
+        res = auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
+        assert res.status_code == 400
+        assert collection.things.count() == 0

@@ -700,8 +700,8 @@
   },
   "bulkAdd": {
     "heading": "Engadir varios á vez (CSV)",
-    "help": "Sobe un CSV cunha columna \"headline\" (obrigatoria). Columnas opcionais: type, description, fee, availability, location, condition.",
-    "fileLabel": "Ficheiro CSV",
+    "help": "Sobe un CSV cunha columna \"headline\" (obrigatoria). Columnas opcionais: type, description, fee, availability, location, condition, tags (separa varios tags con |). Para engadir fotos, sobe un ZIP co CSV e as imaxes, e referencia cada foto polo seu nome de ficheiro nunha columna \"photo\".",
+    "fileLabel": "Ficheiro CSV ou ZIP",
     "empty": "Non se atoparon filas no ficheiro.",
     "tooMany": "Podes importar ata {{max}} elementos á vez.",
     "headlineRequired": "Cada fila precisa dun título.",

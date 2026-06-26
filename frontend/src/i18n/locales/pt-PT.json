@@ -700,8 +700,8 @@
   },
   "bulkAdd": {
     "heading": "Adicionar vários de uma vez (CSV)",
-    "help": "Carrega um CSV com uma coluna \"headline\" (obrigatória). Colunas opcionais: type, description, fee, availability, location, condition.",
-    "fileLabel": "Ficheiro CSV",
+    "help": "Carrega um CSV com uma coluna \"headline\" (obrigatória). Colunas opcionais: type, description, fee, availability, location, condition, tags (separa vários tags com |). Para adicionar fotos, carrega um ZIP com o CSV e as imagens, e referencia cada foto pelo nome do ficheiro numa coluna \"photo\".",
+    "fileLabel": "Ficheiro CSV ou ZIP",
     "empty": "Não foram encontradas linhas no ficheiro.",
     "tooMany": "Podes importar até {{max}} itens de uma vez.",
     "headlineRequired": "Cada linha precisa de um título.",
