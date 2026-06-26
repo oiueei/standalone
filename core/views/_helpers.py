@@ -65,19 +65,38 @@ def type_validity_error(thing_type, collection):
         return (
             f"{thing_type.replace('_', ' ').title()}s can only be created in community collections"
         )
-    if collection.is_swap and thing_type != Thing.Type.SWAP_THING:
-        return "Only swap things can be added to a swap collection"
+    # Swap-only and share-only collections accept their forced offer type plus
+    # wishes — a wish is a community-wide "I want X" request and coexists with
+    # the offer pool without touching its mechanic (it uses WishResponse, not a
+    # booking/transfer). Albums stay offer-only (handled below).
+    if collection.is_swap and thing_type not in (
+        Thing.Type.SWAP_THING,
+        Thing.Type.WISH_THING,
+    ):
+        return "Only swap things (or wishes) can be added to a swap collection"
     if thing_type == Thing.Type.SWAP_THING and not collection.is_swap:
         return "Swap things can only be created in swap collections"
-    if collection.is_share and thing_type != Thing.Type.SHARE_THING:
-        return "Only share things can be added to a share collection"
+    if collection.is_share and thing_type not in (
+        Thing.Type.SHARE_THING,
+        Thing.Type.WISH_THING,
+    ):
+        return "Only share things (or wishes) can be added to a share collection"
     if collection.is_minimalist and thing_type not in (
         Thing.Type.GIFT_THING,
         Thing.Type.SHARE_THING,
         Thing.Type.SWAP_THING,
     ):
         return "Only gift, share, and swap things can be added to a minimalist collection"
-    if collection.allowed_thing_types and thing_type not in collection.allowed_thing_types:
+    if (
+        collection.allowed_thing_types
+        and thing_type not in collection.allowed_thing_types
+        # A swap/share collection's allowlist is its forced offer type, not an
+        # owner choice — wishes are implicitly allowed there and so are exempt.
+        and not (
+            thing_type == Thing.Type.WISH_THING
+            and (collection.is_swap or collection.is_share)
+        )
+    ):
         return (
             f"This collection does not accept {thing_type.replace('_', ' ').title()}s."
             " The owner has restricted it to specific types."

@@ -132,6 +132,21 @@ class TestSwapThingRestrictions:
         )
         assert res.status_code == 400
 
+    def test_wish_allowed_in_swap_collection(self, auth_client_user, swap_collection):
+        """A swap-only collection also accepts wishes — a swap is itself an
+        "I want to exchange" intent, so a wish coexists with the swap pool."""
+        res = auth_client_user.post(
+            "/api/v1/things/",
+            {
+                "headline": "Looking for a tent",
+                "type": "WISH_THING",
+                "collection_code": swap_collection.code,
+            },
+            format="json",
+        )
+        assert res.status_code == 201
+        assert res.data["type"] == "WISH_THING"
+
     def test_cannot_create_swap_in_non_swap_collection(self, auth_client_user):
         coll = Collection.objects.create(
             code="NOSWP1",

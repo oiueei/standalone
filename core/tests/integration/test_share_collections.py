@@ -125,6 +125,20 @@ class TestShareCollectionTypeRestrictions:
         )
         assert res.status_code == 400
 
+    def test_share_collection_accepts_wish_thing(self, authenticated_client, community_collection):
+        """A share-only collection also accepts wishes — sharing + wishes coexist."""
+        res = authenticated_client.post(
+            "/api/v1/things/",
+            {
+                "type": "WISH_THING",
+                "headline": "Looking for a ladder",
+                "collection_code": community_collection.code,
+            },
+            format="json",
+        )
+        assert res.status_code == 201
+        assert res.json()["type"] == "WISH_THING"
+
     def test_guest_can_add_share_thing(self, guest_client, community_collection):
         res = guest_client.post(
             "/api/v1/things/",

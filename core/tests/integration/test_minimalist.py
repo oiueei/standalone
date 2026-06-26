@@ -101,6 +101,29 @@ class TestMinimalistTypeRestrictions:
         assert response.status_code == 400
         assert "minimalist" in response.json()["error"].lower()
 
+    def test_wish_blocked_in_community_album(self, authenticated_client, user):
+        """An album collection stays offer-only: it rejects wishes even in
+        COMMUNITY mode, where a wish would otherwise be a valid type."""
+        album = Collection.objects.create(
+            code="CMALB1",
+            owner=user,
+            headline="Community Album",
+            mode="COMMUNITY",
+            is_minimalist=True,
+        )
+        response = authenticated_client.post(
+            "/api/v1/things/",
+            {
+                "type": "WISH_THING",
+                "headline": "Wish In Album",
+                "thumbnail": "oiueei/things/test123",
+                "collection_code": album.code,
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+        assert "minimalist" in response.json()["error"].lower()
+
     def test_thumbnail_required(self, authenticated_client, minimalist_collection):
         """Things in minimalist collections must have a thumbnail."""
         response = authenticated_client.post(

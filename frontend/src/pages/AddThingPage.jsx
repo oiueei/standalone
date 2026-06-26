@@ -166,16 +166,23 @@ export default function AddThingPage() {
   // Theeeme colors from localStorage (set by HomePage on login)
   const { tc, btnStyle } = useTheeeme();
 
-  const typeOptions = TYPE_VALUES.filter((v) => {
-    if (v === SWAP_TYPE) return false;
-    // Cannot answer a wish by offering another wish.
-    if (respondWishCode && v === WISH_TYPE) return false;
-    if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
-    if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
-    // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
-    if (collectionAllowedTypes.length > 0 && !collectionAllowedTypes.includes(v)) return false;
-    return true;
-  }).map((v) => ({ label: t('types.' + v), value: v }));
+  const typeOptions = (() => {
+    // Swap-only / share-only collections accept their forced offer type plus
+    // wishes (a wish coexists with the offer pool). Offer both so a member can
+    // post either — except in respond mode, where a wish can't answer a wish.
+    if (isSwapCollection) return respondWishCode ? [SWAP_TYPE] : [SWAP_TYPE, WISH_TYPE];
+    if (isShareCollection) return respondWishCode ? [SHARE_TYPE] : [SHARE_TYPE, WISH_TYPE];
+    return TYPE_VALUES.filter((v) => {
+      if (v === SWAP_TYPE) return false;
+      // Cannot answer a wish by offering another wish.
+      if (respondWishCode && v === WISH_TYPE) return false;
+      if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
+      if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
+      // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
+      if (collectionAllowedTypes.length > 0 && !collectionAllowedTypes.includes(v)) return false;
+      return true;
+    });
+  })().map((v) => ({ label: t('types.' + v), value: v }));
 
   return (
     <PageLayout
@@ -195,7 +202,7 @@ export default function AddThingPage() {
             errors={errors}
             minimalist={isMinimalistCollection}
             typeOptions={typeOptions}
-            showTypeSelector={!isSwapCollection && !isShareCollection}
+            showTypeSelector={!((isSwapCollection || isShareCollection) && respondWishCode)}
             type={type}
             setType={setType}
             isEndless={isEndless}

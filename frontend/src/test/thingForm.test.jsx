@@ -103,15 +103,26 @@ describe('AddThingPage — field visibility', () => {
     expect(container.querySelector('#add-thing-location')).toBeNull();
   });
 
-  test('swap collection: auto-selects SWAP and hides the type selector', async () => {
+  test('swap collection: shows the type selector (SWAP + wish), defaults to SWAP', async () => {
     const { container } = renderAdd({ collection: { mode: 'COMMUNITY', is_swap: true } });
 
     await waitFor(() => expect(container.querySelector('#add-thing-headline')).toBeTruthy());
-    // The type Select (label "Type") is suppressed for swap/share collections.
-    expect(screen.queryByText('Type')).toBeNull();
-    // SWAP is neither a FEE_TYPE nor a DETAIL_TYPE.
+    // Swap-only collections now also accept wishes, so the type Select is shown.
+    expect(screen.getByText('Type')).toBeInTheDocument();
+    // Default stays SWAP (neither a FEE_TYPE nor a DETAIL_TYPE), so those stay hidden.
     expect(container.querySelector('#add-thing-fee')).toBeNull();
     expect(screen.queryByText('Availability')).toBeNull();
+  });
+
+  test('share collection: shows the type selector (SHARE + wish), defaults to SHARE', async () => {
+    const { container } = renderAdd({ collection: { mode: 'COMMUNITY', is_share: true } });
+
+    await waitFor(() => expect(container.querySelector('#add-thing-headline')).toBeTruthy());
+    // Share-only collections now also accept wishes, so the type Select is shown.
+    expect(screen.getByText('Type')).toBeInTheDocument();
+    // Default stays SHARE (a DETAIL_TYPE, not a FEE_TYPE): availability shows, fee hidden.
+    expect(container.querySelector('#add-thing-fee')).toBeNull();
+    expect(screen.getByText('Availability')).toBeInTheDocument();
   });
 
   test('minimalist collection: hides gallery + documents, photo label is required', async () => {
