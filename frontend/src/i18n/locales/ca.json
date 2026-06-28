@@ -273,7 +273,6 @@
     "action": {
       "GIFT_THING": "Demanar",
       "SELL_THING": "Comprar",
-      "ORDER_THING": "Encarregar",
       "RENT_THING": "Llogar",
       "LEND_THING": "Demanar prestat",
       "SHARE_THING": "Quedar-m'ho",
@@ -292,14 +291,10 @@
     "priceValue": "{{fee}} EUR",
     "startLabel": "Inici",
     "endLabel": "Fi",
-    "deliveryLabel": "Lliurament",
-    "quantityLabel": "Quantitat",
     "startRequired": "La data d'inici és obligatòria.",
     "endRequired": "La data de fi és obligatòria.",
-    "deliveryRequired": "La data de lliurament és obligatòria.",
     "dateOverlap": "La data coincideix amb una altra reserva.",
     "dateRange": "La data ha d'estar entre avui i 90 dies a partir d'avui.",
-    "maxQuantity": "La quantitat màxima permesa és 99.",
     "successLabel": "Tot llest!",
     "successMessage": "Ja hem avisat al propietari — aviat et respondrà.",
     "backTo": "Tornar a {{label}}",
@@ -412,8 +407,8 @@
   "welcome": {
     "greeting": "Hola, {{name}}",
     "pageTitle": "Benvingut a OIUEEI!",
-    "description": "OIUEEI és una plataforma de codi obert per compartir dins de comunitats de confiança. Crea col·leccions per a regals, vendes, préstecs, comandes, intercanvis i desitjos — i convida amics a explorar, reservar i interactuar. Tot queda entre persones que es coneixen.",
-    "createShare": "OIUEEI gira al voltant de les teves pròpies col·leccions. Crea'n una per a allò que vulguis compartir —regals, vendes, préstecs, comandes, intercanvis o desitjos— i convida els teus cercles: família, amics, veïns, el teu carrer. Només qui convidis pot veure-la i participar-hi.",
+    "description": "OIUEEI és una plataforma de codi obert per compartir dins de comunitats de confiança. Crea col·leccions per a regals, vendes, préstecs, intercanvis i desitjos — i convida amics a explorar, reservar i interactuar. Tot queda entre persones que es coneixen.",
+    "createShare": "OIUEEI gira al voltant de les teves pròpies col·leccions. Crea'n una per a allò que vulguis compartir —regals, vendes, préstecs, intercanvis o desitjos— i convida els teus cercles: família, amics, veïns, el teu carrer. Només qui convidis pot veure-la i participar-hi.",
     "createCollection": "Crear col·lecció",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "Qui fa servir OIUEEI?",
@@ -443,7 +438,6 @@
     "noPending": "Sense sol·licituds pendents.",
     "cancelTooltip": "Cancel·lar aquesta sol·licitud de reserva",
     "requested": "Sol·licitat el {{date}}",
-    "delivery": "Lliurament el {{date}}, {{quantity}} ut",
     "noDates": "—",
     "requestCancelled": "Sol·licitud cancel·lada.",
     "errorCancelling": "Error en cancel·lar la sol·licitud.",
@@ -512,7 +506,6 @@
   "types": {
     "GIFT_THING": "Regal",
     "SELL_THING": "Venda",
-    "ORDER_THING": "Comanda",
     "RENT_THING": "Lloguer",
     "LEND_THING": "Préstec",
     "SHARE_THING": "Compartir",
@@ -562,9 +555,7 @@
     "shareCount_one": "{{count}} cop compartit",
     "shareCount_other": "{{count}} cops compartit",
     "swapCount_one": "{{count}} intercanvi",
-    "swapCount_other": "{{count}} intercanvis",
-    "orderCount_one": "{{count}} comanda",
-    "orderCount_other": "{{count}} comandes"
+    "swapCount_other": "{{count}} intercanvis"
   },
   "wishes": {
     "respond": "Respondre",

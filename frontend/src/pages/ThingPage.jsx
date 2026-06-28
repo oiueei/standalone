@@ -8,7 +8,7 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, WISH_KIND_I18N } from '../constants/things';
+import { DATE_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, WISH_KIND_I18N } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
 
 const isDateType = (type) => DATE_TYPES.includes(type);
@@ -69,7 +69,7 @@ export default function ThingPage() {
     isOwner: thing?.owner === userCode,
     onThingChange: (patch) => setThing((prev) => ({ ...prev, ...patch })),
     setToast,
-    bookingKeepsStatus: isDateType(thing?.type) || thing?.type === ORDER_TYPE,
+    bookingKeepsStatus: isDateType(thing?.type),
     activateSuccessMessage: t('thingPage.thingReactivated'),
   });
 
@@ -200,8 +200,7 @@ export default function ThingPage() {
   const isShare = thing.type === SHARE_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
   const isDateBased = isDateType(thing.type);
-  const isOrder = thing.type === ORDER_TYPE;
-  const needsPage = isDateBased || isOrder || isSwap;
+  const needsPage = isDateBased || isSwap;
   const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
   // Anonymous visitors get a read-only page plus the JoinToAct prompt; only

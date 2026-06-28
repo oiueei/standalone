@@ -23,7 +23,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 
 - **Atomic transactions**: Every function wraps its work in `transaction.atomic()` to ensure `BookingPeriod` and `Thing` are updated together or not at all.
 - **Row-level locking**: Uses `Thing.objects.select_for_update()` to prevent race conditions when two concurrent requests try to modify the same thing's status.
-- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT), SHARE_THING, and repeatable types (ORDER) leave thing status unchanged because multiple bookings can coexist.
+- **Single-use type check**: Only GIFT and SELL things (`SINGLE_USE_TYPES` from `core.models.booking`) change thing status on accept/reject/cancel. Date-based types (LEND, RENT) and SHARE_THING leave thing status unchanged because multiple bookings can coexist.
 - **`is_endless` guard**: For GIFT/SELL things where `thing.is_endless=True`, all status changes (TAKEN on request, INACTIVE on accept, ACTIVE on reject/cancel) and ThingTransfer creation are skipped. The thing remains ACTIVE at all times and accumulates multiple simultaneous PENDING bookings from different users. `expire_old_pending()` also excludes endless things from the TAKEN→ACTIVE restore.
 - **SHARE_THING ownership transfer**: On acceptance, `thing.owner` is changed to the requester. The thing stays `ACTIVE` so the new owner can continue sharing it. This enables a chain of ownership transfers within a community collection.
 - **SWAP_THING bilateral transfer**: On acceptance, the requested thing transfers to the requester, and all offered things transfer to the original owner. All things stay `ACTIVE`. `ThingTransfer` records are created for every thing involved (requested + offered).
@@ -42,7 +42,7 @@ Every email belongs to one of three categories. Each function routes through the
 | Category | Constant | User flag | Scope |
 |----------|----------|-----------|-------|
 | **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_revoke_email` |
-| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_return_reminder_email`, `send_delivery_reminder_email`, `send_broadcast_email`, `send_documents_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
+| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_return_reminder_email`, `send_broadcast_email`, `send_documents_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
 | **Cat. 3 — News** | `CATEGORY_NEWS` | `User.notify_news` | `send_digest_email`, `send_newsletter_email` |
 
 - **Lookup fallback**: if no `User` matches the recipient email (e.g. a not-yet-registered invitee), `_should_send` returns `True` — all emails reach non-users by default.
@@ -75,7 +75,6 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_digest_email(collection_headline, collection_code, thing_headlines, emails)` | Daily command (weekly/monthly) | All collection invitees (individually) |
 | `send_newsletter_email(collection_headline, collection_code, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |
 | `send_return_reminder_email(requester_name, thing_headline, end_date, owner_email)` | Daily command (end_date = tomorrow) | Thing owner |
-| `send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email)` | Daily command (delivery_date = tomorrow) | Thing owner |
 | `send_documents_email(requester_email, thing)` | Booking accepted for thing with documents | Requester (filenames + a link to the item; documents download via the gated, signed, expiring endpoint — no Cloudinary URLs in the email) |
 | `send_swap_request_email(requester, thing, offered_things, owner_email, accept_link, reject_link)` | Guest proposes a swap | Thing owner (lists offered thing headlines, accept/reject links) |
 | `send_swap_confirmation_email(requester, thing, offered_things, booking)` | Guest proposes a swap | Requester (confirmation of swap proposal) |
@@ -89,7 +88,7 @@ Every email belongs to one of three categories. Each function routes through the
 - **Dual format**: Every email includes both a `message` (plain text) and `html_message` for clients that support HTML.
 - **Action links**: Booking and invitation emails include accept/reject links (RSVP-based URLs generated by the calling view). FAQ question emails include a direct link to the thing page.
 - **`from_email=None`**: Uses Django's `DEFAULT_FROM_EMAIL` setting.
-- **Booking email variants**: `send_booking_request_email` and `send_booking_decision_email` adapt their content based on booking type — date-based (start/end), order (delivery + quantity), or simple (no extra fields).
+- **Booking email variants**: `send_booking_request_email` and `send_booking_decision_email` adapt their content based on booking type — date-based (start/end) or simple (no extra fields).
 - **Reply-To header**: `send_broadcast_email()` uses `EmailMultiAlternatives` with `reply_to` so invitees can respond directly to the collection owner (routed through `_send(..., reply_to=[owner_email])`). The visible body links to the collection (`/collections/{code}`) — the object that originated the message — rather than promising an email reply.
 - **Digest emails**: `send_digest_email()` lists new thing headlines in both plain text (bulleted) and HTML (`<ul>/<li>`) formats.
 - **Direct collection links**: `send_digest_email()` and `send_newsletter_email()` link straight to `{frontend_base}/collections/{code}`. Per DESIGN.md §9 we do not track email engagement — links are never wrapped in a redirect or tracking pixel.

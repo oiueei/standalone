@@ -117,8 +117,6 @@ export default function MyBookingsPage() {
     _ownerName: b.owner_name,
     _startDate: b.start_date,
     _endDate: b.end_date,
-    _deliveryDate: b.delivery_date,
-    _quantity: b.quantity,
     _created: b.created,
   }));
 
@@ -140,8 +138,6 @@ export default function MyBookingsPage() {
           <p style={{ margin: 'var(--spacing-2-xs) 0 0', fontSize: 'var(--fontsize-body-s)' }}>
             {row._startDate && row._endDate
               ? `${new Date(row._startDate).toLocaleDateString(i18n.language)} — ${new Date(row._endDate).toLocaleDateString(i18n.language)}`
-              : row._deliveryDate
-              ? t('myBookings.delivery', { date: new Date(row._deliveryDate).toLocaleDateString(i18n.language), quantity: row._quantity })
               : <span style={{ color: 'var(--color-black-40)' }}>{t('myBookings.noDates')}</span>}
           </p>
         </div>

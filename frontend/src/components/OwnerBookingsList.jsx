@@ -23,7 +23,6 @@ export default function OwnerBookingsList({ bookings, activePendingCode, isOwner
             {b.start_date && b.end_date && (
               <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>
             )}
-            {b.delivery_date && <>{new Date(b.delivery_date).toLocaleDateString(i18n.language)}, {t('thingCard.qty')} {b.quantity}</>}
             {b.offered_thing_headlines && b.offered_thing_headlines.length > 0 && (
               <><br />{t('swap.offeredItems')}: {b.offered_thing_headlines.join(', ')}</>
             )}

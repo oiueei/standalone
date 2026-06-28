@@ -290,7 +290,6 @@
     "action": {
       "GIFT_THING": "Claim",
       "SELL_THING": "Buy",
-      "ORDER_THING": "Order",
       "RENT_THING": "Rent",
       "LEND_THING": "Borrow",
       "SHARE_THING": "Take",
@@ -309,14 +308,10 @@
     "priceValue": "{{fee}} EUR",
     "startLabel": "Start",
     "endLabel": "End",
-    "deliveryLabel": "Delivery",
-    "quantityLabel": "Quantity",
     "startRequired": "Start date is required.",
     "endRequired": "End date is required.",
-    "deliveryRequired": "Delivery date is required.",
     "dateOverlap": "Date overlaps with another booking.",
     "dateRange": "Date must be between today and 90 days from today.",
-    "maxQuantity": "Maximum quantity allowed is 99.",
     "successLabel": "You're all set!",
     "successMessage": "We've let the owner know — they'll get back to you soon.",
     "backTo": "Back to {{label}}",
@@ -429,8 +424,8 @@
   "welcome": {
     "greeting": "Hello, {{name}}",
     "pageTitle": "Welcome to OIUEEI!",
-    "description": "OIUEEI is an open-source platform for sharing within trusted communities. Create collections for gifts, sales, loans, orders, swaps and wishes — then invite friends to browse, reserve and interact. Everything stays between people who know each other.",
-    "createShare": "OIUEEI revolves around your own collections. Create one for anything you'd like to share — gifts, sales, loans, orders, swaps or wishes — and invite your circles: family, friends, neighbours, your street. Only the people you invite can see it and join in.",
+    "description": "OIUEEI is an open-source platform for sharing within trusted communities. Create collections for gifts, sales, loans, swaps and wishes — then invite friends to browse, reserve and interact. Everything stays between people who know each other.",
+    "createShare": "OIUEEI revolves around your own collections. Create one for anything you'd like to share — gifts, sales, loans, swaps or wishes — and invite your circles: family, friends, neighbours, your street. Only the people you invite can see it and join in.",
     "createCollection": "Create collection",
     "editProfile": "Edit profile",
     "whoUsesTitle": "Who uses OIUEEI?",
@@ -460,7 +455,6 @@
     "noPending": "No pending requests.",
     "cancelTooltip": "Cancel this booking request",
     "requested": "Requested {{date}}",
-    "delivery": "Delivery {{date}}, qty {{quantity}}",
     "noDates": "—",
     "requestCancelled": "Request cancelled.",
     "errorCancelling": "Error cancelling request.",
@@ -529,7 +523,6 @@
   "types": {
     "GIFT_THING": "Gift",
     "SELL_THING": "Sale",
-    "ORDER_THING": "Order",
     "RENT_THING": "Rental",
     "LEND_THING": "Lend",
     "SHARE_THING": "Share",
@@ -579,9 +572,7 @@
     "shareCount_one": "{{count}} share",
     "shareCount_other": "{{count}} shares",
     "swapCount_one": "{{count}} swap",
-    "swapCount_other": "{{count}} swaps",
-    "orderCount_one": "{{count}} order",
-    "orderCount_other": "{{count}} orders"
+    "swapCount_other": "{{count}} swaps"
   },
   "wishes": {
     "respond": "Answer",

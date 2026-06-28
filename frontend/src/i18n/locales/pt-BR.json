@@ -273,7 +273,6 @@
     "action": {
       "GIFT_THING": "Pedir",
       "SELL_THING": "Comprar",
-      "ORDER_THING": "Encomendar",
       "RENT_THING": "Alugar",
       "LEND_THING": "Pegar emprestado",
       "SHARE_THING": "Ficar com",
@@ -292,14 +291,10 @@
     "priceValue": "{{fee}} EUR",
     "startLabel": "Início",
     "endLabel": "Fim",
-    "deliveryLabel": "Entrega",
-    "quantityLabel": "Quantidade",
     "startRequired": "A data de início é obrigatória.",
     "endRequired": "A data de fim é obrigatória.",
-    "deliveryRequired": "A data de entrega é obrigatória.",
     "dateOverlap": "A data coincide com outra reserva.",
     "dateRange": "A data deve ser entre hoje e 90 dias a partir de hoje.",
-    "maxQuantity": "A quantidade máxima permitida é 99.",
     "successLabel": "Tudo certo!",
     "successMessage": "Já avisamos o dono — ele vai te responder em breve.",
     "backTo": "Voltar para {{label}}",
@@ -412,8 +407,8 @@
   "welcome": {
     "greeting": "Olá, {{name}}",
     "pageTitle": "Bem-vindo ao OIUEEI!",
-    "description": "O OIUEEI é uma plataforma de código aberto para compartilhar dentro de comunidades de confiança. Crie coleções para presentes, vendas, empréstimos, pedidos, trocas e desejos — depois convide amigos para explorar, reservar e interagir. Tudo fica entre pessoas que se conhecem.",
-    "createShare": "O OIUEEI gira em torno das suas próprias coleções. Crie uma para o que você quiser compartilhar —presentes, vendas, empréstimos, pedidos, trocas ou desejos— e convide seus círculos: família, amigos, vizinhos, sua rua. Só quem você convida pode ver e participar.",
+    "description": "O OIUEEI é uma plataforma de código aberto para compartilhar dentro de comunidades de confiança. Crie coleções para presentes, vendas, empréstimos, trocas e desejos — depois convide amigos para explorar, reservar e interagir. Tudo fica entre pessoas que se conhecem.",
+    "createShare": "O OIUEEI gira em torno das suas próprias coleções. Crie uma para o que você quiser compartilhar —presentes, vendas, empréstimos, trocas ou desejos— e convide seus círculos: família, amigos, vizinhos, sua rua. Só quem você convida pode ver e participar.",
     "createCollection": "Criar coleção",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "Quem usa o OIUEEI?",
@@ -443,7 +438,6 @@
     "noPending": "Sem solicitações pendentes.",
     "cancelTooltip": "Cancelar esta solicitação de reserva",
     "requested": "Solicitado em {{date}}",
-    "delivery": "Entrega em {{date}}, {{quantity}} un",
     "noDates": "—",
     "requestCancelled": "Solicitação cancelada.",
     "errorCancelling": "Erro ao cancelar a solicitação.",
@@ -512,7 +506,6 @@
   "types": {
     "GIFT_THING": "Presente",
     "SELL_THING": "Venda",
-    "ORDER_THING": "Encargo",
     "RENT_THING": "Aluguel",
     "LEND_THING": "Empréstimo",
     "SHARE_THING": "Compartilhar",
@@ -562,9 +555,7 @@
     "shareCount_one": "{{count}} compartilhamento",
     "shareCount_other": "{{count}} compartilhamentos",
     "swapCount_one": "{{count}} troca",
-    "swapCount_other": "{{count}} trocas",
-    "orderCount_one": "{{count}} pedido",
-    "orderCount_other": "{{count}} pedidos"
+    "swapCount_other": "{{count}} trocas"
   },
   "wishes": {
     "respond": "Responder",

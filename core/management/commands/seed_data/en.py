@@ -38,11 +38,6 @@ COLLECTIONS = [
         "description": "Three rules, mate: cash only, you come fetch it yerself, deadline's the 25th. Anything left? Straight to the local orphanage!",
     },
     {
-        "code": "L3L3C1",
-        "headline": "Lele's Cakes!",
-        "description": "I craft stunning homemade cakes using only 100% natural, healthy ingredients. Perfect for mindful celebrations like birthdays, adaptable to vegan, gluten-free or low-sugar diets—contact me to personalise yours!",
-    },
-    {
         "code": "l0l0C1",
         "headline": "Lolo's Leafy Lounge – Snag a free succulent baby!",
         "description": "Plant mum with too many green babies! Drop by to meet my succulent squad – echeverias, jades, sedums – and I'll gift you a cutting. Easy-peasy care guide thrown in. Only rule: name your new leafy friend!",
@@ -89,31 +84,6 @@ THINGS = [
         "code": "stffa5",
         "headline": "Disco Psych Lamp",
         "description": "Rasta fairy light! Spins like a Glastonbury trip, glows for midnight herbal brews. Groovy for 10 quid!",
-    },
-    {
-        "code": "cksle1",
-        "headline": "Pistachio Bun Bliss",
-        "description": "Three plush brioche buns stuffed with lush pistachio cream, dusted with magic powder and crunchy nuts. Proper green explosion of joy for posh dos! Order your hypnotic batch now.",
-    },
-    {
-        "code": "cksle2",
-        "headline": "Love Heart Stunner",
-        "description": 'Round beauty scrawled "Love" in choc, with a lush red rose and sparkly pearls. Creamy, romantic to bits. For Valentines, anniversaries or just \'cause – fall for the taste!',
-    },
-    {
-        "code": "cksle3",
-        "headline": "Raspberry Layer Dream",
-        "description": "Pink raspberry layers over white cream, on a crystal stand. Fresh, zingy and blooming addictive. The birthday or brunch star – order and win hearts!",
-    },
-    {
-        "code": "cksle4",
-        "headline": "Macaron Majesty",
-        "description": "Posh creamy cake topped with grey-gold macarons, pink blooms and swirly perfection. Spot-on for weddings or high tea: French luxe with your twist. Your event, your dream flavour!",
-    },
-    {
-        "code": "cksle5",
-        "headline": "Carrot Cake Cosy",
-        "description": "Chunky carrot squares with velvety frosting, on a pink plate with Marimekko mug and brew. Proper Nordic hug in cake form – pure hygge! Ideal for cosy cafés or post-cycle nibbles.",
     },
     {
         "code": "rent01",
@@ -284,6 +254,10 @@ THINGS = [
         "headline": "Too many babies, not enough pots – come rescue one!",
     },
     {
+        "code": "La1aW1",
+        "headline": "Hey! Maybe a small ladder, anyone? The top shelf is winning! 🪜",
+    },
+    {
         "code": "l1sw01",
         "headline": "Grove Shield for Arduino Nano v1.1 (Seeed Studio)",
     },
@@ -343,31 +317,11 @@ FAQS = [
         "question": "Can I pick it up at the end of the month?",
         "answer": "Abso-bloody-lutely!",
     },
-    {
-        "thing_code": "cksle1",
-        "question": "How long does it last in the fridge?",
-        "answer": "2-3 days",
-    },
-    {
-        "thing_code": "cksle2",
-        "question": "How long does it last in the fridge?",
-        "answer": "2-3 days",
-    },
-    {
-        "thing_code": "cksle3",
-        "question": "How long does it last in the fridge?",
-        "answer": "2-3 days",
-    },
-    {
-        "thing_code": "cksle4",
-        "question": "How long does it last in the fridge?",
-        "answer": "2-3 days",
-    },
-    {
-        "thing_code": "cksle5",
-        "question": "How long does it last in the fridge?",
-        "answer": "2-3 days",
-    },
 ]
 
-WISH_RESPONSES = []
+WISH_RESPONSES = [
+    {
+        "wish_code": "La1aW1",
+        "message": "The shed by the bike racks has a folding step ladder — ask Lolo for the key!",
+    },
+]

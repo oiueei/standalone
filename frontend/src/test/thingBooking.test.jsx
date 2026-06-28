@@ -116,15 +116,14 @@ describe('ThingLinkbox — guest reservation button', () => {
     expect(screen.queryByTestId('navigated')).toBeNull();
   });
 
-  // Date-based (LEND/RENT), ORDER and SWAP navigate to RequestThingPage instead
-  // of POSTing — these need a follow-up form (dates / quantity / swap items).
+  // Date-based (LEND/RENT) and SWAP navigate to RequestThingPage instead
+  // of POSTing — these need a follow-up form (dates / swap items).
   test.each([
     ['LEND_THING', 'Borrow'],
     ['RENT_THING', 'Rent'],
-    ['ORDER_THING', 'Order'],
     ['SWAP_THING', 'Swap'],
   ])('%s navigates to the request page', async (type, label) => {
-    const thing = makeThing({ type, fee: type === 'RENT_THING' || type === 'ORDER_THING' ? '5' : null });
+    const thing = makeThing({ type, fee: type === 'RENT_THING' ? '5' : null });
     renderLinkbox({ thing, userCode: 'GUEST1' });
 
     fireEvent.click(screen.getByRole('button', { name: label }));

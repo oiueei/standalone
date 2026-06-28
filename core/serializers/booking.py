@@ -63,8 +63,6 @@ class BookingPeriodSerializer(SwapOfferedFieldsMixin, serializers.ModelSerialize
             "owner_code",
             "start_date",
             "end_date",
-            "delivery_date",
-            "quantity",
             "status",
             "offered_thing_codes",
             "offered_thing_headlines",
@@ -98,8 +96,6 @@ class BookingPeriodOwnerCalendarSerializer(SwapOfferedFieldsMixin, serializers.M
             "requester_name",
             "start_date",
             "end_date",
-            "delivery_date",
-            "quantity",
             "status",
             "offered_thing_codes",
             "offered_thing_headlines",
@@ -139,21 +135,6 @@ class ThingRequestWithDatesSerializer(serializers.Serializer):
         return data
 
 
-class ThingOrderSerializer(serializers.Serializer):
-    """Serializer for ORDER_THING requests (delivery_date + quantity)."""
-
-    delivery_date = serializers.DateField()
-    quantity = serializers.IntegerField(min_value=1, max_value=99)
-
-    def validate_delivery_date(self, value):
-        """Validate that delivery_date is today or in the future, within 3 months."""
-        if value < date.today():
-            raise serializers.ValidationError("Delivery date must be today or in the future")
-        if value > date.today() + timedelta(days=MAX_BOOKING_HORIZON_DAYS):
-            raise serializers.ValidationError("Delivery date can be at most 3 months ahead")
-        return value
-
-
 class ThingSwapRequestSerializer(serializers.Serializer):
     """Validates a SWAP request's offered items: a bounded list of thing codes (L5)."""
 
@@ -184,8 +165,6 @@ class MyBookingSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):
             "owner_name",
             "start_date",
             "end_date",
-            "delivery_date",
-            "quantity",
             "status",
             "offered_thing_codes",
             "offered_thing_headlines",

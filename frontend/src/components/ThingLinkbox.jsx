@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, IconSpeechbubbleText, IconSwapUser } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
+import { DATE_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
 import MarkdownText from './MarkdownText';
 import RespondMenu from './RespondMenu';
 import useTheeeme from '../hooks/useTheeeme';
@@ -25,8 +25,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const isShare = thing.type === SHARE_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
   const isDateBased = DATE_TYPES.includes(thing.type);
-  const isOrder = thing.type === ORDER_TYPE;
-  const needsPage = isDateBased || isOrder || isSwap || thing.is_endless;
+  const needsPage = isDateBased || isSwap || thing.is_endless;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
 
@@ -213,7 +212,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
                 thing.type === 'RENT_THING' ? 'rentCount' :
                 thing.type === 'SHARE_THING' ? 'shareCount' :
                 thing.type === 'SWAP_THING' ? 'swapCount' :
-                thing.type === 'ORDER_THING' ? 'orderCount' :
                 'changesCount'
               }`, { count: thing.transfer_count })}</span>
             </div>

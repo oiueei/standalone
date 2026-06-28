@@ -41,11 +41,6 @@ COLLECTIONS = [
         "description": "Tres reglas, colega: solo efectivo, te lo llevas tú, fecha límite el 25. ¿Queda algo? ¡Al orfanato del barrio de cabeza!",
     },
     {
-        "code": "L3L3C1",
-        "headline": "¡Las tartas de Lele!",
-        "description": "Hago tartas caseras espectaculares con ingredientes 100% naturales y sanos. Perfectas para celebraciones conscientes como cumples, adaptables a dietas veganas, sin gluten o bajas en azúcar—¡escríbeme para personalizar la tuya!",
-    },
-    {
         "code": "l0l0C1",
         "headline": "El salón verde de Lolo – ¡llévate una suculenta gratis!",
         "description": "¡Mamá planta con demasiadas crías verdes! Pásate a conocer a mi escuadrón suculento – echeverias, jades, sedums – y te regalo un esqueje. Guía fácil de cuidados incluida. Única regla: ¡ponle nombre a tu nueva amiga verde!",
@@ -92,31 +87,6 @@ THINGS = [
         "code": "stffa5",
         "headline": "Lámpara psicodélica disco",
         "description": "¡Guirnalda rasta! Gira como un viaje de Glastonbury, brilla para infusiones de medianoche. ¡Mola por 10 pavos!",
-    },
-    {
-        "code": "cksle1",
-        "headline": "Bollos de pistacho divinos",
-        "description": "Tres bollos de brioche rellenos de crema de pistacho, espolvoreados con polvo mágico y frutos secos crujientes. ¡Explosión verde de alegría para eventos elegantes! Pide tu tanda hipnótica ya.",
-    },
-    {
-        "code": "cksle2",
-        "headline": "Tarta corazón irresistible",
-        "description": 'Belleza redonda con "Love" en chocolate, con rosa roja y perlas brillantes. Cremosa y súper romántica. Para San Valentín, aniversarios o porque sí – ¡caerás por su sabor!',
-    },
-    {
-        "code": "cksle3",
-        "headline": "Tarta de frambuesa soñadora",
-        "description": "Capas rosas de frambuesa sobre crema blanca, en soporte de cristal. Fresca, chispeante y súper adictiva. Estrella del cumple o el brunch – ¡pide y conquista corazones!",
-    },
-    {
-        "code": "cksle4",
-        "headline": "Majestad de macarons",
-        "description": "Tarta fina y cremosa coronada con macarons gris-oro, flores rosas y volutas perfectas. Ideal para bodas o meriendas: lujo francés con tu toque. Tu evento, ¡tu sabor soñado!",
-    },
-    {
-        "code": "cksle5",
-        "headline": "Tarta de zanahoria acogedora",
-        "description": "Cuadrados gruesos de zanahoria con glaseado aterciopelado, en plato rosa con taza Marimekko y té. Un abrazo nórdico en forma de tarta – ¡puro hygge! Ideal para cafés acogedores o meriendas post-ruta.",
     },
     {
         "code": "rent01",
@@ -287,6 +257,10 @@ THINGS = [
         "headline": "¡Muchas crías y pocas macetas – ven a rescatar una!",
     },
     {
+        "code": "La1aW1",
+        "headline": "¿Alguien tiene una escalerilla? ¡La estantería alta gana! 🪜",
+    },
+    {
         "code": "l1sw01",
         "headline": "Grove Shield para Arduino Nano v1.1 (Seeed Studio)",
     },
@@ -346,31 +320,11 @@ FAQS = [
         "question": "¿Puedo recogerlo a fin de mes?",
         "answer": "¡Claro que sí, majo!",
     },
-    {
-        "thing_code": "cksle1",
-        "question": "¿Cuánto dura en la nevera?",
-        "answer": "2-3 días",
-    },
-    {
-        "thing_code": "cksle2",
-        "question": "¿Cuánto dura en la nevera?",
-        "answer": "2-3 días",
-    },
-    {
-        "thing_code": "cksle3",
-        "question": "¿Cuánto dura en la nevera?",
-        "answer": "2-3 días",
-    },
-    {
-        "thing_code": "cksle4",
-        "question": "¿Cuánto dura en la nevera?",
-        "answer": "2-3 días",
-    },
-    {
-        "thing_code": "cksle5",
-        "question": "¿Cuánto dura en la nevera?",
-        "answer": "2-3 días",
-    },
 ]
 
-WISH_RESPONSES = []
+WISH_RESPONSES = [
+    {
+        "wish_code": "La1aW1",
+        "message": "En el trastero junto al aparcabicis hay una escalerilla plegable. ¡Pídele la llave a Lolo!",
+    },
+]

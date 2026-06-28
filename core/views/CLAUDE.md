@@ -639,15 +639,6 @@ Creates a reservation/booking request. Returns 400 for WISH_THING (this type byp
 { "start_date": "2025-06-01", "end_date": "2025-06-15" }
 ```
 
-**Order (ORDER_THING):**
-- Requires `delivery_date` and `quantity`.
-- Thing stays `ACTIVE` (multiple orders allowed).
-
-**Request body:**
-```json
-{ "delivery_date": "2025-06-01", "quantity": 3 }
-```
-
 **Swap (SWAP_THING):**
 - Requires `offered_thing_codes` (list of thing codes to offer in exchange).
 - Each offered thing must: be SWAP_THING, be owned by the requester, be ACTIVE, be in the same swap collection.
@@ -781,7 +772,6 @@ Daily command (`python manage.py close_transfers`) that closes overdue transfers
 
 Daily command (`python manage.py send_reminders`) that sends reminder emails:
 - **Booking return reminders**: ACCEPTED bookings with `end_date = tomorrow` — notifies thing owner.
-- **Delivery reminders**: ACCEPTED bookings with `delivery_date = tomorrow` — notifies thing owner.
 - Outputs count of reminder emails sent.
 
 ### Management Command: `send_digests`

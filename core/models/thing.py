@@ -21,7 +21,6 @@ class Thing(models.Model):
     class Type(models.TextChoices):
         GIFT_THING = "GIFT_THING", "Gift Thing"
         SELL_THING = "SELL_THING", "Sell Thing"
-        ORDER_THING = "ORDER_THING", "Order Thing"
         RENT_THING = "RENT_THING", "Rent Thing"
         LEND_THING = "LEND_THING", "Lend Thing"
         SHARE_THING = "SHARE_THING", "Share Thing"

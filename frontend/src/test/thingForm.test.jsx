@@ -93,16 +93,6 @@ describe('AddThingPage — field visibility', () => {
     expect(container.querySelector('#add-thing-location')).toBeTruthy();
   });
 
-  test('ORDER (single-type allowlist): shows fee but hides detail fields', async () => {
-    const { container } = renderAdd({ collection: { mode: 'PROPRIETARY', allowed_thing_types: ['ORDER_THING'] } });
-
-    await waitFor(() => expect(container.querySelector('#add-thing-fee')).toBeTruthy());
-    // ORDER is a FEE_TYPE but not a DETAIL_TYPE.
-    expect(screen.queryByText('Availability')).toBeNull();
-    expect(screen.queryByText('Condition')).toBeNull();
-    expect(container.querySelector('#add-thing-location')).toBeNull();
-  });
-
   test('swap collection: shows the type selector (SWAP + wish), defaults to SWAP', async () => {
     const { container } = renderAdd({ collection: { mode: 'COMMUNITY', is_swap: true } });
 

@@ -273,7 +273,6 @@
     "action": {
       "GIFT_THING": "Eskatu",
       "SELL_THING": "Erosi",
-      "ORDER_THING": "Enkargatu",
       "RENT_THING": "Alokatu",
       "LEND_THING": "Mailegatu",
       "SHARE_THING": "Hartu",
@@ -292,14 +291,10 @@
     "priceValue": "{{fee}} EUR",
     "startLabel": "Hasiera",
     "endLabel": "Amaiera",
-    "deliveryLabel": "Entrega",
-    "quantityLabel": "Kantitatea",
     "startRequired": "Hasiera-data beharrezkoa da.",
     "endRequired": "Amaiera-data beharrezkoa da.",
-    "deliveryRequired": "Entrega-data beharrezkoa da.",
     "dateOverlap": "Data beste erreserba batekin gainjarrita dago.",
     "dateRange": "Data gaur eta hemendik 90 egunetara artean egon behar da.",
-    "maxQuantity": "Gehienezko kantitatea 99 da.",
     "successLabel": "Prest dago dena!",
     "successMessage": "Jabeari jakinarazi diogu — laster jarriko da zurekin harremanetan.",
     "backTo": "Itzuli {{label}}-ra",
@@ -412,8 +407,8 @@
   "welcome": {
     "greeting": "Kaixo, {{name}}",
     "pageTitle": "Ongi etorri OIUEEIra!",
-    "description": "OIUEEI kode irekiko plataforma bat da konfiantzazko komunitateetan partekatzeko. Sortu bildumak opariak, salmentak, maileguak, eskaerak, trukeak eta nahiak partekatzeko — eta gonbidatu lagunak arakatzera, erreserbatzera eta elkarreraginean aritzera. Dena ezagutzen diren pertsonen artean gelditzen da.",
-    "createShare": "OIUEEI zure bildumen inguruan dabil. Sortu bat partekatu nahi duzun ororako —opariak, salmentak, maileguak, eskaerak, trukeak edo nahiak— eta gonbidatu zure zirkuluak: familia, lagunak, auzokoak, zure kalea. Gonbidatzen dituzunek soilik ikus eta parte har dezakete.",
+    "description": "OIUEEI kode irekiko plataforma bat da konfiantzazko komunitateetan partekatzeko. Sortu bildumak opariak, salmentak, maileguak, trukeak eta nahiak partekatzeko — eta gonbidatu lagunak arakatzera, erreserbatzera eta elkarreraginean aritzera. Dena ezagutzen diren pertsonen artean gelditzen da.",
+    "createShare": "OIUEEI zure bildumen inguruan dabil. Sortu bat partekatu nahi duzun ororako —opariak, salmentak, maileguak, trukeak edo nahiak— eta gonbidatu zure zirkuluak: familia, lagunak, auzokoak, zure kalea. Gonbidatzen dituzunek soilik ikus eta parte har dezakete.",
     "createCollection": "Bilduma sortu",
     "editProfile": "Profila editatu",
     "whoUsesTitle": "Nork erabiltzen du OIUEEI?",
@@ -443,7 +438,6 @@
     "noPending": "Ez dago eskaera zainean.",
     "cancelTooltip": "Erreserba-eskaera hau bertan behera utzi",
     "requested": "Eskatuta {{date}}",
-    "delivery": "Entrega {{date}}, kant. {{quantity}}",
     "noDates": "—",
     "requestCancelled": "Eskaera bertan behera utzi da.",
     "errorCancelling": "Errorea eskaera bertan behera uzten.",
@@ -512,7 +506,6 @@
   "types": {
     "GIFT_THING": "Oparia",
     "SELL_THING": "Saltzeko",
-    "ORDER_THING": "Enkargua",
     "RENT_THING": "Alokairua",
     "LEND_THING": "Mailegua",
     "SHARE_THING": "Partekatzeko",
@@ -562,9 +555,7 @@
     "shareCount_one": "{{count}} partekatze",
     "shareCount_other": "{{count}} partekatze",
     "swapCount_one": "{{count}} truke",
-    "swapCount_other": "{{count}} truke",
-    "orderCount_one": "{{count}} eskaera",
-    "orderCount_other": "{{count}} eskaera"
+    "swapCount_other": "{{count}} truke"
   },
   "wishes": {
     "respond": "Erantzun",

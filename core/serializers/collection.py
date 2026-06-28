@@ -15,7 +15,6 @@ from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 PROPRIETARY_THING_TYPES = (
     Thing.Type.GIFT_THING,
     Thing.Type.SELL_THING,
-    Thing.Type.ORDER_THING,
     Thing.Type.RENT_THING,
     Thing.Type.LEND_THING,
 )
@@ -25,7 +24,6 @@ PROPRIETARY_THING_TYPES = (
 COMMUNITY_THING_TYPES = (
     Thing.Type.GIFT_THING,
     Thing.Type.SELL_THING,
-    Thing.Type.ORDER_THING,
     Thing.Type.RENT_THING,
     Thing.Type.LEND_THING,
     Thing.Type.SHARE_THING,

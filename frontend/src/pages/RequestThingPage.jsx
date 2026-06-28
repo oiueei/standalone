@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Checkbox, DateInput, Notification, NumberInput } from 'hds-react';
-import { DATE_TYPES, ORDER_TYPE, SWAP_TYPE } from '../constants/things';
+import { Button, Checkbox, DateInput, Notification } from 'hds-react';
+import { DATE_TYPES, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
@@ -27,8 +27,6 @@ export default function RequestThingPage() {
   useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);
   const [startDate, setStartDate] = useState(location.state?.prefillDate || '');
   const [endDate, setEndDate] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState('');
-  const [quantity, setQuantity] = useState(1);
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -85,7 +83,6 @@ export default function RequestThingPage() {
     setAttempted(true);
 
     const isDateBased = thing && DATE_TYPES.includes(thing.type);
-    const isOrder = thing && thing.type === ORDER_TYPE;
     const isSwap = thing && thing.type === SWAP_TYPE;
 
     let body = {};
@@ -95,13 +92,6 @@ export default function RequestThingPage() {
     } else if (isDateBased) {
       if (!startDate || !endDate) return;
       body = { start_date: startDate, end_date: endDate };
-    } else if (isOrder) {
-      if (!deliveryDate || quantity < 1) return;
-      if (quantity > 99) {
-        setToast({ type: 'error', message: t('request.maxQuantity') });
-        return;
-      }
-      body = { delivery_date: deliveryDate, quantity };
     }
 
     setSubmitting(true);
@@ -120,11 +110,7 @@ export default function RequestThingPage() {
         let message = data.detail;
         if (!message) {
           const errors = Object.values(data).flat();
-          if (errors.some((e) => String(e).includes('99'))) {
-            message = t('request.maxQuantity');
-          } else {
-            message = errors.join(' ') || t('thingPage.invalidRequest');
-          }
+          message = errors.join(' ') || t('thingPage.invalidRequest');
         }
         setToast({ type: 'error', message });
       } else if (res.status === 409) {
@@ -142,7 +128,6 @@ export default function RequestThingPage() {
   if (!thing) return null;
 
   const isDateBased = DATE_TYPES.includes(thing.type);
-  const isOrder = thing.type === ORDER_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
 
   return (
@@ -244,35 +229,6 @@ export default function RequestThingPage() {
             dateOutsideRangeErrorText={t('request.dateRange')}
             isDateDisabledBy={isDateBlocked}
             malformedDateErrorText={t('request.dateOverlap')}
-          />
-        </div>
-      )}
-
-      {isOrder && (
-        <div className="summary-grid section-mt">
-          <DateInput
-            id="request-delivery-date"
-            label={t('request.deliveryLabel')}
-            value={deliveryDate}
-            onChange={(value) => setDeliveryDate(value)}
-            dateFormat="yyyy-MM-dd"
-            language="en"
-            required
-            invalid={attempted && !deliveryDate}
-            errorText={attempted && !deliveryDate ? t('request.deliveryRequired') : undefined}
-            minDate={TODAY}
-            maxDate={MAX_DATE}
-            dateOutsideRangeErrorText={t('request.dateRange')}
-          />
-          <div className="spacer-xxxs" />
-          <NumberInput
-            id="request-quantity"
-            label={t('request.quantityLabel')}
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-            required
-            min={1}
-            step={1}
           />
         </div>
       )}

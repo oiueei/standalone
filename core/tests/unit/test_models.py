@@ -488,25 +488,6 @@ class TestBookingPeriodModel:
         assert "2026-03-01" in result
         assert "2026-03-10" in result
 
-    def test_str_order(self):
-        """Should show delivery date for order bookings."""
-        from core.models.booking import BookingPeriod
-
-        owner = self._create_user()
-        thing = self._create_thing(owner, thing_type="ORDER_THING")
-        booking = BookingPeriod.objects.create(
-            thing_code=thing,
-            thing_type="ORDER_THING",
-            requester_code=self._create_user("REQ001"),
-            requester_email="req@example.com",
-            owner_code=owner,
-            delivery_date="2026-04-01",
-            quantity=5,
-        )
-        result = str(booking)
-        assert "2026-04-01" in result
-        assert "x5" in result
-
     def test_str_standard(self):
         """Should show basic info for standard bookings."""
         from core.models.booking import BookingPeriod
@@ -525,15 +506,14 @@ class TestBookingPeriodModel:
         assert thing.code in result
 
     @pytest.mark.parametrize(
-        "thing_type,date_based,single_use,repeatable",
+        "thing_type,date_based,single_use",
         [
-            ("LEND_THING", True, False, False),
-            ("GIFT_THING", False, True, False),
-            ("ORDER_THING", False, False, True),
+            ("LEND_THING", True, False),
+            ("GIFT_THING", False, True),
         ],
     )
-    def test_booking_type_classification(self, thing_type, date_based, single_use, repeatable):
-        """is_date_based / is_single_use / is_repeatable classify each type."""
+    def test_booking_type_classification(self, thing_type, date_based, single_use):
+        """is_date_based / is_single_use classify each type."""
         from core.models.booking import BookingPeriod
 
         owner = self._create_user()
@@ -547,7 +527,6 @@ class TestBookingPeriodModel:
         )
         assert booking.is_date_based() is date_based
         assert booking.is_single_use() is single_use
-        assert booking.is_repeatable() is repeatable
 
     def test_expire(self):
         """Should mark booking as expired."""

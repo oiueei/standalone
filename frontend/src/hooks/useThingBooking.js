@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DATE_TYPES, ORDER_TYPE, SWAP_TYPE } from '../constants/things';
+import { DATE_TYPES, SWAP_TYPE } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
 
 /**
@@ -64,12 +64,11 @@ export default function useThingBooking(thing, {
   const status = thing?.status;
   const isEndless = thing?.is_endless;
   const isDateBased = DATE_TYPES.includes(type);
-  const isOrder = type === ORDER_TYPE;
   const isSwap = type === SWAP_TYPE;
 
   useEffect(() => {
     const shouldFetch = isOwner
-      && (isDateBased || isOrder || isSwap || status === 'TAKEN' || (fetchOnEndless && isEndless));
+      && (isDateBased || isSwap || status === 'TAKEN' || (fetchOnEndless && isEndless));
     if (!shouldFetch || !code) return undefined;
     const controller = new AbortController();
     apiFetch(`/api/v1/things/${code}/calendar/`, { signal: controller.signal })
@@ -79,8 +78,8 @@ export default function useThingBooking(thing, {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const future = data.filter((b) => {
-          if (!b.end_date && !b.delivery_date) return true; // GIFT/SELL: no dates, always current
-          const d = new Date(b.end_date || b.delivery_date);
+          if (!b.end_date) return true; // GIFT/SELL: no dates, always current
+          const d = new Date(b.end_date);
           d.setHours(0, 0, 0, 0);
           return d >= today;
         });
@@ -90,7 +89,7 @@ export default function useThingBooking(thing, {
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [code, status, isEndless, isOwner, isDateBased, isOrder, isSwap, fetchOnEndless]);
+  }, [code, status, isEndless, isOwner, isDateBased, isSwap, fetchOnEndless]);
 
   const handleRequest = async () => {
     if (requestLockRef.current) return;

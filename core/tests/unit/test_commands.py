@@ -119,32 +119,6 @@ class TestSendRemindersCommand:
         assert "rmowner@test.com" in mail.outbox[0].to
         assert "Sent 1 reminder" in out.getvalue()
 
-    def test_delivery_reminder(self):
-        """Should send delivery reminder when delivery_date is tomorrow."""
-        tomorrow = date.today() + timedelta(days=1)
-        owner = User.objects.create(code="RMOWN2", email="rmowner2@test.com", name="Owner")
-        requester = User.objects.create(code="RMREQ2", email="rmreq2@test.com", name="Buyer")
-        thing = Thing.objects.create(
-            code="RMTHN2", owner=owner, headline="Cookies", type="ORDER_THING"
-        )
-        BookingPeriod.objects.create(
-            thing_code=thing,
-            thing_type="ORDER_THING",
-            requester_code=requester,
-            requester_email=requester.email,
-            owner_code=owner,
-            delivery_date=tomorrow,
-            quantity=5,
-            status="ACCEPTED",
-        )
-
-        out = StringIO()
-        call_command("send_reminders", stdout=out)
-
-        assert len(mail.outbox) == 1
-        assert "delivery" in mail.outbox[0].subject.lower()
-        assert "Sent 1 reminder" in out.getvalue()
-
     def test_no_reminders(self):
         """Should report zero when nothing is due tomorrow."""
         out = StringIO()
@@ -319,10 +293,8 @@ class TestSeedDemoCommand:
         en, es = load_seed_data("en"), load_seed_data("es")
         for entity, key in _MERGE_KEYS.items():
             en_rows, es_rows = getattr(en, entity), getattr(es, entity)
-            assert len(en_rows) == len(es_rows)  # parity (an entity may be empty)
+            assert len(en_rows) == len(es_rows) > 0
             assert {r[key] for r in en_rows} == {r[key] for r in es_rows}
-        # the core entities must actually be populated (WISH_RESPONSES may be empty)
-        assert en.USERS and en.COLLECTIONS and en.THINGS and en.FAQS
 
     def test_merge_yields_structure_and_text(self):
         """R17: merged rows carry both skeleton fields and localised text, and the

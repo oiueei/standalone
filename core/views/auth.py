@@ -382,10 +382,6 @@ class VerifyLinkView(APIView):
                 response_data["start_date"] = str(booking.start_date)
             if booking.end_date:
                 response_data["end_date"] = str(booking.end_date)
-            if booking.delivery_date:
-                response_data["delivery_date"] = str(booking.delivery_date)
-            if booking.quantity:
-                response_data["quantity"] = booking.quantity
 
         return Response(response_data, status=status.HTTP_200_OK)
 

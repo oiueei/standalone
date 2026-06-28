@@ -220,11 +220,6 @@ def _booking_detail_blocks(booking):
     """Date/quantity detail blocks shared by the three booking emails."""
     if booking.start_date and booking.end_date:
         return [_field("Dates", f"{booking.start_date} - {booking.end_date}")]
-    if booking.delivery_date:
-        return [
-            _field("Quantity", booking.quantity),
-            _field("Delivery date", booking.delivery_date),
-        ]
     return []
 
 
@@ -299,12 +294,6 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
             f"from {booking.start_date} to {booking.end_date}. "
             f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
         )
-    elif booking.delivery_date:
-        plain = (
-            f"{requester_name} has requested {booking.quantity}x '{thing.headline}' "
-            f"for {booking.delivery_date}. "
-            f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
-        )
     else:
         plain = (
             f"{requester_name} has requested to hold '{thing.headline}'. "
@@ -331,11 +320,6 @@ def send_booking_decision_email(booking, thing, accepted=True):
         plain = (
             f"Your hold request for '{thing.headline}' "
             f"from {booking.start_date} to {booking.end_date} has been {decision_word}."
-        )
-    elif booking.delivery_date:
-        plain = (
-            f"Your order of {booking.quantity}x '{thing.headline}' "
-            f"for {booking.delivery_date} has been {decision_word}."
         )
     else:
         plain = f"Your hold request for '{thing.headline}' has been {decision_word}."
@@ -396,11 +380,6 @@ def send_booking_confirmation_email(requester, thing, booking):
             f"{booking.start_date} to {booking.end_date}. "
             f"We've let {owner_name} know — they'll get back to you soon. "
             f"View thing: {thing_url}"
-        )
-    elif booking.delivery_date:
-        plain = (
-            f"You've requested {booking.quantity}x '{thing.headline}' for {booking.delivery_date}. "
-            f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
         )
     else:
         plain = (
@@ -563,24 +542,6 @@ def send_return_reminder_email(requester_name, thing_headline, end_date, owner_e
     html = _render_email(
         [
             _para(f"Reminder: {requester_name}'s hold on {thing_headline} ends {end_date}."),
-        ]
-    )
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
-
-
-def send_delivery_reminder_email(requester_name, thing_headline, delivery_date, owner_email):
-    """Remind the owner that a delivery is due tomorrow."""
-    subject = "Reminder: a delivery is due tomorrow"
-    plain = (
-        f"Reminder: {requester_name}'s order of '{thing_headline}' "
-        f"is due for delivery {delivery_date}."
-    )
-    html = _render_email(
-        [
-            _para(
-                f"Reminder: {requester_name}'s order of {thing_headline} "
-                f"is due for delivery {delivery_date}."
-            ),
         ]
     )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)

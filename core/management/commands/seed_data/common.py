@@ -55,15 +55,6 @@ COLLECTIONS = [
         "thumbnail": "La1aC1",
     },
     {
-        "code": "L3L3C1",
-        "owner_code": "L3L3oo",
-        "visibility": "PRIVATE",
-        "invites": ["La1aN1"],
-        "is_onboarding": True,
-        "allowed_thing_types": ["ORDER_THING"],
-        "thumbnail": "L3L3C1",
-    },
-    {
         "code": "l0l0C1",
         "owner_code": "l0l0oh",
         "visibility": "PUBLIC",
@@ -170,53 +161,12 @@ THINGS = [
         "condition": "NEW",
     },
     {
-        "code": "cksle1",
-        "type": "ORDER_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C1"],
-        "thumbnail": "cksle1",
-        "fee": "5.00",
-    },
-    {
-        "code": "cksle2",
-        "type": "ORDER_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C1"],
-        "thumbnail": "cksle2",
-        "fee": "40.00",
-    },
-    {
-        "code": "cksle3",
-        "type": "ORDER_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C1"],
-        "thumbnail": "cksle3",
-        "fee": "60.00",
-    },
-    {
-        "code": "cksle4",
-        "type": "ORDER_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C1"],
-        "thumbnail": "cksle4",
-        "fee": "45.00",
-    },
-    {
-        "code": "cksle5",
-        "type": "ORDER_THING",
-        "owner_code": "L3L3oo",
-        "collections": ["L3L3C1"],
-        "thumbnail": "cksle5",
-        "fee": "5.00",
-    },
-    {
         "code": "rent01",
         "type": "RENT_THING",
         "owner_code": "l1l13S",
         "collections": ["l1l1C1"],
         "thumbnail": "rent01",
         "fee": "1.00",
-        "condition": "USED",
         "tags": ["Crianza"],
     },
     {
@@ -226,7 +176,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent02",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Crianza"],
     },
     {
@@ -236,7 +185,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent03",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Ocio", "Crianza"],
     },
     {
@@ -246,7 +194,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent04",
         "fee": "5.00",
-        "condition": "GOOD",
         "tags": ["Crianza", "Jardín"],
     },
     {
@@ -256,7 +203,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent05",
         "fee": "1.00",
-        "condition": "USED",
         "tags": ["Crianza"],
     },
     {
@@ -266,7 +212,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent06",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Jardín"],
     },
     {
@@ -276,7 +221,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent07",
         "fee": "3.00",
-        "condition": "USED",
         "tags": ["Electrónica"],
     },
     {
@@ -286,7 +230,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent08",
         "fee": "3.00",
-        "condition": "USED",
         "tags": ["Ocio", "Electrónica"],
     },
     {
@@ -296,7 +239,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent09",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Limpieza"],
     },
     {
@@ -306,7 +248,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent10",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Limpieza"],
     },
     {
@@ -316,7 +257,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent11",
         "fee": "5.00",
-        "condition": "GOOD",
         "tags": ["Limpieza"],
     },
     {
@@ -326,7 +266,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent12",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Bricolaje"],
     },
     {
@@ -336,7 +275,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent13",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Bricolaje"],
     },
     {
@@ -346,7 +284,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent14",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Deporte"],
     },
     {
@@ -356,7 +293,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent15",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Deporte"],
     },
     {
@@ -366,7 +302,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent16",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Deporte"],
     },
     {
@@ -376,7 +311,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent17",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Deporte"],
     },
     {
@@ -386,7 +320,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent18",
         "fee": "5.00",
-        "condition": "GOOD",
         "tags": ["Deporte"],
     },
     {
@@ -396,7 +329,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent19",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Cocina"],
     },
     {
@@ -406,7 +338,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent20",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Cocina"],
     },
     {
@@ -416,7 +347,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent21",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Cocina"],
     },
     {
@@ -426,7 +356,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent22",
         "fee": "3.00",
-        "condition": "GOOD",
         "tags": ["Cocina"],
     },
     {
@@ -436,7 +365,6 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "rent23",
         "fee": "1.00",
-        "condition": "GOOD",
         "tags": ["Cocina"],
     },
     {
@@ -536,6 +464,12 @@ THINGS = [
         "is_endless": True,
     },
     {
+        "code": "La1aW1",
+        "type": "WISH_THING",
+        "owner_code": "La1aN1",
+        "collections": ["1u1uC1"],
+    },
+    {
         "code": "l1sw01",
         "type": "SWAP_THING",
         "owner_code": "La1aN1",
@@ -622,29 +556,15 @@ FAQS = [
         "thing_code": "stffa5",
         "questioner_code": "L3L3oo",
     },
-    {
-        "thing_code": "cksle1",
-        "questioner_code": "La1aN1",
-    },
-    {
-        "thing_code": "cksle2",
-        "questioner_code": "La1aN1",
-    },
-    {
-        "thing_code": "cksle3",
-        "questioner_code": "La1aN1",
-    },
-    {
-        "thing_code": "cksle4",
-        "questioner_code": "La1aN1",
-    },
-    {
-        "thing_code": "cksle5",
-        "questioner_code": "La1aN1",
-    },
 ]
 
-WISH_RESPONSES = []
+WISH_RESPONSES = [
+    {
+        "wish_code": "La1aW1",
+        "responder_code": "L3L3oo",
+        "kind": "KNOW_WHERE",
+    },
+]
 
 # ThingTransfer chain — (thing_code, from_code, to_code, lent_date, returned_date)
 TRANSFERS = [

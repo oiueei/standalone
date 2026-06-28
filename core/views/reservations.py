@@ -15,10 +15,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import RSVP, Collection, Thing
-from core.models.booking import DATE_BASED_TYPES, REPEATABLE_TYPES, BookingPeriod
+from core.models.booking import DATE_BASED_TYPES, BookingPeriod
 from core.models.notification import InAppNotification
 from core.serializers.booking import (
-    ThingOrderSerializer,
     ThingRequestWithDatesSerializer,
     ThingSwapRequestSerializer,
 )
@@ -39,7 +38,6 @@ class ThingRequestView(APIView):
     All thing types now use BookingPeriod:
     - LEND/RENT: requires start_date and end_date
     - SHARE: no dates — permanent ownership transfer on acceptance, thing stays ACTIVE
-    - ORDER: requires delivery_date and quantity
     - GIFT/SELL: no extra fields required
     """
 
@@ -112,8 +110,6 @@ class ThingRequestView(APIView):
             return self._handle_share_request(request, thing, owner_email)
         elif thing.type in DATE_BASED_TYPES:
             return self._handle_date_based_request(request, thing, owner_email)
-        elif thing.type in REPEATABLE_TYPES:
-            return self._handle_order_request(request, thing, owner_email)
         else:
             return self._handle_standard_request(request, thing, owner_email)
 
@@ -183,40 +179,6 @@ class ThingRequestView(APIView):
                 "booking_code": booking.code,
                 "start_date": str(start_date),
                 "end_date": str(end_date),
-            },
-            status=status.HTTP_200_OK,
-        )
-
-    def _handle_order_request(self, request, thing, owner_email):
-        """Handle ORDER_THING requests (delivery_date + quantity)."""
-        serializer = ThingOrderSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        delivery_date = serializer.validated_data["delivery_date"]
-        quantity = serializer.validated_data["quantity"]
-
-        with transaction.atomic():
-            Thing.objects.select_for_update().get(code=thing.code)
-
-            booking = BookingPeriod.objects.create(
-                thing_code=thing,
-                thing_type=thing.type,
-                requester_code=request.user,
-                requester_email=request.user.email,
-                owner_code=thing.owner,
-                delivery_date=delivery_date,
-                quantity=quantity,
-            )
-
-        self._send_booking_email(request.user, thing, booking, owner_email)
-
-        return Response(
-            {
-                "message": "Order request sent",
-                "booking_code": booking.code,
-                "delivery_date": str(delivery_date),
-                "quantity": quantity,
             },
             status=status.HTTP_200_OK,
         )

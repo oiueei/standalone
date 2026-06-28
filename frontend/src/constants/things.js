@@ -4,7 +4,7 @@
  */
 
 export const TYPE_VALUES = [
-  'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING', 'LEND_THING', 'SHARE_THING', 'WISH_THING', 'SWAP_THING',
+  'GIFT_THING', 'SELL_THING', 'RENT_THING', 'LEND_THING', 'SHARE_THING', 'WISH_THING', 'SWAP_THING',
 ];
 
 export const SHARE_TYPE = 'SHARE_THING';
@@ -23,8 +23,7 @@ export const WISH_KIND_I18N = {
 };
 
 export const DATE_TYPES = ['LEND_THING', 'RENT_THING'];
-export const ORDER_TYPE = 'ORDER_THING';
-export const FEE_TYPES = ['SELL_THING', 'RENT_THING', 'ORDER_THING'];
+export const FEE_TYPES = ['SELL_THING', 'RENT_THING'];
 
 export const DETAIL_TYPES = ['GIFT_THING', 'SELL_THING', 'LEND_THING', 'SHARE_THING'];
 
@@ -36,10 +35,10 @@ export const CONDITION_VALUES = ['NEW', 'GOOD', 'FAIR', 'USED', 'WELL_USED', 'AL
 // Edit collection forms. SWAP_THING is excluded everywhere because it requires
 // `is_swap=True`, which forces the value via its flag.
 export const PROPRIETARY_TYPES = [
-  'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING', 'LEND_THING',
+  'GIFT_THING', 'SELL_THING', 'RENT_THING', 'LEND_THING',
 ];
 export const COMMUNITY_TYPES = [
-  'GIFT_THING', 'SELL_THING', 'ORDER_THING', 'RENT_THING', 'LEND_THING',
+  'GIFT_THING', 'SELL_THING', 'RENT_THING', 'LEND_THING',
   'SHARE_THING', 'WISH_THING',
 ];
 export const COMMUNITY_MINIMALIST_TYPES = ['GIFT_THING', 'SHARE_THING'];

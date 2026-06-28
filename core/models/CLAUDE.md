@@ -270,8 +270,6 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 | `owner_code` | ForeignKey(User) | **Yes** | Owner of the thing |
 | `start_date` | DateField | No | Start date (for LEND/RENT/SHARE) |
 | `end_date` | DateField | No | End date (for LEND/RENT/SHARE) |
-| `delivery_date` | DateField | No | Delivery date (for ORDER_THING) |
-| `quantity` | PositiveIntegerField | No | Quantity ordered (for ORDER_THING) |
 | `status` | CharField(9) | No | Status: PENDING, ACCEPTED, REJECTED, CANCELLED, EXPIRED. Indexed (`db_index=True`) |
 | `offered_things` | ManyToManyField(Thing) | No | Things offered by the requester in exchange (SWAP_THING only). Related name: `swap_offers`. |
 
@@ -280,7 +278,6 @@ The `BookingPeriod` model is the unified reservation/booking model for all thing
 ```python
 DATE_BASED_TYPES = ["LEND_THING", "RENT_THING"]  # Require dates
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]  # Thing becomes INACTIVE after acceptance
-REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 ```
 
 ### Business Rules
@@ -289,15 +286,14 @@ REPEATABLE_TYPES = ["ORDER_THING"]  # Thing stays ACTIVE, can be ordered again
 2. **Date-based (LEND/RENT)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE.
 3. **Share (SHARE_THING)**: NOT date-based. No dates required — permanent ownership transfer on acceptance. Multiple pending requests allowed from different users.
 4. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept. When `is_endless=True`: multiple simultaneous PENDING bookings allowed, status never TAKEN, thing stays ACTIVE after accept, no ThingTransfer created.
-5. **Repeatable (ORDER)**: `delivery_date` and `quantity` required. Thing stays ACTIVE.
-6. **Swap (SWAP_THING)**: No dates. Requester offers own things via `offered_things` M2M. On acceptance, requested thing transfers to requester and all offered things transfer to original owner. All things stay ACTIVE. ThingTransfer records created for each thing involved.
-7. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
-8. **Requester can cancel** - Requesters can cancel their own PENDING bookings. For single-use things, cancellation restores status to ACTIVE.
+5. **Swap (SWAP_THING)**: No dates. Requester offers own things via `offered_things` M2M. On acceptance, requested thing transfers to requester and all offered things transfer to original owner. All things stay ACTIVE. ThingTransfer records created for each thing involved.
+6. **Accept/reject/cancel via services** - `booking_service.accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status changes.
+7. **Requester can cancel** - Requesters can cancel their own PENDING bookings. For single-use things, cancellation restores status to ACTIVE.
 
 ### Methods
 
 - `is_valid()` - Returns True if not expired and PENDING
-- `is_date_based()` / `is_single_use()` / `is_repeatable()` - Category checks
+- `is_date_based()` / `is_single_use()` - Category checks
 - `accept()` / `reject()` / `cancel()` / `expire()` - Status transitions
 
 ### Class Methods
@@ -317,7 +313,7 @@ The `Thing` model represents an item in a collection.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
-| `type` | CharField(17) | No | Type: GIFT_THING, SELL_THING, ORDER_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING |
+| `type` | CharField(17) | No | Type: GIFT_THING, SELL_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING |
 | `owner` | ForeignKey(User) | **Yes** | Owner of the thing |
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |

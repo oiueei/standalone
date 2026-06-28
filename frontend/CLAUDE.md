@@ -170,7 +170,7 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).
-- Displays the photo (when a thing has more than one photo — cover `thumbnail_url` + `gallery_urls` — it renders `<ImageCarousel variant="card" to={thingPath}>` so you can browse in-card; a single photo, or none, falls back to the static thumbnail/placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar` — for date-based types LEND/RENT the live indicator: `availability.IMMEDIATE` when available today, else the `next_available` day/month date or `availability.noneSoon`; static enum hint otherwise), location (`IconLocation`), condition (`IconShield`), answer count (`IconSpeechbubbleText`, for WISH_THING, shown when `thing.response_count > 0`), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — uses type-specific i18n keys: `transfers.lendCount`, `transfers.rentCount`, `transfers.shareCount`, `transfers.swapCount`, `transfers.orderCount` based on `thing.type`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
+- Displays the photo (when a thing has more than one photo — cover `thumbnail_url` + `gallery_urls` — it renders `<ImageCarousel variant="card" to={thingPath}>` so you can browse in-card; a single photo, or none, falls back to the static thumbnail/placeholder with `srcSet` for @2x/@3x), headline, description, and info rows with HDS icons for type (`IconTicket`), price (`IconEuroSign`), availability (`IconCalendar` — for date-based types LEND/RENT the live indicator: `availability.IMMEDIATE` when available today, else the `next_available` day/month date or `availability.noneSoon`; static enum hint otherwise), location (`IconLocation`), condition (`IconShield`), answer count (`IconSpeechbubbleText`, for WISH_THING, shown when `thing.response_count > 0`), and transfer count (`IconHome`, shown when `thing.transfer_count > 0` — uses type-specific i18n keys: `transfers.lendCount`, `transfers.rentCount`, `transfers.shareCount`, `transfers.swapCount` based on `thing.type`). Uses a plain `<div>` container (not HDS Card) to avoid style conflicts with HDS Tag components.
 - **Owner bookings display**: fetches `GET /api/v1/things/{code}/calendar/` on mount for date-based/order types and for any TAKEN thing (GIFT/SELL with a pending request). Shows future pending and confirmed bookings with requester name, request date, date ranges/delivery info, and status. Bookings with no dates (GIFT/SELL) are always shown regardless of date. The active pending booking is tracked in local `activePendingCode` state (initialised from `thing.pending_booking`, then synced to the first PENDING from the calendar on load) and marked bold with `*` when multiple pending exist.
 - **Themed buttons**: all buttons use theeeme colors (`btnStyle` for primary, `btnSecondaryStyle` for secondary). Secondary buttons always have a white background (`--background-color: white`); the theeeme `color_01` is used for the border, and `color_04` for the text.
 - **Owner button matrix** (based on `thing.status`):
@@ -190,7 +190,6 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
   - `GIFT_THING`, `SELL_THING` — button submits directly via `POST /api/v1/things/{code}/request/`, no extra fields.
   - `LEND_THING`, `RENT_THING` — button navigates to `RequestThingPage` for date selection.
   - `SHARE_THING` — button submits directly via `POST /api/v1/things/{code}/request/` (no dates). Ownership transfers to the requester on the owner's **accept**; the thing stays `ACTIVE` so it keeps circulating (it is `needsPage`-excluded, unlike LEND/RENT).
-  - `ORDER_THING` — button navigates to `RequestThingPage` for delivery date and quantity.
   - `SWAP_THING` — "Propose swap" button navigates to `RequestThingPage` for swap item selection. Owner bookings display shows offered thing headlines for swap requests. **Minimum-items gate**: when `thing.collection_swap_minimum_items > 0` and `thing.my_swap_count_in_collection` is below it, the button is disabled and an inline HDS `Notification` (`type="info"`, `size="small"`) is rendered below it via `swap.minimumNotMetLabel` + `swap.minimumNotMetBody` (with `count` interpolation). The same gate is mirrored in `ThingPage`. Backend backstops it in `core/views/reservations.py::_handle_swap_request`.
 - **Back navigation**: passes `{ state: { backPath, backLabel } }` to RequestThingPage and ThingPage based on context (collection headline or home).
 
@@ -230,7 +229,6 @@ Detail page for a thing with full information and FAQs section.
 - **Form fields** adapt to thing type:
   - `SWAP_THING` — Fetches user's own SWAP_THING items in the same collection. Shows HDS `Checkbox` per item for multi-select. Submits `{ offered_thing_codes: [...] }`. "Propose swap" button disabled until at least one item selected.
   - `LEND_THING`, `RENT_THING` — `DateInput` for start and end dates with blocked-date validation. (SHARE_THING never routes here — it submits directly from the card/detail page.)
-  - `ORDER_THING` — `DateInput` for delivery date + `NumberInput` for quantity.
 - **Date validation**: `minDate` today, `maxDate` today + 90 days. Blocked dates fetched from calendar API.
 - **Buttons**: Cancel (navigates back) + Hold/Propose swap (submits request).
 - On success: shows an inline HDS `Notification` ("You're all set! We've let the owner know — they'll get back to you soon.") with a "Back to {backLabel}" button. Does not navigate automatically.
@@ -420,8 +418,7 @@ Central source of truth for thing type definitions. Display labels are handled b
 - `WISH_RESPONSE_KINDS` / `WISH_KIND_SLUGS` / `WISH_KIND_BY_SLUG` / `WISH_KIND_I18N` — the three wish answer kinds (`HAVE_THIS`, `KNOW_WHERE`, `CAN_MAKE`) plus the URL-slug and i18n-key mappings used by `RespondMenu`, `RespondWishPage`, and the responses list.
 - `SWAP_TYPE` — `SWAP_THING` constant (used for swap-specific UI logic — swap request form, "Propose swap" button).
 - `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`).
-- `ORDER_TYPE` — `ORDER_THING` constant.
-- `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`, `ORDER_THING`).
+- `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`).
 - `DETAIL_TYPES` — Types with availability/location/condition fields (`GIFT_THING`, `SELL_THING`, `LEND_THING`, `SHARE_THING`).
 - `AVAILABILITY_VALUES` — Array of availability value strings (labels from i18n).
 - `CONDITION_VALUES` — Array of condition value strings (labels from i18n).

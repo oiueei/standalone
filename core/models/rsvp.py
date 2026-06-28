@@ -105,11 +105,6 @@ class RSVP(models.Model):
             context["start_date"] = str(booking.start_date)
         if booking.end_date:
             context["end_date"] = str(booking.end_date)
-        # Include order info if it exists (for ORDER_THING)
-        if booking.delivery_date:
-            context["delivery_date"] = str(booking.delivery_date)
-        if booking.quantity:
-            context["quantity"] = booking.quantity
 
         return cls.objects.create(
             user_code=booking.owner_code,

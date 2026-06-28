@@ -3,7 +3,6 @@ BookingPeriod model - unified reservation/booking model for all thing types.
 
 This model handles all reservation scenarios:
 - GIFT_THING, SELL_THING: Single-use reservations (no dates, thing becomes INACTIVE)
-- ORDER_THING: Repeatable orders (delivery_date + quantity, thing stays ACTIVE)
 - LEND_THING, RENT_THING: Date-based bookings (start/end dates, thing stays ACTIVE on return)
 - SHARE_THING: No dates — permanent ownership transfer on acceptance, thing stays ACTIVE
 """
@@ -22,21 +21,16 @@ DATE_BASED_TYPES = ["LEND_THING", "RENT_THING"]
 # Thing types where the thing becomes INACTIVE after acceptance
 SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]
 
-# Thing types that can be ordered repeatedly (always available)
-REPEATABLE_TYPES = ["ORDER_THING"]
-
 
 class BookingPeriod(models.Model):
     """
     Unified reservation/booking model for all thing types.
 
     For GIFT/SELL: no dates required
-    For ORDER: delivery_date and quantity required
     For LEND/RENT/SHARE: start_date and end_date required
 
     The thing_type field determines behavior on acceptance:
     - GIFT/SELL: thing.status -> INACTIVE
-    - ORDER: thing stays ACTIVE (can be ordered again)
     - LEND/RENT/SHARE: thing stays ACTIVE (date-based availability)
     """
 
@@ -74,8 +68,6 @@ class BookingPeriod(models.Model):
     )
     start_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE
     end_date = models.DateField(null=True, blank=True)  # For LEND/RENT/SHARE
-    delivery_date = models.DateField(null=True, blank=True)  # For ORDER_THING
-    quantity = models.PositiveIntegerField(null=True, blank=True)  # For ORDER_THING
     status = models.CharField(
         max_length=9, choices=Status.choices, default=Status.PENDING, db_index=True
     )
@@ -103,11 +95,6 @@ class BookingPeriod(models.Model):
                 f"Booking {self.code} for {self.thing_code_id} "
                 f"({self.start_date} - {self.end_date})"
             )
-        if self.delivery_date:
-            qty = f"x{self.quantity}" if self.quantity else ""
-            return (
-                f"Order {self.code} for {self.thing_code_id} (delivery: {self.delivery_date}) {qty}"
-            )
         return f"Booking {self.code} for {self.thing_code_id}"
 
     def is_date_based(self):
@@ -117,10 +104,6 @@ class BookingPeriod(models.Model):
     def is_single_use(self):
         """Check if this booking makes the thing unavailable (GIFT/SELL)."""
         return self.thing_type in SINGLE_USE_TYPES
-
-    def is_repeatable(self):
-        """Check if this thing can be ordered repeatedly (ORDER)."""
-        return self.thing_type in REPEATABLE_TYPES
 
     def is_valid(self):
         """Check if the booking request is still valid (not expired and PENDING)."""

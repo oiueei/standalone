@@ -1588,52 +1588,6 @@ class TestSecurityInputValidation:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["headline"] == "My Wedding List 2024"
 
-    def test_quantity_max_99(self, user, user2, collection):
-        """Should reject order quantity over 99."""
-        from datetime import date, timedelta
-
-        from rest_framework.test import APIClient
-        from rest_framework_simplejwt.tokens import RefreshToken
-
-        from core.models import Thing
-
-        # Create ORDER_THING
-        order_thing = Thing.objects.create(
-            code="ORDER1",
-            type="ORDER_THING",
-            owner=user,
-            headline="Cookies",
-            status="ACTIVE",
-        )
-        collection.add_thing(order_thing.code)
-        collection.add_invite(user2.code)
-
-        client2 = APIClient()
-        refresh = RefreshToken.for_user(user2)
-        client2.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
-
-        # Try to order 100 (should fail)
-        response = client2.post(
-            f"/api/v1/things/{order_thing.code}/request/",
-            {
-                "delivery_date": str(date.today() + timedelta(days=7)),
-                "quantity": 100,
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-        # Order 99 should succeed
-        response = client2.post(
-            f"/api/v1/things/{order_thing.code}/request/",
-            {
-                "delivery_date": str(date.today() + timedelta(days=7)),
-                "quantity": 99,
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_200_OK
-
 
 @pytest.mark.django_db
 class TestSecurityAuth:

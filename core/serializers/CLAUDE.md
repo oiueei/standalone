@@ -95,12 +95,11 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 
 | Serializer | Fields | Notes |
 |------------|--------|-------|
-| `BookingPeriodSerializer` | code, created, thing_code, thing_headline, thing_type, requester_code, requester_name, requester_email, owner_code, start_date, end_date, delivery_date, quantity, status, offered_thing_codes, offered_thing_headlines | Full booking for owner view. Uses `source` to traverse FK relations. `offered_thing_codes`/`offered_thing_headlines` return lists for SWAP_THING bookings, null otherwise. |
+| `BookingPeriodSerializer` | code, created, thing_code, thing_headline, thing_type, requester_code, requester_name, requester_email, owner_code, start_date, end_date, status, offered_thing_codes, offered_thing_headlines | Full booking for owner view. Uses `source` to traverse FK relations. `offered_thing_codes`/`offered_thing_headlines` return lists for SWAP_THING bookings, null otherwise. |
 | `BookingPeriodCalendarSerializer` | start_date, end_date, status | Minimal calendar view for guests (no requester info). |
-| `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, delivery_date, quantity, status, offered_thing_codes, offered_thing_headlines | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. `offered_thing_codes`/`offered_thing_headlines` return lists for SWAP_THING bookings, null otherwise. |
+| `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, status, offered_thing_codes, offered_thing_headlines | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. `offered_thing_codes`/`offered_thing_headlines` return lists for SWAP_THING bookings, null otherwise. |
 | `ThingRequestWithDatesSerializer` | start_date, end_date | Plain `Serializer` for LEND/RENT requests. Validates start >= today, end >= start. |
-| `ThingOrderSerializer` | delivery_date, quantity (1-99) | Plain `Serializer` for ORDER requests. Validates delivery >= today. |
-| `MyBookingSerializer` | code, created, thing_code, thing_headline, thing_type, owner_code, owner_name, start_date, end_date, delivery_date, quantity, status | Requester's own booking view. `owner_name` falls back to email. |
+| `MyBookingSerializer` | code, created, thing_code, thing_headline, thing_type, owner_code, owner_name, start_date, end_date, status | Requester's own booking view. `owner_name` falls back to email. |
 
 ### `faq.py`
 
