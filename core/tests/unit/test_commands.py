@@ -246,23 +246,23 @@ class TestSendDigestsCommand:
 class TestSeedDemoCommand:
     """Tests for the seed_demo management command (demo data integrity)."""
 
-    SUCCULENTS = {"lltl22", "lltl23", "lltl24", "lltl25", "lltl26", "lltl27", "lltl28"}
+    SUCCULENTS = {"l0l001", "l0l002", "l0l003", "l0l004", "l0l005", "l0l006", "l0l007"}
 
     def test_maps_gallery_key(self):
         """Regression guard: _seed_things must copy the `gallery` key onto the model."""
         call_command("seed_demo")
-        assert Thing.objects.get(code="stffa1").gallery == ["stffa1_b"]
+        assert Thing.objects.get(code="La1a01").gallery == ["La1a01_b"]
 
     def test_maps_tags_key(self):
         """Regression guard: _seed_collections and _seed_things must copy `tags`."""
         call_command("seed_demo")
-        assert "modules" in Collection.objects.get(code="l1l1C2").tags
-        assert Thing.objects.get(code="l1sw02").tags == ["sensors"]
+        assert "modules" in Collection.objects.get(code="L3L3C1").tags
+        assert Thing.objects.get(code="L3L302").tags == ["sensors"]
 
     def test_maps_user_photo_key(self):
         """Regression guard: _seed_users must copy the `photo` key onto the user."""
         call_command("seed_demo")
-        assert User.objects.get(code="La1aN1").photo == "la1an1"
+        assert User.objects.get(code="La1aN1").photo == "La1aPH"
 
     def test_maps_allowed_thing_types_key(self):
         """Regression guard: _seed_collections must copy `allowed_thing_types`."""
@@ -303,6 +303,6 @@ class TestSeedDemoCommand:
 
         en = {t["code"]: t for t in load_seed_data("en").THINGS}
         es = {t["code"]: t for t in load_seed_data("es").THINGS}
-        sample = en["stffa1"]
+        sample = en["La1a01"]
         assert sample["type"] == "SELL_THING" and sample["owner_code"] == "La1aN1"  # skeleton
-        assert sample["headline"] and sample["headline"] != es["stffa1"]["headline"]  # text
+        assert sample["headline"] and sample["headline"] != es["La1a01"]["headline"]  # text
