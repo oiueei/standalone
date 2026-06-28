@@ -101,9 +101,15 @@ class Command(BaseCommand):
     # ---- helpers ----
 
     def _reset(self):
-        Thing.objects.filter(owner_id__in=DEMO_USER_CODES).delete()
-        Collection.objects.filter(owner_id__in=DEMO_USER_CODES).delete()
-        User.objects.filter(code__in=DEMO_USER_CODES).delete()
+        # The demo reuses fixed, shared Cloudinary public ids — suspend the
+        # delete-time cleanup so wiping demo rows doesn't destroy the images the
+        # immediate re-seed points back at.
+        from core.services import cloudinary_cleanup
+
+        with cloudinary_cleanup.suspended():
+            Thing.objects.filter(owner_id__in=DEMO_USER_CODES).delete()
+            Collection.objects.filter(owner_id__in=DEMO_USER_CODES).delete()
+            User.objects.filter(code__in=DEMO_USER_CODES).delete()
 
     def _seed_users(self, users):
         for data in users:

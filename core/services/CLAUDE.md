@@ -93,3 +93,26 @@ Every email belongs to one of three categories. Each function routes through the
 - **Digest emails**: `send_digest_email()` lists new thing headlines in both plain text (bulleted) and HTML (`<ul>/<li>`) formats.
 - **Direct collection links**: `send_digest_email()` and `send_newsletter_email()` link straight to `{frontend_base}/collections/{code}`. Per DESIGN.md §9 we do not track email engagement — links are never wrapped in a redirect or tracking pixel.
 - **Preference pipeline**: every send goes through `_send()` → `_should_send()` + `_with_footer()`. Never call `send_mail` directly from outside this module — the preference check and footer would be bypassed.
+
+---
+
+### `cloudinary_cleanup.py` — Delete Cloudinary Assets on Delete
+
+Frees the Cloudinary images a record owns when the record itself is deleted, so removing a thing / collection / user doesn't leave orphaned assets piling up (storage cost + clutter).
+
+#### How it's wired
+
+- **`post_delete` signal handlers** on `Thing`, `Collection` and `User` (registered in `core.apps.CoreConfig.ready`). Django fires `post_delete` for cascade-deleted rows too, so this single hook covers every path: a direct thing/collection delete, the collection view's orphan-thing sweep (`CollectionViewSet.perform_destroy`), and a user-account FK cascade (which removes their collections and things).
+- **Runs on `transaction.on_commit`** — a delete that rolls back keeps its images. The destroy **never raises** (`_destroy` swallows + logs): an orphaned asset is a smaller problem than a delete that blows up.
+
+#### What gets destroyed per model
+
+| Model | Assets |
+|-------|--------|
+| `Thing` | `thumbnail`, every `gallery` id, and every `documents[].public_id` (destroyed as `resource_type=raw`, `type=authenticated` — documents upload privately) |
+| `Collection` | `thumbnail` |
+| `User` | `photo` |
+
+#### Suspension (the demo-seed guard)
+
+`suspended()` is a context manager that disables the cleanup for deletes inside the block. **`seed_demo._reset()` wraps its deletes in it**: the demo reuses a fixed pool of shared Cloudinary public ids, so wiping them on `--reset` would destroy the very images the immediate re-seed points back at. Any other bulk delete that must not touch Cloudinary can reuse the same guard.
