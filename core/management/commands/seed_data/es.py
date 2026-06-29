@@ -19,18 +19,18 @@ USERS = [
     },
     {
         "code": "l1l13S",
-        "headline": "¡Viva la tienda de préstamos! Lili tiene tus herramientas.",
-        "about": "## Pide prestado, no compres 🔧\n\nGuardiana de la **biblioteca de herramientas** y manitas de corazón. Si taladra, limpia al vapor, sube o pita, seguro que tengo una para prestar. ¡Reutilizar antes que comprar!",
+        "headline": "¡Viva la tienda de préstamos! Lili lo presta casi todo.",
+        "about": "## Pide prestado, no compres 🤝\n\nGuardiana de la **biblioteca del barrio**: de taladros y vaporetas a cosas de cocina, jardín, deporte y crianza. Si solo lo vas a usar de uvas a peras, mejor pídemelo. ¡Reutilizar antes que comprar!",
     },
     {
         "code": "l0l0oh",
-        "headline": "¡El sombrío Heathcliff llama! ¡Club de lectura de Lolo!",
-        "about": "## Mamá planta y ratón de biblioteca 🌿📚\n\nDemasiadas crías de **suculenta** y debilidad por *Cumbres Borrascosas*. Pásate por un esqueje gratis y quédate al club de lectura — el sombrío Heathcliff te espera.",
+        "headline": "¡Mamá planta al rescate! Esquejes gratis en el salón verde.",
+        "about": "## Mamá planta de corazón 🌿\n\nDemasiadas crías de **suculenta** en el alféizar — echeverias, jades y sedums buscando hogar. Pásate por un esqueje gratis, con guía de cuidados incluida. Única regla: ¡ponle nombre a tu nueva amiga verde!",
     },
     {
         "code": "1u1ucs",
         "headline": "Conozco a todos y me apunto a todo – ¡la chispa comunitaria!",
-        "about": "## La chispa de la comunidad ✨\n\nConozco a todo el mundo y me apunto a todo. Guardiana del **Estante Fantasma** — foto, compartir y a verlo desaparecer. Si algo pasa, *ya estoy allí*.",
+        "about": "## La chispa de la comunidad ✨\n\nConozco a todo el mundo y me apunto a todo. Guardián del **Estante Fantasma** — foto, compartir y a verlo desaparecer. Si algo pasa, *ya estoy allí*.",
     },
 ]
 

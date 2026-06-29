@@ -16,13 +16,13 @@ USERS = [
     },
     {
         "code": "l1l13S",
-        "headline": "Hurrah for the Borrow Shelf! Lili's got your gear!",
-        "about": "## Borrow, don't buy 🔧\n\nKeeper of the **tool library** and a tinkerer at heart. If it drills, steams, climbs or beeps, I've probably got one to lend. Reuse over buy-new!",
+        "headline": "Hurrah for the Borrow Shelf! Lili lends just about anything!",
+        "about": "## Borrow, don't buy 🤝\n\nKeeper of the **neighbourhood lending shelf**: from drills and steam cleaners to kitchen kit, garden gear, sports and baby bits. If you'll only use it once in a blue moon, borrow it from me. Reuse over buy-new!",
     },
     {
         "code": "l0l0oh",
-        "headline": "Heathcliff's brooding romance calls! Lolo's book club beckons!",
-        "about": "## Plant mum & bookworm 🌿📚\n\nToo many **succulent** babies and a soft spot for *Wuthering Heights*. Drop by for a free cutting and stay for the book club — Heathcliff's brooding awaits.",
+        "headline": "Plant mum to the rescue! Free cuttings at Lolo's leafy lounge.",
+        "about": "## Plant mum at heart 🌿\n\nToo many **succulent** babies on the windowsill — echeverias, jades and sedums after a home. Drop by for a free cutting, care guide included. Only rule: name your new leafy friend!",
     },
     {
         "code": "1u1ucs",

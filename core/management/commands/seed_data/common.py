@@ -123,7 +123,7 @@ THINGS = [
         "collections": ["La1aC1"],
         "thumbnail": "La1a01_a",
         "gallery": ["La1a01_b"],
-        "fee": "20.00",
+        "fee": "10.00",
         "condition": "NEW",
     },
     {
@@ -132,7 +132,7 @@ THINGS = [
         "owner_code": "La1aN1",
         "collections": ["La1aC1"],
         "thumbnail": "La1a02",
-        "fee": "30.00",
+        "fee": "10.00",
         "availability": "IMMEDIATE",
     },
     {
@@ -161,7 +161,7 @@ THINGS = [
         "owner_code": "La1aN1",
         "collections": ["La1aC1"],
         "thumbnail": "La1a05",
-        "fee": "20.00",
+        "fee": "10.00",
         "condition": "NEW",
     },
     {
