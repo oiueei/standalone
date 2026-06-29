@@ -167,7 +167,7 @@ div[class*="Linkbox-module_linkbox"] {
 
 .thing-card {
   width: 100%;
-  background: #fff;
+  background: var(--color-white);
   border-radius: 2px;
   display: flex;
   flex-direction: column;
@@ -290,8 +290,8 @@ div[class*="Linkbox-module_linkbox"] {
 
 .tag-chip {
   border: 1px solid transparent;
-  background-color: #eef0ff;
-  color: #0000bf;
+  background-color: var(--color-bus-light);
+  color: var(--color-bus);
   border-radius: 999px;
   padding: var(--spacing-3-xs) var(--spacing-s);
   /* WCAG 2.5.5 / mobile-first: 44px-tall tap target while keeping the pill look. */
@@ -304,11 +304,11 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 .tag-chip:hover {
-  border-color: #0000bf;
+  border-color: var(--color-bus);
 }
 
 .tag-chip[aria-pressed="true"] {
-  background-color: #0000bf;
+  background-color: var(--color-bus);
   color: var(--color-white);
 }
 
@@ -1065,7 +1065,7 @@ figure[class*="Highlight-module_highlight"] {
 }
 .thing-card-minimalist {
   width: 100%;
-  background: #fff;
+  background: var(--color-white);
   border-radius: 2px;
   overflow: hidden;
   text-align: center;

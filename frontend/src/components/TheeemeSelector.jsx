@@ -8,8 +8,8 @@ export default function TheeemeSelector({ theeemes, value, onChange }) {
 
   return (
     <div className="theeeme-selector">
-      <span className="theeeme-selector-label">{t('editProfile.theeemeLabel')}</span>
-      <div className="theeeme-selector-grid">
+      <span id="theeeme-selector-label" className="theeeme-selector-label">{t('editProfile.theeemeLabel')}</span>
+      <div className="theeeme-selector-grid" role="group" aria-labelledby="theeeme-selector-label">
         {theeemes.map((th) => {
           const selected = th.code === value;
           return (

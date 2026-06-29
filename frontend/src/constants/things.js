@@ -74,5 +74,5 @@ export const TAG_THEMES = {
   pending: { '--tag-background': '#fff4e5', '--tag-color': '#b54708' },
   // Owner-defined collection tags assigned to a thing — neutral bussi tint,
   // distinct from the amber status tags and grey inactive tag.
-  custom: { '--tag-background': '#eef0ff', '--tag-color': '#0000bf' },
+  custom: { '--tag-background': 'var(--color-bus-light)', '--tag-color': 'var(--color-bus)' },
 };

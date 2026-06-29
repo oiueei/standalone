@@ -111,7 +111,7 @@ export default function DocumentUpload({ documents = [], onChange }) {
               <span>{doc.filename}</span>
               <Button
                 variant="supplementary"
-                iconLeft={<span>✕</span>}
+                iconLeft={<span aria-hidden="true">✕</span>}
                 size="small"
                 onClick={() => handleRemove(i)}
               >

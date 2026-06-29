@@ -101,7 +101,7 @@ export default function ImageUpload({ id, label, onChange, currentUrl, folder = 
           <img src={previewUrl} alt="" />
           <Button
             variant="supplementary"
-            iconLeft={<span>✕</span>}
+            iconLeft={<span aria-hidden="true">✕</span>}
             size="small"
             onClick={handleRemove}
             style={{ marginTop: 'var(--spacing-xs)' }}

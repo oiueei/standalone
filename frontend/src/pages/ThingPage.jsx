@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
-  Fieldset,
   Highlight,
   Notification,
   TextArea,

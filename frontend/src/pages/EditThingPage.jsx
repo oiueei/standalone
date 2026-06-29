@@ -15,7 +15,7 @@ export default function EditThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
-  const { tc, btnStyle } = useTheeeme();
+  const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
@@ -188,14 +188,7 @@ export default function EditThingPage() {
             ? `/collections/${thingCollectionCode}/things/${thingCode}/delete`
             : `/things/${thingCode}/delete`;
           navigate(deletePath, { state: { backPath: returnPath, backLabel: returnLabel } });
-        }} style={{
-          '--background-color': 'var(--color-white)',
-          '--border-color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
-          '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
-          '--background-color-hover': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,
-          '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-          marginTop: 'var(--spacing-s)',
-        }}>
+        }} style={{ ...btnSecondaryStyle, marginTop: 'var(--spacing-s)' }}>
           {t('common.delete')}
         </Button>
       </div>
