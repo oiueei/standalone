@@ -268,7 +268,7 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/my-bookings/`, `POST /api/v1/bookings/{code}/cancel/` to cancel
 - Redirects to `/login` if no `userCode` in `localStorage`.
 - Lists all booking requests made by the current user.
-- Each booking card shows: thing type tag, status tag (Pending/Confirmed/Rejected/Cancelled/Expired), thing headline (linked to thing page), owner name, dates/quantity, and creation date.
+- Each booking card shows: thing type tag, status label (HDS `StatusLabel`, semantic — Pending/Confirmed/Rejected/Cancelled/Expired), thing headline (linked to thing page), owner name, dates/quantity, and creation date.
 - PENDING bookings show a "Cancel request" button. Non-pending bookings are grouped under "Past requests".
 - Accessible from HomePage via "My requests" button.
 
@@ -452,7 +452,7 @@ Smoke tests and automated accessibility checks using vitest + testing-library + 
 - **Run tests:** `npm test` (single run) or `npm run test:watch` (watch mode).
 - **Config:** `vite.config.js` — `test` block with jsdom environment, `src/test/setup.js` as setup file.
 - **Setup:** `src/test/setup.js` — imports `@testing-library/jest-dom`, initialises i18n mock, provides `localStorage`, `CSS.supports`, and `ResizeObserver` polyfills for jsdom.
-- **Smoke tests:** `src/test/smoke.test.jsx` — renders every page component with mocked API responses and runs `jest-axe` to detect WCAG violations. Covers 17 pages.
+- **Smoke tests:** `src/test/smoke.test.jsx` — renders every page component with mocked API responses and runs `jest-axe` to detect WCAG violations. Covers all 25 page components.
 - **i18n mock:** `src/test/i18n-mock.js` — initialises i18next with the real `en.json` for test rendering.
 
 ---
@@ -490,6 +490,7 @@ The project consumes HDS directly from npm and applies three local overrides:
 - **React deduplication** — Aliases `react` and `react-dom` to frontend's `node_modules` to prevent dual-copy hook errors (some HDS internal deps declare React 17 peer dep)
 - **Proxy** — `/api` requests forwarded to `http://localhost:8000`
 - **Dev server** on port 3000
+- **Code splitting** — every page is `React.lazy`-loaded in `App.jsx` (the `Routes` block is wrapped in a `Suspense` whose fallback is `LoadingSpinner`), so each route ships as its own chunk and page-only deps (papaparse, qrcode, jszip) load on demand. `build.rollupOptions.output.manualChunks` further splits `vendor-react` and `vendor-hds` from app code for long-term caching (`chunkSizeWarningLimit` is raised to 600 kB because the shared `hds-react` chunk is ~575 kB raw / ~152 kB gzipped).
 
 ## Authentication Flow
 
