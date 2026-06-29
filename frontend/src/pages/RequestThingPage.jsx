@@ -5,6 +5,7 @@ import { Button, Checkbox, DateInput, Notification } from 'hds-react';
 import { DATE_TYPES, SWAP_TYPE } from '../constants/things';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -32,17 +33,17 @@ export default function RequestThingPage() {
   const [blockedPeriods, setBlockedPeriods] = useState([]);
   const [toast, setToast] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
   const [ownSwapThings, setOwnSwapThings] = useState([]);
   const [selectedOfferings, setSelectedOfferings] = useState([]);
 
   useEffect(() => {
     if (!userCode) return;
+    setError(false);
     apiFetch(`/api/v1/things/${thingCode}/`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setThing(data);
-      })
-      .catch(() => {});
+      .then((data) => (data ? setThing(data) : setError(true)))
+      .catch(() => setError(true));
   }, [userCode, thingCode, code]);
 
   useEffect(() => {
@@ -66,8 +67,8 @@ export default function RequestThingPage() {
       .catch(() => {});
   }, [userCode, thingCode, thing]);
 
-  const isDateBlocked = (date) => {
-    if (blockedPeriods.some((period) => {
+  const isDateBlocked = (date) =>
+    blockedPeriods.some((period) => {
       const start = new Date(period.start_date);
       const end = new Date(period.end_date);
       start.setHours(0, 0, 0, 0);
@@ -75,9 +76,7 @@ export default function RequestThingPage() {
       const d = new Date(date);
       d.setHours(0, 0, 0, 0);
       return d >= start && d <= end;
-    })) return true;
-    return false;
-  };
+    });
 
   const handleSubmit = async () => {
     setAttempted(true);
@@ -125,7 +124,15 @@ export default function RequestThingPage() {
     }
   };
 
-  if (!thing) return null;
+  if (error) {
+    return (
+      <PageLayout title={t('common.error')} backTo={backPath} backLabel={backLabel}>
+        <Notification label={t('thingPage.errorLoading')} type="error" />
+      </PageLayout>
+    );
+  }
+
+  if (!thing) return <LoadingSpinner />;
 
   const isDateBased = DATE_TYPES.includes(thing.type);
   const isSwap = thing.type === SWAP_TYPE;

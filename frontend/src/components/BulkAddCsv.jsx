@@ -4,12 +4,9 @@ import { useTranslation } from 'react-i18next';
 import Papa from 'papaparse';
 import { apiFetch } from '../services/api';
 import { uploadImageToCloudinary } from '../utils/uploadImage';
+import { MAX_ROWS, mapRow, validateRows } from '../utils/bulkCsv';
 import useTheeeme from '../hooks/useTheeeme';
 
-const MAX_ROWS = 100;
-// The plain text/scalar columns a CSV can carry. `tags` is a single `|`-separated
-// cell and `photo` is a filename — both handled separately below.
-const COLUMNS = ['type', 'headline', 'description', 'fee', 'availability', 'location', 'condition'];
 // Image extensions recognised inside a ZIP — kept in sync with the backend's
 // Cloudinary `IMAGE_FORMATS` allow-list (core/views/upload.py).
 const IMAGE_RE = /\.(jpe?g|png|webp|gif|bmp|tiff?|avif|heic|heif)$/i;
@@ -62,33 +59,13 @@ export default function BulkAddCsv({ collectionCode, onImported }) {
   const [uploadProgress, setUploadProgress] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
 
-  // Map one parsed CSV record to a row payload. `withPhoto` keeps the `photo`
-  // filename for later Cloudinary resolution (ZIP path only).
-  const mapRow = (raw, withPhoto) => {
-    const row = {};
-    for (const col of COLUMNS) {
-      const value = raw[col];
-      if (value !== undefined && String(value).trim() !== '') {
-        row[col] = String(value).trim();
-      }
-    }
-    // Tags are a single cell holding a `|`-separated list (pipe avoids clashing
-    // with the CSV field delimiter, which is `;` in some locales).
-    if (raw.tags !== undefined && String(raw.tags).trim() !== '') {
-      const tags = String(raw.tags).split('|').map((tag) => tag.trim()).filter(Boolean);
-      if (tags.length > 0) row.tags = tags;
-    }
-    if (withPhoto && raw.photo !== undefined && String(raw.photo).trim() !== '') {
-      row.photo = String(raw.photo).trim();
-    }
-    return row;
-  };
-
-  // Shared bounds/required checks. Returns an error string or null.
+  // Map row + validation logic live in ../utils/bulkCsv (pure + unit-tested).
+  // Here we only translate the validation key into user-facing copy.
   const validate = (parsed) => {
-    if (parsed.length === 0) return t('bulkAdd.empty');
-    if (parsed.length > MAX_ROWS) return t('bulkAdd.tooMany', { max: MAX_ROWS });
-    if (parsed.some((row) => !row.headline)) return t('bulkAdd.headlineRequired');
+    const key = validateRows(parsed);
+    if (key === 'empty') return t('bulkAdd.empty');
+    if (key === 'tooMany') return t('bulkAdd.tooMany', { max: MAX_ROWS });
+    if (key === 'headlineRequired') return t('bulkAdd.headlineRequired');
     return null;
   };
 

@@ -140,6 +140,8 @@ import RespondWishPage from '../pages/RespondWishPage';
 import UserPage from '../pages/UserPage';
 import SharePage from '../pages/SharePage';
 import PopInPage from '../pages/PopInPage';
+import JoinPage from '../pages/JoinPage';
+import DeleteCollectionPage from '../pages/DeleteCollectionPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 // ── Setup ──────────────────────────────────────────────────────────────
@@ -201,6 +203,17 @@ smokeAndAxe('EditCollectionPage', EditCollectionPage, {
 smokeAndAxe('ManageInvitesPage', ManageInvitesPage, {
   path: '/collections/:code/invites',
   entry: '/collections/COL001/invites',
+});
+
+smokeAndAxe('DeleteCollectionPage', DeleteCollectionPage, {
+  path: '/collections/:code/delete',
+  entry: '/collections/COL001/delete',
+});
+
+smokeAndAxe('JoinPage', JoinPage, {
+  path: '/collections/:code/join',
+  entry: '/collections/COL001/join',
+  state: { collectionHeadline: 'Test Collection' },
 });
 
 smokeAndAxe('ThingPage', ThingPage, {

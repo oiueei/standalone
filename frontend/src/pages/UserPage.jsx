@@ -91,7 +91,7 @@ export default function UserPage() {
       {user.headline && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 700, lineHeight: 'var(--lineheight-m)', letterSpacing: '-0.2px', color: 'var(--hero-text-color, var(--color-black-90))' }}>{user.headline}</p>}
       <h1 className="form-hero-title">{user.name || user.email}</h1>
       {user.created && (
-        <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)', opacity: 0.7 }}>
+        <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)' }}>
           {t('userPage.memberSince', { date: new Date(user.created).toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' }) })}
         </p>
       )}

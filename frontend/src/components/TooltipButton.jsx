@@ -20,8 +20,12 @@ export default function TooltipButton({ tooltip, onClick, disabled, children }) 
           border: 'none',
           cursor: disabled ? 'default' : 'pointer',
           padding: 'var(--spacing-xs)',
+          // WCAG 2.5.5 / mobile-first: keep the tap target at least 44×44.
+          minWidth: '44px',
+          minHeight: '44px',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
           color: disabled ? 'var(--color-black-40)' : 'var(--color-black-90)',
         }}
       >

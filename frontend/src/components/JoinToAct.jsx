@@ -76,9 +76,12 @@ export default function JoinToAct({ collectionCode, collectionHeadline, asPage =
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          aria-describedby={status === 'error' ? 'join-to-act-error' : undefined}
         />
         {status === 'error' && (
-          <p style={{ color: 'var(--color-error)', marginBottom: 0 }}>{message}</p>
+          <p id="join-to-act-error" role="alert" style={{ color: 'var(--color-error)', marginBottom: 0 }}>
+            {message}
+          </p>
         )}
         <div style={{ marginTop: 'var(--spacing-s)' }}>
           <Button type="submit" disabled={loading} style={btnStyle}>

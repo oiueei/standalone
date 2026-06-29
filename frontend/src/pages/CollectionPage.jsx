@@ -106,8 +106,9 @@ export default function CollectionPage() {
     }
   };
 
-  const isOwner = localStorage.getItem('userCode') === collection.owner;
-  const isAuthenticated = !!localStorage.getItem('userCode');
+  const userCode = localStorage.getItem('userCode');
+  const isOwner = userCode === collection.owner;
+  const isAuthenticated = !!userCode;
 
   // Active (non-inactive) things, optionally narrowed to the selected tag chip.
   const visibleThings = collection.things.filter((thg) => thg.status !== 'INACTIVE');
@@ -158,7 +159,7 @@ export default function CollectionPage() {
           </h1>
           {collection.description && <MarkdownText text={collection.description} className="form-hero-text" />}
           {!isOwner && collection.owner_name && (
-            <p className="form-hero-text" style={{ opacity: 0.75, fontSize: 'var(--fontsize-body-m)' }}>
+            <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)' }}>
               <strong>{t('collectionPage.owner')}</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
             </p>
           )}
@@ -289,7 +290,7 @@ export default function CollectionPage() {
             <ThingLinkbox
               key={thing.code}
               thing={thing}
-              userCode={localStorage.getItem('userCode')}
+              userCode={userCode}
               collectionCode={code}
               collectionHeadline={collection.headline}
               collectionOwner={collection.owner}
@@ -299,14 +300,6 @@ export default function CollectionPage() {
               hideType={singleType}
               canAct={isAuthenticated}
               loginToAct={!isAuthenticated}
-              onDelete={(thingCode) => setCollection((prev) => ({
-                ...prev,
-                things: prev.things.filter((t) => t.code !== thingCode),
-              }))}
-              onRemoveFromCollection={(thingCode) => setCollection((prev) => ({
-                ...prev,
-                things: prev.things.filter((t) => t.code !== thingCode),
-              }))}
               onUpdateThing={(thingCode, updates) => setCollection((prev) => ({
                 ...prev,
                 things: prev.things.map((t) =>
@@ -377,21 +370,13 @@ export default function CollectionPage() {
               <ThingLinkbox
                 key={thing.code}
                 thing={thing}
-                userCode={localStorage.getItem('userCode')}
+                userCode={userCode}
                 collectionCode={code}
                 collectionHeadline={collection.headline}
                 collectionOwner={collection.owner}
                 collectionMode={collection.mode}
                 minimalist={collection.is_minimalist}
                 hideType={singleType}
-                onDelete={(thingCode) => setCollection((prev) => ({
-                  ...prev,
-                  things: prev.things.filter((t) => t.code !== thingCode),
-                }))}
-                onRemoveFromCollection={(thingCode) => setCollection((prev) => ({
-                  ...prev,
-                  things: prev.things.filter((t) => t.code !== thingCode),
-                }))}
                 onUpdateThing={(thingCode, updates) => setCollection((prev) => ({
                   ...prev,
                   things: prev.things.map((t) =>

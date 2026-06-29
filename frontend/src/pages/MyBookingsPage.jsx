@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification, Tag, Table, IconCrossCircle } from 'hds-react';
+import { Button, Notification, StatusLabel, Tag, Table, IconCrossCircle } from 'hds-react';
 import { apiFetch } from '../services/api';
-import { TAG_THEMES } from '../constants/things';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
 import useTheeeme from '../hooks/useTheeeme';
 
-const STATUS_THEMES = {
-  PENDING: TAG_THEMES.pending,
-  ACCEPTED: { '--tag-background': '#e8f5e9', '--tag-color': '#1b5e20' },
-  REJECTED: { '--tag-background': '#f5e6e6', '--tag-color': '#b01038' },
-  CANCELLED: TAG_THEMES.inactive,
-  EXPIRED: TAG_THEMES.inactive,
+// Booking status is a semantic state — HDS StatusLabel owns this (no hardcoded
+// green/red hex). The thing *type* stays a plain Tag (it's a category, not a state).
+const STATUS_TYPES = {
+  PENDING: 'alert',
+  ACCEPTED: 'success',
+  REJECTED: 'error',
+  CANCELLED: 'neutral',
+  EXPIRED: 'neutral',
 };
 
 export default function MyBookingsPage() {
@@ -149,7 +150,9 @@ export default function MyBookingsPage() {
       transform: (row) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2-xs)' }}>
           <Tag>{t('types.' + row._type)}</Tag>
-          <Tag theme={STATUS_THEMES[row._status]}>{STATUS_LABELS[row._status] || row._status}</Tag>
+          <StatusLabel type={STATUS_TYPES[row._status] || 'neutral'}>
+            {STATUS_LABELS[row._status] || row._status}
+          </StatusLabel>
           {row._status === 'EXPIRED' && (
             <p style={{ margin: 0, fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-60)' }}>
               {t('myBookings.expiredHelper')}

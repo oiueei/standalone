@@ -294,6 +294,10 @@ div[class*="Linkbox-module_linkbox"] {
   color: #0000bf;
   border-radius: 999px;
   padding: var(--spacing-3-xs) var(--spacing-s);
+  /* WCAG 2.5.5 / mobile-first: 44px-tall tap target while keeping the pill look. */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font-size: var(--fontsize-body-s);
   font-family: inherit;
   cursor: pointer;
@@ -1191,8 +1195,12 @@ main:focus {
   background: none;
   border: none;
   padding: 0;
+  /* WCAG 2.5.5 / mobile-first: 44×44 tap target around the info icon. */
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
   color: var(--color-black-60);
 }

@@ -147,12 +147,20 @@ export default function ThingPage() {
   useEffect(() => {
     // Wish responses are member-only (creator-all / responder-own), so skip the
     // fetch entirely for an anonymous visitor — it would 401 and bounce them to login.
-    if (!thing || thing.type !== WISH_TYPE || !userCode) return;
-    apiFetch(`/api/v1/things/${thing.code}/responses/`)
+    // Key on code/type (not the whole `thing`) so a booking accept/reject/resolve
+    // patch doesn't refire it, and abort in flight to avoid a post-unmount set.
+    if (!thing?.code || thing.type !== WISH_TYPE || !userCode) return undefined;
+    const controller = new AbortController();
+    apiFetch(`/api/v1/things/${thing.code}/responses/`, { signal: controller.signal })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (data) { setResponses(data.results || data); setResponsesNext(data.next || null); } })
+      .then((data) => {
+        if (controller.signal.aborted || !data) return;
+        setResponses(data.results || data);
+        setResponsesNext(data.next || null);
+      })
       .catch(() => {});
-  }, [thing, userCode]);
+    return () => controller.abort();
+  }, [thing?.code, thing?.type, userCode]);
 
   const loadMoreFaqs = async () => {
     if (!faqsNext || loadingMore) return;
@@ -377,7 +385,7 @@ export default function ThingPage() {
 
         {thing.document_urls && thing.document_urls.length > 0 && (
           <div className="document-downloads">
-            <h3>{t('documents.heading')}</h3>
+            <h2>{t('documents.heading')}</h2>
             <ul className="document-list">
               {thing.document_urls.map((doc, i) => (
                 <li key={i} className="document-list-item">
