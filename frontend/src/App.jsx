@@ -3,37 +3,43 @@ import 'hds-design-tokens';
 import 'hds-core/lib/base.css';
 import './fonts/oiueei-fonts.css';
 import './styles/oiueei-theme.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
-import LoginPage from './pages/LoginPage';
-import VerifyPage from './pages/VerifyPage';
-import HomePage from './pages/HomePage';
-import CollectionPage from './pages/CollectionPage';
-import AddThingPage from './pages/AddThingPage';
-import EditThingPage from './pages/EditThingPage';
-import ThingPage from './pages/ThingPage';
-import CreateCollectionPage from './pages/CreateCollectionPage';
-import EditCollectionPage from './pages/EditCollectionPage';
-import EditProfilePage from './pages/EditProfilePage';
-import NotificationsPage from './pages/NotificationsPage';
-import ManageInvitesPage from './pages/ManageInvitesPage';
-import LogoutPage from './pages/LogoutPage';
-import UserPage from './pages/UserPage';
-import RequestThingPage from './pages/RequestThingPage';
-import RespondWishPage from './pages/RespondWishPage';
-import DeleteThingPage from './pages/DeleteThingPage';
-import DeleteCollectionPage from './pages/DeleteCollectionPage';
-import RemoveGuestPage from './pages/RemoveGuestPage';
-import MyBookingsPage from './pages/MyBookingsPage';
-import WelcomePage from './pages/WelcomePage';
-import PopInPage from './pages/PopInPage';
-import SharePage from './pages/SharePage';
-import JoinPage from './pages/JoinPage';
-import NotFoundPage from './pages/NotFoundPage';
 import RequireAuth from './components/RequireAuth';
+import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
+
+// Pages are lazy-loaded so each route ships as its own chunk: the initial bundle
+// no longer carries all 25 pages (and page-only deps like papaparse/qrcode load
+// only with the routes that use them). The Suspense fallback below covers the
+// brief chunk fetch on first visit to each route.
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const VerifyPage = lazy(() => import('./pages/VerifyPage'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const CollectionPage = lazy(() => import('./pages/CollectionPage'));
+const AddThingPage = lazy(() => import('./pages/AddThingPage'));
+const EditThingPage = lazy(() => import('./pages/EditThingPage'));
+const ThingPage = lazy(() => import('./pages/ThingPage'));
+const CreateCollectionPage = lazy(() => import('./pages/CreateCollectionPage'));
+const EditCollectionPage = lazy(() => import('./pages/EditCollectionPage'));
+const EditProfilePage = lazy(() => import('./pages/EditProfilePage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const ManageInvitesPage = lazy(() => import('./pages/ManageInvitesPage'));
+const LogoutPage = lazy(() => import('./pages/LogoutPage'));
+const UserPage = lazy(() => import('./pages/UserPage'));
+const RequestThingPage = lazy(() => import('./pages/RequestThingPage'));
+const RespondWishPage = lazy(() => import('./pages/RespondWishPage'));
+const DeleteThingPage = lazy(() => import('./pages/DeleteThingPage'));
+const DeleteCollectionPage = lazy(() => import('./pages/DeleteCollectionPage'));
+const RemoveGuestPage = lazy(() => import('./pages/RemoveGuestPage'));
+const MyBookingsPage = lazy(() => import('./pages/MyBookingsPage'));
+const WelcomePage = lazy(() => import('./pages/WelcomePage'));
+const PopInPage = lazy(() => import('./pages/PopInPage'));
+const SharePage = lazy(() => import('./pages/SharePage'));
+const JoinPage = lazy(() => import('./pages/JoinPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 /**
  * On every route change (but not the initial mount), move focus to the main
@@ -81,6 +87,7 @@ function App() {
       <a href="#main" className="skip-link">{t('common.skipToContent')}</a>
       <RouteFocusReset />
       <main id="main" tabIndex={-1}>
+        <Suspense fallback={<LoadingSpinner />}>
         <Routes>
         {/* Public routes — reachable without signing in */}
         <Route path="/login" element={<LoginPage />} />
@@ -135,6 +142,7 @@ function App() {
 
         <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        </Suspense>
       </main>
     </BrowserRouter>
   );

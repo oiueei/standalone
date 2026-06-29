@@ -25,7 +25,14 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const isShare = thing.type === SHARE_TYPE;
   const isSwap = thing.type === SWAP_TYPE;
   const isDateBased = DATE_TYPES.includes(thing.type);
-  const needsPage = isDateBased || isSwap || thing.is_endless;
+  // `needsPage` drives the reserve button's navigation: date-based (pick dates)
+  // and swap (pick items) need a follow-up form, everything else POSTs directly.
+  // `bookingKeepsStatus` drives whether accepting a hold keeps the thing
+  // circulating. Endless GIFT/SELL keep their status but reserve via a direct
+  // POST, so the two must stay separate — conflating them sends endless things
+  // to an empty request page. (ThingPage computes these identically.)
+  const needsPage = isDateBased || isSwap;
+  const bookingKeepsStatus = needsPage || thing.is_endless;
   const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
 
@@ -47,7 +54,7 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     initialActivePending: thing.pending_booking,
     initialRequested: thing.type === 'SHARE_THING' && !!thing.my_pending_booking,
     fetchOnEndless: true,
-    bookingKeepsStatus: needsPage,
+    bookingKeepsStatus,
   });
 
   // `canAct` is false for an anonymous visitor on a PUBLIC collection: the card

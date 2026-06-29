@@ -654,7 +654,8 @@ figure[class*="Highlight-module_highlight"] {
 
 .faq-meta {
   font-size: var(--fontsize-body-s);
-  color: var(--color-black-40);
+  /* black-60 (#595959) clears WCAG AA (7:1 on white); black-40 was 2.85:1. */
+  color: var(--color-black-60);
 }
 
 .text-muted {

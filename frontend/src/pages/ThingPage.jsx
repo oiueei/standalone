@@ -69,7 +69,9 @@ export default function ThingPage() {
     isOwner: thing?.owner === userCode,
     onThingChange: (patch) => setThing((prev) => ({ ...prev, ...patch })),
     setToast,
-    bookingKeepsStatus: isDateType(thing?.type),
+    // Keep the thing circulating on accept/reject for date-based, swap, and
+    // endless flows — must match ThingLinkbox's `bookingKeepsStatus`.
+    bookingKeepsStatus: isDateType(thing?.type) || thing?.type === SWAP_TYPE || !!thing?.is_endless,
     activateSuccessMessage: t('thingPage.thingReactivated'),
   });
 

@@ -135,7 +135,7 @@ describe('ThingLinkbox — guest reservation button', () => {
     );
   });
 
-  // NOTE: SHARE_THING is NOT in `needsPage` (only LEND/RENT/ORDER/SWAP/is_endless
+  // NOTE: SHARE_THING is NOT in `needsPage` (only date-based LEND/RENT and SWAP
   // are), so the SHARE hold POSTs directly here — it does NOT navigate to
   // RequestThingPage. This contradicts frontend/CLAUDE.md ("LEND/RENT/SHARE …
   // navigate"), but matches the code today. Locked as-is; not a fix.
@@ -144,6 +144,25 @@ describe('ThingLinkbox — guest reservation button', () => {
     renderLinkbox({ thing, userCode: 'GUEST1' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Take' }));
+
+    await waitFor(() => {
+      expect(apiFetch).toHaveBeenCalledWith(
+        '/api/v1/things/THG001/request/',
+        expect.objectContaining({ method: 'POST' })
+      );
+    });
+    expect(screen.queryByTestId('navigated')).toBeNull();
+  });
+
+  // An endless GIFT/SELL keeps circulating (bookingKeepsStatus) but has no
+  // dates/items to pick, so its hold POSTs directly — it must NOT navigate to an
+  // empty RequestThingPage. Regression guard: `is_endless` must stay out of
+  // `needsPage` and behave identically on the card and the detail page.
+  test('endless GIFT holds via direct POST (does not navigate)', async () => {
+    const thing = makeThing({ type: 'GIFT_THING', is_endless: true });
+    renderLinkbox({ thing, userCode: 'GUEST1' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Claim' }));
 
     await waitFor(() => {
       expect(apiFetch).toHaveBeenCalledWith(

@@ -5,6 +5,26 @@ import path from 'path'
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   base: mode === 'production' ? '/static/' : '/',
+  build: {
+    // vendor-hds is ~575 kB raw but only ~152 kB gzipped (under our 200 kB-gz
+    // bar) — it's the irreducible hds-react library, shared and long-cached.
+    // Raising the limit keeps the build green; further wins (lazy per-language
+    // i18n locales, the HDS v6 tree-shaking) are tracked separately.
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        // Split the rarely-changing vendor libraries from app code so a page
+        // edit doesn't bust the (large, cacheable) React/HDS chunks. Pages are
+        // already route-split via React.lazy in App.jsx.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/]react(-dom)?[\\/]|[\\/]scheduler[\\/]/.test(id)) return 'vendor-react';
+          if (id.includes('hds-react') || id.includes('hds-core')) return 'vendor-hds';
+          return undefined;
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
