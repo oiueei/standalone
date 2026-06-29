@@ -45,9 +45,7 @@ class ThingFAQListView(APIView):
         thing = self.get_thing(thing_code)
         viewer = viewer_code(request)
 
-        denied = deny_if_cannot_view(
-            thing, viewer, "Not authorized to view this thing's FAQs"
-        )
+        denied = deny_if_cannot_view(thing, viewer, "Not authorized to view this thing's FAQs")
         if denied:
             return denied
 

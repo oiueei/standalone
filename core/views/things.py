@@ -366,9 +366,7 @@ class ThingBulkCreateView(APIView):
                         {
                             "row": index,
                             "errors": {
-                                "tags": [
-                                    f"These tags are not defined by the collection: {invalid}"
-                                ]
+                                "tags": [f"These tags are not defined by the collection: {invalid}"]
                             },
                         }
                     )

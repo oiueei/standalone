@@ -93,8 +93,7 @@ def type_validity_error(thing_type, collection):
         # A swap/share collection's allowlist is its forced offer type, not an
         # owner choice — wishes are implicitly allowed there and so are exempt.
         and not (
-            thing_type == Thing.Type.WISH_THING
-            and (collection.is_swap or collection.is_share)
+            thing_type == Thing.Type.WISH_THING and (collection.is_swap or collection.is_share)
         )
     ):
         return (

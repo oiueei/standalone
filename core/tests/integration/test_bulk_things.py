@@ -176,7 +176,9 @@ class TestBulkCreate:
     def test_imports_thumbnail_public_id(self, auth_client, collection):
         # The ZIP path uploads images to Cloudinary client-side and sends the
         # resulting public_id here as `thumbnail`.
-        rows = [{"type": "GIFT_THING", "headline": "With photo", "thumbnail": "oiueei/things/abc123"}]
+        rows = [
+            {"type": "GIFT_THING", "headline": "With photo", "thumbnail": "oiueei/things/abc123"}
+        ]
         res = auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
         assert res.status_code == 201
         thing = Thing.objects.get(code=res.data["codes"][0])
