@@ -70,7 +70,7 @@ beforeEach(() => {
 // AddThingPage — field visibility per type / collection config
 // ════════════════════════════════════════════════════════════════════════
 describe('AddThingPage — field visibility', () => {
-  test('GIFT (default): fee hidden, detail fields + gallery + documents shown', async () => {
+  test('GIFT (default): fee hidden, detail fields + gallery shown', async () => {
     const { container } = renderAdd({ collection: { headline: 'Plain', mode: 'PROPRIETARY' } });
 
     await waitFor(() => expect(container.querySelector('#add-thing-headline')).toBeTruthy());
@@ -80,7 +80,6 @@ describe('AddThingPage — field visibility', () => {
     expect(screen.getByText('Condition')).toBeInTheDocument();
     expect(container.querySelector('#add-thing-location')).toBeTruthy();
     expect(screen.getByText('More photos')).toBeInTheDocument();
-    expect(screen.getByText('Attachments')).toBeInTheDocument();
     expect(screen.getByText('Thumbnail')).toBeInTheDocument();
   });
 

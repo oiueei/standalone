@@ -44,7 +44,6 @@ export default function AddThingPage() {
   const [isEndless, setIsEndless] = useState(false);
   const [notifyGroup, setNotifyGroup] = useState(true);
   const [gallery, setGallery] = useState([]);
-  const [documents, setDocuments] = useState([]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
@@ -115,9 +114,6 @@ export default function AddThingPage() {
       if (availability) body.availability = availability;
       if (location.trim()) body.location = location.trim();
       if (condition) body.condition = condition;
-    }
-    if (documents.length > 0) {
-      body.documents = documents;
     }
     if (gallery.length > 0) {
       body.gallery = gallery.map((g) => g.publicId);
@@ -231,8 +227,6 @@ export default function AddThingPage() {
             setThumbnail={setThumbnail}
             gallery={gallery}
             setGallery={setGallery}
-            documents={documents}
-            setDocuments={setDocuments}
           />
       </div>
 

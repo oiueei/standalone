@@ -1019,26 +1019,6 @@ figure[class*="Highlight-module_highlight"] {
   display: block;
 }
 
-.document-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2-xs);
-}
-.document-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xs);
-}
-.document-list-item a {
-  color: var(--color-bus);
-  text-decoration: underline;
-}
-.document-downloads {
-  margin-top: var(--spacing-s);
-}
-
 .share-timeline {
   border-left: 3px solid var(--color-bus);
   padding-left: var(--spacing-m);

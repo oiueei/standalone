@@ -281,7 +281,7 @@ Lists things from collections where the current user is invited. Only returns AC
 | **Permission** | `IsAuthenticated` + `collection.can_add_thing()` |
 | **Rate limit** | `10/h` per user |
 
-CSV/ZIP bulk-add (F-9). Body is `{"rows": [{type, headline, description, fee, availability, location, condition, tags, thumbnail, is_endless}, ...]}` (max 100 rows), parsed and previewed client-side by `BulkAddCsv`. Each row is validated with `ThingBulkRowSerializer` (the project's Safe* fields + a `reject_spreadsheet_formula` CSV-injection guard on free-text fields, including each `tags` entry; `thumbnail` uses `ImageIdField`, path-traversal-safe) and `type_validity_error`; `tags` are additionally checked in the view against the target collection's `Collection.tags` vocabulary (mirrors the single-create subset check). If **any** row fails the request returns `400 {"errors": [{row, errors}]}` and **nothing** is created. On full success every row is created in one `transaction.atomic()` and the response is `201 {"created": N, "codes": [...]}`. **Photos** are importable via the client's ZIP path: `BulkAddCsv` unzips, uploads each image to Cloudinary, and sends the resulting public_id as `thumbnail` — the server only ever receives the validated id, never the binary. Gallery and documents are still not bulk-importable.
+CSV/ZIP bulk-add (F-9). Body is `{"rows": [{type, headline, description, fee, availability, location, condition, tags, thumbnail, is_endless}, ...]}` (max 100 rows), parsed and previewed client-side by `BulkAddCsv`. Each row is validated with `ThingBulkRowSerializer` (the project's Safe* fields + a `reject_spreadsheet_formula` CSV-injection guard on free-text fields, including each `tags` entry; `thumbnail` uses `ImageIdField`, path-traversal-safe) and `type_validity_error`; `tags` are additionally checked in the view against the target collection's `Collection.tags` vocabulary (mirrors the single-create subset check). If **any** row fails the request returns `400 {"errors": [{row, errors}]}` and **nothing** is created. On full success every row is created in one `transaction.atomic()` and the response is `201 {"created": N, "codes": [...]}`. **Photos** are importable via the client's ZIP path: `BulkAddCsv` unzips, uploads each image to Cloudinary, and sends the resulting public_id as `thumbnail` — the server only ever receives the validated id, never the binary. Gallery photos are still not bulk-importable.
 
 ---
 
@@ -484,14 +484,14 @@ Shows a previously hidden FAQ.
 | **Endpoint** | `POST /api/v1/upload/signature/` |
 | **Permission** | `IsAuthenticated` |
 
-Generates a short-lived Cloudinary signed upload signature so the frontend can upload files directly to Cloudinary without routing the binary data through Django. The signature binds every parameter, so a client cannot tamper with them: the **`public_id` is generated server-side** (preventing arbitrary ids / overwrites), `allowed_formats` restricts accepted formats (raster photo formats for image folders — SVG excluded; PDF/Office/Markdown for the documents folder), `resource_type` is derived from the folder (not client-trusted), and documents upload as **`type=authenticated`** (private — see `DocumentDownloadView`). Cloudinary's `max_file_size` is not enforced on the current plan, so the per-file size cap stays a client-side check.
+Generates a short-lived Cloudinary signed upload signature so the frontend can upload images directly to Cloudinary without routing the binary data through Django. The signature binds every parameter, so a client cannot tamper with them: the **`public_id` is generated server-side** (preventing arbitrary ids / overwrites), `allowed_formats` restricts accepted formats (raster photo formats only — SVG excluded), and `resource_type` is always `image` (not client-trusted). Cloudinary's `max_file_size` is not enforced on the current plan, so the per-file size cap stays a client-side check.
 
 **Request body:**
 ```json
 { "folder": "oiueei/things" }
 ```
 
-Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`, `oiueei/documents`. Any other value falls back to `oiueei/users`. `resource_type` is derived from the folder (`raw` for `oiueei/documents`, otherwise `image`) — it is no longer taken from the client.
+Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`. Any other value falls back to `oiueei/users`.
 
 **Response:**
 ```json
@@ -503,26 +503,15 @@ Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`, `o
     "folder": "oiueei/things",
     "public_id": "<server-generated>",
     "allowed_formats": "jpg,jpeg,png,...",
-    "resource_type": "image",
-    "type": "authenticated"
+    "resource_type": "image"
 }
 ```
-(`type` is returned for the documents folder only.)
 
 **Frontend upload flow:**
 1. Call this endpoint to get the signed parameters.
-2. POST the file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/upload`, sending the signed parameters back verbatim (`folder`, `public_id`, `allowed_formats`, and — for documents — `type`).
-3. Cloudinary returns the final `public_id` (folder-prefixed, with the file extension for raw documents) — store **that** returned value.
-4. Save the `public_id` to the relevant Django model field (`thumbnail` cover, the `User.photo` profile photo, append to a Thing's `gallery`, or a Thing `documents` entry).
-
-### DocumentDownloadView
-
-| | |
-|---|---|
-| **Endpoint** | `GET /api/v1/things/{thing_code}/documents/{index}/download/` |
-| **Permission** | `IsAuthenticated` + `thing.can_view()` |
-
-Documents are uploaded privately (`type=authenticated`), so their plain Cloudinary URL 404s — this gated endpoint is the only way to obtain a working URL. It checks the caller can view the thing, then 302-redirects to a short-lived (5 min) signed `private_download_url` minted by `core.utils.signed_document_url()`. `ThingSerializer.document_urls` points here (never at a raw Cloudinary URL), and the raw `documents` array (carrying public_ids) is serialised to the owner only.
+2. POST the file directly to `https://api.cloudinary.com/v1_1/{cloud_name}/image/upload`, sending the signed parameters back verbatim (`folder`, `public_id`, `allowed_formats`).
+3. Cloudinary returns the final `public_id` (folder-prefixed) — store **that** returned value.
+4. Save the `public_id` to the relevant Django model field (`thumbnail` cover, the `User.photo` profile photo, or append to a Thing's `gallery`).
 
 ---
 

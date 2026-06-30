@@ -12,33 +12,7 @@ from core.validators import (
     SafeHeadlineField,
     SafeTextField,
     reject_spreadsheet_formula,
-    validate_image_id,
 )
-
-ALLOWED_DOCUMENT_TYPES = {
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/markdown",
-}
-
-
-class DocumentSerializer(serializers.Serializer):
-    """Validates a single document entry."""
-
-    public_id = serializers.CharField(max_length=255)
-    filename = serializers.CharField(max_length=255)
-    content_type = serializers.CharField(max_length=100)
-
-    def validate_public_id(self, value):
-        return validate_image_id(value)
-
-    def validate_content_type(self, value):
-        if value not in ALLOWED_DOCUMENT_TYPES:
-            raise serializers.ValidationError(f"File type {value} is not allowed.")
-        return value
 
 
 class ThingComputedFieldsMixin(serializers.Serializer):
@@ -169,8 +143,6 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
     collection_owner = serializers.SerializerMethodField()
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
-    documents = serializers.SerializerMethodField()
-    document_urls = serializers.SerializerMethodField()
     collection_tags = serializers.SerializerMethodField()
 
     class Meta:
@@ -195,8 +167,6 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "documents",
-            "document_urls",
             "available_today",
             "next_available",
             "deal",
@@ -274,30 +244,6 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
         # Use prefetched faq_set cache if available
         return [faq.code for faq in obj.faq_set.all()]
 
-    def get_documents(self, obj):
-        # Raw document entries carry Cloudinary public_ids; expose them only to the
-        # owner (they back the owner's edit form). Other viewers get gated, signed
-        # links via `document_urls` and never see the public_ids — otherwise a
-        # leaked legacy public_id could be used to rebuild an eternal raw URL (M2).
-        request = self.context.get("request")
-        if request and request.user.is_authenticated and obj.is_owner(request.user.code):
-            return obj.documents
-        return None
-
-    def get_document_urls(self, obj):
-        # Point at the gated download endpoint rather than a raw Cloudinary URL:
-        # documents are private, and the endpoint mints a short-lived signed URL
-        # per request, so no eternal/guessable URL is ever exposed here (M2).
-        if not obj.documents:
-            return []
-        return [
-            {
-                "filename": doc["filename"],
-                "url": f"/api/v1/things/{obj.code}/documents/{index}/download/",
-            }
-            for index, doc in enumerate(obj.documents)
-        ]
-
     def get_collection_tags(self, obj):
         # The tag vocabulary available to this thing — union of its collections'
         # tags. Feeds the tag picker on the edit form without an extra fetch.
@@ -318,12 +264,6 @@ class ThingCreateSerializer(serializers.ModelSerializer):
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
-    documents = serializers.ListField(
-        child=serializers.DictField(),
-        max_length=5,
-        required=False,
-        allow_empty=True,
-    )
     gallery = serializers.ListField(
         child=ImageIdField(allow_blank=False),
         max_length=8,
@@ -354,22 +294,8 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "documents",
             "is_endless",
         ]
-
-    def validate_documents(self, value):
-        if not value:
-            return value
-        serializer = DocumentSerializer(data=value, many=True)
-        serializer.is_valid(raise_exception=True)
-        documents = serializer.validated_data
-        # Documents upload privately (Cloudinary type=authenticated); record the
-        # delivery type server-side so the download view mints a signed,
-        # expiring authenticated URL. Client-sent `type` is ignored (M2).
-        for document in documents:
-            document["type"] = "authenticated"
-        return documents
 
 
 class ThingUpdateSerializer(serializers.ModelSerializer):
@@ -379,12 +305,6 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
-    documents = serializers.ListField(
-        child=serializers.DictField(),
-        max_length=5,
-        required=False,
-        allow_empty=True,
-    )
     gallery = serializers.ListField(
         child=ImageIdField(allow_blank=False),
         max_length=8,
@@ -416,7 +336,6 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "availability",
             "location",
             "condition",
-            "documents",
             "is_endless",
         ]
         read_only_fields = ["status"]
@@ -436,26 +355,13 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_documents(self, value):
-        if not value:
-            return value
-        serializer = DocumentSerializer(data=value, many=True)
-        serializer.is_valid(raise_exception=True)
-        documents = serializer.validated_data
-        # Documents upload privately (Cloudinary type=authenticated); record the
-        # delivery type server-side so the download view mints a signed,
-        # expiring authenticated URL. Client-sent `type` is ignored (M2).
-        for document in documents:
-            document["type"] = "authenticated"
-        return documents
-
 
 class ThingBulkRowSerializer(serializers.ModelSerializer):
     """One row of a CSV bulk import (F-9).
 
     Reuses the project's safe text fields (HTML / line-break / unsafe-scheme
-    rejection) and adds a CSV-injection guard on each free-text field. Photos,
-    gallery and documents can't be bulk-imported; tags can — a single
+    rejection) and adds a CSV-injection guard on each free-text field. Photos and
+    gallery can't be bulk-imported; tags can — a single
     ``|``-separated cell, validated against the collection's vocabulary in the
     view (the serializer has no collection context).
     """

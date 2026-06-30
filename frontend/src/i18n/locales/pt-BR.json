@@ -631,15 +631,6 @@
   "endless": {
     "label": "Sem limite — várias pessoas podem reservar ao mesmo tempo, a coisa fica sempre ativa"
   },
-  "documents": {
-    "heading": "Documentos",
-    "uploadLabel": "Anexos",
-    "uploadHelper": "PDF, Word, Excel ou Markdown. Máx. 1 MB cada.",
-    "remove": "Remover",
-    "maxFiles": "Máximo de 5 documentos permitidos.",
-    "fileTooLarge": "O arquivo é muito grande. Tamanho máximo: 1 MB.",
-    "invalidType": "Este tipo de arquivo não é permitido."
-  },
   "broadcast": {
     "heading": "Difusão",
     "openButton": "Enviar mensagem aos convidados",

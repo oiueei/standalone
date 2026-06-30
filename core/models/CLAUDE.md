@@ -326,7 +326,7 @@ The `Thing` model represents an item in a collection.
 | `availability` | CharField(12) | No | Availability: IMMEDIATE, NEXT_WEEK, END_OF_MONTH, NEXT_MONTH. Only for GIFT/SELL/LEND/SHARE types. |
 | `location` | CharField(32) | No | Free-text location. Only for GIFT/SELL/LEND/SHARE types. |
 | `condition` | CharField(12) | No | Condition: NEW, GOOD, FAIR, USED, WELL_USED, ALMOST_JUNK. Only for GIFT/SELL/LEND/SHARE types. |
-| `documents` | JSONField | No | Attached documents: `[{"public_id": "...", "filename": "...", "content_type": "..."}]`. Max 5. Allowed types: PDF, Word, Excel, Markdown. Max 1 MB each (enforced client-side). Stored in Cloudinary raw uploads. Download links sent via email on booking acceptance. |
+| `documents` | JSONField | No | **Deprecated — the document-attachments feature was removed from the UI and API.** The column is retained (dormant) to avoid a destructive migration; nothing reads or writes it, though `cloudinary_cleanup` still destroys any legacy `documents[].public_id` on thing delete. Drop with a `RemoveField` migration if it is not coming back. |
 | `is_endless` | BooleanField | No | GIFT_THING and SELL_THING only. When True: multiple simultaneous PENDING bookings from different users are allowed, thing status never changes to TAKEN, no ThingTransfer is created on acceptance, thing remains ACTIVE forever (until owner hides or deletes it). Default: False. |
 | `deal` | ManyToManyField(User) | No | Users who have reserved (not used by WISH_THING — wishes use `WishResponse`) |
 

@@ -22,7 +22,6 @@ stay as plain strings.
 
 import logging
 import smtplib
-from urllib.parse import quote
 
 from django.conf import settings
 from django.core.mail import BadHeaderError, EmailMultiAlternatives, send_mail
@@ -30,7 +29,7 @@ from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.template.loader import render_to_string
 from django.utils.html import escape
 
-from core.utils import make_document_token, redact_email
+from core.utils import redact_email
 
 logger = logging.getLogger(__name__)
 
@@ -204,11 +203,6 @@ def _list(items):
 def _links(*links):
     """A row of links, each ``(url, label)``, joined by ``|``."""
     return {"type": "links", "links": [{"url": url, "label": label} for url, label in links]}
-
-
-def _linklist(links):
-    """A bullet list of links, each ``(url, label)``."""
-    return {"type": "linklist", "links": [{"url": url, "label": label} for url, label in links]}
 
 
 def _render_email(blocks):
@@ -545,46 +539,6 @@ def send_return_reminder_email(requester_name, thing_headline, end_date, owner_e
         ]
     )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
-
-
-def send_documents_email(requester_email, thing):
-    """Tell the requester their documents are ready, after booking acceptance.
-
-    Documents stay private (Cloudinary ``type=authenticated``) and are never
-    embedded as eternal URLs (M2). Each download link points at the gated
-    download endpoint carrying a signed, ~30-day reusable token scoped to this
-    item, so the recipient can download straight from the email without logging
-    in (L9); the endpoint still mints a short-lived signed Cloudinary URL per
-    click.
-    """
-    base = _frontend_base_url()
-    token = make_document_token(thing.code)
-    documents = thing.documents or []
-
-    def _download_url(index):
-        return f"{base}/api/v1/things/{thing.code}/documents/{index}/download/?token={quote(token)}"
-
-    doc_links = [
-        (_download_url(index), doc.get("filename", "document"))
-        for index, doc in enumerate(documents)
-    ]
-
-    plain_list = "\n".join(f"  - {label}: {url}" for url, label in doc_links)
-
-    subject = f"Documents for {thing.headline}"
-    plain = (
-        f"The documents for '{thing.headline}' are ready to download:\n\n"
-        f"{plain_list}\n\n"
-        f"These links work for the next 30 days."
-    )
-    html = _render_email(
-        [
-            _para(f"The documents for {thing.headline} are ready to download:"),
-            _linklist(doc_links),
-            _para("These links work for the next 30 days."),
-        ]
-    )
-    _send(requester_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
 def send_swap_request_email(

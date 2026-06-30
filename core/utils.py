@@ -8,7 +8,6 @@ import secrets
 import string
 
 from django.conf import settings
-from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 
 
 def redact_email(email):
@@ -76,65 +75,3 @@ def cloudinary_url(image_id):
 
     url, _ = cloudinary.utils.cloudinary_url(image_id, fetch_format="auto", quality="auto")
     return url
-
-
-_DOCUMENT_TOKEN_SALT = "document-download"
-DOCUMENT_TOKEN_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
-
-
-def make_document_token(thing_code):
-    """Signed, reusable (~30-day) token authorising document downloads from an
-    email link without the recipient logging in.
-
-    A ``TimestampSigner`` signature over the thing's code (no stored column): it
-    is scoped to that one item, so it grants access to that thing's documents
-    only, and it expires after 30 days. Used by the gated download view to let an
-    emailed "download" link work for a not-yet-authenticated recipient (L9).
-    """
-    return TimestampSigner(salt=_DOCUMENT_TOKEN_SALT).sign(thing_code)
-
-
-def verify_document_token(token):
-    """Return the thing_code a document token authorises, or None if the token is
-    missing, malformed, tampered, or older than 30 days."""
-    if not token:
-        return None
-    try:
-        return TimestampSigner(salt=_DOCUMENT_TOKEN_SALT).unsign(
-            token, max_age=DOCUMENT_TOKEN_MAX_AGE
-        )
-    except (BadSignature, SignatureExpired):
-        return None
-
-
-# Documents are uploaded privately (Cloudinary type=authenticated): their plain
-# delivery URL 404s, so the only way to fetch one is a short-lived signed URL
-# minted on demand by the gated download view. Five minutes is long enough to
-# start a download yet short enough that a leaked URL dies quickly.
-DOCUMENT_URL_TTL_SECONDS = 300
-
-
-def signed_document_url(doc, ttl_seconds=DOCUMENT_URL_TTL_SECONDS):
-    """Mint a short-lived, signed Cloudinary download URL for a stored document.
-
-    ``doc`` is a stored ``{public_id, filename, content_type, type}`` dict. New
-    documents carry ``type='authenticated'`` (private); legacy documents stored
-    before this change have no ``type`` and were public ``upload`` assets — both
-    are served through the same signed, expiring download API so the underlying
-    Cloudinary URL is never eternal nor exposed in API responses or emails (M2).
-    Returns ``None`` when the document has no ``public_id``.
-    """
-    import time
-
-    import cloudinary.utils
-
-    public_id = doc.get("public_id")
-    if not public_id:
-        return None
-    return cloudinary.utils.private_download_url(
-        public_id,
-        "",
-        resource_type="raw",
-        type=doc.get("type", "upload"),
-        expires_at=int(time.time()) + ttl_seconds,
-    )

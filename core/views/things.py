@@ -4,7 +4,6 @@ Thing views for OIUEEI.
 
 from django.db import transaction
 from django.db.models import Count, Prefetch
-from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
@@ -29,7 +28,6 @@ from core.serializers import (
     ThingUpdateSerializer,
 )
 from core.services.email_service import send_wish_posted_email
-from core.utils import signed_document_url, verify_document_token
 from core.views._helpers import type_validity_error, viewer_code
 
 
@@ -248,49 +246,6 @@ class ThingViewSet(ModelViewSet):
         thing.status = Thing.Status.INACTIVE
         thing.save(update_fields=["status"])
         return Response(ThingSerializer(thing, context=self.get_serializer_context()).data)
-
-
-class DocumentDownloadView(APIView):
-    """
-    GET /api/v1/things/{thing_code}/documents/{index}/download/
-
-    Redirect a viewer to a short-lived signed Cloudinary URL for the thing's Nth
-    document. Documents are uploaded privately (``type=authenticated``), so this
-    authorisation-gated endpoint is the only way to obtain a working URL, and the
-    URL it mints expires — it can't be bookmarked, shared, or leaked for long.
-
-    Access is granted to (a) a signed-in user who can view the thing — the same
-    audience as the serialised ``document_urls``; or (b) the bearer of a valid
-    ``?token=`` for this thing, so the download links in the booking-acceptance
-    email work for a recipient who isn't logged in (L9). The token is scoped to
-    the thing and expires after ~30 days.
-    """
-
-    permission_classes = [AllowAny]
-
-    def get(self, request, thing_code, index):
-        token_ok = verify_document_token(request.query_params.get("token")) == thing_code
-        user = request.user
-        # Refuse an anonymous, tokenless caller before the lookup, so a 404-vs-403
-        # can't be used to probe which thing codes exist (this is an AllowAny view).
-        if not token_ok and not user.is_authenticated:
-            return Response(
-                {"error": "You do not have permission to view this document."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        thing = get_object_or_404(Thing, code=thing_code)
-        if not token_ok and not thing.can_view(user.code):
-            return Response(
-                {"error": "You do not have permission to view this document."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        documents = thing.documents or []
-        if index < 0 or index >= len(documents):
-            raise Http404("Document not found.")
-        url = signed_document_url(documents[index])
-        if not url:
-            raise Http404("Document not found.")
-        return HttpResponseRedirect(url)
 
 
 class ThingBulkCreateView(APIView):

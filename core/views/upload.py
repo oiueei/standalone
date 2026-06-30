@@ -10,12 +10,9 @@ without breaking it (verified against the live account):
 - ``public_id`` is generated server-side, so a client cannot choose an arbitrary
   id (which could overwrite another asset) — only store the id Cloudinary
   returns.
-- ``allowed_formats`` restricts what Cloudinary will accept: image folders take
-  raster photo formats only (SVG is excluded — it can carry script), document
-  folders take office/PDF/Markdown formats only.
-- ``resource_type`` is derived from the folder, not trusted from the client.
-- Documents upload as ``type=authenticated`` (private): their plain delivery URL
-  404s and they are only reachable through the gated, signed download endpoint.
+- ``allowed_formats`` restricts what Cloudinary will accept: raster photo formats
+  only (SVG is excluded — it can carry script).
+- ``resource_type`` is always ``image`` (never trusted from the client).
 
 Note: Cloudinary's ``max_file_size`` upload parameter is not enforced on this
 account/plan (verified), so the per-file size cap stays a client-side check.
@@ -31,15 +28,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections", "oiueei/documents"}
-DOCUMENTS_FOLDER = "oiueei/documents"
+ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections"}
 
 # Raster photo formats only — SVG and other script-bearing/non-photo formats are
 # excluded so an <img>-rendered upload can never carry active content.
 IMAGE_FORMATS = "jpg,jpeg,png,webp,gif,heic,heif,avif,bmp,tif,tiff"
-# Mirrors the document upload component's accept list and the serializer's
-# content-type allowlist.
-DOCUMENT_FORMATS = "pdf,doc,docx,xls,xlsx,md"
 
 
 class CloudinarySignatureView(APIView):
@@ -48,7 +41,7 @@ class CloudinarySignatureView(APIView):
 
     Returns a signed set of upload parameters for a direct browser-to-Cloudinary
     upload. The client must send back the signed parameters verbatim (folder,
-    public_id, allowed_formats, and — for documents — type) alongside the file.
+    public_id, allowed_formats) alongside the file.
 
     Request body:
         { "folder": "oiueei/things" }
@@ -62,8 +55,7 @@ class CloudinarySignatureView(APIView):
             "folder": "oiueei/things",
             "public_id": "<server-generated>",
             "allowed_formats": "jpg,jpeg,png,...",
-            "resource_type": "image",
-            "type": "authenticated"   # documents only
+            "resource_type": "image"
         }
     """
 
@@ -75,9 +67,8 @@ class CloudinarySignatureView(APIView):
         if folder not in ALLOWED_FOLDERS:
             folder = "oiueei/users"
 
-        is_document = folder == DOCUMENTS_FOLDER
-        resource_type = "raw" if is_document else "image"
-        allowed_formats = DOCUMENT_FORMATS if is_document else IMAGE_FORMATS
+        resource_type = "image"
+        allowed_formats = IMAGE_FORMATS
         # Random id within the folder; `folder` is sent separately, so the public_id
         # itself carries no folder prefix (Cloudinary prepends `folder`).
         public_id = secrets.token_urlsafe(16)
@@ -89,8 +80,6 @@ class CloudinarySignatureView(APIView):
             "public_id": public_id,
             "timestamp": timestamp,
         }
-        if is_document:
-            params_to_sign["type"] = "authenticated"
 
         signature = cloudinary.utils.api_sign_request(
             params_to_sign, cloudinary.config().api_secret
@@ -106,7 +95,5 @@ class CloudinarySignatureView(APIView):
             "allowed_formats": allowed_formats,
             "resource_type": resource_type,
         }
-        if is_document:
-            response["type"] = "authenticated"
 
         return Response(response)

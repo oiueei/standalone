@@ -631,15 +631,6 @@
   "endless": {
     "label": "Mugagabea — hainbat pertsonak aldi berean eskatu dezakete, gauza beti aktibo dago"
   },
-  "documents": {
-    "heading": "Dokumentuak",
-    "uploadLabel": "Eranskinak",
-    "uploadHelper": "PDF, Word, Excel edo Markdown. Gehienez 1 MB bakoitza.",
-    "remove": "Kendu",
-    "maxFiles": "Gehienez 5 dokumentu onartzen dira.",
-    "fileTooLarge": "Fitxategia handiegia da. Gehienezko tamaina: 1 MB.",
-    "invalidType": "Fitxategi mota hau ez da onartzen."
-  },
   "broadcast": {
     "heading": "Hedapena",
     "openButton": "Mezua bidali gonbidatuei",

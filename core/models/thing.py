@@ -66,6 +66,11 @@ class Thing(models.Model):
     )
     location = models.CharField(max_length=32, blank=True, default="")
     condition = models.CharField(max_length=12, choices=Condition.choices, blank=True, default="")
+    # Deprecated: the document-attachments feature was removed from the UI and
+    # API. The column is retained (dormant) to avoid a destructive migration and
+    # so any legacy attachments are still cleaned from Cloudinary on delete
+    # (core/services/cloudinary_cleanup.py). Drop with a RemoveField migration if
+    # the feature is not coming back.
     documents = models.JSONField(
         null=True,
         blank=True,

@@ -3,13 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import ImageUpload from './ImageUpload';
 import GalleryUpload from './GalleryUpload';
-import DocumentUpload from './DocumentUpload';
 
 /**
  * The shared field cluster of the Add and Edit thing forms: type selector, the
  * endless / notify-group toggles, headline, description, fee, the
  * availability/condition/location detail fields, the per-thing tags select, the
- * thumbnail upload and gallery + documents.
+ * thumbnail upload and gallery.
  *
  * Controlled: each value + setter is owned by the page. Field visibility is
  * derived from `type` so both pages share one set of rules. The page supplies
@@ -51,8 +50,6 @@ export default function ThingForm({
   thumbnailUrl,
   gallery,
   setGallery,
-  documents,
-  setDocuments,
 }) {
   const { t } = useTranslation();
   const toggleTheme = theeemeColor01 ? { '--toggle-button-color': `var(--color-${theeemeColor01})` } : undefined;
@@ -193,10 +190,6 @@ export default function ThingForm({
         folder="oiueei/things"
       />
       <GalleryUpload items={gallery} onChange={setGallery} />
-      <DocumentUpload
-        documents={documents}
-        onChange={setDocuments}
-      />
     </>
   );
 }

@@ -30,7 +30,6 @@ export default function EditThingPage() {
   const [condition, setCondition] = useState('');
   const [isEndless, setIsEndless] = useState(false);
   const [gallery, setGallery] = useState([]);
-  const [documents, setDocuments] = useState([]);
   const [tags, setTags] = useState([]);
   const [collectionTags, setCollectionTags] = useState([]);
   const [errors, setErrors] = useState({});
@@ -54,7 +53,6 @@ export default function EditThingPage() {
           setAvailability(data.availability || '');
           setLocation(data.location || '');
           setCondition(data.condition || '');
-          if (data.documents) setDocuments(data.documents);
           if (data.gallery && data.gallery.length) {
             const urls = data.gallery_urls || [];
             setGallery(data.gallery.map((publicId, i) => ({ publicId, url: urls[i] })));
@@ -107,7 +105,6 @@ export default function EditThingPage() {
       body.location = location.trim();
       body.condition = condition || '';
     }
-    body.documents = documents;
     body.gallery = gallery.map((g) => g.publicId);
     body.tags = tags;
     if (['GIFT_THING', 'SELL_THING'].includes(thingType)) {
@@ -175,8 +172,6 @@ export default function EditThingPage() {
           thumbnailUrl={thumbnailUrl}
           gallery={gallery}
           setGallery={setGallery}
-          documents={documents}
-          setDocuments={setDocuments}
         />
       </div>
       <div className="form-actions">

@@ -163,7 +163,6 @@ class Command(BaseCommand):
                 "thumbnail": data.get("thumbnail", ""),
                 "gallery": data.get("gallery", []),
                 "tags": data.get("tags", []),
-                "documents": data.get("documents", []),
                 "is_endless": data.get("is_endless", False),
             }
             thing, _ = Thing.objects.update_or_create(code=data["code"], defaults=defaults)

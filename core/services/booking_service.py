@@ -155,12 +155,6 @@ def accept_booking(booking):
                 },
             )
 
-    # Send document download links to the requester if thing has documents
-    if thing.documents:
-        from core.services.email_service import send_documents_email
-
-        send_documents_email(booking.requester_email, thing)
-
     return thing
 
 

@@ -648,15 +648,6 @@
   "endless": {
     "label": "Endless — multiple people can hold at the same time, thing stays active forever"
   },
-  "documents": {
-    "heading": "Documents",
-    "uploadLabel": "Attachments",
-    "uploadHelper": "PDF, Word, Excel, or Markdown. Max 1 MB each.",
-    "remove": "Remove",
-    "maxFiles": "Maximum 5 documents allowed.",
-    "fileTooLarge": "File is too large. Maximum size is 1 MB.",
-    "invalidType": "This file type is not allowed."
-  },
   "broadcast": {
     "heading": "Broadcast",
     "openButton": "Send a message to guests",
