@@ -21,8 +21,8 @@ USERS = [
     },
     {
         "code": "l0l0oh",
-        "headline": "Plant mum to the rescue! Free cuttings at Lolo's leafy lounge.",
-        "about": "## Plant mum at heart 🌿\n\nToo many **succulent** babies on the windowsill — echeverias, jades and sedums after a home. Drop by for a free cutting, care guide included. Only rule: name your new leafy friend!",
+        "headline": "Free cuttings at Lolo's leafy lounge.",
+        "about": "## Lolo's leafy lounge 🌿\n\nToo many **succulent** babies on the windowsill — echeverias, jades and sedums after a home. Drop by for a free cutting, care guide included. Only rule: name your new leafy friend!",
     },
     {
         "code": "1u1ucs",
@@ -40,7 +40,7 @@ COLLECTIONS = [
     {
         "code": "l0l0C1",
         "headline": "Lolo's Leafy Lounge – Snag a free succulent baby!",
-        "description": "Plant mum with too many green babies! Drop by to meet my succulent squad – echeverias, jades, sedums – and I'll gift you a cutting. Easy-peasy care guide thrown in. Only rule: name your new leafy friend!",
+        "description": "Drop by to meet my succulent squad – echeverias, jades, sedums – and I'll gift you a cutting. Easy-peasy care guide thrown in. Only rule: name your new leafy friend!",
     },
     {
         "code": "l1l1C1",

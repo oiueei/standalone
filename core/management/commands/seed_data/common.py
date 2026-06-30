@@ -6,6 +6,10 @@ ownership, relationships, flags, prices, image ids, tags, …). The translatable
 text for each entity lives in the per-locale modules (en.py, es.py) and is
 merged onto this skeleton by `seed_demo.load_seed_data`. Adding a language means
 translating text only — never re-declaring structure (R17).
+
+Image ids (photo/thumbnail/gallery) are stored BARE here; `seed_demo` prefixes
+them with ``SEED_IMAGE_FOLDER`` (oiueei/seed/) at seed time — that's the Cloudinary
+folder the demo fixtures actually live in, kept apart from real user uploads.
 """
 
 from datetime import date

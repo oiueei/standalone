@@ -249,9 +249,10 @@ class TestSeedDemoCommand:
     SUCCULENTS = {"l0l001", "l0l002", "l0l003", "l0l004", "l0l005", "l0l006", "l0l007"}
 
     def test_maps_gallery_key(self):
-        """Regression guard: _seed_things must copy the `gallery` key onto the model."""
+        """Regression guard: _seed_things must copy the `gallery` key onto the model
+        (image ids are stored under the SEED_IMAGE_FOLDER Cloudinary prefix)."""
         call_command("seed_demo")
-        assert Thing.objects.get(code="La1a01").gallery == ["La1a01_b"]
+        assert Thing.objects.get(code="La1a01").gallery == ["oiueei/seed/La1a01_b"]
 
     def test_maps_tags_key(self):
         """Regression guard: _seed_collections and _seed_things must copy `tags`."""
@@ -260,9 +261,10 @@ class TestSeedDemoCommand:
         assert Thing.objects.get(code="L3L302").tags == ["sensors"]
 
     def test_maps_user_photo_key(self):
-        """Regression guard: _seed_users must copy the `photo` key onto the user."""
+        """Regression guard: _seed_users must copy the `photo` key onto the user
+        (image ids are stored under the SEED_IMAGE_FOLDER Cloudinary prefix)."""
         call_command("seed_demo")
-        assert User.objects.get(code="La1aN1").photo == "La1aPH"
+        assert User.objects.get(code="La1aN1").photo == "oiueei/seed/La1aPH"
 
     def test_maps_allowed_thing_types_key(self):
         """Regression guard: _seed_collections must copy `allowed_thing_types`."""

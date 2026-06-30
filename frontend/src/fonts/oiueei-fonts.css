@@ -4,18 +4,14 @@
    /public/fonts/curiosa/ at runtime (Vite). The binary is gitignored
    (licensed/trial font — self-hosters must supply their own licensed copy);
    a clone without it falls back to Arial / system sans via the --font-default
-   stack. Drop Curiosa-Variable.woff2 / .woff into the same folder for the
-   optimised web formats — they take precedence over the .ttf via the src
-   cascade. The --font-default token value is overridden in oiueei-theme.css. */
+   stack. Self-hosters drop their own licensed Curiosa-Variable.woff2 into that
+   folder. The --font-default token value is overridden in oiueei-theme.css. */
 @font-face {
   font-display: swap;
   font-family: "Curiosa";
   font-style: normal;
   font-weight: 100 900;
-  src:
-    url('/fonts/curiosa/Curiosa-Variable.woff2') format('woff2'),
-    url('/fonts/curiosa/Curiosa-Variable.woff') format('woff'),
-    url('/fonts/curiosa/Curiosa-Variable.ttf') format('truetype');
+  src: url('/fonts/curiosa/Curiosa-Variable.woff2') format('woff2');
 }
 
 @font-face {
@@ -23,8 +19,5 @@
   font-family: "Curiosa";
   font-style: italic;
   font-weight: 100 900;
-  src:
-    url('/fonts/curiosa/Curiosa-Variable.woff2') format('woff2'),
-    url('/fonts/curiosa/Curiosa-Variable.woff') format('woff'),
-    url('/fonts/curiosa/Curiosa-Variable.ttf') format('truetype');
+  src: url('/fonts/curiosa/Curiosa-Variable.woff2') format('woff2');
 }

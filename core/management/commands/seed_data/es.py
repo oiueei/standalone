@@ -24,8 +24,8 @@ USERS = [
     },
     {
         "code": "l0l0oh",
-        "headline": "¡Mamá planta al rescate! Esquejes gratis en el salón verde.",
-        "about": "## Mamá planta de corazón 🌿\n\nDemasiadas crías de **suculenta** en el alféizar — echeverias, jades y sedums buscando hogar. Pásate por un esqueje gratis, con guía de cuidados incluida. Única regla: ¡ponle nombre a tu nueva amiga verde!",
+        "headline": "Esquejes gratis en el salón verde de Lolo.",
+        "about": "## El salón verde 🌿\n\nDemasiadas crías de **suculenta** en el alféizar — echeverias, jades y sedums buscando hogar. Pásate por un esqueje gratis, con guía de cuidados incluida. Única regla: ¡ponle nombre a tu nueva amiga verde!",
     },
     {
         "code": "1u1ucs",
@@ -43,7 +43,7 @@ COLLECTIONS = [
     {
         "code": "l0l0C1",
         "headline": "El salón verde de Lolo – ¡llévate una suculenta gratis!",
-        "description": "¡Mamá planta con demasiadas crías verdes! Pásate a conocer a mi escuadrón suculento – echeverias, jades, sedums – y te regalo un esqueje. Guía fácil de cuidados incluida. Única regla: ¡ponle nombre a tu nueva amiga verde!",
+        "description": "Pásate a conocer a mi escuadrón suculento – echeverias, jades, sedums – y te regalo un esqueje. Guía fácil de cuidados incluida. Única regla: ¡ponle nombre a tu nueva amiga verde!",
     },
     {
         "code": "l1l1C1",
