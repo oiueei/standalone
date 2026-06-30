@@ -12,6 +12,10 @@ def delete_asset_things(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    # Non-atomic: same reason as 0093 — the ASSET_THING delete cascades to bookings,
+    # queuing deferred FK trigger events that block a same-transaction ALTER TABLE on
+    # PostgreSQL. Letting the delete commit first clears them before the schema ops.
+    atomic = False
 
     dependencies = [
         ("core", "0093_remove_event_appointment_things"),

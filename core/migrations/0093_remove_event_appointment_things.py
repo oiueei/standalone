@@ -15,6 +15,11 @@ def delete_event_appointment_things(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    # Non-atomic: the RunPython delete cascades (clearing bookings/FAQs/transfers),
+    # which queues deferred FK trigger events. PostgreSQL refuses a same-transaction
+    # ALTER TABLE while those are pending, so let the delete commit before the schema
+    # ops (the error only surfaces on a Postgres DB that still holds such rows).
+    atomic = False
 
     dependencies = [
         ("core", "0092_create_cache_table"),
