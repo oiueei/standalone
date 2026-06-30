@@ -42,6 +42,7 @@ def _seed_image(public_id):
     """Prefix a bare demo image id with its Cloudinary folder (empty stays empty)."""
     return f"{SEED_IMAGE_FOLDER}{public_id}" if public_id else public_id
 
+
 # The field each entity is matched on when merging skeleton + localised text.
 _MERGE_KEYS = {
     "USERS": "code",
