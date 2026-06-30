@@ -26,15 +26,15 @@ Runtime (single gunicorn process):
 
 ## Font Notice
 
-The Curiosa typeface used in this project is **not included in this repository** — its licence does not permit redistribution. The font binaries (`frontend/src/fonts/*.ttf` and `*.otf`) are listed in `.gitignore`.
+The Curiosa typeface (by [Fabio Haag Type](https://fabiohaagtype.com)) used in this project is **not included in this repository** — its licence does not permit redistribution. The font binary (`frontend/public/fonts/curiosa/Curiosa-Variable.woff2`) is listed in `.gitignore`.
 
 You have two options before deploying:
 
 **Option A — Supply the font**
-Place `CuriosaVariableTest.ttf` in `frontend/src/fonts/`. It is a variable font (weight + italic axes) and Vite picks it up during the build.
+Place `Curiosa-Variable.woff2` in `frontend/public/fonts/curiosa/`. It is a variable font (weight + italic axes) and Vite serves it during the build.
 
 **Option B — Use a different typeface**
-Edit `frontend/src/fonts/oiueei-fonts.css` and replace the `@font-face` declarations with your chosen font, keeping (or updating) the `HelsinkiGroteskPro` family name so the HDS `--font-default` token resolves to it.
+Edit `frontend/src/fonts/oiueei-fonts.css` and replace the `@font-face` declarations with your chosen font, keeping (or updating) the `Curiosa` family name so the HDS `--font-default` token resolves to it.
 
 > In either case, the app works without the font — browsers fall back to a system sans. Fonts only affect visual appearance.
 
