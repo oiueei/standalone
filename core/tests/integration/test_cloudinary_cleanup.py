@@ -15,9 +15,7 @@ from core.services import cloudinary_cleanup
 
 @pytest.mark.django_db
 class TestCloudinaryCleanup:
-    def test_thing_delete_destroys_thumbnail_gallery_and_documents(
-        self, django_capture_on_commit_callbacks
-    ):
+    def test_thing_delete_destroys_thumbnail_and_gallery(self, django_capture_on_commit_callbacks):
         owner = User.objects.create(email="o1@example.com")
         thing = Thing.objects.create(
             owner=owner,
@@ -25,13 +23,6 @@ class TestCloudinaryCleanup:
             type="GIFT_THING",
             thumbnail="oiueei/things/cover",
             gallery=["oiueei/things/g1", "oiueei/things/g2"],
-            documents=[
-                {
-                    "public_id": "oiueei/documents/d1",
-                    "filename": "m.pdf",
-                    "content_type": "application/pdf",
-                }
-            ],
         )
         with patch("cloudinary.uploader.destroy") as destroy:
             with django_capture_on_commit_callbacks(execute=True):
@@ -42,12 +33,7 @@ class TestCloudinaryCleanup:
             "oiueei/things/cover",
             "oiueei/things/g1",
             "oiueei/things/g2",
-            "oiueei/documents/d1",
         }
-        # private documents are destroyed as raw/authenticated
-        doc = next(c for c in destroy.call_args_list if c.args[0] == "oiueei/documents/d1")
-        assert doc.kwargs["resource_type"] == "raw"
-        assert doc.kwargs["type"] == "authenticated"
 
     def test_collection_delete_destroys_thumbnail(self, django_capture_on_commit_callbacks):
         owner = User.objects.create(email="o2@example.com")

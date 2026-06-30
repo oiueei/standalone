@@ -107,7 +107,7 @@ Frees the Cloudinary images a record owns when the record itself is deleted, so 
 
 | Model | Assets |
 |-------|--------|
-| `Thing` | `thumbnail`, every `gallery` id, and any **legacy** `documents[].public_id` (destroyed as `resource_type=raw`, `type=authenticated`). The document-attachments feature was removed, but this cleanup still runs so any pre-removal attachments don't orphan in Cloudinary. |
+| `Thing` | `thumbnail` and every `gallery` id |
 | `Collection` | `thumbnail` |
 | `User` | `photo` |
 

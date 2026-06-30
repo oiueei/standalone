@@ -47,11 +47,6 @@ def _assets(instance):
             yield instance.thumbnail, {}
         for public_id in instance.gallery or []:
             yield public_id, {}
-        for document in instance.documents or []:
-            public_id = document.get("public_id")
-            if public_id:
-                # Documents upload privately (raw + authenticated); destroy must match.
-                yield public_id, {"resource_type": "raw", "type": "authenticated"}
     elif isinstance(instance, Collection):
         if instance.thumbnail:
             yield instance.thumbnail, {}
