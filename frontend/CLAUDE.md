@@ -110,8 +110,9 @@ The `page-container` and `form-hero-content` max-width is **1248px** (aligned wi
 
 ### VerifyPage (`src/pages/VerifyPage.jsx`)
 
-- **API:** `GET /api/v1/auth/verify/{code}/`
-- Fetches on mount using the `:code` route parameter.
+- **API:** `GET /api/v1/auth/verify/{code}/` (resolve) and `POST` of the same URL (commit a booking decision).
+- Fetches (GET) on mount using the `:code` route parameter.
+- **Booking accept/reject confirmation:** when the GET returns `requires_confirmation` (a `BOOKING_ACCEPT`/`BOOKING_REJECT` preview), the page does **not** auto-commit — it renders a confirmation screen (question + "Yes, continue" button). The button issues the `POST` that actually accepts/rejects the hold, then shows the confirmed/rejected success screen. This stops an email link-scanner or a page prefetch/refresh from silently deciding a hold.
 - On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. Shows "Go to login" button. No login/redirect.
 - On success: stores `userCode` in `localStorage`. Auth tokens are set as HttpOnly cookies by the backend. If `data.invited_collection` is present (COLLECTION_INVITE flow), navigates to `/collections/{code}` with `{ state: { fromInvite: true } }`; if `seenWelcome` is not set in `localStorage` (new user — e.g. from `/popin`), navigates to `/welcome`; otherwise navigates to `/`.
 - On failure: shows error `Notification` with helpful guidance and "Go to login" button (resolves dead-end for expired links).

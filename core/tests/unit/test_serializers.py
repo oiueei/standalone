@@ -336,3 +336,55 @@ class TestInputBounds:
             data={"start_date": str(date.today()), "end_date": str(soon)}
         )
         assert serializer.is_valid()
+
+
+@pytest.mark.django_db
+class TestCoMemberNameLeak:
+    """L2: serializers shown to a co-member must use the bare name, never the
+    display_name email fallback. Locks in the Must-Have fix for the two
+    serializers that previously used display_name."""
+
+    def test_my_booking_owner_name_does_not_leak_email(self):
+        """MyBookingSerializer.owner_name is the bare owner name — a no-name
+        owner's email must not reach the requester."""
+        from core.models.booking import BookingPeriod
+        from core.serializers import MyBookingSerializer
+
+        owner = User.objects.create(code="OWNNML", email="owner-nameless@example.com", name="")
+        requester = User.objects.create(code="REQ001", email="req@example.com", name="Req")
+        thing = Thing.objects.create(code="BTH001", owner=owner, headline="Lent thing")
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=requester,
+            requester_email=requester.email,
+            owner_code=owner,
+        )
+
+        data = MyBookingSerializer(booking).data
+        assert data["owner_name"] == ""
+        assert "owner-nameless@example.com" not in str(data)
+
+    def test_wish_response_responder_name_does_not_leak_email(self):
+        """WishResponseSerializer.responder_name is the bare name — a no-name
+        responder's email must not reach the wish creator."""
+        from core.models import WishResponse
+        from core.serializers import WishResponseSerializer
+
+        creator = User.objects.create(code="WCRTR1", email="creator@example.com", name="Creator")
+        responder = User.objects.create(
+            code="RSPNML", email="responder-nameless@example.com", name=""
+        )
+        wish = Thing.objects.create(
+            code="WSH001", owner=creator, headline="Want X", type="WISH_THING"
+        )
+        response = WishResponse.objects.create(
+            wish=wish,
+            responder=responder,
+            kind="KNOW_WHERE",
+            message="Try the shop on 5th",
+        )
+
+        data = WishResponseSerializer(response).data
+        assert data["responder_name"] == ""
+        assert "responder-nameless@example.com" not in str(data)

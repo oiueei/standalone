@@ -149,27 +149,47 @@ class RequestLinkView(APIView):
 
 class VerifyLinkView(APIView):
     """
-    GET /api/v1/auth/verify/{rsvp_code}/
-    Process an RSVP action.
+    GET  /api/v1/auth/verify/{token}/ — resolve an RSVP action.
+    POST /api/v1/auth/verify/{token}/ — commit a confirm-required action.
 
     Handles all RSVP-based actions:
     - MAGIC_LINK: Verify magic link and return JWT token
     - COLLECTION_INVITE: Accept collection invitation and return JWT token
+    - COLLECTION_REJECT: Decline a collection invitation
     - BOOKING_ACCEPT: Accept a booking (all thing types)
     - BOOKING_REJECT: Reject a booking (all thing types)
+
+    Booking accept/reject are irreversible and authenticate no one, so they must
+    never fire from a bare GET — an email link-scanner or a page prefetch/refresh
+    could otherwise auto-decide a hold. For those actions GET only *previews*
+    (no mutation); the frontend renders a confirmation screen whose button issues
+    a POST that commits. The login/invite actions stay on GET (a scanner that
+    consumes one only forces a fresh link; it decides nothing on the user's
+    behalf).
+
+    Authorisation is the unguessable ~134-bit URL token itself — the bearer
+    credential — so the view carries no authenticators: that keeps the POST free
+    of DRF's SessionAuthentication CSRF gate (no ambient cookie grants authority
+    here) and none of the handlers read ``request.user``.
     """
 
     permission_classes = [AllowAny]
+    authentication_classes = []
 
-    @method_decorator(ratelimit(key="ip", rate="10/m", method="GET", block=True))
-    def get(self, request, token):
+    # Actions that GET must not commit — only an explicit POST may.
+    CONFIRM_ACTIONS = frozenset({RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT})
+
+    def _resolve_rsvp(self, request, token):
+        """Look up and expiry-check an RSVP token.
+
+        Returns ``(rsvp, None)`` on success or ``(None, Response)`` on failure.
+        """
         ip = get_client_ip(request)
-
         try:
             rsvp = RSVP.objects.get(token=token)
         except RSVP.DoesNotExist:
             security_logger.warning(f"Invalid RSVP code attempted from IP {ip}")
-            return Response(
+            return None, Response(
                 {"error": "Invalid or expired link"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
@@ -177,12 +197,14 @@ class VerifyLinkView(APIView):
         if not rsvp.is_valid():
             security_logger.warning(f"Expired RSVP code used from IP {ip}")
             rsvp.delete()
-            return Response(
+            return None, Response(
                 {"error": "Link expired"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+        return rsvp, None
 
-        # Route to appropriate handler based on action type
+    def _dispatch(self, request, rsvp):
+        """Route a validated RSVP to its action handler (commits the action)."""
         action_handlers = {
             "MAGIC_LINK": self._handle_magic_link,
             "COLLECTION_INVITE": self._handle_collection_invite,
@@ -190,9 +212,9 @@ class VerifyLinkView(APIView):
             "BOOKING_ACCEPT": self._handle_booking_accept,
             "BOOKING_REJECT": self._handle_booking_reject,
         }
-
         handler = action_handlers.get(rsvp.action)
         if not handler:
+            ip = get_client_ip(request)
             security_logger.warning(f"Unknown RSVP action '{rsvp.action}' from IP {ip}")
             rsvp.delete()
             return Response(
@@ -200,6 +222,34 @@ class VerifyLinkView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return handler(request, rsvp)
+
+    def _preview(self, rsvp):
+        """Non-mutating description of a confirm-required action.
+
+        Lets the frontend render a confirmation screen without touching the
+        booking or consuming the RSVP — the commit happens on POST.
+        """
+        data = {"action": rsvp.action, "requires_confirmation": True}
+        booking = BookingPeriod.objects.filter(code=rsvp.target_code).first()
+        if booking and booking.thing_code:
+            data["thing_headline"] = booking.thing_code.headline
+        return Response(data, status=status.HTTP_200_OK)
+
+    @method_decorator(ratelimit(key="ip", rate="10/m", method="GET", block=True))
+    def get(self, request, token):
+        rsvp, error = self._resolve_rsvp(request, token)
+        if error:
+            return error
+        if rsvp.action in self.CONFIRM_ACTIONS:
+            return self._preview(rsvp)
+        return self._dispatch(request, rsvp)
+
+    @method_decorator(ratelimit(key="ip", rate="10/m", method="POST", block=True))
+    def post(self, request, token):
+        rsvp, error = self._resolve_rsvp(request, token)
+        if error:
+            return error
+        return self._dispatch(request, rsvp)
 
     def _authenticate_user(self, request, rsvp):
         """Authenticate a user via RSVP: validate and mint a JWT.

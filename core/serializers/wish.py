@@ -44,7 +44,9 @@ class WishResponseSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_responder_name(self, obj):
-        return obj.responder.display_name
+        # Bare name only — never the email fallback (display_name): the wish
+        # creator is a co-member and L2 forbids leaking the responder's email.
+        return obj.responder.name
 
     def get_thing_headline(self, obj):
         return obj.thing.headline if obj.thing else None

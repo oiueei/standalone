@@ -110,7 +110,9 @@ class ThingWishResponseView(APIView):
         # Notify the wish creator by email and in-app.
         creator = wish.owner
         if creator and creator.email:
-            responder_name = request.user.display_name
+            # Bare name only (not display_name) — the creator is a co-member and
+            # L2 forbids surfacing the responder's email in the notice/email.
+            responder_name = request.user.name
             send_wish_response_email(responder_name, wish, creator.email)
             collection = wish.collections.first()
             InAppNotification.objects.create(

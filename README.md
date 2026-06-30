@@ -134,8 +134,8 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 |--------|-----|-------------|
 | POST | `/api/v1/auth/request-link/` | Request magic link (rate limited: 5/min) |
 | POST | `/api/v1/auth/pop-in/` | Open-door onboarding: get_or_create user, add to onboarding collections OR (if `share_token` provided) to that shared collection, send magic link (rate limited: 5/min) |
-| GET | `/api/v1/auth/verify/{rsvp_code}/` | Verify magic link or process any RSVP action (rate limited: 10/min) |
-| GET | `/api/v1/rsvp/{rsvp_code}/` | Alias for verify endpoint |
+| GET / POST | `/api/v1/auth/verify/{rsvp_code}/` | Verify magic link / process an RSVP action (rate limited: 10/min). Booking accept/reject only **preview** on GET and require a **POST** to commit, so an email link-scanner or prefetch can't auto-decide a hold; login/invite actions resolve on GET |
+| GET / POST | `/api/v1/rsvp/{rsvp_code}/` | Alias for verify endpoint |
 | POST | `/api/v1/auth/refresh/` | Rotate access/refresh tokens via HttpOnly cookies |
 | GET | `/api/v1/auth/me/` | Get authenticated user |
 | POST | `/api/v1/auth/logout/` | Log out (clears auth cookies) |

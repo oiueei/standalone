@@ -171,4 +171,6 @@ class MyBookingSerializer(SwapOfferedFieldsMixin, serializers.ModelSerializer):
         ]
 
     def get_owner_name(self, obj):
-        return obj.owner_code.display_name
+        # Bare name only — never the email fallback (display_name): this is shown
+        # to the requester, a co-member, and L2 forbids leaking a member's email.
+        return obj.owner_code.name

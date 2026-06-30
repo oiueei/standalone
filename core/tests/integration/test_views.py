@@ -1354,7 +1354,7 @@ class TestReservationViews:
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
 
         # Accept via RSVP link
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
+        response = api_client.post(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Booking accepted"
@@ -1391,7 +1391,7 @@ class TestReservationViews:
         rsvp = RSVP.create_for_booking("BOOKING_REJECT", booking, user.email)
 
         # Reject via RSVP link
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
+        response = api_client.post(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["message"] == "Booking rejected"
@@ -1428,7 +1428,7 @@ class TestReservationViews:
         # Create RSVP for accept action
         rsvp = RSVP.create_for_booking("BOOKING_ACCEPT", booking, user.email)
 
-        response = api_client.get(f"/api/v1/rsvp/{rsvp.token}/")
+        response = api_client.post(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "Booking expired or already processed"
@@ -1729,7 +1729,7 @@ class TestAuthViewEdgeCases:
         )
 
         with patch("core.services.email_service.send_booking_decision_email"):
-            response = api_client.get(f"/api/v1/auth/verify/{accept_rsvp.token}/")
+            response = api_client.post(f"/api/v1/auth/verify/{accept_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_ACCEPT"
@@ -1762,12 +1762,53 @@ class TestAuthViewEdgeCases:
         )
 
         with patch("core.services.email_service.send_booking_decision_email"):
-            response = api_client.get(f"/api/v1/auth/verify/{reject_rsvp.token}/")
+            response = api_client.post(f"/api/v1/auth/verify/{reject_rsvp.token}/")
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_REJECT"
         booking.refresh_from_db()
         assert booking.status == "REJECTED"
+
+    def test_get_on_booking_token_previews_without_committing(
+        self, api_client, user, user2, thing, collection
+    ):
+        """GET must only *preview* a booking decision, never commit it — an email
+        link-scanner or page prefetch must not be able to auto-accept a hold."""
+        from unittest.mock import patch
+
+        from core.models.booking import BookingPeriod
+
+        collection.invites.add(user2)
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="GIFT_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            status="PENDING",
+        )
+        accept_rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+            action="BOOKING_ACCEPT",
+            target_code=booking.code,
+        )
+
+        # GET previews only: 200 + requires_confirmation, nothing mutated.
+        response = api_client.get(f"/api/v1/auth/verify/{accept_rsvp.token}/")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["requires_confirmation"] is True
+        assert response.data["action"] == "BOOKING_ACCEPT"
+        booking.refresh_from_db()
+        assert booking.status == "PENDING"
+        assert RSVP.objects.filter(code=accept_rsvp.code).exists()
+
+        # POST commits the decision.
+        with patch("core.services.email_service.send_booking_decision_email"):
+            post_resp = api_client.post(f"/api/v1/auth/verify/{accept_rsvp.token}/")
+        assert post_resp.status_code == status.HTTP_200_OK
+        booking.refresh_from_db()
+        assert booking.status == "ACCEPTED"
 
     def test_booking_rsvp_not_found(self, api_client, user):
         """Booking RSVP for nonexistent booking should return 404."""
@@ -1777,7 +1818,7 @@ class TestAuthViewEdgeCases:
             action="BOOKING_ACCEPT",
             target_code="NOCODE",
         )
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
+        response = api_client.post(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -1903,5 +1944,5 @@ class TestPopInView:
             action="BOOKING_ACCEPT",
             target_code=booking.code,
         )
-        response = api_client.get(f"/api/v1/auth/verify/{rsvp.token}/")
+        response = api_client.post(f"/api/v1/auth/verify/{rsvp.token}/")
         assert response.status_code == status.HTTP_400_BAD_REQUEST

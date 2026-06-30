@@ -243,7 +243,7 @@ class TestShareCollectionFlow:
             action="BOOKING_ACCEPT",
             target_code=booking_code,
         )
-        response = client.get(f"/api/v1/rsvp/{accept_rsvp.token}/")
+        response = client.post(f"/api/v1/rsvp/{accept_rsvp.token}/")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["action"] == "BOOKING_ACCEPT"
 
@@ -462,7 +462,7 @@ class TestCompleteUserJourney:
             action="BOOKING_ACCEPT",
             target_code=bob_booking_code,
         )
-        client.get(f"/api/v1/rsvp/{bob_accept_rsvp.token}/")
+        client.post(f"/api/v1/rsvp/{bob_accept_rsvp.token}/")
 
         # === Charlie asks a question ===
 
@@ -502,7 +502,7 @@ class TestCompleteUserJourney:
             action="BOOKING_ACCEPT",
             target_code=charlie_booking_code,
         )
-        client.get(f"/api/v1/rsvp/{charlie_accept_rsvp.token}/")
+        client.post(f"/api/v1/rsvp/{charlie_accept_rsvp.token}/")
 
         # === Final state verification ===
 

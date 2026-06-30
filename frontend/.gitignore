@@ -14,6 +14,12 @@ storybook-static
 coverage
 *.local
 
+# Environment — VITE_-prefixed vars are bundled into the client (public); never
+# commit a real .env. Keep the documented template (.env.example) tracked.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

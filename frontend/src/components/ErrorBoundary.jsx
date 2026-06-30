@@ -24,8 +24,12 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // Surface for debugging and a future error-reporting hook (e.g. Sentry).
-    console.error('Unhandled render error:', error, info);
+    // Surface for debugging in development only — never print full stacks and
+    // component trees into end users' consoles in production. This is where a
+    // future error-reporting hook (e.g. Sentry) would receive the error.
+    if (import.meta.env.DEV) {
+      console.error('Unhandled render error:', error, info);
+    }
   }
 
   render() {

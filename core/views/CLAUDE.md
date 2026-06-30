@@ -39,27 +39,29 @@ Requests a magic link for passwordless authentication.
 
 | | |
 |---|---|
-| **Endpoint** | `GET /api/v1/auth/verify/{token}/` (also aliased at `GET /api/v1/rsvp/{token}/`) |
-| **Permission** | `AllowAny` |
-| **Rate limit** | 10 requests/minute per IP |
+| **Endpoint** | `GET` / `POST /api/v1/auth/verify/{token}/` (also aliased at `/api/v1/rsvp/{token}/`) |
+| **Permission** | `AllowAny`. **`authentication_classes = []`** — the ~134-bit URL token is the bearer credential, so no authenticator runs; this also keeps `POST` clear of DRF's `SessionAuthentication` CSRF gate (no handler reads `request.user`). |
+| **Rate limit** | 10 requests/minute per IP (GET and POST keyed separately) |
 
 The URL segment is the RSVP's high-entropy `token` (≈134 bits), not the 6-char PK — the PK can no longer resolve an RSVP.
 
-Processes all RSVP-based actions. Routes to the appropriate handler based on `rsvp.action`:
+**GET vs POST — `BOOKING_ACCEPT`/`BOOKING_REJECT` require a POST to commit.** These two decisions are irreversible and authenticate no one, so a bare GET must never fire them — an email link-scanner or a page prefetch/refresh could otherwise auto-decide a hold. For those actions **GET only previews** (`200 {"action", "requires_confirmation": true, "thing_headline"}` — no mutation, RSVP not consumed); the frontend `VerifyPage` renders a confirmation screen whose button issues the **POST** that commits. The login/invite actions (`MAGIC_LINK`, `COLLECTION_INVITE`, `COLLECTION_REJECT`) still resolve on GET — a scanner that consumes one only forces a fresh link; it decides nothing on the user's behalf.
 
-| Action | Handler | Description |
-|--------|---------|-------------|
-| `MAGIC_LINK` | `_handle_magic_link` | Authenticates user, sets auth cookies |
-| `COLLECTION_INVITE` | `_handle_collection_invite` | Adds user to collection invites M2M, sets auth cookies, deletes sibling `COLLECTION_REJECT` RSVP |
-| `COLLECTION_REJECT` | `_handle_collection_reject` | Notifies collection owner of rejection, deletes sibling `COLLECTION_INVITE` RSVP, no JWT |
-| `BOOKING_ACCEPT` | `_handle_booking_accept` | Accepts booking via `accept_booking()` service |
-| `BOOKING_REJECT` | `_handle_booking_reject` | Rejects booking via `reject_booking()` service |
+Routes to the appropriate handler based on `rsvp.action`:
 
-**Common behaviour:**
+| Action | Handler | Commit verb | Description |
+|--------|---------|-------------|-------------|
+| `MAGIC_LINK` | `_handle_magic_link` | GET | Authenticates user, sets auth cookies |
+| `COLLECTION_INVITE` | `_handle_collection_invite` | GET | Adds user to collection invites M2M, sets auth cookies, deletes sibling `COLLECTION_REJECT` RSVP |
+| `COLLECTION_REJECT` | `_handle_collection_reject` | GET | Notifies collection owner of rejection, deletes sibling `COLLECTION_INVITE` RSVP, no JWT |
+| `BOOKING_ACCEPT` | `_handle_booking_accept` | **POST** | Accepts booking via `accept_booking()` service (GET previews only) |
+| `BOOKING_REJECT` | `_handle_booking_reject` | **POST** | Rejects booking via `reject_booking()` service (GET previews only) |
+
+**Common behaviour (`_resolve_rsvp` → `_dispatch`):**
 1. Looks up RSVP by `token` (the high-entropy URL token, not the PK). Returns 401 if not found.
 2. Checks `rsvp.is_valid()` (24h expiry). Deletes and returns 401 if expired.
-3. Delegates to action handler.
-4. RSVP is deleted after use (one-time use).
+3. GET previews a confirm-required action (`_preview`, no mutation); otherwise (and always on POST) delegates to the action handler.
+4. On commit, the RSVP is deleted after use (one-time use).
 
 **Internal helpers:**
 - `_authenticate_user(request, rsvp)` — Shared by `MAGIC_LINK` and `COLLECTION_INVITE` handlers. Validates user, calls `update_last_activity()`, mints a JWT. Returns `(user, refresh, user_data)` tuple or `Response` on failure. Auth tokens are set as HttpOnly cookies via `_set_auth_cookies()`. Auth is JWT-cookie-only — it deliberately does **not** open a Django session (no `login()`); the admin site has its own session, so a shadow session would be needless attack surface.
@@ -843,7 +845,7 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 - `ThingViewSet` and `CollectionViewSet` use DRF `ModelViewSet` with `DefaultRouter`.
 - `ThingUpdateSerializer` has `status` as read-only to prevent direct status manipulation. `type` is editable. Use `POST /api/v1/things/{code}/activate/` to set status ACTIVE (from INACTIVE), and `POST /api/v1/things/{code}/hide/` to set status INACTIVE (from ACTIVE only).
 - `ThingSerializer` and `CollectionThingSummarySerializer` include `pending_booking` (first PENDING booking code, or null) and `pending_questions` (count of unanswered FAQs).
-- Accept/reject actions can be performed via the unified RSVP endpoint (`VerifyLinkView`) for email links, or via authenticated `BookingActionView` endpoints for in-app use. Both paths reuse the same `accept_booking()`/`reject_booking()` service functions.
+- Accept/reject actions can be performed via the unified RSVP endpoint (`VerifyLinkView`) for email links — **a POST commits, GET only previews** (booking decisions never fire from a bare GET) — or via authenticated `BookingActionView` endpoints for in-app use. Both paths reuse the same `accept_booking()`/`reject_booking()` service functions.
 - All email links use RSVP codes as intermediaries to avoid exposing real object codes in URLs.
 - Security events are logged to the `security` logger with IP addresses.
 

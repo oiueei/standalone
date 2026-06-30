@@ -99,7 +99,7 @@ Foreign keys are exposed as 6-character alphanumeric codes, not database IDs:
 | `BookingPeriodCalendarSerializer` | start_date, end_date, status | Minimal calendar view for guests (no requester info). |
 | `BookingPeriodOwnerCalendarSerializer` | code, created, requester_code, requester_name, start_date, end_date, status, offered_thing_codes, offered_thing_headlines | Owner calendar view with requester details. `requester_name` falls back to email. `created` is the booking request date. `offered_thing_codes`/`offered_thing_headlines` return lists for SWAP_THING bookings, null otherwise. |
 | `ThingRequestWithDatesSerializer` | start_date, end_date | Plain `Serializer` for LEND/RENT requests. Validates start >= today, end >= start. |
-| `MyBookingSerializer` | code, created, thing_code, thing_headline, thing_type, owner_code, owner_name, start_date, end_date, status | Requester's own booking view. `owner_name` falls back to email. |
+| `MyBookingSerializer` | code, created, thing_code, thing_headline, thing_type, owner_code, owner_name, start_date, end_date, status | Requester's own booking view. `owner_name` is the bare owner name — **never the email fallback** (shown to the requester, a co-member; L2). |
 
 ### `faq.py`
 
