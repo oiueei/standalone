@@ -61,6 +61,10 @@ class Collection(models.Model):
     is_swap = models.BooleanField(default=False)
     is_share = models.BooleanField(default=False)
     newsletter_enabled = models.BooleanField(default=False)
+    # Deprecated: the album/minimalist feature was removed from the UI and API.
+    # The column is retained (dormant, always False) to avoid a destructive
+    # migration; nothing reads or writes it. Drop with a RemoveField migration
+    # if the feature is not coming back.
     is_minimalist = models.BooleanField(default=False)
     swap_minimum_items = models.PositiveIntegerField(default=0)
     allowed_thing_types = models.JSONField(default=list, blank=True)

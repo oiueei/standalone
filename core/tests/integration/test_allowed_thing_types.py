@@ -43,30 +43,6 @@ class TestCreateWithAllowedTypes:
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST, community_type
 
-    def test_create_album_must_be_exactly_gift(self, authenticated_client):
-        response = authenticated_client.post(
-            "/api/v1/collections/",
-            {
-                "headline": "Album",
-                "is_minimalist": True,
-                "allowed_thing_types": ["GIFT_THING", "SELL_THING"],
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_create_album_with_only_gift_succeeds(self, authenticated_client):
-        response = authenticated_client.post(
-            "/api/v1/collections/",
-            {
-                "headline": "Album",
-                "is_minimalist": True,
-                "allowed_thing_types": ["GIFT_THING"],
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-
 
 @pytest.mark.django_db
 class TestCommunityWithAllowedTypes:
@@ -93,32 +69,6 @@ class TestCommunityWithAllowedTypes:
                 "headline": "No-swap community",
                 "mode": "COMMUNITY",
                 "allowed_thing_types": ["SWAP_THING"],
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_create_community_minimalist_only_gift_and_share(self, authenticated_client):
-        """COMMUNITY+album limits the list to GIFT/SHARE; SELL/EVENT/etc. are rejected."""
-        response = authenticated_client.post(
-            "/api/v1/collections/",
-            {
-                "headline": "Album community",
-                "mode": "COMMUNITY",
-                "is_minimalist": True,
-                "allowed_thing_types": ["GIFT_THING", "SHARE_THING"],
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-
-        response = authenticated_client.post(
-            "/api/v1/collections/",
-            {
-                "headline": "Bad album community",
-                "mode": "COMMUNITY",
-                "is_minimalist": True,
-                "allowed_thing_types": ["GIFT_THING", "SELL_THING"],
             },
             format="json",
         )

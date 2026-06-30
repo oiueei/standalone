@@ -401,7 +401,6 @@
     "allowedTypesLabel": "O que pode ser adicionado a esta coleção",
     "allowedTypesPlaceholder": "Escolhe um ou mais tipos",
     "allowedTypesHelper": "Escolhe pelo menos um. Só os tipos selecionados estarão disponíveis quando adicionares coisas.",
-    "allowedTypesAlbumHelper": "O modo álbum só aceita presentes.",
     "allowedTypesSwapHelper": "O modo troca só aceita coisas de troca.",
     "allowedTypesShareHelper": "O modo exclusivamente share só aceita coisas share.",
     "allowedTypesAtLeastOne": "Escolhe pelo menos um tipo.",
@@ -628,11 +627,6 @@
   },
   "newsletter": {
     "enableNewsletter": "Boletim semanal de atividade"
-  },
-  "minimalist": {
-    "enableMinimalist": "Modo álbum (cartões só com foto)",
-    "albumTag": "Álbum",
-    "photoRequired": "Foto (obrigatória)"
   },
   "endless": {
     "label": "Sem limite — várias pessoas podem reservar ao mesmo tempo, a coisa fica sempre activa"

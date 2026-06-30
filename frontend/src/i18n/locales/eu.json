@@ -401,7 +401,6 @@
     "allowedTypesLabel": "Bilduma honetan zer gehi daiteke",
     "allowedTypesPlaceholder": "Aukeratu mota bat edo gehiago",
     "allowedTypesHelper": "Aukeratu gutxienez bat. Aukeratutako motak bakarrik egongo dira eskuragarri gauzak gehitzean.",
-    "allowedTypesAlbumHelper": "Album moduak opariak bakarrik onartzen ditu.",
     "allowedTypesSwapHelper": "Truke moduak truke gauzak bakarrik onartzen ditu.",
     "allowedTypesShareHelper": "Esklusiboki share moduak share gauzak bakarrik onartzen ditu.",
     "allowedTypesAtLeastOne": "Aukeratu gutxienez mota bat.",
@@ -628,11 +627,6 @@
   },
   "newsletter": {
     "enableNewsletter": "Asteko jarduera buletina"
-  },
-  "minimalist": {
-    "enableMinimalist": "Album modua (argazki-txartelak soilik)",
-    "albumTag": "Albuma",
-    "photoRequired": "Argazkia (beharrezkoa)"
   },
   "endless": {
     "label": "Mugagabea — hainbat pertsonak aldi berean eskatu dezakete, gauza beti aktibo dago"

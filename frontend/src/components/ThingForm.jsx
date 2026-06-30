@@ -9,19 +9,17 @@ import DocumentUpload from './DocumentUpload';
  * The shared field cluster of the Add and Edit thing forms: type selector, the
  * endless / notify-group toggles, headline, description, fee, the
  * availability/condition/location detail fields, the per-thing tags select, the
- * thumbnail upload and (non-minimalist) gallery + documents.
+ * thumbnail upload and gallery + documents.
  *
  * Controlled: each value + setter is owned by the page. Field visibility is
- * derived from `type` and the `minimalist` flag so both pages share one set of
- * rules (Edit always passes minimalist=false). The page supplies the already
- * filtered `typeOptions` and whether the selector is shown (Add hides it for
- * swap/share collections). `idPrefix` is `add-thing` or `edit-thing`.
+ * derived from `type` so both pages share one set of rules. The page supplies
+ * the already filtered `typeOptions` and whether the selector is shown (Add
+ * hides it for swap/share collections). `idPrefix` is `add-thing` or `edit-thing`.
  */
 export default function ThingForm({
   idPrefix,
   theeemeColor01,
   errors,
-  minimalist = false,
   typeOptions,
   showTypeSelector = true,
   type,
@@ -62,10 +60,9 @@ export default function ThingForm({
   const showEndless = ['GIFT_THING', 'SELL_THING'].includes(type);
   const isFeeType = FEE_TYPES.includes(type);
   const isDetailType = DETAIL_TYPES.includes(type);
-  const showFee = isFeeType && !minimalist;
-  const showSpacer = isFeeType && isDetailType && !minimalist;
-  const showDetailFields = isDetailType && !minimalist;
-  const showGalleryDocs = !minimalist;
+  const showFee = isFeeType;
+  const showSpacer = isFeeType && isDetailType;
+  const showDetailFields = isDetailType;
 
   return (
     <>
@@ -195,15 +192,11 @@ export default function ThingForm({
         currentUrl={thumbnailUrl}
         folder="oiueei/things"
       />
-      {showGalleryDocs && (
-        <GalleryUpload items={gallery} onChange={setGallery} />
-      )}
-      {showGalleryDocs && (
-        <DocumentUpload
-          documents={documents}
-          onChange={setDocuments}
-        />
-      )}
+      <GalleryUpload items={gallery} onChange={setGallery} />
+      <DocumentUpload
+        documents={documents}
+        onChange={setDocuments}
+      />
     </>
   );
 }

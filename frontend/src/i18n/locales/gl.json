@@ -401,7 +401,6 @@
     "allowedTypesLabel": "Que se pode engadir a esta colección",
     "allowedTypesPlaceholder": "Escolle un ou máis tipos",
     "allowedTypesHelper": "Escolle polo menos un. Só estarán dispoñibles os tipos que selecciones cando engadas cousas.",
-    "allowedTypesAlbumHelper": "O modo álbum só acepta agasallos.",
     "allowedTypesSwapHelper": "O modo intercambio só acepta cousas de intercambio.",
     "allowedTypesShareHelper": "O modo exclusivamente share só acepta cousas share.",
     "allowedTypesAtLeastOne": "Escolle polo menos un tipo.",
@@ -628,11 +627,6 @@
   },
   "newsletter": {
     "enableNewsletter": "Boletín semanal de actividade"
-  },
-  "minimalist": {
-    "enableMinimalist": "Modo álbum (tarxetas só con foto)",
-    "albumTag": "Álbum",
-    "photoRequired": "Foto (obrigatoria)"
   },
   "endless": {
     "label": "Sen límite — varias persoas poden reservar á vez, a cousa sempre está activa"

@@ -963,7 +963,7 @@ figure[class*="Highlight-module_highlight"] {
 }
 
 /* When a multi-select is locked to a single auto-filled value (e.g. the
-   collection allowed-types select in album mode), the chip list below the
+   collection allowed-types select in swap/share mode), the chip list below the
    trigger is redundant — the input already carries the value and the helper
    text explains the constraint. HDS v5 renders the chips in
    .Select-module_tagListContainer__<hash>; the wildcard targets the prefix
@@ -1062,42 +1062,6 @@ figure[class*="Highlight-module_highlight"] {
 }
 .share-original-owner {
   margin-bottom: var(--spacing-2-xs);
-}
-.thing-card-minimalist {
-  width: 100%;
-  background: var(--color-white);
-  border-radius: 2px;
-  overflow: hidden;
-  text-align: center;
-}
-.thing-card-minimalist-photo {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  background: var(--color-black-10);
-}
-.thing-card-image-minimalist {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.thing-card-minimalist-buttons {
-  position: absolute;
-  bottom: var(--spacing-s);
-  left: var(--spacing-s);
-  right: var(--spacing-s);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-.thing-card-caption {
-  padding: var(--spacing-s) var(--spacing-s) var(--spacing-xs);
-  margin: 0;
-  text-align: center;
-  font-size: var(--fontsize-body-m);
-  color: var(--color-black-70);
 }
 
 /* Accessibility: skip-to-content link, off-screen until focused. */

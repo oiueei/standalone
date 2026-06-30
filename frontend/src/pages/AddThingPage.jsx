@@ -33,7 +33,6 @@ export default function AddThingPage() {
   const [collectionMode, setCollectionMode] = useState('');
   const [isSwapCollection, setIsSwapCollection] = useState(false);
   const [isShareCollection, setIsShareCollection] = useState(false);
-  const [isMinimalistCollection, setIsMinimalistCollection] = useState(false);
   const [type, setType] = useState('GIFT_THING');
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -68,9 +67,6 @@ export default function AddThingPage() {
         if (data.is_share) {
           setIsShareCollection(true);
           setType('SHARE_THING');
-        }
-        if (data.is_minimalist) {
-          setIsMinimalistCollection(true);
         }
         const allowed = data.allowed_thing_types || [];
         setCollectionAllowedTypes(allowed);
@@ -184,7 +180,6 @@ export default function AddThingPage() {
       // Cannot answer a wish by offering another wish.
       if (respondWishCode && v === WISH_TYPE) return false;
       if ((v === WISH_TYPE || v === SHARE_TYPE) && collectionMode !== 'COMMUNITY') return false;
-      if (isMinimalistCollection && !['GIFT_THING', SHARE_TYPE, SWAP_TYPE].includes(v)) return false;
       // Per-collection allowlist (set on Create/Edit). Empty = no restriction.
       if (collectionAllowedTypes.length > 0 && !collectionAllowedTypes.includes(v)) return false;
       return true;
@@ -207,7 +202,6 @@ export default function AddThingPage() {
             idPrefix="add-thing"
             theeemeColor01={tc.color_01}
             errors={errors}
-            minimalist={isMinimalistCollection}
             typeOptions={typeOptions}
             showTypeSelector={!((isSwapCollection || isShareCollection) && respondWishCode)}
             type={type}
@@ -232,7 +226,7 @@ export default function AddThingPage() {
             collectionTags={collectionTags}
             tags={tags}
             setTags={setTags}
-            imageLabel={isMinimalistCollection ? t('minimalist.photoRequired') : t('upload.thumbnailLabel')}
+            imageLabel={t('upload.thumbnailLabel')}
             thumbnail={thumbnail}
             setThumbnail={setThumbnail}
             gallery={gallery}
@@ -248,7 +242,7 @@ export default function AddThingPage() {
         </Button>
       </div>
 
-      {!isMinimalistCollection && !respondWishCode && (
+      {!respondWishCode && (
         <section id="bulk-add" className="bulk-add-section">
           <h2>{t('bulkAdd.heading')}</h2>
           <BulkAddCsv collectionCode={code} onImported={() => navigate(`/collections/${code}`)} />

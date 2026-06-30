@@ -3,15 +3,14 @@ import { useTranslation } from 'react-i18next';
 import {
   PROPRIETARY_TYPES,
   COMMUNITY_TYPES,
-  COMMUNITY_MINIMALIST_TYPES,
   isLockedToSingleType,
   reconcileAllowedTypes,
 } from '../constants/things';
 
 /**
- * The shared mode/swap/share/album field cluster of the Create and Edit
+ * The shared mode/swap/share field cluster of the Create and Edit
  * collection forms: the COMMUNITY-only toggles (swap, require-3-items, share,
- * newsletter), the always-visible album toggle, and the allowed-thing-types
+ * newsletter) and the allowed-thing-types
  * multi-select (locked + pre-filled when a flag forces a single type).
  *
  * Controlled: every value + setter is owned by the page; this component only
@@ -28,8 +27,6 @@ export default function CollectionForm({
   setIsShare,
   newsletterEnabled,
   setNewsletterEnabled,
-  isMinimalist,
-  setIsMinimalist,
   requireMinimumSwapItems,
   setRequireMinimumSwapItems,
   allowedThingTypes,
@@ -41,18 +38,15 @@ export default function CollectionForm({
 }) {
   const { t } = useTranslation();
   const toggleTheme = theeemeColor01 ? { '--toggle-button-color': `var(--color-${theeemeColor01})` } : undefined;
-  const locked = isLockedToSingleType({ mode, isSwap, isShare, isMinimalist });
+  const locked = isLockedToSingleType({ isSwap, isShare });
 
   const allowedTypesOptions = (() => {
     if (mode === 'PROPRIETARY') {
-      return isMinimalist
-        ? [{ label: t('types.GIFT_THING'), value: 'GIFT_THING' }]
-        : PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }));
+      return PROPRIETARY_TYPES.map((v) => ({ label: t('types.' + v), value: v }));
     }
     if (isSwap) return [{ label: t('types.SWAP_THING'), value: 'SWAP_THING' }];
     if (isShare) return [{ label: t('types.SHARE_THING'), value: 'SHARE_THING' }];
-    const list = isMinimalist ? COMMUNITY_MINIMALIST_TYPES : COMMUNITY_TYPES;
-    return list.map((v) => ({ label: t('types.' + v), value: v }));
+    return COMMUNITY_TYPES.map((v) => ({ label: t('types.' + v), value: v }));
   })();
 
   return (
@@ -82,7 +76,7 @@ export default function CollectionForm({
               // is_swap forces SWAP_THING (locked); turning off keeps whatever of
               // the previous selection is still valid in the wider community set.
               setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, {
-                mode, isSwap: next, isShare: next ? false : isShare, isMinimalist,
+                mode, isSwap: next, isShare: next ? false : isShare,
               }));
             }}
             variant="inline"
@@ -115,7 +109,7 @@ export default function CollectionForm({
               // turning OFF clears the share-only newsletter setting.
               if (next) setIsSwap(false); else setNewsletterEnabled(false);
               setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, {
-                mode, isShare: next, isSwap: next ? false : isSwap, isMinimalist,
+                mode, isShare: next, isSwap: next ? false : isSwap,
               }));
             }}
             variant="inline"
@@ -135,25 +129,6 @@ export default function CollectionForm({
           />
         </div>
       )}
-      <div className="toggle-left">
-        <ToggleButton
-          id={`${idPrefix}-minimalist`}
-          label={t('minimalist.enableMinimalist')}
-          checked={isMinimalist}
-          onChange={(val) => {
-            const next = !val;
-            setIsMinimalist(next);
-            // PROPRIETARY+album locks to GIFT_THING; COMMUNITY+album narrows to
-            // [GIFT, SHARE]. Either way, keep the still-valid part of the
-            // previous selection instead of wiping it (P1-5).
-            setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, {
-              mode, isSwap, isShare, isMinimalist: next,
-            }));
-          }}
-          variant="inline"
-          theme={toggleTheme}
-        />
-      </div>
       <div className={locked ? 'multiselect-locked' : undefined}>
         <Select
           language="en"
@@ -163,7 +138,6 @@ export default function CollectionForm({
             label: t('createCollection.allowedTypesLabel'),
             placeholder: t('createCollection.allowedTypesPlaceholder'),
             assistive: (() => {
-              if (mode === 'PROPRIETARY' && isMinimalist) return t('createCollection.allowedTypesAlbumHelper');
               if (mode === 'COMMUNITY' && isSwap) return t('createCollection.allowedTypesSwapHelper');
               if (mode === 'COMMUNITY' && isShare) return t('createCollection.allowedTypesShareHelper');
               return t('createCollection.allowedTypesHelper');

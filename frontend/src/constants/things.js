@@ -31,9 +31,9 @@ export const AVAILABILITY_VALUES = ['IMMEDIATE', 'NEXT_WEEK', 'END_OF_MONTH', 'N
 
 export const CONDITION_VALUES = ['NEW', 'GOOD', 'FAIR', 'USED', 'WELL_USED', 'ALMOST_JUNK'];
 
-// Collection allow-lists per mode/album combination, shared by the Create and
-// Edit collection forms. SWAP_THING is excluded everywhere because it requires
-// `is_swap=True`, which forces the value via its flag.
+// Collection allow-lists per mode, shared by the Create and Edit collection
+// forms. SWAP_THING is excluded everywhere because it requires `is_swap=True`,
+// which forces the value via its flag.
 export const PROPRIETARY_TYPES = [
   'GIFT_THING', 'SELL_THING', 'RENT_THING', 'LEND_THING',
 ];
@@ -41,22 +41,20 @@ export const COMMUNITY_TYPES = [
   'GIFT_THING', 'SELL_THING', 'RENT_THING', 'LEND_THING',
   'SHARE_THING', 'WISH_THING',
 ];
-export const COMMUNITY_MINIMALIST_TYPES = ['GIFT_THING', 'SHARE_THING'];
 
-// is_swap, is_share and PROPRIETARY+album each force a single allowed type via
-// their flag — the multi-select still renders, but locked and pre-filled.
-export const isLockedToSingleType = ({ mode, isSwap, isShare, isMinimalist }) => (
-  (mode === 'PROPRIETARY' && isMinimalist)
-  || (mode === 'COMMUNITY' && (isSwap || isShare))
+// is_swap and is_share each force a single allowed type via their flag — the
+// multi-select still renders, but locked and pre-filled.
+export const isLockedToSingleType = ({ isSwap, isShare }) => (
+  isSwap || isShare
 );
 
 // The set of thing types valid for a given mode/flag combination. Locked
-// combinations (swap, share, PROPRIETARY+album) collapse to a single type.
-export const allowedTypesFor = ({ mode, isSwap, isShare, isMinimalist }) => {
-  if (mode === 'PROPRIETARY') return isMinimalist ? ['GIFT_THING'] : PROPRIETARY_TYPES;
+// combinations (swap, share) collapse to a single type.
+export const allowedTypesFor = ({ mode, isSwap, isShare }) => {
+  if (mode === 'PROPRIETARY') return PROPRIETARY_TYPES;
   if (isSwap) return ['SWAP_THING'];
   if (isShare) return ['SHARE_THING'];
-  return isMinimalist ? COMMUNITY_MINIMALIST_TYPES : COMMUNITY_TYPES;
+  return COMMUNITY_TYPES;
 };
 
 // When the mode/flags change, keep the selection the user already made instead of

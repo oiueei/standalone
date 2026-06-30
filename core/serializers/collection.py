@@ -29,9 +29,6 @@ COMMUNITY_THING_TYPES = (
     Thing.Type.SHARE_THING,
     Thing.Type.WISH_THING,
 )
-# Album mode in COMMUNITY narrows to GIFT and SHARE (SWAP needs is_swap, which
-# is mutually exclusive with is_minimalist).
-COMMUNITY_MINIMALIST_THING_TYPES = (Thing.Type.GIFT_THING, Thing.Type.SHARE_THING)
 
 
 class CollectionThingSummarySerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
@@ -144,7 +141,6 @@ class CollectionSerializer(serializers.ModelSerializer):
             "is_swap",
             "is_share",
             "newsletter_enabled",
-            "is_minimalist",
             "swap_minimum_items",
             "allowed_thing_types",
             "tags",
@@ -258,7 +254,6 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "is_swap",
             "is_share",
             "newsletter_enabled",
-            "is_minimalist",
             "swap_minimum_items",
             "allowed_thing_types",
             "tags",
@@ -283,7 +278,6 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             mode=attrs.get("mode", Collection.Mode.PROPRIETARY),
             is_swap=attrs.get("is_swap", False),
             is_share=attrs.get("is_share", False),
-            is_minimalist=attrs.get("is_minimalist", False),
             newsletter_enabled=attrs.get("newsletter_enabled", False),
             swap_minimum_items=attrs.get("swap_minimum_items", 0),
             allowed_thing_types=attrs.get("allowed_thing_types", []),
@@ -312,7 +306,7 @@ def _normalize_tags(tags):
     return result
 
 
-def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types):
+def _validate_allowed_thing_types(mode, is_swap, is_share, allowed_thing_types):
     """Validate the allowed_thing_types list when non-empty.
 
     Empty list means "no restriction" — accepted in any mode (preserves the
@@ -326,11 +320,8 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
       cannot disagree.
     - is_share is the same with [Thing.Type.SHARE_THING].
     - PROPRIETARY excludes COMMUNITY-only types (WISH/SHARE/ASSET/SWAP).
-    - PROPRIETARY + is_minimalist must be exactly [GIFT_THING].
     - COMMUNITY (no flags) accepts the 7-type COMMUNITY set (all except SWAP,
       which requires is_swap).
-    - COMMUNITY + is_minimalist narrows to [GIFT_THING, SHARE_THING] (SWAP is
-      out because is_minimalist and is_swap are mutually exclusive).
     """
     if not allowed_thing_types:
         return
@@ -349,13 +340,6 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
             )
         return
     if mode == Collection.Mode.PROPRIETARY:
-        if is_minimalist:
-            if list(allowed_thing_types) != [Thing.Type.GIFT_THING]:
-                raise serializers.ValidationError(
-                    "Album collections only accept gifts — allowed_thing_types"
-                    " must be exactly ['GIFT_THING']."
-                )
-            return
         invalid = [t for t in allowed_thing_types if t not in PROPRIETARY_THING_TYPES]
         if invalid:
             raise serializers.ValidationError(
@@ -363,14 +347,8 @@ def _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowe
             )
         return
     # COMMUNITY
-    valid = COMMUNITY_MINIMALIST_THING_TYPES if is_minimalist else COMMUNITY_THING_TYPES
-    invalid = [t for t in allowed_thing_types if t not in valid]
+    invalid = [t for t in allowed_thing_types if t not in COMMUNITY_THING_TYPES]
     if invalid:
-        if is_minimalist:
-            raise serializers.ValidationError(
-                "Album mode in community collections only accepts gifts and"
-                f" shares — these types are not allowed: {invalid}"
-            )
         raise serializers.ValidationError(
             f"These types are not allowed in community collections: {invalid}"
         )
@@ -381,7 +359,6 @@ def _validate_collection_flags(
     mode,
     is_swap,
     is_share,
-    is_minimalist,
     newsletter_enabled,
     swap_minimum_items,
     allowed_thing_types,
@@ -398,11 +375,9 @@ def _validate_collection_flags(
         raise serializers.ValidationError("Swap and share modes require COMMUNITY mode.")
     if newsletter_enabled and not is_share:
         raise serializers.ValidationError("Newsletter requires share mode to be enabled.")
-    if is_minimalist and is_swap:
-        raise serializers.ValidationError("A collection cannot be both minimalist and swap-only.")
     if swap_minimum_items > 0 and not is_swap:
         raise serializers.ValidationError("swap_minimum_items can only be set on swap collections.")
-    _validate_allowed_thing_types(mode, is_minimalist, is_swap, is_share, allowed_thing_types)
+    _validate_allowed_thing_types(mode, is_swap, is_share, allowed_thing_types)
 
 
 class CollectionUpdateSerializer(serializers.ModelSerializer):
@@ -431,7 +406,6 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "is_swap",
             "is_share",
             "newsletter_enabled",
-            "is_minimalist",
             "swap_minimum_items",
             "allowed_thing_types",
             "tags",
@@ -443,7 +417,6 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         instance = self.instance
         is_swap = attrs.get("is_swap", instance.is_swap if instance else False)
         is_share = attrs.get("is_share", instance.is_share if instance else False)
-        is_minimalist = attrs.get("is_minimalist", instance.is_minimalist if instance else False)
         newsletter_enabled = attrs.get(
             "newsletter_enabled", instance.newsletter_enabled if instance else False
         )
@@ -459,7 +432,6 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             mode=mode,
             is_swap=is_swap,
             is_share=is_share,
-            is_minimalist=is_minimalist,
             newsletter_enabled=newsletter_enabled,
             swap_minimum_items=swap_minimum_items,
             allowed_thing_types=allowed_thing_types,

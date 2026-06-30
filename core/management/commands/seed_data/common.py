@@ -62,7 +62,6 @@ COLLECTIONS = [
         "code": "l0l0C1",
         "owner_code": "l0l0oh",
         "visibility": "PUBLIC",
-        "is_minimalist": True,
         "invites": ["La1aN1", "l1l13S", "L3L3oo"],
         "is_onboarding": True,
         "allowed_thing_types": ["GIFT_THING"],

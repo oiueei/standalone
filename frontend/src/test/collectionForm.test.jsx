@@ -69,12 +69,12 @@ beforeEach(() => {
 // CreateCollectionPage — mode-gated toggles + submit
 // ════════════════════════════════════════════════════════════════════════
 describe('CreateCollectionPage', () => {
-  test('PROPRIETARY (default): swap/share hidden, minimalist visible, types not locked', () => {
+  test('PROPRIETARY (default): swap/share hidden, types not locked', () => {
     const { container } = renderCreate();
 
     expect(screen.queryByRole('button', { name: 'Enable item swapping' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Exclusively SHARE things' })).toBeNull();
-    expect(screen.getByRole('button', { name: /Album mode/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Album mode/ })).toBeNull();
     expect(container.querySelector('.multiselect-locked')).toBeNull();
   });
 
@@ -97,23 +97,24 @@ describe('CreateCollectionPage', () => {
     expect(screen.getByRole('button', { name: 'Enable item swapping' })).toBeInTheDocument();
   });
 
-  // Toggling minimalist ON in PROPRIETARY locks the allowed-types select to a
-  // single auto-filled value, which lets submit pass validation without driving
-  // the (jsdom-fiddly) multi-select. We use this to exercise the POST payload.
-  test('minimalist toggle locks the type select and submit POSTs the payload', async () => {
+  // Enabling swap in COMMUNITY locks the allowed-types select to a single
+  // auto-filled value, which lets submit pass validation without driving the
+  // (jsdom-fiddly) multi-select. We use this to exercise the POST payload.
+  test('swap toggle locks the type select and submit POSTs the payload', async () => {
     const { container } = renderCreate();
 
-    fireEvent.click(screen.getByRole('button', { name: /Album mode/ }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Community' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enable item swapping' }));
     expect(container.querySelector('.multiselect-locked')).toBeTruthy();
 
-    fireEvent.change(container.querySelector('#create-collection-headline'), { target: { value: 'My Album' } });
+    fireEvent.change(container.querySelector('#create-collection-headline'), { target: { value: 'My Swap' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => {
       const call = apiFetch.mock.calls.find((c) => c[0] === '/api/v1/collections/' && c[1]?.method === 'POST');
       expect(call).toBeTruthy();
       const body = JSON.parse(call[1].body);
-      expect(body).toMatchObject({ headline: 'My Album', mode: 'PROPRIETARY', is_minimalist: true });
+      expect(body).toMatchObject({ headline: 'My Swap', mode: 'COMMUNITY', is_swap: true });
     });
   });
 });
@@ -122,12 +123,12 @@ describe('CreateCollectionPage', () => {
 // EditCollectionPage — COMMUNITY toggles, mutual exclusivity, lock, pause
 // ════════════════════════════════════════════════════════════════════════
 describe('EditCollectionPage — COMMUNITY toggles', () => {
-  test('COMMUNITY reveals swap + share; minimalist always visible; require-min hidden when swap off', async () => {
+  test('COMMUNITY reveals swap + share; require-min hidden when swap off', async () => {
     renderEdit({ headline: 'Comm', mode: 'COMMUNITY', is_swap: false, is_share: false });
 
     expect(await screen.findByRole('button', { name: 'Enable item swapping' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Exclusively SHARE things' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Album mode/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Album mode/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Require 3 items/ })).toBeNull();
   });
 
@@ -218,28 +219,21 @@ describe('reconcileAllowedTypes', () => {
   test('PROPRIETARY → COMMUNITY keeps the still-valid types', () => {
     expect(reconcileAllowedTypes(
       ['GIFT_THING', 'SELL_THING'],
-      { mode: 'COMMUNITY', isSwap: false, isShare: false, isMinimalist: false },
+      { mode: 'COMMUNITY', isSwap: false, isShare: false },
     )).toEqual(['GIFT_THING', 'SELL_THING']);
   });
 
   test('COMMUNITY → PROPRIETARY drops the COMMUNITY-only types', () => {
     expect(reconcileAllowedTypes(
       ['GIFT_THING', 'SHARE_THING', 'WISH_THING'],
-      { mode: 'PROPRIETARY', isSwap: false, isShare: false, isMinimalist: false },
-    )).toEqual(['GIFT_THING']);
-  });
-
-  test('enabling album in COMMUNITY narrows to the GIFT/SHARE intersection', () => {
-    expect(reconcileAllowedTypes(
-      ['GIFT_THING', 'SELL_THING', 'WISH_THING'],
-      { mode: 'COMMUNITY', isSwap: false, isShare: false, isMinimalist: true },
+      { mode: 'PROPRIETARY', isSwap: false, isShare: false },
     )).toEqual(['GIFT_THING']);
   });
 
   test('a locked combination (swap) snaps to its forced single type', () => {
     expect(reconcileAllowedTypes(
       ['GIFT_THING', 'SELL_THING'],
-      { mode: 'COMMUNITY', isSwap: true, isShare: false, isMinimalist: false },
+      { mode: 'COMMUNITY', isSwap: true, isShare: false },
     )).toEqual(['SWAP_THING']);
   });
 });

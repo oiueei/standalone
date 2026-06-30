@@ -29,7 +29,6 @@ export default function EditCollectionPage() {
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
-  const [isMinimalist, setIsMinimalist] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [allowedThingTypes, setAllowedThingTypes] = useState([]);
   const [tags, setTags] = useState([]);
@@ -59,7 +58,7 @@ export default function EditCollectionPage() {
     { label: t('editCollection.digestMonthly'), value: 'MONTHLY' },
   ];
 
-  const locked = isLockedToSingleType({ mode, isSwap, isShare, isMinimalist });
+  const locked = isLockedToSingleType({ isSwap, isShare });
 
   // Live "pick at least one" feedback once a submit has been attempted (P1-5).
   const allowedTypesError = submitAttempted && !locked && allowedThingTypes.length === 0
@@ -72,10 +71,9 @@ export default function EditCollectionPage() {
       mode: newMode,
       isSwap: newMode === 'COMMUNITY' ? isSwap : false,
       isShare: newMode === 'COMMUNITY' ? isShare : false,
-      isMinimalist: newMode === 'COMMUNITY' ? isMinimalist : false,
     };
     setMode(newMode);
-    if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); setRequireMinimumSwapItems(false); }
+    if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setRequireMinimumSwapItems(false); }
     // Keep the still-valid part of the selection instead of wiping it (P1-5).
     setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, nextFlags));
   };
@@ -96,7 +94,6 @@ export default function EditCollectionPage() {
           setIsSwap(data.is_swap || false);
           setIsShare(data.is_share || false);
           setNewsletterEnabled(data.newsletter_enabled || false);
-          setIsMinimalist(data.is_minimalist || false);
           setRequireMinimumSwapItems((data.swap_minimum_items || 0) > 0);
           setAllowedThingTypes(data.allowed_thing_types || []);
           setTags(data.tags || []);
@@ -141,7 +138,6 @@ export default function EditCollectionPage() {
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
-      is_minimalist: isMinimalist,
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       allowed_thing_types: allowedThingTypes,
@@ -269,8 +265,6 @@ export default function EditCollectionPage() {
           setIsShare={setIsShare}
           newsletterEnabled={newsletterEnabled}
           setNewsletterEnabled={setNewsletterEnabled}
-          isMinimalist={isMinimalist}
-          setIsMinimalist={setIsMinimalist}
           requireMinimumSwapItems={requireMinimumSwapItems}
           setRequireMinimumSwapItems={setRequireMinimumSwapItems}
           allowedThingTypes={allowedThingTypes}

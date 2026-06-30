@@ -146,9 +146,6 @@ export default function CollectionPage() {
             {collection.is_share && (
               <>{' '}<Tag theme={{ '--tag-background': 'var(--color-tram)', '--tag-color': 'var(--color-white)' }}>{t('share.shareCollection')}</Tag></>
             )}
-            {collection.is_minimalist && (
-              <>{' '}<Tag theme={{ '--tag-background': 'var(--color-summer)', '--tag-color': 'var(--color-black-90)' }}>{t('minimalist.albumTag')}</Tag></>
-            )}
             {isOwner && (
               <>{' '}<Tag theme={collection.visibility === 'PUBLIC'
                 ? { '--tag-background': 'var(--color-success)', '--tag-color': 'var(--color-white)' }
@@ -276,7 +273,7 @@ export default function CollectionPage() {
         <>
           <p>{t('collectionPage.noThings')}{(isOwner || collection.mode === 'COMMUNITY') && <> <Link to={`/collections/${code}/add`}>{t('collectionPage.addOne')}</Link>.</>}</p>
           <div className="spacer-xxs" />
-          {(isOwner || collection.mode === 'COMMUNITY') && !collection.is_minimalist && (
+          {(isOwner || collection.mode === 'COMMUNITY') && (
             <p><Link to={`/collections/${code}/add#bulk-add`}>{t('collectionPage.addManyCsv')}</Link></p>
           )}
         </>
@@ -295,7 +292,6 @@ export default function CollectionPage() {
               collectionHeadline={collection.headline}
               collectionOwner={collection.owner}
               collectionMode={collection.mode}
-              minimalist={collection.is_minimalist}
               isPaused={collection.is_paused}
               hideType={singleType}
               canAct={isAuthenticated}
@@ -375,7 +371,6 @@ export default function CollectionPage() {
                 collectionHeadline={collection.headline}
                 collectionOwner={collection.owner}
                 collectionMode={collection.mode}
-                minimalist={collection.is_minimalist}
                 hideType={singleType}
                 onUpdateThing={(thingCode, updates) => setCollection((prev) => ({
                   ...prev,

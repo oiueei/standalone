@@ -128,14 +128,10 @@ class ThingViewSet(ModelViewSet):
                 return
 
             # Type must be valid for the collection (community-only types, swap/
-            # share/album restrictions, per-collection allowlist) — shared with update.
+            # share restrictions, per-collection allowlist) — shared with update.
             err = type_validity_error(thing_type, collection)
             if err:
                 self._create_error = err
-                return
-            # Minimalist collections additionally require a photo (create-time only).
-            if collection.is_minimalist and not serializer.validated_data.get("thumbnail"):
-                self._create_error = "A photo is required for things in minimalist collections"
                 return
         else:
             # No collection: WISH/SHARE/SWAP require a specific collection.
@@ -318,18 +314,6 @@ class ThingBulkCreateView(APIView):
             return Response(
                 {"error": "You do not have permission to add things to this collection."},
                 status=status.HTTP_403_FORBIDDEN,
-            )
-        # Album collections require a photo per item, which a CSV can't carry —
-        # mirror the single-create rule rather than create photo-less things.
-        if collection.is_minimalist:
-            return Response(
-                {
-                    "error": (
-                        "CSV import isn't available for album collections — "
-                        "each item needs a photo."
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
             )
 
         rows = request.data.get("rows") if isinstance(request.data, dict) else None

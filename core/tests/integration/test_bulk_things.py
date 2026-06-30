@@ -87,20 +87,6 @@ class TestBulkCreate:
         assert res.status_code == 400
         assert collection.things.count() == 0
 
-    def test_album_collection_rejects_bulk_import(self, auth_client, user):
-        from core.models import Collection
-
-        album = Collection.objects.create(
-            code="ALBUM1", owner=user, headline="Album", is_minimalist=True
-        )
-        res = auth_client.post(
-            URL.format(code=album.code),
-            {"rows": [{"type": "GIFT_THING", "headline": "Photo-less"}]},
-            format="json",
-        )
-        assert res.status_code == 400
-        assert album.things.count() == 0
-
     def test_empty_rows_rejected(self, auth_client, collection):
         res = auth_client.post(URL.format(code=collection.code), {"rows": []}, format="json")
         assert res.status_code == 400

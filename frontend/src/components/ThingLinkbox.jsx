@@ -14,7 +14,7 @@ import Toast from './Toast';
 import ImageCarousel from './ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, minimalist, isPaused, canAct = true, hideType = false, loginToAct = false, onUpdateThing }) {
+export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, isPaused, canAct = true, hideType = false, loginToAct = false, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
@@ -104,78 +104,6 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const requestPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}/request`
     : `/things/${thing.code}/request`;
-
-  if (minimalist) {
-    return (
-      <div className="thing-card-minimalist">
-        <div className="thing-card-minimalist-photo">
-          {thing.thumbnail_url && (
-            <img
-              src={thing.thumbnail_url}
-              alt={thing.headline}
-              className="thing-card-image-minimalist"
-              loading="lazy"
-              onError={onImageError}
-            />
-          )}
-          <div className="thing-card-minimalist-buttons">
-            {isOwner && thing.status === 'ACTIVE' && activePendingCode && (
-              <>
-                <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
-                  {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
-                </Button>
-                <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
-                  {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
-                </Button>
-              </>
-            )}
-            {isOwner && thing.status === 'TAKEN' && (
-              <>
-                <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                  {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
-                </Button>
-                <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
-                  {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
-                </Button>
-              </>
-            )}
-            {isOwner && thing.status === 'INACTIVE' && (
-              <Button fullWidth disabled={activating} onClick={handleActivate} style={btnStyle}>
-                {activating ? t('thingCard.reactivating') : t('thingCard.reactivate')}
-              </Button>
-            )}
-            {isOwner && thing.status === 'ACTIVE' && !activePendingCode && canDelete && (
-              <Button variant="secondary" fullWidth style={btnSecondaryStyle} onClick={() => navigate(deletePath, { state: { backPath: deleteBackPath, backLabel: deleteBackLabel } })}>
-                {t('common.delete')}
-              </Button>
-            )}
-            {showButton && !isWish && (
-              <Button
-                fullWidth
-                disabled={loginToAct ? loginButtonDisabled : buttonDisabled}
-                style={btnStyle}
-                onClick={loginToAct ? goJoin : (isSwap ? () => navigate(requestPath, { state: { backPath: collectionCode ? `/collections/${collectionCode}` : '/', backLabel: collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home') } }) : handleRequest)}
-              >
-                {buttonLabel}
-              </Button>
-            )}
-          </div>
-        </div>
-        <p className="thing-card-caption">{thing.headline}</p>
-        {showButton && swapMinimumNotMet && !loginToAct && (
-          <Notification
-            type="info"
-            label={t('swap.minimumNotMetLabel')}
-            size="small"
-            style={{ marginTop: 'var(--spacing-2-xs)' }}
-          >
-            {t('swap.minimumNotMetBody', { count: swapItemsMissing })}
-          </Notification>
-        )}
-        <Toast toast={toast} onClose={() => setToast(null)} />
-      </div>
-    );
-  }
 
   return (
     <div className="thing-card">

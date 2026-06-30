@@ -27,7 +27,6 @@ export default function CreateCollectionPage() {
   const [isSwap, setIsSwap] = useState(false);
   const [isShare, setIsShare] = useState(false);
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
-  const [isMinimalist, setIsMinimalist] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [allowedThingTypes, setAllowedThingTypes] = useState([]);
   const [tags, setTags] = useState([]);
@@ -39,7 +38,7 @@ export default function CreateCollectionPage() {
     { label: t('createCollection.modeCommunity'), description: t('createCollection.modeCommunityDesc'), value: 'COMMUNITY' },
   ];
 
-  const locked = isLockedToSingleType({ mode, isSwap, isShare, isMinimalist });
+  const locked = isLockedToSingleType({ isSwap, isShare });
   const [submitting, setSubmitting] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [toast, setToast] = useState(null);
@@ -56,13 +55,12 @@ export default function CreateCollectionPage() {
       mode: newMode,
       isSwap: newMode === 'COMMUNITY' ? isSwap : false,
       isShare: newMode === 'COMMUNITY' ? isShare : false,
-      isMinimalist: newMode === 'COMMUNITY' ? isMinimalist : false,
     };
     setMode(newMode);
     // Visibility follows the mode default on create: a community is born public,
     // a proprietary list private. The owner can still flip the toggle afterwards.
     setVisibility(newMode === 'COMMUNITY' ? 'PUBLIC' : 'PRIVATE');
-    if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); setIsMinimalist(false); }
+    if (newMode !== 'COMMUNITY') { setIsSwap(false); setIsShare(false); setNewsletterEnabled(false); }
     // Keep the still-valid part of the selection instead of wiping it (P1-5).
     setAllowedThingTypes((prev) => reconcileAllowedTypes(prev, nextFlags));
   };
@@ -73,7 +71,7 @@ export default function CreateCollectionPage() {
     if (!headline.trim()) newErrors.headline = t('createCollection.titleRequired');
     if (headline.length > 64) newErrors.headline = t('createCollection.maxHeadline');
     setErrors(newErrors);
-    // Locked selects (album, swap, share) auto-fill, so they pass by construction.
+    // Locked selects (swap, share) auto-fill, so they pass by construction.
     const allowedTypesOk = locked || allowedThingTypes.length > 0;
     return Object.keys(newErrors).length === 0 && allowedTypesOk;
   };
@@ -90,7 +88,6 @@ export default function CreateCollectionPage() {
       is_swap: isSwap && mode === 'COMMUNITY',
       is_share: isShare && mode === 'COMMUNITY',
       newsletter_enabled: newsletterEnabled && isShare && mode === 'COMMUNITY',
-      is_minimalist: isMinimalist,
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       allowed_thing_types: allowedThingTypes,
@@ -170,8 +167,6 @@ export default function CreateCollectionPage() {
             setIsShare={setIsShare}
             newsletterEnabled={newsletterEnabled}
             setNewsletterEnabled={setNewsletterEnabled}
-            isMinimalist={isMinimalist}
-            setIsMinimalist={setIsMinimalist}
             requireMinimumSwapItems={requireMinimumSwapItems}
             setRequireMinimumSwapItems={setRequireMinimumSwapItems}
             allowedThingTypes={allowedThingTypes}

@@ -46,7 +46,7 @@ def type_validity_error(thing_type, collection):
     collection, when None), else None.
 
     Shared by thing create/update AND the collection add-thing endpoint so the
-    type rules (community-only types, swap/share/album restrictions, per-collection
+    type rules (community-only types, swap/share restrictions, per-collection
     allowlist) can't be bypassed by any path (L4).
     """
     if collection is None:
@@ -68,7 +68,7 @@ def type_validity_error(thing_type, collection):
     # Swap-only and share-only collections accept their forced offer type plus
     # wishes — a wish is a community-wide "I want X" request and coexists with
     # the offer pool without touching its mechanic (it uses WishResponse, not a
-    # booking/transfer). Albums stay offer-only (handled below).
+    # booking/transfer).
     if collection.is_swap and thing_type not in (
         Thing.Type.SWAP_THING,
         Thing.Type.WISH_THING,
@@ -81,12 +81,6 @@ def type_validity_error(thing_type, collection):
         Thing.Type.WISH_THING,
     ):
         return "Only share things (or wishes) can be added to a share collection"
-    if collection.is_minimalist and thing_type not in (
-        Thing.Type.GIFT_THING,
-        Thing.Type.SHARE_THING,
-        Thing.Type.SWAP_THING,
-    ):
-        return "Only gift, share, and swap things can be added to a minimalist collection"
     if (
         collection.allowed_thing_types
         and thing_type not in collection.allowed_thing_types

@@ -114,21 +114,6 @@ describe('AddThingPage — field visibility', () => {
     expect(container.querySelector('#add-thing-fee')).toBeNull();
     expect(screen.getByText('Availability')).toBeInTheDocument();
   });
-
-  test('minimalist collection: hides gallery + documents, photo label is required', async () => {
-    const { container } = renderAdd({ collection: { mode: 'COMMUNITY', is_minimalist: true } });
-
-    await waitFor(() => expect(container.querySelector('#add-thing-headline')).toBeTruthy());
-    expect(container.querySelector('#gallery-upload')).toBeNull();
-    expect(container.querySelector('#document-upload')).toBeNull();
-    expect(screen.queryByText('More photos')).toBeNull();
-    expect(screen.queryByText('Attachments')).toBeNull();
-    // ImageUpload label switches from "Thumbnail" to "Photo (required)".
-    expect(screen.getByText('Photo (required)')).toBeInTheDocument();
-    expect(screen.queryByText('Thumbnail')).toBeNull();
-    // Fee is also suppressed in minimalist collections.
-    expect(container.querySelector('#add-thing-fee')).toBeNull();
-  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
