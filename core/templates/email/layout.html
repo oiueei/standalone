@@ -1,6 +1,7 @@
-{# Shared HTML email layout. Django autoescaping is on by default, so every
-   value rendered here ({{ ... }}) is HTML-escaped automatically — email bodies
-   no longer rely on manual escape() calls in Python (R16). #}
+{% comment %}Shared HTML email layout. Django autoescaping is on by default, so
+every value rendered here is HTML-escaped automatically — email bodies no longer
+rely on manual escape() calls in Python (R16). This is a comment block rather than
+a one-line hash comment, so the multi-line note is stripped from the render.{% endcomment %}
 <html>
 {% for b in blocks %}{% if b.type == "para" %}
 <p>{{ b.text }}</p>
