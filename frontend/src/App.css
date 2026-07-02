@@ -48,7 +48,7 @@ body {
 
 .form-hero-title {
   font-size: var(--fontsize-heading-xl-mobile);
-  font-weight: 400;
+  font-weight: 700;
   line-height: var(--lineheight-s);
   letter-spacing: -0.8px;
   color: var(--hero-text-color, var(--color-black-90));
@@ -96,14 +96,14 @@ body {
 /* z0 — photo as a full-bleed background */
 .hero-photo-wrap {
   position: absolute;
-  inset: 0;
+  inset: 0 0 0 30%;
   z-index: 0;
 }
 
 .hero-photo {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  inset: auto;
+  right: 0;
   height: 100%;
   object-fit: cover;
 }
@@ -175,11 +175,10 @@ div[class*="Linkbox-module_linkbox"] {
 
 .thing-card-image {
   display: block;
-  width: calc(100% - 2 * var(--spacing-s));
-  margin: var(--spacing-s) var(--spacing-s) 0;
+  width: 100%;
   aspect-ratio: 3 / 2;
   object-fit: cover;
-  border-radius: 2px;
+  border-radius: 2px 2px 0 0;
 }
 
 .thing-card-body {
@@ -356,17 +355,24 @@ div[class*="Linkbox-module_linkbox"] {
 
 .collections-grid div[class*="Linkbox-module_linkbox"] img[class*="Linkbox-module_image"] {
   display: block;
-  width: calc(100% - 2 * var(--spacing-s));
-  margin: var(--spacing-s) var(--spacing-s) 0;
+  width: 100%;
   aspect-ratio: 3 / 2;
   object-fit: cover;
   flex-shrink: 0;
-  border-radius: 2px;
+  border-radius: 2px 2px 0 0;
 }
 
 .collections-grid div[class*="Linkbox-module_withBackground"] {
   flex: 1;
   box-sizing: border-box;
+}
+
+/* Match the collection Linkbox heading to .thing-card-headline (24px / 700). */
+.collections-grid *[class*="Linkbox-module_heading"] {
+  font-size: var(--fontsize-heading-m);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.2px;
 }
 
 @media (min-width: 768px) {

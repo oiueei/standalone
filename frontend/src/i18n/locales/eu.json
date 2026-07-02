@@ -362,6 +362,7 @@
     "errorSaving": "Errorea gordetzen.",
     "aboutLabel": "Zuri buruz",
     "aboutHelper": "Markdown onartzen da",
+    "aboutMarkdownHint": "Markdown berria zaizu? Idatzi eta aurreikusi doan sarean: <0>dillinger.io</0>.",
     "photoLabel": "Profileko argazkia",
     "photoHelper": "Zure profilean agertzen da, aukerakoa",
     "maxAbout": "Gehienez 2000 karaktere.",

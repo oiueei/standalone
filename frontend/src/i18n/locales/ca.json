@@ -362,6 +362,7 @@
     "errorSaving": "Error en desar.",
     "aboutLabel": "Sobre tu",
     "aboutHelper": "Compatible amb Markdown",
+    "aboutMarkdownHint": "Nou al Markdown? Escriu-lo i previsualitza'l en línia i de franc a <0>dillinger.io</0>.",
     "photoLabel": "Foto de perfil",
     "photoHelper": "Es mostra al teu perfil, opcional",
     "maxAbout": "Màxim 2000 caràcters.",

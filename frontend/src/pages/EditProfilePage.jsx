@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { TextInput, TextArea, Button, ToggleButton, Select } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
@@ -162,6 +162,15 @@ export default function EditProfilePage() {
             helperText={`${t('editProfile.aboutHelper')} · ${about.length}/2000`}
             style={{ minHeight: '8rem' }}
           />
+          <p style={{ fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-60)', marginTop: 'var(--spacing-2-xs)' }}>
+            <Trans
+              i18nKey="editProfile.aboutMarkdownHint"
+              components={[
+                // eslint-disable-next-line jsx-a11y/anchor-has-content -- the link text is injected by <Trans> from the i18n string at runtime
+                <a key="0" href="https://dillinger.io" target="_blank" rel="noopener noreferrer" />,
+              ]}
+            />
+          </p>
           <ImageUpload
             id="edit-profile-photo"
             label={t('editProfile.photoLabel')}

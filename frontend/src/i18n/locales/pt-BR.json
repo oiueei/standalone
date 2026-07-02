@@ -362,6 +362,7 @@
     "errorSaving": "Erro ao salvar.",
     "aboutLabel": "Sobre você",
     "aboutHelper": "Compatível com Markdown",
+    "aboutMarkdownHint": "Novo no Markdown? Escreva e visualize online e de graça em <0>dillinger.io</0>.",
     "photoLabel": "Foto de perfil",
     "photoHelper": "Exibida no seu perfil, opcional",
     "maxAbout": "Máximo de 2000 caracteres.",
