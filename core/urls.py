@@ -28,6 +28,7 @@ from .views.collections import (
     CollectionBroadcastView,
     CollectionBulkInviteView,
     CollectionInviteView,
+    CollectionLeaveView,
     CollectionShareLinkView,
     CollectionStatsView,
     CollectionViewSet,
@@ -97,6 +98,11 @@ urlpatterns = [
         "collections/<str:collection_code>/invite/",
         CollectionInviteView.as_view(),
         name="collection-invite",
+    ),
+    path(
+        "collections/<str:collection_code>/leave/",
+        CollectionLeaveView.as_view(),
+        name="collection-leave",
     ),
     path(
         "collections/<str:collection_code>/invite/bulk/",

@@ -413,6 +413,48 @@ class CollectionInviteView(APIView):
         )
 
 
+class CollectionLeaveView(APIView):
+    """
+    POST /api/v1/collections/{collection_code}/leave/
+    Lets an invited member remove themselves from a collection (self-unlink). The
+    owner cannot leave their own collection — they delete it instead.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, collection_code):
+        collection = get_object_or_404(Collection, code=collection_code)
+
+        if collection.is_owner(request.user.code):
+            return Response(
+                {"detail": "The owner can't leave their own collection."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not collection.invites.filter(code=request.user.code).exists():
+            return Response(
+                {"detail": "You are not a member of this collection."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        collection.invites.remove(request.user)
+
+        # Let the owner know a member left (in-app; symmetric to the revoke notice).
+        InAppNotification.objects.create(
+            user=collection.owner,
+            type=InAppNotification.Type.MEMBER_LEFT,
+            payload={
+                "collection_headline": collection.headline,
+                "member_name": request.user.display_name,
+                "collection_code": collection.code,
+            },
+        )
+
+        return Response(
+            {"message": "You have left the collection"},
+            status=status.HTTP_200_OK,
+        )
+
+
 def _send_bulk_invites(inviter_name, headline, recipients):
     """Send the collection-invite emails for a bulk invite without blocking.
 

@@ -32,6 +32,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/collections/:code/things/:thingCode/delete` | `DeleteThingPage` | Confirm and delete a thing (collection context) |
 | `/things/:thingCode/delete` | `DeleteThingPage` | Confirm and delete a thing (standalone) |
 | `/collections/:code/invites/remove` | `RemoveGuestPage` | Confirm and remove a guest from a collection |
+| `/collections/:code/leave` | `LeaveCollectionPage` | Confirm and leave a collection you're an invited member of (self-unlink) |
 | `/my-bookings` | `MyBookingsPage` | Lists user's booking requests with cancel option |
 | `/welcome` | `WelcomePage` | Static informational page about OIUEEI |
 | `/popin` | `PopInPage` | Open-door onboarding: enter email, get magic link, join onboarding collections |
@@ -261,6 +262,14 @@ Detail page for a thing with full information and FAQs section.
 - **Buttons**: Remove (primary, theeeme `btnStyle`) + Cancel (secondary, navigates back).
 - On success: navigates to `/collections/:code/invites`.
 - On error: toast notification (top-right, auto-close).
+
+### LeaveCollectionPage (`src/pages/LeaveCollectionPage.jsx`)
+
+- **API:** `POST /api/v1/collections/{code}/leave/` (no body).
+- Accessible from `/collections/:code/leave` (protected route). Reached from the **"Leave the group"** button in the `CollectionPage` hero, shown to invited members (`collection.is_member && !isOwner`); the button passes `{ state: { headline } }`.
+- Confirmation page (same pattern as `RemoveGuestPage`/`DeleteThingPage`): shows the collection headline, a warning, and **Leave the group** (primary) + **Cancel** (secondary, back to the collection).
+- On success: navigates to Home (`/`) — for a PRIVATE collection the user has just lost access. On error: toast.
+- The backend removes the user from `invites` and notifies the owner (`MEMBER_LEFT` in-app). The owner and non-members never see the button (`is_member` gate).
 
 ### MyBookingsPage (`src/pages/MyBookingsPage.jsx`)
 

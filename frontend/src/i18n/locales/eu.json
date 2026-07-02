@@ -108,6 +108,7 @@
     "holdThing": "Erreserbatu {{headline}} — OIUEEI",
     "holdDefault": "Erreserbatu — OIUEEI",
     "removeGuest": "Gonbidatua kendu — OIUEEI",
+    "leaveCollection": "Taldea utzi — OIUEEI",
     "guests": "Gonbidatuak — {{headline}} — OIUEEI",
     "guestsDefault": "Gonbidatuak — OIUEEI",
     "user": "{{name}} — OIUEEI",
@@ -201,6 +202,7 @@
     "editCollection": "Bilduma editatu",
     "addThing": "Gauza gehitu",
     "manageGuests": "Gonbidatuak kudeatu",
+    "leaveGroup": "Taldea utzi",
     "things": "Gauzak",
     "inactiveThings": "Gauza inaktiboak",
     "inactiveNotice": "Bilduma hau inaktibo dago. Gonbidatuek ezin dute ikusi.",
@@ -474,6 +476,14 @@
     "warning": "<0>{{name}}</0> bilduma honetatik kenduko da. Berehala galduko du sarbidea.",
     "guests": "Gonbidatuak",
     "errorRemoving": "Errorea gonbidatua kentzen."
+  },
+  "leaveCollection": {
+    "pageTitle": "{{headline}} utzi?",
+    "thisCollection": "bilduma hau",
+    "warning": "<0>{{headline}}</0> taldetik kenduko zaituzte eta bertarako sarbidea galduko duzu, jabeak berriro gonbidatzen ez bazaitu.",
+    "leave": "Taldea utzi",
+    "leaving": "Uzten…",
+    "errorLeaving": "Ezin izan da taldea utzi. Saiatu berriro."
   },
   "userPage": {
     "memberSince": "Kide {{date}}tik",

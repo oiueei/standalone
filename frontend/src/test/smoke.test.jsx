@@ -127,6 +127,7 @@ import AddThingPage from '../pages/AddThingPage';
 import MyBookingsPage from '../pages/MyBookingsPage';
 import DeleteThingPage from '../pages/DeleteThingPage';
 import RemoveGuestPage from '../pages/RemoveGuestPage';
+import LeaveCollectionPage from '../pages/LeaveCollectionPage';
 import EditCollectionPage from '../pages/EditCollectionPage';
 import EditProfilePage from '../pages/EditProfilePage';
 import NotificationsPage from '../pages/NotificationsPage';
@@ -255,6 +256,12 @@ smokeAndAxe('RemoveGuestPage', RemoveGuestPage, {
   path: '/collections/:code/invites/remove',
   entry: '/collections/COL001/invites/remove',
   state: { guestCode: 'GUE001', guestName: 'Guest User', backLabel: 'Test' },
+});
+
+smokeAndAxe('LeaveCollectionPage', LeaveCollectionPage, {
+  path: '/collections/:code/leave',
+  entry: '/collections/COL001/leave',
+  state: { headline: 'Test Collection' },
 });
 
 smokeAndAxe('VerifyPage', VerifyPage, {

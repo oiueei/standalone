@@ -505,6 +505,54 @@ class TestCollectionViews:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "User is not invited to this collection"
 
+    def test_leave_collection(self, user, user2, collection):
+        """An invited member can remove themselves from a collection."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        collection.add_invite(user2.code)
+        member = APIClient()
+        member.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+
+        response = member.post(f"/api/v1/collections/{collection.code}/leave/")
+        assert response.status_code == status.HTTP_200_OK
+        collection.refresh_from_db()
+        assert not collection.invites.filter(code=user2.code).exists()
+
+    def test_leave_collection_notifies_owner(self, user, user2, collection):
+        """Leaving creates a MEMBER_LEFT in-app notification for the owner."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        from core.models.notification import InAppNotification
+
+        collection.add_invite(user2.code)
+        member = APIClient()
+        member.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}")
+
+        member.post(f"/api/v1/collections/{collection.code}/leave/")
+
+        note = InAppNotification.objects.get(user=user, type=InAppNotification.Type.MEMBER_LEFT)
+        assert note.payload["collection_code"] == collection.code
+
+    def test_leave_collection_owner_cannot_leave(self, authenticated_client, collection):
+        """The owner can't leave their own collection (they delete it instead)."""
+        response = authenticated_client.post(f"/api/v1/collections/{collection.code}/leave/")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_leave_collection_non_member(self, user2, collection):
+        """A user who isn't a member of the collection can't leave it."""
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        client2 = APIClient()
+        client2.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user2).access_token}"
+        )
+
+        response = client2.post(f"/api/v1/collections/{collection.code}/leave/")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_add_thing_to_collection(self, authenticated_client, user, collection):
         """Should add an existing thing to a collection."""
         from core.models import Thing

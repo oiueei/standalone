@@ -122,6 +122,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     things = serializers.SerializerMethodField()
     invites = serializers.SerializerMethodField()
     pending_invites = serializers.SerializerMethodField()
+    is_member = serializers.SerializerMethodField()
     is_paused = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -151,6 +152,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "things",
             "invites",
             "pending_invites",
+            "is_member",
         ]
         read_only_fields = [
             "code",
@@ -160,6 +162,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "things",
             "invites",
             "pending_invites",
+            "is_member",
         ]
 
     def get_owner_name(self, obj):
@@ -193,6 +196,14 @@ class CollectionSerializer(serializers.ModelSerializer):
     def _requester_is_owner(self, obj):
         request = self.context.get("request")
         return bool(request and request.user.is_authenticated and obj.is_owner(request.user.code))
+
+    def get_is_member(self, obj):
+        # True when the requester is an invited member (not the owner). Reads the
+        # prefetched invites so it adds no query. Drives the "Leave the group" button.
+        request = self.context.get("request")
+        if not (request and request.user.is_authenticated) or self._requester_is_owner(obj):
+            return False
+        return any(u.code == request.user.code for u in obj.invites.all())
 
     def get_invites(self, obj):
         members = obj.invites.all()

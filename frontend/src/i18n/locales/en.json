@@ -117,6 +117,7 @@
     "holdThing": "Hold {{headline}} — OIUEEI",
     "holdDefault": "Hold — OIUEEI",
     "removeGuest": "Remove guest — OIUEEI",
+    "leaveCollection": "Leave the group — OIUEEI",
     "guests": "Guests — {{headline}} — OIUEEI",
     "guestsDefault": "Guests — OIUEEI",
     "user": "{{name}} — OIUEEI",
@@ -218,6 +219,7 @@
     "editCollection": "Edit collection",
     "addThing": "Add thing",
     "manageGuests": "Manage guests",
+    "leaveGroup": "Leave the group",
     "things": "Things",
     "inactiveThings": "Inactive things",
     "inactiveNotice": "This collection is inactive. It is not visible to guests.",
@@ -491,6 +493,14 @@
     "warning": "This will remove <0>{{name}}</0> from the collection. They will lose access immediately.",
     "guests": "Guests",
     "errorRemoving": "Error removing guest."
+  },
+  "leaveCollection": {
+    "pageTitle": "Leave {{headline}}?",
+    "thisCollection": "this collection",
+    "warning": "You'll be removed from <0>{{headline}}</0> and lose access to it, unless the owner invites you again.",
+    "leave": "Leave the group",
+    "leaving": "Leaving…",
+    "errorLeaving": "Couldn't leave the group. Please try again."
   },
   "userPage": {
     "memberSince": "Member since {{date}}",

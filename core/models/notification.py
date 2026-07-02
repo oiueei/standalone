@@ -20,6 +20,7 @@ class InAppNotification(models.Model):
         FAQ_ANSWERED = "FAQ_ANSWERED"
         FAQ_HIDDEN = "FAQ_HIDDEN"
         INVITE_REJECTED = "INVITE_REJECTED"
+        MEMBER_LEFT = "MEMBER_LEFT"
         WISH_POSTED = "WISH_POSTED"
         WISH_RESPONSE = "WISH_RESPONSE"
         WISH_ACCEPTED = "WISH_ACCEPTED"

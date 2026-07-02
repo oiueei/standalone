@@ -346,6 +346,15 @@ Removes a user from the collection's invite list. If the invite is still pending
 { "user_code": "ABC123" }
 ```
 
+### CollectionLeaveView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/collections/{collection_code}/leave/` |
+| **Permission** | `IsAuthenticated` + must be an invited member (not the owner) |
+
+Lets an invited member remove **themselves** from a collection (self-unlink) — the inverse of the owner-only `CollectionInviteView` DELETE. Returns 400 if the requester is the collection **owner** ("The owner can't leave their own collection." — owners delete instead) or is **not a member** ("You are not a member of this collection."). On success removes the user from the `invites` M2M, creates a `MEMBER_LEFT` in-app notification for the owner (payload: `collection_headline`, `member_name`, `collection_code`), and returns `200 {"message": "You have left the collection"}`. The frontend shows the "Leave the group" button (hero, `CollectionSerializer.is_member` gate) → `LeaveCollectionPage` confirm → back to Home.
+
 ### InvitedCollectionsView
 
 | | |

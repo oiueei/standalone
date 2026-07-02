@@ -193,13 +193,20 @@ export default function CollectionPage() {
             </div>
             </>
           )}
-          {isAuthenticated && !isOwner && collection.mode === 'COMMUNITY' && (
+          {isAuthenticated && !isOwner && (collection.mode === 'COMMUNITY' || collection.is_member) && (
             <>
             <div className="spacer-m"></div>
             <div className="button-row-wide">
-              <Link to={`/collections/${code}/add`}>
-                <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.addThing')}</Button>
-              </Link>
+              {collection.mode === 'COMMUNITY' && (
+                <Link to={`/collections/${code}/add`}>
+                  <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.addThing')}</Button>
+                </Link>
+              )}
+              {collection.is_member && (
+                <Link to={`/collections/${code}/leave`} state={{ headline: collection.headline }}>
+                  <Button variant="secondary" style={btnSecondaryStyle}>{t('collectionPage.leaveGroup')}</Button>
+                </Link>
+              )}
             </div>
             </>
           )}

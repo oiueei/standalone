@@ -108,6 +108,7 @@
     "holdThing": "Reservar {{headline}} — OIUEEI",
     "holdDefault": "Reservar — OIUEEI",
     "removeGuest": "Remover convidado — OIUEEI",
+    "leaveCollection": "Sair do grupo — OIUEEI",
     "guests": "Convidados — {{headline}} — OIUEEI",
     "guestsDefault": "Convidados — OIUEEI",
     "user": "{{name}} — OIUEEI",
@@ -201,6 +202,7 @@
     "editCollection": "Editar coleção",
     "addThing": "Adicionar artigo",
     "manageGuests": "Gerir convidados",
+    "leaveGroup": "Sair do grupo",
     "things": "Artigos",
     "inactiveThings": "Artigos inactivos",
     "inactiveNotice": "Esta coleção está inactiva. Não é visível para os convidados.",
@@ -474,6 +476,14 @@
     "warning": "Isto vai remover <0>{{name}}</0> da coleção. Perderá o acesso imediatamente.",
     "guests": "Convidados",
     "errorRemoving": "Erro ao remover o convidado."
+  },
+  "leaveCollection": {
+    "pageTitle": "Sair de {{headline}}?",
+    "thisCollection": "esta coleção",
+    "warning": "Vai ser removido de <0>{{headline}}</0> e perderá o acesso, a menos que o proprietário volte a convidá-lo.",
+    "leave": "Sair do grupo",
+    "leaving": "A sair…",
+    "errorLeaving": "Não foi possível sair do grupo. Tente novamente."
   },
   "userPage": {
     "memberSince": "Membro desde {{date}}",
