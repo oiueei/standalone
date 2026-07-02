@@ -393,7 +393,7 @@ Main pages are validated with [axe DevTools](https://www.deque.com/axe/devtools/
 
 This project uses components and design tokens from the [Helsinki Design System](https://hds.hel.fi/) by the [City of Helsinki](https://github.com/City-of-Helsinki), licensed under the [MIT License](https://github.com/City-of-Helsinki/helsinki-design-system/blob/master/LICENSE).
 
-Instead of [Helsinki Grotesk](https://camelot-typefaces.com) by [Camelot Typefaces](https://camelot-typefaces.com) (the default shipped with HDS), we are using [Curiosa](https://fabiohaagtype.com) by [Fabio Haag Type](https://fabiohaagtype.com) as the display typeface; a warm hug to the Haag team for their kindness.
+Instead of [Helsinki Grotesk](https://hds.hel.fi/foundation/design-tokens/typography/) by [Camelot Typefaces](https://camelot-typefaces.com) (the default shipped with HDS), we are using [Curiosa](https://fabiohaagtype.com/en/font/curiosa/) by [Fabio Haag Type](https://fabiohaagtype.com/en/) as the display typeface; a warm hug to the Haag team for their kindness.
 
 QR codes for collection share links are rendered client-side with [qrcode.react](https://github.com/zpao/qrcode.react) by Paul O'Shannessy, licensed under the [MIT License](https://github.com/zpao/qrcode.react/blob/main/LICENSE).
 
