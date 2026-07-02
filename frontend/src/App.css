@@ -175,10 +175,11 @@ div[class*="Linkbox-module_linkbox"] {
 
 .thing-card-image {
   display: block;
-  width: 100%;
+  width: calc(100% - 2 * var(--spacing-s));
+  margin: var(--spacing-s) var(--spacing-s) 0;
   aspect-ratio: 3 / 2;
   object-fit: cover;
-  border-radius: 2px 2px 0 0;
+  border-radius: 2px;
 }
 
 .thing-card-body {
@@ -355,11 +356,12 @@ div[class*="Linkbox-module_linkbox"] {
 
 .collections-grid div[class*="Linkbox-module_linkbox"] img[class*="Linkbox-module_image"] {
   display: block;
-  width: 100%;
+  width: calc(100% - 2 * var(--spacing-s));
+  margin: var(--spacing-s) var(--spacing-s) 0;
   aspect-ratio: 3 / 2;
   object-fit: cover;
   flex-shrink: 0;
-  border-radius: 2px 2px 0 0;
+  border-radius: 2px;
 }
 
 .collections-grid div[class*="Linkbox-module_withBackground"] {
