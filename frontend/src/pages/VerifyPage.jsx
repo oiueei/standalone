@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, Koros } from 'hds-react';
@@ -13,8 +13,9 @@ export default function VerifyPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [title, setTitle] = useState('');
-  const [pending, setPending] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  // Guards the auto-commit POST so React 19 StrictMode's double-invoked effect
+  // (dev only) can't fire the irreversible booking decision twice.
+  const committedRef = useRef(false);
   const isLoggedIn = !!localStorage.getItem('userCode');
 
   const tc = (() => {
@@ -39,9 +40,29 @@ export default function VerifyPage() {
         const res = await fetch(`/api/v1/auth/verify/${code}/`);
         const data = await res.json();
         if (res.ok && data.requires_confirmation) {
-          // Booking accept/reject are irreversible — never auto-commit on load.
-          // Show a confirmation screen; the button POSTs to commit the decision.
-          setPending({ action: data.action, headline: data.thing_headline || '' });
+          // Booking accept/reject is irreversible, so the API only *previews* on a
+          // bare GET — an email link-scanner must never decide a hold. The human's
+          // single click was opening this link, so commit it now with a POST fired
+          // from real JS: a scanner runs no JS and still can't auto-decide, while
+          // the person needs no second click. The ref guards StrictMode's dev-only
+          // double-invoke from firing the decision twice.
+          if (!committedRef.current) {
+            committedRef.current = true;
+            const commit = await fetch(`/api/v1/auth/verify/${code}/`, {
+              method: 'POST',
+              credentials: 'include',
+            });
+            const done = await commit.json();
+            if (commit.ok && done.action === 'BOOKING_ACCEPT') {
+              setTitle(t('verify.confirmed'));
+              setSuccess(t('verify.holdConfirmed'));
+            } else if (commit.ok && done.action === 'BOOKING_REJECT') {
+              setTitle(t('verify.rejected'));
+              setSuccess(t('verify.holdRejected'));
+            } else {
+              setError(t('verify.invalidOrExpired'));
+            }
+          }
         } else if (res.ok && data.action === 'COLLECTION_REJECT') {
           setTitle(t('verify.declined'));
           setSuccess(t('verify.invitationDeclined'));
@@ -73,29 +94,6 @@ export default function VerifyPage() {
     verify();
     return () => clearTimeout(timer);
   }, [code, navigate, t]);
-
-  const handleConfirm = async () => {
-    setSubmitting(true);
-    try {
-      const res = await fetch(`/api/v1/auth/verify/${code}/`, { method: 'POST', credentials: 'include' });
-      const data = await res.json();
-      setPending(null);
-      if (res.ok && data.action === 'BOOKING_ACCEPT') {
-        setTitle(t('verify.confirmed'));
-        setSuccess(t('verify.holdConfirmed'));
-      } else if (res.ok && data.action === 'BOOKING_REJECT') {
-        setTitle(t('verify.rejected'));
-        setSuccess(t('verify.holdRejected'));
-      } else {
-        setError(t('verify.invalidOrExpired'));
-      }
-    } catch {
-      setPending(null);
-      setError(t('common.connectionError'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (success) {
     return (
@@ -161,47 +159,6 @@ export default function VerifyPage() {
           <p className="section-mt">
             {t('verify.expiredHelp')}
           </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (pending) {
-    const isAccept = pending.action === 'BOOKING_ACCEPT';
-    return (
-      <div
-        className="form-page"
-        style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
-      >
-        <div
-          className="form-hero"
-          style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-        >
-          <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-            <h1 className="form-hero-title">{isAccept ? t('verify.confirmAcceptTitle') : t('verify.confirmRejectTitle')}</h1>
-            <div>
-              <Button
-                style={btnStyle}
-                onClick={handleConfirm}
-                disabled={submitting}
-                isLoading={submitting}
-                loadingText={t('verify.verifying')}
-              >
-                {t('verify.confirmButton')}
-              </Button>
-            </div>
-          </div>
-          <Koros
-            className="form-hero-koros"
-            type={localStorage.getItem('koro') || 'basic'}
-            style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-          />
-        </div>
-        <div className="page-container">
-          <p>{isAccept ? t('verify.confirmAcceptBody') : t('verify.confirmRejectBody')}</p>
-          {pending.headline ? (
-            <p className="section-mt"><strong>{pending.headline}</strong></p>
-          ) : null}
         </div>
       </div>
     );
