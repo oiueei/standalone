@@ -127,7 +127,7 @@
     "tryAnotherEmail": "Probar con otro email",
     "magicLinkSent": "Si este correo está registrado, tu enlace mágico está en camino — revisa tu bandeja de entrada y, por si acaso, la carpeta de spam.",
     "errorSendingLink": "Error al enviar el enlace.",
-    "description": "¿Qué es OIUEEI? Una aplicación web de código abierto para que las personas compartan sus pertenencias con amigos y otras personas. Los usuarios pueden crear colecciones (listas de deseos, listas de regalos, artículos en venta) y compartirlas con amigos que pueden reservar artículos o hacer preguntas.",
+    "description": "¿Qué es OIUEEI? Una aplicación web de código abierto para que las personas compartan sus pertenencias con amigos y otras personas. Los usuarios pueden crear colecciones (bibliotecas de cosas, listas de regalos, artículos en venta) y compartirlas con amigos que pueden reservar artículos o hacer preguntas.",
     "openSource": "OIUEEI es de código abierto. Puedes encontrar el proyecto en <1>GitHub</1>. Si quieres solicitar acceso o colaborar, ponte en contacto.",
     "popIn": "¿Nuevo por aquí? Pásate →"
   },
@@ -437,7 +437,7 @@
     "personaLeleBody": "Cacharrea con electrónica y acumula componentes: su coliving funciona a base de jumpers y Arduinos a medio terminar. ¿Te sobra un Nano o un sensor perdido? Ponlo en el tablón y propón un swap — sin dinero, solo piezas y respeto mutuo. ¡La resistencia es fútil!",
     "personaLiliTitle": "Lili — La Prestadora.",
     "personaLiliBody": "Su biblioteca de préstamos del barrio tiene de todo: taladros y vaporetas, pero también cosas de cocina, jardín, deporte y crianza — porque nadie necesita comprar lo que usa de uvas a peras. Pídelo prestado, úsalo y devuélvelo limpio. Ese es el trato.",
-    "personaLoloTitle": "Lolo — La Jardinera.",
+    "personaLoloTitle": "Lolo — El Jardinero.",
     "personaLoloBody": "Mamá planta con demasiadas crías verdes, regala esquejes de suculentas desde una preciosa colección — echeverias, jades, sedums, de todo. Adopta una cría; la única regla es que tienes que ponerle nombre.",
     "personaLuluTitle": "Lulu — El Conector.",
     "personaLuluBody": "Nadie sabe muy bien dónde encuentra estas cosas ni adónde va. Su estante comunitario se llena cada semana con objetos que han tenido una vida, listos para un nuevo hogar. Los miembros reciben un resumen semanal por correo — porque lo que llega al estante el lunes merece haberse ido el viernes.",
@@ -742,7 +742,7 @@
     "home": "Ir al inicio"
   },
   "popin": {
-    "title": "¡Pásate!",
+    "title": "¡Ven a conocernos!",
     "description": "Introduce tu email y te enviaremos un enlace mágico. Un clic y ya estás dentro — sin contraseñas, sin líos.",
     "emailLabel": "Email",
     "emailPlaceholder": "tu@email.com",

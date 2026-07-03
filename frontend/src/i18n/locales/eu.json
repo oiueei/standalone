@@ -127,7 +127,7 @@
     "tryAnotherEmail": "Saiatu beste email batekin",
     "magicLinkSent": "Helbide hau erregistratuta badago, zure esteka magikoa bidean da — begiratu zure sarrera-ontzia eta, badaezpada, baita spam karpeta ere.",
     "errorSendingLink": "Errorea esteka bidaltzean.",
-    "description": "Zer da OIUEEI? Kode irekiko web-aplikazio bat jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko. Erabiltzaileek bildumak sor ditzakete (desio-zerrendak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten.",
+    "description": "Zer da OIUEEI? Kode irekiko web-aplikazio bat jendeak bere gauzak lagunekin eta ingurukoekin partekatzeko. Erabiltzaileek bildumak sor ditzakete (gauzen liburutegiak, opari-zerrendak, salgaiak) eta lagunekin partekatu, hauek gauzak erreserbatu edo galderak egin ditzaten.",
     "openSource": "OIUEEI kode irekikoa da. Proiektua <1>GitHub</1>-en aurki dezakezu. Sarbidea eskatu edo lagundu nahi baduzu, jar zaitez harremanetan.",
     "popIn": "Hemen berria zara? Sartu →"
   },
@@ -742,7 +742,7 @@
     "home": "Joan hasierara"
   },
   "popin": {
-    "title": "Sartu!",
+    "title": "Ezagutu gaitzazu!",
     "description": "Idatzi zure e-posta eta esteka magiko bat bidaliko dizugu. Klik bat eta barruan zaude — pasahitzik gabe, korapilorik gabe.",
     "emailLabel": "E-posta",
     "emailPlaceholder": "zu@email.com",

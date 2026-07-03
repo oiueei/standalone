@@ -127,7 +127,7 @@
     "tryAnotherEmail": "Prova amb un altre correu",
     "magicLinkSent": "Si aquest correu està registrat, l'enllaç màgic ja és en camí — revisa la safata d'entrada i, per si de cas, la carpeta de correu brossa.",
     "errorSendingLink": "Error en enviar l'enllaç.",
-    "description": "Què és OIUEEI? Una aplicació web de codi obert perquè les persones comparteixin les seves pertinences amb amics i altres persones. Els usuaris poden crear col·leccions (llistes de desitjos, llistes de regals, articles en venda) i compartir-les amb amics que poden reservar articles o fer preguntes.",
+    "description": "Què és OIUEEI? Una aplicació web de codi obert perquè les persones comparteixin les seves pertinences amb amics i altres persones. Els usuaris poden crear col·leccions (biblioteques de coses, llistes de regals, articles en venda) i compartir-les amb amics que poden reservar articles o fer preguntes.",
     "openSource": "OIUEEI és de codi obert. Pots trobar el projecte a <1>GitHub</1>. Si vols sol·licitar accés o col·laborar, posa't en contacte.",
     "popIn": "Nou per aquí? Passa →"
   },
@@ -437,13 +437,13 @@
     "personaLeleBody": "Trasteja amb electrònica i acumula components: el seu coliving funciona a base de jumpers i Arduinos a mig acabar. Et sobra un Nano o un sensor perdut? Posa'l al tauler i proposa un intercanvi — sense diners, només peces i respecte mutu. La resistència és inútil!",
     "personaLiliTitle": "Lili — La Prestadora.",
     "personaLiliBody": "La seva biblioteca de préstecs del barri ho té tot: trepants i vaporetes, però també coses de cuina, jardí, esport i criança — perquè ningú no hauria de comprar el que fa servir de Pasqua a Rams. Demana-ho en préstec, fes-ho servir i torna-ho net. Aquest és el tracte.",
-    "personaLoloTitle": "Lolo — La Jardinera.",
+    "personaLoloTitle": "Lolo — El Jardiner.",
     "personaLoloBody": "Mare planta amb massa cries verdes, regala esqueixos de suculentes d'una preciosa col·lecció — echeverias, jades, sedums, de tot. Adopta una cria; l'única regla és que li has de posar nom.",
     "personaLuluTitle": "Lulu — El Connector.",
     "personaLuluBody": "Ningú no sap gaire bé on troba aquestes coses ni on va. El seu prestatge comunitari s'omple cada setmana amb objectes que han tingut una vida, a punt per a una nova llar. Els membres reben un resum setmanal per correu — perquè allò que arriba al prestatge el dilluns mereix haver marxat el divendres.",
     "personaLeleLink1": "L'intercanvi de circuits de la Lele",
     "personaLiliLink1": "La biblioteca de préstecs de la Lili",
-    "personaLoloLink1": "El saló verd de la Lolo",
+    "personaLoloLink1": "El saló verd d'en Lolo",
     "personaLuluLink1": "El prestatge fantasma de la Lulu",
     "personaLalaLink2": "La venda del sabàtic de la Lala",
     "enterCta": "Entra i mira com funciona"
@@ -742,7 +742,7 @@
     "home": "Anar a l'inici"
   },
   "popin": {
-    "title": "Passa!",
+    "title": "Vine a conèixer-nos!",
     "description": "Introdueix el teu correu i t'enviarem un enllaç màgic. Un clic i ja hi ets — sense contrasenya, sense complicacions.",
     "emailLabel": "Correu",
     "emailPlaceholder": "tu@correu.com",

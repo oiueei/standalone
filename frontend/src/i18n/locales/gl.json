@@ -127,7 +127,7 @@
     "tryAnotherEmail": "Probar con outro correo",
     "magicLinkSent": "Se este correo está rexistrado, a túa ligazón máxica xa vai de camiño — revisa a caixa de entrada e, por se acaso, o cartafol de correo non desexado.",
     "errorSendingLink": "Erro ao enviar a ligazón.",
-    "description": "Que é OIUEEI? Unha aplicación web de código aberto para que as persoas compartan as súas pertenzas con amigos e outras persoas. Os usuarios poden crear coleccións (listas de desexos, listas de agasallos, artigos á venda) e compartilas con amigos que poden reservar artigos ou facer preguntas.",
+    "description": "Que é OIUEEI? Unha aplicación web de código aberto para que as persoas compartan as súas pertenzas con amigos e outras persoas. Os usuarios poden crear coleccións (bibliotecas de cousas, listas de agasallos, artigos á venda) e compartilas con amigos que poden reservar artigos ou facer preguntas.",
     "openSource": "OIUEEI é de código aberto. Podes atopar o proxecto en <1>GitHub</1>. Se queres solicitar acceso ou colaborar, ponte en contacto.",
     "popIn": "Novo por aquí? Pasa →"
   },
@@ -437,7 +437,7 @@
     "personaLeleBody": "Cacharrea coa electrónica e acumula compoñentes: o seu coliving funciona a base de jumpers e Arduinos a medio rematar. Sóbrache un Nano ou un sensor perdido? Ponno no taboleiro e propón un intercambio — sen cartos, só pezas e respecto mutuo. A resistencia é fútil!",
     "personaLiliTitle": "Lili — A Prestadora.",
     "personaLiliBody": "A súa biblioteca de préstamos do barrio ten de todo: taladros e vaporizadores, pero tamén cousas de cociña, xardín, deporte e crianza — porque ninguén precisa comprar o que usa de uvas a peras. Pídeo prestado, úsao e devólveo limpo. Ese é o trato.",
-    "personaLoloTitle": "Lolo — A Xardineira.",
+    "personaLoloTitle": "Lolo — O Xardineiro.",
     "personaLoloBody": "Nai de plantas con crías verdes de máis, agasalla estacas de suculentas dunha fermosa colección — echeverias, jades, sedums, de todo. Adopta unha cría; a única regra é que tes que poñerlle nome.",
     "personaLuluTitle": "Lulu — O Conector.",
     "personaLuluBody": "Ninguén sabe moi ben onde atopa estas cousas nin a onde vai. A súa estante comunitaria énchese cada semana con obxectos que xa tiveron unha vida, listos para un novo fogar. Os membros reciben un resumo semanal por correo — porque o que chega á estante o luns merece ter marchado antes do venres.",
@@ -742,7 +742,7 @@
     "home": "Ir ao inicio"
   },
   "popin": {
-    "title": "Pasa!",
+    "title": "Ven coñecernos!",
     "description": "Introduce o teu correo e enviarémosche unha ligazón máxica. Un clic e xa estás dentro — sen contrasinal, sen complicacións.",
     "emailLabel": "Correo",
     "emailPlaceholder": "ti@correo.com",

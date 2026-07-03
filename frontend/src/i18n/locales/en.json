@@ -133,12 +133,12 @@
     "tryAnotherEmail": "Try another email",
     "magicLinkSent": "If this email is registered, your magic link is on its way — check your inbox, and your spam folder just in case.",
     "errorSendingLink": "Error sending link.",
-    "description": "What is OIUEEI? An open-source web application for people to share their belongings with friends and others around. Users can create collections (wishlists, gift lists, items for sale) and share them with friends who can then reserve items or ask questions.",
+    "description": "What is OIUEEI? An open-source web application for people to share their belongings with friends and others around. Users can create collections (libraries of things, gift lists, items for sale) and share them with friends who can then reserve items or ask questions.",
     "openSource": "OIUEEI is open source. You can find the project on <1>GitHub</1>. If you would like to request access or collaborate, get in touch.",
     "popIn": "New here? Pop in →"
   },
   "popin": {
-    "title": "Pop in!",
+    "title": "Come meet us!",
     "description": "Enter your email and we'll send you a magic link. One click and you're in — no password, no faff.",
     "emailLabel": "Email",
     "emailPlaceholder": "you@email.com",

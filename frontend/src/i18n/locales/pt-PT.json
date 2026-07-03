@@ -127,7 +127,7 @@
     "tryAnotherEmail": "Tentar outro e-mail",
     "magicLinkSent": "Se este endereço estiver registado, enviar-te-emos uma ligação mágica — verifica a caixa de entrada e, já agora, a pasta de spam.",
     "errorSendingLink": "Erro ao enviar a ligação.",
-    "description": "O que é o OIUEEI? Uma aplicação web de código aberto para que as pessoas partilhem os seus bens com amigos e outras pessoas. Os utilizadores podem criar coleções (listas de desejos, listas de presentes, artigos à venda) e partilhá-las com amigos que podem reservar artigos ou fazer perguntas.",
+    "description": "O que é o OIUEEI? Uma aplicação web de código aberto para que as pessoas partilhem os seus bens com amigos e outras pessoas. Os utilizadores podem criar coleções (bibliotecas de coisas, listas de presentes, artigos à venda) e partilhá-las com amigos que podem reservar artigos ou fazer perguntas.",
     "openSource": "OIUEEI é de código aberto. Podes encontrar o projeto no <1>GitHub</1>. Se quiseres solicitar acesso ou colaborar, entra em contacto.",
     "popIn": "Novo por aqui? Entra →"
   },
@@ -437,13 +437,13 @@
     "personaLeleBody": "Mexe em eletrónica e acumula componentes: o seu coliving funciona à base de jumpers e Arduinos por acabar. Sobra-te um Nano ou um sensor perdido? Põe-no no quadro de trocas e propõe uma troca — sem dinheiro, só peças e respeito mútuo. A resistência é fútil!",
     "personaLiliTitle": "Lili — A Emprestadora.",
     "personaLiliBody": "A sua biblioteca de empréstimos do bairro tem de tudo: berbequins e máquinas a vapor, mas também coisas de cozinha, jardim, desporto e puericultura — porque ninguém precisa de comprar o que só usa de Páscoa a Páscoa. Pede emprestado, usa e devolve limpo. É esse o acordo.",
-    "personaLoloTitle": "Lolo — A Jardineira.",
+    "personaLoloTitle": "Lolo — O Jardineiro.",
     "personaLoloBody": "Mãe de plantas com rebentos verdes a mais, oferece rebentos de suculentas de uma linda coleção — echeverias, jades, sedums, de tudo. Adota um rebento; a única regra é que tens de lhe dar um nome.",
     "personaLuluTitle": "Lulu — O Conector.",
     "personaLuluBody": "Ninguém sabe muito bem onde ele encontra estas coisas nem para onde vai. A prateleira comunitária dele enche-se todas as semanas com objetos que já tiveram uma vida, prontos para um novo lar. Os membros recebem um resumo semanal por e-mail — porque o que chega à prateleira à segunda-feira merece já ter saído na sexta.",
     "personaLeleLink1": "A troca de circuitos da Lele",
     "personaLiliLink1": "A biblioteca de empréstimos da Lili",
-    "personaLoloLink1": "O salão verde da Lolo",
+    "personaLoloLink1": "O salão verde do Lolo",
     "personaLuluLink1": "A prateleira fantasma da Lulu",
     "personaLalaLink2": "A venda sabática da Lala",
     "enterCta": "Entrar e ver como funciona"
@@ -742,7 +742,7 @@
     "home": "Ir para o início"
   },
   "popin": {
-    "title": "Entra!",
+    "title": "Vem conhecer-nos!",
     "description": "Indica o teu e-mail e enviamos-te uma ligação mágica. Um clique e estás dentro — sem palavra-passe, sem complicações.",
     "emailLabel": "E-mail",
     "emailPlaceholder": "tu@email.com",
