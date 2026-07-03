@@ -193,12 +193,14 @@ export default function RequestThingPage() {
           <Notification
             type={thing.available_today ? 'success' : 'info'}
             size="small"
-            label={`${t('thingPage.availabilityLabel')} ${thing.available_today
+            label={t('thingPage.availabilityLabel')}
+          >
+            {`${t('thingPage.availabilityLabel')} ${thing.available_today
               ? t('availability.IMMEDIATE')
               : thing.next_available
                 ? t('availability.nextAvailable', { date: new Date(thing.next_available).toLocaleDateString(i18n.language, { day: 'numeric', month: 'numeric' }) })
                 : t('availability.noneSoon')}`}
-          />
+          </Notification>
           <div className="spacer-s" />
         </>
       )}
