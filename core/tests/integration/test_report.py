@@ -53,9 +53,7 @@ def test_owner_cannot_report_own_thing(authenticated_client, user, thing):
     res = authenticated_client.post(URL.format(thing.code))
     assert res.status_code == 400
     assert not Report.objects.exists()
-    assert not InAppNotification.objects.filter(
-        type=InAppNotification.Type.THING_REPORTED
-    ).exists()
+    assert not InAppNotification.objects.filter(type=InAppNotification.Type.THING_REPORTED).exists()
 
 
 def test_anonymous_cannot_report(api_client, thing):
