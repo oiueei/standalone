@@ -221,7 +221,8 @@
     "communityTag": "Comunitària",
     "noPermission": "No tens accés a aquesta col·lecció. Pot estar inactiva, o el teu accés pot haver canviat — revisa les teves invitacions, o contacta amb el propietari.",
     "notFound": "Col·lecció no trobada.",
-    "errorLoading": "Error en carregar la col·lecció."
+    "errorLoading": "Error en carregar la col·lecció.",
+    "curator": "Curador."
   },
   "thingPage": {
     "typeLabel": "Tipus.",

@@ -221,7 +221,8 @@
     "communityTag": "Comunitaria",
     "noPermission": "No tienes acceso a esta colección. Puede estar inactiva, o tu acceso puede haber cambiado — revisa tus invitaciones, o contacta con el dueño.",
     "notFound": "Colección no encontrada.",
-    "errorLoading": "Error al cargar la colección."
+    "errorLoading": "Error al cargar la colección.",
+    "curator": "Curador."
   },
   "thingPage": {
     "typeLabel": "Tipo.",

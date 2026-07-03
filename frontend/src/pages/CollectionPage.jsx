@@ -157,7 +157,7 @@ export default function CollectionPage() {
           {collection.description && <MarkdownText text={collection.description} className="form-hero-text" />}
           {!isOwner && collection.owner_name && (
             <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)' }}>
-              <strong>{t('collectionPage.owner')}</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
+              <strong>{t(collection.mode === 'COMMUNITY' ? 'collectionPage.curator' : 'collectionPage.owner')}</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
             </p>
           )}
           {isOwner && (

@@ -221,7 +221,8 @@
     "communityTag": "Komunitarioa",
     "noPermission": "Ez duzu bilduma honetarako sarbiderik. Baliteke inaktibo egotea edo zure sarbidea aldatu izana — begiratu zure gonbidapenak edo jarri jabearekin harremanetan.",
     "notFound": "Bilduma ez da aurkitu.",
-    "errorLoading": "Errorea bilduma kargatzean."
+    "errorLoading": "Errorea bilduma kargatzean.",
+    "curator": "Kuratzailea."
   },
   "thingPage": {
     "typeLabel": "Mota.",
