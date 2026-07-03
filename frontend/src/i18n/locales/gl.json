@@ -752,5 +752,25 @@
     "magicLinkSent": "Ligazón enviada! Revisa a túa caixa de entrada e fai clic na ligazón para unirte.",
     "alreadyHaveAccount": "Xa tes conta? Iniciar sesión →",
     "errorSendingLink": "Erro ao enviar a ligazón."
+  },
+  "rental": {
+    "durationsLabel": "Duracións de aluguer",
+    "durationsPlaceholder": "Escolle as duracións que ofreces",
+    "durationsHelper": "Para obxectos de préstamo/aluguer. Quen aluga escolle unha. Baleiro = calquera duración.",
+    "weekdaysLabel": "Días de recollida e devolución",
+    "weekdaysPlaceholder": "Escolle os días permitidos",
+    "weekdaysHelper": "Recollida e devolución deben caer nestes días. Baleiro = calquera día.",
+    "d1": "1 día",
+    "d2": "2 días",
+    "d3": "3 días",
+    "w1": "1 semana",
+    "w2": "2 semanas",
+    "w3": "3 semanas",
+    "m1": "1 mes",
+    "chooseDuration": "Duración do aluguer",
+    "chooseDurationPlaceholder": "Escolle unha duración",
+    "durationRequired": "Escolle unha duración",
+    "pickupLabel": "Data de recollida",
+    "returnBy": "Devolución o {{date}}"
   }
 }

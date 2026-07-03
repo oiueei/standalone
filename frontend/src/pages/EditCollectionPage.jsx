@@ -31,6 +31,8 @@ export default function EditCollectionPage() {
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [allowedThingTypes, setAllowedThingTypes] = useState([]);
+  const [rentalDurations, setRentalDurations] = useState([]);
+  const [rentalWeekdays, setRentalWeekdays] = useState([]);
   const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
@@ -96,6 +98,8 @@ export default function EditCollectionPage() {
           setNewsletterEnabled(data.newsletter_enabled || false);
           setRequireMinimumSwapItems((data.swap_minimum_items || 0) > 0);
           setAllowedThingTypes(data.allowed_thing_types || []);
+          setRentalDurations(data.rental_durations || []);
+          setRentalWeekdays(data.rental_weekdays || []);
           setTags(data.tags || []);
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
@@ -141,6 +145,8 @@ export default function EditCollectionPage() {
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       allowed_thing_types: allowedThingTypes,
+      rental_durations: isSwap || isShare ? [] : rentalDurations,
+      rental_weekdays: isSwap || isShare ? [] : rentalWeekdays,
       tags,
       thumbnail: thumbnail || '',
     };
@@ -269,6 +275,10 @@ export default function EditCollectionPage() {
           setRequireMinimumSwapItems={setRequireMinimumSwapItems}
           allowedThingTypes={allowedThingTypes}
           setAllowedThingTypes={setAllowedThingTypes}
+          rentalDurations={rentalDurations}
+          setRentalDurations={setRentalDurations}
+          rentalWeekdays={rentalWeekdays}
+          setRentalWeekdays={setRentalWeekdays}
           visibility={visibility}
           setVisibility={setVisibility}
           errors={{ ...errors, allowedThingTypes: allowedTypesError }}

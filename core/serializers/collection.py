@@ -144,6 +144,8 @@ class CollectionSerializer(serializers.ModelSerializer):
             "newsletter_enabled",
             "swap_minimum_items",
             "allowed_thing_types",
+            "rental_durations",
+            "rental_weekdays",
             "tags",
             "thumbnail",
             "thumbnail_url",
@@ -253,6 +255,18 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    rental_durations = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=90),
+        max_length=8,
+        required=False,
+        allow_empty=True,
+    )
+    rental_weekdays = serializers.ListField(
+        child=serializers.IntegerField(min_value=0, max_value=6),
+        max_length=7,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Collection
@@ -267,12 +281,20 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "newsletter_enabled",
             "swap_minimum_items",
             "allowed_thing_types",
+            "rental_durations",
+            "rental_weekdays",
             "tags",
             "thumbnail",
         ]
 
     def validate_tags(self, value):
         return _normalize_tags(value)
+
+    def validate_rental_durations(self, value):
+        return sorted(set(value))
+
+    def validate_rental_weekdays(self, value):
+        return sorted(set(value))
 
     def validate(self, attrs):
         # Default visibility follows the mode when the client doesn't set it:
@@ -404,6 +426,18 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    rental_durations = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=90),
+        max_length=8,
+        required=False,
+        allow_empty=True,
+    )
+    rental_weekdays = serializers.ListField(
+        child=serializers.IntegerField(min_value=0, max_value=6),
+        max_length=7,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Collection
@@ -419,10 +453,18 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "newsletter_enabled",
             "swap_minimum_items",
             "allowed_thing_types",
+            "rental_durations",
+            "rental_weekdays",
             "tags",
             "thumbnail",
             "pause_message",
         ]
+
+    def validate_rental_durations(self, value):
+        return sorted(set(value))
+
+    def validate_rental_weekdays(self, value):
+        return sorted(set(value))
 
     def validate(self, attrs):
         instance = self.instance

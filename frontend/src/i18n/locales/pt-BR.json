@@ -752,5 +752,25 @@
     "magicLinkSent": "Link enviado! Confira sua caixa de entrada e clique no link para entrar.",
     "alreadyHaveAccount": "Já tem uma conta? Fazer login →",
     "errorSendingLink": "Erro ao enviar o link."
+  },
+  "rental": {
+    "durationsLabel": "Durações de aluguel",
+    "durationsPlaceholder": "Escolha as durações que você oferece",
+    "durationsHelper": "Para itens de empréstimo/aluguel. Quem aluga escolhe uma. Vazio = qualquer duração.",
+    "weekdaysLabel": "Dias de retirada e devolução",
+    "weekdaysPlaceholder": "Escolha os dias permitidos",
+    "weekdaysHelper": "Retirada e devolução devem cair nesses dias. Vazio = qualquer dia.",
+    "d1": "1 dia",
+    "d2": "2 dias",
+    "d3": "3 dias",
+    "w1": "1 semana",
+    "w2": "2 semanas",
+    "w3": "3 semanas",
+    "m1": "1 mês",
+    "chooseDuration": "Duração do aluguel",
+    "chooseDurationPlaceholder": "Escolha uma duração",
+    "durationRequired": "Escolha uma duração",
+    "pickupLabel": "Data de retirada",
+    "returnBy": "Devolver até {{date}}"
   }
 }

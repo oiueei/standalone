@@ -752,5 +752,25 @@
     "magicLinkSent": "Ligação enviada! Verifica a tua caixa de entrada e clica na ligação para entrares.",
     "alreadyHaveAccount": "Já tens conta? Iniciar sessão →",
     "errorSendingLink": "Erro ao enviar a ligação."
+  },
+  "rental": {
+    "durationsLabel": "Durações de aluguer",
+    "durationsPlaceholder": "Escolha as durações que oferece",
+    "durationsHelper": "Para itens de empréstimo/aluguer. Quem aluga escolhe uma. Vazio = qualquer duração.",
+    "weekdaysLabel": "Dias de recolha e devolução",
+    "weekdaysPlaceholder": "Escolha os dias permitidos",
+    "weekdaysHelper": "Recolha e devolução devem cair nestes dias. Vazio = qualquer dia.",
+    "d1": "1 dia",
+    "d2": "2 dias",
+    "d3": "3 dias",
+    "w1": "1 semana",
+    "w2": "2 semanas",
+    "w3": "3 semanas",
+    "m1": "1 mês",
+    "chooseDuration": "Duração do aluguer",
+    "chooseDurationPlaceholder": "Escolha uma duração",
+    "durationRequired": "Escolha uma duração",
+    "pickupLabel": "Data de recolha",
+    "returnBy": "Devolver até {{date}}"
   }
 }

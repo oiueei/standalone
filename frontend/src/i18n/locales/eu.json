@@ -752,5 +752,25 @@
     "magicLinkSent": "Esteka bidalita! Begiratu zure sarrera-ontzia eta egin klik estekan sartzeko.",
     "alreadyHaveAccount": "Konturik baduzu? Hasi saioa →",
     "errorSendingLink": "Errorea esteka bidaltzean."
+  },
+  "rental": {
+    "durationsLabel": "Alokairu-iraupenak",
+    "durationsPlaceholder": "Aukeratu eskaintzen dituzun iraupenak",
+    "durationsHelper": "Mailegatzeko/alokatzeko gauzetarako. Alokatzaileak bat aukeratzen du. Hutsik = edozein iraupen.",
+    "weekdaysLabel": "Jasotze/itzultze egunak",
+    "weekdaysPlaceholder": "Aukeratu baimendutako egunak",
+    "weekdaysHelper": "Jasotzea eta itzultzea egun hauetan izan behar dira. Hutsik = edozein egun.",
+    "d1": "egun 1",
+    "d2": "2 egun",
+    "d3": "3 egun",
+    "w1": "aste 1",
+    "w2": "2 aste",
+    "w3": "3 aste",
+    "m1": "hilabete 1",
+    "chooseDuration": "Alokairuaren iraupena",
+    "chooseDurationPlaceholder": "Aukeratu iraupena",
+    "durationRequired": "Aukeratu iraupen bat",
+    "pickupLabel": "Jasotze-data",
+    "returnBy": "Itzuli {{date}} baino lehen"
   }
 }

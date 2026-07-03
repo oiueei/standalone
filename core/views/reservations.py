@@ -143,6 +143,25 @@ class ThingRequestView(APIView):
             status=status.HTTP_200_OK,
         )
 
+    def _rental_collection(self, thing, request):
+        """Resolve which collection's rental rules (#7) apply to a LEND/RENT request.
+
+        Prefers the collection the request was made through (``collection_code`` in
+        the body — the SPA passes the collection context); otherwise the thing's
+        first collection that actually defines rental rules. Returns ``None`` when
+        no collection constrains the dates (legacy free-range behaviour).
+        """
+        collections = list(thing.collections.all())
+        code = (request.data.get("collection_code") or "").strip()
+        if code:
+            for collection in collections:
+                if collection.code == code:
+                    return collection
+        for collection in collections:
+            if collection.has_rental_rules():
+                return collection
+        return None
+
     def _handle_date_based_request(self, request, thing, owner_email):
         """Handle LEND/RENT requests with date-based booking."""
         serializer = ThingRequestWithDatesSerializer(data=request.data)
@@ -151,6 +170,15 @@ class ThingRequestView(APIView):
 
         start_date = serializer.validated_data["start_date"]
         end_date = serializer.validated_data["end_date"]
+
+        # Enforce the collection's rental rules (fixed durations + allowed pickup/
+        # return weekdays). The frontend already prevents these, so this is the
+        # server-side backstop.
+        rental_collection = self._rental_collection(thing, request)
+        if rental_collection:
+            violation = rental_collection.rental_violation(start_date, end_date)
+            if violation:
+                return Response({"error": violation}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             Thing.objects.select_for_update().get(code=thing.code)

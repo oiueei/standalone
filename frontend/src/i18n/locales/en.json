@@ -752,5 +752,25 @@
   },
   "tags": {
     "add": "Add"
+  },
+  "rental": {
+    "durationsLabel": "Rental lengths",
+    "durationsPlaceholder": "Pick the lengths you offer",
+    "durationsHelper": "For lending/renting items. Renters pick one of these. Empty = any length.",
+    "weekdaysLabel": "Pickup / return days",
+    "weekdaysPlaceholder": "Pick the allowed days",
+    "weekdaysHelper": "Both pickup and return must fall on these days. Empty = any day.",
+    "d1": "1 day",
+    "d2": "2 days",
+    "d3": "3 days",
+    "w1": "1 week",
+    "w2": "2 weeks",
+    "w3": "3 weeks",
+    "m1": "1 month",
+    "chooseDuration": "Rental length",
+    "chooseDurationPlaceholder": "Choose a length",
+    "durationRequired": "Please choose a length",
+    "pickupLabel": "Pickup date",
+    "returnBy": "Return by {{date}}"
   }
 }

@@ -143,6 +143,8 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
     collection_owner = serializers.SerializerMethodField()
     collection_swap_minimum_items = serializers.SerializerMethodField()
     my_swap_count_in_collection = serializers.SerializerMethodField()
+    rental_durations = serializers.SerializerMethodField()
+    rental_weekdays = serializers.SerializerMethodField()
     collection_tags = serializers.SerializerMethodField()
 
     class Meta:
@@ -178,6 +180,8 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
             "collection_owner",
             "collection_swap_minimum_items",
             "my_swap_count_in_collection",
+            "rental_durations",
+            "rental_weekdays",
             "transfer_count",
             "response_count",
             "my_response",
@@ -214,6 +218,19 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
         collections = obj.collections.all()
         first = collections[0] if collections else None
         return first.swap_minimum_items if first else 0
+
+    def get_rental_durations(self, obj):
+        """Allowed rental lengths (days) from this thing's first collection (#7).
+        Used by RequestThingPage to offer the fixed-duration picker for LEND/RENT."""
+        collections = obj.collections.all()
+        first = collections[0] if collections else None
+        return list(first.rental_durations) if first else []
+
+    def get_rental_weekdays(self, obj):
+        """Allowed pickup/return weekdays (0=Mon…6=Sun) from the first collection."""
+        collections = obj.collections.all()
+        first = collections[0] if collections else None
+        return list(first.rental_weekdays) if first else []
 
     def get_my_swap_count_in_collection(self, obj):
         """Number of own ACTIVE/TAKEN SWAP_THINGs the requester has in this thing's

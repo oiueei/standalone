@@ -62,6 +62,14 @@ class Collection(models.Model):
     is_share = models.BooleanField(default=False)
     newsletter_enabled = models.BooleanField(default=False)
     swap_minimum_items = models.PositiveIntegerField(default=0)
+    # Rental rules for LEND/RENT things in this collection (#7).
+    # rental_durations: allowed rental lengths in DAYS (weeks are normalised to
+    #   days, e.g. [1, 3, 7, 14]); the renter picks exactly one. Empty = no fixed
+    #   durations (free date range, the legacy behaviour).
+    # rental_weekdays: allowed weekdays for BOTH pickup (start) and return (end),
+    #   Python weekday() numbering (0=Mon … 6=Sun). Empty = any day.
+    rental_durations = models.JSONField(default=list, blank=True)
+    rental_weekdays = models.JSONField(default=list, blank=True)
     allowed_thing_types = models.JSONField(default=list, blank=True)
     tags = models.JSONField(
         default=list,
@@ -153,6 +161,32 @@ class Collection(models.Model):
     def is_public(self):
         """Check if this collection is publicly readable (anonymous-friendly)."""
         return self.visibility == self.Visibility.PUBLIC
+
+    def has_rental_rules(self):
+        """True if this collection constrains LEND/RENT booking dates (#7)."""
+        return bool(self.rental_durations) or bool(self.rental_weekdays)
+
+    def rental_violation(self, start_date, end_date):
+        """Return an error string if a LEND/RENT booking of ``[start, end]`` breaks
+        this collection's rental rules, else ``None``.
+
+        Duration is inclusive: an allowed length of N days means ``end`` is
+        ``start + (N - 1)`` days. Weekdays use Python's ``weekday()`` (0=Mon…6=Sun)
+        and gate BOTH the pickup (start) and the return (end).
+        """
+        durations = self.rental_durations or []
+        if durations:
+            span_days = (end_date - start_date).days + 1
+            if span_days not in durations:
+                allowed = ", ".join(str(d) for d in sorted(durations))
+                return f"This collection only allows rentals of {allowed} day(s)."
+        weekdays = self.rental_weekdays or []
+        if weekdays:
+            if start_date.weekday() not in weekdays:
+                return "The pickup day isn't available for this collection."
+            if end_date.weekday() not in weekdays:
+                return "The return day isn't available for this collection."
+        return None
 
     def can_add_thing(self, user_code):
         """Check if the given user can add things to this collection.

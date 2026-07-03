@@ -752,5 +752,25 @@
     "magicLinkSent": "Enllaç enviat! Revisa la safata d'entrada i fes clic a l'enllaç per unir-te.",
     "alreadyHaveAccount": "Ja tens un compte? Inicia sessió →",
     "errorSendingLink": "Error en enviar l'enllaç."
+  },
+  "rental": {
+    "durationsLabel": "Durades de lloguer",
+    "durationsPlaceholder": "Tria les durades que ofereixes",
+    "durationsHelper": "Per a objectes de préstec/lloguer. Qui lloga en tria una. Buit = qualsevol durada.",
+    "weekdaysLabel": "Dies de recollida i devolució",
+    "weekdaysPlaceholder": "Tria els dies permesos",
+    "weekdaysHelper": "Recollida i devolució han de caure en aquests dies. Buit = qualsevol dia.",
+    "d1": "1 dia",
+    "d2": "2 dies",
+    "d3": "3 dies",
+    "w1": "1 setmana",
+    "w2": "2 setmanes",
+    "w3": "3 setmanes",
+    "m1": "1 mes",
+    "chooseDuration": "Durada del lloguer",
+    "chooseDurationPlaceholder": "Tria una durada",
+    "durationRequired": "Tria una durada",
+    "pickupLabel": "Data de recollida",
+    "returnBy": "Devolució el {{date}}"
   }
 }

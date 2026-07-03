@@ -29,6 +29,8 @@ export default function CreateCollectionPage() {
   const [newsletterEnabled, setNewsletterEnabled] = useState(false);
   const [requireMinimumSwapItems, setRequireMinimumSwapItems] = useState(false);
   const [allowedThingTypes, setAllowedThingTypes] = useState([]);
+  const [rentalDurations, setRentalDurations] = useState([]);
+  const [rentalWeekdays, setRentalWeekdays] = useState([]);
   const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [errors, setErrors] = useState({});
@@ -91,6 +93,8 @@ export default function CreateCollectionPage() {
       swap_minimum_items:
         requireMinimumSwapItems && isSwap && mode === 'COMMUNITY' ? 3 : 0,
       allowed_thing_types: allowedThingTypes,
+      rental_durations: isSwap || isShare ? [] : rentalDurations,
+      rental_weekdays: isSwap || isShare ? [] : rentalWeekdays,
       tags,
       thumbnail: thumbnail || '',
     };
@@ -171,6 +175,10 @@ export default function CreateCollectionPage() {
             setRequireMinimumSwapItems={setRequireMinimumSwapItems}
             allowedThingTypes={allowedThingTypes}
             setAllowedThingTypes={setAllowedThingTypes}
+            rentalDurations={rentalDurations}
+            setRentalDurations={setRentalDurations}
+            rentalWeekdays={rentalWeekdays}
+            setRentalWeekdays={setRentalWeekdays}
             visibility={visibility}
             setVisibility={setVisibility}
             errors={{ ...errors, allowedThingTypes: allowedTypesError }}

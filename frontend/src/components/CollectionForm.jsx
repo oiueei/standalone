@@ -6,6 +6,7 @@ import {
   isLockedToSingleType,
   reconcileAllowedTypes,
 } from '../constants/things';
+import { RENTAL_DURATION_PRESETS, WEEKDAY_VALUES, durationLabel, weekdayLabel } from '../utils/rental';
 
 /**
  * The shared mode/swap/share field cluster of the Create and Edit
@@ -31,12 +32,16 @@ export default function CollectionForm({
   setRequireMinimumSwapItems,
   allowedThingTypes,
   setAllowedThingTypes,
+  rentalDurations = [],
+  setRentalDurations = () => {},
+  rentalWeekdays = [],
+  setRentalWeekdays = () => {},
   visibility = 'PRIVATE',
   setVisibility = () => {},
   errors,
   theeemeColor01,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toggleTheme = theeemeColor01 ? { '--toggle-button-color': `var(--color-${theeemeColor01})` } : undefined;
   const locked = isLockedToSingleType({ isSwap, isShare });
 
@@ -154,6 +159,38 @@ export default function CollectionForm({
           invalid={!!errors.allowedThingTypes}
         />
       </div>
+      {/* Rental rules (#7) — for lending/renting items. Hidden for swap/share-only
+          collections, which can't hold LEND/RENT things. */}
+      {!isSwap && !isShare && (
+        <>
+          <Select
+            language="en"
+            multiSelect
+            id={`${idPrefix}-rental-durations`}
+            texts={{
+              label: t('rental.durationsLabel'),
+              placeholder: t('rental.durationsPlaceholder'),
+              assistive: t('rental.durationsHelper'),
+            }}
+            options={RENTAL_DURATION_PRESETS.map((p) => ({ label: t(p.key), value: String(p.days) }))}
+            value={rentalDurations.map((d) => ({ label: durationLabel(d, t), value: String(d) }))}
+            onChange={(opts) => setRentalDurations(opts.map((o) => Number(o.value)).sort((a, b) => a - b))}
+          />
+          <Select
+            language="en"
+            multiSelect
+            id={`${idPrefix}-rental-weekdays`}
+            texts={{
+              label: t('rental.weekdaysLabel'),
+              placeholder: t('rental.weekdaysPlaceholder'),
+              assistive: t('rental.weekdaysHelper'),
+            }}
+            options={WEEKDAY_VALUES.map((w) => ({ label: weekdayLabel(w, i18n.language), value: String(w) }))}
+            value={rentalWeekdays.map((w) => ({ label: weekdayLabel(w, i18n.language), value: String(w) }))}
+            onChange={(opts) => setRentalWeekdays(opts.map((o) => Number(o.value)).sort((a, b) => a - b))}
+          />
+        </>
+      )}
     </>
   );
 }

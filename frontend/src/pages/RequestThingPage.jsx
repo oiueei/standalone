@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Checkbox, DateInput, Notification } from 'hds-react';
+import { Button, Checkbox, DateInput, Notification, Select } from 'hds-react';
 import { DATE_TYPES, SWAP_TYPE } from '../constants/things';
+import { RENTAL_DURATION_PRESETS, durationLabel, jsToPyWeekday, addDays } from '../utils/rental';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -28,6 +29,7 @@ export default function RequestThingPage() {
   useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);
   const [startDate, setStartDate] = useState(location.state?.prefillDate || '');
   const [endDate, setEndDate] = useState('');
+  const [duration, setDuration] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -78,6 +80,40 @@ export default function RequestThingPage() {
       return d >= start && d <= end;
     });
 
+  // Per-collection rental rules (#7): a set of fixed lengths + allowed weekdays.
+  const rentalDurations = thing?.rental_durations || [];
+  const rentalWeekdays = thing?.rental_weekdays || [];
+  const isConstrainedRental = !!thing && DATE_TYPES.includes(thing.type) && rentalDurations.length > 0;
+
+  const formatDate = (d) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const weekdayAllowed = (date) =>
+    rentalWeekdays.length === 0 || rentalWeekdays.includes(jsToPyWeekday(new Date(date).getDay()));
+  // Any day in [pickup, pickup+len-1] already booked?
+  const rangeBlocked = (pickup, len) => {
+    for (let i = 0; i < len; i += 1) {
+      if (isDateBlocked(addDays(pickup, i))) return true;
+    }
+    return false;
+  };
+  // Disable a pickup day when it (or, once a length is chosen, its return day or
+  // any day in between) breaks the weekday rule or overlaps an existing booking.
+  const isPickupDisabled = (date) => {
+    if (!weekdayAllowed(date)) return true;
+    if (isDateBlocked(date)) return true;
+    if (duration) {
+      const len = Number(duration);
+      const end = addDays(date, len - 1);
+      if (!weekdayAllowed(end)) return true;
+      if (rangeBlocked(date, len)) return true;
+    }
+    return false;
+  };
+
   const handleSubmit = async () => {
     setAttempted(true);
 
@@ -89,9 +125,19 @@ export default function RequestThingPage() {
       if (selectedOfferings.length === 0) return;
       body = { offered_thing_codes: selectedOfferings };
     } else if (isDateBased) {
-      if (!startDate || !endDate) return;
-      body = { start_date: startDate, end_date: endDate };
+      if (isConstrainedRental) {
+        // Renter picks a fixed length + a pickup date; the return date is derived.
+        if (!duration || !startDate) return;
+        const end = formatDate(addDays(startDate, Number(duration) - 1));
+        body = { start_date: startDate, end_date: end };
+      } else {
+        if (!startDate || !endDate) return;
+        body = { start_date: startDate, end_date: endDate };
+      }
     }
+    // Pass the collection context so the backend applies that collection's rental
+    // rules (harmless for other flows / collections without rules).
+    if (code) body.collection_code = code;
 
     setSubmitting(true);
     setToast(null);
@@ -204,7 +250,47 @@ export default function RequestThingPage() {
           <div className="spacer-s" />
         </>
       )}
-      {isDateBased && (
+      {isDateBased && isConstrainedRental && (
+        <div className="summary-grid section-mt">
+          <Select
+            language="en"
+            id="request-duration"
+            texts={{
+              label: t('rental.chooseDuration'),
+              placeholder: t('rental.chooseDurationPlaceholder'),
+              error: attempted && !duration ? t('rental.durationRequired') : undefined,
+            }}
+            options={rentalDurations.map((d) => ({ label: durationLabel(d, t), value: String(d) }))}
+            value={duration ? [{ label: durationLabel(Number(duration), t), value: duration }] : []}
+            onChange={(opts) => { setDuration(opts.length ? opts[0].value : ''); setStartDate(''); }}
+            invalid={attempted && !duration}
+          />
+          <div className="spacer-xxxs" />
+          <DateInput
+            id="request-pickup-date"
+            label={t('rental.pickupLabel')}
+            value={startDate}
+            onChange={(value) => setStartDate(value)}
+            dateFormat="yyyy-MM-dd"
+            language="en"
+            required
+            disabled={!duration}
+            invalid={attempted && !startDate}
+            errorText={attempted && !startDate ? t('request.startRequired') : undefined}
+            minDate={TODAY}
+            maxDate={MAX_DATE}
+            dateOutsideRangeErrorText={t('request.dateRange')}
+            isDateDisabledBy={isPickupDisabled}
+            malformedDateErrorText={t('request.dateOverlap')}
+          />
+          {startDate && duration && (
+            <p className="thing-card-meta" style={{ marginTop: 'var(--spacing-2-xs)' }}>
+              {t('rental.returnBy', { date: formatDate(addDays(startDate, Number(duration) - 1)) })}
+            </p>
+          )}
+        </div>
+      )}
+      {isDateBased && !isConstrainedRental && (
         <div className="summary-grid section-mt">
           <DateInput
             id="request-start-date"
