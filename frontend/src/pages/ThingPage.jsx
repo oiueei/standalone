@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
-  Dialog,
   Highlight,
   IconAlertCircleFill,
   Notification,
@@ -744,51 +743,44 @@ export default function ThingPage() {
             )}
           </>
         )}
-        {/* Report footer — logged-in non-owners can flag the listing. The owner
-            is told someone reported it (never who); the reporter identity stays
-            server-side. */}
+        {/* Report footer — logged-in non-owners can flag the listing. The confirm
+            expands inline right below the button (no modal). The owner is told
+            someone reported it (never who); the reporter stays server-side. */}
         {isAuthenticated && !isOwner && (
           <div className="thing-report-footer">
             <Button
               variant="supplementary"
               size="small"
               iconStart={<IconAlertCircleFill aria-hidden="true" />}
-              onClick={() => setReportOpen(true)}
+              onClick={() => setReportOpen((open) => !open)}
+              aria-expanded={reportOpen}
             >
               {t('thingPage.report')}
             </Button>
+            {reportOpen && (
+              <div className="thing-report-confirm">
+                <p><strong>{t('thingPage.reportConfirmTitle')}</strong></p>
+                <p>{t('thingPage.reportConfirmBody')}</p>
+                <div className="button-row">
+                  <Button
+                    variant="danger"
+                    size="small"
+                    onClick={handleReport}
+                    disabled={reporting}
+                    isLoading={reporting}
+                    loadingText={t('thingPage.reporting')}
+                  >
+                    {t('thingPage.reportConfirm')}
+                  </Button>
+                  <Button variant="supplementary" size="small" onClick={() => setReportOpen(false)}>
+                    {t('common.cancel')}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {reportOpen && (
-        <Dialog
-          id={`report-${thing.code}`}
-          aria-labelledby={`report-title-${thing.code}`}
-          isOpen
-          close={() => setReportOpen(false)}
-          closeButtonLabelText={t('common.cancel')}
-        >
-          <Dialog.Header id={`report-title-${thing.code}`} title={t('thingPage.reportConfirmTitle')} />
-          <Dialog.Content>
-            <p>{t('thingPage.reportConfirmBody')}</p>
-          </Dialog.Content>
-          <Dialog.ActionButtons>
-            <Button
-              variant="danger"
-              onClick={handleReport}
-              disabled={reporting}
-              isLoading={reporting}
-              loadingText={t('thingPage.reporting')}
-            >
-              {t('thingPage.reportConfirm')}
-            </Button>
-            <Button variant="secondary" onClick={() => setReportOpen(false)} style={btnSecondaryStyle}>
-              {t('common.cancel')}
-            </Button>
-          </Dialog.ActionButtons>
-        </Dialog>
-      )}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
     </PageLayout>

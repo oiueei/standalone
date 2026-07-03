@@ -461,11 +461,30 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 /* Quiet "Report" action in the ThingPage footer — deliberately understated so
-   it doesn't compete with the primary actions above it. */
+   it doesn't compete with the primary actions above it. The confirm expands
+   inline below the button (no modal). */
 .thing-report-footer {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   margin-top: var(--spacing-xl);
+}
+
+.thing-report-confirm {
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-s) var(--spacing-m);
+  max-width: 32rem;
+  border: 1px solid var(--color-black-20);
+  border-radius: 4px;
+  background: var(--color-black-5);
+}
+
+.thing-report-confirm p {
+  margin: 0 0 var(--spacing-2-xs);
+}
+
+.thing-report-confirm .button-row {
+  margin-top: var(--spacing-s);
 }
 
 .button-row-wide {
