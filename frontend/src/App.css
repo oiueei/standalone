@@ -453,6 +453,13 @@ div[class*="Linkbox-module_linkbox"] {
   width: 100%;
 }
 
+/* "Leave the group" is a low-frequency, understated action — a plain text link
+   rather than a button so it doesn't compete with the page's primary actions. */
+.leave-group {
+  margin-top: var(--spacing-s);
+  font-size: var(--fontsize-body-s);
+}
+
 /* Quiet "Report" action in the ThingPage footer — deliberately understated so
    it doesn't compete with the primary actions above it. */
 .thing-report-footer {
