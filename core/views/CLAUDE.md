@@ -807,6 +807,16 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 - Skips collections with no new things or no invitees.
 - Outputs count of digest emails sent.
 
+### Management Command: `cleanup_orphan_images`
+
+On-demand command (`python manage.py cleanup_orphan_images`) that deletes **orphaned Cloudinary images** (#9) — uploads whose form was never submitted, so no DB row ever referenced them (the complement to `core.services.cloudinary_cleanup`, which handles record *deletes*). Superuser-run (there is no in-app endpoint — the shell/Heroku access is the gate).
+
+- **Dry-run by default.** It only lists what it would delete; pass `--commit` to actually delete. On Heroku, quote the inner command so the CLI doesn't eat the flag: `heroku run --app <app> "python manage.py cleanup_orphan_images --commit"`.
+- **Cross-references every DB image field** — `Thing.thumbnail` + `Thing.gallery`, `User.photo`, `Collection.thumbnail` — so anything in use is kept.
+- **Never touches `oiueei/seed/`** (the demo's shared image pool), even if unreferenced.
+- **Age window:** only assets older than `--min-age-hours` (default 24, so an in-flight upload mid-form isn't mistaken for an orphan) and younger than `--max-age-days` (default 30, keeping it a recent sweep). Run regularly (e.g. weekly) so every orphan is caught within its window.
+- Pages through `cloudinary.api.resources` (prefix `oiueei/`), deletes in batches of 100 via `cloudinary.api.delete_resources`, and prints a per-run summary (scanned / in use / seed / outside window / orphans / deleted).
+
 ---
 
 ## Custom Permissions (`core/permissions.py`)
