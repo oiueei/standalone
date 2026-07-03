@@ -197,7 +197,7 @@ div[class*="Linkbox-module_linkbox"] {
 }
 
 .thing-card-headline {
-  font-size: var(--fontsize-heading-m);
+  font-size: var(--fontsize-heading-s);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.2px;
@@ -369,9 +369,9 @@ div[class*="Linkbox-module_linkbox"] {
   box-sizing: border-box;
 }
 
-/* Match the collection Linkbox heading to .thing-card-headline (24px / 700). */
+/* Match the collection Linkbox heading to .thing-card-headline (heading-s / 700). */
 .collections-grid *[class*="Linkbox-module_heading"] {
-  font-size: var(--fontsize-heading-m);
+  font-size: var(--fontsize-heading-s);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.2px;

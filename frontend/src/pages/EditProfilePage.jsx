@@ -152,25 +152,29 @@ export default function EditProfilePage() {
             errorText={errors.headline}
             helperText={`${headline.length}/64`}
           />
-          <TextArea
-            id="edit-profile-about"
-            label={t('editProfile.aboutLabel')}
-            value={about}
-            onChange={(e) => setAbout(e.target.value)}
-            invalid={!!errors.about}
-            errorText={errors.about}
-            helperText={`${t('editProfile.aboutHelper')} · ${about.length}/2000`}
-            style={{ minHeight: '8rem' }}
-          />
-          <p style={{ fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-60)', marginTop: 'var(--spacing-2-xs)' }}>
-            <Trans
-              i18nKey="editProfile.aboutMarkdownHint"
-              components={[
-                // eslint-disable-next-line jsx-a11y/anchor-has-content -- the link text is injected by <Trans> from the i18n string at runtime
-                <a key="0" href="https://dillinger.io" target="_blank" rel="noopener noreferrer" />,
-              ]}
+          {/* Group the textarea and its Markdown hint in one grid cell so the hint
+              hugs the textarea, and the grid gap separates it from the photo field. */}
+          <div>
+            <TextArea
+              id="edit-profile-about"
+              label={t('editProfile.aboutLabel')}
+              value={about}
+              onChange={(e) => setAbout(e.target.value)}
+              invalid={!!errors.about}
+              errorText={errors.about}
+              helperText={`${t('editProfile.aboutHelper')} · ${about.length}/2000`}
+              style={{ minHeight: '8rem' }}
             />
-          </p>
+            <p style={{ fontSize: 'var(--fontsize-body-s)', color: 'var(--color-black-60)', marginTop: 'var(--spacing-2-xs)' }}>
+              <Trans
+                i18nKey="editProfile.aboutMarkdownHint"
+                components={[
+                  // eslint-disable-next-line jsx-a11y/anchor-has-content -- the link text is injected by <Trans> from the i18n string at runtime
+                  <a key="0" href="https://dillinger.io" target="_blank" rel="noopener noreferrer" />,
+                ]}
+              />
+            </p>
+          </div>
           <ImageUpload
             id="edit-profile-photo"
             label={t('editProfile.photoLabel')}
