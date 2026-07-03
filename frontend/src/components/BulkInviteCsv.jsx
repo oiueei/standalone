@@ -3,6 +3,7 @@ import { FileInput, Button, Notification, IconInfoCircleFill } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import Papa from 'papaparse';
 import { apiFetch } from '../services/api';
+import { stripSepLine, CSV_DELIMITERS } from '../utils/csv';
 import useTheeeme from '../hooks/useTheeeme';
 
 const MAX_ROWS = 100;
@@ -64,6 +65,8 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      delimitersToGuess: CSV_DELIMITERS,
+      beforeFirstChunk: stripSepLine,
       transformHeader: (h) => h.trim().toLowerCase(),
       complete: (parseResult) => {
         const parsed = (parseResult.data || [])
