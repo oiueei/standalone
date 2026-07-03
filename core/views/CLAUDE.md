@@ -725,6 +725,29 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 
 ---
 
+## Report Views (`core/views/report.py`)
+
+### ThingReportView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/things/{thing_code}/report/` |
+| **Permission** | `IsAuthenticated` + `thing.can_view()` + not owner |
+| **Rate limit** | 10 requests/hour per user |
+
+A logged-in member flags a thing as inappropriate (content moderation, #12).
+
+**Behaviour:**
+1. Returns 400 if the requester is the thing owner ("You can't report your own listing").
+2. Returns 403 if the requester can't view the thing (`deny_if_cannot_view`).
+3. `get_or_create` a `Report` for `(thing, reporter)` with a `thing_headline` snapshot — **idempotent per member**, so re-reporting the same thing doesn't create a second row or re-notify.
+4. On the **first** report only: emails the owner (`send_thing_reported_email`, Cat. 2) and creates a `THING_REPORTED` `InAppNotification` (payload `thing_headline`, `thing_code`). Both are **anonymous** — the reporter's identity is never included.
+5. Always returns `200 {"message": "Thanks — we've let the owner know."}` (the reporter can't tell whether it was their first report).
+
+The reporter is stored server-side only (`Report.reporter`) as a moderation trail; see the [`Report` model](../models/CLAUDE.md#report) and `ReportAdmin` for the platform-facing log.
+
+---
+
 ## Wish Views (`core/views/wishes.py`)
 
 A wish is a `Thing` of type `WISH_THING` (reusing `ThingViewSet` for create/edit/hide). These views add the structured-answer layer on top: members answer with `WishResponse` objects ("Tengo esto" / "Sé dónde" / "Puedo hacértelo") instead of a reservation, and the creator accepts one and resolves the wish. All return 400 if the target `Thing` is not a `WISH_THING`.
@@ -824,6 +847,7 @@ Daily command (`python manage.py send_digests`) that sends digest emails and new
 - `/things/{code}/faq/` POST — 20 requests per hour per user
 - `/collections/{code}/broadcast/` POST — 5 requests per day per user
 - `/collections/{code}/share-link/` POST — 30 requests per hour per user
+- `/things/{code}/report/` POST — 10 requests per hour per user
 - `/notifications/token/{t}/` — GET 20/min per IP, PATCH 10/min per IP
 
 ### Secure Code Practices

@@ -196,7 +196,10 @@
     "wishAcceptedLabel": "Erantzuna onartua",
     "wishAcceptedBody": "{{owner_name}}(e)k {{wish_headline}} eskaerari emandako zure erantzuna onartu du.",
     "viewWish": "Ikusi eskaera",
-    "viewCollection": "Lagun dezaket!"
+    "viewCollection": "Lagun dezaket!",
+    "reportedLabel": "Argitalpen bat salatu dute",
+    "reportedBody": "Norbaitek «{{thing_headline}}» salatu du. Begiratu ezazu.",
+    "viewThing": "Ikusi argitalpena"
   },
   "collectionPage": {
     "editCollection": "Bilduma editatu",
@@ -259,7 +262,14 @@
     "galleryLabel": "Argazkiak",
     "galleryImageAlt": "{{name}} — {{index}}/{{total}} irudia",
     "galleryPrev": "Aurreko irudia",
-    "galleryNext": "Hurrengo irudia"
+    "galleryNext": "Hurrengo irudia",
+    "report": "Salatu",
+    "reportConfirmTitle": "Argitalpen hau salatu nahi duzu?",
+    "reportConfirmBody": "Jabeari jakinaraziko diogu norbaitek salatu duela, baina ez du jakingo nork. Salatu arauak hausten dituen edukia soilik.",
+    "reportConfirm": "Salatu",
+    "reporting": "Salatzen…",
+    "reportThanks": "Eskerrik asko, jabeari jakinarazi diogu.",
+    "reportError": "Ezin izan dugu zure salaketa bidali. Saiatu berriro."
   },
   "thingCard": {
     "confirmHold": "Erreserba baieztatn",

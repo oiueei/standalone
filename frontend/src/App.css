@@ -453,6 +453,14 @@ div[class*="Linkbox-module_linkbox"] {
   width: 100%;
 }
 
+/* Quiet "Report" action in the ThingPage footer — deliberately understated so
+   it doesn't compete with the primary actions above it. */
+.thing-report-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-xl);
+}
+
 .button-row-wide {
   display: flex;
   gap: var(--spacing-s);

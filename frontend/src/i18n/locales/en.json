@@ -213,7 +213,10 @@
     "wishAcceptedLabel": "Answer accepted",
     "wishAcceptedBody": "{{owner_name}} accepted your answer to {{wish_headline}}.",
     "viewWish": "View wish",
-    "viewCollection": "I can help!"
+    "viewCollection": "I can help!",
+    "reportedLabel": "A listing was reported",
+    "reportedBody": "Someone reported “{{thing_headline}}”. Please take a look.",
+    "viewThing": "View listing"
   },
   "collectionPage": {
     "editCollection": "Edit collection",
@@ -276,7 +279,14 @@
     "galleryLabel": "Photos",
     "galleryImageAlt": "{{name}} — image {{index}} of {{total}}",
     "galleryPrev": "Previous image",
-    "galleryNext": "Next image"
+    "galleryNext": "Next image",
+    "report": "Report",
+    "reportConfirmTitle": "Report this listing?",
+    "reportConfirmBody": "We'll let the owner know that someone reported it — they won't see who. Only report content that breaks the rules.",
+    "reportConfirm": "Report",
+    "reporting": "Reporting…",
+    "reportThanks": "Thanks — we've let the owner know.",
+    "reportError": "Sorry, we couldn't send your report. Please try again."
   },
   "thingCard": {
     "confirmHold": "Confirm hold",

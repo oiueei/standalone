@@ -422,6 +422,7 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 | `FAQ_HIDDEN` | Owner hides a FAQ | Questioner | `thing_headline`, `owner_name` |
 | `INVITE_REJECTED` | Invitee declines a collection invite | Collection owner | `collection_headline`, `invitee_name` |
 | `MEMBER_LEFT` | A member leaves a collection (self-unlink) | Collection owner | `collection_headline`, `member_name`, `collection_code` |
+| `THING_REPORTED` | A member reports a thing | Thing owner | `thing_headline`, `thing_code` (no reporter identity — anonymous to the owner) |
 | `WISH_POSTED` | Member posts a wish with "Avisar al grupo" on | Each group member | `wish_headline`, `creator_name`, `wish_code`, `collection_code` |
 | `WISH_RESPONSE` | Member answers a wish | Wish creator | `wish_headline`, `responder_name`, `wish_code`, `collection_code` |
 | `WISH_ACCEPTED` | Creator accepts an answer | Responder | `wish_headline`, `owner_name`, `wish_code`, `collection_code` |
@@ -479,3 +480,33 @@ A `WishResponse` is a member's structured answer to a **wish** (a `Thing` of typ
 - `thing.responses` — answers to a wish (`WishResponse.wish` FK reverse)
 - `thing.offered_in_responses` — answers that offer this thing (`WishResponse.thing` FK reverse)
 - `user.wish_responses` — answers authored by a user (`WishResponse.responder` FK reverse)
+
+---
+
+## Report
+
+A `Report` is a logged-in member's flag on a `Thing` (content moderation, #12). It is the platform's moderation log — **not** shown to the reported owner, who only receives an anonymous `THING_REPORTED` notification.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
+| `thing` | ForeignKey(Thing) | No | The reported thing. `SET_NULL` + `null=True`, reverse `reports` — the log row survives the thing being deleted |
+| `thing_headline` | CharField(64) | No | Snapshot of the thing's headline at report time, so the log stays readable after the thing is gone |
+| `reporter` | ForeignKey(User) | No | Who reported it. `SET_NULL` + `null=True`, reverse `reports_made`. **Server-side only — never exposed to the owner or any read endpoint** |
+| `created` | DateTimeField | Auto | Timestamp (`db_index=True`) — lets the platform count reports over a period |
+
+### Business Rules
+
+1. **Authenticated only** — reporting requires login (`ThingReportView` is `IsAuthenticated`). There are no anonymous reports; the reporter is recorded purely as a moderation trail.
+2. **Anonymous to the owner** — the owner learns only *that* a listing was reported (and which one, via the `THING_REPORTED` notification + email), never by whom. `reporter` is excluded from every read path.
+3. **One report per member+thing** — `UniqueConstraint(thing, reporter)` (`unique_report_per_reporter_thing`); the view uses `get_or_create`, so re-reporting is idempotent and doesn't re-notify/spam the owner.
+4. **Can't report your own listing** — the view returns 400 for the thing owner.
+5. **Must be viewable** — the reporter must pass `thing.can_view()` (403 otherwise).
+6. **Moderation log** — surfaced in Django admin (`ReportAdmin`, read-only) with `created` filtering. Ordered newest-first; table `reports`.
+
+### Reverse Relations
+
+- `thing.reports` — reports filed against a thing (`Report.thing` FK reverse)
+- `user.reports_made` — reports a user has filed (`Report.reporter` FK reverse)

@@ -196,7 +196,10 @@
     "wishAcceptedLabel": "Resposta acceptada",
     "wishAcceptedBody": "{{owner_name}} ha acceptat la teva resposta a {{wish_headline}}.",
     "viewWish": "Veure la petició",
-    "viewCollection": "Puc ajudar!"
+    "viewCollection": "Puc ajudar!",
+    "reportedLabel": "Han denunciat una publicació",
+    "reportedBody": "Algú ha denunciat «{{thing_headline}}». Fes-hi un cop d'ull.",
+    "viewThing": "Mostra la publicació"
   },
   "collectionPage": {
     "editCollection": "Editar col·lecció",
@@ -259,7 +262,14 @@
     "galleryLabel": "Fotos",
     "galleryImageAlt": "{{name}} — imatge {{index}} de {{total}}",
     "galleryPrev": "Imatge anterior",
-    "galleryNext": "Imatge següent"
+    "galleryNext": "Imatge següent",
+    "report": "Denunciar",
+    "reportConfirmTitle": "Voleu denunciar aquesta publicació?",
+    "reportConfirmBody": "Avisarem la persona propietària que algú ho ha denunciat, però no veurà qui. Denuncia només contingut que incompleixi les normes.",
+    "reportConfirm": "Denunciar",
+    "reporting": "Denunciant…",
+    "reportThanks": "Gràcies, hem avisat la persona propietària.",
+    "reportError": "No hem pogut enviar la teva denúncia. Torna-ho a provar."
   },
   "thingCard": {
     "confirmHold": "Confirmar reserva",

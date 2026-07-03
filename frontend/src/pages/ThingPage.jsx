@@ -3,7 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
+  Dialog,
   Highlight,
+  IconAlertCircleFill,
   Notification,
   TextArea,
 } from 'hds-react';
@@ -36,6 +38,8 @@ export default function ThingPage() {
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reporting, setReporting] = useState(false);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
   // Reservation engine (shared with ThingLinkbox)
@@ -269,6 +273,26 @@ export default function ThingPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setActioning(false);
+    }
+  };
+
+  const handleReport = async () => {
+    setReporting(true);
+    try {
+      const res = await apiFetch(`/api/v1/things/${thing.code}/report/`, { method: 'POST' });
+      setReportOpen(false);
+      if (res.ok) {
+        setToast({ type: 'success', message: t('thingPage.reportThanks') });
+      } else if (res.status === 429) {
+        setToast({ type: 'error', message: t('common.tooManyAttempts') });
+      } else {
+        setToast({ type: 'error', message: t('thingPage.reportError') });
+      }
+    } catch {
+      setReportOpen(false);
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setReporting(false);
     }
   };
 
@@ -720,7 +744,51 @@ export default function ThingPage() {
             )}
           </>
         )}
+        {/* Report footer — logged-in non-owners can flag the listing. The owner
+            is told someone reported it (never who); the reporter identity stays
+            server-side. */}
+        {isAuthenticated && !isOwner && (
+          <div className="thing-report-footer">
+            <Button
+              variant="supplementary"
+              size="small"
+              iconStart={<IconAlertCircleFill aria-hidden="true" />}
+              onClick={() => setReportOpen(true)}
+            >
+              {t('thingPage.report')}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {reportOpen && (
+        <Dialog
+          id={`report-${thing.code}`}
+          aria-labelledby={`report-title-${thing.code}`}
+          isOpen
+          close={() => setReportOpen(false)}
+          closeButtonLabelText={t('common.cancel')}
+        >
+          <Dialog.Header id={`report-title-${thing.code}`} title={t('thingPage.reportConfirmTitle')} />
+          <Dialog.Content>
+            <p>{t('thingPage.reportConfirmBody')}</p>
+          </Dialog.Content>
+          <Dialog.ActionButtons>
+            <Button
+              variant="danger"
+              onClick={handleReport}
+              disabled={reporting}
+              isLoading={reporting}
+              loadingText={t('thingPage.reporting')}
+            >
+              {t('thingPage.reportConfirm')}
+            </Button>
+            <Button variant="secondary" onClick={() => setReportOpen(false)} style={btnSecondaryStyle}>
+              {t('common.cancel')}
+            </Button>
+          </Dialog.ActionButtons>
+        </Dialog>
+      )}
 
       <Toast toast={toast} onClose={() => setToast(null)} />
     </PageLayout>

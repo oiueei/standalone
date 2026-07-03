@@ -443,6 +443,33 @@ def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
+def send_thing_reported_email(thing, owner_email):
+    """Notify a thing owner that someone reported their listing.
+
+    The reporter's identity is deliberately never included — the owner learns
+    only *that* it was reported and *which* listing, so they can go and check it.
+    """
+    thing_url = _thing_url(thing)
+
+    subject = "Someone reported one of your listings"
+    plain = (
+        f"Someone reported your listing '{thing.headline}'. "
+        f"We don't share who reported it. Please take a look: {thing_url}"
+    )
+    html = _render_email(
+        [
+            _para("Someone reported one of your listings:"),
+            _strong(thing.headline),
+            _para(
+                "We don't share who reported it. Please take a look and make sure "
+                "everything is in order."
+            ),
+            _links((thing_url, "Review the listing")),
+        ]
+    )
+    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
+
+
 def send_broadcast_email(
     owner_name, owner_email, collection_headline, collection_code, message, emails
 ):

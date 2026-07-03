@@ -4,7 +4,7 @@ Django Admin configuration for OIUEEI.
 
 from django.contrib import admin
 
-from core.models import FAQ, RSVP, Collection, Theeeme, Thing, User
+from core.models import FAQ, RSVP, Collection, Report, Theeeme, Thing, User
 from core.models.booking import BookingPeriod
 
 
@@ -50,6 +50,16 @@ class FAQAdmin(admin.ModelAdmin):
 class RSVPAdmin(admin.ModelAdmin):
     list_display = ["code", "user_email", "user_code", "created"]
     search_fields = ["code", "user_email"]
+
+
+@admin.register(Report)
+class ReportAdmin(admin.ModelAdmin):
+    # Platform-moderation log: how many reports landed, on what, and when.
+    # The reporter column is staff-only here and never surfaced to owners.
+    list_display = ["code", "thing_headline", "thing", "reporter", "created"]
+    search_fields = ["code", "thing_headline", "thing__code", "reporter__code", "reporter__email"]
+    list_filter = ["created"]
+    readonly_fields = ["code", "thing", "thing_headline", "reporter", "created"]
 
 
 @admin.register(Theeeme)

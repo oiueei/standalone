@@ -41,7 +41,7 @@ Every email belongs to one of three categories. Each function routes through the
 | Category | Constant | User flag | Scope |
 |----------|----------|-----------|-------|
 | **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_revoke_email` |
-| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_return_reminder_email`, `send_broadcast_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
+| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_thing_reported_email`, `send_return_reminder_email`, `send_broadcast_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
 | **Cat. 3 — News** | `CATEGORY_NEWS` | `User.notify_news` | `send_digest_email`, `send_newsletter_email` |
 
 - **Lookup fallback**: if no `User` matches the recipient email (e.g. a not-yet-registered invitee), `_should_send` returns `True` — all emails reach non-users by default.
@@ -70,6 +70,7 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_faq_question_email(questioner_name, thing, question, owner_email)` | Guest asks a question on a thing | Thing owner |
 | `send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email)` | Owner answers a FAQ | Questioner |
 | `send_faq_hide_email(owner_name, thing_headline, question, questioner_email)` | Owner hides a FAQ | Questioner |
+| `send_thing_reported_email(thing, owner_email)` | A member reports a thing | Thing owner (**anonymous** — the reporter is never named; body links to the listing so they can review it) |
 | `send_broadcast_email(owner_name, owner_email, collection_headline, collection_code, message, emails)` | Owner sends broadcast to collection | All collection invitees (individually, Reply-To owner + a link to the collection). Subject auto-generated as `Hey! {collection}`. |
 | `send_digest_email(collection_headline, collection_code, thing_headlines, emails)` | Daily command (weekly/monthly) | All collection invitees (individually) |
 | `send_newsletter_email(collection_headline, collection_code, new_thing_headlines, transfer_entries, emails)` | Daily command (Mondays, share collections with `newsletter_enabled`) | All collection invitees (individually). Two blocks: new things (bulleted) and ownership changes (date — thing: from → to). |

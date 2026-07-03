@@ -38,6 +38,7 @@ from .views.collections import (
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.inbox import InboxView
 from .views.notifications import NotificationsByTokenView
+from .views.report import ThingReportView
 from .views.reservations import ThingRequestView
 from .views.theeemes import TheeemeListView
 from .views.things import (
@@ -146,6 +147,7 @@ urlpatterns = [
         ThingTransferView.as_view(),
         name="thing-transfers",
     ),
+    path("things/<str:thing_code>/report/", ThingReportView.as_view(), name="thing-report"),
     # Wishes (a Thing of type WISH_THING)
     path(
         "things/<str:thing_code>/responses/",

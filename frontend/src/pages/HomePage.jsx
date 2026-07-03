@@ -114,6 +114,7 @@ export default function HomePage() {
 
   const ALERT_TYPES = new Set([
     'COLLECTION_DELETED', 'COLLECTION_REVOKED', 'BOOKING_REJECTED', 'FAQ_HIDDEN', 'INVITE_REJECTED',
+    'THING_REPORTED',
   ]);
   const SUCCESS_TYPES = new Set(['BOOKING_ACCEPTED']);
 
@@ -137,6 +138,7 @@ export default function HomePage() {
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredLabel');
       case 'FAQ_HIDDEN': return tFn('home.faqHiddenLabel');
       case 'INVITE_REJECTED': return tFn('home.inviteRejectedLabel');
+      case 'THING_REPORTED': return tFn('home.reportedLabel');
       case 'WISH_POSTED': return tFn('home.wishPostedLabel');
       case 'WISH_RESPONSE': return tFn('home.wishResponseLabel');
       case 'WISH_ACCEPTED': return tFn('home.wishAcceptedLabel');
@@ -158,6 +160,7 @@ export default function HomePage() {
       case 'FAQ_ANSWERED': return tFn('home.faqAnsweredBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'FAQ_HIDDEN': return tFn('home.faqHiddenBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
       case 'INVITE_REJECTED': return tFn('home.inviteRejectedBody', { collection_headline: p.collection_headline, invitee_name: p.invitee_name });
+      case 'THING_REPORTED': return tFn('home.reportedBody', { thing_headline: p.thing_headline });
       case 'WISH_POSTED': return tFn('home.wishPostedBody', { creator_name: p.creator_name, wish_headline: p.wish_headline });
       case 'WISH_RESPONSE': return tFn('home.wishResponseBody', { responder_name: p.responder_name, wish_headline: p.wish_headline });
       case 'WISH_ACCEPTED': return tFn('home.wishAcceptedBody', { owner_name: p.owner_name, wish_headline: p.wish_headline });
@@ -177,6 +180,9 @@ export default function HomePage() {
     }
     if (n.type === 'BROADCAST' && p.collection_code) {
       return { to: `/collections/${p.collection_code}`, label: t('home.viewCollection') };
+    }
+    if (n.type === 'THING_REPORTED' && p.thing_code) {
+      return { to: `/things/${p.thing_code}`, label: t('home.viewThing') };
     }
     return null;
   };

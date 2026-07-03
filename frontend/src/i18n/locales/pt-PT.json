@@ -196,7 +196,10 @@
     "wishAcceptedLabel": "Resposta aceite",
     "wishAcceptedBody": "{{owner_name}} aceitou a sua resposta a {{wish_headline}}.",
     "viewWish": "Ver pedido",
-    "viewCollection": "Posso ajudar!"
+    "viewCollection": "Posso ajudar!",
+    "reportedLabel": "Uma publicação foi denunciada",
+    "reportedBody": "Alguém denunciou “{{thing_headline}}”. Dê uma vista de olhos.",
+    "viewThing": "Ver publicação"
   },
   "collectionPage": {
     "editCollection": "Editar coleção",
@@ -259,7 +262,14 @@
     "galleryLabel": "Fotografias",
     "galleryImageAlt": "{{name}} — imagem {{index}} de {{total}}",
     "galleryPrev": "Imagem anterior",
-    "galleryNext": "Imagem seguinte"
+    "galleryNext": "Imagem seguinte",
+    "report": "Denunciar",
+    "reportConfirmTitle": "Denunciar esta publicação?",
+    "reportConfirmBody": "Vamos avisar o dono que alguém denunciou — não verá quem. Denuncie apenas conteúdo que quebre as regras.",
+    "reportConfirm": "Denunciar",
+    "reporting": "A denunciar…",
+    "reportThanks": "Obrigado — avisámos o dono.",
+    "reportError": "Não foi possível enviar a sua denúncia. Tente novamente."
   },
   "thingCard": {
     "confirmHold": "Confirmar reserva",
