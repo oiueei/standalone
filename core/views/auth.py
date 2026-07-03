@@ -283,17 +283,26 @@ class VerifyLinkView(APIView):
             return result
         user, refresh, user_data = result
 
+        # A pop-in / share-link magic link can carry the collection the visitor
+        # came to join (``target_code``, stamped by PopInView). Drop them straight
+        # onto it after login instead of the generic /welcome — they were already
+        # added to its invites (private share) or it is PUBLIC (login-to-act).
+        invited_collection = None
+        if rsvp.target_code and Collection.objects.filter(code=rsvp.target_code).exists():
+            invited_collection = rsvp.target_code
+
         rsvp.delete()
 
         security_logger.info(f"User {user.code} logged in via magic link from IP {ip}")
 
-        response = Response(
-            {
-                "action": "MAGIC_LINK",
-                "user": user_data,
-            },
-            status=status.HTTP_200_OK,
-        )
+        response_data = {
+            "action": "MAGIC_LINK",
+            "user": user_data,
+        }
+        if invited_collection:
+            response_data["invited_collection"] = invited_collection
+
+        response = Response(response_data, status=status.HTTP_200_OK)
         _set_auth_cookies(response, refresh)
         return response
 
@@ -481,9 +490,10 @@ class PopInView(APIView):
         # collections. ``joined`` short-circuits that fallback once we've added
         # the user to a specific collection.
         joined = False
-        # When the visitor joins a specific PUBLIC collection by code, stamp it on
-        # the magic-link RSVP so VerifyLinkView redirects them straight back to it
-        # (login-to-act: they came to *act* on that collection).
+        # When the visitor joins a specific collection (owner's share-token link, or
+        # a PUBLIC collection by code) stamp it on the magic-link RSVP so
+        # VerifyLinkView drops them straight onto that collection after login,
+        # instead of the generic /welcome. Empty for the plain onboarding fallback.
         target_collection_code = ""
 
         # 1) An owner's share-token link (bearer credential).
@@ -498,6 +508,7 @@ class PopInView(APIView):
             if shared_collection is not None:
                 shared_collection.invites.add(user)
                 joined = True
+                target_collection_code = shared_collection.code
 
         # 2) Login-to-act on a PUBLIC collection: the visitor joins it by code.
         # Strictly PUBLIC + ACTIVE — a code is never a way into a PRIVATE

@@ -189,6 +189,7 @@ export default function CollectionPage() {
                 collectionCode={code}
                 collectionHeadline={collection.headline}
                 ownerName={collection.owner_name}
+                isPublic={collection.visibility === 'PUBLIC'}
               />
             </div>
             </>

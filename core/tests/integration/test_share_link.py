@@ -11,7 +11,7 @@ import pytest
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import Collection, User
+from core.models import RSVP, Collection, User
 
 
 @pytest.fixture
@@ -218,6 +218,28 @@ class TestPopInWithShareToken:
 
         assert resp.status_code == 200
         assert collection.invites.filter(code=existing.code).exists()
+
+    def test_share_token_stamps_target_and_redirects(self, share_link_setup):
+        # #6: a private-share join should land on the collection after login, not
+        # the generic /welcome. Pop-in stamps target_code on the magic-link RSVP
+        # and verifying it returns invited_collection for the SPA to redirect.
+        collection = share_link_setup["collection"]
+        token = (
+            share_link_setup["owner_client"].post(URL.format(collection.code)).data["share_token"]
+        )
+        share_link_setup["anon_client"].post(
+            POP_IN_URL,
+            {"email": "redirshare@test.com", "share_token": token},
+            format="json",
+        )
+        user = User.objects.get(email="redirshare@test.com")
+        rsvp = RSVP.objects.get(user_code=user, action=RSVP.Action.MAGIC_LINK)
+        assert rsvp.target_code == collection.code
+
+        resp = APIClient().get(f"/api/v1/auth/verify/{rsvp.token}/")
+        assert resp.status_code == 200
+        assert resp.data["action"] == "MAGIC_LINK"
+        assert resp.data["invited_collection"] == collection.code
 
 
 @pytest.mark.django_db

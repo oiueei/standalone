@@ -13,16 +13,19 @@ import Toast from './Toast';
  * Here we hijack `onChange`/`onClose` to fire the action and reset the
  * value, so the Select behaves as a one-shot menu of share actions.
  *
- * The backend `share_token` is generated on demand the first time the
- * owner triggers any of the actions (privacy: collections that are
- * never shared by link never have a token in the database). The URL is
- * cached locally for the rest of the session to avoid extra round trips.
+ * PRIVATE collections use a `/share/{token}` pop-in link: the backend
+ * `share_token` is generated on demand the first time the owner triggers any
+ * action (privacy: collections never shared by link never have a token in the
+ * database). PUBLIC collections are readable without an account, so we skip the
+ * token entirely and share the collection URL directly — no email gate; a
+ * visitor who wants to *act* is asked to log in only at that point (login-to-act).
+ * The resolved URL is cached locally for the rest of the session.
  *
- * The "QR code" action opens an HDS Dialog rendering a QR of the same
- * public share link via `qrcode.react` (client-side, no network). It is
- * handy for sharing in person — a guest scans it with their phone camera.
+ * The "QR code" action opens an HDS Dialog rendering a QR of that same link via
+ * `qrcode.react` (client-side, no network). It is handy for sharing in person —
+ * a guest scans it with their phone camera.
  */
-export default function ShareCollectionMenu({ collectionCode, collectionHeadline, ownerName }) {
+export default function ShareCollectionMenu({ collectionCode, collectionHeadline, ownerName, isPublic }) {
   const { t, i18n } = useTranslation();
   const { btnStyle, btnSecondaryStyle } = useTheeeme();
   const [toast, setToast] = useState(null);
@@ -31,6 +34,12 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
 
   const ensureShareUrl = async () => {
     if (cachedUrlRef.current) return cachedUrlRef.current;
+    // Public collections need no share token — anyone can read them without an
+    // account, so share the collection page directly (no /share email gate).
+    if (isPublic) {
+      cachedUrlRef.current = `${window.location.origin}/collections/${collectionCode}`;
+      return cachedUrlRef.current;
+    }
     const res = await apiFetch(`/api/v1/collections/${collectionCode}/share-link/`, {
       method: 'POST',
     });

@@ -142,3 +142,34 @@ class TestPublicAutoJoin:
         user = User.objects.get(email="demo@test.com")
         rsvp = RSVP.objects.get(user_code=user, action=RSVP.Action.MAGIC_LINK)
         assert rsvp.target_code == ""
+
+    def test_verify_public_join_returns_invited_collection(self, join_setup):
+        # End-to-end #6: after pop-in via a public code, verifying the magic link
+        # returns invited_collection so the SPA drops the visitor straight onto the
+        # collection they came to act on — not the generic /welcome.
+        join_setup["anon"].post(
+            POP_IN_URL,
+            {"email": "roundtrip@test.com", "collection_code": "JPUB01"},
+            format="json",
+        )
+        user = User.objects.get(email="roundtrip@test.com")
+        rsvp = RSVP.objects.get(user_code=user, action=RSVP.Action.MAGIC_LINK)
+
+        resp = APIClient().get(f"/api/v1/auth/verify/{rsvp.token}/")
+        assert resp.status_code == 200
+        assert resp.data["action"] == "MAGIC_LINK"
+        assert resp.data["invited_collection"] == "JPUB01"
+
+    def test_verify_onboarding_join_has_no_redirect(self, join_setup):
+        # No specific target → no invited_collection → SPA falls through to /welcome.
+        join_setup["anon"].post(
+            POP_IN_URL,
+            {"email": "nodest@test.com"},
+            format="json",
+        )
+        user = User.objects.get(email="nodest@test.com")
+        rsvp = RSVP.objects.get(user_code=user, action=RSVP.Action.MAGIC_LINK)
+
+        resp = APIClient().get(f"/api/v1/auth/verify/{rsvp.token}/")
+        assert resp.status_code == 200
+        assert "invited_collection" not in resp.data

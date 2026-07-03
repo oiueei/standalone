@@ -51,7 +51,7 @@ Routes to the appropriate handler based on `rsvp.action`:
 
 | Action | Handler | Commit verb | Description |
 |--------|---------|-------------|-------------|
-| `MAGIC_LINK` | `_handle_magic_link` | GET | Authenticates user, sets auth cookies |
+| `MAGIC_LINK` | `_handle_magic_link` | GET | Authenticates user, sets auth cookies; if the RSVP carries a `target_code` (pop-in / share-link join), returns `invited_collection` so the SPA lands on that collection |
 | `COLLECTION_INVITE` | `_handle_collection_invite` | GET | Adds user to collection invites M2M, sets auth cookies, deletes sibling `COLLECTION_REJECT` RSVP |
 | `COLLECTION_REJECT` | `_handle_collection_reject` | GET | Notifies collection owner of rejection, deletes sibling `COLLECTION_INVITE` RSVP, no JWT |
 | `BOOKING_ACCEPT` | `_handle_booking_accept` | **POST** | Accepts booking via `accept_booking()` service (GET previews only) |
@@ -71,10 +71,11 @@ Routes to the appropriate handler based on `rsvp.action`:
 ```json
 {
   "action": "MAGIC_LINK",
-  "user": { ... }
+  "user": { ... },
+  "invited_collection": "<collection_code>"
 }
 ```
-Auth tokens (`access_token`, `refresh_token`) are set as HttpOnly cookies via `_set_auth_cookies()`.
+Auth tokens (`access_token`, `refresh_token`) are set as HttpOnly cookies via `_set_auth_cookies()`. `invited_collection` is present **only** when the RSVP carried a `target_code` — i.e. the magic link came from a pop-in / share-link join (private share token or PUBLIC login-to-act code). The SPA then drops the user straight onto that collection instead of `/welcome`. A plain `/login` magic link has no `target_code`, so the field is omitted.
 
 **COLLECTION_INVITE response (200):**
 ```json
@@ -126,10 +127,10 @@ Open-door onboarding. Allows anyone to join OIUEEI without a prior invitation.
 1. Validates email via `RequestLinkSerializer`.
 2. Reads optional `share_token` from the body.
 3. `get_or_create` user by email.
-4. If a valid `share_token` is provided **and** the matching `Collection` is `ACTIVE`, adds the user to that collection's `invites` M2M. Invalid, missing, or pointing-to-INACTIVE tokens are silently ignored (anti-enumeration: response shape is identical regardless).
-5. Otherwise, if a `collection_code` is provided and names a **PUBLIC, ACTIVE** collection, adds the user to that collection's `invites` M2M — the login-to-act auto-join: a visitor who tries to act on a public collection is added to it on submission, then logs in via the magic link and can act. A code that is unknown, INACTIVE, or PRIVATE is silently ignored — a code can never be used to enter a private, invite-only collection.
-6. If the user did not join via a token or a public code, falls back to adding them to all `is_onboarding=True` collections.
-7. Creates a `MAGIC_LINK` RSVP and sends a magic link email.
+4. If a valid `share_token` is provided **and** the matching `Collection` is `ACTIVE`, adds the user to that collection's `invites` M2M **and stamps it as the RSVP `target_code`** (so verifying the magic link lands them on the collection, not `/welcome`). Invalid, missing, or pointing-to-INACTIVE tokens are silently ignored (anti-enumeration: response shape is identical regardless).
+5. Otherwise, if a `collection_code` is provided and names a **PUBLIC, ACTIVE** collection, adds the user to that collection's `invites` M2M **and stamps it as `target_code`** — the login-to-act auto-join: a visitor who tries to act on a public collection is added to it on submission, then logs in via the magic link and lands back on it, able to act. A code that is unknown, INACTIVE, or PRIVATE is silently ignored — a code can never be used to enter a private, invite-only collection.
+6. If the user did not join via a token or a public code, falls back to adding them to all `is_onboarding=True` collections (no `target_code` → the magic link lands on `/welcome` / home).
+7. Creates a `MAGIC_LINK` RSVP (carrying any `target_code` from steps 4–5) and sends a magic link email.
 8. Logs request to `security` logger with IP, whether the user is new, and whether they joined a specific collection.
 
 **Responses:**
