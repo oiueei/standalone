@@ -758,7 +758,6 @@
     "durationsPlaceholder": "Tria les durades que ofereixes",
     "durationsHelper": "Per a objectes de préstec/lloguer. Qui lloga en tria una. Buit = qualsevol durada.",
     "weekdaysLabel": "Dies de recollida i devolució",
-    "weekdaysPlaceholder": "Tria els dies permesos",
     "weekdaysHelper": "Recollida i devolució han de caure en aquests dies. Buit = qualsevol dia.",
     "d1": "1 dia",
     "d2": "2 dies",

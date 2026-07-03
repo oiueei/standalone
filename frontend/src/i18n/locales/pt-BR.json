@@ -758,7 +758,6 @@
     "durationsPlaceholder": "Escolha as durações que você oferece",
     "durationsHelper": "Para itens de empréstimo/aluguel. Quem aluga escolhe uma. Vazio = qualquer duração.",
     "weekdaysLabel": "Dias de retirada e devolução",
-    "weekdaysPlaceholder": "Escolha os dias permitidos",
     "weekdaysHelper": "Retirada e devolução devem cair nesses dias. Vazio = qualquer dia.",
     "d1": "1 dia",
     "d2": "2 dias",

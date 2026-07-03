@@ -6,7 +6,7 @@ import {
   isLockedToSingleType,
   reconcileAllowedTypes,
 } from '../constants/things';
-import { RENTAL_DURATION_PRESETS, WEEKDAY_VALUES, durationLabel, weekdayLabel } from '../utils/rental';
+import { RENTAL_DURATION_PRESETS, WEEKDAY_VALUES, durationLabel, weekdayLabel, weekdayNarrow } from '../utils/rental';
 
 /**
  * The shared mode/swap/share field cluster of the Create and Edit
@@ -176,19 +176,44 @@ export default function CollectionForm({
             value={rentalDurations.map((d) => ({ label: durationLabel(d, t), value: String(d) }))}
             onChange={(opts) => setRentalDurations(opts.map((o) => Number(o.value)).sort((a, b) => a - b))}
           />
-          <Select
-            language="en"
-            multiSelect
-            id={`${idPrefix}-rental-weekdays`}
-            texts={{
-              label: t('rental.weekdaysLabel'),
-              placeholder: t('rental.weekdaysPlaceholder'),
-              assistive: t('rental.weekdaysHelper'),
-            }}
-            options={WEEKDAY_VALUES.map((w) => ({ label: weekdayLabel(w, i18n.language), value: String(w) }))}
-            value={rentalWeekdays.map((w) => ({ label: weekdayLabel(w, i18n.language), value: String(w) }))}
-            onChange={(opts) => setRentalWeekdays(opts.map((o) => Number(o.value)).sort((a, b) => a - b))}
-          />
+          <div className="weekday-field">
+            <p className="weekday-field-label" id={`${idPrefix}-rental-weekdays-label`}>
+              {t('rental.weekdaysLabel')}
+            </p>
+            <div
+              className="weekday-chips"
+              role="group"
+              aria-labelledby={`${idPrefix}-rental-weekdays-label`}
+            >
+              {WEEKDAY_VALUES.map((w) => {
+                const selected = rentalWeekdays.includes(w);
+                const full = weekdayLabel(w, i18n.language);
+                return (
+                  <button
+                    key={w}
+                    type="button"
+                    className={`weekday-chip${selected ? ' selected' : ''}`}
+                    aria-pressed={selected}
+                    aria-label={full}
+                    title={full}
+                    onClick={() =>
+                      setRentalWeekdays(
+                        selected
+                          ? rentalWeekdays.filter((x) => x !== w)
+                          : [...rentalWeekdays, w].sort((a, b) => a - b)
+                      )
+                    }
+                    style={selected && theeemeColor01
+                      ? { backgroundColor: `var(--color-${theeemeColor01})`, borderColor: `var(--color-${theeemeColor01})`, color: 'var(--color-white)' }
+                      : undefined}
+                  >
+                    {weekdayNarrow(w, i18n.language)}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="weekday-field-helper">{t('rental.weekdaysHelper')}</p>
+          </div>
         </>
       )}
     </>

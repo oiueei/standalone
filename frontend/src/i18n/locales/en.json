@@ -758,7 +758,6 @@
     "durationsPlaceholder": "Pick the lengths you offer",
     "durationsHelper": "For lending/renting items. Renters pick one of these. Empty = any length.",
     "weekdaysLabel": "Pickup / return days",
-    "weekdaysPlaceholder": "Pick the allowed days",
     "weekdaysHelper": "Both pickup and return must fall on these days. Empty = any day.",
     "d1": "1 day",
     "d2": "2 days",

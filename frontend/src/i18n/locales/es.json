@@ -758,7 +758,6 @@
     "durationsPlaceholder": "Elige las duraciones que ofreces",
     "durationsHelper": "Para objetos de préstamo/alquiler. Quien alquila elige una. Vacío = cualquier duración.",
     "weekdaysLabel": "Días de recogida y devolución",
-    "weekdaysPlaceholder": "Elige los días permitidos",
     "weekdaysHelper": "Recogida y devolución deben caer en estos días. Vacío = cualquier día.",
     "d1": "1 día",
     "d2": "2 días",

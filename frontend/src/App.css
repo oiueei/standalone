@@ -487,6 +487,46 @@ div[class*="Linkbox-module_linkbox"] {
   margin-top: var(--spacing-s);
 }
 
+/* Rental pickup/return weekday chips (#7) — a compact [L M X J V S D] toggle row
+   for the collection form, in place of a dropdown. */
+.weekday-field-label {
+  margin: 0 0 var(--spacing-2-xs);
+  font-size: var(--fontsize-body-m);
+  font-weight: 500;
+}
+
+.weekday-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2-xs);
+}
+
+.weekday-chip {
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--spacing-2-xs);
+  border: 1px solid var(--color-black-30);
+  border-radius: 4px;
+  background: var(--color-white);
+  color: var(--color-black-90);
+  font-size: var(--fontsize-body-m);
+  font-weight: 500;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.weekday-chip.selected {
+  background: var(--color-black-90);
+  border-color: var(--color-black-90);
+  color: var(--color-white);
+}
+
+.weekday-field-helper {
+  margin: var(--spacing-2-xs) 0 0;
+  font-size: var(--fontsize-body-s);
+  color: var(--color-black-60);
+}
+
 .button-row-wide {
   display: flex;
   gap: var(--spacing-s);

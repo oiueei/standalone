@@ -25,6 +25,11 @@ export const WEEKDAY_VALUES = [0, 1, 2, 3, 4, 5, 6];
 export const weekdayLabel = (pyWeekday, lang) =>
   new Date(2024, 0, 1 + pyWeekday).toLocaleDateString(lang, { weekday: 'long' });
 
+// Narrow single-letter weekday for the chip face (es → L M X J V S D). The full
+// name still rides along as the chip's aria-label / title for accessibility.
+export const weekdayNarrow = (pyWeekday, lang) =>
+  new Date(2024, 0, 1 + pyWeekday).toLocaleDateString(lang, { weekday: 'narrow' });
+
 // JS Date.getDay() (0=Sun … 6=Sat) → Python weekday (0=Mon … 6=Sun).
 export const jsToPyWeekday = (jsDay) => (jsDay + 6) % 7;
 

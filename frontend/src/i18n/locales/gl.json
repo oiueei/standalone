@@ -758,7 +758,6 @@
     "durationsPlaceholder": "Escolle as duracións que ofreces",
     "durationsHelper": "Para obxectos de préstamo/aluguer. Quen aluga escolle unha. Baleiro = calquera duración.",
     "weekdaysLabel": "Días de recollida e devolución",
-    "weekdaysPlaceholder": "Escolle os días permitidos",
     "weekdaysHelper": "Recollida e devolución deben caer nestes días. Baleiro = calquera día.",
     "d1": "1 día",
     "d2": "2 días",
