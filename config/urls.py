@@ -8,12 +8,21 @@ from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, path, re_path
+from django_otp.admin import OTPAdminSite
 from django_ratelimit.decorators import ratelimit
+
+# Require a verified OTP device (django-otp) for every admin login, on top of
+# password auth. Swapping the class (rather than instantiating a fresh
+# OTPAdminSite) keeps the existing instance's `name = "admin"`, so every
+# `{% url 'admin:...' %}` / `reverse("admin:...")` reference still resolves.
+# Bootstrap the first device via `python manage.py add_totp_device <email>`
+# (django-otp's own device-config UI needs a verified login to reach it).
+admin.site.__class__ = OTPAdminSite
 
 # Throttle admin login attempts (M3): wrap the admin site's login view with an
 # IP-keyed POST rate limit so the password form can't be brute-forced. Applied
 # before `admin.site.urls` is built below so get_urls() picks up the wrapper.
-# (django-ratelimit only — no django-axes; MFA is deferred. The admin path is
+# (django-ratelimit on top of django-otp — no django-axes. The admin path is
 # also non-default, see below.)
 admin.site.login = ratelimit(key="ip", rate="5/m", method="POST", block=True)(admin.site.login)
 

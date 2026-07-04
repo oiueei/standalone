@@ -302,6 +302,7 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 | Authentication | Magic Link | Passwordless auth via email (24h expiry, one-time use) |
 | Authentication | JWT | HttpOnly cookie-based. 1-hour access, 7-day refresh with rotation and blacklist |
 | Authentication | Invite-Only | New accounts come from an owner's invitation to a collection or an owner-enabled public share link/QR. The `/popin` demo endpoint is a separate, intentional open onboarding gate. |
+| Authentication | Admin 2FA | Django admin login requires a verified TOTP device (`django-otp` `OTPAdminSite`), on top of the password. Bootstrap the first device via `manage.py add_totp_device <email>`. |
 | Authorization | DRF Permissions | Custom `IsThingOwner`, `IsCollectionOwner` permission classes |
 | Authorization | IDOR Protection | Profile access only via collection connections |
 | Input Validation | XSS Prevention | HTML escaped in emails via `django.utils.html.escape()`. Headlines sanitized |
@@ -327,7 +328,6 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 ### Security Roadmap
 
 - [ ] Email validation via AbstractAPI
-- [ ] 2FA for admin users
 - [ ] Audit logging to external service
 - [ ] Content Security Policy (CSP) headers
 
@@ -361,6 +361,12 @@ Full ethical commitment and the rules I follow: [DESIGN.md §9](DESIGN.md#9-user
   python manage.py createsuperuser
   ```
   This is required to access `/oiueei-admin/`. Regular users authenticate via magic link and don't need passwords.
+
+- **Admin login also requires 2FA**: `/oiueei-admin/` is an `OTPAdminSite` (`django-otp`) — password auth alone isn't enough. Bootstrap the first TOTP device (no admin login needed) with:
+  ```bash
+  python manage.py add_totp_device <email>
+  ```
+  Scan the printed `otpauth://` URI into an authenticator app. Additional staff can then have devices added via the admin's own TOTP device page once one verified login exists.
 
 - **Booking expiration** - PENDING bookings expire after 72 hours. Run `python manage.py expire_bookings` periodically (Heroku Scheduler recommended).
 

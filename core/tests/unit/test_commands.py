@@ -308,3 +308,51 @@ class TestSeedDemoCommand:
         sample = en["La1a01"]
         assert sample["type"] == "SELL_THING" and sample["owner_code"] == "La1aN1"  # skeleton
         assert sample["headline"] and sample["headline"] != es["La1a01"]["headline"]  # text
+
+
+@pytest.mark.django_db
+class TestAddTotpDeviceCommand:
+    """Tests for the add_totp_device management command (admin 2FA bootstrap)."""
+
+    def test_creates_confirmed_device_for_staff_user(self):
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        user = User.objects.create(email="staff@example.com", is_staff=True)
+        out = StringIO()
+        call_command("add_totp_device", "staff@example.com", stdout=out)
+
+        device = TOTPDevice.objects.get(user=user)
+        assert device.confirmed is True
+        assert "otpauth://" in out.getvalue()
+
+    def test_rejects_non_staff_user(self):
+        from django.core.management.base import CommandError
+
+        User.objects.create(email="guest@example.com", is_staff=False)
+        with pytest.raises(CommandError):
+            call_command("add_totp_device", "guest@example.com")
+
+    def test_rejects_unknown_email(self):
+        from django.core.management.base import CommandError
+
+        with pytest.raises(CommandError):
+            call_command("add_totp_device", "nobody@example.com")
+
+    def test_refuses_to_duplicate_without_replace(self):
+        from django.core.management.base import CommandError
+
+        User.objects.create(email="staff@example.com", is_staff=True)
+        call_command("add_totp_device", "staff@example.com")
+        with pytest.raises(CommandError):
+            call_command("add_totp_device", "staff@example.com")
+
+    def test_replace_regenerates_the_device(self):
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        user = User.objects.create(email="staff@example.com", is_staff=True)
+        call_command("add_totp_device", "staff@example.com")
+        first_key = TOTPDevice.objects.get(user=user).key
+
+        call_command("add_totp_device", "staff@example.com", "--replace")
+        assert TOTPDevice.objects.filter(user=user).count() == 1
+        assert TOTPDevice.objects.get(user=user).key != first_key

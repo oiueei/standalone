@@ -137,6 +137,12 @@ Required to access the Django admin at `/oiueei-admin/`:
 heroku run python manage.py createsuperuser -a your-app-name
 ```
 
+The admin also requires 2FA (`django-otp`) — bootstrap a TOTP device for that superuser and scan the printed `otpauth://` URI into an authenticator app:
+
+```bash
+heroku run --app your-app-name "python manage.py add_totp_device <email>"
+```
+
 ### 8. Seed demo data (optional)
 
 Populate the database with the demo users (Lala/Lele/Lili/Lolo/Lulu) and their collections. Idempotent — safe to re-run.

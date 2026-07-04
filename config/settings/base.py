@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
     # Local
     "core",
 ]
@@ -55,6 +58,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Resolves request.user's OTP verification state — required by OTPAdminSite
+    # (config/urls.py) to gate admin login behind a second factor.
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # Innermost (after the view): records the DRF-authenticated user's daily
@@ -242,3 +248,6 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 # X-XSS-Protection (SECURE_BROWSER_XSS_FILTER) intentionally omitted: the header
 # is deprecated and the strong CSP (script-src 'self') already supersedes it.
+
+# django-otp: label shown alongside the account name in authenticator apps.
+OTP_TOTP_ISSUER = "OIUEEI"
