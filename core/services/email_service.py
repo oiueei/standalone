@@ -644,6 +644,31 @@ def send_digest_email(collection_headline, collection_code, thing_headlines, ema
         _send(email, subject, plain, html, CATEGORY_NEWS)
 
 
+def send_stats_summary_email(recipient, subject, sections):
+    """Email the first-party stats summary to the platform operator.
+
+    ``sections`` is the structure the ``stats_summary`` command builds: a list of
+    ``{"title": str, "rows": [(label, value), ...], "note"?: str}``. Sent as
+    CATEGORY_MANDATORY — an internal ops report, not a user notification, so it
+    ignores ``notify_*`` prefs and carries no footer. Values are escaped by the
+    autoescaping layout (they're aggregate numbers, but the pipeline stays uniform).
+    """
+    blocks = []
+    plain_lines = []
+    for section in sections:
+        blocks.append(_heading(section["title"]))
+        plain_lines.append(section["title"])
+        for label, value in section["rows"]:
+            blocks.append(_field(label, str(value)))
+            plain_lines.append(f"  {label}: {value}")
+        if section.get("note"):
+            blocks.append(_para(section["note"]))
+            plain_lines.append(f"  ({section['note']})")
+        plain_lines.append("")
+
+    _send(recipient, subject, "\n".join(plain_lines), _render_email(blocks), CATEGORY_MANDATORY)
+
+
 def send_newsletter_email(
     collection_headline, collection_code, new_thing_headlines, transfer_entries, emails
 ):

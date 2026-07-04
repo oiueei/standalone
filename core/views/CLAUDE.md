@@ -818,6 +818,24 @@ On-demand command (`python manage.py cleanup_orphan_images`) that deletes **orph
 - **Age window:** only assets older than `--min-age-hours` (default 24, so an in-flight upload mid-form isn't mistaken for an orphan) and younger than `--max-age-days` (default 30, keeping it a recent sweep). Run regularly (e.g. weekly) so every orphan is caught within its window.
 - Pages through `cloudinary.api.resources` (prefix `oiueei/`), deletes in batches of 100 via `cloudinary.api.delete_resources`, and prints a per-run summary (scanned / in use / seed / outside window / orphans / deleted).
 
+### Management Command: `stats_summary`
+
+First-party product stats (see the [`Event`](../models/CLAUDE.md#event) and [`DailyActivity`](../models/CLAUDE.md#dailyactivity) models). Computes metrics from three sources — current state (domain tables), accumulated history (`Event`), retention (`DailyActivity`) — and **always prints** them to stdout; it emails them to the operator (`oiueei@disroot.org`) on **Mondays** (weekday-gated inside the command, mirroring `send_digests`), or on any day with `--email`. The email goes through `email_service.send_stats_summary_email` (CATEGORY_MANDATORY, escaped via the layout template).
+
+- **Demo never mixes into real numbers**: the five seed users (imported from `seed_data/common.py`), `is_onboarding` collections, and pop-in users who only ever landed in onboarding collections are split into a separate "Demo funnel" section. `build_report()` returns a list of `{title, rows, note?}` sections reused by both the stdout renderer and the email.
+- **Scheduler**: appended to the existing daily 05:00 UTC Heroku Scheduler job (`expire_bookings && cleanup_rsvps && close_transfers && send_reminders && send_digests && stats_summary`).
+
+### Management Command: `backfill_events`
+
+One-off, idempotent seed of the `Event` log from existing rows (users → `USER_JOINED` at `date_joined`, collections/things/bookings at their `created`; accepted bookings also get `HOLD_ACCEPTED`). Run **once**, the day tracking ships, before forward instrumentation accumulates. Kept out of migrations per repo convention. Re-running never double-counts (skips when an equal event already exists).
+
+---
+
+## Middleware (`core/middleware.py`)
+
+- **`SecurityHeadersMiddleware`** — adds CSP + Permissions-Policy to every response (all environments).
+- **`DailyActivityMiddleware`** — records the authenticated user's daily activity (see [`DailyActivity`](../models/CLAUDE.md#dailyactivity)). Registered **innermost** so it can read the DRF-authenticated `request.user` *after* the view (there is no Django session — auth is JWT-cookie via DRF authenticators, so `request.user` only resolves once a view/permission touches it). A DatabaseCache key gates it to one write per user per day; failures are swallowed so tracking can never 500 a good response. Anonymous / non-DRF requests are skipped.
+
 ---
 
 ## Custom Permissions (`core/permissions.py`)

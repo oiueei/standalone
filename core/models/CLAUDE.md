@@ -514,3 +514,60 @@ A `Report` is a logged-in member's flag on a `Thing` (content moderation, #12). 
 
 - `thing.reports` — reports filed against a thing (`Report.thing` FK reverse)
 - `user.reports_made` — reports a user has filed (`Report.reporter` FK reverse)
+
+---
+
+## Event
+
+An `Event` is one row in an **append-only, first-party analytics log**. The domain tables can't answer historical questions on their own: Collections and Things are **hard-deleted**, `Collection.invites` has no join timestamp, and there is no session concept. `Event` records the handful of actions we care about so accumulated counts and funnels survive those deletes. Consumed only by the `stats_summary` command — never exposed to any read endpoint (DESIGN §9).
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
+| `kind` | CharField(18) | **Yes** | One of the `Kind` choices (see below) |
+| `actor_code` | CharField(6) | No | **Snapshot** of the acting user's code (not an FK). Default `""` |
+| `collection_code` | CharField(6) | No | **Snapshot** of the relevant collection's code. Default `""` |
+| `thing_code` | CharField(6) | No | **Snapshot** of the relevant thing's code. Default `""` |
+| `thing_type` | CharField(17) | No | **Snapshot** of the thing's type (for THING_/HOLD_ events). Default `""` |
+| `created` | DateTimeField | Auto | `default=timezone.now` (**not** `auto_now_add`, so `backfill_events` can stamp historical timestamps) |
+
+### Kinds
+
+`USER_JOINED`, `COLLECTION_CREATED`, `COLLECTION_DELETED`, `THING_ADDED`, `THING_REMOVED`, `MEMBER_JOINED`, `MEMBER_LEFT`, `FAQ_ASKED`, `HOLD_REQUESTED`, `HOLD_ACCEPTED`. Guest→creator conversion is **derived** (first `MEMBER_JOINED` vs first `COLLECTION_CREATED` per actor), not a stored kind.
+
+### Business Rules
+
+1. **Snapshots, not FKs** — every reference is a plain code string so the row survives the referenced object being hard-deleted. That's the whole point of the log.
+2. **Written alongside the existing side-effects** — instrumentation is a one-liner (`Event.log(...)`) placed next to the notification/email each action already fires, in `core/views/` and `core/services/`. `HOLD_ACCEPTED` and `HOLD_REQUESTED` are both anchored to the **requester** so a guest's request→accept funnel and the success rate are plain counts by kind.
+3. **`THING_REMOVED` = hard delete only** — the M2M "remove from collection" detach is not logged, keeping `THING_ADDED`/`THING_REMOVED` symmetric (net = live things).
+4. **Backfill is a command, not a migration** — `backfill_events` seeds history from existing users/collections/things/bookings at their original timestamps; idempotent (skips when an equal event already exists).
+
+### Methods
+
+- `Event.log(kind, *, actor=None, collection=None, thing=None, thing_type=None, created=None)` — the instrumentation one-liner. Accepts model instances **or** raw code strings (use strings when the object is about to be / has just been deleted). `thing_type` defaults to `thing.type` when a Thing instance is passed. Meta: `db_table="events"`, ordered `-created`, index on `(kind, created)`.
+
+---
+
+## DailyActivity
+
+A `DailyActivity` is one `(user, date)` row per user per day they were active — the smallest first-party record that answers returns/retention, since the app keeps no session concept.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
+| `user` | ForeignKey(User) | **Yes** | The active user (`on_delete=CASCADE`, reverse `daily_activity`) |
+| `date` | DateField | **Yes** | The day of activity (local date) |
+
+### Business Rules
+
+1. **At most one row per user per day** — `UniqueConstraint(user, date)` (`unique_daily_activity_per_day`). Written by `core.middleware.DailyActivityMiddleware` **after** the view resolves the DRF-authenticated user, gated by a DatabaseCache key (`da:{user}:{date}`, ~24h TTL) so it costs one DB write per user per day, not per request.
+2. **Best-effort** — the middleware swallows any write error: activity bookkeeping must never turn a good response into a 500.
+3. **Real-only in stats** — `stats_summary` intersects activity with the real (non-demo) population to compute WAU/MAU per role, returners (active ≥2 days), and "guests who never came back after their first visit". Index on `date` for the range scans.
+
+### Reverse Relations
+
+- `user.daily_activity` — a user's activity days (`DailyActivity.user` FK reverse)

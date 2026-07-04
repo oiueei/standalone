@@ -83,6 +83,8 @@ core/
       close_transfers.py  # Close overdue loan transfers
       send_reminders.py   # Daily booking/delivery reminders
       send_digests.py     # Weekly/monthly digest emails
+      stats_summary.py    # First-party product stats (stdout + Monday email)
+      backfill_events.py  # One-off: seed the Event log from existing rows
       seed_demo.py        # Populate demo data (idempotent; --lang=en|es)
       seed_data/
         common.py         # non-translatable (transfers)
@@ -106,6 +108,8 @@ core/
 | **RSVP** | One-time-use tokens (24h expiry) for auth and email actions. FK to User |
 | **BookingPeriod** | Unified booking model for all thing types (72h expiry). FKs to Thing, User (requester), User (owner). `offered_things` M2M for SWAP_THING exchange proposals |
 | **WishResponse** | An answer to a wish (WISH_THING). FK to Thing (`wish`) and User (`responder`). `kind`: HAVE_THIS (links a real listing via FK `thing`), KNOW_WHERE (text + `url`), CAN_MAKE (text + `fee`). `status`: PENDING or ACCEPTED. The creator accepts one answer; accepting is scoped to the answer, not the wish |
+| **Event** | Append-only first-party analytics log. Text **snapshots** (`actor_code`/`collection_code`/`thing_code`), not FKs, so rows outlive hard-deleted objects. `kind` covers the tracked actions (user joined, collection/thing added/removed, member joined/left, FAQ asked, hold requested/accepted). Written by one-line instrumentation next to the notification/email each action already fires; consumed only by `stats_summary`. Never exposed to users |
+| **DailyActivity** | One `(user, date)` row per user per active day, written by `DailyActivityMiddleware` (cache-gated to ≤1 DB write per user per day). Powers WAU/MAU and retention. Records less than the web-server logs already hold and never leaves our DB |
 
 ## Key Relationships
 
@@ -251,10 +255,15 @@ ruff format .                              # formatting (replaces black)
 # Create admin user
 python manage.py createsuperuser
 
-# Scheduled jobs (run via Heroku Scheduler in production)
+# Scheduled jobs (run via Heroku Scheduler in production — one daily job chains them)
 python manage.py expire_bookings   # expire stale bookings
 python manage.py send_reminders    # return/delivery reminders (daily)
 python manage.py send_digests      # weekly/monthly digest emails (daily)
+python manage.py stats_summary     # product stats (prints daily; emails on Mondays)
+
+# One-off: seed the Event analytics log from existing rows (idempotent).
+# Run once, the day tracking ships, before forward events accumulate.
+python manage.py backfill_events
 ```
 
 ## Environment Variables
@@ -325,6 +334,8 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 ## Privacy
 
 OIUEEI does not sell or share user data with third parties. There is **no third-party analytics SDK** in the app: nothing is loaded, nothing is sent, no consent banner is needed. The only outbound data flows are the operational ones the user expects — email delivery via the configured SMTP provider, image hosting via Cloudinary, and the user's own session cookies.
+
+Product metrics are **first-party only**: an append-only `Event` log and a `(user, date)` `DailyActivity` record, both computed into an aggregate `stats_summary` that is printed and emailed to the operator. They record less than the web-server logs already hold, never leave our DB, and are never wrapped in tracking pixels or redirect links. Demo/seed activity is reported separately so it can't inflate the real numbers.
 
 Full ethical commitment and the rules I follow: [DESIGN.md §9](DESIGN.md#9-user-data-is-never-a-product).
 

@@ -80,6 +80,7 @@ Every email belongs to one of three categories. Each function routes through the
 | `send_wish_posted_email(creator_name, wish, emails)` | Member posts a wish with "Avisar al grupo" on | Every group member (individually; activity opt-out applies) |
 | `send_wish_response_email(responder_name, wish, creator_email)` | Member answers a wish | Wish creator |
 | `send_wish_thanks_email(creator_name, wish, responder_email)` | Wish creator marks it resolved | Accepted responder |
+| `send_stats_summary_email(recipient, subject, sections)` | `stats_summary` command (Mondays / `--email`) | The operator. Internal ops report — **CATEGORY_MANDATORY** (ignores `notify_*`, no footer). `sections` is the `[{title, rows, note?}]` structure the command builds; rendered to escaped HTML via the layout blocks |
 
 #### Patterns
 
