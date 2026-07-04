@@ -401,6 +401,11 @@ Detail page for a thing with full information and FAQs section.
 
 - `apiFetch(url, options)` — Centralised fetch wrapper. Uses `credentials: 'include'` for cookie-based auth, sets `Content-Type: application/json` for requests with body. On 401: silently attempts token refresh via `POST /api/v1/auth/refresh/`. Only `userCode` is stored in localStorage (for ownership checks).
 
+### Custom Hooks
+
+- **`useThingBooking`** (`src/hooks/useThingBooking.js`) — The lower-level booking **engine**: owns the reservation state, the owner-calendar fetch (`AbortController`-guarded, re-runs by `thing.code`), and the three async handlers (`handleRequest`, `handleActivate`, `handleBookingAction`). The card-vs-page differences are options (`initialActivePending`, `initialRequested`, `fetchOnEndless`, `bookingKeepsStatus`, `activateSuccessMessage`). Returns `{ submitting, requested, bookingAction, bookingActionVerb, activating, bookings, activePendingCode, handleRequest, handleActivate, handleBookingAction }`.
+- **`useThingActions`** (`src/hooks/useThingActions.js`) — The **view-model** layer wrapping `useThingBooking`, shared by `ThingLinkbox` and `ThingPage` so the owner-button-matrix / reserve-button logic lives in one place. Derives the type flags (`isOwner`, `isCollectionOwner`, `isWish`, `isShare`, `isSwap`, `isDateBased`, `needsPage`, `canDelete`, `hasPendingBookings`), the swap-minimum gate (`swapMinimumNotMet`, `swapItemsMissing`), and the reserve button's `showButton` / `buttonDisabled` / `loginButtonDisabled` / `buttonLabel` — plus everything `useThingBooking` returns. The genuine differences are options: `isPaused` (card on a paused collection; the page passes false), `canAct` (the page passes `isAuthenticated`), `loginToAct` (anonymous-on-public — buttons show but each click routes to `/collections/:code/join`), `collectionOwner`, and the `useThingBooking` seeds. `bookingKeepsStatus` (`needsPage || is_endless`) is derived here so callers don't repeat it. Signature: `useThingActions(thing, userCode, options)`.
+
 ### Shared Components
 
 - **`BackLink`** (`src/components/BackLink.jsx`) — Reusable `← {label}` back navigation link. Props: `to`, `label`.

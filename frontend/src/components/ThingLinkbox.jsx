@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, IconSpeechbubbleText, IconSwapUser } from 'hds-react';
-import { DATE_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE } from '../constants/things';
+import { SHARE_TYPE } from '../constants/things';
 import MarkdownText from './MarkdownText';
 import RespondMenu from './RespondMenu';
 import useTheeeme from '../hooks/useTheeeme';
-import useThingBooking from '../hooks/useThingBooking';
+import useThingActions from '../hooks/useThingActions';
 import ThingTags from './ThingTags';
 import ThingInfoRows from './ThingInfoRows';
 import OwnerBookingsList from './OwnerBookingsList';
@@ -19,26 +19,12 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
 
-  const isOwner = thing.owner === userCode;
   const { btnStyle, btnSecondaryStyle } = useTheeeme();
-  const isWish = thing.type === WISH_TYPE;
-  const isShare = thing.type === SHARE_TYPE;
-  const isSwap = thing.type === SWAP_TYPE;
-  const isDateBased = DATE_TYPES.includes(thing.type);
-  // `needsPage` drives the reserve button's navigation: date-based (pick dates)
-  // and swap (pick items) need a follow-up form, everything else POSTs directly.
-  // `bookingKeepsStatus` drives whether accepting a hold keeps the thing
-  // circulating. Endless GIFT/SELL keep their status but reserve via a direct
-  // POST, so the two must stay separate — conflating them sends endless things
-  // to an empty request page. (ThingPage computes these identically.)
-  const needsPage = isDateBased || isSwap;
-  const bookingKeepsStatus = needsPage || thing.is_endless;
-  const isCollectionOwner = (collectionOwner || thing.collection_owner) === userCode;
-  const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
 
+  // Owner-button-matrix + reservation view-model (shared with ThingPage). The
+  // card's own seeds (pending from the serializer, SHARE fold, endless calendar)
+  // and `loginToAct` mode are passed as options; see useThingActions.
   const {
-    submitting,
-    requested,
     bookingAction,
     bookingActionVerb,
     activating,
@@ -47,44 +33,34 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     handleRequest,
     handleActivate,
     handleBookingAction,
-  } = useThingBooking(thing, {
     isOwner,
+    isCollectionOwner,
+    isWish,
+    isDateBased,
+    needsPage,
+    canDelete,
+    showButton,
+    swapMinimumNotMet,
+    swapItemsMissing,
+    buttonDisabled,
+    loginButtonDisabled,
+    buttonLabel,
+  } = useThingActions(thing, userCode, {
+    isPaused,
+    canAct,
+    loginToAct,
+    collectionOwner,
     onThingChange: (patch) => onUpdateThing(thing.code, patch),
     setToast,
     initialActivePending: thing.pending_booking,
-    initialRequested: thing.type === 'SHARE_THING' && !!thing.my_pending_booking,
+    initialRequested: thing.type === SHARE_TYPE && !!thing.my_pending_booking,
     fetchOnEndless: true,
-    bookingKeepsStatus,
   });
 
-  // `canAct` is false for an anonymous visitor on a PUBLIC collection: the card
-  // is read-only and the page-level JoinToAct prompt drives reserve/ask/respond.
-  const showButton = (canAct || loginToAct) && !isOwner && thing.status !== 'INACTIVE';
   // Anonymous visitor (loginToAct): show the action buttons, but route each click
   // to the collection's join page — they log in there and come back able to act.
   const joinPath = `/collections/${collectionCode || thing.collection_code}/join`;
   const goJoin = () => navigate(joinPath, { state: { collectionHeadline: collectionHeadline || thing.collection_headline } });
-  const loginButtonDisabled = isPaused || thing.status === 'TAKEN';
-  const swapMinimum = thing.collection_swap_minimum_items || 0;
-  const swapOwnCount = thing.my_swap_count_in_collection || 0;
-  const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
-  const swapItemsMissing = swapMinimumNotMet ? swapMinimum - swapOwnCount : 0;
-  const buttonDisabled = isPaused || thing.status === 'TAKEN' || submitting || requested || swapMinimumNotMet;
-  // The current viewer holds the pending booking (locally requested, or returned
-  // by the serializer). Only they see "waiting"; everyone else sees a reason the
-  // disabled button can't be used — so the cause travels with the control (P1-2).
-  const isMine = requested || !!thing.my_pending_booking;
-  const buttonLabel = submitting
-    ? t('common.sending')
-    : isMine
-      ? t('thingCard.waitingForConfirmation')
-      : thing.status === 'TAKEN'
-        ? t('thingCard.notAvailable')
-        : isPaused
-          ? t('thingCard.paused')
-          : swapMinimumNotMet
-            ? t('thingCard.needMoreItems', { count: swapItemsMissing })
-            : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') });
 
   const editPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}/edit`

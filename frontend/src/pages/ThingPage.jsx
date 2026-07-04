@@ -8,10 +8,8 @@ import {
   Notification,
   TextArea,
 } from 'hds-react';
-import { DATE_TYPES, WISH_TYPE, SHARE_TYPE, SWAP_TYPE, WISH_KIND_I18N } from '../constants/things';
+import { WISH_TYPE, WISH_KIND_I18N } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
-
-const isDateType = (type) => DATE_TYPES.includes(type);
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import RespondMenu from '../components/RespondMenu';
@@ -24,7 +22,7 @@ import ImageCarousel from '../components/ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
 import JoinToAct from '../components/JoinToAct';
 import useTheeeme from '../hooks/useTheeeme';
-import useThingBooking from '../hooks/useThingBooking';
+import useThingActions from '../hooks/useThingActions';
 
 export default function ThingPage() {
   const { code, thingCode } = useParams();
@@ -41,10 +39,8 @@ export default function ThingPage() {
   const [reporting, setReporting] = useState(false);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
-  // Reservation engine (shared with ThingLinkbox)
+  // Owner-button-matrix + reservation view-model (shared with ThingLinkbox).
   const {
-    submitting,
-    requested,
     bookingAction,
     bookingActionVerb,
     activating,
@@ -53,13 +49,23 @@ export default function ThingPage() {
     handleRequest,
     handleActivate,
     handleBookingAction,
-  } = useThingBooking(thing, {
-    isOwner: thing?.owner === userCode,
+    isOwner,
+    isCollectionOwner,
+    isWish,
+    isSwap,
+    isDateBased,
+    needsPage,
+    canDelete,
+    hasPendingBookings,
+    showButton,
+    swapMinimumNotMet,
+    swapItemsMissing,
+    buttonDisabled,
+    buttonLabel,
+  } = useThingActions(thing, userCode, {
+    canAct: isAuthenticated,
     onThingChange: (patch) => setThing((prev) => ({ ...prev, ...patch })),
     setToast,
-    // Keep the thing circulating on accept/reject for date-based, swap, and
-    // endless flows — must match ThingLinkbox's `bookingKeepsStatus`.
-    bookingKeepsStatus: isDateType(thing?.type) || thing?.type === SWAP_TYPE || !!thing?.is_endless,
     activateSuccessMessage: t('thingPage.thingReactivated'),
   });
 
@@ -192,35 +198,8 @@ export default function ThingPage() {
     return <LoadingSpinner />;
   }
 
-  const isOwner = thing.owner === userCode;
-  const isCollectionOwner = thing.collection_owner === userCode;
-  const isWish = thing.type === WISH_TYPE;
-  const isShare = thing.type === SHARE_TYPE;
-  const isSwap = thing.type === SWAP_TYPE;
-  const isDateBased = isDateType(thing.type);
-  const needsPage = isDateBased || isSwap;
-  const hasPendingBookings = bookings.some((b) => b.status === 'PENDING');
-  const canDelete = isCollectionOwner || (isOwner && (!isShare || thing.transfer_count === 0));
-  // Anonymous visitors get a read-only page plus the JoinToAct prompt; only
-  // authenticated members see the reserve / respond / ask controls.
-  const showButton = isAuthenticated && !isOwner && thing.status !== 'INACTIVE';
-  const swapMinimum = thing.collection_swap_minimum_items || 0;
-  const swapOwnCount = thing.my_swap_count_in_collection || 0;
-  const swapMinimumNotMet = isSwap && swapMinimum > 0 && swapOwnCount < swapMinimum;
-  const swapItemsMissing = swapMinimumNotMet ? swapMinimum - swapOwnCount : 0;
-  const buttonDisabled = thing.status === 'TAKEN' || submitting || requested || (isShare && !!thing.my_pending_booking) || swapMinimumNotMet;
-  // Only the viewer who holds the pending booking sees "waiting"; everyone else
-  // sees why the disabled button can't be used, so the cause travels with it.
-  const isMine = requested || !!thing.my_pending_booking;
-  const buttonLabel = submitting
-    ? t('common.sending')
-    : isMine
-      ? t('thingCard.waitingForConfirmation')
-      : thing.status === 'TAKEN'
-        ? t('thingCard.notAvailable')
-        : swapMinimumNotMet
-          ? t('thingCard.needMoreItems', { count: swapItemsMissing })
-          : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') });
+  // isOwner, type flags, canDelete, showButton, the swap gate, buttonDisabled and
+  // buttonLabel all come from useThingActions (destructured at the top).
 
   const editPath = code
     ? `/collections/${code}/things/${thing.code}/edit`
