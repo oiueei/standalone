@@ -164,7 +164,7 @@ The `page-container` and `form-hero-content` max-width is **1248px** (aligned wi
 Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPage` and `HomePage`.
 
 - **Card**: the component uses HDS `Card` (a `<div>`-based container) instead of `Linkbox`, since it contains interactive elements (buttons, links). The thumbnail and headline are wrapped in `<Link>` components for navigation to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). No `stopPropagation` hacks needed.
-- **Community attribution** (before headline, COMMUNITY collections only): when `collectionMode === 'COMMUNITY'`, renders a `thing-card-meta` paragraph showing `owner_name` and the creation date formatted as dd/mm (`toLocaleDateString('es', { day: '2-digit', month: '2-digit' })`). Uses the `collectionMode` prop passed from `CollectionPage`.
+- **Community attribution** (before headline, COMMUNITY collections only): when `collectionMode === 'COMMUNITY'`, renders a `thing-card-meta` paragraph showing `owner_name` and the creation date formatted as dd/mm (`toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })`). Uses the `collectionMode` prop passed from `CollectionPage`.
 - **Tags row** (before headline): HDS `Tag` components in a flex row showing:
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Wish.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
