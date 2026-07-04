@@ -271,6 +271,7 @@ python manage.py backfill_events
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DJANGO_SECRET_KEY` | Yes | Django secret key |
+| `JWT_SIGNING_KEY` | No | Signs JWTs independently of `DJANGO_SECRET_KEY`, so the two can be rotated separately (defaults to `DJANGO_SECRET_KEY` if unset). Setting/rotating it invalidates every issued access/refresh token — everyone re-logins via magic link — so change it deliberately, once, alongside a release. |
 | `DJANGO_SETTINGS_MODULE` | No | Settings module (defaults to production) |
 | `DJANGO_ALLOWED_HOSTS` | No | Comma-separated allowed hosts |
 | `DATABASE_URL` | Prod | PostgreSQL connection string |
