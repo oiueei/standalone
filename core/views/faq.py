@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import FAQ, Thing
+from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.pagination import StandardResultsPagination
 from core.serializers import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
@@ -93,6 +94,7 @@ class ThingFAQListView(APIView):
             questioner=request.user,
             question=serializer.validated_data["question"],
         )
+        Event.log(Event.Kind.FAQ_ASKED, actor=request.user, thing=thing)
 
         # Notify owner by email and in-app
         owner = thing.owner

@@ -18,6 +18,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from core.models import Collection, Thing
 from core.models.booking import BookingPeriod
+from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.pagination import StandardResultsPagination
 from core.permissions import IsThingOwner
@@ -157,9 +158,29 @@ class ThingViewSet(ModelViewSet):
             if thing.type == Thing.Type.WISH_THING and self._wants_group_notice():
                 self._broadcast_new_wish(thing, collection)
 
+        Event.log(
+            Event.Kind.THING_ADDED,
+            actor=self.request.user,
+            collection=collection,
+            thing=thing,
+        )
+
         # Store created thing for create response
         self._created_thing = thing
         self._create_error = None
+
+    def perform_destroy(self, instance):
+        # Snapshot code + type before delete() nulls the instance PK — the log must
+        # outlive the row (things are hard-deleted). Actor is whoever deleted it
+        # (collection owner or thing owner), not necessarily the current owner.
+        thing_code, thing_type = instance.code, instance.type
+        super().perform_destroy(instance)
+        Event.log(
+            Event.Kind.THING_REMOVED,
+            actor=self.request.user,
+            thing=thing_code,
+            thing_type=thing_type,
+        )
 
     def perform_update(self, serializer):
         # The type stays editable, but a PATCH can't move a thing to a type its

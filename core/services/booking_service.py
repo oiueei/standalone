@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from core.models import RSVP, Thing
 from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
+from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
 
@@ -243,6 +244,15 @@ def finalize_booking_decision(booking, accepted):
         payload={"thing_headline": thing.headline, "owner_name": owner_name},
     )
     send_booking_decision_email(booking, thing, accepted=accepted)
+    if accepted:
+        # Anchored to the requester (like HOLD_REQUESTED) so a guest's request→accept
+        # funnel and the overall holds success rate are both a plain count by kind.
+        Event.log(
+            Event.Kind.HOLD_ACCEPTED,
+            actor=booking.requester_code,
+            thing=thing,
+            thing_type=booking.thing_type,
+        )
     _delete_booking_rsvps(booking.code)
 
     if accepted and booking.thing_type in (Thing.Type.SHARE_THING, Thing.Type.SWAP_THING):

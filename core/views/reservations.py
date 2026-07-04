@@ -16,6 +16,7 @@ from rest_framework.views import APIView
 
 from core.models import RSVP, Collection, Thing
 from core.models.booking import DATE_BASED_TYPES, BookingPeriod
+from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.serializers.booking import (
     ThingRequestWithDatesSerializer,
@@ -368,6 +369,12 @@ class ThingRequestView(APIView):
                 "requester_name": requester.display_name,
             },
         )
+        Event.log(
+            Event.Kind.HOLD_REQUESTED,
+            actor=requester,
+            thing=thing,
+            thing_type=booking.thing_type,
+        )
 
     def _send_booking_email(self, requester, thing, booking, owner_email):
         """Send booking request email to owner with RSVP-protected links."""
@@ -384,4 +391,10 @@ class ThingRequestView(APIView):
                 "thing_headline": thing.headline,
                 "requester_name": requester.display_name,
             },
+        )
+        Event.log(
+            Event.Kind.HOLD_REQUESTED,
+            actor=requester,
+            thing=thing,
+            thing_type=booking.thing_type,
         )

@@ -26,6 +26,7 @@ from rest_framework.viewsets import ModelViewSet
 from core.models import RSVP, Collection, Thing, User
 from core.models.booking import BookingPeriod
 from core.models.collection import generate_share_token
+from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
 from core.permissions import IsCollectionOwner
@@ -147,7 +148,14 @@ class CollectionViewSet(ModelViewSet):
             col_count=1
         )
         orphaned_things.delete()
+        collection_code = instance.code  # snapshot before delete() nulls the PK
         instance.delete()
+
+        Event.log(
+            Event.Kind.COLLECTION_DELETED,
+            actor=self.request.user,
+            collection=collection_code,
+        )
 
         InAppNotification.objects.bulk_create(
             [
@@ -166,6 +174,7 @@ class CollectionViewSet(ModelViewSet):
             owner=self.request.user,
             **validated_data,
         )
+        Event.log(Event.Kind.COLLECTION_CREATED, actor=self.request.user, collection=collection)
         self._created_collection = collection
 
     def create(self, request, *args, **kwargs):
@@ -298,6 +307,8 @@ class CollectionInviteView(APIView):
             email=email,
             defaults={"email": email},
         )
+        if created:
+            Event.log(Event.Kind.USER_JOINED, actor=invited_user)
 
         if collection.is_invited(invited_user.code):
             return Response(
@@ -369,6 +380,7 @@ class CollectionInviteView(APIView):
 
         if invited_user:
             collection.invites.remove(invited_user)
+            Event.log(Event.Kind.MEMBER_LEFT, actor=invited_user, collection=collection)
 
             # Send notification email and in-app notification to removed user
             try:
@@ -437,6 +449,7 @@ class CollectionLeaveView(APIView):
             )
 
         collection.invites.remove(request.user)
+        Event.log(Event.Kind.MEMBER_LEFT, actor=request.user, collection=collection)
 
         # Let the owner know a member left (in-app; symmetric to the revoke notice).
         InAppNotification.objects.create(
@@ -546,7 +559,9 @@ class CollectionBulkInviteView(APIView):
                 defaults = {"email": email}
                 if name:
                     defaults["name"] = name
-                invited_user, _ = User.objects.get_or_create(email=email, defaults=defaults)
+                invited_user, created = User.objects.get_or_create(email=email, defaults=defaults)
+                if created:
+                    Event.log(Event.Kind.USER_JOINED, actor=invited_user)
 
                 if collection.is_invited(invited_user.code):
                     skipped.append({"email": email, "reason": "already_member"})

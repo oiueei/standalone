@@ -22,6 +22,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import RSVP, Collection, User
 from core.models.booking import BookingPeriod
+from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.serializers import RequestLinkSerializer, UserSerializer
 from core.services.booking_service import finalize_booking_decision
@@ -319,6 +320,7 @@ class VerifyLinkView(APIView):
             try:
                 collection = Collection.objects.get(code=rsvp.target_code)
                 collection.invites.add(user)
+                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
                 invited_collection = rsvp.target_code
             except Collection.DoesNotExist:
                 pass  # Collection was deleted, ignore
@@ -485,6 +487,8 @@ class PopInView(APIView):
         ip = get_client_ip(request)
 
         user, created = User.objects.get_or_create(email=email)
+        if created:
+            Event.log(Event.Kind.USER_JOINED, actor=user)
 
         # Join the relevant collection (if any), else fall back to the onboarding
         # collections. ``joined`` short-circuits that fallback once we've added
@@ -507,6 +511,7 @@ class PopInView(APIView):
 
             if shared_collection is not None:
                 shared_collection.invites.add(user)
+                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=shared_collection)
                 joined = True
                 target_collection_code = shared_collection.code
 
@@ -526,6 +531,7 @@ class PopInView(APIView):
 
             if public_collection is not None:
                 public_collection.invites.add(user)
+                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=public_collection)
                 joined = True
                 target_collection_code = public_collection.code
 
@@ -534,6 +540,7 @@ class PopInView(APIView):
             onboarding_collections = Collection.objects.filter(is_onboarding=True)
             for collection in onboarding_collections:
                 collection.invites.add(user)
+                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
 
         rsvp = RSVP.objects.create(
             user_code=user, user_email=email, target_code=target_collection_code
