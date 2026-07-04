@@ -57,6 +57,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Innermost (after the view): records the DRF-authenticated user's daily
+    # activity — request.user is only resolved once a DRF view touches it.
+    "core.middleware.DailyActivityMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

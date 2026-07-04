@@ -1,3 +1,4 @@
+from .activity import DailyActivity
 from .booking import BookingPeriod
 from .collection import Collection
 from .event import Event
@@ -24,4 +25,5 @@ __all__ = [
     "Report",
     "WishResponse",
     "Event",
+    "DailyActivity",
 ]

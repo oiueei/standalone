@@ -27,6 +27,18 @@ def _make_things(owner, collection, n):
     collection.things.add(*ThingFactory.create_batch(n, owner=owner))
 
 
+def _warm_activity(client):
+    """Prime DailyActivityMiddleware's once-per-user/day write + cache guard.
+
+    The middleware writes a DailyActivity row on a user's first authenticated
+    request of the day and only reads cache thereafter. Without this warm-up the
+    first measured request below would alone carry that INSERT, so the equality
+    guards would be comparing first-visit bookkeeping instead of serialisation
+    cost. One throwaway request makes both measured requests steady-state.
+    """
+    client.get("/api/v1/auth/me/")
+
+
 @pytest.mark.django_db
 class TestListEndpointQueryBudgets:
     """The query count of a list/detail response must be CONSTANT in the number
@@ -36,6 +48,7 @@ class TestListEndpointQueryBudgets:
         self, authenticated_client, user, collection
     ):
         url = f"/api/v1/collections/{collection.code}/"
+        _warm_activity(authenticated_client)
         _make_things(user, collection, 2)
         with CaptureQueriesContext(connection) as small:
             r1 = authenticated_client.get(url)
@@ -53,6 +66,7 @@ class TestListEndpointQueryBudgets:
 
     def test_things_list_has_no_per_thing_queries(self, authenticated_client, user, collection):
         url = "/api/v1/things/"
+        _warm_activity(authenticated_client)
         _make_things(user, collection, 2)
         with CaptureQueriesContext(connection) as small:
             r1 = authenticated_client.get(url)
@@ -101,6 +115,7 @@ class TestNPlusOneGuards:
     def test_owner_bookings_constant_with_swap_offers(self, authenticated_client, user, user2):
         """owner-bookings must prefetch offered_things (not values_list per row)."""
         coll = CollectionFactory(owner=user, mode="COMMUNITY", is_swap=True)
+        _warm_activity(authenticated_client)
         for _ in range(2):
             self._swap_booking(user, user2, coll)
         with CaptureQueriesContext(connection) as small:
@@ -119,6 +134,7 @@ class TestNPlusOneGuards:
     def test_my_bookings_constant_with_swap_offers(self, authenticated_client, user, user2):
         """my-bookings must prefetch offered_things for the requester's swaps."""
         coll = CollectionFactory(owner=user2, mode="COMMUNITY", is_swap=True)
+        _warm_activity(authenticated_client)
         for _ in range(2):
             self._swap_booking(user2, user, coll)
         with CaptureQueriesContext(connection) as small:
@@ -150,6 +166,7 @@ class TestNPlusOneGuards:
                 )
 
         url = f"/api/v1/things/{thing.code}/calendar/"
+        _warm_activity(authenticated_client)
         make(2, 0)
         with CaptureQueriesContext(connection) as small:
             r1 = authenticated_client.get(url)
@@ -176,6 +193,7 @@ class TestNPlusOneGuards:
                     target_code=coll.code,
                 )
 
+        _warm_activity(authenticated_client)
         make(2)
         with CaptureQueriesContext(connection) as small:
             r1 = authenticated_client.get("/api/v1/collections/")
@@ -193,6 +211,7 @@ class TestNPlusOneGuards:
         """my_swap_count_in_collection must be memoised per collection, not counted
         once per swap thing in the things list."""
         coll = CollectionFactory(owner=user, mode="COMMUNITY", is_swap=True)
+        _warm_activity(authenticated_client)
         coll.things.add(*ThingFactory.create_batch(2, owner=user, type="SWAP_THING"))
         with CaptureQueriesContext(connection) as small:
             r1 = authenticated_client.get("/api/v1/things/")
