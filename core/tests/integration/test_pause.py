@@ -147,7 +147,7 @@ def test_request_blocked_when_only_collection_is_paused(pause_users, pause_thing
     pause_collection.save()
     client = _make_client(member)
 
-    with patch("core.views.reservations.send_booking_request_email"):
+    with patch("core.services.email_service.send_booking_request_email"):
         resp = client.post(f"/api/v1/things/{pause_thing.code}/request/")
 
     assert resp.status_code == status.HTTP_400_BAD_REQUEST
@@ -159,7 +159,7 @@ def test_request_allowed_when_collection_is_not_paused(pause_users, pause_thing)
     _, member = pause_users
     client = _make_client(member)
 
-    with patch("core.views.reservations.send_booking_request_email"):
+    with patch("core.services.email_service.send_booking_request_email"):
         resp = client.post(f"/api/v1/things/{pause_thing.code}/request/")
 
     assert resp.status_code == status.HTTP_200_OK
@@ -183,7 +183,7 @@ def test_request_allowed_when_one_of_two_active_collections_is_not_paused(
     second_collection.invites.add(member)
 
     client = _make_client(member)
-    with patch("core.views.reservations.send_booking_request_email"):
+    with patch("core.services.email_service.send_booking_request_email"):
         resp = client.post(f"/api/v1/things/{pause_thing.code}/request/")
 
     assert resp.status_code == status.HTTP_200_OK
@@ -207,7 +207,7 @@ def test_request_blocked_when_all_active_collections_are_paused(
     second_collection.save()
 
     client = _make_client(member)
-    with patch("core.views.reservations.send_booking_request_email"):
+    with patch("core.services.email_service.send_booking_request_email"):
         resp = client.post(f"/api/v1/things/{pause_thing.code}/request/")
 
     assert resp.status_code == status.HTTP_400_BAD_REQUEST

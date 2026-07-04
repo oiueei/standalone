@@ -265,8 +265,8 @@ def test_booking_request_creates_in_app_notification_for_owner(two_users, thing_
     client = _make_client(requester)
 
     with (
-        patch("core.views.reservations.send_booking_request_email"),
-        patch("core.views.reservations.send_booking_confirmation_email"),
+        patch("core.services.email_service.send_booking_request_email"),
+        patch("core.services.email_service.send_booking_confirmation_email"),
     ):
         resp = client.post(f"/api/v1/things/{thing.code}/request/", {}, format="json")
 

@@ -622,9 +622,9 @@ Rejects a pending booking. Same permission and validation as accept. Calls `reje
 | **Permission** | `IsAuthenticated` + `thing.can_view()` + not owner |
 | **Rate limit** | 10 requests/hour per user |
 
-Creates a reservation/booking request. Returns 400 for WISH_THING (this type bypasses BookingPeriod). Routes based on thing type:
+Creates a reservation/booking request. Returns 400 for WISH_THING (this type bypasses BookingPeriod). The view is **thin**: it runs the shared guards (auth, own-thing, availability, INACTIVE/paused collection, owner email) and validates the type-specific serializers, then dispatches to the `request_*` functions in `core.services.booking_service` (`request_share_booking`, `request_date_based_booking`, `request_standard_booking`, `request_swap_booking`) which own the locked create + status transition + email fan-out. A business-rule failure raises `BookingRequestError(message, status_code)`, which the view maps back to `{"error": message}` with the same status. Routes based on thing type:
 
-**Share (SHARE_THING)** — handled by `_handle_share_request()`:
+**Share (SHARE_THING)** — `booking_service.request_share_booking()`:
 - NOT date-based — no `start_date`/`end_date` fields.
 - Permanent ownership transfer on acceptance; thing stays `ACTIVE`.
 - Multiple pending requests from different users are allowed.
@@ -646,7 +646,7 @@ Creates a reservation/booking request. Returns 400 for WISH_THING (this type byp
 - Each offered thing must: be SWAP_THING, be owned by the requester, be ACTIVE, be in the same swap collection.
 - **Minimum-items gate** (`Collection.swap_minimum_items`): if `>0`, the requester must already have at least that many own SWAP_THINGs (status ACTIVE or TAKEN) in the same collection — otherwise returns 400 with the message "You need to upload at least N item(s) to this collection before you can propose a swap." Applies symmetrically to guests AND the collection owner (owners only request swaps on guests' things, but the rule treats them the same). Frontend mirrors the gate via `collection_swap_minimum_items` + `my_swap_count_in_collection` on the thing serializer.
 - Creates `BookingPeriod` with no dates, links offered things via M2M.
-- Thing stays `ACTIVE`. Sends swap-specific emails via `_send_swap_email()`.
+- Thing stays `ACTIVE`. Sends swap-specific emails via `booking_service.send_swap_request_notifications()`.
 
 **Request body:**
 ```json
@@ -661,7 +661,7 @@ Creates a reservation/booking request. Returns 400 for WISH_THING (this type byp
 **Common behaviour:**
 1. Validates owner email in the parent `post()` method (shared across all type handlers).
 2. Creates `BookingPeriod` with status `PENDING`.
-3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `_send_booking_email()` (or `_send_swap_email()` for SWAP_THING).
+3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `booking_service.send_booking_request_notifications()` (or `send_swap_request_notifications()` for SWAP_THING).
 4. Sends booking request email to owner with accept/reject links, and a confirmation email to the requester ("Hold request sent" / "Swap request sent").
 
 **INACTIVE collection enforcement:**
@@ -905,7 +905,7 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 
 Business logic is extracted into `core/services/`:
 - `email_service.py` — All email HTML composition and sending (8 functions). Uses `django.utils.html.escape()`.
-- `booking_service.py` — `accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`.
+- `booking_service.py` — `accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`. The reservation-**request** side lives here too: `request_share_booking()`, `request_date_based_booking()`, `request_standard_booking()`, and `request_swap_booking()` (plus `resolve_rental_collection()` and the `send_*_request_notifications()` email/notification helpers). They raise `BookingRequestError(message, status_code)` on a rule violation; `ThingRequestView` catches it and returns `{"error": message}`.
 
 ### Utilities
 

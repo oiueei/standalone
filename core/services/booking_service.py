@@ -19,6 +19,21 @@ from core.models.transfer import ThingTransfer
 DEFAULT_AVAILABILITY_HORIZON_DAYS = 90
 
 
+class BookingRequestError(Exception):
+    """A reservation request failed a business rule.
+
+    Carries the HTTP status the view should return so the request handlers can
+    live in this service layer without importing DRF. The view translates it to
+    ``Response({"error": message}, status=status_code)`` — preserving the exact
+    response shape the API had when these handlers lived on ``ThingRequestView``.
+    """
+
+    def __init__(self, message, status_code=400):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+
+
 def compute_availability(
     blocked_periods, today=None, horizon_days=DEFAULT_AVAILABILITY_HORIZON_DAYS
 ):
@@ -266,3 +281,244 @@ def finalize_booking_decision(booking, accepted):
             _delete_booking_rsvps(sibling.code)
 
     return thing
+
+
+# ── Reservation requests ──────────────────────────────────────────────────
+# Business logic for creating a booking, one function per thing-type family.
+# Each mirrors the old ThingRequestView._handle_* method: it performs the
+# locked create + status transition and then fans out the request emails /
+# in-app notification / event via the shared *_notifications helpers. Rule
+# violations raise BookingRequestError so the view maps them to the exact
+# {"error": ...} response + status they used to return inline.
+
+
+def resolve_rental_collection(thing, collection_code=None):
+    """Resolve which collection's rental rules (#7) apply to a LEND/RENT request.
+
+    Prefers the collection the request was made through (``collection_code`` —
+    the SPA passes the collection context); otherwise the thing's first
+    collection that actually defines rental rules. Returns ``None`` when no
+    collection constrains the dates (legacy free-range behaviour).
+    """
+    collections = list(thing.collections.all())
+    code = (collection_code or "").strip()
+    if code:
+        for collection in collections:
+            if collection.code == code:
+                return collection
+    for collection in collections:
+        if collection.has_rental_rules():
+            return collection
+    return None
+
+
+def request_share_booking(thing, requester, owner_email):
+    """SHARE_THING — no dates, permanent transfer on acceptance, thing stays ACTIVE."""
+    with transaction.atomic():
+        Thing.objects.select_for_update().get(code=thing.code)
+
+        if BookingPeriod.objects.filter(
+            thing_code=thing,
+            requester_code=requester,
+            status=BookingPeriod.Status.PENDING,
+        ).exists():
+            raise BookingRequestError("You already have a pending request for this thing")
+
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=requester,
+            requester_email=requester.email,
+            owner_code=thing.owner,
+        )
+
+    send_booking_request_notifications(requester, thing, booking, owner_email)
+    return booking
+
+
+def request_date_based_booking(
+    thing, requester, owner_email, start_date, end_date, rental_collection=None
+):
+    """LEND/RENT — date-based booking with rental-rules + overlap enforcement."""
+    # Enforce the collection's rental rules (fixed durations + allowed pickup/
+    # return weekdays). The frontend already prevents these — server-side backstop.
+    if rental_collection:
+        violation = rental_collection.rental_violation(start_date, end_date)
+        if violation:
+            raise BookingRequestError(violation)
+
+    with transaction.atomic():
+        Thing.objects.select_for_update().get(code=thing.code)
+
+        if BookingPeriod.has_overlap(thing.code, start_date, end_date):
+            raise BookingRequestError(
+                "Selected dates overlap with existing booking", status_code=409
+            )
+
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=requester,
+            requester_email=requester.email,
+            owner_code=thing.owner,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+    send_booking_request_notifications(requester, thing, booking, owner_email)
+    return booking
+
+
+def request_standard_booking(thing, requester, owner_email):
+    """GIFT/SELL — no dates; single-use things flip to TAKEN to block other requests."""
+    with transaction.atomic():
+        thing = Thing.objects.select_for_update().get(code=thing.code)
+
+        if not thing.is_endless and thing.status != Thing.Status.ACTIVE:
+            raise BookingRequestError("Thing is not available for reservation")
+
+        if BookingPeriod.objects.filter(
+            thing_code=thing,
+            requester_code=requester,
+            status=BookingPeriod.Status.PENDING,
+        ).exists():
+            raise BookingRequestError("You already have a pending request for this thing")
+
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=requester,
+            requester_email=requester.email,
+            owner_code=thing.owner,
+        )
+
+        if not thing.is_endless:
+            thing.status = Thing.Status.TAKEN
+            thing.save(update_fields=["status"])
+
+    send_booking_request_notifications(requester, thing, booking, owner_email)
+    return booking
+
+
+def request_swap_booking(thing, requester, owner_email, offered_codes):
+    """SWAP_THING — requester offers their own things in exchange.
+
+    Returns ``(booking, offered_things)`` so the view can echo the resolved
+    offered codes in its response.
+    """
+    # Find the collection this thing belongs to
+    thing_collection = thing.collections.filter(is_swap=True).first()
+    if not thing_collection:
+        raise BookingRequestError("Thing is not in a swap collection")
+
+    # Enforce per-collection minimum: requester must already have N of their own
+    # SWAP_THINGs (ACTIVE/TAKEN) in this collection before they can ask for a
+    # swap. Backstops the frontend gating in ThingLinkbox/ThingPage.
+    minimum = thing_collection.swap_minimum_items
+    if minimum > 0:
+        own_count = Thing.objects.filter(
+            owner=requester,
+            type=Thing.Type.SWAP_THING,
+            status__in=(Thing.Status.ACTIVE, Thing.Status.TAKEN),
+            collections=thing_collection,
+        ).count()
+        if own_count < minimum:
+            raise BookingRequestError(
+                f"You need to upload at least {minimum} item(s) to this collection"
+                " before you can propose a swap."
+            )
+
+    # Validate all offered things
+    offered_things = []
+    for code in offered_codes:
+        try:
+            offered = Thing.objects.get(code=code)
+        except Thing.DoesNotExist:
+            raise BookingRequestError(f"Offered thing {code} not found") from None
+        if offered.type != Thing.Type.SWAP_THING:
+            raise BookingRequestError(f"Offered thing {code} is not a swap thing")
+        if not offered.is_owner(requester.code):
+            raise BookingRequestError(f"You do not own offered thing {code}")
+        if offered.status != Thing.Status.ACTIVE:
+            raise BookingRequestError(f"Offered thing {code} is not active")
+        if not offered.collections.filter(code=thing_collection.code).exists():
+            raise BookingRequestError(f"Offered thing {code} is not in the same collection")
+        offered_things.append(offered)
+
+    with transaction.atomic():
+        Thing.objects.select_for_update().get(code=thing.code)
+
+        booking = BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=requester,
+            requester_email=requester.email,
+            owner_code=thing.owner,
+        )
+        booking.offered_things.set(offered_things)
+
+    send_swap_request_notifications(requester, thing, offered_things, booking, owner_email)
+    return booking, offered_things
+
+
+def send_booking_request_notifications(requester, thing, booking, owner_email):
+    """Fan out a hold request: owner email (RSVP-protected), requester
+    confirmation, in-app notification, and a HOLD_REQUESTED event."""
+    from core.services.email_service import (
+        send_booking_confirmation_email,
+        send_booking_request_email,
+    )
+
+    rsvp_accept, rsvp_reject = RSVP.create_booking_pair(booking, owner_email)
+    send_booking_request_email(
+        requester, thing, booking, owner_email, rsvp_accept.action_link(), rsvp_reject.action_link()
+    )
+    send_booking_confirmation_email(requester, thing, booking)
+    InAppNotification.objects.create(
+        user=thing.owner,
+        type=InAppNotification.Type.BOOKING_REQUESTED,
+        payload={
+            "thing_headline": thing.headline,
+            "requester_name": requester.display_name,
+        },
+    )
+    Event.log(
+        Event.Kind.HOLD_REQUESTED,
+        actor=requester,
+        thing=thing,
+        thing_type=booking.thing_type,
+    )
+
+
+def send_swap_request_notifications(requester, thing, offered_things, booking, owner_email):
+    """Fan out a swap request (as send_booking_request_notifications, with the
+    offered things listed to the owner)."""
+    from core.services.email_service import (
+        send_swap_confirmation_email,
+        send_swap_request_email,
+    )
+
+    rsvp_accept, rsvp_reject = RSVP.create_booking_pair(booking, owner_email)
+    send_swap_request_email(
+        requester,
+        thing,
+        offered_things,
+        owner_email,
+        rsvp_accept.action_link(),
+        rsvp_reject.action_link(),
+    )
+    send_swap_confirmation_email(requester, thing, offered_things, booking)
+    InAppNotification.objects.create(
+        user=thing.owner,
+        type=InAppNotification.Type.SWAP_REQUESTED,
+        payload={
+            "thing_headline": thing.headline,
+            "requester_name": requester.display_name,
+        },
+    )
+    Event.log(
+        Event.Kind.HOLD_REQUESTED,
+        actor=requester,
+        thing=thing,
+        thing_type=booking.thing_type,
+    )

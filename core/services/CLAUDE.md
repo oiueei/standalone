@@ -19,6 +19,19 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 | `reject_booking(booking)` | `BookingPeriod` instance | Calls `booking.reject()`. For single-use types, restores thing to `ACTIVE`. Returns thing. |
 | `compute_availability(blocked_periods, today=None, horizon_days=90)` | iterable of PENDING/ACCEPTED bookings (objects with `start_date`/`end_date`) | **Pure, side-effect-free.** Returns `(available_today: bool, next_available: date|None)` for a date-based thing. Walks forward from `today` (default `timezone.localdate()`), treating each booking range as **inclusive** on both ends (identical to `BookingPeriod.has_overlap()` and the frontend's `isDateBlocked`), and returns the first free day — or `(False, None)` when every day within `horizon_days` is booked. Null-dated rows are skipped. Consumed by `Thing.availability_window()` → the `available_today`/`next_available` serializer fields. |
 
+##### Reservation requests
+
+These own the **create** side (formerly the `ThingRequestView._handle_*` methods). Each performs the locked create + status transition, then fans out the request emails + in-app notification + `HOLD_REQUESTED` event via the shared `send_*_request_notifications()` helpers. Rule violations raise `BookingRequestError(message, status_code)`; `ThingRequestView` catches it and returns `{"error": message}` with that status (default 400; 409 for a date overlap). Serializer validation stays in the view.
+
+| Function | Input | Behaviour |
+|----------|-------|-----------|
+| `request_share_booking(thing, requester, owner_email)` | SHARE_THING | Rejects a duplicate PENDING request (400), else creates a dateless booking (thing stays ACTIVE). Returns the booking. |
+| `request_date_based_booking(thing, requester, owner_email, start_date, end_date, rental_collection=None)` | LEND/RENT | Enforces `rental_collection.rental_violation()` (400) and `BookingPeriod.has_overlap()` (409), then creates the dated booking. Returns the booking. |
+| `request_standard_booking(thing, requester, owner_email)` | GIFT/SELL | Re-checks availability + duplicate under the lock; creates the booking and flips a non-endless thing to `TAKEN`. Returns the booking. |
+| `request_swap_booking(thing, requester, owner_email, offered_codes)` | SWAP_THING | Validates the swap collection, the `swap_minimum_items` gate, and every offered thing (SWAP type, owned, ACTIVE, same collection); creates the booking + M2M links. Returns `(booking, offered_things)`. |
+| `resolve_rental_collection(thing, collection_code=None)` | LEND/RENT | Picks the collection whose rental rules apply (the passed `collection_code`, else the thing's first collection with rules, else `None`). |
+| `send_booking_request_notifications(...)` / `send_swap_request_notifications(...)` | — | RSVP accept/reject pair → owner request email + requester confirmation + owner in-app notification + `HOLD_REQUESTED` event. |
+
 #### Patterns
 
 - **Atomic transactions**: Every function wraps its work in `transaction.atomic()` to ensure `BookingPeriod` and `Thing` are updated together or not at all.
@@ -27,6 +40,7 @@ Handles state transitions for `BookingPeriod` and `Thing` models as an atomic un
 - **`is_endless` guard**: For GIFT/SELL things where `thing.is_endless=True`, all status changes (TAKEN on request, INACTIVE on accept, ACTIVE on reject/cancel) and ThingTransfer creation are skipped. The thing remains ACTIVE at all times and accumulates multiple simultaneous PENDING bookings from different users. `expire_old_pending()` also excludes endless things from the TAKEN→ACTIVE restore.
 - **SHARE_THING ownership transfer**: On acceptance, `thing.owner` is changed to the requester. The thing stays `ACTIVE` so the new owner can continue sharing it. This enables a chain of ownership transfers within a community collection.
 - **SWAP_THING bilateral transfer**: On acceptance, the requested thing transfers to the requester, and all offered things transfer to the original owner. All things stay `ACTIVE`. `ThingTransfer` records are created for every thing involved (requested + offered).
+- **Thin view, service raises**: the reservation-request business logic lives entirely in the `request_*` functions. `ThingRequestView` only does HTTP-layer work — shared guards, serializer parsing, response shaping — and translates `BookingRequestError` into the `{"error": ...}` response. Callers outside DRF (management commands, future flows) can request bookings without touching the view.
 
 ---
 
