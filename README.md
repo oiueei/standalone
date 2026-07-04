@@ -394,7 +394,7 @@ All UI components are sourced from the [Helsinki Design System](https://hds.hel.
 - **Image alt text** — thing thumbnails and gallery images include meaningful `alt` attributes derived from headlines
 - **Page titles** — every page sets `document.title` via `useEffect` for meaningful browser tab titles and screen reader orientation
 - **Language attribute** — `<html lang>` is set dynamically on the document root via `i18n.on('languageChanged', ...)` in `App.jsx`
-- **Internationalisation** — all UI strings are externalised via `react-i18next` with automatic browser language detection (`i18next-browser-languagedetector`). Supported: English, Spanish, Catalan, Brazilian Portuguese, European Portuguese, Basque, Galician
+- **Internationalisation** — all UI strings are externalised via `react-i18next` with automatic browser language detection (`i18next-browser-languagedetector`). Supported: English, Spanish, Catalan. Brazilian Portuguese, European Portuguese, Basque, and Galician are paused (not deleted) and fall back to Spanish
 
 ### Validation
 

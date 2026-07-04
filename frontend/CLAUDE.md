@@ -438,8 +438,9 @@ Central source of truth for thing type definitions. Display labels are handled b
 
 All UI strings are externalised via `react-i18next`. No hardcoded strings in components.
 
-- **Setup:** `src/i18n/index.js` initialises i18next with `i18next-browser-languagedetector`, which reads `navigator.language` on every load (no cache) and falls back to `en` for unsupported languages.
-- **Supported languages:** English (`en`), Spanish (`es`), Catalan (`ca`), Brazilian Portuguese (`pt-BR`), European Portuguese (`pt-PT`), Basque (`eu`), Galician (`gl`).
+- **Setup:** `src/i18n/index.js` initialises i18next with `i18next-browser-languagedetector`, which reads `navigator.language` on every load (no cache) and falls back per `fallbackLng` for unsupported languages.
+- **Supported languages:** English (`en`), Spanish (`es`), Catalan (`ca`).
+- **Retired languages:** Brazilian Portuguese (`pt-BR`), European Portuguese (`pt-PT`), Basque (`eu`), and Galician (`gl`) were dropped from `supportedLngs`/`resources` 2026-07 (paused, not deleted — the locale JSONs are recoverable from git history). `fallbackLng` is an object mapping each retired code (plus bare `pt`) to `['es']`, with `default: ['en']` for any other unsupported browser language.
 - **Locale files:** `src/i18n/locales/{lang}.json` — one JSON file per language with ~280 strings organised by namespace (common, titles, login, verify, home, collectionPage, thingPage, types, availability, condition, etc.).
 - **`html[lang]`:** updated dynamically in `App.jsx` via `i18n.on('languageChanged', ...)`.
 - **Usage:** every page and component imports `useTranslation` and calls `t('namespace.key')`. Select options are built inline: `TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))`.
