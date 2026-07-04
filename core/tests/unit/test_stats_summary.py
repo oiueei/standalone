@@ -137,6 +137,19 @@ class TestEventAndRetentionMetrics:
         )
         assert joined == "1 / 1 / 1"
 
+    def test_things_added_removed_global_and_per_collection(self, user):
+        # user owns 2 real collections → n_collections = 2 for the per-collection avg.
+        _real_collection(user, code="HC1")
+        _real_collection(user, code="HC2")
+        for _ in range(3):
+            Event.log(Event.Kind.THING_ADDED, actor=user)
+        Event.log(Event.Kind.THING_REMOVED, actor=user)
+        sections = build_report()
+        title = "History (accumulated, from Event log)"
+        assert _row(sections, title, "Things added / removed") == "3 / 1"
+        # 3/2 added, 1/2 removed, one decimal (matches _avg formatting).
+        assert _row(sections, title, "Avg added / removed per collection") == "1.5 / 0.5"
+
     def test_guest_to_creator_conversion(self, user, user2):
         # user2 joins a real collection as guest, then later creates their own.
         host = _real_collection(user, code="HOST01")

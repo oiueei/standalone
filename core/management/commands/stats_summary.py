@@ -244,6 +244,10 @@ def _history_section(demo, demo_collections, now):
     K = Event.Kind
     joined = f"{n(K.USER_JOINED, d7)} / {n(K.USER_JOINED, d30)} / {n(K.USER_JOINED)}"
     requested, accepted = n(K.HOLD_REQUESTED), n(K.HOLD_ACCEPTED)
+    added, removed = n(K.THING_ADDED), n(K.THING_REMOVED)
+    # The same real add/remove lifecycle averaged over the real (non-onboarding)
+    # collections, so it reads right below the global counts.
+    n_collections = Collection.objects.filter(is_onboarding=False).count()
     return {
         "title": "History (accumulated, from Event log)",
         "rows": [
@@ -252,7 +256,11 @@ def _history_section(demo, demo_collections, now):
                 "Collections created / deleted",
                 f"{n(K.COLLECTION_CREATED)} / {n(K.COLLECTION_DELETED)}",
             ),
-            ("Things added / removed", f"{n(K.THING_ADDED)} / {n(K.THING_REMOVED)}"),
+            ("Things added / removed", f"{added} / {removed}"),
+            (
+                "Avg added / removed per collection",
+                f"{_avg(added, n_collections)} / {_avg(removed, n_collections)}",
+            ),
             ("Members joined / left", f"{n(K.MEMBER_JOINED)} / {n(K.MEMBER_LEFT)}"),
             ("FAQs asked", n(K.FAQ_ASKED)),
             ("Holds requested / accepted", f"{requested} / {accepted}"),
