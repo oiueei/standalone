@@ -320,6 +320,7 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |
 | Headers | Content-Type | nosniff (prevents MIME confusion) |
 | Headers | Referrer-Policy | strict-origin-when-cross-origin |
+| Headers | Content-Security-Policy | Applied in every environment via `SecurityHeadersMiddleware` (`core/middleware.py`), plus a `Permissions-Policy` disabling camera/microphone/geolocation/payment |
 | Production | SSL | Forced HTTPS redirect, secure cookies |
 | Production | Admin Path | Custom path (`/oiueei-admin/`) instead of `/admin/` |
 | Production | API Renderer | JSON-only in production (BrowsableAPI disabled) |
@@ -329,7 +330,6 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 
 - [ ] Email validation via AbstractAPI
 - [ ] Audit logging to external service
-- [ ] Content Security Policy (CSP) headers
 
 ## Privacy
 
