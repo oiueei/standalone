@@ -19,7 +19,7 @@ Manual, any day:
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
-from django.db.models import Count, Min
+from django.db.models import Count, Min, Q
 from django.utils import timezone
 
 from core.management.commands.seed_data.common import USERS as _SEED_USERS
@@ -116,7 +116,7 @@ def build_report():
 
     sections = [
         _users_section(real, creators, guests),
-        _collections_section(),
+        _collections_section(creators, guests),
         _things_section(real_list),
         _holds_section(real_list, guests),
         _history_section(demo, demo_collections, now),
@@ -138,19 +138,28 @@ def _users_section(real, creators, guests):
     }
 
 
-def _collections_section():
+def _collections_section(creators, guests):
     real = Collection.objects.filter(is_onboarding=False)
     total = real.count()
+    active = real.filter(status=Collection.Status.ACTIVE).count()
     community = real.filter(mode=Collection.Mode.COMMUNITY).count()
     public = real.filter(visibility=Collection.Visibility.PUBLIC).count()
     invites = real.aggregate(n=Count("invites"))["n"] or 0
+    # Distinct guests per creator: a guest under two of the same creator's
+    # collections counts once for that creator. Anonymous visitors aren't tracked.
+    per_creator = real.values("owner_id").annotate(g=Count("invites", distinct=True))
+    guests_per_creator = sum(r["g"] for r in per_creator)
+    n_creators = len(creators)
     return {
         "title": "Collections (real)",
         "rows": [
             ("Total", total),
+            ("Active (status ACTIVE)", active),
             ("COMMUNITY / PROPRIETARY", f"{community} / {total - community}"),
             ("PUBLIC / PRIVATE", f"{public} / {total - public}"),
+            ("Avg collections per creator", _avg(total, n_creators)),
             ("Avg guests per collection", _avg(invites, total)),
+            ("Avg guests brought per creator", _avg(guests_per_creator, n_creators)),
         ],
     }
 
@@ -158,15 +167,29 @@ def _collections_section():
 def _things_section(real_list):
     things = Thing.objects.filter(owner_id__in=real_list)
     total = things.count()
+    active = things.filter(status=Thing.Status.ACTIVE).count()
     by_type = dict(things.values_list("type").annotate(n=Count("code")).values_list("type", "n"))
     faqs = FAQ.objects.filter(thing__owner_id__in=real_list).count()
     holds = BookingPeriod.objects.filter(thing_code__owner_id__in=real_list).count()
     type_rows = [(t, f"{c} ({_pct(c, total)})") for t, c in sorted(by_type.items())]
+
+    # Things per (real) collection, by M2M membership — added vs currently active.
+    real_collections = Collection.objects.filter(is_onboarding=False)
+    n_collections = real_collections.count()
+    agg = real_collections.aggregate(
+        members=Count("things"),
+        active=Count("things", filter=Q(things__status=Thing.Status.ACTIVE)),
+    )
+    per_coll = (
+        f"{_avg(agg['members'] or 0, n_collections)} / {_avg(agg['active'] or 0, n_collections)}"
+    )
     return {
         "title": "Things (real)",
         "rows": [
             ("Total", total),
+            ("Available (status ACTIVE)", active),
             *type_rows,
+            ("Avg things per collection (added / active)", per_coll),
             ("Avg FAQs per thing", _avg(faqs, total)),
             ("Avg holds per thing", _avg(holds, total)),
         ],
@@ -286,12 +309,18 @@ def _retention_section(real, creators, guests, today):
     def split(codes):
         return f"{len(codes & creators)} creators / {len(codes & guests)} guests"
 
+    def returns_for(role):
+        role_returners = returners & role
+        avg_days = _avg(sum(day_counts[c] for c in role_returners), len(role_returners))
+        return f"{len(role_returners)} returned (avg {avg_days} active days)"
+
     return {
         "title": "Retention (from DailyActivity)",
         "rows": [
             ("WAU — active last 7d", f"{len(active7 & real)} ({split(active7 & real)})"),
             ("MAU — active last 30d", f"{len(active30 & real)} ({split(active30 & real)})"),
-            ("Returners (active ≥2 days)", len(returners & real)),
+            ("Creator returns (active ≥2 days)", returns_for(creators)),
+            ("Guest returns (active ≥2 days)", returns_for(guests)),
             ("Guests who never came back after 1st visit", len(one_visit & guests)),
         ],
     }

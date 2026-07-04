@@ -163,7 +163,15 @@ class TestEventAndRetentionMetrics:
         DailyActivity.objects.create(code="DA0002", user=user, date=today - timedelta(days=2))
         DailyActivity.objects.create(code="DA0003", user=user2, date=today)
         sections = build_report()
-        assert _row(sections, "Retention (from DailyActivity)", "Returners (active ≥2 days)") == 1
+        # user (creator) active 2 days → a creator return; user2 (guest) active once.
+        assert (
+            _row(sections, "Retention (from DailyActivity)", "Creator returns (active ≥2 days)")
+            == "1 returned (avg 2.0 active days)"
+        )
+        assert (
+            _row(sections, "Retention (from DailyActivity)", "Guest returns (active ≥2 days)")
+            == "0 returned (avg — active days)"
+        )
         assert (
             _row(
                 sections,
