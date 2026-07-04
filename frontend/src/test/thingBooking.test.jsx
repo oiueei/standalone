@@ -373,3 +373,38 @@ describe('ThingPage — wish branch', () => {
     expect(screen.getByRole('button', { name: 'Mark as resolved' })).toBeInTheDocument();
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════
+// ThingPage — anonymous visitor (login-to-act, JoinPage pattern)
+// An anonymous visitor on a PUBLIC collection sees the action buttons (like
+// ThingLinkbox's loginToAct mode); each click routes to /collections/:code/join
+// instead of showing the old inline JoinToAct email box.
+// ════════════════════════════════════════════════════════════════════════
+describe('ThingPage — anonymous login-to-act', () => {
+  test('non-wish shows the reserve button and routes the click to the join page', async () => {
+    localStorage.removeItem('userCode');
+    setApi({ thing: makeThing({ type: 'GIFT_THING', owner: 'OWNER1', collection_code: 'PUB001' }) });
+    renderThingPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Claim' }));
+
+    await waitFor(() => expect(screen.getByTestId('navigated')).toBeInTheDocument());
+    // The anonymous click only navigates — it never fires a direct hold POST.
+    expect(apiFetch).not.toHaveBeenCalledWith(
+      '/api/v1/things/THG001/request/',
+      expect.anything()
+    );
+    // The old inline JoinToAct email box is gone (replaced by the routing button).
+    expect(screen.queryByText('Join to take part')).toBeNull();
+  });
+
+  test('wish shows an Answer button that routes to the join page', async () => {
+    localStorage.removeItem('userCode');
+    setApi({ thing: makeThing({ type: 'WISH_THING', owner: 'OWNER1', collection_code: 'PUB001' }) });
+    renderThingPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Answer' }));
+
+    await waitFor(() => expect(screen.getByTestId('navigated')).toBeInTheDocument());
+  });
+});

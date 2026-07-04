@@ -20,7 +20,6 @@ import Toast from '../components/Toast';
 import MarkdownText, { sanitizeUrl } from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
-import JoinToAct from '../components/JoinToAct';
 import useTheeeme from '../hooks/useTheeeme';
 import useThingActions from '../hooks/useThingActions';
 
@@ -38,6 +37,15 @@ export default function ThingPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
+
+  // Anonymous visitor on a PUBLIC collection: like ThingLinkbox's login-to-act
+  // mode, show the action buttons but route each click to the collection's join
+  // page (they log in there and come back able to act) rather than an inline form.
+  const collectionCode = code || thing?.collection_code;
+  const loginToAct = !isAuthenticated && !!collectionCode;
+  const goJoin = () => navigate(`/collections/${collectionCode}/join`, {
+    state: { collectionHeadline: thing?.collection_headline },
+  });
 
   // Owner-button-matrix + reservation view-model (shared with ThingLinkbox).
   const {
@@ -61,9 +69,11 @@ export default function ThingPage() {
     swapMinimumNotMet,
     swapItemsMissing,
     buttonDisabled,
+    loginButtonDisabled,
     buttonLabel,
   } = useThingActions(thing, userCode, {
     canAct: isAuthenticated,
+    loginToAct,
     onThingChange: (patch) => setThing((prev) => ({ ...prev, ...patch })),
     setToast,
     activateSuccessMessage: t('thingPage.thingReactivated'),
@@ -205,7 +215,6 @@ export default function ThingPage() {
     ? `/collections/${code}/things/${thing.code}/edit`
     : `/things/${thing.code}/edit`;
 
-  const collectionCode = code || thing.collection_code;
   const backPath = collectionCode ? `/collections/${collectionCode}` : '/';
   const backLabel = thing.collection_headline || (collectionCode ? t('common.collection') : t('common.home'));
 
@@ -439,7 +448,9 @@ export default function ThingPage() {
 
         {/* Answer ("Contestar") menu for wishes */}
         {showButton && isWish && (
-          thing.my_response ? (
+          loginToAct ? (
+            <Button fullWidth style={btnStyle} onClick={goJoin}>{t('wishes.respond')}</Button>
+          ) : thing.my_response ? (
             <p className="thing-card-meta">
               {t('wishes.yourAnswer')} · {t('wishes.status.' + thing.my_response.status)}
             </p>
@@ -453,18 +464,19 @@ export default function ThingPage() {
           )
         )}
 
-        {/* Reservation button for non-wish invited users */}
+        {/* Reservation button for non-wish invited users. For an anonymous
+            visitor (loginToAct) the click routes to the collection's join page. */}
         {showButton && !isWish && (
           <Button
             fullWidth
-            disabled={buttonDisabled}
+            disabled={loginToAct ? loginButtonDisabled : buttonDisabled}
             style={btnStyle}
-            onClick={needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest}
+            onClick={loginToAct ? goJoin : (needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest)}
           >
             {buttonLabel}
           </Button>
         )}
-        {showButton && swapMinimumNotMet && (
+        {showButton && swapMinimumNotMet && !loginToAct && (
           <Notification
             type="info"
             label={t('swap.minimumNotMetLabel')}
@@ -487,9 +499,6 @@ export default function ThingPage() {
           </div>
         )}
 
-        {!isAuthenticated && thing.status !== 'INACTIVE' && collectionCode && (
-          <JoinToAct collectionCode={collectionCode} collectionHeadline={thing.collection_headline} />
-        )}
 
         {/* Responses section for wishes (creator sees all; responder sees own) */}
         {isWish && (isOwner || thing.my_response) && (
