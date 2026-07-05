@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import FeedbackLink from '../components/FeedbackLink';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -387,6 +388,7 @@ export default function HomePage() {
           </div>
         )}
 
+        <FeedbackLink />
       </div>
     </div>
   );

@@ -766,5 +766,9 @@
     "durationRequired": "Please choose a length",
     "pickupLabel": "Pickup date",
     "returnBy": "Return by {{date}}"
+  },
+  "feedback": {
+    "prompt": "Something odd? An idea?",
+    "cta": "Tell me"
   }
 }

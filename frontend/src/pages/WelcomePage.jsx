@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button, Koros } from "hds-react";
 import BackLink from "../components/BackLink";
+import FeedbackLink from "../components/FeedbackLink";
 import { apiFetch } from "../services/api";
 import useTheeeme from "../hooks/useTheeeme";
 
@@ -184,6 +185,7 @@ export default function WelcomePage() {
             <Button style={btnStyle}>{t("welcome.enterCta")}</Button>
           </Link>
         </div>
+        <FeedbackLink />
       </div>
     </div>
   );

@@ -1265,3 +1265,15 @@ main:focus {
 .bulk-add-format {
   margin-top: var(--spacing-m);
 }
+
+/* Quiet alpha-feedback line (FeedbackLink) at the foot of Home and Welcome. */
+.feedback-link {
+  margin-top: var(--spacing-2-xl);
+  font-size: var(--fontsize-body-m);
+  color: var(--color-black-60);
+}
+
+.feedback-link a {
+  color: inherit;
+  text-decoration: underline;
+}

@@ -125,6 +125,7 @@ The `page-container` and `form-hero-content` max-width is **1248px** (aligned wi
 - **Action buttons:** "Create collection" links to `/collections/new` and "Edit profile" links to `/me/edit`, both passing `{ state: { backPath: '/welcome', backLabel: 'Welcome' } }` for return navigation.
 - **Personas section:** below the description, shows "Who uses OIUEEI?" heading with five persona stories (Lala, Lele, Lili, Lolo, Lulu — the demo users) illustrating different use cases. Each persona uses `persona{Name}Title` (bold) + `persona{Name}Body` i18n keys.
 - Sets `seenWelcome = 'true'` in `localStorage` on mount, permanently suppressing the Welcome Linkbox on `CollectionPage` for this browser.
+- **Feedback line**: `<FeedbackLink />` at the foot of the page content.
 
 ### HomePage (`src/pages/HomePage.jsx`)
 
@@ -137,6 +138,7 @@ The `page-container` and `form-hero-content` max-width is **1248px** (aligned wi
 - **My collections section**: shows own ACTIVE collections as HDS `Linkbox` cards (`collections-grid`). Each card shows headline and `{N} things · {N} guests`. Empty state links to `/collections/new`.
 - **Inactive collections section**: shown below My collections when at least one own INACTIVE collection exists.
 - **Shared with me section**: shows invited ACTIVE collections as HDS `Linkbox` cards. Empty state shows a no-shared message.
+- **Feedback line**: `<FeedbackLink />` at the foot of the page content.
 
 ### CollectionPage (`src/pages/CollectionPage.jsx`)
 
@@ -411,6 +413,7 @@ Detail page for a thing with full information and FAQs section.
 - **`BackLink`** (`src/components/BackLink.jsx`) — Reusable `← {label}` back navigation link. Props: `to`, `label`.
 - **`Toast`** (`src/components/Toast.jsx`) — Reusable toast notification wrapping HDS `Notification`. Props: `toast` (`{ type, message }`), `onClose`. Renders at `position="top-right"` with auto-close.
 - **`LoadingSpinner`** (`src/components/LoadingSpinner.jsx`) — Wrapper around HDS `LoadingSpinner` component.
+- **`FeedbackLink`** (`src/components/FeedbackLink.jsx`) — Quiet one-line alpha-feedback prompt ("Something odd? An idea? Tell me →") linking to the Tally form (`tally.so/r/A76Xkz`, same one as the README). Rendered at the foot of HomePage and WelcomePage (`.feedback-link`, muted `--color-black-60`).
 - **`ThingTags`** (`src/components/ThingTags.jsx`) — Shared tag row for thing type, status, pending questions, and the thing's **owner-defined tags** (`thing.tags`, rendered with `TAG_THEMES.custom`). Props: `thing`, `isOwner`. Uses `TAG_THEMES` from constants.
 - **`TagInput`** (`src/components/TagInput.jsx`) — Chip-style free-text editor for the collection owner to define the collection's tag vocabulary. `TextInput` + "Add" (and Enter) appends a removable HDS `Tag` (via `onDelete`); trims, dedupes case-insensitively, caps at 12 tags / 32 chars each (mirrors the backend `_normalize_tags`). Props: `tags`, `onChange`, `label`, `placeholder`, `helperText`, `max`. Used in CreateCollectionPage, EditCollectionPage. The thing forms (Add/EditThingPage) instead use an HDS `Select multiSelect` populated from the collection's `tags` / `collection_tags` to assign a subset to a thing.
 - **`ImageUpload`** (`src/components/ImageUpload.jsx`) — Single-image upload using HDS `FileInput`. Gets a short-lived Cloudinary signature from `POST /api/v1/upload/signature/`, resizes images client-side to max 1216px, uploads directly to Cloudinary, and calls `onChange(publicId)`. Shows a preview with a Remove button when an image is present; the FileInput is hidden while a preview exists. Button label and accept hint are translated via i18n. Button colours follow the current theeeme. Props: `id`, `label`, `value` (public_id), `onChange`, `currentUrl`, `folder` (Cloudinary folder, default `oiueei/users`), `helperText`. Used in AddThingPage, EditThingPage, and EditProfilePage (profile photo). The client-side resize-to-1216px helper lives in `src/utils/resizeImage.js` and is shared with `GalleryUpload`.

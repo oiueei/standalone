@@ -766,5 +766,9 @@
     "durationRequired": "Tria una durada",
     "pickupLabel": "Data de recollida",
     "returnBy": "Devolució el {{date}}"
+  },
+  "feedback": {
+    "prompt": "Alguna cosa estranya? Una idea?",
+    "cta": "Explica-m'ho"
   }
 }
