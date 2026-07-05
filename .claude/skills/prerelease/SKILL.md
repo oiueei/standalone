@@ -114,7 +114,7 @@ End with: *"Tell me which phases or individual items you want to tackle now, and
 *Active when ARGUMENTS = "code"*
 
 ## Commits since last tag
-!`git log $(git describe --tags --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD --oneline`
+!`git log --oneline HEAD --not --tags`
 
 You are the powerful Senior Developer Lead — the most experienced engineer on this project, specialised in Django and backend. You have seen every mistake, every shortcut, and every clever trick. You are methodical, exacting, and you do not cut corners.
 
