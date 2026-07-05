@@ -242,14 +242,22 @@ heroku config:set \
 
 ## Scheduled jobs (cron)
 
-The app relies on four management commands run on [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler). Heroku Scheduler config lives in the dashboard, so the intended schedule is versioned here — keep the dashboard in sync with this table.
+The app relies on six management commands run on [Heroku Scheduler](https://devcenter.heroku.com/articles/scheduler). In production they run as **one daily job at 05:00 UTC** chaining all six with `&&`, so any failure stops the chain and surfaces in scheduler-monitor:
+
+```
+python manage.py expire_bookings && python manage.py cleanup_rsvps && python manage.py close_transfers && python manage.py send_reminders && python manage.py send_digests && python manage.py stats_summary
+```
+
+Heroku Scheduler config lives in the dashboard, so the intended schedule is versioned here — keep the dashboard in sync with this table.
 
 | Command | Cadence | What it does |
 |---|---|---|
-| `python manage.py expire_bookings` | every 10 min (or hourly) | Expires PENDING bookings past 72h; restores single-use things to ACTIVE. |
-| `python manage.py close_transfers` | daily | Sets `returned_date` on transfers whose ACCEPTED booking's `end_date` has passed. |
-| `python manage.py send_reminders` | daily | Return/delivery reminders for bookings due tomorrow. |
-| `python manage.py send_digests` | daily | Weekly digests + newsletters (Mondays) and monthly digests (1st); the command no-ops on other days. |
+| `python manage.py expire_bookings` | daily (chained) | Expires PENDING bookings past 72h; restores single-use things to ACTIVE. |
+| `python manage.py cleanup_rsvps` | daily (chained) | Deletes RSVP tokens that expired 24h+ ago. |
+| `python manage.py close_transfers` | daily (chained) | Sets `returned_date` on transfers whose ACCEPTED booking's `end_date` has passed. |
+| `python manage.py send_reminders` | daily (chained) | Return/delivery reminders for bookings due tomorrow. |
+| `python manage.py send_digests` | daily (chained) | Weekly digests + newsletters (Mondays) and monthly digests (1st); the command no-ops on other days. |
+| `python manage.py stats_summary` | daily (chained) | First-party product stats; prints every day, emails the operator on Mondays. |
 
 The daily commands are safe to run every day — each checks the date internally and no-ops when there's nothing to do.
 

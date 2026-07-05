@@ -24,7 +24,7 @@ What I'm looking for is honest feedback from people willing to poke at it: thing
 - **Database**: SQLite (dev), PostgreSQL (prod via `dj-database-url`)
 - **Deployment**: Heroku (Procfile + runtime.txt included)
 - **Static files**: WhiteNoise
-- **Scheduled task**: `python manage.py expire_bookings` for booking expiration cleanup (run via Heroku Scheduler or cron)
+- **Scheduled tasks**: one daily Heroku Scheduler job chains `expire_bookings`, `cleanup_rsvps`, `close_transfers`, `send_reminders`, `send_digests` and `stats_summary` (see [HEROKU.md](HEROKU.md))
 
 ## UI & Design System
 
@@ -257,6 +257,8 @@ python manage.py createsuperuser
 
 # Scheduled jobs (run via Heroku Scheduler in production — one daily job chains them)
 python manage.py expire_bookings   # expire stale bookings
+python manage.py cleanup_rsvps     # delete expired RSVPs (24h+)
+python manage.py close_transfers   # close overdue loan transfers
 python manage.py send_reminders    # return/delivery reminders (daily)
 python manage.py send_digests      # weekly/monthly digest emails (daily)
 python manage.py stats_summary     # product stats (prints daily; emails on Mondays)
