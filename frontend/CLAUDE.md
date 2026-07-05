@@ -103,6 +103,7 @@ The `page-container` and `form-hero-content` max-width is **1248px** (aligned wi
 - **API:** `POST /api/v1/auth/request-link/` with `{ email }` and CSRF token
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (if available from a previous session).
 - Shows a brief description of OIUEEI above the form (`login.description` i18n key).\n- Shows an open source paragraph with a link to the GitHub repository (`login.openSource` i18n key, rendered via `Trans` for the inline link).
+- Shows a one-line manifesto under the open-source paragraph (`login.manifesto`): "No ads, no trackers. Your data is not the product."
 - Sends a magic link to the provided email address.
 - After submission, replaces the form with a `Notification` component:
   - `success` — Unified message displayed (backend returns 200 regardless of email existence for anti-enumeration)
@@ -123,6 +124,7 @@ The `page-container` and `form-hero-content` max-width is **1248px** (aligned wi
 - Static informational page about OIUEEI.
 - `← Home` link navigates to `/`.
 - **Action buttons:** "Create collection" links to `/collections/new` and "Edit profile" links to `/me/edit`, both passing `{ state: { backPath: '/welcome', backLabel: 'Welcome' } }` for return navigation.
+- **Commitment section** (before the personas): "Our commitment" heading + two short paragraphs (`welcome.commitmentTitle/Body1/Body2`) stating the DESIGN §9 stance in product copy — no ads, no third-party analytics, data never sold or shared, open code. `commitmentBody2` links (via `Trans`) to DESIGN.md §9 on GitHub.
 - **Personas section:** below the description, shows "Who uses OIUEEI?" heading with five persona stories (Lala, Lele, Lili, Lolo, Lulu — the demo users) illustrating different use cases. Each persona uses `persona{Name}Title` (bold) + `persona{Name}Body` i18n keys.
 - Sets `seenWelcome = 'true'` in `localStorage` on mount, permanently suppressing the Welcome Linkbox on `CollectionPage` for this browser.
 - **Feedback line**: `<FeedbackLink />` at the foot of the page content.
