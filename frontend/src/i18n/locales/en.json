@@ -135,6 +135,7 @@
     "errorSendingLink": "Error sending link.",
     "description": "What is OIUEEI? An open-source web application for people to share their belongings with friends and others around. Users can create collections (libraries of things, gift lists, items for sale) and share them with friends who can then reserve items or ask questions.",
     "openSource": "OIUEEI is open source. You can find the project on <1>GitHub</1>. If you would like to request access or collaborate, get in touch.",
+    "manifesto": "No ads, no trackers. Your data is not the product.",
     "popIn": "New here? Pop in →"
   },
   "popin": {
@@ -439,6 +440,9 @@
     "pageTitle": "Welcome to OIUEEI!",
     "description": "OIUEEI is an open-source platform for sharing within trusted communities. Create collections for gifts, sales, loans, swaps and wishes — then invite friends to browse, reserve and interact. Everything stays between people who know each other.",
     "createShare": "OIUEEI revolves around your own collections. Create one for anything you'd like to share — gifts, sales, loans, swaps or wishes — and invite your circles: family, friends, neighbours, your street. Only the people you invite can see it and join in.",
+    "commitmentTitle": "Our commitment",
+    "commitmentBody1": "OIUEEI runs without ads and without third-party analytics: nobody tracks you while you use it. Your data is not the product — it is never sold or shared with anyone.",
+    "commitmentBody2": "The code is open and you can read all of it; this commitment is <1>written into our design rules</1>. It's not the fine print: it's the starting point.",
     "createCollection": "Create collection",
     "editProfile": "Edit profile",
     "whoUsesTitle": "Who uses OIUEEI?",

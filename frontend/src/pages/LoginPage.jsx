@@ -84,6 +84,7 @@ export default function LoginPage() {
             ]}
           />
         </p>
+        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>{t('login.manifesto')}</p>
         <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
           <Link to="/popin">{t('login.popIn')}</Link>
         </p>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { Button, Koros } from "hds-react";
 import BackLink from "../components/BackLink";
 import FeedbackLink from "../components/FeedbackLink";
@@ -128,6 +128,26 @@ export default function WelcomePage() {
         </p>
         <div className="spacer-m" />
         <p>{t("welcome.createShare")}</p>
+        <div className="spacer-xl" />
+        <h2>{t("welcome.commitmentTitle")}</h2>
+        <div className="spacer-s" />
+        <p>{t("welcome.commitmentBody1")}</p>
+        <div className="spacer-s" />
+        <p>
+          <Trans
+            i18nKey="welcome.commitmentBody2"
+            components={[
+              <span key="0" />,
+              // eslint-disable-next-line jsx-a11y/anchor-has-content -- the link text is injected by <Trans> from the i18n string at runtime
+              <a
+                key="1"
+                href="https://github.com/oiueei/standalone/blob/main/DESIGN.md#9-user-data-is-never-a-product"
+                target="_blank"
+                rel="noopener noreferrer"
+              />,
+            ]}
+          />
+        </p>
         <div className="spacer-xl" />
         <h2>{t("welcome.whoUsesTitle")}</h2>
         <div className="spacer-s" />

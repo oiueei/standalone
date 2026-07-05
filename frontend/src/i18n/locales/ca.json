@@ -129,6 +129,7 @@
     "errorSendingLink": "Error en enviar l'enllaç.",
     "description": "Què és OIUEEI? Una aplicació web de codi obert perquè les persones comparteixin les seves pertinences amb amics i altres persones. Els usuaris poden crear col·leccions (biblioteques de coses, llistes de regals, articles en venda) i compartir-les amb amics que poden reservar articles o fer preguntes.",
     "openSource": "OIUEEI és de codi obert. Pots trobar el projecte a <1>GitHub</1>. Si vols sol·licitar accés o col·laborar, posa't en contacte.",
+    "manifesto": "Sense anuncis, sense rastrejadors. Les teves dades no són el producte.",
     "popIn": "Nou per aquí? Passa →"
   },
   "verify": {
@@ -422,6 +423,9 @@
     "pageTitle": "Benvingut a OIUEEI!",
     "description": "OIUEEI és una plataforma de codi obert per compartir dins de comunitats de confiança. Crea col·leccions per a regals, vendes, préstecs, intercanvis i desitjos — i convida amics a explorar, reservar i interactuar. Tot queda entre persones que es coneixen.",
     "createShare": "OIUEEI gira al voltant de les teves pròpies col·leccions. Crea'n una per a allò que vulguis compartir —regals, vendes, préstecs, intercanvis o desitjos— i convida els teus cercles: família, amics, veïns, el teu carrer. Només qui convidis pot veure-la i participar-hi.",
+    "commitmentTitle": "El nostre compromís",
+    "commitmentBody1": "OIUEEI funciona sense anuncis i sense analítiques de tercers: ningú no et rastreja mentre la fas servir. Les teves dades no són el producte — no es venen ni es comparteixen amb ningú.",
+    "commitmentBody2": "El codi és obert i el pots llegir sencer; aquest compromís està <1>escrit a les nostres normes de disseny</1>. No és la lletra petita: és el punt de partida.",
     "createCollection": "Crear col·lecció",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "Qui fa servir OIUEEI?",

@@ -129,6 +129,7 @@
     "errorSendingLink": "Error al enviar el enlace.",
     "description": "¿Qué es OIUEEI? Una aplicación web de código abierto para que las personas compartan sus pertenencias con amigos y otras personas. Los usuarios pueden crear colecciones (bibliotecas de cosas, listas de regalos, artículos en venta) y compartirlas con amigos que pueden reservar artículos o hacer preguntas.",
     "openSource": "OIUEEI es de código abierto. Puedes encontrar el proyecto en <1>GitHub</1>. Si quieres solicitar acceso o colaborar, ponte en contacto.",
+    "manifesto": "Sin anuncios, sin rastreadores. Tus datos no son el producto.",
     "popIn": "¿Nuevo por aquí? Pásate →"
   },
   "verify": {
@@ -422,6 +423,9 @@
     "pageTitle": "¡Bienvenido a OIUEEI!",
     "description": "OIUEEI es una plataforma de código abierto para compartir dentro de comunidades de confianza. Crea colecciones para regalos, ventas, préstamos, intercambios y deseos — luego invita a amigos a explorar, reservar e interactuar. Todo queda entre personas que se conocen.",
     "createShare": "OIUEEI gira en torno a tus propias colecciones. Crea una para lo que quieras compartir —regalos, ventas, préstamos, intercambios o deseos— e invita a tus círculos: familia, amigos, vecinos, tu calle. Solo quienes invites pueden verla y participar.",
+    "commitmentTitle": "Nuestro compromiso",
+    "commitmentBody1": "OIUEEI funciona sin anuncios y sin analíticas de terceros: nadie te rastrea mientras la usas. Tus datos no son el producto — no se venden ni se comparten con nadie.",
+    "commitmentBody2": "El código es abierto y puedes leerlo entero; este compromiso está <1>escrito en nuestras normas de diseño</1>. No es la letra pequeña: es el punto de partida.",
     "createCollection": "Crear colección",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "¿Quién usa OIUEEI?",
