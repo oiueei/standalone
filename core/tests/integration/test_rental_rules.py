@@ -62,29 +62,44 @@ def rental_setup(db):
 def test_rental_violation_rejects_wrong_duration(rental_setup):
     coll = rental_setup["collection"]
     start = _next_weekday(0)  # Monday
-    # 4-day span (Mon–Thu) — not in [3, 7].
-    assert coll.rental_violation(start, start + timedelta(days=3)) is not None
+    # 4-day rental (Mon pickup, Fri return) — not in [3, 7].
+    assert coll.rental_violation(start, start + timedelta(days=4)) is not None
 
 
 def test_rental_violation_rejects_disallowed_pickup_weekday(rental_setup):
     coll = rental_setup["collection"]
     sat = _next_weekday(5)  # Saturday, not allowed
-    # 3-day span starting Saturday → pickup weekday violation.
-    assert "pickup" in coll.rental_violation(sat, sat + timedelta(days=2)).lower()
+    # 3-day rental starting Saturday → pickup weekday violation.
+    assert "pickup" in coll.rental_violation(sat, sat + timedelta(days=3)).lower()
 
 
 def test_rental_violation_rejects_disallowed_return_weekday(rental_setup):
     coll = rental_setup["collection"]
     thu = _next_weekday(3)  # Thursday
-    # 3-day span Thu–Sat → return lands on Saturday (5), not allowed.
-    assert "return" in coll.rental_violation(thu, thu + timedelta(days=2)).lower()
+    # 3-day rental Thu → return lands on Sunday (6), not allowed.
+    assert "return" in coll.rental_violation(thu, thu + timedelta(days=3)).lower()
 
 
 def test_rental_violation_accepts_valid(rental_setup):
     coll = rental_setup["collection"]
     mon = _next_weekday(0)
-    # 3-day span Mon–Wed: valid length, both ends Mon–Fri.
-    assert coll.rental_violation(mon, mon + timedelta(days=2)) is None
+    # 3-day rental Mon → Thu return: valid length, both ends Mon–Fri.
+    assert coll.rental_violation(mon, mon + timedelta(days=3)) is None
+
+
+def test_week_rental_single_weekday_is_satisfiable(rental_setup):
+    # Regression (#7 off-by-one): durations [7] + Wednesday-only must be bookable —
+    # a one-week rental picked up on a Wednesday returns the NEXT Wednesday. With
+    # the old inclusive span the return fell on Tuesday, so NO date ever passed.
+    coll = rental_setup["collection"]
+    coll.rental_durations = [7]
+    coll.rental_weekdays = [2]  # Wednesday only
+    coll.save(update_fields=["rental_durations", "rental_weekdays"])
+    wed = _next_weekday(2)
+    assert coll.rental_violation(wed, wed + timedelta(days=7)) is None
+    # The old derivation (end = start + 6, a Tuesday return) must now be rejected
+    # (as a 6-day span here; with free durations it would fail the return weekday).
+    assert coll.rental_violation(wed, wed + timedelta(days=6)) is not None
 
 
 def test_no_rules_never_violates(db):
@@ -112,21 +127,21 @@ def _book(setup, start, end):
 
 def test_request_accepts_valid_rental(rental_setup):
     mon = _next_weekday(0)
-    res = _book(rental_setup, mon, mon + timedelta(days=2))  # 3 days, Mon–Wed
+    res = _book(rental_setup, mon, mon + timedelta(days=3))  # 3 days, Mon → Thu return
     assert res.status_code == 200
     assert BookingPeriod.objects.filter(thing_code=rental_setup["thing"]).count() == 1
 
 
 def test_request_rejects_wrong_duration(rental_setup):
     mon = _next_weekday(0)
-    res = _book(rental_setup, mon, mon + timedelta(days=3))  # 4 days
+    res = _book(rental_setup, mon, mon + timedelta(days=4))  # 4 days
     assert res.status_code == 400
     assert not BookingPeriod.objects.filter(thing_code=rental_setup["thing"]).exists()
 
 
 def test_request_rejects_disallowed_weekday(rental_setup):
     sat = _next_weekday(5)
-    res = _book(rental_setup, sat, sat + timedelta(days=2))  # 3 days but pickup Sat
+    res = _book(rental_setup, sat, sat + timedelta(days=3))  # 3 days but pickup Sat
     assert res.status_code == 400
     assert not BookingPeriod.objects.filter(thing_code=rental_setup["thing"]).exists()
 

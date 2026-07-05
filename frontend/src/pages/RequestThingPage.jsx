@@ -93,21 +93,23 @@ export default function RequestThingPage() {
   };
   const weekdayAllowed = (date) =>
     rentalWeekdays.length === 0 || rentalWeekdays.includes(jsToPyWeekday(new Date(date).getDay()));
-  // Any day in [pickup, pickup+len-1] already booked?
+  // Any day in [pickup, pickup+len] (pickup → return, inclusive) already booked?
   const rangeBlocked = (pickup, len) => {
-    for (let i = 0; i < len; i += 1) {
+    for (let i = 0; i <= len; i += 1) {
       if (isDateBlocked(addDays(pickup, i))) return true;
     }
     return false;
   };
   // Disable a pickup day when it (or, once a length is chosen, its return day or
   // any day in between) breaks the weekday rule or overlaps an existing booking.
+  // The return day is pickup + length: a one-week rental picked up on a Wednesday
+  // is returned the NEXT Wednesday, so a single allowed weekday stays satisfiable.
   const isPickupDisabled = (date) => {
     if (!weekdayAllowed(date)) return true;
     if (isDateBlocked(date)) return true;
     if (duration) {
       const len = Number(duration);
-      const end = addDays(date, len - 1);
+      const end = addDays(date, len);
       if (!weekdayAllowed(end)) return true;
       if (rangeBlocked(date, len)) return true;
     }
@@ -126,9 +128,10 @@ export default function RequestThingPage() {
       body = { offered_thing_codes: selectedOfferings };
     } else if (isDateBased) {
       if (isConstrainedRental) {
-        // Renter picks a fixed length + a pickup date; the return date is derived.
+        // Renter picks a fixed length + a pickup date; the return date is derived
+        // as pickup + length (a week rental comes back on the same weekday).
         if (!duration || !startDate) return;
-        const end = formatDate(addDays(startDate, Number(duration) - 1));
+        const end = formatDate(addDays(startDate, Number(duration)));
         body = { start_date: startDate, end_date: end };
       } else {
         if (!startDate || !endDate) return;
@@ -285,7 +288,7 @@ export default function RequestThingPage() {
           />
           {startDate && duration && (
             <p className="thing-card-meta" style={{ marginTop: 'var(--spacing-2-xs)' }}>
-              {t('rental.returnBy', { date: formatDate(addDays(startDate, Number(duration) - 1)) })}
+              {t('rental.returnBy', { date: formatDate(addDays(startDate, Number(duration))) })}
             </p>
           )}
         </div>

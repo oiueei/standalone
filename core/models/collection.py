@@ -170,13 +170,17 @@ class Collection(models.Model):
         """Return an error string if a LEND/RENT booking of ``[start, end]`` breaks
         this collection's rental rules, else ``None``.
 
-        Duration is inclusive: an allowed length of N days means ``end`` is
-        ``start + (N - 1)`` days. Weekdays use Python's ``weekday()`` (0=Mon…6=Sun)
-        and gate BOTH the pickup (start) and the return (end).
+        ``start`` is the pickup day and ``end`` the return day, so an allowed
+        length of N days means ``end`` is ``start + N`` days — a one-week rental
+        picked up on a Wednesday is returned the NEXT Wednesday. (With an
+        inclusive span, the return of every 7/14/21-day rental landed on the day
+        BEFORE the pickup weekday, so a single allowed weekday could never be
+        satisfied.) Weekdays use Python's ``weekday()`` (0=Mon…6=Sun) and gate
+        BOTH the pickup (start) and the return (end).
         """
         durations = self.rental_durations or []
         if durations:
-            span_days = (end_date - start_date).days + 1
+            span_days = (end_date - start_date).days
             if span_days not in durations:
                 allowed = ", ".join(str(d) for d in sorted(durations))
                 return f"This collection only allows rentals of {allowed} day(s)."
