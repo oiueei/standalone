@@ -1,0 +1,28 @@
+{
+  "name": "OIUEEI",
+  "short_name": "OIUEEI",
+  "description": "Share your belongings with friends and others around.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffe977",
+  "theme_color": "#0000bf",
+  "icons": [
+    {
+      "src": "oiueei-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "oiueei-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "oiueei-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

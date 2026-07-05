@@ -24,6 +24,7 @@ What I'm looking for is honest feedback from people willing to poke at it: thing
 - **Database**: SQLite (dev), PostgreSQL (prod via `dj-database-url`)
 - **Deployment**: Heroku (Procfile + runtime.txt included)
 - **Static files**: WhiteNoise
+- **PWA**: installable web app manifest + icons ("Add to Home Screen"); no service worker yet
 - **Scheduled tasks**: one daily Heroku Scheduler job chains `expire_bookings`, `cleanup_rsvps`, `close_transfers`, `send_reminders`, `send_digests` and `stats_summary` (see [HEROKU.md](HEROKU.md))
 
 ## UI & Design System

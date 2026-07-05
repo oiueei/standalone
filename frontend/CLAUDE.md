@@ -96,6 +96,12 @@ The `page-container` and `form-hero-content` max-width is **1248px** (aligned wi
 
 ---
 
+## PWA
+
+The app ships a web app manifest (`public/manifest.webmanifest`) plus icons (`public/oiueei-icon-192.png` / `-512.png` — the orange O over the engel/bus koros split; the 512 is also declared `purpose: maskable`), so OIUEEI can be installed from the browser ("Add to Home Screen"). `index.html` links the manifest, sets `theme-color`, and uses the 192px icon as favicon + `apple-touch-icon` (this also replaced the previously-broken `/vite.svg` favicon reference — the file never existed in `public/`). All colours are HDS tokens sampled from the icon itself: background `#ffe977` (engel), theme `#0000bf` (bus), the O `#fd4f00` (metro). In production Vite's `base: '/static/'` rewrites the `index.html` URLs and the manifest's icon `src`s are relative, so everything resolves under `/static/` via WhiteNoise. **No service worker** — installability only, no offline caching; kept deliberately minimal (DESIGN §7).
+
+---
+
 ## Pages
 
 ### LoginPage (`src/pages/LoginPage.jsx`)
