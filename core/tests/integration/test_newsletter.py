@@ -7,10 +7,19 @@ from io import StringIO
 from unittest.mock import patch
 
 import pytest
+import time_machine
 from django.core.management import call_command
+from django.utils import timezone
 
 from core.models import Collection, Thing
 from core.models.transfer import ThingTransfer
+
+# Fixed so the fixture data below is deterministically inside the newsletter's
+# [monday-7, monday) window regardless of which real-world day the suite runs on
+# (a dynamic "next Monday from today" computation put the fixture created
+# timestamp exactly at `until` — excluded by `lt` — whenever today already was a
+# Monday, making the assertions below pass vacuously).
+MONDAY = date(2026, 4, 20)
 
 
 @pytest.fixture
@@ -58,57 +67,39 @@ class TestNewsletterCommand:
     def test_newsletter_sent_on_monday(self, mock_send, user, user2, share_collection):
         """Newsletter should be sent on Mondays for share collections."""
         share_collection.invites.add(user2)
-        t = Thing.objects.create(
-            code="NWT001",
-            type="SHARE_THING",
-            owner=user,
-            headline="New Shared Item",
-        )
-        share_collection.things.add(t)
+        with time_machine.travel(MONDAY):
+            t = Thing.objects.create(
+                code="NWT001",
+                type="SHARE_THING",
+                owner=user,
+                headline="New Shared Item",
+                created=timezone.now() - timedelta(days=1),
+            )
+            share_collection.things.add(t)
 
-        # Find the next Monday from today (or today if it is Monday)
-        today = date.today()
-        days_until_monday = (7 - today.weekday()) % 7
-        if days_until_monday == 0:
-            monday = today
-        else:
-            monday = today + timedelta(days=days_until_monday)
-
-        with patch(
-            "core.management.commands.send_digests.date",
-            wraps=date,
-        ) as mock_date:
-            mock_date.today.return_value = monday
             out = StringIO()
             call_command("send_digests", stdout=out)
 
-        if mock_send.called:
-            assert (
-                mock_send.call_args.kwargs["collection_headline"] == "Share Newsletter Collection"
-            )
-            assert mock_send.call_args.kwargs["emails"] == [user2.email]
+        mock_send.assert_called_once()
+        kwargs = mock_send.call_args.kwargs
+        assert kwargs["collection_headline"] == "Share Newsletter Collection"
+        assert kwargs["emails"] == [user2.email]
+        assert kwargs["new_thing_headlines"] == ["New Shared Item"]
 
     @patch("core.management.commands.send_digests.send_newsletter_email")
     def test_newsletter_skipped_for_non_share(self, mock_send, user, user2, non_share_collection):
         """Newsletter should not be sent for collections without newsletter_enabled."""
         non_share_collection.invites.add(user2)
-        t = Thing.objects.create(
-            code="NWT002",
-            type="SHARE_THING",
-            owner=user,
-            headline="Some Item",
-        )
-        non_share_collection.things.add(t)
+        with time_machine.travel(MONDAY):
+            t = Thing.objects.create(
+                code="NWT002",
+                type="SHARE_THING",
+                owner=user,
+                headline="Some Item",
+                created=timezone.now() - timedelta(days=1),
+            )
+            non_share_collection.things.add(t)
 
-        today = date.today()
-        days_until_monday = (7 - today.weekday()) % 7
-        monday = today + timedelta(days=days_until_monday) if days_until_monday else today
-
-        with patch(
-            "core.management.commands.send_digests.date",
-            wraps=date,
-        ) as mock_date:
-            mock_date.today.return_value = monday
             out = StringIO()
             call_command("send_digests", stdout=out)
 
@@ -119,16 +110,7 @@ class TestNewsletterCommand:
         """Newsletter should not be sent when there are no new things or transfers."""
         share_collection.invites.add(user2)
         # No things, no transfers
-
-        today = date.today()
-        days_until_monday = (7 - today.weekday()) % 7
-        monday = today + timedelta(days=days_until_monday) if days_until_monday else today
-
-        with patch(
-            "core.management.commands.send_digests.date",
-            wraps=date,
-        ) as mock_date:
-            mock_date.today.return_value = monday
+        with time_machine.travel(MONDAY):
             out = StringIO()
             call_command("send_digests", stdout=out)
 
@@ -136,59 +118,52 @@ class TestNewsletterCommand:
 
     @patch("core.management.commands.send_digests.send_newsletter_email")
     def test_newsletter_includes_transfers(self, mock_send, user, user2, share_collection):
-        """Newsletter should include ownership changes."""
+        """Newsletter should render a real ownership-change entry alongside the
+        new-thing headline."""
         share_collection.invites.add(user2)
-        t = Thing.objects.create(
-            code="NWT003",
-            type="SHARE_THING",
-            owner=user,
-            headline="Transferred Item",
-        )
-        share_collection.things.add(t)
+        with time_machine.travel(MONDAY):
+            t = Thing.objects.create(
+                code="NWT003",
+                type="SHARE_THING",
+                owner=user,
+                headline="Transferred Item",
+                created=timezone.now() - timedelta(days=1),
+            )
+            share_collection.things.add(t)
+            ThingTransfer.objects.create(
+                thing=t,
+                from_user=user,
+                to_user=user2,
+                lent_date=MONDAY - timedelta(days=1),
+            )
 
-        ThingTransfer.objects.create(
-            thing=t,
-            from_user=user,
-            to_user=user2,
-            lent_date=date.today(),
-        )
-
-        today = date.today()
-        days_until_monday = (7 - today.weekday()) % 7
-        monday = today + timedelta(days=days_until_monday) if days_until_monday else today
-
-        with patch(
-            "core.management.commands.send_digests.date",
-            wraps=date,
-        ) as mock_date:
-            mock_date.today.return_value = monday
             out = StringIO()
             call_command("send_digests", stdout=out)
 
-        if mock_send.called:
-            kwargs = mock_send.call_args.kwargs
-            assert len(kwargs["transfer_entries"]) >= 1
+        mock_send.assert_called_once()
+        kwargs = mock_send.call_args.kwargs
+        assert kwargs["transfer_entries"] == [
+            {
+                "date": MONDAY - timedelta(days=1),
+                "thing": "Transferred Item",
+                "from_name": user.display_name,
+                "to_name": user2.display_name,
+            }
+        ]
 
     @patch("core.management.commands.send_digests.send_newsletter_email")
     def test_newsletter_skipped_without_invitees(self, mock_send, user, share_collection):
         """Newsletter should not be sent when collection has no invitees."""
-        t = Thing.objects.create(
-            code="NWT004",
-            type="SHARE_THING",
-            owner=user,
-            headline="Lonely Item",
-        )
-        share_collection.things.add(t)
+        with time_machine.travel(MONDAY):
+            t = Thing.objects.create(
+                code="NWT004",
+                type="SHARE_THING",
+                owner=user,
+                headline="Lonely Item",
+                created=timezone.now() - timedelta(days=1),
+            )
+            share_collection.things.add(t)
 
-        today = date.today()
-        days_until_monday = (7 - today.weekday()) % 7
-        monday = today + timedelta(days=days_until_monday) if days_until_monday else today
-
-        with patch(
-            "core.management.commands.send_digests.date",
-            wraps=date,
-        ) as mock_date:
-            mock_date.today.return_value = monday
             out = StringIO()
             call_command("send_digests", stdout=out)
 
