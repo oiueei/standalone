@@ -207,6 +207,19 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 ---
 
+## Inbox Views (`core/views/inbox.py`)
+
+### InboxView
+
+| | |
+|---|---|
+| **Endpoints** | `GET /api/v1/inbox/` and `DELETE /api/v1/inbox/{code}/` |
+| **Permission** | `IsAuthenticated` |
+
+GET lists the current user's in-app notifications (`code`, `type`, `payload`, `created`). DELETE dismisses (hard-deletes) one, scoped to the requesting user — a code belonging to someone else 404s.
+
+---
+
 ## Notification Preference Views (`core/views/notifications.py`)
 
 ### NotificationsByTokenView
@@ -414,6 +427,27 @@ Sends a broadcast email from the collection owner to all invitees. Validates `me
 ```json
 { "message": "Broadcast sent", "recipients": 5 }
 ```
+
+### CollectionBulkInviteView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/collections/{collection_code}/invite/bulk/` |
+| **Permission** | `IsAuthenticated` + collection owner |
+| **Rate limit** | 5 requests/hour per user |
+
+Invites many guests at once from a client-parsed CSV (`{"invites": [{"email": ..., "name": ...?}, ...]}`, capped at `MAX_ROWS=100`). Best-effort: valid, new addresses are invited (accept + reject RSVP pair created, invite email sent) and the rest are reported as skipped with a reason (`invalid`, `duplicate`, `already_member`, `already_invited`) — one bad row never fails the batch.
+
+**Response (200):** `{ "invited": 2, "skipped": [{"email": "...", "reason": "..."}], "total": 3 }`
+
+### CollectionStatsView
+
+| | |
+|---|---|
+| **Endpoint** | `GET /api/v1/collections/{collection_code}/stats/` |
+| **Permission** | `IsAuthenticated` + collection owner |
+
+Owner-only usage statistics for a collection, returned as a `metric,value` CSV download: a snapshot (members, pending invitations, things total/active) plus a 90-day activity window, and an aggregate age-range/postal-code breakdown (member demographics stay COMMUNITY-only and per-member on the guests page — this endpoint is aggregate-only).
 
 ---
 
@@ -904,7 +938,7 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 ### Service Layer
 
 Business logic is extracted into `core/services/`:
-- `email_service.py` — All email HTML composition and sending (8 functions). Uses `django.utils.html.escape()`.
+- `email_service.py` — All email HTML composition and sending (22 `send_*` functions). Uses `django.utils.html.escape()`.
 - `booking_service.py` — `accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`. The reservation-**request** side lives here too: `request_share_booking()`, `request_date_based_booking()`, `request_standard_booking()`, and `request_swap_booking()` (plus `resolve_rental_collection()` and the `send_*_request_notifications()` email/notification helpers). They raise `BookingRequestError(message, status_code)` on a rule violation; `ThingRequestView` catches it and returns `{"error": message}`.
 
 ### Utilities
