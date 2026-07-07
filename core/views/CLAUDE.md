@@ -424,7 +424,7 @@ Sends a broadcast email from the collection owner to all invitees. Validates `me
 | | |
 |---|---|
 | **Endpoint** | `GET /api/v1/things/{thing_code}/faq/` |
-| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+| **Permission** | `AllowAny` (part of the public social layer — anyone who can view the thing may read its FAQs) |
 | **Pagination** | `StandardResultsPagination` |
 
 Lists FAQs for a thing. Owner sees all FAQs (including hidden). Invited users see only visible FAQs.
@@ -545,7 +545,7 @@ Lists all available theeemes. Returns `code` and `name` for each theeeme via `Th
 | | |
 |---|---|
 | **Endpoint** | `GET /api/v1/things/{thing_code}/calendar/` |
-| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+| **Permission** | `AllowAny` + `get_viewable_thing()` (public read on a viewable thing) |
 
 Returns blocked periods for a thing's calendar. Owner sees full details (`BookingPeriodOwnerCalendarSerializer`), guests see only dates and status (`BookingPeriodCalendarSerializer`).
 
@@ -687,7 +687,7 @@ If all active collections containing the thing have a non-empty `pause_message` 
 | | |
 |---|---|
 | **Endpoint** | `GET /api/v1/things/{thing_code}/transfers/` |
-| **Permission** | `IsAuthenticated` + `thing.can_view()` |
+| **Permission** | `AllowAny` + `get_viewable_thing()` (public read on a viewable thing) |
 
 Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 
