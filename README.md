@@ -288,14 +288,17 @@ python manage.py backfill_events
 | `DJANGO_SECRET_KEY` | Yes | Django secret key |
 | `JWT_SIGNING_KEY` | No | Signs JWTs independently of `DJANGO_SECRET_KEY`, so the two can be rotated separately (defaults to `DJANGO_SECRET_KEY` if unset). Setting/rotating it invalidates every issued access/refresh token — everyone re-logins via magic link — so change it deliberately, once, alongside a release. |
 | `DJANGO_SETTINGS_MODULE` | No | Settings module (defaults to production) |
+| `DJANGO_DEBUG` | No | Enables Django debug mode (default: `False` — fail-closed on a missing/typo'd value) |
 | `DJANGO_ALLOWED_HOSTS` | No | Comma-separated allowed hosts |
 | `DATABASE_URL` | Prod | PostgreSQL connection string |
 | `MAGIC_LINK_BASE_URL` | Prod | Base URL for magic link emails (default in dev: `http://localhost:3000/verify`) |
 | `CORS_ALLOWED_ORIGINS` | Prod | Comma-separated allowed origins |
 | `CSRF_TRUSTED_ORIGINS` | Prod | Comma-separated trusted origins |
 | `EMAIL_HOST` | Prod | SMTP host (default: smtp.sendgrid.net) |
+| `EMAIL_PORT` | No | SMTP port (default: `587`) |
 | `EMAIL_HOST_USER` | Prod | SMTP username |
 | `EMAIL_HOST_PASSWORD` | Prod | SMTP password |
+| `EMAIL_TIMEOUT` | No | SMTP socket timeout in seconds (default: `10`) — caps a slow/hung provider so it can't stall a web dyno |
 | `DEFAULT_FROM_EMAIL` | Prod | Sender email address |
 | `RSVP_BASE_URL` | Prod | Base URL for RSVP action links in emails (default in dev: `http://localhost:3000/rsvp`) |
 | `SHARE_LINK_BASE_URL` | Prod | Base URL for public collection share links (default in dev: `http://localhost:3000/share`) |
@@ -324,10 +327,15 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 | Authorization | IDOR Protection | Profile access only via collection connections |
 | Input Validation | XSS Prevention | HTML escaped in emails via `django.utils.html.escape()`. Headlines sanitized |
 | Input Validation | Image ID | Alphanumeric validation prevents path traversal |
-| Rate Limiting | Auth | 5 req/min for magic link, 10 req/min for verify |
+| Rate Limiting | Auth | 5 req/min for magic link, 10 req/min for verify, 10 req/min for token refresh |
+| Rate Limiting | Pop-in | 5 req/min per IP + 5 req/hour per email |
 | Rate Limiting | Collection invite | 30 req/hour per user |
+| Rate Limiting | Collection bulk invite | 5 req/hour per user |
 | Rate Limiting | Collection share-link | 30 req/hour per user |
 | Rate Limiting | Thing request | 10 req/hour per user |
+| Rate Limiting | Thing bulk create | 10 req/hour per user |
+| Rate Limiting | Thing report | 10 req/hour per user |
+| Rate Limiting | Upload signature | 30 req/hour per user |
 | Rate Limiting | Broadcast | 5 req/day per user |
 | Rate Limiting | FAQ question | 20 req/hour per user |
 | Rate Limiting | Wish response | 20 req/hour per user |
@@ -396,9 +404,9 @@ Every theeeme palette has been verified for WCAG contrast compliance across all 
 
 | Compliance | Theeemes |
 |------------|----------|
-| AAA for all colour roles | Bussi, Kupari, Engel, Hopea, Suomenlinna, B&W |
-| AAA for all roles except AA for normal text in koros section | Vaakuna, Metro, Supra |
-| AAA for all roles except AA for normal text in primary button | Kesa, Sumu |
+| AAA for all colour roles | Bussi, Kupari, Engel, Hopea, Suomenlinna, M&V |
+| AAA for all roles except AA for normal text in koros section | Vaakuna, Metro, Spåra |
+| AAA for all roles except AA for normal text in primary button | Kesä, Sumu |
 | AAA for all roles except AA for normal text in koros section and primary button | Kulta |
 
 All theeemes meet AA or higher for every colour combination. No theeeme falls below AA for any role.

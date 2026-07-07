@@ -13,12 +13,14 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/logout` | `LogoutPage` | Clears auth cookies and localStorage, redirects to `/login` |
 | `/verify/:code` | `VerifyPage` | Processes magic link / RSVP verification |
 | `/rsvp/:code` | `VerifyPage` | Alias for /verify/:code |
+| `/magic-link/:code` | `VerifyPage` | Alias for /verify/:code |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
 | `/me/edit` | `EditProfilePage` | Edit own profile |
 | `/me/notifications/:token` | `NotificationsPage` | Manage email preferences via a signed (`TimestampSigner`, ~1y TTL) token from the email footer link. Without `:token` redirects to `/me/edit`. |
 | `/collections/new` | `CreateCollectionPage` | Create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites. **Public route** — anonymous read when the collection is PUBLIC (gated server-side by `can_view`). |
 | `/collections/:code/edit` | `EditCollectionPage` | Edit a collection |
+| `/collections/:code/delete` | `DeleteCollectionPage` | Confirm and delete a collection |
 | `/collections/:code/invites` | `ManageInvitesPage` | Manage collection invites |
 | `/collections/:code/add` | `AddThingPage` | Add a thing to a collection |
 | `/collections/:code/things/:thingCode` | `ThingPage` | Thing detail page with FAQs (from collection context). **Public route** — anonymous read on a PUBLIC collection. |
@@ -108,7 +110,8 @@ The app ships a web app manifest (`public/manifest.webmanifest`) plus icons (`pu
 
 - **API:** `POST /api/v1/auth/request-link/` with `{ email }` and CSRF token
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (if available from a previous session).
-- Shows a brief description of OIUEEI above the form (`login.description` i18n key).\n- Shows an open source paragraph with a link to the GitHub repository (`login.openSource` i18n key, rendered via `Trans` for the inline link).
+- Leads with a one-sentence pitch (`login.pitch` i18n key), then a brief description of OIUEEI (`login.description` i18n key).
+- Shows an open source paragraph with a link to the GitHub repository (`login.openSource` i18n key, rendered via `Trans` for the inline link).
 - Shows a one-line manifesto under the open-source paragraph (`login.manifesto`): "No ads, no trackers. Your data is not the product."
 - Sends a magic link to the provided email address.
 - After submission, replaces the form with a `Notification` component:
@@ -477,7 +480,7 @@ Smoke tests and automated accessibility checks using vitest + testing-library + 
 - **Run tests:** `npm test` (single run) or `npm run test:watch` (watch mode).
 - **Config:** `vite.config.js` — `test` block with jsdom environment, `src/test/setup.js` as setup file.
 - **Setup:** `src/test/setup.js` — imports `@testing-library/jest-dom`, initialises i18n mock, provides `localStorage`, `CSS.supports`, and `ResizeObserver` polyfills for jsdom.
-- **Smoke tests:** `src/test/smoke.test.jsx` — renders every page component with mocked API responses and runs `jest-axe` to detect WCAG violations. Covers all 25 page components.
+- **Smoke tests:** `src/test/smoke.test.jsx` — renders every page component with mocked API responses and runs `jest-axe` to detect WCAG violations. Covers all 26 page components.
 - **i18n mock:** `src/test/i18n-mock.js` — initialises i18next with the real `en.json` for test rendering.
 
 ---
@@ -520,7 +523,7 @@ The project consumes HDS directly from npm and applies three local overrides:
 ## Authentication Flow
 
 1. User enters email on `/login`
-2. Backend sends magic link email pointing to `localhost:3000/verify/{rsvp_code}`
+2. Backend sends magic link email pointing to `localhost:3000/verify/{rsvp.token}` — the high-entropy token, never the 6-char RSVP code
 3. `/verify/:code` calls the backend, which sets JWT tokens as HttpOnly cookies on the response
 4. `userCode` is stored in `localStorage` (for ownership checks only — auth tokens are never in localStorage)
 5. Authenticated pages use `credentials: 'include'` to send cookies automatically. On 401, `apiFetch` silently attempts token refresh via `POST /api/v1/auth/refresh/`
