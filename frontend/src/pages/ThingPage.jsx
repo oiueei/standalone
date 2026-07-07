@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification } from 'hds-react';
-import { WISH_TYPE, WISH_KIND_I18N } from '../constants/things';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -12,8 +11,9 @@ import ThingInfoRows from '../components/ThingInfoRows';
 import OwnerBookingsList from '../components/OwnerBookingsList';
 import ThingReportFooter from '../components/ThingReportFooter';
 import ThingFaqSection from '../components/ThingFaqSection';
+import WishResponsesList from '../components/WishResponsesList';
 import Toast from '../components/Toast';
-import MarkdownText, { sanitizeUrl } from '../components/MarkdownText';
+import MarkdownText from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
 import useTheeeme from '../hooks/useTheeeme';
@@ -30,8 +30,6 @@ export default function ThingPage() {
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
-  const [resolveOpen, setResolveOpen] = useState(false);
-  const [confirmAcceptCode, setConfirmAcceptCode] = useState(null);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
   // Anonymous visitor on a PUBLIC collection: like ThingLinkbox's login-to-act
@@ -75,16 +73,8 @@ export default function ThingPage() {
     activateSuccessMessage: t('thingPage.thingReactivated'),
   });
 
-  // Load-more spinner for the wish-responses pager (FAQ owns its own).
-  const [loadingMore, setLoadingMore] = useState(false);
-
   // Transfer state
   const [transfers, setTransfers] = useState(null);
-
-  // Wish state
-  const [responses, setResponses] = useState([]);
-  const [responsesNext, setResponsesNext] = useState(null);
-  const [actioning, setActioning] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -125,39 +115,6 @@ export default function ThingPage() {
     return () => controller.abort();
   }, [userCode, thingCode, navigate, t]);
 
-  useEffect(() => {
-    // Wish responses are member-only (creator-all / responder-own), so skip the
-    // fetch entirely for an anonymous visitor — it would 401 and bounce them to login.
-    // Key on code/type (not the whole `thing`) so a booking accept/reject/resolve
-    // patch doesn't refire it, and abort in flight to avoid a post-unmount set.
-    if (!thing?.code || thing.type !== WISH_TYPE || !userCode) return undefined;
-    const controller = new AbortController();
-    apiFetch(`/api/v1/things/${thing.code}/responses/`, { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (controller.signal.aborted || !data) return;
-        setResponses(data.results || data);
-        setResponsesNext(data.next || null);
-      })
-      .catch(() => {});
-    return () => controller.abort();
-  }, [thing?.code, thing?.type, userCode]);
-
-  const loadMoreResponses = async () => {
-    if (!responsesNext || loadingMore) return;
-    setLoadingMore(true);
-    try {
-      const res = await apiFetch(responsesNext.replace(/^https?:\/\/[^/]+/, ''));
-      if (res.ok) {
-        const data = await res.json();
-        setResponses((prev) => [...prev, ...(data.results || [])]);
-        setResponsesNext(data.next || null);
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
   if (error) {
     return (
       <PageLayout title={t('common.error')} backTo="/" backLabel={t('common.home')}>
@@ -187,43 +144,6 @@ export default function ThingPage() {
   const deletePath = code
     ? `/collections/${code}/things/${thing.code}/delete`
     : `/things/${thing.code}/delete`;
-
-  const handleAcceptResponse = async (responseCode) => {
-    setActioning(true);
-    setToast(null);
-    try {
-      const res = await apiFetch(`/api/v1/wish-responses/${responseCode}/accept/`, { method: 'POST' });
-      if (res.ok) {
-        const updated = await res.json();
-        setResponses((prev) => prev.map((r) => (r.code === responseCode ? { ...r, status: updated.status } : r)));
-        setToast({ type: 'success', message: t('wishes.acceptedToast') });
-      } else {
-        setToast({ type: 'error', message: t('wishes.errorAccepting') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setActioning(false);
-    }
-  };
-
-  const handleResolve = async () => {
-    setActioning(true);
-    setToast(null);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/resolve/`, { method: 'POST' });
-      if (res.ok) {
-        setThing((prev) => ({ ...prev, status: 'INACTIVE' }));
-        setToast({ type: 'success', message: t('wishes.resolvedToast') });
-      } else {
-        setToast({ type: 'error', message: t('wishes.errorResolving') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setActioning(false);
-    }
-  };
 
   return (
     <PageLayout backTo={backPath} backLabel={backLabel}>
@@ -370,133 +290,15 @@ export default function ThingPage() {
 
         {/* Responses section for wishes (creator sees all; responder sees own) */}
         {isWish && (isOwner || thing.my_response) && (
-          <>
-            <div className="spacer-m" />
-            <hr />
-            <div className="spacer-m" />
-            <h2>{t('wishes.responsesHeading')}</h2>
-            {responses.length === 0 ? (
-              <p>{t('wishes.noResponses')}</p>
-            ) : (
-              <div className="faq-grid">
-                {responses.map((r) => (
-                  <div key={r.code}>
-                    <p className="thing-card-meta">
-                      <strong>{r.responder_name}</strong>
-                      {' · '}{t('wishes.kind.' + WISH_KIND_I18N[r.kind])}
-                      {' · '}
-                      <span style={{ color: r.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>
-                        {t('wishes.status.' + r.status)}
-                      </span>
-                    </p>
-                    {r.kind === 'HAVE_THIS' && r.thing && (
-                      <p>
-                        <Link to={code ? `/collections/${code}/things/${r.thing}` : `/things/${r.thing}`}>
-                          {r.thing_headline}
-                        </Link>
-                        {r.thing_type && <> ({t('types.' + r.thing_type)})</>}
-                      </p>
-                    )}
-                    {r.message && <MarkdownText text={r.message} />}
-                    {r.url && (
-                      <p><a href={sanitizeUrl(r.url)} target="_blank" rel="noopener noreferrer">{r.url}</a></p>
-                    )}
-                    {r.fee && <p>{r.fee} €</p>}
-                    {isOwner && r.status === 'PENDING' && (
-                      <>
-                        <Button
-                          disabled={actioning}
-                          onClick={() =>
-                            setConfirmAcceptCode((c) => (c === r.code ? null : r.code))
-                          }
-                          aria-expanded={confirmAcceptCode === r.code}
-                          style={{ ...btnStyle, width: '100%' }}
-                        >
-                          {t('wishes.accept')}
-                        </Button>
-                        {confirmAcceptCode === r.code && (
-                          <div className="thing-report-confirm">
-                            <p>
-                              <strong>{t('wishes.acceptConfirmTitle')}</strong>
-                            </p>
-                            <p>{t('wishes.acceptConfirmBody')}</p>
-                            <div className="button-row">
-                              <Button
-                                size="small"
-                                disabled={actioning}
-                                isLoading={actioning}
-                                loadingText={t('common.saving')}
-                                onClick={() => handleAcceptResponse(r.code)}
-                                style={btnStyle}
-                              >
-                                {t('wishes.acceptConfirm')}
-                              </Button>
-                              <Button
-                                variant="supplementary"
-                                size="small"
-                                onClick={() => setConfirmAcceptCode(null)}
-                              >
-                                {t('common.cancel')}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {responsesNext && (
-              <>
-                <div className="spacer-s" />
-                <Button variant="secondary" onClick={loadMoreResponses} disabled={loadingMore} style={btnSecondaryStyle}>
-                  {t('common.loadMore')}
-                </Button>
-              </>
-            )}
-            {isOwner && thing.status === 'ACTIVE' && (
-              <>
-                <div className="spacer-m" />
-                <Button
-                  variant="secondary"
-                  disabled={actioning}
-                  onClick={() => setResolveOpen((o) => !o)}
-                  aria-expanded={resolveOpen}
-                  style={{ ...btnSecondaryStyle, width: '100%' }}
-                >
-                  {t('wishes.resolve')}
-                </Button>
-                {resolveOpen && (
-                  <div className="thing-report-confirm">
-                    <p>
-                      <strong>{t('wishes.resolveConfirmTitle')}</strong>
-                    </p>
-                    <p>{t('wishes.resolveConfirmBody')}</p>
-                    <div className="button-row">
-                      <Button
-                        size="small"
-                        disabled={actioning}
-                        isLoading={actioning}
-                        loadingText={t('common.saving')}
-                        onClick={handleResolve}
-                        style={btnStyle}
-                      >
-                        {t('wishes.resolveConfirm')}
-                      </Button>
-                      <Button
-                        variant="supplementary"
-                        size="small"
-                        onClick={() => setResolveOpen(false)}
-                      >
-                        {t('common.cancel')}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
+          <WishResponsesList
+            thing={thing}
+            isOwner={isOwner}
+            code={code}
+            btnStyle={btnStyle}
+            btnSecondaryStyle={btnSecondaryStyle}
+            onToast={setToast}
+            onResolved={() => setThing((prev) => ({ ...prev, status: 'INACTIVE' }))}
+          />
         )}
 
         {/* FAQs Section */}
