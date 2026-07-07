@@ -10,7 +10,6 @@ import logging
 import threading
 
 from django.conf import settings
-from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_ratelimit.decorators import ratelimit
@@ -601,9 +600,8 @@ class LogoutView(APIView):
             except (AttributeError, TokenError):
                 pass  # Blacklist not enabled or token invalid
 
-        # Logout from Django session
-        logout(request)
-
+        # No Django session to clear — auth is JWT-cookie only (login() is never
+        # called), so logout just blacklists the refresh token and drops cookies.
         response = Response(
             {"message": "Successfully logged out"},
             status=status.HTTP_200_OK,

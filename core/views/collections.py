@@ -230,13 +230,12 @@ class CollectionViewSet(ModelViewSet):
 
         thing_code = serializer.validated_data["thing_code"]
 
-        if not collection.things.filter(code=thing_code).exists():
+        thing = collection.things.filter(code=thing_code).first()
+        if thing is None:
             return Response(
                 {"error": "Thing is not in this collection"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        thing = collection.things.get(code=thing_code)
 
         # Collection owner can always remove. In community mode,
         # thing owners can remove their own things.
@@ -363,18 +362,15 @@ class CollectionInviteView(APIView):
             collection.invites.remove(invited_user)
             Event.log(Event.Kind.MEMBER_LEFT, actor=invited_user, collection=collection)
 
-            # Send notification email and in-app notification to removed user
-            try:
-                user = User.objects.get(code=user_code)
-                owner_name = request.user.display_name
-                send_collection_revoke_email(owner_name, collection.headline, user.email)
-                InAppNotification.objects.create(
-                    user=user,
-                    type=InAppNotification.Type.COLLECTION_REVOKED,
-                    payload={"collection_headline": collection.headline, "owner_name": owner_name},
-                )
-            except User.DoesNotExist:
-                pass
+            # Notify the removed user — invited_user is already in hand (fetched
+            # above), so there's no need to re-query and no DoesNotExist to guard.
+            owner_name = request.user.display_name
+            send_collection_revoke_email(owner_name, collection.headline, invited_user.email)
+            InAppNotification.objects.create(
+                user=invited_user,
+                type=InAppNotification.Type.COLLECTION_REVOKED,
+                payload={"collection_headline": collection.headline, "owner_name": owner_name},
+            )
 
             return Response(
                 {
