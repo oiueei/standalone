@@ -76,13 +76,18 @@ export default function PopInPage() {
       <div className="page-container">
         <p className="section-mt" style={{ maxWidth: '400px' }}>{t('popin.description')}</p>
         {status ? (
-          <Notification
-            label={status === 'success' ? t('common.sent') : t('common.error')}
-            type={status}
-            style={{ marginTop: 'var(--spacing-m)' }}
-          >
-            {message}
-          </Notification>
+          <>
+            <Notification
+              label={status === 'success' ? t('common.sent') : t('common.error')}
+              type={status}
+              style={{ marginTop: 'var(--spacing-m)' }}
+            >
+              {message}
+            </Notification>
+            {status === 'success' && (
+              <p className="section-mt">{t('popin.closeThisTab')}</p>
+            )}
+          </>
         ) : (
           <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
             <TextInput

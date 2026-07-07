@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, DateInput, Notification, Select } from 'hds-react';
 import { DATE_TYPES, SWAP_TYPE } from '../constants/things';
@@ -176,7 +176,10 @@ export default function RequestThingPage() {
           <p>{t('swap.selectItems')}</p>
           <div className="spacer-xs" />
           {ownSwapThings.length === 0 ? (
-            <p>{t('swap.noItemsToOffer')}</p>
+            <p>
+              {t('swap.noItemsToOffer')}{' '}
+              {code && <Link to={`/collections/${code}/add`}>{t('swap.addItemToOffer')}</Link>}
+            </p>
           ) : (
             ownSwapThings.map((item) => (
               <Checkbox

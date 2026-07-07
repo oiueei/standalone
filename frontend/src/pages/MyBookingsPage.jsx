@@ -22,7 +22,7 @@ const STATUS_TYPES = {
 export default function MyBookingsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { tc, btnSecondaryStyle } = useTheeeme();
+  const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
   const [bookings, setBookings] = useState(null);
   const [next, setNext] = useState(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -180,7 +180,13 @@ export default function MyBookingsPage() {
     <PageLayout title={t('myBookings.pageTitle')} backTo="/" backLabel={t('common.home')}>
 
         {bookings.length === 0 ? (
-          <p>{t('myBookings.noBookings')}</p>
+          <div>
+            <p>{t('myBookings.noBookings')}</p>
+            <div className="spacer-m" />
+            <Link to="/">
+              <Button style={btnStyle}>{t('myBookings.goHome')}</Button>
+            </Link>
+          </div>
         ) : (
           <>
             {(() => {

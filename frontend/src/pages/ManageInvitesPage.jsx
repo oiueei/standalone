@@ -112,7 +112,7 @@ export default function ManageInvitesPage() {
       backLabel={collectionHeadline || t('common.collection')}
     >
       {invites.length === 0 && pendingInvites.length === 0 ? (
-        <p>{t('manageInvites.noGuests')}</p>
+        <p>{t('manageInvites.noGuests')} {isOwner && t('manageInvites.noGuestsCta')}</p>
       ) : (() => {
         const tableRows = [
           ...invites.map((inv) => ({

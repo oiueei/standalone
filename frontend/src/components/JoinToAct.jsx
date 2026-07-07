@@ -54,9 +54,12 @@ export default function JoinToAct({ collectionCode, collectionHeadline, asPage =
 
   if (status === 'success') {
     return (
-      <Notification label={t('joinToAct.sent')} type="success" className={asPage ? undefined : 'join-to-act'}>
-        {message}
-      </Notification>
+      <>
+        <Notification label={t('joinToAct.sent')} type="success" className={asPage ? undefined : 'join-to-act'}>
+          {message}
+        </Notification>
+        <p className="section-mt">{t('popin.closeThisTab')}</p>
+      </>
     );
   }
 

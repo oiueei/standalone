@@ -178,6 +178,11 @@ export default function UserPage() {
             </div>
           </>
         )}
+        {!isOwnProfile &&
+          !user.about &&
+          (!user.shared_collections || user.shared_collections.length === 0) && (
+            <p>{t('userPage.noSharedCollections', { name: user.name || user.email })}</p>
+          )}
       </div>
     </div>
   );
