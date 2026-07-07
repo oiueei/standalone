@@ -18,6 +18,15 @@ DEBUG = False
 if len(SECRET_KEY) < 50 or SECRET_KEY.startswith("test-secret-key"):  # noqa: F405
     raise ImproperlyConfigured("SECRET_KEY must be a strong production value (>= 50 characters).")
 
+
+def _require_env(name):
+    """Fail fast instead of silently shipping a YOUR-DOMAIN.com placeholder."""
+    value = os.environ.get(name)
+    if not value:
+        raise ImproperlyConfigured(f"{name} must be set in production.")
+    return value
+
+
 # Database: PostgreSQL via DATABASE_URL
 DATABASES = {
     "default": dj_database_url.config(
@@ -57,7 +66,7 @@ EMAIL_USE_TLS = True
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", 10))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "apikey")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@YOUR-DOMAIN.com")
+DEFAULT_FROM_EMAIL = _require_env("DEFAULT_FROM_EMAIL")
 
 # Dispatch magic-link emails off the request thread (see base.EMAIL_SEND_ASYNC /
 # core.views.auth._send_magic_link) so request-link returns in constant time and
@@ -90,9 +99,9 @@ REST_FRAMEWORK = {  # noqa: F405
 }
 
 # Magic link and RSVP base URLs for production
-MAGIC_LINK_BASE_URL = os.environ.get("MAGIC_LINK_BASE_URL", "https://YOUR-DOMAIN.com/magic-link")
-RSVP_BASE_URL = os.environ.get("RSVP_BASE_URL", "https://YOUR-DOMAIN.com/rsvp")
-SHARE_LINK_BASE_URL = os.environ.get("SHARE_LINK_BASE_URL", "https://YOUR-DOMAIN.com/share")
+MAGIC_LINK_BASE_URL = _require_env("MAGIC_LINK_BASE_URL")
+RSVP_BASE_URL = _require_env("RSVP_BASE_URL")
+SHARE_LINK_BASE_URL = _require_env("SHARE_LINK_BASE_URL")
 
 # Logging for production with security logger
 LOGGING = {

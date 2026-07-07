@@ -278,15 +278,15 @@ python manage.py backfill_events
 | `DJANGO_SETTINGS_MODULE` | No | Settings module (defaults to production) |
 | `DJANGO_ALLOWED_HOSTS` | No | Comma-separated allowed hosts |
 | `DATABASE_URL` | Prod | PostgreSQL connection string |
-| `MAGIC_LINK_BASE_URL` | No | Base URL for magic link emails |
+| `MAGIC_LINK_BASE_URL` | Prod | Base URL for magic link emails (default in dev: `http://localhost:3000/verify`) |
 | `CORS_ALLOWED_ORIGINS` | Prod | Comma-separated allowed origins |
 | `CSRF_TRUSTED_ORIGINS` | Prod | Comma-separated trusted origins |
 | `EMAIL_HOST` | Prod | SMTP host (default: smtp.sendgrid.net) |
 | `EMAIL_HOST_USER` | Prod | SMTP username |
 | `EMAIL_HOST_PASSWORD` | Prod | SMTP password |
-| `DEFAULT_FROM_EMAIL` | No | Sender email address |
-| `RSVP_BASE_URL` | No | Base URL for RSVP action links in emails |
-| `SHARE_LINK_BASE_URL` | No | Base URL for public collection share links (default: `http://localhost:3000/share` / `https://YOUR-DOMAIN.com/share`) |
+| `DEFAULT_FROM_EMAIL` | Prod | Sender email address |
+| `RSVP_BASE_URL` | Prod | Base URL for RSVP action links in emails (default in dev: `http://localhost:3000/rsvp`) |
+| `SHARE_LINK_BASE_URL` | Prod | Base URL for public collection share links (default in dev: `http://localhost:3000/share`) |
 | `CLOUDINARY_URL` | Uploads | Cloudinary credentials for image uploads: `cloudinary://api_key:api_secret@cloud_name` (free account at cloudinary.com) |
 
 ## Onboarding & access
