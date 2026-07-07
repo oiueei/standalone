@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, DateInput, Notification, Select } from 'hds-react';
 import { DATE_TYPES, SWAP_TYPE } from '../constants/things';
-import { RENTAL_DURATION_PRESETS, durationLabel, jsToPyWeekday, addDays } from '../utils/rental';
+import { durationLabel, isPickupDisabled, isDateBlocked, derivedReturnDate } from '../utils/rental';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -69,52 +69,16 @@ export default function RequestThingPage() {
       .catch(() => {});
   }, [userCode, thingCode, thing]);
 
-  const isDateBlocked = (date) =>
-    blockedPeriods.some((period) => {
-      const start = new Date(period.start_date);
-      const end = new Date(period.end_date);
-      start.setHours(0, 0, 0, 0);
-      end.setHours(0, 0, 0, 0);
-      const d = new Date(date);
-      d.setHours(0, 0, 0, 0);
-      return d >= start && d <= end;
-    });
-
   // Per-collection rental rules (#7): a set of fixed lengths + allowed weekdays.
   const rentalDurations = thing?.rental_durations || [];
   const rentalWeekdays = thing?.rental_weekdays || [];
   const isConstrainedRental = !!thing && DATE_TYPES.includes(thing.type) && rentalDurations.length > 0;
 
-  const formatDate = (d) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
-  const weekdayAllowed = (date) =>
-    rentalWeekdays.length === 0 || rentalWeekdays.includes(jsToPyWeekday(new Date(date).getDay()));
-  // Any day in [pickup, pickup+len] (pickup → return, inclusive) already booked?
-  const rangeBlocked = (pickup, len) => {
-    for (let i = 0; i <= len; i += 1) {
-      if (isDateBlocked(addDays(pickup, i))) return true;
-    }
-    return false;
-  };
-  // Disable a pickup day when it (or, once a length is chosen, its return day or
-  // any day in between) breaks the weekday rule or overlaps an existing booking.
-  // The return day is pickup + length: a one-week rental picked up on a Wednesday
-  // is returned the NEXT Wednesday, so a single allowed weekday stays satisfiable.
-  const isPickupDisabled = (date) => {
-    if (!weekdayAllowed(date)) return true;
-    if (isDateBlocked(date)) return true;
-    if (duration) {
-      const len = Number(duration);
-      const end = addDays(date, len);
-      if (!weekdayAllowed(end)) return true;
-      if (rangeBlocked(date, len)) return true;
-    }
-    return false;
-  };
+  // Pickup validity and blocked-date checks are pure, timezone-safe, unit-tested
+  // helpers in utils/rental.js; bind them to the current rental state here.
+  const pickupDisabled = (date) =>
+    isPickupDisabled(date, { rentalWeekdays, blockedPeriods, duration });
+  const dateBlocked = (date) => isDateBlocked(date, blockedPeriods);
 
   const handleSubmit = async () => {
     setAttempted(true);
@@ -131,7 +95,7 @@ export default function RequestThingPage() {
         // Renter picks a fixed length + a pickup date; the return date is derived
         // as pickup + length (a week rental comes back on the same weekday).
         if (!duration || !startDate) return;
-        const end = formatDate(addDays(startDate, Number(duration)));
+        const end = derivedReturnDate(startDate, duration);
         body = { start_date: startDate, end_date: end };
       } else {
         if (!startDate || !endDate) return;
@@ -283,12 +247,12 @@ export default function RequestThingPage() {
             minDate={TODAY}
             maxDate={MAX_DATE}
             dateOutsideRangeErrorText={t('request.dateRange')}
-            isDateDisabledBy={isPickupDisabled}
+            isDateDisabledBy={pickupDisabled}
             malformedDateErrorText={t('request.dateOverlap')}
           />
           {startDate && duration && (
             <p className="thing-card-meta" style={{ marginTop: 'var(--spacing-2-xs)' }}>
-              {t('rental.returnBy', { date: formatDate(addDays(startDate, Number(duration))) })}
+              {t('rental.returnBy', { date: derivedReturnDate(startDate, duration) })}
             </p>
           )}
         </div>
@@ -308,7 +272,7 @@ export default function RequestThingPage() {
             minDate={TODAY}
             maxDate={MAX_DATE}
             dateOutsideRangeErrorText={t('request.dateRange')}
-            isDateDisabledBy={isDateBlocked}
+            isDateDisabledBy={dateBlocked}
             malformedDateErrorText={t('request.dateOverlap')}
           />
           <div className="spacer-xxxs" />
@@ -325,7 +289,7 @@ export default function RequestThingPage() {
             minDate={TODAY}
             maxDate={MAX_DATE}
             dateOutsideRangeErrorText={t('request.dateRange')}
-            isDateDisabledBy={isDateBlocked}
+            isDateDisabledBy={dateBlocked}
             malformedDateErrorText={t('request.dateOverlap')}
           />
         </div>

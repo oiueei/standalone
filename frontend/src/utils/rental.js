@@ -33,10 +33,72 @@ export const weekdayNarrow = (pyWeekday, lang) =>
 // JS Date.getDay() (0=Sun … 6=Sat) → Python weekday (0=Mon … 6=Sun).
 export const jsToPyWeekday = (jsDay) => (jsDay + 6) % 7;
 
+// Parse a value to a Date at LOCAL midnight. A 'YYYY-MM-DD' string is split into
+// its components so it lands on the intended local day — new Date('YYYY-MM-DD')
+// parses as UTC midnight and shifts back a day in UTC-negative timezones (the
+// flagship rental return-date bug). A Date (or anything else) is normalised to
+// local midnight.
+export const parseLocalDate = (value) => {
+  if (typeof value === 'string') {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+  const d = new Date(value);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
 // Date + N days (returns a new Date at local midnight).
 export const addDays = (date, n) => {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
+  const d = parseLocalDate(date);
   d.setDate(d.getDate() + n);
   return d;
 };
+
+// 'YYYY-MM-DD' for a Date, built from local components (never UTC).
+export const toISODate = (d) => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+// Weekday rule: allowed when unrestricted, or the date's Python weekday is listed.
+export const weekdayAllowed = (date, rentalWeekdays) =>
+  rentalWeekdays.length === 0 || rentalWeekdays.includes(jsToPyWeekday(parseLocalDate(date).getDay()));
+
+// Is `date` inside any blocked [start_date, end_date] period (both ends inclusive)?
+export const isDateBlocked = (date, blockedPeriods) => {
+  const d = parseLocalDate(date);
+  return blockedPeriods.some((period) => {
+    const start = parseLocalDate(period.start_date);
+    const end = parseLocalDate(period.end_date);
+    return d >= start && d <= end;
+  });
+};
+
+// Any day in [pickup, pickup+len] (pickup → return, inclusive) already booked?
+export const rangeBlocked = (pickup, len, blockedPeriods) => {
+  for (let i = 0; i <= len; i += 1) {
+    if (isDateBlocked(addDays(pickup, i), blockedPeriods)) return true;
+  }
+  return false;
+};
+
+// Disable a pickup day when it — or, once a length is chosen, its return day or any
+// day in between — breaks the weekday rule or overlaps an existing booking. The
+// return day is pickup + length: a one-week rental picked up on a Wednesday is
+// returned the NEXT Wednesday, so a single allowed weekday stays satisfiable.
+export const isPickupDisabled = (date, { rentalWeekdays, blockedPeriods, duration }) => {
+  if (!weekdayAllowed(date, rentalWeekdays)) return true;
+  if (isDateBlocked(date, blockedPeriods)) return true;
+  if (duration) {
+    const len = Number(duration);
+    if (!weekdayAllowed(addDays(date, len), rentalWeekdays)) return true;
+    if (rangeBlocked(date, len, blockedPeriods)) return true;
+  }
+  return false;
+};
+
+// Derived return date (ISO string) for a pickup date + fixed length in days.
+export const derivedReturnDate = (pickup, days) => toISODate(addDays(pickup, Number(days)));
