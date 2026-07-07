@@ -12,6 +12,7 @@ import threading
 from django.conf import settings
 from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -568,6 +569,11 @@ class MeView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    # Called on every app load; setting the csrftoken cookie here guarantees the
+    # SPA has a token to send as X-CSRFToken on subsequent unsafe requests (which
+    # CookieJWTAuthentication now enforces). GET is safe, so this is not itself
+    # CSRF-checked.
+    @method_decorator(ensure_csrf_cookie)
     def get(self, request):
         user = request.user
         user.update_last_activity()
