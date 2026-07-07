@@ -140,6 +140,7 @@ class WishResponseAcceptView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
     def post(self, request, code):
         response = get_object_or_404(
             WishResponse.objects.select_related("wish", "responder"), code=code

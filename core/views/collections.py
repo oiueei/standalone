@@ -155,6 +155,7 @@ class CollectionViewSet(ModelViewSet):
         Event.log(Event.Kind.COLLECTION_CREATED, actor=self.request.user, collection=collection)
         self._created_collection = collection
 
+    @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -165,6 +166,7 @@ class CollectionViewSet(ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="add-thing")
+    @method_decorator(ratelimit(key="user", rate="60/h", method="POST", block=True))
     def add_thing(self, request, code=None):
         """Add a thing to the collection.
 
@@ -412,6 +414,7 @@ class CollectionLeaveView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
     def post(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
 

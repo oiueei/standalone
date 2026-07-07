@@ -203,6 +203,10 @@ class ThingViewSet(ModelViewSet):
             ]
         )
 
+    # Single-thing create is the one-by-one equivalent of the 10/h bulk endpoint;
+    # cap it too so the bulk limit can't be bypassed into unbounded rows. Generous
+    # enough for manual entry (the bulk endpoint is there for large batches).
+    @method_decorator(ratelimit(key="user", rate="60/h", method="POST", block=True))
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -913,6 +913,11 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 - `/collections/{code}/share-link/` POST — 30 requests per hour per user
 - `/things/{code}/report/` POST — 10 requests per hour per user
 - `/notifications/token/{t}/` — GET 20/min per IP, PATCH 10/min per IP
+- `/things/` POST (single create) — 60 requests per hour per user (so the 10/h bulk cap can't be bypassed one-by-one into unbounded rows)
+- `/collections/` POST (single create) — 30 requests per hour per user
+- `/collections/{code}/add-thing/` POST — 60 requests per hour per user
+- `/wish-responses/{code}/accept/` POST — 30 requests per hour per user
+- `/collections/{code}/leave/` POST — 30 requests per hour per user
 
 ### Secure Code Practices
 

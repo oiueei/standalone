@@ -340,6 +340,11 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 | Rate Limiting | FAQ question | 20 req/hour per user |
 | Rate Limiting | Wish response | 20 req/hour per user |
 | Rate Limiting | Notifications token | GET 20/min, PATCH 10/min per IP |
+| Rate Limiting | Thing single create | 60 req/hour per user |
+| Rate Limiting | Collection single create | 30 req/hour per user |
+| Rate Limiting | Collection add-thing | 60 req/hour per user |
+| Rate Limiting | Wish response accept | 30 req/hour per user |
+| Rate Limiting | Collection leave | 30 req/hour per user |
 | Headers | HSTS | 1-year strict transport security with preload |
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |
 | Headers | Content-Type | nosniff (prevents MIME confusion) |
