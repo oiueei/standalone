@@ -7,6 +7,7 @@ import { apiFetch } from '../services/api';
 import { uploadImageToCloudinary } from '../utils/uploadImage';
 import { MAX_ROWS, mapRow, validateRows } from '../utils/bulkCsv';
 import useTheeeme from '../hooks/useTheeeme';
+import hdsLang from '../utils/hdsLang';
 
 // Image extensions recognised inside a ZIP — kept in sync with the backend's
 // Cloudinary `IMAGE_FORMATS` allow-list (core/views/upload.py).
@@ -26,12 +27,6 @@ function basename(path) {
 }
 function mimeFromName(name) {
   return MIME_BY_EXT[name.split('.').pop().toLowerCase()] || 'image/jpeg';
-}
-
-// HDS FileInput only supports fi, sv, en — everything else falls back to en.
-function hdsLang(lang) {
-  if (lang === 'fi' || lang === 'sv') return lang;
-  return 'en';
 }
 
 /**

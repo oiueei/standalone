@@ -4,14 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../services/api';
 import { resizeImage } from '../utils/resizeImage';
 import useTheeeme from '../hooks/useTheeeme';
+import hdsLang from '../utils/hdsLang';
 
 const MAX_IMAGES = 8;
-
-// HDS only supports fi, sv, en — everything else falls back to en
-function hdsLang(lang) {
-  if (lang === 'fi' || lang === 'sv') return lang;
-  return 'en';
-}
 
 /**
  * Multi-image gallery upload (additional photos beyond the cover thumbnail).
@@ -27,7 +22,7 @@ function hdsLang(lang) {
  */
 export default function GalleryUpload({ items = [], onChange }) {
   const { t, i18n } = useTranslation();
-  const { tc } = useTheeeme();
+  const { uploadStyle } = useTheeeme();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
@@ -94,15 +89,8 @@ export default function GalleryUpload({ items = [], onChange }) {
     }
   };
 
-  const wrapperStyle = tc.color_01 ? {
-    '--upload-border': `var(--color-${tc.color_01})`,
-    '--upload-color': tc.color_04 ? `var(--color-${tc.color_04})` : `var(--color-${tc.color_01})`,
-    '--upload-bg-hover': `var(--color-${tc.color_01})`,
-    '--upload-color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : {};
-
   return (
-    <div className="image-upload" style={wrapperStyle}>
+    <div className="image-upload" style={uploadStyle}>
       {items.length > 0 && (
         <ul className="gallery-thumbs">
           {items.map((item, i) => (

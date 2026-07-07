@@ -11,11 +11,17 @@ import { useMemo } from 'react';
  * recompute when the theeeme actually changes — which still happens (e.g. right
  * after the first login, when HomePage stores the freshly fetched colours).
  *
+ * Pass `overrideColors` (e.g. a freshly-fetched `user.theeeme_colors` from the API)
+ * to derive the styles from those instead of localStorage — used where the
+ * authoritative colours are already in hand and localStorage may lag. A nullish or
+ * empty override falls back to localStorage, then to DEFAULT_COLORS.
+ *
  * Returns:
  * - `tc`: the raw theeeme colour map (`color_01`..`color_06`, HDS token names).
  * - `koro`: the user's Koros wave type (default `'basic'`).
  * - `btnStyle`: primary button (theeeme `color_01` background, `color_06` text).
  * - `btnSecondaryStyle`: secondary button (white background, `color_01` border, `color_04` text).
+ * - `uploadStyle`: the `--upload-*` CSS vars for the ImageUpload/GalleryUpload wrapper.
  */
 // Fallback palette for a viewer with no stored theeeme yet — e.g. an anonymous
 // visitor on a PUBLIC collection, or anyone before their first login. Without it
@@ -32,18 +38,29 @@ export const DEFAULT_COLORS = {
   color_06: 'black',
 };
 
-export default function useTheeeme() {
+export default function useTheeeme(overrideColors) {
   const raw = localStorage.getItem('theeemeColors') || '{}';
   const koro = localStorage.getItem('koro') || 'basic';
+  // Stringify the override for a stable memo dependency (a caller may pass a fresh
+  // object reference each render, e.g. `user?.theeeme_colors`).
+  const overrideKey =
+    overrideColors && Object.keys(overrideColors).length > 0
+      ? JSON.stringify(overrideColors)
+      : '';
 
   return useMemo(() => {
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      parsed = null;
+    let tc;
+    if (overrideKey) {
+      tc = JSON.parse(overrideKey);
+    } else {
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        parsed = null;
+      }
+      tc = parsed && Object.keys(parsed).length > 0 ? parsed : DEFAULT_COLORS;
     }
-    const tc = parsed && Object.keys(parsed).length > 0 ? parsed : DEFAULT_COLORS;
     const btnStyle = tc.color_01
       ? {
           '--background-color': `var(--color-${tc.color_01})`,
@@ -61,6 +78,14 @@ export default function useTheeeme() {
           '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
         }
       : undefined;
-    return { tc, koro, btnStyle, btnSecondaryStyle };
-  }, [raw, koro]);
+    const uploadStyle = tc.color_01
+      ? {
+          '--upload-border': `var(--color-${tc.color_01})`,
+          '--upload-color': tc.color_04 ? `var(--color-${tc.color_04})` : `var(--color-${tc.color_01})`,
+          '--upload-bg-hover': `var(--color-${tc.color_01})`,
+          '--upload-color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
+        }
+      : {};
+    return { tc, koro, btnStyle, btnSecondaryStyle, uploadStyle };
+  }, [raw, koro, overrideKey]);
 }

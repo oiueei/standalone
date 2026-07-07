@@ -5,6 +5,7 @@ import Papa from 'papaparse';
 import { apiFetch } from '../services/api';
 import { stripSepLine, CSV_DELIMITERS } from '../utils/csv';
 import useTheeeme from '../hooks/useTheeeme';
+import hdsLang from '../utils/hdsLang';
 
 const MAX_ROWS = 100;
 // An "email" column (required) and an optional "name" column.
@@ -25,12 +26,6 @@ const REASON_KEY = {
   already_member: 'bulkInvite.reasonAlreadyMember',
   already_invited: 'bulkInvite.reasonAlreadyInvited',
 };
-
-// HDS FileInput only supports fi, sv, en — everything else falls back to en.
-function hdsLang(lang) {
-  if (lang === 'fi' || lang === 'sv') return lang;
-  return 'en';
-}
 
 /**
  * Bulk-invite collection guests from a CSV. Parses the file client-side with

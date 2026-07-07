@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
-import { DEFAULT_COLORS } from '../hooks/useTheeeme';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function PopInPage() {
   const { t } = useTranslation();
@@ -45,15 +45,7 @@ export default function PopInPage() {
     }
   };
 
-  const tc = (() => {
-    try { return JSON.parse(localStorage.getItem('theeemeColors')) || DEFAULT_COLORS; } catch { return DEFAULT_COLORS; }
-  })();
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
+  const { tc, btnStyle } = useTheeeme();
 
   return (
     <div

@@ -5,6 +5,7 @@ import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FeedbackLink from '../components/FeedbackLink';
+import useTheeeme from '../hooks/useTheeeme';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -202,24 +203,14 @@ export default function HomePage() {
     </Notification>
   );
 
+  // Derive theeeme styles from the freshly-fetched colours (fall back to
+  // localStorage/DEFAULT before the fetch resolves). Called at the top level so
+  // the hook order stays stable across the `!user` early return below.
+  const { tc, btnStyle, btnSecondaryStyle } = useTheeeme(user?.theeeme_colors);
+
   if (!user) {
     return offline ? <div className="page-container">{offlineBanner}</div> : <LoadingSpinner />;
   }
-
-  const tc = user.theeeme_colors || {};
-  const btnStyle = tc.color_01 ? {
-    '--background-color': `var(--color-${tc.color_01})`,
-    '--background-color-hover': `var(--color-${tc.color_01}-dark)`,
-    '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-  } : undefined;
-  const btnSecondaryStyle = tc.color_01 ? {
-    '--background-color': 'var(--color-white)',
-    '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
-    '--background-color-hover': `var(--color-${tc.color_01})`,
-    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
-  } : undefined;
 
   return (
     <div
