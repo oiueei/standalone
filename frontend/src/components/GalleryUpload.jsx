@@ -110,7 +110,7 @@ export default function GalleryUpload({ items = [], onChange }) {
               <img src={item.url} alt={t('gallery.thumbAlt', { index: i + 1 })} />
               <Button
                 variant="supplementary"
-                iconLeft={<span aria-hidden="true">✕</span>}
+                iconStart={<span aria-hidden="true">✕</span>}
                 size="small"
                 onClick={() => handleRemove(i)}
               >
