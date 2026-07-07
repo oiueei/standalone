@@ -57,7 +57,7 @@ class ThingViewSet(ModelViewSet):
         return ThingSerializer
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "activate"):
+        if self.action in ("update", "partial_update", "activate", "hide"):
             return [IsAuthenticated(), IsThingOwner()]
         # Anonymous read for retrieve; can_view() still gates it (a thing is only
         # visible without membership when it sits in a PUBLIC, ACTIVE collection).
@@ -233,12 +233,10 @@ class ThingViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="hide")
     def hide(self, request, code=None):
-        thing = get_object_or_404(Thing, code=code)
-        if not thing.is_owner(request.user.code):
-            return Response(
-                {"error": "You do not have permission to hide this thing."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # Owner-only via IsThingOwner (get_permissions) + get_object()'s
+        # check_object_permissions — same as activate, instead of a hand-rolled
+        # owner check with a bespoke 403 body.
+        thing = self.get_object()
         if thing.status != Thing.Status.ACTIVE:
             return Response(
                 {"error": "Only active things can be hidden."}, status=status.HTTP_400_BAD_REQUEST
