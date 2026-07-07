@@ -22,7 +22,7 @@ What I'm looking for is honest feedback from people willing to poke at it: thing
 - **Frontend**: React (same repo, work in progress)
 - **Auth**: Magic link authentication (passwordless for users, password enabled for admin access)
 - **Database**: SQLite (dev), PostgreSQL (prod via `dj-database-url`)
-- **Deployment**: Heroku (Procfile + runtime.txt included)
+- **Deployment**: Heroku (Procfile + `.python-version` included)
 - **Static files**: WhiteNoise
 - **PWA**: installable web app manifest + icons ("Add to Home Screen"); no service worker yet
 - **Scheduled tasks**: one daily Heroku Scheduler job chains `expire_bookings`, `cleanup_rsvps`, `close_transfers`, `send_reminders`, `send_digests` and `stats_summary` (see [HEROKU.md](HEROKU.md))
@@ -168,6 +168,12 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | POST | `/api/v1/collections/{code}/share-link/` | Generate or rotate the public share token (owner only). Returns `share_url` and `share_token`. Pass `{"rotate": true}` to force a fresh token. Rate limited: 30/h. |
 | DELETE | `/api/v1/collections/{code}/share-link/` | Revoke the public share token (owner only) |
 | GET | `/api/v1/invited-collections/` | List collections where invited |
+| GET | `/api/v1/my-invitations/` | List my pending collection invitations |
+| POST | `/api/v1/collections/{code}/leave/` | Leave a collection you're invited to (self-unlink) |
+| POST | `/api/v1/collections/{code}/invite/bulk/` | Bulk-invite guests from a CSV (owner only, rate limited: 5/h) |
+| GET | `/api/v1/collections/{code}/stats/` | Download a 90-day activity CSV (owner only) |
+| POST | `/api/v1/collections/{code}/broadcast/` | Send a message to all invitees (owner only) |
+| POST | `/api/v1/collections/{code}/things/bulk/` | Bulk-create things from a CSV (rate limited: 10/h) |
 
 ### Things (ModelViewSet + Router)
 | Method | URL | Description |
@@ -184,6 +190,9 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | POST | `/api/v1/things/{code}/responses/` | Answer a wish — `kind` HAVE_THIS / KNOW_WHERE / CAN_MAKE (invited, not owner; rate limited: 20/h). Emails the creator |
 | POST | `/api/v1/things/{code}/resolve/` | Mark a wish resolved (creator only): hides it from the active board and thanks the accepted responder |
 | POST | `/api/v1/wish-responses/{code}/accept/` | Accept one answer to a wish (creator only) |
+| POST | `/api/v1/things/{code}/activate/` | Reactivate an inactive thing (owner only) |
+| POST | `/api/v1/things/{code}/hide/` | Set an active thing to inactive (owner only) |
+| POST | `/api/v1/things/{code}/report/` | Report a listing anonymously (logged-in non-owners) |
 | GET | `/api/v1/invited-things/` | List things from invited collections |
 
 ### Bookings
@@ -208,6 +217,9 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 ### Other
 | Method | URL | Description |
 |--------|-----|-------------|
+| GET | `/api/v1/inbox/` | List in-app notifications for the current user |
+| DELETE | `/api/v1/inbox/{code}/` | Dismiss an in-app notification |
+| POST | `/api/v1/upload/signature/` | Get a signed Cloudinary upload signature (rate limited: 30/h) |
 | GET | `/api/v1/theeemes/` | List all available theeemes |
 | GET | `/api/v1/health/` | Health check endpoint |
 | - | `/oiueei-admin/` | Django Admin (requires password) |
