@@ -7,6 +7,7 @@ reservation. The creator sees every answer, accepts one, and marks the wish
 resolved (which hides the underlying Thing so it leaves the active board).
 """
 
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
@@ -155,26 +156,29 @@ class WishResponseAcceptView(APIView):
 
         # Only one answer can be accepted at a time — picking a new one releases
         # any previously accepted answer back to PENDING, so two responders can't
-        # both believe they won.
-        wish.responses.exclude(code=response.code).filter(
-            status=WishResponse.Status.ACCEPTED
-        ).update(status=WishResponse.Status.PENDING)
-        response.accept()
+        # both believe they won. Atomic so the release + accept (+ its
+        # notification) land together: a failure mid-way must not leave the wish
+        # with zero or two accepted answers.
+        with transaction.atomic():
+            wish.responses.exclude(code=response.code).filter(
+                status=WishResponse.Status.ACCEPTED
+            ).update(status=WishResponse.Status.PENDING)
+            response.accept()
 
-        # Let the responder know their answer was picked.
-        responder = response.responder
-        if responder:
-            collection = wish.collections.first()
-            InAppNotification.objects.create(
-                user=responder,
-                type=InAppNotification.Type.WISH_ACCEPTED,
-                payload={
-                    "wish_headline": wish.headline,
-                    "owner_name": request.user.display_name,
-                    "wish_code": wish.code,
-                    "collection_code": collection.code if collection else None,
-                },
-            )
+            # Let the responder know their answer was picked.
+            responder = response.responder
+            if responder:
+                collection = wish.collections.first()
+                InAppNotification.objects.create(
+                    user=responder,
+                    type=InAppNotification.Type.WISH_ACCEPTED,
+                    payload={
+                        "wish_headline": wish.headline,
+                        "owner_name": request.user.display_name,
+                        "wish_code": wish.code,
+                        "collection_code": collection.code if collection else None,
+                    },
+                )
 
         return Response(WishResponseSerializer(response).data)
 
@@ -218,4 +222,4 @@ class WishResolveView(APIView):
             creator_name = request.user.display_name
             send_wish_thanks_email(creator_name, wish, accepted.responder.email)
 
-        return Response(ThingSerializer(wish).data)
+        return Response(ThingSerializer(wish, context={"request": request}).data)
