@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, IconSpeechbubbleText, IconSwapUser } from 'hds-react';
@@ -14,7 +14,10 @@ import Toast from './Toast';
 import ImageCarousel from './ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
 
-export default function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, isPaused, canAct = true, hideType = false, loginToAct = false, onUpdateThing }) {
+// Memoised: CollectionPage keeps broadcast/tag-filter state at its root, so a
+// keystroke in the broadcast box re-renders the page. With stable props (the
+// parent passes a useCallback'd onUpdateThing) memo skips re-rendering every card.
+function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, collectionOwner, collectionMode, isPaused, canAct = true, hideType = false, loginToAct = false, onUpdateThing }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
@@ -241,3 +244,5 @@ export default function ThingLinkbox({ thing, userCode, collectionCode, collecti
     </div>
   );
 }
+
+export default memo(ThingLinkbox);

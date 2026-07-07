@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification, Tag, TextArea } from 'hds-react';
@@ -27,6 +27,16 @@ export default function CollectionPage() {
   const [broadcastResult, setBroadcastResult] = useState(null);
   const [activeTag, setActiveTag] = useState(null);
   useEffect(() => { document.title = collection ? t('titles.collection', { headline: collection.headline }) : t('titles.collectionDefault'); }, [collection, t]);
+
+  // Stable across renders (functional setState, no deps) so memoised ThingLinkbox
+  // cards don't re-render when unrelated page state (broadcast box, tag filter)
+  // changes. Shared by the active and inactive thing lists.
+  const handleUpdateThing = useCallback((thingCode, updates) => {
+    setCollection((prev) => ({
+      ...prev,
+      things: prev.things.map((t) => (t.code === thingCode ? { ...t, ...updates } : t)),
+    }));
+  }, []);
 
   useEffect(() => {
     if (location.state?.fromInvite) {
@@ -315,12 +325,7 @@ export default function CollectionPage() {
               hideType={singleType}
               canAct={isAuthenticated}
               loginToAct={!isAuthenticated}
-              onUpdateThing={(thingCode, updates) => setCollection((prev) => ({
-                ...prev,
-                things: prev.things.map((t) =>
-                  t.code === thingCode ? { ...t, ...updates } : t
-                ),
-              }))}
+              onUpdateThing={handleUpdateThing}
             />
           ))}
         </div>
