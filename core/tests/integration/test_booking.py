@@ -176,6 +176,25 @@ class TestBookingRequest:
         assert response.data["message"] == "Booking request sent"
         assert "booking_code" in response.data
 
+    def test_duplicate_share_request_denied(self, user, user2, share_thing, collection):
+        """SHARE_THING has its own duplicate-pending-request guard, separate
+        from the standard (GIFT/SELL) one."""
+        collection.add_invite(user2.code)
+        BookingPeriod.objects.create(
+            thing_code=share_thing,
+            thing_type=share_thing.type,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            status="PENDING",
+        )
+
+        client2 = get_client_for_user(user2)
+        response = client2.post(f"/api/v1/things/{share_thing.code}/request/")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error"] == "You already have a pending request for this thing"
+
     def test_owner_cannot_request_own_thing(self, authenticated_client, lend_thing):
         """Owner cannot request booking for their own thing."""
         response = authenticated_client.post(

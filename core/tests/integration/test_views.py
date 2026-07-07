@@ -2,10 +2,26 @@
 Integration tests for OIUEEI API views.
 """
 
+from unittest.mock import patch
+
 import pytest
+from django.core import mail
+from django.test import override_settings
 from rest_framework import status
 
 from core.models import RSVP, Collection
+
+
+class _SyncThread:
+    """Stand-in for threading.Thread that runs its target immediately, so the
+    EMAIL_SEND_ASYNC=True path can be tested deterministically without a real
+    background thread."""
+
+    def __init__(self, target=None, args=(), kwargs=None, daemon=None):
+        self._target, self._args, self._kwargs = target, args, kwargs or {}
+
+    def start(self):
+        self._target(*self._args, **self._kwargs)
 
 
 @pytest.mark.django_db
@@ -41,6 +57,21 @@ class TestAuthViews:
             format="json",
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @override_settings(EMAIL_SEND_ASYNC=True)
+    def test_request_link_sends_on_daemon_thread_when_email_send_async(self, api_client, user):
+        """_send_magic_link's EMAIL_SEND_ASYNC=True branch (production) was
+        never exercised — tests always ran with it off."""
+        mail.outbox.clear()
+        with patch("core.views.auth.threading.Thread", _SyncThread):
+            response = api_client.post(
+                "/api/v1/auth/request-link/",
+                {"email": user.email},
+                format="json",
+            )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].to == [user.email]
 
     def test_verify_link_valid(self, api_client, rsvp, user):
         """Should verify valid RSVP and set auth cookies."""
@@ -1264,6 +1295,32 @@ class TestSecurityRestrictions:
         client3 = self._get_client_for_user(user3)
         response = client3.get(f"/api/v1/faq/{faq.code}/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_faq_detail_hidden_returns_404_for_uninvolved_member(self, user2, faq, collection):
+        """An invited member who can view the thing but is neither its owner
+        nor the questioner must not learn a hidden FAQ even exists (404, not
+        403 — distinct from the outer can_view gate above)."""
+        from core.models import User
+
+        faq.is_visible = False
+        faq.save()
+
+        user3 = User.objects.create(code="TEST04", email="test4@example.com", name="Test User 4")
+        collection.add_invite(user3.code)
+
+        client3 = self._get_client_for_user(user3)
+        response = client3.get(f"/api/v1/faq/{faq.code}/")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_faq_detail_hidden_visible_to_questioner(self, user2, faq, collection):
+        """The questioner can still see their own hidden FAQ."""
+        collection.add_invite(user2.code)
+        faq.is_visible = False
+        faq.save()
+
+        client2 = self._get_client_for_user(user2)
+        response = client2.get(f"/api/v1/faq/{faq.code}/")
+        assert response.status_code == status.HTTP_200_OK
 
     def test_faq_create_denied_for_non_invited_user(self, user, user2, thing):
         """Should deny FAQ creation for non-invited user."""

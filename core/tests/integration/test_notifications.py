@@ -29,7 +29,9 @@ from core.services.email_service import (
     _should_send,
     make_notifications_token,
     send_booking_decision_email,
+    send_booking_unavailable_email,
     send_digest_email,
+    send_invite_rejected_email,
     send_magic_link_email,
 )
 
@@ -92,6 +94,38 @@ def test_activity_email_skipped_when_opted_out(db, noti_user):
     noti_user.save()
     send_booking_decision_email(booking, thing, accepted=True)
     assert len(mail.outbox) == 1
+
+
+def test_booking_unavailable_email_content(db, noti_user):
+    """Previously only asserted through a mock in test_share_transfer.py — never
+    verified a real message actually reached mail.outbox with the right content."""
+    owner = User.objects.create(code="OWN002", email="owner2@test.com", name="Owner Two")
+    thing = Thing.objects.create(code="THG002", owner=owner, headline="Popular Item")
+    booking = BookingPeriod.objects.create(
+        code="BKG002",
+        thing_code=thing,
+        requester_code=noti_user,
+        requester_email=noti_user.email,
+        owner_code=owner,
+        status="REJECTED",
+    )
+    mail.outbox.clear()
+    send_booking_unavailable_email(booking, thing)
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == [noti_user.email]
+    assert "Popular Item" in mail.outbox[0].body
+    assert "Popular Item" in mail.outbox[0].alternatives[0][0]
+
+
+def test_invite_rejected_email_content(db):
+    """Previously only asserted through mocks in test_views.py/test_notifications.py
+    — never verified a real message reached mail.outbox with the right content."""
+    mail.outbox.clear()
+    send_invite_rejected_email("Jamie", "Book Club", "owner3@test.com")
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == ["owner3@test.com"]
+    assert "Jamie" in mail.outbox[0].body
+    assert "Book Club" in mail.outbox[0].body
 
 
 def test_news_email_skipped_when_opted_out(db, noti_user):

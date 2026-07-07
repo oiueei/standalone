@@ -322,6 +322,58 @@ class TestSwapRequest:
         )
         assert res.status_code == 400
 
+    def test_swap_request_thing_not_in_any_swap_collection(self, auth_client_user2, user, user2):
+        """A SWAP_THING whose only collection isn't is_swap=True (an irregular
+        state — added directly, bypassing the normal add-thing validation)
+        cannot be requested."""
+        plain_collection = Collection.objects.create(
+            code="PLAIN1", owner=user, headline="Plain Collection", mode="COMMUNITY"
+        )
+        plain_collection.invites.add(user2)
+        lone_thing = Thing.objects.create(
+            code="LONE01", type="SWAP_THING", owner=user, headline="Not really swappable"
+        )
+        plain_collection.things.add(lone_thing)
+
+        res = auth_client_user2.post(
+            f"/api/v1/things/{lone_thing.code}/request/",
+            {"offered_thing_codes": ["ANY001"]},
+            format="json",
+        )
+        assert res.status_code == 400
+        assert res.data["error"] == "Thing is not in a swap collection"
+
+    def test_swap_request_offered_thing_not_found(
+        self, auth_client_user2, swap_collection, owner_swap_thing, user2
+    ):
+        """A nonexistent offered thing code is rejected, not a 500."""
+        swap_collection.invites.add(user2)
+        res = auth_client_user2.post(
+            f"/api/v1/things/{owner_swap_thing.code}/request/",
+            {"offered_thing_codes": ["NOEXST"]},
+            format="json",
+        )
+        assert res.status_code == 400
+        assert "not found" in res.data["error"]
+
+    def test_swap_request_offered_thing_wrong_type(
+        self, auth_client_user2, swap_collection, owner_swap_thing, user2
+    ):
+        """Offering a non-SWAP_THING thing (even one the requester owns, in the
+        same collection) is rejected."""
+        swap_collection.invites.add(user2)
+        gift = Thing.objects.create(
+            code="GIFT01", type="GIFT_THING", owner=user2, headline="Not a swap item"
+        )
+        swap_collection.things.add(gift)
+        res = auth_client_user2.post(
+            f"/api/v1/things/{owner_swap_thing.code}/request/",
+            {"offered_thing_codes": [gift.code]},
+            format="json",
+        )
+        assert res.status_code == 400
+        assert "not a swap thing" in res.data["error"]
+
 
 # --- Swap acceptance tests ---
 

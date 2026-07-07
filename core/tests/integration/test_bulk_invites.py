@@ -9,9 +9,24 @@ per actually-invited address.
 
 from unittest.mock import patch
 
+from django.core import mail
+from django.test import override_settings
+
 from core.models import RSVP, User
 
 URL = "/api/v1/collections/{code}/invite/bulk/"
+
+
+class _SyncThread:
+    """Stand-in for threading.Thread that runs its target immediately, so the
+    EMAIL_SEND_ASYNC=True path can be tested deterministically without a real
+    background thread."""
+
+    def __init__(self, target=None, args=(), kwargs=None, daemon=None):
+        self._target, self._args, self._kwargs = target, args, kwargs or {}
+
+    def start(self):
+        self._target(*self._args, **self._kwargs)
 
 
 class TestBulkInvite:
@@ -105,3 +120,21 @@ class TestBulkInvite:
             URL.format(code=collection.code), {"invites": []}, format="json"
         )
         assert res.status_code == 400
+
+    @override_settings(EMAIL_SEND_ASYNC=True)
+    def test_sends_emails_on_daemon_thread_when_email_send_async(
+        self, authenticated_client, collection
+    ):
+        """_send_bulk_invites's EMAIL_SEND_ASYNC=True branch (production) was
+        never exercised — tests always ran with it off."""
+        mail.outbox.clear()
+        with patch("core.views.collections.threading.Thread", _SyncThread):
+            res = authenticated_client.post(
+                URL.format(code=collection.code),
+                {"invites": [{"email": "async@example.com"}]},
+                format="json",
+            )
+        assert res.status_code == 200
+        assert res.data["invited"] == 1
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].to == ["async@example.com"]
