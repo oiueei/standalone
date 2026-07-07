@@ -75,7 +75,7 @@ export default function NotificationsPage() {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <PageLayout>
+    <PageLayout backTo="/" backLabel={t('common.home')}>
         <h1 className="page-title-xl">{t('notifications.pageTitle')}</h1>
 
         {invalidToken ? (

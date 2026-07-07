@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification, Tag, TextArea } from 'hds-react';
 import { apiFetch } from '../services/api';
 import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import ShareCollectionMenu from '../components/ShareCollectionMenu';
@@ -56,9 +57,9 @@ export default function CollectionPage() {
 
   if (error) {
     return (
-      <div className="page-container">
+      <PageLayout title={t('common.error')} backTo="/" backLabel={t('common.home')}>
         <Notification label={t('common.error')} type="error">{error}</Notification>
-      </div>
+      </PageLayout>
     );
   }
 
