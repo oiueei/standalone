@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Highlight,
-  IconAlertCircleFill,
   Notification,
   TextArea,
 } from 'hds-react';
@@ -16,6 +15,7 @@ import RespondMenu from '../components/RespondMenu';
 import ThingTags from '../components/ThingTags';
 import ThingInfoRows from '../components/ThingInfoRows';
 import OwnerBookingsList from '../components/OwnerBookingsList';
+import ThingReportFooter from '../components/ThingReportFooter';
 import Toast from '../components/Toast';
 import MarkdownText, { sanitizeUrl } from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
@@ -34,10 +34,8 @@ export default function ThingPage() {
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
-  const [reportOpen, setReportOpen] = useState(false);
   const [resolveOpen, setResolveOpen] = useState(false);
   const [confirmAcceptCode, setConfirmAcceptCode] = useState(null);
-  const [reporting, setReporting] = useState(false);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
   // Anonymous visitor on a PUBLIC collection: like ThingLinkbox's login-to-act
@@ -262,26 +260,6 @@ export default function ThingPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setActioning(false);
-    }
-  };
-
-  const handleReport = async () => {
-    setReporting(true);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/report/`, { method: 'POST' });
-      setReportOpen(false);
-      if (res.ok) {
-        setToast({ type: 'success', message: t('thingPage.reportThanks') });
-      } else if (res.status === 429) {
-        setToast({ type: 'error', message: t('common.tooManyAttempts') });
-      } else {
-        setToast({ type: 'error', message: t('thingPage.reportError') });
-      }
-    } catch {
-      setReportOpen(false);
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setReporting(false);
     }
   };
 
@@ -793,42 +771,9 @@ export default function ThingPage() {
             )}
           </>
         )}
-        {/* Report footer — logged-in non-owners can flag the listing. The confirm
-            expands inline right below the button (no modal). The owner is told
-            someone reported it (never who); the reporter stays server-side. */}
+        {/* Report footer — logged-in non-owners can flag the listing. */}
         {isAuthenticated && !isOwner && (
-          <div className="thing-report-footer">
-            <Button
-              variant="supplementary"
-              size="small"
-              iconStart={<IconAlertCircleFill aria-hidden="true" />}
-              onClick={() => setReportOpen((open) => !open)}
-              aria-expanded={reportOpen}
-            >
-              {t('thingPage.report')}
-            </Button>
-            {reportOpen && (
-              <div className="thing-report-confirm">
-                <p><strong>{t('thingPage.reportConfirmTitle')}</strong></p>
-                <p>{t('thingPage.reportConfirmBody')}</p>
-                <div className="button-row">
-                  <Button
-                    variant="danger"
-                    size="small"
-                    onClick={handleReport}
-                    disabled={reporting}
-                    isLoading={reporting}
-                    loadingText={t('thingPage.reporting')}
-                  >
-                    {t('thingPage.reportConfirm')}
-                  </Button>
-                  <Button variant="supplementary" size="small" onClick={() => setReportOpen(false)}>
-                    {t('common.cancel')}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+          <ThingReportFooter thingCode={thing.code} onToast={setToast} />
         )}
       </div>
 
