@@ -43,8 +43,8 @@ Edit `frontend/src/fonts/oiueei-fonts.css` and replace the `@font-face` declarat
 The font files are gitignored (see [Font Notice](#font-notice)), so a fresh clone does not contain them. Heroku compiles the frontend during the build, so the fonts must be present on the branch you deploy. Add them locally before deploying — a normal `git add` skips them, so force-add:
 
 ```bash
-# place your .otf files in frontend/src/fonts/, then:
-git add -f frontend/src/fonts/*.otf
+# place Curiosa-Variable.woff2 in frontend/public/fonts/curiosa/, then:
+git add -f frontend/public/fonts/curiosa/*.woff2
 git commit -m "Add fonts for deployment"
 ```
 

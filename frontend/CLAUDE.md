@@ -506,7 +506,7 @@ Four non-obvious behaviours:
 
 The project consumes HDS directly from npm and applies three local overrides:
 
-- **Fonts** (`src/fonts/oiueei-fonts.css`) — the **Curiosa** variable font (`public/fonts/curiosa/Curiosa-Variable.ttf`, weight + italic axes), declared via `@font-face` honestly as `font-family: "Curiosa"` and served by Vite at `/fonts/curiosa/`. The HDS `--font-default` token's *value* is overridden to `"Curiosa", Arial, sans-serif` in `src/styles/oiueei-theme.css` — the token *name* is kept, so all HDS components resolve it transparently. The font binary is gitignored (licence); a clone without it falls back to Arial / system sans.
+- **Fonts** (`src/fonts/oiueei-fonts.css`) — the **Curiosa** variable font (`public/fonts/curiosa/Curiosa-Variable.woff2`, weight + italic axes), declared via `@font-face` honestly as `font-family: "Curiosa"` and served by Vite at `/fonts/curiosa/`. The HDS `--font-default` token's *value* is overridden to `"Curiosa", Arial, sans-serif` in `src/styles/oiueei-theme.css` — the token *name* is kept, so all HDS components resolve it transparently. The font binary is gitignored (licence); a clone without it falls back to Arial / system sans.
 - **Colors** (`src/styles/oiueei-theme.css`) — CSS custom property overrides for the "Theeemes" color palette, imported after `hds-design-tokens` to take precedence.
 - **Logos & brand assets** (`src/assets/`) — OIUEEI logos, placeholders, and favicon.
 
