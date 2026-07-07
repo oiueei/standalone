@@ -9,6 +9,7 @@ import pytest
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Thing
+from core.models.event import Event
 
 URL = "/api/v1/collections/{code}/things/bulk/"
 
@@ -175,3 +176,14 @@ class TestBulkCreate:
         res = auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
         assert res.status_code == 400
         assert collection.things.count() == 0
+
+    def test_logs_a_thing_added_event_per_row(self, auth_client, collection):
+        rows = [
+            {"type": "GIFT_THING", "headline": "Row one"},
+            {"type": "GIFT_THING", "headline": "Row two"},
+        ]
+        res = auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
+        assert res.status_code == 201
+        events = Event.objects.filter(kind=Event.Kind.THING_ADDED, collection_code=collection.code)
+        assert events.count() == 2
+        assert set(events.values_list("thing_code", flat=True)) == set(res.data["codes"])

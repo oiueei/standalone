@@ -339,6 +339,13 @@ class ThingBulkCreateView(APIView):
         with transaction.atomic():
             created = [Thing.objects.create(owner=request.user, **data) for data in validated]
             collection.things.add(*created)
+            for thing in created:
+                Event.log(
+                    Event.Kind.THING_ADDED,
+                    actor=request.user,
+                    collection=collection,
+                    thing=thing,
+                )
 
         return Response(
             {"created": len(created), "codes": [thing.code for thing in created]},
