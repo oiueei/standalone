@@ -3,6 +3,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
+import { DEFAULT_COLORS } from '../hooks/useTheeeme';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -43,7 +44,6 @@ export default function LoginPage() {
     }
   };
 
-  const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white', color_06: 'white' };
   const tc = (() => {
     try { return JSON.parse(localStorage.getItem('theeemeColors')) || DEFAULT_COLORS; } catch { return DEFAULT_COLORS; }
   })();

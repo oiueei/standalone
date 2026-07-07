@@ -23,7 +23,7 @@ import { useMemo } from 'react';
 // to black-90 — invisible on the dark hero. It's a real, coherent theeeme row
 // (the "M&V" palette, code 5BC8W6: black hero + white text + summer/yellow
 // accents) rather than a hand-mixed set of tokens, so every surface matches.
-const DEFAULT_COLORS = {
+export const DEFAULT_COLORS = {
   color_01: 'summer',
   color_02: 'black-5',
   color_03: 'black',

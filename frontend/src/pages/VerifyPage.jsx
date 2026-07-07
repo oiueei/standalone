@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, Koros } from 'hds-react';
-
-const DEFAULT_COLORS = { color_01: 'bus', color_02: 'suomenlinna-light', color_03: 'copper', color_04: 'black', color_05: 'white', color_06: 'white' };
+import { DEFAULT_COLORS } from '../hooks/useTheeeme';
 
 export default function VerifyPage() {
   const { code } = useParams();
