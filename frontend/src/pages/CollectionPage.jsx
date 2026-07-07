@@ -35,11 +35,18 @@ export default function CollectionPage() {
   }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
+    // Guard against a fast A→B navigation: without aborting, collection A's
+    // response can land after B's and render the wrong collection. Aborting on
+    // cleanup (code change / unmount) drops the stale fetch. Mirrors ThingPage.
+    const controller = new AbortController();
+    const { signal } = controller;
     const fetchCollection = async () => {
       try {
-        const res = await apiFetch(`/api/v1/collections/${code}/`);
+        const res = await apiFetch(`/api/v1/collections/${code}/`, { signal });
+        if (signal.aborted) return;
         if (res.ok) {
           const data = await res.json();
+          if (signal.aborted) return;
           setCollection(data);
         } else if (res.status === 403) {
           setError(t('collectionPage.noPermission'));
@@ -49,10 +56,11 @@ export default function CollectionPage() {
           setError(t('collectionPage.errorLoading'));
         }
       } catch {
-        setError(t('common.connectionError'));
+        if (!signal.aborted) setError(t('common.connectionError'));
       }
     };
     fetchCollection();
+    return () => controller.abort();
   }, [code, navigate, t]);
 
   if (error) {

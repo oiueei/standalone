@@ -17,20 +17,23 @@ export default function HomePage() {
   const [inboxNotifications, setInboxNotifications] = useState([]);
   const [offline, setOffline] = useState(false);
 
-  const loadDashboard = useCallback(() => {
+  const loadDashboard = useCallback((signal) => {
     // A failed fetch rejects with a TypeError ("Failed to fetch") only on a real
     // network/connection error; an HTTP error status resolves normally. Surface
     // a degraded banner + retry on that (or an explicit offline) instead of a
-    // silent gap or an endless "Loading collections..." spinner.
+    // silent gap or an endless "Loading collections..." spinner. An aborted
+    // request (unmount) is neither an error nor an offline signal — ignore it.
     const onNetworkError = (err) => {
+      if (signal?.aborted) return;
       if (err?.name === 'TypeError' || !navigator.onLine) setOffline(true);
     };
 
     const fetchMe = async () => {
       try {
-        const res = await apiFetch('/api/v1/auth/me/');
+        const res = await apiFetch('/api/v1/auth/me/', { signal });
         if (res.ok) {
           const data = await res.json();
+          if (signal?.aborted) return;
           if (data.code) localStorage.setItem('userCode', data.code);
           if (data.theeeme_colors) localStorage.setItem('theeemeColors', JSON.stringify(data.theeeme_colors));
           if (data.koro) localStorage.setItem('koro', data.koro);
@@ -44,40 +47,40 @@ export default function HomePage() {
 
     const fetchMyCollections = async () => {
       try {
-        const res = await apiFetch('/api/v1/collections/');
+        const res = await apiFetch('/api/v1/collections/', { signal });
         if (res.ok) {
           const data = await res.json();
-          setMyCollections(data.results);
+          if (!signal?.aborted) setMyCollections(data.results);
         }
       } catch (err) { onNetworkError(err); }
     };
 
     const fetchInvitedCollections = async () => {
       try {
-        const res = await apiFetch('/api/v1/invited-collections/');
+        const res = await apiFetch('/api/v1/invited-collections/', { signal });
         if (res.ok) {
           const data = await res.json();
-          setInvitedCollections(data);
+          if (!signal?.aborted) setInvitedCollections(data);
         }
       } catch (err) { onNetworkError(err); }
     };
 
     const fetchPendingInvitations = async () => {
       try {
-        const res = await apiFetch('/api/v1/my-invitations/');
+        const res = await apiFetch('/api/v1/my-invitations/', { signal });
         if (res.ok) {
           const data = await res.json();
-          setPendingInvitations(data);
+          if (!signal?.aborted) setPendingInvitations(data);
         }
       } catch (err) { onNetworkError(err); }
     };
 
     const fetchInbox = async () => {
       try {
-        const res = await apiFetch('/api/v1/inbox/');
+        const res = await apiFetch('/api/v1/inbox/', { signal });
         if (res.ok) {
           const data = await res.json();
-          setInboxNotifications(data);
+          if (!signal?.aborted) setInboxNotifications(data);
         }
       } catch (err) { onNetworkError(err); }
     };
@@ -90,7 +93,9 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    loadDashboard();
+    const controller = new AbortController();
+    loadDashboard(controller.signal);
+    return () => controller.abort();
   }, [loadDashboard]);
 
   useEffect(() => {
