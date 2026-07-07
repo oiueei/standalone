@@ -6,9 +6,9 @@ duplicating email logic across views.
 
 Each email belongs to one of three categories (see `_should_send`):
 - CATEGORY_MANDATORY: magic links, invitations, revocations — always sent.
-- CATEGORY_ACTIVITY: user↔user events (bookings, FAQs, reminders)
+- CATEGORY_ACTIVITY: user↔user events (bookings, FAQs, reminders, broadcast)
   — opt-out via User.notify_activity.
-- CATEGORY_NEWS: broadcast/digest/newsletter — opt-out via User.notify_news.
+- CATEGORY_NEWS: digest/newsletter — opt-out via User.notify_news.
 
 Cat. 2 and Cat. 3 emails include a footer with a tokenised link to /me/notifications
 that lets recipients change preferences without logging in.

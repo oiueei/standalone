@@ -220,4 +220,4 @@ When asked to design or review a view, apply this checklist:
 9. Does it collect only the data it strictly needs?
 10. Does it use the form-hero + Koros layout with theeeme colours?
 11. Are all icons black (or `--color-black-40` when disabled)?
-12. Do all media queries use only the four approved breakpoints (768px / 944px / 1248px) in `min-width` order, with xs as the mobile default?
+12. Do all media queries use only the three approved breakpoints (768px / 992px / 1248px) in `min-width` order, with xs as the mobile default?

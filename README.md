@@ -324,7 +324,6 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 | Authorization | IDOR Protection | Profile access only via collection connections |
 | Input Validation | XSS Prevention | HTML escaped in emails via `django.utils.html.escape()`. Headlines sanitized |
 | Input Validation | Image ID | Alphanumeric validation prevents path traversal |
-| Input Validation | Quantity Limit | Orders capped at 99 items max |
 | Rate Limiting | Auth | 5 req/min for magic link, 10 req/min for verify |
 | Rate Limiting | Collection invite | 30 req/hour per user |
 | Rate Limiting | Collection share-link | 30 req/hour per user |
@@ -362,7 +361,7 @@ Full ethical commitment and the rules I follow: [DESIGN.md §9](DESIGN.md#9-user
 - **Service layer**: Business logic extracted into `core/services/` (email composition, booking accept/reject/cancel with `transaction.atomic()`). Views are thin controllers.
 - **ModelViewSet + Router**: Collections and Things use DRF ModelViewSet with DefaultRouter for standard CRUD. Custom actions use `@action` decorator.
 - **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
-- **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention. Every send is routed through a preference pipeline that filters Cat. 2 (activity) and Cat. 3 (news) based on `User.notify_activity` / `notify_news`; Cat. 1 (magic links, invitations, revokes) is always delivered. Non-mandatory emails carry a footer with a `TimestampSigner`-signed link to `/me/notifications?t=…` so recipients can toggle preferences without logging in (see `NotificationsByTokenView`).
+- **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention. Every send is routed through a preference pipeline that filters Cat. 2 (activity) and Cat. 3 (news) based on `User.notify_activity` / `notify_news`; Cat. 1 (magic links, invitations, revokes) is always delivered. Non-mandatory emails carry a footer with a `TimestampSigner`-signed link to `/me/notifications/{token}` so recipients can toggle preferences without logging in (see `NotificationsByTokenView`).
 - **RSVP intermediary**: All email action links use RSVP codes. Real entity codes are never exposed in URLs.
 - **Seed data out of migrations**: Demo fixtures (Lala/Lele/Lili/Lolo/Lulu and their collections) live in `core/management/commands/seed_demo.py` + `seed_data/{lang}.py`, not in migrations. Fresh environments start with a clean DB and only get demo data when `python manage.py seed_demo` is run explicitly. The command is idempotent (`update_or_create` / `get_or_create`) and supports multiple languages (`--lang=en|es`, default English). Text content per language lives in its own module so you can switch the same DB between languages just by re-running the command. The old seed migrations (`0037`–`0076`) are retained as no-ops to preserve migration history.
 

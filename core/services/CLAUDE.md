@@ -60,7 +60,7 @@ Every email belongs to one of three categories. Each function routes through the
 
 - **Lookup fallback**: if no `User` matches the recipient email (e.g. a not-yet-registered invitee), `_should_send` returns `True` — all emails reach non-users by default.
 - **Multi-recipient**: functions that take `emails=[...]` (digest, newsletter, broadcast) use `_filter_recipients()` for a bulk query that drops opted-out addresses before iterating.
-- **Footer**: Cat. 2 and Cat. 3 emails get an auto-appended footer with a link to `/me/notifications?t=<signed-token>` (see below). Cat. 1 has no footer — nothing to manage.
+- **Footer**: Cat. 2 and Cat. 3 emails get an auto-appended footer with a link to `/me/notifications/{token}` (see below). Cat. 1 has no footer — nothing to manage.
 
 #### Signed tokens for unauthenticated preference editing
 

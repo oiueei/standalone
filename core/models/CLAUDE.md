@@ -21,7 +21,7 @@ The `User` model represents a person who can own collections, be invited to othe
 | `about` | CharField(2000) | No | Free-form Markdown profile content (contact info, social links, extra info). Optional; any user may set it. Rendered with the frontend `MarkdownText` component; written through `SafeTextField` (rejects raw HTML, allows Markdown). |
 | `photo` | CharField(255) | No | Cloudinary public_id for the optional profile photo. Exposed read-side as `photo_url`. When present, the `/:code` profile hero becomes a two-column split on desktop — text beside the photo, separated by a vertical Koros divider (rotated 90°, filled with theeeme `color_03`) — stacking vertically on mobile. |
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
-| `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: BUU331) |
+| `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: a random Theeeme, via `_random_theeeme`) |
 | `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, broadcasts. Default: `True` |
 | `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
 | `age_range` | CharField(8) | No | Optional age bracket (`UP_TO_21` / `22_35` / `36_55` / `56_PLUS`). Asked of every user in the profile editor. Per member it's shared only with the owner of a COMMUNITY collection (guests page); in aggregate it appears in any collection owner's stats CSV. Never public. Default empty. |
@@ -71,9 +71,8 @@ Users authenticate via magic link (passwordless). The `UserManager` handles user
 
 ### Theeeme Relationship
 
-- Users have a FK to Theeeme with `on_delete=PROTECT` and `default="BUU331"`
+- Users have a FK to Theeeme with `on_delete=PROTECT` and `default=_random_theeeme` (a fresh user gets a random theeeme, not a fixed one)
 - This prevents deleting a Theeeme that is in use
-- Default Theeeme is "Bussi" (code: BUU331)
 
 ---
 
@@ -317,7 +316,7 @@ The `Thing` model represents an item in a collection.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
-| `type` | CharField(17) | No | Type: GIFT_THING, SELL_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING |
+| `type` | CharField(11) | No | Type: GIFT_THING, SELL_THING, RENT_THING, LEND_THING, SHARE_THING, WISH_THING, SWAP_THING |
 | `owner` | ForeignKey(User) | **Yes** | Owner of the thing |
 | `created` | DateTimeField | Auto | Timestamp when thing was created |
 | `headline` | CharField(64) | **Yes** | Title of the thing |
@@ -420,6 +419,7 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 | `COLLECTION_REVOKED` | Owner removes a guest from collection | Removed user | `collection_headline`, `owner_name` |
 | `BOOKING_ACCEPTED` | Owner accepts a hold request | Requester | `thing_headline`, `owner_name` |
 | `BOOKING_REJECTED` | Owner rejects a hold request | Requester | `thing_headline`, `owner_name` |
+| `BOOKING_UNAVAILABLE` | Owner accepts a rival SHARE/SWAP request for the same thing | Each auto-declined sibling requester | `thing_headline` |
 | `BOOKING_REQUESTED` | User requests a hold (non-swap) | Thing owner | `thing_headline`, `requester_name` |
 | `SWAP_REQUESTED` | User proposes a swap | Thing owner | `thing_headline`, `requester_name` |
 | `FAQ_QUESTION` | User asks a FAQ question | Thing owner | `thing_headline`, `questioner_name` |
