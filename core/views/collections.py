@@ -40,6 +40,7 @@ from core.serializers import (
     CollectionSerializer,
     CollectionUpdateSerializer,
 )
+from core.serializers.thing import optimise_thing_queryset
 from core.services.email_service import (
     send_broadcast_email,
     send_collection_invite_email,
@@ -55,31 +56,7 @@ def _optimise_collection_queryset(queryset):
     """Add select/prefetch_related for nested serializer access on collections."""
     return queryset.select_related("owner").prefetch_related(
         "invites",
-        Prefetch(
-            "things",
-            queryset=Thing.objects.select_related("owner")
-            .annotate(_transfer_count=Count("transfers", distinct=True))
-            .prefetch_related(
-                "faq_set",
-                "responses",
-                "deal",
-                Prefetch(
-                    "bookings",
-                    queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
-                    to_attr="_pending_bookings",
-                ),
-                Prefetch(
-                    "bookings",
-                    queryset=BookingPeriod.objects.filter(
-                        status__in=[
-                            BookingPeriod.Status.PENDING,
-                            BookingPeriod.Status.ACCEPTED,
-                        ]
-                    ).order_by("start_date"),
-                    to_attr="_blocked_periods",
-                ),
-            ),
-        ),
+        Prefetch("things", queryset=optimise_thing_queryset(Thing.objects.all())),
     )
 
 

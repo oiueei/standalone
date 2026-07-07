@@ -2,6 +2,7 @@
 Thing serializers for OIUEEI.
 """
 
+from django.db.models import Count, Prefetch
 from rest_framework import serializers
 
 from core.models import Thing
@@ -13,6 +14,41 @@ from core.validators import (
     SafeTextField,
     reject_spreadsheet_formula,
 )
+
+
+def optimise_thing_queryset(queryset, *, with_collections=False):
+    """Attach the select/prefetch chain every list-of-things view needs so
+    ThingComputedFieldsMixin's getters below stay prefetch-aware and N+1-free.
+
+    ``with_collections`` also prefetches ``collections`` — skip it when the
+    queryset is already nested inside a collection's own ``Prefetch("things", ...)``
+    (avoids a redundant/circular fetch).
+    """
+    related = ["faq_set", "responses", "deal"]
+    if with_collections:
+        related.insert(0, "collections")
+    return (
+        queryset.select_related("owner")
+        .annotate(_transfer_count=Count("transfers", distinct=True))
+        .prefetch_related(
+            *related,
+            Prefetch(
+                "bookings",
+                queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
+                to_attr="_pending_bookings",
+            ),
+            Prefetch(
+                "bookings",
+                queryset=BookingPeriod.objects.filter(
+                    status__in=[
+                        BookingPeriod.Status.PENDING,
+                        BookingPeriod.Status.ACCEPTED,
+                    ]
+                ).order_by("start_date"),
+                to_attr="_blocked_periods",
+            ),
+        )
+    )
 
 
 class ThingComputedFieldsMixin(serializers.Serializer):

@@ -3,7 +3,6 @@ Thing views for OIUEEI.
 """
 
 from django.db import transaction
-from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
@@ -17,7 +16,6 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from core.models import Collection, Thing
-from core.models.booking import BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.pagination import StandardResultsPagination
@@ -28,6 +26,7 @@ from core.serializers import (
     ThingSerializer,
     ThingUpdateSerializer,
 )
+from core.serializers.thing import optimise_thing_queryset
 from core.services.email_service import send_wish_posted_email
 from core.views._helpers import type_validity_error, viewer_code
 
@@ -46,33 +45,9 @@ class ThingViewSet(ModelViewSet):
     lookup_field = "code"
 
     def get_queryset(self):
-        return (
-            Thing.objects.filter(owner=self.request.user)
-            .select_related("owner")
-            .annotate(_transfer_count=Count("transfers", distinct=True))
-            .prefetch_related(
-                "collections",
-                "faq_set",
-                "responses",
-                "deal",
-                Prefetch(
-                    "bookings",
-                    queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
-                    to_attr="_pending_bookings",
-                ),
-                Prefetch(
-                    "bookings",
-                    queryset=BookingPeriod.objects.filter(
-                        status__in=[
-                            BookingPeriod.Status.PENDING,
-                            BookingPeriod.Status.ACCEPTED,
-                        ]
-                    ).order_by("start_date"),
-                    to_attr="_blocked_periods",
-                ),
-            )
-            .order_by("-created")
-        )
+        return optimise_thing_queryset(
+            Thing.objects.filter(owner=self.request.user), with_collections=True
+        ).order_by("-created")
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -365,33 +340,12 @@ class InvitedThingsView(ListAPIView):
 
     def get_queryset(self):
         return (
-            Thing.objects.filter(
-                collections__invites=self.request.user,
-                collections__status=Collection.Status.ACTIVE,
-            )
-            .exclude(status=Thing.Status.INACTIVE)
-            .select_related("owner")
-            .annotate(_transfer_count=Count("transfers", distinct=True))
-            .prefetch_related(
-                "collections",
-                "faq_set",
-                "responses",
-                "deal",
-                Prefetch(
-                    "bookings",
-                    queryset=BookingPeriod.objects.filter(status=BookingPeriod.Status.PENDING),
-                    to_attr="_pending_bookings",
-                ),
-                Prefetch(
-                    "bookings",
-                    queryset=BookingPeriod.objects.filter(
-                        status__in=[
-                            BookingPeriod.Status.PENDING,
-                            BookingPeriod.Status.ACCEPTED,
-                        ]
-                    ).order_by("start_date"),
-                    to_attr="_blocked_periods",
-                ),
+            optimise_thing_queryset(
+                Thing.objects.filter(
+                    collections__invites=self.request.user,
+                    collections__status=Collection.Status.ACTIVE,
+                ).exclude(status=Thing.Status.INACTIVE),
+                with_collections=True,
             )
             .distinct()
             .order_by("-created")
