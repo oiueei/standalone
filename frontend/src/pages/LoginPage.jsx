@@ -53,6 +53,13 @@ export default function LoginPage() {
     '--color': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
   } : undefined;
+  const btnSecondaryStyle = tc.color_01 ? {
+    '--background-color': 'var(--color-white)',
+    '--border-color': `var(--color-${tc.color_01})`,
+    '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
+    '--background-color-hover': `var(--color-${tc.color_01})`,
+    '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
+  } : undefined;
 
   return (
     <div
@@ -73,7 +80,8 @@ export default function LoginPage() {
         />
       </div>
       <div className="page-container">
-        <p className="section-mt" style={{ maxWidth: '400px', fontWeight: 700 }}>{t('login.description')}</p>
+        <p className="section-mt" style={{ maxWidth: '400px', fontWeight: 700 }}>{t('login.pitch')}</p>
+        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)', color: 'var(--color-black-60)' }}>{t('login.description')}</p>
         <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
           <Trans
             i18nKey="login.openSource"
@@ -85,9 +93,6 @@ export default function LoginPage() {
           />
         </p>
         <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>{t('login.manifesto')}</p>
-        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
-          <Link to="/popin">{t('login.popIn')}</Link>
-        </p>
         {status ? (
           <>
             <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
@@ -118,6 +123,13 @@ export default function LoginPage() {
             </div>
           </form>
         )}
+        <div style={{ maxWidth: '400px', marginTop: 'var(--spacing-m)' }}>
+          <Link to="/popin">
+            <Button variant="secondary" fullWidth style={btnSecondaryStyle}>
+              {t('login.popIn')}
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
