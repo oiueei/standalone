@@ -629,9 +629,13 @@ class TokenRefreshView(APIView):
 
         try:
             old_refresh = RefreshToken(refresh_token)
-            # Rotate: create new refresh token and blacklist old one
+            # Rotate: create new refresh token and blacklist old one. is_active=True
+            # so a deactivated user's refresh token can't keep minting fresh ones —
+            # falls into the same 401 + cookie-clear path as User.DoesNotExist below.
             new_refresh = RefreshToken.for_user(
-                User.objects.get(code=old_refresh[settings.SIMPLE_JWT["USER_ID_CLAIM"]])
+                User.objects.get(
+                    code=old_refresh[settings.SIMPLE_JWT["USER_ID_CLAIM"]], is_active=True
+                )
             )
             try:
                 old_refresh.blacklist()

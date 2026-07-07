@@ -172,6 +172,20 @@ class TestAuthViews:
         assert "access_token" in response.cookies
         assert "refresh_token" in response.cookies
 
+    def test_token_refresh_for_deactivated_user_is_rejected(self, api_client, user):
+        """A deactivated user's still-valid refresh token must not mint a new
+        pair — otherwise deactivation wouldn't actually end their session."""
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = RefreshToken.for_user(user)
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        api_client.cookies["refresh_token"] = str(refresh)
+        response = api_client.post("/api/v1/auth/refresh/")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.cookies["access_token"].value == ""
+        assert response.cookies["refresh_token"].value == ""
+
     def test_cookie_auth(self, api_client, user):
         """Should authenticate using access_token cookie."""
         from rest_framework_simplejwt.tokens import RefreshToken
