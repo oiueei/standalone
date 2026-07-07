@@ -71,7 +71,7 @@ Users authenticate via magic link (passwordless). The `UserManager` handles user
 
 ### Theeeme Relationship
 
-- Users have a FK to Theeeme with `on_delete=PROTECT` and `default=_random_theeeme` (a fresh user gets a random theeeme, not a fixed one)
+- Users have a FK to Theeeme with `on_delete=PROTECT` and `default=_random_theeeme` (a fresh user gets a random theeeme, not a fixed one). `_random_theeeme` reads the **live** Theeeme table (not a hardcoded list) and falls back to `_DEFAULT_THEEEME_CODE` (BUU331) if it is empty, so deleting a theeeme can never assign a dangling FK.
 - This prevents deleting a Theeeme that is in use
 
 ---

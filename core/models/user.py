@@ -10,24 +10,22 @@ from django.db import models
 
 from core.utils import generate_id
 
-_THEEEME_CODES = [
-    "BUU331",
-    "3NNG31",
-    "H00774",
-    "K3SS44",
-    "K0P4R1",
-    "KU11T4",
-    "M377RO",
-    "S0M0UU",
-    "SP4740",
-    "SU0M3N",
-    "V44K0N",
-    "5BC8W6",
-]
+# Bussi — the documented default palette (seeded in migration 0036). Used only as
+# a last-resort fallback when the Theeeme table is somehow empty.
+_DEFAULT_THEEEME_CODE = "BUU331"
 
 
 def _random_theeeme():
-    return random.choice(_THEEEME_CODES)
+    """Pick a random *existing* theeeme code for a new user's default palette.
+
+    Reads the live Theeeme table rather than a hardcoded list, so removing a
+    theeeme can never make user creation roll a dangling FK (a 1-in-N
+    IntegrityError). Falls back to the default code if the table is empty.
+    """
+    from core.models.theeeme import Theeeme
+
+    codes = list(Theeeme.objects.values_list("code", flat=True))
+    return random.choice(codes) if codes else _DEFAULT_THEEEME_CODE
 
 
 class UserManager(BaseUserManager):

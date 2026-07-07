@@ -686,6 +686,33 @@ class TestThingModelEdgeCases:
 class TestUserModelEdgeCases:
     """Tests for User model edge cases."""
 
+    def test_random_theeeme_default_only_picks_existing_codes(self):
+        """C9: the default palette is drawn from the live Theeeme table, so a
+        theeeme the old hardcoded list still named — but that was deleted — can
+        never be assigned (which would be a dangling FK / IntegrityError)."""
+        # Reduce the table to a single code that was NOT in the old hardcoded list.
+        Theeeme.objects.all().delete()
+        Theeeme.objects.create(
+            code="ZZZ999",
+            name="Solo",
+            color_01="bus",
+            color_02="gold",
+            color_03="copper",
+            color_04="black",
+            color_05="white",
+        )
+        for i in range(20):
+            user = User.objects.create(email=f"c9-{i}@example.com")
+            assert user.theeeme_id == "ZZZ999"
+
+    def test_random_theeeme_falls_back_when_table_empty(self):
+        """With no theeemes at all, fall back to the documented default code
+        rather than raising (empty random.choice)."""
+        from core.models.user import _DEFAULT_THEEEME_CODE, _random_theeeme
+
+        Theeeme.objects.all().delete()
+        assert _random_theeeme() == _DEFAULT_THEEEME_CODE
+
     def test_create_superuser(self):
         """Should create a superuser."""
         user = User.objects.create_superuser(email="admin@example.com")
