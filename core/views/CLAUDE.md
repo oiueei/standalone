@@ -216,7 +216,7 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 | **Endpoints** | `GET /api/v1/inbox/` and `DELETE /api/v1/inbox/{code}/` |
 | **Permission** | `IsAuthenticated` |
 
-GET lists the current user's in-app notifications (`code`, `type`, `payload`, `created`). DELETE dismisses (hard-deletes) one, scoped to the requesting user — a code belonging to someone else 404s.
+GET lists the current user's in-app notifications (`code`, `type`, `payload`, `created`). DELETE dismisses (hard-deletes) one, scoped to the requesting user — a code belonging to someone else 404s. Both URL routes resolve to this one view; each handler takes an optional `code` and returns a clean **405** for the combination it doesn't serve (`GET /inbox/{code}/` and `DELETE /inbox/`) rather than a signature-mismatch 500.
 
 ---
 

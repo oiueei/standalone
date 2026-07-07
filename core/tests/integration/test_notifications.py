@@ -500,3 +500,26 @@ def test_inbox_delete_nonexistent_notification_returns_404(two_users):
     resp = client.delete("/api/v1/inbox/ZZZZZZ/")
 
     assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+def test_inbox_get_on_item_route_returns_405_not_500(two_users):
+    # GET /inbox/{code}/ is not a feature (only the collection is listable). The
+    # crossed route must return a clean 405, not a TypeError-driven 500.
+    owner, _ = two_users
+    client = _make_client(owner)
+
+    resp = client.get("/api/v1/inbox/ANYCOD/")
+
+    assert resp.status_code == 405
+
+
+@pytest.mark.django_db
+def test_inbox_delete_on_collection_route_returns_405_not_500(two_users):
+    # DELETE /inbox/ has no target notification — a clean 405, not a 500.
+    owner, _ = two_users
+    client = _make_client(owner)
+
+    resp = client.delete("/api/v1/inbox/")
+
+    assert resp.status_code == 405
