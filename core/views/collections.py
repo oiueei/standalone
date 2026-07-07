@@ -471,6 +471,32 @@ def _send_bulk_invites(inviter_name, headline, recipients):
         _run()
 
 
+def _send_broadcast(owner_name, owner_email, headline, collection_code, message, emails):
+    """Send a collection broadcast without blocking the request.
+
+    ``send_broadcast_email`` loops over every invitee with a sequential SMTP call
+    (10s timeout each), so a large group could exhaust the Heroku 30s request
+    window (H12). In production (``EMAIL_SEND_ASYNC``) run it on a daemon thread so
+    the owner's response returns immediately; elsewhere send synchronously to keep
+    tests deterministic. It already swallows per-recipient send errors.
+    """
+
+    def _run():
+        send_broadcast_email(
+            owner_name=owner_name,
+            owner_email=owner_email,
+            collection_headline=headline,
+            collection_code=collection_code,
+            message=message,
+            emails=emails,
+        )
+
+    if getattr(settings, "EMAIL_SEND_ASYNC", False):
+        threading.Thread(target=_run, daemon=True).start()
+    else:
+        _run()
+
+
 class CollectionBulkInviteView(APIView):
     """
     POST /api/v1/collections/{collection_code}/invite/bulk/
@@ -872,10 +898,10 @@ class CollectionBroadcastView(APIView):
 
         owner_name = request.user.display_name
 
-        send_broadcast_email(
+        _send_broadcast(
             owner_name=owner_name,
             owner_email=request.user.email,
-            collection_headline=collection.headline,
+            headline=collection.headline,
             collection_code=collection.code,
             message=message,
             emails=invitee_emails,

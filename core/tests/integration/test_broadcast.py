@@ -2,8 +2,11 @@
 Integration tests for collection broadcast endpoint.
 """
 
+from unittest.mock import patch
+
 import pytest
 from django.core import mail
+from django.test import override_settings
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -146,3 +149,29 @@ class TestCollectionBroadcast:
             format="json",
         )
         assert resp.status_code == 404
+
+    def test_broadcast_sends_off_the_request_thread_in_production(self, broadcast_setup):
+        """With EMAIL_SEND_ASYNC on, the send is dispatched to a daemon thread so a
+        large group can't stall the response past Heroku's 30s window (H12) — yet
+        every invitee still gets the email."""
+
+        class _InlineThread:
+            """Run the target synchronously so the test stays deterministic."""
+
+            def __init__(self, target=None, daemon=None, **kwargs):
+                self._target = target
+                self.daemon = daemon
+
+            def start(self):
+                self._target()
+
+        with override_settings(EMAIL_SEND_ASYNC=True):
+            with patch("core.views.collections.threading.Thread", _InlineThread):
+                resp = broadcast_setup["owner_client"].post(
+                    URL.format(broadcast_setup["collection"].code),
+                    {"message": "Async hello"},
+                    format="json",
+                )
+        assert resp.status_code == 200
+        assert resp.data["recipients"] == 2
+        assert len(mail.outbox) == 2
