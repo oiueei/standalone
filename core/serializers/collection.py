@@ -191,8 +191,11 @@ class CollectionSerializer(serializers.ModelSerializer):
         things = obj.things.all()
         # Non-owners (including anonymous visitors on a PUBLIC collection) never
         # see INACTIVE things; only skip the filter for internal, request-less use.
+        # Filtered in Python (not .exclude()) so the prefetched M2M cache is reused
+        # instead of firing a fresh query per thing (N+1 on home + anon collection
+        # detail).
         if request and not is_owner:
-            things = things.exclude(status=Thing.Status.INACTIVE)
+            things = [t for t in things if t.status != Thing.Status.INACTIVE]
         return CollectionThingSummarySerializer(things, many=True, context=ctx).data
 
     def _requester_is_owner(self, obj):
