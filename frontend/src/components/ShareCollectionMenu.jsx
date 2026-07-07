@@ -1,6 +1,16 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog, IconCamera, IconEnvelope, IconShare, IconWhatsapp, Select } from 'hds-react';
+import {
+  Button,
+  Dialog,
+  IconArrowRedo,
+  IconCamera,
+  IconCrossCircle,
+  IconEnvelope,
+  IconShare,
+  IconWhatsapp,
+  Select,
+} from 'hds-react';
 import { QRCodeSVG } from 'qrcode.react';
 import useTheeeme from '../hooks/useTheeeme';
 import { apiFetch } from '../services/api';
@@ -30,6 +40,7 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
   const { btnStyle, btnSecondaryStyle } = useTheeeme();
   const [toast, setToast] = useState(null);
   const [qrUrl, setQrUrl] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
   const cachedUrlRef = useRef(null);
 
   const ensureShareUrl = async () => {
@@ -92,6 +103,41 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
     }
   };
 
+  // Revoke / rotate only apply to PRIVATE collections (a PUBLIC collection has no
+  // share token to pull back — it's shared by its plain URL). Both let the owner
+  // take back a bearer credential they've handed out (DESIGN §9 user data control).
+  const doRotate = async () => {
+    try {
+      const res = await apiFetch(`/api/v1/collections/${collectionCode}/share-link/`, {
+        method: 'POST',
+        body: JSON.stringify({ rotate: true }),
+      });
+      if (!res.ok) throw new Error('rotate failed');
+      const data = await res.json();
+      cachedUrlRef.current = data.share_url;
+      setToast({ type: 'success', message: t('shareMenu.rotated') });
+    } catch {
+      setToast({ type: 'error', message: t('shareMenu.linkError') });
+    } finally {
+      setConfirmAction(null);
+    }
+  };
+
+  const doRevoke = async () => {
+    try {
+      const res = await apiFetch(`/api/v1/collections/${collectionCode}/share-link/`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('revoke failed');
+      cachedUrlRef.current = null;
+      setToast({ type: 'success', message: t('shareMenu.revoked') });
+    } catch {
+      setToast({ type: 'error', message: t('shareMenu.linkError') });
+    } finally {
+      setConfirmAction(null);
+    }
+  };
+
   const options = [
     {
       value: 'email',
@@ -113,10 +159,25 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
       label: t('shareMenu.qr'),
       iconStart: <IconCamera aria-hidden="true" />,
     },
+    ...(isPublic
+      ? []
+      : [
+          {
+            value: 'rotate',
+            label: t('shareMenu.rotate'),
+            iconStart: <IconArrowRedo aria-hidden="true" />,
+          },
+          {
+            value: 'revoke',
+            label: t('shareMenu.revoke'),
+            iconStart: <IconCrossCircle aria-hidden="true" />,
+          },
+        ]),
   ];
 
   const qrTitle = t('shareMenu.qrTitle', { headline: collectionHeadline });
   const titleId = `share-qr-title-${collectionCode}`;
+  const confirmTitleId = `share-confirm-title-${collectionCode}`;
 
   return (
     <>
@@ -131,11 +192,14 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
         value={[]}
         onChange={(selected) => {
           const picked = selected && selected.length > 0 ? selected[0] : null;
-          if (picked && picked.value) {
+          if (!picked || !picked.value) return;
+          if (picked.value === 'rotate' || picked.value === 'revoke') {
+            setConfirmAction(picked.value);
+          } else {
             trigger(picked.value);
           }
         }}
-        visibleOptions={4}
+        visibleOptions={options.length}
       />
       {qrUrl && (
         <Dialog
@@ -164,6 +228,32 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
               style={btnSecondaryStyle}
             >
               {t('shareMenu.copy')}
+            </Button>
+          </Dialog.ActionButtons>
+        </Dialog>
+      )}
+      {confirmAction && (
+        <Dialog
+          id={`share-confirm-${collectionCode}`}
+          aria-labelledby={confirmTitleId}
+          isOpen
+          close={() => setConfirmAction(null)}
+          closeButtonLabelText={t('shareMenu.confirmCancel')}
+        >
+          <Dialog.Header id={confirmTitleId} title={t(`shareMenu.${confirmAction}Title`)} />
+          <Dialog.Content>
+            <p>{t(`shareMenu.${confirmAction}Body`)}</p>
+          </Dialog.Content>
+          <Dialog.ActionButtons>
+            <Button onClick={confirmAction === 'rotate' ? doRotate : doRevoke} style={btnStyle}>
+              {t(`shareMenu.${confirmAction}Confirm`)}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setConfirmAction(null)}
+              style={btnSecondaryStyle}
+            >
+              {t('shareMenu.confirmCancel')}
             </Button>
           </Dialog.ActionButtons>
         </Dialog>

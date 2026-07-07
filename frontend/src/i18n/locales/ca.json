@@ -703,7 +703,18 @@
     "qr": "Codi QR",
     "qrTitle": "Escaneja per unir-te a {{headline}}",
     "qrHelper": "Apunta la càmera del mòbil a aquest codi per obrir l'enllaç d'invitació.",
-    "qrClose": "Tanca"
+    "qrClose": "Tanca",
+    "rotate": "Gira l'enllaç",
+    "revoke": "Deixa de compartir",
+    "rotateTitle": "Vols girar l'enllaç d'invitació?",
+    "rotateBody": "Es crea un enllaç nou i l'actual deixa de funcionar: qui ja el tingui necessitarà el nou.",
+    "rotateConfirm": "Gira l'enllaç",
+    "revokeTitle": "Vols deixar de compartir aquesta col·lecció?",
+    "revokeBody": "L'enllaç d'invitació deixarà de funcionar per a tothom. Qui ja sigui a la col·lecció conserva l'accés; ningú nou no s'hi podrà unir amb l'enllaç antic.",
+    "revokeConfirm": "Deixa de compartir",
+    "confirmCancel": "Cancel·la",
+    "rotated": "Enllaç nou creat: l'anterior ja no funciona.",
+    "revoked": "Has deixat de compartir: l'enllaç ja no funciona."
   },
   "bulkAdd": {
     "heading": "Afegir-ne diversos alhora (CSV)",

@@ -703,7 +703,18 @@
     "qr": "Código QR",
     "qrTitle": "Escanea para unirte a {{headline}}",
     "qrHelper": "Apunta la cámara del móvil a este código para abrir el enlace de invitación.",
-    "qrClose": "Cerrar"
+    "qrClose": "Cerrar",
+    "rotate": "Rotar enlace",
+    "revoke": "Dejar de compartir",
+    "rotateTitle": "¿Rotar el enlace de invitación?",
+    "rotateBody": "Se crea un enlace nuevo y el actual deja de funcionar: quien ya lo tenga necesitará el nuevo.",
+    "rotateConfirm": "Rotar enlace",
+    "revokeTitle": "¿Dejar de compartir esta colección?",
+    "revokeBody": "El enlace de invitación dejará de funcionar para todos. Quienes ya estén en la colección conservan su acceso; nadie nuevo podrá unirse con el enlace antiguo.",
+    "revokeConfirm": "Dejar de compartir",
+    "confirmCancel": "Cancelar",
+    "rotated": "Enlace nuevo creado: el anterior ya no funciona.",
+    "revoked": "Has dejado de compartir: el enlace ya no funciona."
   },
   "bulkAdd": {
     "heading": "Añadir varios a la vez (CSV)",

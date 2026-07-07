@@ -720,7 +720,18 @@
     "qr": "QR code",
     "qrTitle": "Scan to join {{headline}}",
     "qrHelper": "Point a phone camera at this code to open the invite link.",
-    "qrClose": "Close"
+    "qrClose": "Close",
+    "rotate": "Rotate link",
+    "revoke": "Stop sharing",
+    "rotateTitle": "Rotate the invite link?",
+    "rotateBody": "A fresh link is created and the current one stops working — anyone you've already shared it with will need the new link.",
+    "rotateConfirm": "Rotate link",
+    "revokeTitle": "Stop sharing this collection?",
+    "revokeBody": "The invite link stops working for everyone. People already in the collection keep their access; no one new can join with the old link.",
+    "revokeConfirm": "Stop sharing",
+    "confirmCancel": "Cancel",
+    "rotated": "New link created — the old one no longer works.",
+    "revoked": "Sharing stopped — the link no longer works."
   },
   "bulkAdd": {
     "heading": "Add many at once (CSV)",
