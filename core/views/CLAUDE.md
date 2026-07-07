@@ -59,7 +59,7 @@ Routes to the appropriate handler based on `rsvp.action`:
 
 **Common behaviour (`_resolve_rsvp` → `_dispatch`):**
 1. Looks up RSVP by `token` (the high-entropy URL token, not the PK). Returns 401 if not found.
-2. Checks `rsvp.is_valid()` (24h expiry). Deletes and returns 401 if expired.
+2. Checks `rsvp.is_valid()` (per-action expiry — magic 24h / booking 72h / invite ~30 days, see the RSVP model). Deletes and returns 401 if expired.
 3. GET previews a confirm-required action (`_preview`, no mutation); otherwise (and always on POST) delegates to the action handler.
 4. On commit, the RSVP is deleted after use (one-time use).
 
@@ -852,7 +852,7 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 ### Authentication & Authorisation
 
 1. **Invite-only registration (owner-controlled), with a separate demo gate** — There is no open public self-registration on the main model. Accounts are created when a collection owner invites someone (`POST /collections/{code}/invite/`) or when a visitor uses an owner-enabled public share link (`POST /auth/pop-in/` with a `share_token`, from `/share/{token}`). `/login` (`POST /auth/request-link/`) only mails magic links to already-registered accounts and never creates users. The separate `/popin` endpoint (`POST /auth/pop-in/` with no token) is an intentional open demo/onboarding gate that creates an account for anyone and adds them to the `is_onboarding` demo collections.
-2. **Magic link authentication** — Passwordless via email. RSVPs expire after 24 hours and are one-time use.
+2. **Magic link authentication** — Passwordless via email. RSVPs are one-time use and expire per action (magic links 24h; booking accept/reject 72h; collection invites ~30 days — `RSVP.expiry_hours_for`).
 3. **JWT tokens** — HttpOnly cookie-based. Access tokens expire after 1 hour. Refresh tokens expire after 7 days. Tokens are rotated on refresh via `POST /api/v1/auth/refresh/`, old tokens blacklisted.
 4. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections.
 5. **Custom DRF permissions** — `IsThingOwner` and `IsCollectionOwner` in `core/permissions.py`.

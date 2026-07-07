@@ -244,14 +244,15 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 ### Business Rules
 
 1. **One-time use** - RSVPs are deleted after being used.
-2. **24h expiry** - RSVPs expire after `MAGIC_LINK_EXPIRY_HOURS` (default 24 hours).
+2. **Per-action expiry** - Link lifetime depends on the action (`RSVP.expiry_hours_for`, the single source of truth for both `is_valid()` and the `cleanup_rsvps` command): magic links `MAGIC_LINK_EXPIRY_HOURS` (24h), booking accept/reject `BOOKING_EXPIRY_HOURS` (72h — the full PENDING window they act on), collection invite/reject `COLLECTION_INVITE_EXPIRY_HOURS` (720h / ~30 days — a pending invitation has no natural deadline). All overridable via settings.
 3. **RSVP tokens obfuscate URLs** - Email links use the high-entropy `token` (≈134 bits) — never the 6-char PK or real object codes — so they resist both enumeration and brute force.
 4. **RSVP for ALL email communications** - Every email that requires user action uses an RSVP.
 5. **Sibling RSVP cleanup** - Collection invite/reject RSVPs are created in pairs. Using either one deletes both to invalidate the other link.
 
 ### Methods
 
-- `is_valid()` - Returns True if not expired (within 24h of creation)
+- `is_valid()` - Returns True if not expired, using the per-action lifetime from `expiry_hours_for`
+- `expiry_hours_for(action)` - Classmethod: hours an RSVP of the given action stays valid (24h magic / 72h booking / 720h invite). Used by both `is_valid()` and `cleanup_rsvps`
 - `create_for_booking(action, booking, owner_email)` - Factory method for booking RSVPs
 
 ---

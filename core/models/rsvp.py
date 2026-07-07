@@ -26,7 +26,9 @@ class RSVP(models.Model):
     All booking actions (GIFT, SELL, ORDER, LEND, RENT, SHARE) use the unified
     BOOKING_ACCEPT/BOOKING_REJECT actions via the BookingPeriod model.
 
-    Expires after MAGIC_LINK_EXPIRY_HOURS (default 24 hours).
+    Expiry is per action (see ``expiry_hours_for``): magic links stay short-lived
+    (24h), booking accept/reject links live the full 72h PENDING window they act
+    on, and a pending collection invitation lingers far longer (~30 days).
     Deleted after one-time use.
     """
 
@@ -68,12 +70,24 @@ class RSVP(models.Model):
     def __str__(self):
         return f"RSVP {self.code} ({self.action}) for {self.user_email}"
 
+    # Per-action link lifetime (hours). Booking accept/reject links must outlive the
+    # 72h PENDING window they act on (BOOKING_EXPIRY_HOURS); a pending collection
+    # invitation has no natural deadline, so its link lingers far longer; magic links
+    # stay short-lived. Each is overridable via settings. Single source of truth for
+    # both is_valid() and the cleanup_rsvps command so they can never drift.
+    @classmethod
+    def expiry_hours_for(cls, action):
+        if action in (cls.Action.BOOKING_ACCEPT, cls.Action.BOOKING_REJECT):
+            return getattr(settings, "BOOKING_EXPIRY_HOURS", 72)
+        if action in (cls.Action.COLLECTION_INVITE, cls.Action.COLLECTION_REJECT):
+            return getattr(settings, "COLLECTION_INVITE_EXPIRY_HOURS", 720)
+        return getattr(settings, "MAGIC_LINK_EXPIRY_HOURS", 24)
+
     def is_valid(self):
-        """Check if the RSVP is still valid (not expired)."""
+        """Check if the RSVP is still valid (not expired). Expiry is per-action."""
         from datetime import timedelta
 
-        expiry_hours = getattr(settings, "MAGIC_LINK_EXPIRY_HOURS", 24)
-        expiry_time = self.created + timedelta(hours=expiry_hours)
+        expiry_time = self.created + timedelta(hours=self.expiry_hours_for(self.action))
         return timezone.now() < expiry_time
 
     def action_link(self):

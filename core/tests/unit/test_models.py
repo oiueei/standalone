@@ -160,6 +160,42 @@ class TestRSVPModel:
         rsvp.save()
         assert rsvp.is_valid() is False
 
+    def test_rsvp_booking_link_outlives_24h(self):
+        """A booking accept/reject link stays valid for the full 72h PENDING window
+        (it used to 401 after 24h, mid-way through the booking's life)."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email="test@example.com",
+            action=RSVP.Action.BOOKING_ACCEPT,
+        )
+        rsvp.created = timezone.now() - timedelta(hours=30)
+        rsvp.save()
+        assert rsvp.is_valid() is True
+        rsvp.created = timezone.now() - timedelta(hours=73)
+        rsvp.save()
+        assert rsvp.is_valid() is False
+
+    def test_rsvp_invite_link_outlives_24h(self):
+        """A pending collection invitation lingers far beyond 24h (~30 days)."""
+        user = User.objects.create(code="ABC123", email="test@example.com")
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email="test@example.com",
+            action=RSVP.Action.COLLECTION_INVITE,
+        )
+        rsvp.created = timezone.now() - timedelta(hours=48)
+        rsvp.save()
+        assert rsvp.is_valid() is True
+
+    def test_expiry_hours_for_maps_each_action(self):
+        """Single source of truth for is_valid() and cleanup_rsvps."""
+        assert RSVP.expiry_hours_for(RSVP.Action.MAGIC_LINK) == 24
+        assert RSVP.expiry_hours_for(RSVP.Action.BOOKING_ACCEPT) == 72
+        assert RSVP.expiry_hours_for(RSVP.Action.BOOKING_REJECT) == 72
+        assert RSVP.expiry_hours_for(RSVP.Action.COLLECTION_INVITE) == 720
+        assert RSVP.expiry_hours_for(RSVP.Action.COLLECTION_REJECT) == 720
+
 
 @pytest.mark.django_db
 class TestTheeemeModel:

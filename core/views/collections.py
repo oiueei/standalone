@@ -147,9 +147,10 @@ class CollectionViewSet(ModelViewSet):
         orphaned_things = instance.things.annotate(col_count=Count("collections")).filter(
             col_count=1
         )
-        orphaned_things.delete()
         collection_code = instance.code  # snapshot before delete() nulls the PK
-        instance.delete()
+        with transaction.atomic():
+            orphaned_things.delete()
+            instance.delete()
 
         Event.log(
             Event.Kind.COLLECTION_DELETED,
@@ -744,8 +745,18 @@ class MyPendingInvitationsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # Only surface invitations whose link is still valid (matches the per-action
+        # expiry in RSVP.is_valid / cleanup_rsvps), so a stale invite never shows a
+        # link that would 401 on click.
+        cutoff = timezone.now() - timedelta(
+            hours=RSVP.expiry_hours_for(RSVP.Action.COLLECTION_INVITE)
+        )
         accept_rsvps = list(
-            RSVP.objects.filter(user_code=request.user, action=RSVP.Action.COLLECTION_INVITE)
+            RSVP.objects.filter(
+                user_code=request.user,
+                action=RSVP.Action.COLLECTION_INVITE,
+                created__gte=cutoff,
+            )
         )
 
         if not accept_rsvps:

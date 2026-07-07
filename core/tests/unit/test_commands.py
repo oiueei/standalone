@@ -61,16 +61,16 @@ class TestExpireBookingsCommand:
 class TestCleanupRsvpsCommand:
     """Tests for cleanup_rsvps management command."""
 
-    def _create_rsvp(self, hours_ago=0):
-        user = User.objects.create(email=f"user{hours_ago}@example.com")
-        rsvp = RSVP.objects.create(user_code=user, user_email=user.email)
+    def _create_rsvp(self, hours_ago=0, action=RSVP.Action.MAGIC_LINK):
+        user = User.objects.create(email=f"user{hours_ago}{action}@example.com")
+        rsvp = RSVP.objects.create(user_code=user, user_email=user.email, action=action)
         if hours_ago:
             rsvp.created = timezone.now() - timedelta(hours=hours_ago)
             rsvp.save(update_fields=["created"])
         return rsvp
 
     def test_cleanup_expired_rsvps(self):
-        """Should delete RSVPs older than 24 hours."""
+        """Should delete magic-link RSVPs older than 24 hours."""
         old_rsvp = self._create_rsvp(hours_ago=25)
         new_rsvp = self._create_rsvp(hours_ago=0)
 
@@ -80,6 +80,24 @@ class TestCleanupRsvpsCommand:
         assert not RSVP.objects.filter(code=old_rsvp.code).exists()
         assert RSVP.objects.filter(code=new_rsvp.code).exists()
         assert "Cleaned up 1 expired RSVPs" in out.getvalue()
+
+    def test_cleanup_keeps_booking_link_within_72h(self):
+        """A booking link at 25h is past the old flat cutoff but still valid (72h)."""
+        booking_rsvp = self._create_rsvp(hours_ago=25, action=RSVP.Action.BOOKING_ACCEPT)
+        call_command("cleanup_rsvps", stdout=StringIO())
+        assert RSVP.objects.filter(code=booking_rsvp.code).exists()
+
+    def test_cleanup_deletes_booking_link_past_72h(self):
+        """A booking link past 72h is expired and swept."""
+        booking_rsvp = self._create_rsvp(hours_ago=73, action=RSVP.Action.BOOKING_ACCEPT)
+        call_command("cleanup_rsvps", stdout=StringIO())
+        assert not RSVP.objects.filter(code=booking_rsvp.code).exists()
+
+    def test_cleanup_keeps_invite_within_30_days(self):
+        """A pending invitation at 48h is no longer deleted a day after sending."""
+        invite_rsvp = self._create_rsvp(hours_ago=48, action=RSVP.Action.COLLECTION_INVITE)
+        call_command("cleanup_rsvps", stdout=StringIO())
+        assert RSVP.objects.filter(code=invite_rsvp.code).exists()
 
     def test_no_rsvps_to_cleanup(self):
         """Should report zero when no RSVPs to clean up."""
