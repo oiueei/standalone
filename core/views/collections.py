@@ -46,6 +46,7 @@ from core.services.email_service import (
     send_collection_invite_email,
     send_collection_revoke_email,
 )
+from core.utils import redact_email
 from core.validators import SafeHeadlineField
 from core.views._helpers import require_collection_owner, type_validity_error, viewer_code
 
@@ -466,7 +467,13 @@ def _send_bulk_invites(inviter_name, headline, recipients):
                     inviter_name, headline, email, accept_link, reject_link
                 )
             except Exception:
-                pass
+                # Per-email SMTP failures are already handled inside _send; anything
+                # reaching here is unexpected (e.g. a template/programming error).
+                # Log it (redacted per M5) instead of silently dropping the invite,
+                # but keep going so one bad row can't abort the rest of the batch.
+                logger.warning(
+                    "Bulk invite email failed for %s", redact_email(email), exc_info=True
+                )
 
     if getattr(settings, "EMAIL_SEND_ASYNC", False):
         threading.Thread(target=_run, daemon=True).start()
