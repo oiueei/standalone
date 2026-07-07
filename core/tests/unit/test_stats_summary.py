@@ -9,7 +9,7 @@ from django.core import mail
 from django.core.management import call_command
 from django.utils import timezone
 
-from core.management.commands.stats_summary import STATS_RECIPIENT, build_report
+from core.management.commands.stats_summary import build_report
 from core.models import FAQ, BookingPeriod, Collection, DailyActivity, Event, Thing, User
 
 MONDAY = date(2026, 4, 20)
@@ -206,17 +206,28 @@ class TestStatsCommand:
         assert "Not Monday" in text
         assert len(mail.outbox) == 0
 
-    def test_monday_sends_email(self):
+    def test_monday_sends_email(self, monkeypatch):
+        monkeypatch.setenv("STATS_EMAIL", "ops@example.com")
         with time_machine.travel(MONDAY):
             out = StringIO()
             call_command("stats_summary", stdout=out)
         assert len(mail.outbox) == 1
-        assert mail.outbox[0].to == [STATS_RECIPIENT]
+        assert mail.outbox[0].to == ["ops@example.com"]
         assert "Stats email sent" in out.getvalue()
 
-    def test_email_flag_forces_send_on_non_monday(self):
+    def test_email_flag_forces_send_on_non_monday(self, monkeypatch):
+        monkeypatch.setenv("STATS_EMAIL", "ops@example.com")
         with time_machine.travel(TUESDAY):
             out = StringIO()
             call_command("stats_summary", "--email", stdout=out)
         assert len(mail.outbox) == 1
-        assert mail.outbox[0].to == [STATS_RECIPIENT]
+        assert mail.outbox[0].to == ["ops@example.com"]
+
+    def test_monday_skips_email_when_stats_email_unset(self, monkeypatch):
+        """Third-party deploys must not email metrics to the author by default."""
+        monkeypatch.delenv("STATS_EMAIL", raising=False)
+        with time_machine.travel(MONDAY):
+            out = StringIO()
+            call_command("stats_summary", "--email", stdout=out)
+        assert len(mail.outbox) == 0
+        assert "STATS_EMAIL not set" in out.getvalue()

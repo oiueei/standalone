@@ -257,9 +257,11 @@ Heroku Scheduler config lives in the dashboard, so the intended schedule is vers
 | `python manage.py close_transfers` | daily (chained) | Sets `returned_date` on transfers whose ACCEPTED booking's `end_date` has passed. |
 | `python manage.py send_reminders` | daily (chained) | Return/delivery reminders for bookings due tomorrow. |
 | `python manage.py send_digests` | daily (chained) | Weekly digests + newsletters (Mondays) and monthly digests (1st); the command no-ops on other days. |
-| `python manage.py stats_summary` | daily (chained) | First-party product stats; prints every day, emails the operator on Mondays. |
+| `python manage.py stats_summary` | daily (chained) | First-party product stats; prints every day, emails `STATS_EMAIL` on Mondays (skipped if unset). |
 
 The daily commands are safe to run every day — each checks the date internally and no-ops when there's nothing to do.
+
+`stats_summary`'s weekly email is opt-in — set `STATS_EMAIL` to receive it (`heroku config:set STATS_EMAIL='you@your-domain.com' -a your-app-name`); it always prints to the log regardless.
 
 ## Troubleshooting
 

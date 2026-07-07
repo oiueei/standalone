@@ -288,6 +288,7 @@ python manage.py backfill_events
 | `RSVP_BASE_URL` | Prod | Base URL for RSVP action links in emails (default in dev: `http://localhost:3000/rsvp`) |
 | `SHARE_LINK_BASE_URL` | Prod | Base URL for public collection share links (default in dev: `http://localhost:3000/share`) |
 | `CLOUDINARY_URL` | Uploads | Cloudinary credentials for image uploads: `cloudinary://api_key:api_secret@cloud_name` (free account at cloudinary.com) |
+| `STATS_EMAIL` | No | Recipient for the weekly `stats_summary` command email (Mondays / `--email`). Unset skips the email — third-party deploys don't email metrics anywhere by default. |
 
 ## Onboarding & access
 

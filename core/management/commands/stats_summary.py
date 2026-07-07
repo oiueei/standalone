@@ -16,6 +16,7 @@ Manual, any day:
     heroku run --app <app> "python manage.py stats_summary --email"
 """
 
+import os
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
@@ -27,7 +28,6 @@ from core.models import FAQ, BookingPeriod, Collection, DailyActivity, Event, Th
 from core.services.email_service import send_stats_summary_email
 
 SEED_USER_CODES = frozenset(u["code"] for u in _SEED_USERS)
-STATS_RECIPIENT = "oiueei@disroot.org"
 
 
 def _pct(part, whole):
@@ -53,13 +53,17 @@ class Command(BaseCommand):
         self.stdout.write(render_text(sections))
 
         today = timezone.localdate()
-        if options["email"] or today.weekday() == 0:  # Monday
-            send_stats_summary_email(
-                STATS_RECIPIENT, f"OIUEEI stats — {today.isoformat()}", sections
-            )
-            self.stdout.write(self.style.SUCCESS(f"Stats email sent to {STATS_RECIPIENT}"))
-        else:
+        if not (options["email"] or today.weekday() == 0):  # Monday
             self.stdout.write("Not Monday — email skipped (use --email to force a send).")
+            return
+
+        recipient = os.environ.get("STATS_EMAIL")
+        if not recipient:
+            self.stdout.write("STATS_EMAIL not set — email skipped.")
+            return
+
+        send_stats_summary_email(recipient, f"OIUEEI stats — {today.isoformat()}", sections)
+        self.stdout.write(self.style.SUCCESS(f"Stats email sent to {recipient}"))
 
 
 # --- Demo/real partition --------------------------------------------------------
