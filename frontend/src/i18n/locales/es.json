@@ -614,7 +614,13 @@
     "acceptedToast": "Respuesta aceptada.",
     "errorAccepting": "No se pudo aceptar la respuesta.",
     "resolvedToast": "Pedido marcado como resuelto.",
-    "errorResolving": "No se pudo marcar como resuelto."
+    "errorResolving": "No se pudo marcar como resuelto.",
+    "acceptConfirmTitle": "¿Aceptar esta respuesta?",
+    "acceptConfirmBody": "Avisaremos a quien respondió de que aceptaste su ofrecimiento. Las demás respuestas siguen abiertas.",
+    "acceptConfirm": "Aceptar respuesta",
+    "resolveConfirmTitle": "¿Marcar este deseo como resuelto?",
+    "resolveConfirmBody": "Saldrá del tablón activo (puedes reabrirlo más tarde). Si aceptaste una respuesta, esa persona recibe un agradecimiento.",
+    "resolveConfirm": "Marcar resuelto"
   },
   "swap": {
     "offerItems": "Seleccionar artículos a ofrecer",

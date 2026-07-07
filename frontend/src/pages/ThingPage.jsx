@@ -35,6 +35,8 @@ export default function ThingPage() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [resolveOpen, setResolveOpen] = useState(false);
+  const [confirmAcceptCode, setConfirmAcceptCode] = useState(null);
   const [reporting, setReporting] = useState(false);
   useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
 
@@ -535,13 +537,45 @@ export default function ThingPage() {
                     )}
                     {r.fee && <p>{r.fee} €</p>}
                     {isOwner && r.status === 'PENDING' && (
-                      <Button
-                        disabled={actioning}
-                        onClick={() => handleAcceptResponse(r.code)}
-                        style={{ ...btnStyle, width: '100%' }}
-                      >
-                        {t('wishes.accept')}
-                      </Button>
+                      <>
+                        <Button
+                          disabled={actioning}
+                          onClick={() =>
+                            setConfirmAcceptCode((c) => (c === r.code ? null : r.code))
+                          }
+                          aria-expanded={confirmAcceptCode === r.code}
+                          style={{ ...btnStyle, width: '100%' }}
+                        >
+                          {t('wishes.accept')}
+                        </Button>
+                        {confirmAcceptCode === r.code && (
+                          <div className="thing-report-confirm">
+                            <p>
+                              <strong>{t('wishes.acceptConfirmTitle')}</strong>
+                            </p>
+                            <p>{t('wishes.acceptConfirmBody')}</p>
+                            <div className="button-row">
+                              <Button
+                                size="small"
+                                disabled={actioning}
+                                isLoading={actioning}
+                                loadingText={t('common.saving')}
+                                onClick={() => handleAcceptResponse(r.code)}
+                                style={btnStyle}
+                              >
+                                {t('wishes.acceptConfirm')}
+                              </Button>
+                              <Button
+                                variant="supplementary"
+                                size="small"
+                                onClick={() => setConfirmAcceptCode(null)}
+                              >
+                                {t('common.cancel')}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ))}
@@ -561,11 +595,39 @@ export default function ThingPage() {
                 <Button
                   variant="secondary"
                   disabled={actioning}
-                  onClick={handleResolve}
+                  onClick={() => setResolveOpen((o) => !o)}
+                  aria-expanded={resolveOpen}
                   style={{ ...btnSecondaryStyle, width: '100%' }}
                 >
                   {t('wishes.resolve')}
                 </Button>
+                {resolveOpen && (
+                  <div className="thing-report-confirm">
+                    <p>
+                      <strong>{t('wishes.resolveConfirmTitle')}</strong>
+                    </p>
+                    <p>{t('wishes.resolveConfirmBody')}</p>
+                    <div className="button-row">
+                      <Button
+                        size="small"
+                        disabled={actioning}
+                        isLoading={actioning}
+                        loadingText={t('common.saving')}
+                        onClick={handleResolve}
+                        style={btnStyle}
+                      >
+                        {t('wishes.resolveConfirm')}
+                      </Button>
+                      <Button
+                        variant="supplementary"
+                        size="small"
+                        onClick={() => setResolveOpen(false)}
+                      >
+                        {t('common.cancel')}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </>

@@ -631,7 +631,13 @@
     "acceptedToast": "Answer accepted.",
     "errorAccepting": "Couldn't accept the answer.",
     "resolvedToast": "Wish marked as resolved.",
-    "errorResolving": "Couldn't mark as resolved."
+    "errorResolving": "Couldn't mark as resolved.",
+    "acceptConfirmTitle": "Accept this answer?",
+    "acceptConfirmBody": "The person who answered will be told you accepted their offer. Other answers stay open.",
+    "acceptConfirm": "Accept answer",
+    "resolveConfirmTitle": "Mark this wish as resolved?",
+    "resolveConfirmBody": "It leaves the active board (you can reopen it later). If you accepted an answer, that person gets a thank-you.",
+    "resolveConfirm": "Mark resolved"
   },
   "swap": {
     "offerItems": "Select items to offer",

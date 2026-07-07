@@ -614,7 +614,13 @@
     "acceptedToast": "Resposta acceptada.",
     "errorAccepting": "No s'ha pogut acceptar la resposta.",
     "resolvedToast": "Petició marcada com a resolta.",
-    "errorResolving": "No s'ha pogut marcar com a resolt."
+    "errorResolving": "No s'ha pogut marcar com a resolt.",
+    "acceptConfirmTitle": "Vols acceptar aquesta resposta?",
+    "acceptConfirmBody": "Avisarem qui ha respost que has acceptat el seu oferiment. Les altres respostes segueixen obertes.",
+    "acceptConfirm": "Accepta la resposta",
+    "resolveConfirmTitle": "Vols marcar aquest desig com a resolt?",
+    "resolveConfirmBody": "Sortirà del tauler actiu (el pots reobrir més tard). Si vas acceptar una resposta, aquella persona rep un agraïment.",
+    "resolveConfirm": "Marca resolt"
   },
   "swap": {
     "offerItems": "Seleccionar articles a oferir",
