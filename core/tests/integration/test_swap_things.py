@@ -474,6 +474,61 @@ class TestSwapAcceptance:
             == 0
         )
 
+    def test_accept_swap_does_not_re_transfer_an_already_swapped_offer(
+        self,
+        swap_collection,
+        owner_swap_thing,
+        guest_swap_thing,
+        user,
+        user2,
+    ):
+        """A1 regression: a thing offered in two pending swaps must not transfer
+        twice. Once the first swap is accepted and the offered item changes hands,
+        accepting the second (still-pending) swap re-validates the offer under the
+        lock and no-ops, instead of stealing the item from its new owner."""
+        user3 = User.objects.create(code="TEST03", email="test3@example.com", name="Test User 3")
+        second_requested = Thing.objects.create(
+            code="SWTH04",
+            type="SWAP_THING",
+            owner=user3,
+            headline="Third Owner Swap Item",
+        )
+        swap_collection.things.add(second_requested)
+        swap_collection.invites.add(user2)
+
+        # user2 offers the SAME thing in two pending swaps to two different owners.
+        swap1 = BookingPeriod.objects.create(
+            thing_code=owner_swap_thing,
+            thing_type="SWAP_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+        )
+        swap1.offered_things.set([guest_swap_thing])
+        swap2 = BookingPeriod.objects.create(
+            thing_code=second_requested,
+            thing_type="SWAP_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user3,
+        )
+        swap2.offered_things.set([guest_swap_thing])
+
+        # First accept: the offered item legitimately goes to user.
+        assert accept_booking(swap1) is not None
+        guest_swap_thing.refresh_from_db()
+        assert guest_swap_thing.owner == user
+
+        # Second accept: the offer is now stale (owned by user, not the requester),
+        # so it must no-op rather than re-transfer the item to user3.
+        assert accept_booking(swap2) is None
+        guest_swap_thing.refresh_from_db()
+        second_requested.refresh_from_db()
+        swap2.refresh_from_db()
+        assert guest_swap_thing.owner == user  # NOT stolen from the first recipient
+        assert second_requested.owner == user3  # the second swap did not complete
+        assert swap2.status == BookingPeriod.Status.PENDING
+
 
 # --- Serializer tests ---
 

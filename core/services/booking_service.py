@@ -132,6 +132,20 @@ def accept_booking(booking):
             and thing.owner_id != booking.owner_code_id
         ):
             return None
+        # A SWAP snapshots the offered things at request time too. Re-validate them
+        # under the lock before any mutation: an offered thing already handed off by
+        # an earlier accepted swap (or since deactivated) makes this booking stale —
+        # bail out like an already-processed booking so the same item can never be
+        # transferred twice (stolen from the recipient it first went to).
+        offered_things = None
+        if booking.thing_type == Thing.Type.SWAP_THING:
+            offered_things = list(booking.offered_things.select_for_update())
+            for offered in offered_things:
+                if (
+                    offered.owner_id != booking.requester_code_id
+                    or offered.status != Thing.Status.ACTIVE
+                ):
+                    return None
         booking.accept()
         if booking.thing_type in SINGLE_USE_TYPES:
             if not thing.is_endless:
@@ -145,8 +159,8 @@ def accept_booking(booking):
             # Requested thing → requester
             thing.owner = booking.requester_code
             thing.save(update_fields=["owner"])
-            # Offered things → original owner
-            for offered in booking.offered_things.select_for_update():
+            # Offered things → original owner (already locked + validated above)
+            for offered in offered_things:
                 ThingTransfer.objects.get_or_create(
                     thing=offered,
                     booking=booking,
