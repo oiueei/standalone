@@ -37,7 +37,12 @@ export default function useTheeeme() {
   const koro = localStorage.getItem('koro') || 'basic';
 
   return useMemo(() => {
-    const parsed = JSON.parse(raw);
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = null;
+    }
     const tc = parsed && Object.keys(parsed).length > 0 ? parsed : DEFAULT_COLORS;
     const btnStyle = tc.color_01
       ? {
