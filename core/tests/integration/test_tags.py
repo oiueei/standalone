@@ -72,6 +72,50 @@ class TestCollectionTags:
         thing.refresh_from_db()
         assert thing.tags == ["Alpha"]
 
+    def test_removing_tag_cascade_strips_across_multiple_things(
+        self, authenticated_client, collection
+    ):
+        """The cascade bulk-updates every affected thing and leaves the rest
+        untouched (guards the atomic bulk_update path)."""
+        from core.models import Thing
+
+        collection.tags = ["Alpha", "Beta"]
+        collection.save(update_fields=["tags"])
+        t1 = Thing.objects.create(
+            code="TAGML1",
+            type="GIFT_THING",
+            owner=collection.owner,
+            headline="One",
+            tags=["Alpha", "Beta"],
+        )
+        t2 = Thing.objects.create(
+            code="TAGML2",
+            type="GIFT_THING",
+            owner=collection.owner,
+            headline="Two",
+            tags=["Beta"],
+        )
+        t3 = Thing.objects.create(
+            code="TAGML3",
+            type="GIFT_THING",
+            owner=collection.owner,
+            headline="Three",
+            tags=["Alpha"],
+        )
+        collection.things.add(t1, t2, t3)
+
+        r = authenticated_client.patch(
+            f"/api/v1/collections/{collection.code}/", {"tags": ["Alpha"]}, format="json"
+        )
+        assert r.status_code == 200
+
+        t1.refresh_from_db()
+        t2.refresh_from_db()
+        t3.refresh_from_db()
+        assert t1.tags == ["Alpha"]  # Beta stripped
+        assert t2.tags == []  # Beta stripped
+        assert t3.tags == ["Alpha"]  # never had Beta — untouched
+
 
 @pytest.mark.django_db
 class TestThingTags:

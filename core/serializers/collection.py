@@ -2,6 +2,7 @@
 Collection serializers for OIUEEI.
 """
 
+from django.db import transaction
 from rest_framework import serializers
 
 from core.models import RSVP, Collection, Thing
@@ -515,14 +516,21 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         (tags are cosmetic, so we silently clean up rather than block the edit)."""
         new_tags = validated_data.get("tags")
         old_tags = list(instance.tags or [])
-        collection = super().update(instance, validated_data)
-        if new_tags is not None:
-            removed = set(old_tags) - set(new_tags)
-            if removed:
-                for thing in collection.things.all():
-                    if any(t in removed for t in (thing.tags or [])):
-                        thing.tags = [t for t in thing.tags if t not in removed]
-                        thing.save(update_fields=["tags"])
+        # Atomic so the collection edit and the cascade land together — a failure
+        # mid-cascade must not leave the vocabulary changed but some things still
+        # carrying a removed tag. bulk_update writes the strip in one query.
+        with transaction.atomic():
+            collection = super().update(instance, validated_data)
+            if new_tags is not None:
+                removed = set(old_tags) - set(new_tags)
+                if removed:
+                    stripped = []
+                    for thing in collection.things.all():
+                        if any(t in removed for t in (thing.tags or [])):
+                            thing.tags = [t for t in thing.tags if t not in removed]
+                            stripped.append(thing)
+                    if stripped:
+                        Thing.objects.bulk_update(stripped, ["tags"])
         return collection
 
 
