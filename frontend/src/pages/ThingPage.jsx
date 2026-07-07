@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Highlight,
-  Notification,
-  TextArea,
-} from 'hds-react';
+import { Button, Notification } from 'hds-react';
 import { WISH_TYPE, WISH_KIND_I18N } from '../constants/things';
-import { apiFetch, extractApiError } from '../services/api';
+import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import RespondMenu from '../components/RespondMenu';
@@ -16,6 +11,7 @@ import ThingTags from '../components/ThingTags';
 import ThingInfoRows from '../components/ThingInfoRows';
 import OwnerBookingsList from '../components/OwnerBookingsList';
 import ThingReportFooter from '../components/ThingReportFooter';
+import ThingFaqSection from '../components/ThingFaqSection';
 import Toast from '../components/Toast';
 import MarkdownText, { sanitizeUrl } from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
@@ -79,14 +75,8 @@ export default function ThingPage() {
     activateSuccessMessage: t('thingPage.thingReactivated'),
   });
 
-  // FAQ state
-  const [faqs, setFaqs] = useState([]);
-  const [faqsNext, setFaqsNext] = useState(null);
+  // Load-more spinner for the wish-responses pager (FAQ owns its own).
   const [loadingMore, setLoadingMore] = useState(false);
-  const [faqQuestion, setFaqQuestion] = useState('');
-  const [faqSubmitting, setFaqSubmitting] = useState(false);
-  const [answerTexts, setAnswerTexts] = useState({});
-  const [answerSubmitting, setAnswerSubmitting] = useState({});
 
   // Transfer state
   const [transfers, setTransfers] = useState(null);
@@ -119,18 +109,6 @@ export default function ThingPage() {
       }
     };
 
-    const fetchFaqs = async () => {
-      try {
-        const res = await apiFetch(`/api/v1/things/${thingCode}/faq/`, { signal });
-        if (res.ok) {
-          const data = await res.json();
-          if (signal.aborted) return;
-          setFaqs(data.results || data);
-          setFaqsNext(data.next || null);
-        }
-      } catch { /* silently fail */ }
-    };
-
     const fetchTransfers = async () => {
       try {
         const res = await apiFetch(`/api/v1/things/${thingCode}/transfers/`, { signal });
@@ -143,7 +121,6 @@ export default function ThingPage() {
     };
 
     fetchThing();
-    fetchFaqs();
     fetchTransfers();
     return () => controller.abort();
   }, [userCode, thingCode, navigate, t]);
@@ -165,21 +142,6 @@ export default function ThingPage() {
       .catch(() => {});
     return () => controller.abort();
   }, [thing?.code, thing?.type, userCode]);
-
-  const loadMoreFaqs = async () => {
-    if (!faqsNext || loadingMore) return;
-    setLoadingMore(true);
-    try {
-      const res = await apiFetch(faqsNext.replace(/^https?:\/\/[^/]+/, ''));
-      if (res.ok) {
-        const data = await res.json();
-        setFaqs((prev) => [...prev, ...(data.results || [])]);
-        setFaqsNext(data.next || null);
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  };
 
   const loadMoreResponses = async () => {
     if (!responsesNext || loadingMore) return;
@@ -260,80 +222,6 @@ export default function ThingPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setActioning(false);
-    }
-  };
-
-  const handleAskQuestion = async () => {
-    if (!faqQuestion.trim()) return;
-    setFaqSubmitting(true);
-    setToast(null);
-    try {
-      const res = await apiFetch(`/api/v1/things/${thing.code}/faq/`, {
-        method: 'POST',
-        body: JSON.stringify({ question: faqQuestion.trim() }),
-      });
-      if (res.ok) {
-        const newFaq = await res.json();
-        setFaqs((prev) => [...prev, newFaq]);
-        setFaqQuestion('');
-        setToast({ type: 'success', message: t('thingPage.questionSent') });
-      } else if (res.status === 429) {
-        setToast({ type: 'error', message: t('common.tooManyAttempts') });
-      } else {
-        const detail = await extractApiError(res);
-        setToast({ type: 'error', message: detail || t('thingPage.errorSendingQuestion') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setFaqSubmitting(false);
-    }
-  };
-
-  const handleAnswer = async (faqCode) => {
-    const answer = (answerTexts[faqCode] || '').trim();
-    if (!answer) return;
-    setAnswerSubmitting((prev) => ({ ...prev, [faqCode]: true }));
-    setToast(null);
-    try {
-      const res = await apiFetch(`/api/v1/faq/${faqCode}/answer/`, {
-        method: 'POST',
-        body: JSON.stringify({ answer }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setFaqs((prev) => prev.map((f) => (f.code === faqCode ? { ...f, ...updated } : f)));
-        setAnswerTexts((prev) => ({ ...prev, [faqCode]: '' }));
-        setToast({ type: 'success', message: t('thingPage.answerSent') });
-      } else if (res.status === 429) {
-        setToast({ type: 'error', message: t('common.tooManyAttempts') });
-      } else {
-        const detail = await extractApiError(res);
-        setToast({ type: 'error', message: detail || t('thingPage.errorSendingAnswer') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setAnswerSubmitting((prev) => ({ ...prev, [faqCode]: false }));
-    }
-  };
-
-  const handleToggleVisibility = async (faq) => {
-    const action = faq.is_visible ? 'hide' : 'show';
-    setToast(null);
-    try {
-      const res = await apiFetch(`/api/v1/faq/${faq.code}/${action}/`, {
-        method: 'POST',
-      });
-      if (res.ok) {
-        setFaqs((prev) =>
-          prev.map((f) => (f.code === faq.code ? { ...f, is_visible: !faq.is_visible } : f))
-        );
-      } else {
-        setToast({ type: 'error', message: action === 'hide' ? t('thingPage.errorHidingQuestion') : t('thingPage.errorShowingQuestion') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
     }
   };
 
@@ -612,113 +500,15 @@ export default function ThingPage() {
         )}
 
         {/* FAQs Section */}
-        <div className="spacer-m" />
-        <hr />
-        <div className="spacer-m" />
-        <h2>{t('thingPage.faqHeading')}</h2>
-
-        {faqs.length === 0 ? (
-          <p>{t('thingPage.noQuestions')}</p>
-        ) : (
-          <div className="faq-grid">
-            {faqs.map((faq) => (
-              <div
-                key={faq.code}
-                style={{ opacity: faq.is_visible === false ? 0.6 : 1 }}
-              >
-                <Highlight
-                  text={faq.question}
-                  reference={faq.answer || undefined}
-                  theme={tc.color_03 ? { '--accent-line-color': `var(--color-${tc.color_03})` } : undefined}
-                />
-                {!faq.answer && isOwner && (
-                  <>
-                  <div className="spacer-m" />
-                  <div className="summary-grid">
-                    <TextArea
-                      id={`faq-reply-${faq.code}`}
-                      label={t('thingPage.replyLabel')}
-                      value={answerTexts[faq.code] || ''}
-                      onChange={(e) =>
-                        setAnswerTexts((prev) => ({ ...prev, [faq.code]: e.target.value }))
-                      }
-                    />
-                    <div className="spacer-m" />
-                    <div className="faq-actions" style={{ flexDirection: 'column', width: '100%' }}>
-                      <Button
-                        fullWidth
-                        disabled={answerSubmitting[faq.code] || !(answerTexts[faq.code] || '').trim()}
-                        onClick={() => handleAnswer(faq.code)}
-                        style={btnStyle}
-                      >
-                        {answerSubmitting[faq.code] ? t('common.sending') : t('thingPage.replyLabel')}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        fullWidth
-                        onClick={() => handleToggleVisibility(faq)}
-                        style={btnSecondaryStyle}
-                      >
-                        {faq.is_visible === false ? t('thingPage.show') : t('thingPage.hide')}
-                      </Button>
-                      {faq.is_visible === false && (
-                        <span className="faq-meta">
-                          {t('thingPage.hidden')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  </>
-                )}
-                {faq.answer && isOwner && (
-                  <div className="faq-actions">
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleToggleVisibility(faq)}
-                      style={btnSecondaryStyle}
-                    >
-                      {faq.is_visible === false ? t('thingPage.show') : t('thingPage.hide')}
-                    </Button>
-                    {faq.is_visible === false && (
-                      <span className="faq-meta">
-                        {t('thingPage.hidden')}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        {faqsNext && (
-          <>
-            <div className="spacer-s" />
-            <Button variant="secondary" onClick={loadMoreFaqs} disabled={loadingMore} style={btnSecondaryStyle}>
-              {t('common.loadMore')}
-            </Button>
-          </>
-        )}
-
-
-        <div className="spacer-m" />
-        {isAuthenticated && !isOwner && (
-          <div className="summary-grid section-mt">
-            <TextArea
-              id="thing-faq-question"
-              label={t('thingPage.faqLabel')}
-              value={faqQuestion}
-              onChange={(e) => setFaqQuestion(e.target.value)}
-              placeholder={t('thingPage.faqPlaceholder')}
-            />
-            <Button
-              disabled={faqSubmitting || !faqQuestion.trim()}
-              onClick={handleAskQuestion}
-              style={{ ...btnStyle, width: '100%' }}
-            >
-              {faqSubmitting ? t('common.sending') : t('thingPage.sendQuestion')}
-            </Button>
-          </div>
-        )}
+        <ThingFaqSection
+          thingCode={thing.code}
+          isOwner={isOwner}
+          isAuthenticated={isAuthenticated}
+          btnStyle={btnStyle}
+          btnSecondaryStyle={btnSecondaryStyle}
+          tc={tc}
+          onToast={setToast}
+        />
 
         {/* Journey / Transfer history */}
         {transfers && transfers.total_transfers > 0 && (
