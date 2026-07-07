@@ -16,6 +16,8 @@ vi.mock('../services/api', () => ({
 
 import CollectionPage from '../pages/CollectionPage';
 import ThingPage from '../pages/ThingPage';
+import UserPage from '../pages/UserPage';
+import MyBookingsPage from '../pages/MyBookingsPage';
 
 beforeEach(() => {
   localStorage.clear();
@@ -51,6 +53,28 @@ describe('error screens are not navigation dead ends (DESIGN A1)', () => {
       <MemoryRouter initialEntries={['/things/THG404']}>
         <Routes>
           <Route path="/things/:thingCode" element={<ThingPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByRole('link', { name: /home/i })).toHaveAttribute('href', '/');
+  });
+
+  test('UserPage error state offers a way home', async () => {
+    render(
+      <MemoryRouter initialEntries={['/U404']}>
+        <Routes>
+          <Route path="/:userCode" element={<UserPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByRole('link', { name: /home/i })).toHaveAttribute('href', '/');
+  });
+
+  test('MyBookingsPage error state offers a way home', async () => {
+    render(
+      <MemoryRouter initialEntries={['/my-bookings']}>
+        <Routes>
+          <Route path="/my-bookings" element={<MyBookingsPage />} />
         </Routes>
       </MemoryRouter>
     );

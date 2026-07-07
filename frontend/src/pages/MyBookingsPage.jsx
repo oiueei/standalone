@@ -98,9 +98,9 @@ export default function MyBookingsPage() {
 
   if (error) {
     return (
-      <div className="page-container">
+      <PageLayout title={t('common.error')} backTo="/" backLabel={t('common.home')}>
         <Notification label={t('common.error')} type="error">{error}</Notification>
-      </div>
+      </PageLayout>
     );
   }
 

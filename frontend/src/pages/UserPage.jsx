@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Koros, Linkbox, Notification } from 'hds-react';
 import BackLink from '../components/BackLink';
+import PageLayout from '../components/PageLayout';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
@@ -54,9 +55,9 @@ export default function UserPage() {
 
   if (error) {
     return (
-      <div className="page-container">
+      <PageLayout title={t('common.error')} backTo="/" backLabel={t('common.home')}>
         <Notification label={t('common.error')} type="error">{error}</Notification>
-      </div>
+      </PageLayout>
     );
   }
 
