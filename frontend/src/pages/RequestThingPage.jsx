@@ -10,11 +10,6 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
-const TODAY = new Date();
-TODAY.setHours(0, 0, 0, 0);
-const MAX_DATE = new Date(TODAY);
-MAX_DATE.setDate(MAX_DATE.getDate() + 90);
-
 export default function RequestThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
@@ -24,6 +19,13 @@ export default function RequestThingPage() {
   const { btnStyle, btnSecondaryStyle } = useTheeeme();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.back');
+
+  // Fresh each render — a module-scope `new Date()` would freeze "today" at app
+  // load and drift stale past midnight (CODE C18).
+  const TODAY = new Date();
+  TODAY.setHours(0, 0, 0, 0);
+  const MAX_DATE = new Date(TODAY);
+  MAX_DATE.setDate(MAX_DATE.getDate() + 90);
 
   const [thing, setThing] = useState(null);
   useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);

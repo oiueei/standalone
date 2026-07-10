@@ -445,7 +445,7 @@ Central source of truth for thing type definitions. Display labels are handled b
 - `TYPE_VALUES` — Array of type value strings (no labels — labels come from i18n).
 - `SHARE_TYPE` — `SHARE_THING` constant (used for share-specific UI logic — hide button restriction after transfer).
 - `WISH_TYPE` — `WISH_THING` constant (used for wish-specific UI logic).
-- `WISH_RESPONSE_KINDS` / `WISH_KIND_SLUGS` / `WISH_KIND_BY_SLUG` / `WISH_KIND_I18N` — the three wish answer kinds (`HAVE_THIS`, `KNOW_WHERE`, `CAN_MAKE`) plus the URL-slug and i18n-key mappings used by `RespondMenu`, `RespondWishPage`, and the responses list.
+- `WISH_KIND_SLUGS` / `WISH_KIND_BY_SLUG` / `WISH_KIND_I18N` — the URL-slug and i18n-key mappings for the three wish answer kinds (`HAVE_THIS`, `KNOW_WHERE`, `CAN_MAKE`), used by `RespondMenu`, `RespondWishPage`, and the responses list.
 - `SWAP_TYPE` — `SWAP_THING` constant (used for swap-specific UI logic — swap request form, "Propose swap" button).
 - `DATE_TYPES` — Types requiring start/end dates (`LEND_THING`, `RENT_THING`).
 - `FEE_TYPES` — Types with a fee field (`SELL_THING`, `RENT_THING`).

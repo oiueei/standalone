@@ -6,7 +6,7 @@ import { getCsrfToken } from '../services/api';
 import useTheeeme from '../hooks/useTheeeme';
 
 /**
- * Inline "log in to act" prompt shown to an anonymous visitor on a PUBLIC
+ * "Log in to act" body rendered by JoinPage for an anonymous visitor on a PUBLIC
  * collection or thing. Captures an email and POSTs it to `/auth/pop-in/` along
  * with the collection code: the backend adds the visitor to that public
  * collection's invitees and emails a magic link, so once they follow it they're
@@ -14,7 +14,7 @@ import useTheeeme from '../hooks/useTheeeme';
  * is needed — and the code only ever joins a PUBLIC collection (the backend
  * silently ignores it otherwise).
  */
-export default function JoinToAct({ collectionCode, collectionHeadline, asPage = false }) {
+export default function JoinToAct({ collectionCode, collectionHeadline }) {
   const { t } = useTranslation();
   const { btnStyle } = useTheeeme();
   const [email, setEmail] = useState('');
@@ -55,7 +55,7 @@ export default function JoinToAct({ collectionCode, collectionHeadline, asPage =
   if (status === 'success') {
     return (
       <>
-        <Notification label={t('joinToAct.sent')} type="success" className={asPage ? undefined : 'join-to-act'}>
+        <Notification label={t('joinToAct.sent')} type="success">
           {message}
         </Notification>
         <p className="section-mt">{t('popin.closeThisTab')}</p>
@@ -65,7 +65,7 @@ export default function JoinToAct({ collectionCode, collectionHeadline, asPage =
 
   const body = (
     <>
-      <p style={asPage ? { marginTop: 0 } : undefined}>
+      <p style={{ marginTop: 0 }}>
         {collectionHeadline
           ? t('joinToAct.bodyNamed', { collection: collectionHeadline })
           : t('joinToAct.body')}
@@ -98,23 +98,7 @@ export default function JoinToAct({ collectionCode, collectionHeadline, asPage =
     </>
   );
 
-  // Page mode (JoinPage): no bordered box or heading — the page hero supplies them.
-  if (asPage) {
-    return <div style={{ maxWidth: '480px' }}>{body}</div>;
-  }
-
-  return (
-    <section
-      className="join-to-act"
-      style={{
-        border: '1px solid var(--color-black-20)',
-        borderRadius: '4px',
-        padding: 'var(--spacing-m)',
-        maxWidth: '480px',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{t('joinToAct.heading')}</h2>
-      {body}
-    </section>
-  );
+  // JoinPage is the only caller: render the body unboxed — the page hero supplies
+  // the heading and container.
+  return <div style={{ maxWidth: '480px' }}>{body}</div>;
 }

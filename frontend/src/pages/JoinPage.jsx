@@ -42,7 +42,7 @@ export default function JoinPage() {
         />
       </div>
       <div className="page-container">
-        <JoinToAct asPage collectionCode={code} collectionHeadline={headline} />
+        <JoinToAct collectionCode={code} collectionHeadline={headline} />
       </div>
     </div>
   );

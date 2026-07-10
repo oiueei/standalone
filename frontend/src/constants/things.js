@@ -13,7 +13,6 @@ export const WISH_TYPE = 'WISH_THING';
 
 // Wish "Contestar" answer kinds. HAVE_THIS reuses the publish-listing flow;
 // KNOW_WHERE / CAN_MAKE open a short form (RespondWishPage), keyed by slug.
-export const WISH_RESPONSE_KINDS = ['HAVE_THIS', 'KNOW_WHERE', 'CAN_MAKE'];
 export const WISH_KIND_SLUGS = { KNOW_WHERE: 'know-where', CAN_MAKE: 'can-make' };
 export const WISH_KIND_BY_SLUG = { 'know-where': 'KNOW_WHERE', 'can-make': 'CAN_MAKE' };
 export const WISH_KIND_I18N = {
