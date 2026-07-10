@@ -13,9 +13,9 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "hds-core": "^5.0.0",
-    "hds-design-tokens": "^5.0.0",
-    "hds-react": "^5.0.0",
+    "hds-core": "^6.0.3",
+    "hds-design-tokens": "^6.0.3",
+    "hds-react": "^6.0.3",
     "i18next": "^26.0.1",
     "i18next-browser-languagedetector": "^8.2.1",
     "jszip": "^3.10.1",
