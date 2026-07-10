@@ -6,11 +6,14 @@ from unittest.mock import patch
 
 import pytest
 from django.core import mail
+from django.db import connection
 from django.test import override_settings
+from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Collection, User
+from core.services.email_service import send_broadcast_email
 
 
 @pytest.fixture
@@ -175,3 +178,40 @@ class TestCollectionBroadcast:
         assert resp.status_code == 200
         assert resp.data["recipients"] == 2
         assert len(mail.outbox) == 2
+
+    def test_broadcast_user_lookups_are_bulked_not_per_recipient(self):
+        """CODE B2: a broadcast resolves recipient prefs + footer tokens with two
+        bulk User queries (``_filter_recipients`` + ``_lookup_users``), never a
+        ``_lookup_user`` per recipient. The query count must be constant in the
+        number of recipients — adding invitees adds zero queries."""
+        owner = User.objects.create(code="BRBKO1", email="brbko@test.com", name="Owner")
+        first = [
+            User.objects.create(code=f"BRBK0{i}", email=f"brbk{i}@test.com", name=f"Inv{i}")
+            for i in range(1, 3)
+        ]
+
+        with CaptureQueriesContext(connection) as small:
+            send_broadcast_email(
+                "Owner", owner.email, "Club", "BRBKCL", "hi", [u.email for u in first]
+            )
+        assert len(mail.outbox) == 2
+
+        rest = [
+            User.objects.create(code=f"BRBK0{i}", email=f"brbk{i}@test.com", name=f"Inv{i}")
+            for i in range(3, 7)
+        ]
+        with CaptureQueriesContext(connection) as big:
+            send_broadcast_email(
+                "Owner",
+                owner.email,
+                "Club",
+                "BRBKCL",
+                "hi",
+                [u.email for u in first + rest],
+            )
+        assert len(mail.outbox) == 8  # 2 from the first send + 6 here
+
+        assert len(big) == len(small), (
+            f"N+1 in broadcast send: {len(small)} queries for 2 recipients vs "
+            f"{len(big)} for 6 — _lookup_user is firing per recipient"
+        )

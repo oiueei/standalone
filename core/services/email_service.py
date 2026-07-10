@@ -66,17 +66,48 @@ def verify_notifications_token(token):
     return user_code if User.objects.filter(code=user_code).exists() else None
 
 
+# Sentinel for "no prefetched value" — distinct from a looked-up None (the
+# recipient has no User row). Lets the multi-recipient senders pass a resolved
+# user (or a known-absent None) so _send doesn't re-query _lookup_user per
+# recipient.
+_UNSET = object()
+
+
 def _lookup_user(email):
     from core.models import User
 
     return User.objects.filter(email=email).only("code", "notify_activity", "notify_news").first()
 
 
-def _should_send(email, category):
-    """True unless the recipient has opted out of this category."""
+def _lookup_users(emails):
+    """Bulk-resolve users for a recipient list — one query, not N.
+
+    Returns ``{email: user}`` for the emails that match a User; addresses with no
+    User (not-yet-registered invitees) are simply absent, so callers pass
+    ``users.get(email)`` (None) and ``_send`` treats them as opted-in non-users
+    without firing another lookup.
+    """
+    from core.models import User
+
+    return {
+        u.email: u
+        for u in User.objects.filter(email__in=list(emails)).only(
+            "code", "email", "notify_activity", "notify_news"
+        )
+    }
+
+
+def _should_send(email, category, user=_UNSET):
+    """True unless the recipient has opted out of this category.
+
+    ``user`` may be prefetched by a multi-recipient sender (a User, or None once
+    it is known the recipient has no User row); leave it as ``_UNSET`` for the
+    single-recipient path, which looks the user up here.
+    """
     if category == CATEGORY_MANDATORY:
         return True
-    user = _lookup_user(email)
+    if user is _UNSET:
+        user = _lookup_user(email)
     if not user:
         return True
     if category == CATEGORY_ACTIVITY:
@@ -105,19 +136,20 @@ def _frontend_base_url():
     return settings.MAGIC_LINK_BASE_URL.rsplit("/", 1)[0]
 
 
-def _notifications_link(email):
-    user = _lookup_user(email)
+def _notifications_link(email, user=_UNSET):
+    if user is _UNSET:
+        user = _lookup_user(email)
     base = _frontend_base_url()
     if user:
         return f"{base}/me/notifications/{make_notifications_token(user)}"
     return f"{base}/me/notifications"
 
 
-def _with_footer(plain, html, email, category):
+def _with_footer(plain, html, email, category, user=_UNSET):
     """Append the 'manage your emails' footer for Cat. 2 / Cat. 3 emails."""
     if category == CATEGORY_MANDATORY:
         return plain, html
-    link = _notifications_link(email)
+    link = _notifications_link(email, user=user)
     footer_plain = f"\n\n---\nManage your email preferences: {link}"
     footer_html = (
         '<hr style="border:none;border-top:1px solid #ddd;margin-top:24px;">'
@@ -128,7 +160,7 @@ def _with_footer(plain, html, email, category):
     return plain + footer_plain, html + footer_html
 
 
-def _send(to_email, subject, plain, html, category, reply_to=None):
+def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET):
     """Send a single email through the category + footer pipeline.
 
     Returns True if the email was dispatched, False if the recipient opted out
@@ -136,10 +168,15 @@ def _send(to_email, subject, plain, html, category, reply_to=None):
     header) is logged and swallowed — it never propagates, so it cannot 500 a
     user action whose DB work has already committed, nor abort a multi-recipient
     loop or a nightly cron.
+
+    ``user`` lets a multi-recipient sender (broadcast/digest/newsletter) pass a
+    batch-resolved User (or a known-absent None) so the preference + footer
+    lookups don't fire a query per recipient. Single-recipient callers leave it
+    as ``_UNSET`` and the lookup happens here, as before.
     """
-    if not _should_send(to_email, category):
+    if not _should_send(to_email, category, user=user):
         return False
-    plain, html = _with_footer(plain, html, to_email, category)
+    plain, html = _with_footer(plain, html, to_email, category, user=user)
     try:
         if reply_to:
             msg = EmailMultiAlternatives(
@@ -496,8 +533,18 @@ def send_broadcast_email(
         ]
     )
 
-    for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
-        _send(email, full_subject, plain, html, CATEGORY_ACTIVITY, reply_to=[owner_email])
+    recipients = _filter_recipients(emails, CATEGORY_ACTIVITY)
+    users = _lookup_users(recipients)
+    for email in recipients:
+        _send(
+            email,
+            full_subject,
+            plain,
+            html,
+            CATEGORY_ACTIVITY,
+            reply_to=[owner_email],
+            user=users.get(email),
+        )
 
 
 def send_wish_posted_email(creator_name, wish, emails):
@@ -640,8 +687,10 @@ def send_digest_email(collection_headline, collection_code, thing_headlines, ema
         ]
     )
 
-    for email in _filter_recipients(emails, CATEGORY_NEWS):
-        _send(email, subject, plain, html, CATEGORY_NEWS)
+    recipients = _filter_recipients(emails, CATEGORY_NEWS)
+    users = _lookup_users(recipients)
+    for email in recipients:
+        _send(email, subject, plain, html, CATEGORY_NEWS, user=users.get(email))
 
 
 def send_stats_summary_email(recipient, subject, sections):
@@ -718,5 +767,7 @@ def send_newsletter_email(
     )
     html = _render_email(blocks)
 
-    for email in _filter_recipients(emails, CATEGORY_NEWS):
-        _send(email, subject, plain, html, CATEGORY_NEWS)
+    recipients = _filter_recipients(emails, CATEGORY_NEWS)
+    users = _lookup_users(recipients)
+    for email in recipients:
+        _send(email, subject, plain, html, CATEGORY_NEWS, user=users.get(email))
