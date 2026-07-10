@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Notification, IconSpeechbubbleText, IconSwapUser } from 'hds-react';
 import { SHARE_TYPE } from '../constants/things';
 import MarkdownText from './MarkdownText';
+import InlineConfirm from './InlineConfirm';
 import RespondMenu from './RespondMenu';
 import useTheeeme from '../hooks/useTheeeme';
 import useThingActions from '../hooks/useThingActions';
@@ -42,6 +43,7 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
     isDateBased,
     needsPage,
     canDelete,
+    acceptTransfersOwnership,
     showButton,
     swapMinimumNotMet,
     swapItemsMissing,
@@ -64,6 +66,9 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
   // to the collection's join page — they log in there and come back able to act.
   const joinPath = `/collections/${collectionCode || thing.collection_code}/join`;
   const goJoin = () => navigate(joinPath, { state: { collectionHeadline: collectionHeadline || thing.collection_headline } });
+  // The owner "Confirm hold" label, with its in-flight ("Confirming…") state. Shared
+  // by the plain accept Button and the ownership-transfer <InlineConfirm> trigger.
+  const acceptLabel = bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold');
 
   const editPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}/edit`
@@ -137,9 +142,22 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
             <>
               {needsPage && activePendingCode && (
                 <>
-                  <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
-                    {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
-                  </Button>
+                  {acceptTransfersOwnership ? (
+                    <InlineConfirm
+                      triggerLabel={acceptLabel}
+                      triggerProps={{ fullWidth: true, disabled: !!bookingAction, style: btnStyle }}
+                      title={t('thingCard.transferConfirmTitle')}
+                      body={t('thingCard.transferConfirmBody')}
+                      confirmLabel={t('thingCard.transferConfirm')}
+                      onConfirm={() => handleBookingAction('accept', activePendingCode)}
+                      confirming={!!bookingAction}
+                      confirmProps={{ style: btnStyle }}
+                    />
+                  ) : (
+                    <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept', activePendingCode)} style={btnStyle}>
+                      {acceptLabel}
+                    </Button>
+                  )}
                   <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject', activePendingCode)} style={btnSecondaryStyle}>
                     {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
                   </Button>
@@ -161,9 +179,22 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
           )}
           {isOwner && thing.status === 'TAKEN' && (
             <>
-              <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
-              </Button>
+              {acceptTransfersOwnership ? (
+                <InlineConfirm
+                  triggerLabel={acceptLabel}
+                  triggerProps={{ fullWidth: true, disabled: !!bookingAction, style: btnStyle }}
+                  title={t('thingCard.transferConfirmTitle')}
+                  body={t('thingCard.transferConfirmBody')}
+                  confirmLabel={t('thingCard.transferConfirm')}
+                  onConfirm={() => handleBookingAction('accept')}
+                  confirming={!!bookingAction}
+                  confirmProps={{ style: btnStyle }}
+                />
+              ) : (
+                <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+                  {acceptLabel}
+                </Button>
+              )}
               <Button variant="secondary" fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
                 {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
               </Button>

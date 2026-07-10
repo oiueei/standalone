@@ -5,6 +5,7 @@ import { Button, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
+import InlineConfirm from '../components/InlineConfirm';
 import RespondMenu from '../components/RespondMenu';
 import ThingTags from '../components/ThingTags';
 import ThingInfoRows from '../components/ThingInfoRows';
@@ -58,6 +59,7 @@ export default function ThingPage() {
     isDateBased,
     needsPage,
     canDelete,
+    acceptTransfersOwnership,
     hasPendingBookings,
     showButton,
     swapMinimumNotMet,
@@ -72,6 +74,10 @@ export default function ThingPage() {
     setToast,
     activateSuccessMessage: t('thingPage.thingReactivated'),
   });
+
+  // The owner "Confirm hold" label, with its in-flight ("Confirming…") state. Shared
+  // by the plain accept Button and the ownership-transfer <InlineConfirm> trigger.
+  const acceptLabel = bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold');
 
   // Transfer state
   const [transfers, setTransfers] = useState(null);
@@ -179,9 +185,22 @@ export default function ThingPage() {
           <div className="button-col">
             {needsPage && activePendingCode && (
               <>
-                <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-                  {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
-                </Button>
+                {acceptTransfersOwnership ? (
+                  <InlineConfirm
+                    triggerLabel={acceptLabel}
+                    triggerProps={{ fullWidth: true, disabled: !!bookingAction, style: btnStyle }}
+                    title={t('thingCard.transferConfirmTitle')}
+                    body={t('thingCard.transferConfirmBody')}
+                    confirmLabel={t('thingCard.transferConfirm')}
+                    onConfirm={() => handleBookingAction('accept')}
+                    confirming={!!bookingAction}
+                    confirmProps={{ style: btnStyle }}
+                  />
+                ) : (
+                  <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+                    {acceptLabel}
+                  </Button>
+                )}
                 <Button fullWidth variant="secondary" disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
                   {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
                 </Button>
@@ -202,9 +221,22 @@ export default function ThingPage() {
 
         {isOwner && thing.status === 'TAKEN' && (
           <div className="button-col">
-            <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
-              {bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold')}
-            </Button>
+            {acceptTransfersOwnership ? (
+              <InlineConfirm
+                triggerLabel={acceptLabel}
+                triggerProps={{ fullWidth: true, disabled: !!bookingAction, style: btnStyle }}
+                title={t('thingCard.transferConfirmTitle')}
+                body={t('thingCard.transferConfirmBody')}
+                confirmLabel={t('thingCard.transferConfirm')}
+                onConfirm={() => handleBookingAction('accept')}
+                confirming={!!bookingAction}
+                confirmProps={{ style: btnStyle }}
+              />
+            ) : (
+              <Button fullWidth disabled={!!bookingAction} onClick={() => handleBookingAction('accept')} style={btnStyle}>
+                {acceptLabel}
+              </Button>
+            )}
             <Button fullWidth variant="secondary" disabled={!!bookingAction} onClick={() => handleBookingAction('reject')} style={btnSecondaryStyle}>
               {bookingActionVerb === 'reject' ? t('thingCard.cancelling') : t('thingCard.cancelHold')}
             </Button>

@@ -60,6 +60,9 @@ export default function useThingActions(thing, userCode, {
   const bookingKeepsStatus = needsPage || !!thing?.is_endless;
   const isCollectionOwner = (collectionOwner || thing?.collection_owner) === userCode;
   const canDelete = isCollectionOwner || (isOwner && (!isShare || thing?.transfer_count === 0));
+  // Accepting a SHARE or SWAP hold transfers ownership to the requester (other
+  // types just confirm a lend/booking); those accepts get an inline confirm.
+  const acceptTransfersOwnership = isShare || isSwap;
 
   const booking = useThingBooking(thing, {
     isOwner,
@@ -117,6 +120,7 @@ export default function useThingActions(thing, userCode, {
     isDateBased,
     needsPage,
     canDelete,
+    acceptTransfersOwnership,
     hasPendingBookings,
     showButton,
     swapMinimum,
