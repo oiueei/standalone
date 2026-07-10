@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from 'hds-react';
 import { WISH_KIND_I18N } from '../constants/things';
 import { apiFetch } from '../services/api';
+import InlineConfirm from './InlineConfirm';
 import MarkdownText, { sanitizeUrl } from './MarkdownText';
 
 /**
@@ -136,41 +137,19 @@ export default function WishResponsesList({
               )}
               {r.fee && <p>{r.fee} €</p>}
               {isOwner && r.status === 'PENDING' && (
-                <>
-                  <Button
-                    disabled={actioning}
-                    onClick={() => setConfirmAcceptCode((c) => (c === r.code ? null : r.code))}
-                    aria-expanded={confirmAcceptCode === r.code}
-                    style={{ ...btnStyle, width: '100%' }}
-                  >
-                    {t('wishes.accept')}
-                  </Button>
-                  {confirmAcceptCode === r.code && (
-                    <div className="thing-report-confirm">
-                      <p><strong>{t('wishes.acceptConfirmTitle')}</strong></p>
-                      <p>{t('wishes.acceptConfirmBody')}</p>
-                      <div className="button-row">
-                        <Button
-                          size="small"
-                          disabled={actioning}
-                          isLoading={actioning}
-                          loadingText={t('common.saving')}
-                          onClick={() => handleAcceptResponse(r.code)}
-                          style={btnStyle}
-                        >
-                          {t('wishes.acceptConfirm')}
-                        </Button>
-                        <Button
-                          variant="supplementary"
-                          size="small"
-                          onClick={() => setConfirmAcceptCode(null)}
-                        >
-                          {t('common.cancel')}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
+                <InlineConfirm
+                  open={confirmAcceptCode === r.code}
+                  onTriggerClick={() => setConfirmAcceptCode((c) => (c === r.code ? null : r.code))}
+                  onClose={() => setConfirmAcceptCode(null)}
+                  triggerLabel={t('wishes.accept')}
+                  triggerProps={{ disabled: actioning, style: { ...btnStyle, width: '100%' } }}
+                  title={t('wishes.acceptConfirmTitle')}
+                  body={t('wishes.acceptConfirmBody')}
+                  confirmLabel={t('wishes.acceptConfirm')}
+                  onConfirm={() => handleAcceptResponse(r.code)}
+                  confirming={actioning}
+                  confirmProps={{ size: 'small', loadingText: t('common.saving'), style: btnStyle }}
+                />
               )}
             </div>
           ))}
@@ -187,36 +166,19 @@ export default function WishResponsesList({
       {isOwner && thing.status === 'ACTIVE' && (
         <>
           <div className="spacer-m" />
-          <Button
-            variant="secondary"
-            disabled={actioning}
-            onClick={() => setResolveOpen((o) => !o)}
-            aria-expanded={resolveOpen}
-            style={{ ...btnSecondaryStyle, width: '100%' }}
-          >
-            {t('wishes.resolve')}
-          </Button>
-          {resolveOpen && (
-            <div className="thing-report-confirm">
-              <p><strong>{t('wishes.resolveConfirmTitle')}</strong></p>
-              <p>{t('wishes.resolveConfirmBody')}</p>
-              <div className="button-row">
-                <Button
-                  size="small"
-                  disabled={actioning}
-                  isLoading={actioning}
-                  loadingText={t('common.saving')}
-                  onClick={handleResolve}
-                  style={btnStyle}
-                >
-                  {t('wishes.resolveConfirm')}
-                </Button>
-                <Button variant="supplementary" size="small" onClick={() => setResolveOpen(false)}>
-                  {t('common.cancel')}
-                </Button>
-              </div>
-            </div>
-          )}
+          <InlineConfirm
+            open={resolveOpen}
+            onTriggerClick={() => setResolveOpen((o) => !o)}
+            onClose={() => setResolveOpen(false)}
+            triggerLabel={t('wishes.resolve')}
+            triggerProps={{ variant: 'secondary', disabled: actioning, style: { ...btnSecondaryStyle, width: '100%' } }}
+            title={t('wishes.resolveConfirmTitle')}
+            body={t('wishes.resolveConfirmBody')}
+            confirmLabel={t('wishes.resolveConfirm')}
+            onConfirm={handleResolve}
+            confirming={actioning}
+            confirmProps={{ size: 'small', loadingText: t('common.saving'), style: btnStyle }}
+          />
         </>
       )}
     </>

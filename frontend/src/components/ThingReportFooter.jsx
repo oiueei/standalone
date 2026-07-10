@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, IconAlertCircleFill } from 'hds-react';
+import { IconAlertCircleFill } from 'hds-react';
 import { apiFetch } from '../services/api';
+import InlineConfirm from './InlineConfirm';
 
 /**
  * The quiet "report this listing" footer on ThingPage, shown to logged-in
@@ -39,36 +40,19 @@ export default function ThingReportFooter({ thingCode, onToast }) {
 
   return (
     <div className="thing-report-footer">
-      <Button
-        variant="supplementary"
-        size="small"
-        iconStart={<IconAlertCircleFill aria-hidden="true" />}
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-      >
-        {t('thingPage.report')}
-      </Button>
-      {open && (
-        <div className="thing-report-confirm">
-          <p><strong>{t('thingPage.reportConfirmTitle')}</strong></p>
-          <p>{t('thingPage.reportConfirmBody')}</p>
-          <div className="button-row">
-            <Button
-              variant="danger"
-              size="small"
-              onClick={handleReport}
-              disabled={reporting}
-              isLoading={reporting}
-              loadingText={t('thingPage.reporting')}
-            >
-              {t('thingPage.reportConfirm')}
-            </Button>
-            <Button variant="supplementary" size="small" onClick={() => setOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-          </div>
-        </div>
-      )}
+      <InlineConfirm
+        open={open}
+        onTriggerClick={() => setOpen((o) => !o)}
+        onClose={() => setOpen(false)}
+        triggerLabel={t('thingPage.report')}
+        triggerProps={{ variant: 'supplementary', size: 'small', iconStart: <IconAlertCircleFill aria-hidden="true" /> }}
+        title={t('thingPage.reportConfirmTitle')}
+        body={t('thingPage.reportConfirmBody')}
+        confirmLabel={t('thingPage.reportConfirm')}
+        onConfirm={handleReport}
+        confirming={reporting}
+        confirmProps={{ variant: 'danger', size: 'small', loadingText: t('thingPage.reporting') }}
+      />
     </div>
   );
 }
