@@ -78,7 +78,7 @@ export default function UserPage() {
   const btnSecondaryStyle = tc.color_01 ? {
     '--background-color': 'var(--color-white)',
     '--border-color': `var(--color-${tc.color_01})`,
-    '--color': `var(--color-${tc.color_04})`,
+    '--color': tc.color_04 ? `var(--color-${tc.color_04})` : undefined,
     '--background-color-hover': `var(--color-${tc.color_01})`,
     '--color-hover': tc.color_06 ? `var(--color-${tc.color_06})` : 'var(--color-white)',
   } : undefined;

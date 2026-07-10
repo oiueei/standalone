@@ -18,7 +18,7 @@ export default function CreateCollectionPage() {
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
-  const { tc: theeemeColors } = useTheeeme();
+  const { tc: theeemeColors, btnStyle } = useTheeeme();
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -204,12 +204,7 @@ export default function CreateCollectionPage() {
             fullWidth
             disabled={submitting}
             onClick={handleSubmit}
-            style={theeemeColors.color_01 ? {
-              '--background-color': `var(--color-${theeemeColors.color_01})`,
-              '--background-color-hover': `var(--color-${theeemeColors.color_01}-dark)`,
-              '--color': theeemeColors.color_06 ? `var(--color-${theeemeColors.color_06})` : 'var(--color-white)',
-              '--border-color': `var(--color-${theeemeColors.color_01})`,
-            } : undefined}
+            style={btnStyle}
           >
             {submitting ? t('common.creating') : t('common.create')}
           </Button>

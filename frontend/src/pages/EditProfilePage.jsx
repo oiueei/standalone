@@ -22,7 +22,7 @@ export default function EditProfilePage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
   const userCode = localStorage.getItem('userCode');
-  const { tc: theeemeColors } = useTheeeme();
+  const { tc: theeemeColors, btnStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -266,12 +266,7 @@ export default function EditProfilePage() {
             fullWidth
             disabled={submitting}
             onClick={handleSubmit}
-            style={theeemeColors.color_01 ? {
-              '--background-color': `var(--color-${theeemeColors.color_01})`,
-              '--background-color-hover': `var(--color-${theeemeColors.color_01}-dark)`,
-              '--color': theeemeColors.color_06 ? `var(--color-${theeemeColors.color_06})` : 'var(--color-white)',
-              '--border-color': `var(--color-${theeemeColors.color_01})`,
-            } : undefined}
+            style={btnStyle}
           >
             {submitting ? t('common.saving') : t('common.save')}
           </Button>
