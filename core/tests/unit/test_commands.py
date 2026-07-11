@@ -178,7 +178,10 @@ class TestSendDigestsCommand:
             code=f"{code_prefix}O1", email=f"{code_prefix}owner@test.com", name="Owner"
         )
         invitee = User.objects.create(
-            code=f"{code_prefix}I1", email=f"{code_prefix}inv@test.com", name="Invitee"
+            code=f"{code_prefix}I1",
+            email=f"{code_prefix}inv@test.com",
+            name="Invitee",
+            notify_news=True,  # digest recipient must opt into Cat. 3 (default is now off)
         )
         collection = Collection.objects.create(
             code=f"{code_prefix}C1",

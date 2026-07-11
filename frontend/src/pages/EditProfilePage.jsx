@@ -34,7 +34,7 @@ export default function EditProfilePage() {
   const [theeeme, setTheeeme] = useState('');
   const [theeemes, setTheeemes] = useState([]);
   const [notifyActivity, setNotifyActivity] = useState(true);
-  const [notifyNews, setNotifyNews] = useState(true);
+  const [notifyNews, setNotifyNews] = useState(false);
   const [ageRange, setAgeRange] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [errors, setErrors] = useState({});
@@ -59,7 +59,7 @@ export default function EditProfilePage() {
           setKoro(data.koro || 'basic');
           setTheeeme(data.theeeme || '');
           setNotifyActivity(data.notify_activity ?? true);
-          setNotifyNews(data.notify_news ?? true);
+          setNotifyNews(data.notify_news ?? false);
           setAgeRange(data.age_range || '');
           setPostalCode(data.postal_code || '');
         } else {

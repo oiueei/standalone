@@ -50,6 +50,9 @@ def user(db):
         code="TEST01",
         email="test@example.com",
         name="Test User",
+        # Explicit so the fixtures don't flip when the notify_news model default
+        # changes (Cat. 3/news is opt-in for real new users — DESIGN §6).
+        notify_news=True,
     )
 
 
@@ -60,6 +63,7 @@ def user2(db):
         code="TEST02",
         email="test2@example.com",
         name="Test User 2",
+        notify_news=True,
     )
 
 

@@ -135,6 +135,10 @@ class Command(BaseCommand):
                     "koro": data.get("koro", "basic"),
                     "photo": _seed_image(data.get("photo", "")),
                     "about": data.get("about", ""),
+                    # Demos opt INTO news so the newsletter/digest collection in
+                    # seed_data/common.py keeps landing in an inbox regardless of
+                    # the model default (which is OFF for real new users — DESIGN §6).
+                    "notify_news": True,
                 },
             )
 

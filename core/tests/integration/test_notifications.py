@@ -38,7 +38,17 @@ from core.services.email_service import (
 
 @pytest.fixture
 def noti_user(db):
-    return User.objects.create(code="NOTI01", email="noti1@test.com", name="Prefs User")
+    return User.objects.create(
+        code="NOTI01", email="noti1@test.com", name="Prefs User", notify_news=True
+    )
+
+
+def test_new_user_defaults_news_off_activity_on(db):
+    """DESIGN §6: news (Cat. 3) is opt-in — a brand-new user starts opted out,
+    while transactional activity (Cat. 2) stays on."""
+    fresh = User.objects.create(code="NEW01", email="new@test.com", name="Fresh")
+    assert fresh.notify_news is False
+    assert fresh.notify_activity is True
 
 
 def test_should_send_mandatory_always_true(db, noti_user):
@@ -129,7 +139,9 @@ def test_invite_rejected_email_content(db):
 
 
 def test_news_email_skipped_when_opted_out(db, noti_user):
-    second = User.objects.create(code="NOTI02", email="noti2@test.com", name="Second")
+    second = User.objects.create(
+        code="NOTI02", email="noti2@test.com", name="Second", notify_news=True
+    )
     noti_user.notify_news = False
     noti_user.save()
     mail.outbox.clear()

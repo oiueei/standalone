@@ -23,7 +23,7 @@ The `User` model represents a person who can own collections, be invited to othe
 | `koro` | CharField(9) | No | Koros wave type: basic, beat, calm, pulse, vibration, wave (default: basic) |
 | `theeeme` | ForeignKey(Theeeme) | No | Colour palette (default: a random Theeeme, via `_random_theeeme`) |
 | `notify_activity` | BooleanField | No | Opt-out toggle for Cat. 2 (activity) emails — bookings, FAQs, reminders, broadcasts. Default: `True` |
-| `notify_news` | BooleanField | No | Opt-out toggle for Cat. 3 (news) emails — digests and newsletters. Default: `True` |
+| `notify_news` | BooleanField | No | Opt-in toggle for Cat. 3 (news) emails — digests and newsletters. Default: `False` (new users must opt in; DESIGN §6) |
 | `age_range` | CharField(8) | No | Optional age bracket (`UP_TO_21` / `22_35` / `36_55` / `56_PLUS`). Asked of every user in the profile editor. Per member it's shared only with the owner of a COMMUNITY collection (guests page); in aggregate it appears in any collection owner's stats CSV. Never public. Default empty. |
 | `postal_code` | CharField(10) | No | Optional postal/area code. Same scope as `age_range`: asked of everyone, per-member owner-only in COMMUNITY, aggregate in any owner's stats CSV, never public. Default empty. |
 | `is_active` | BooleanField | Auto | Default True |
@@ -44,7 +44,7 @@ The `User` model represents a person who can own collections, be invited to othe
 
 6. **Last activity is updated on login** - The `update_last_activity()` method is called on each successful authentication. Newly-created users have `last_activity = None` until that first call; subsequent calls bump the date to today.
 
-7. **Email notification preferences** - `notify_activity` and `notify_news` are consulted by `core/services/email_service.py` before sending. Magic links and invitations (Cat. 1) are mandatory and always sent regardless of these flags.
+7. **Email notification preferences** - `notify_activity` (default on) and `notify_news` (default off — news is an explicit opt-in per DESIGN §6) are consulted by `core/services/email_service.py` before sending. Magic links and invitations (Cat. 1) are mandatory and always sent regardless of these flags.
 
 ### Methods
 

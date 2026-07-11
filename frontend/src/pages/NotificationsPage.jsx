@@ -19,7 +19,7 @@ export default function NotificationsPage() {
 
   const [loading, setLoading] = useState(true);
   const [notifyActivity, setNotifyActivity] = useState(true);
-  const [notifyNews, setNotifyNews] = useState(true);
+  const [notifyNews, setNotifyNews] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
   const [saved, setSaved] = useState(false);
