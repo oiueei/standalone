@@ -3,6 +3,7 @@ Unit tests for OIUEEI models.
 """
 
 from datetime import date, timedelta
+from unittest import mock
 
 import pytest
 import time_machine
@@ -712,6 +713,21 @@ class TestUserModelEdgeCases:
 
         Theeeme.objects.all().delete()
         assert _random_theeeme() == _DEFAULT_THEEEME_CODE
+
+    def test_random_theeeme_falls_back_when_table_missing(self):
+        """Before migrations exist (fresh CI checkout), Django's auth system
+        check instantiates User() and evaluates this default — it must fall
+        back instead of propagating the missing-table error."""
+        from django.db import OperationalError
+
+        from core.models.user import _DEFAULT_THEEEME_CODE, _random_theeeme
+
+        with mock.patch.object(
+            Theeeme.objects,
+            "values_list",
+            side_effect=OperationalError("no such table: theeemes"),
+        ):
+            assert _random_theeeme() == _DEFAULT_THEEEME_CODE
 
     def test_create_superuser(self):
         """Should create a superuser."""

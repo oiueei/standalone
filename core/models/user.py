@@ -6,7 +6,7 @@ import random
 from datetime import date
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.db import models
+from django.db import OperationalError, ProgrammingError, models
 
 from core.utils import generate_id
 
@@ -20,11 +20,17 @@ def _random_theeeme():
 
     Reads the live Theeeme table rather than a hardcoded list, so removing a
     theeeme can never make user creation roll a dangling FK (a 1-in-N
-    IntegrityError). Falls back to the default code if the table is empty.
+    IntegrityError). Falls back to the default code if the table is empty —
+    or missing entirely: Django's auth system check instantiates User()
+    (evaluating this default) before migrations have run on a fresh
+    environment, e.g. `makemigrations --check` on a bare CI checkout.
     """
     from core.models.theeeme import Theeeme
 
-    codes = list(Theeeme.objects.values_list("code", flat=True))
+    try:
+        codes = list(Theeeme.objects.values_list("code", flat=True))
+    except (OperationalError, ProgrammingError):
+        return _DEFAULT_THEEEME_CODE
     return random.choice(codes) if codes else _DEFAULT_THEEEME_CODE
 
 
