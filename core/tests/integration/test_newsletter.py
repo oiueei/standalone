@@ -171,6 +171,72 @@ class TestNewsletterCommand:
 
 
 @pytest.mark.django_db
+class TestDigestErrorResilience:
+    """A failure sending one collection's digest/newsletter must not abort the
+    daily cron — the per-collection try/except logs a warning and continues to
+    the next collection (CODE C19). Without that guard a single bad row would
+    suppress every later collection's email and 500 the scheduler job."""
+
+    @patch("core.management.commands.send_digests.send_digest_email")
+    def test_digest_continues_after_a_collection_fails(self, mock_send, user, user2):
+        mock_send.side_effect = [RuntimeError("boom"), None]
+        with time_machine.travel(MONDAY):
+            for code in ("DGCFA1", "DGCFA2"):
+                c = Collection.objects.create(
+                    code=code,
+                    owner=user,
+                    headline=code,
+                    digest_frequency=Collection.DigestFrequency.WEEKLY,
+                )
+                c.invites.add(user2)
+                t = Thing.objects.create(
+                    code=f"T{code}",
+                    type="GIFT_THING",
+                    owner=user,
+                    headline=code,
+                    created=timezone.now() - timedelta(days=1),
+                )
+                c.things.add(t)
+
+            out, err = StringIO(), StringIO()
+            call_command("send_digests", stdout=out, stderr=err)
+
+        # Both collections were attempted despite the first raise — the loop
+        # did not abort.
+        assert mock_send.call_count == 2
+        assert "failed" in err.getvalue()  # the failure was logged, not swallowed silently
+
+    @patch("core.management.commands.send_digests.send_newsletter_email")
+    def test_newsletter_continues_after_a_collection_fails(self, mock_send, user, user2):
+        mock_send.side_effect = [RuntimeError("boom"), None]
+        with time_machine.travel(MONDAY):
+            for code in ("NLCFA1", "NLCFA2"):
+                c = Collection.objects.create(
+                    code=code,
+                    owner=user,
+                    headline=code,
+                    mode="COMMUNITY",
+                    is_share=True,
+                    newsletter_enabled=True,
+                )
+                c.invites.add(user2)
+                t = Thing.objects.create(
+                    code=f"T{code}",
+                    type="SHARE_THING",
+                    owner=user,
+                    headline=code,
+                    created=timezone.now() - timedelta(days=1),
+                )
+                c.things.add(t)
+
+            out, err = StringIO(), StringIO()
+            call_command("send_digests", stdout=out, stderr=err)
+
+        assert mock_send.call_count == 2
+        assert "failed" in err.getvalue()
+
+
+@pytest.mark.django_db
 class TestDigestLinks:
     """Digest and newsletter emails link directly to the collection page.
 
