@@ -42,14 +42,15 @@ export default defineConfig(({ mode }) => ({
         'src/stubs/**',
         'src/i18n/**',
       ],
-      // Ratchet floor: set just below the suite's current coverage so it guards
-      // against regression without blocking. Raise it as coverage grows. Bumped
-      // after the characterisation tests lifted coverage to ~51/44/38/54.
+      // Ratchet floor: set ~2-3 points below the suite's current coverage so it
+      // guards against regression without blocking. Raise it as coverage grows.
+      // Bumped after the rental / a11y / palette tests (O3/O4) and the CSV-options
+      // tests lifted coverage to ~57.5 / 50.8 / 44.3 / 60.7.
       thresholds: {
-        statements: 48,
-        branches: 40,
-        functions: 35,
-        lines: 50,
+        statements: 55,
+        branches: 48,
+        functions: 42,
+        lines: 58,
       },
     },
   },
