@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Linkbox, Notification } from 'hds-react';
+import { Button, Koros, Notification } from 'hds-react';
 import BackLink from '../components/BackLink';
 import PageLayout from '../components/PageLayout';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
+import CollectionLinkbox from '../components/CollectionLinkbox';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
-  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
@@ -51,7 +51,7 @@ export default function UserPage() {
     };
     fetchUser();
 
-  }, [userCode, isOwnProfile, navigate, t]);
+  }, [userCode, isOwnProfile, t]);
 
   if (error) {
     return (
@@ -164,17 +164,7 @@ export default function UserPage() {
             <div className="spacer-m" />
             <div className="collections-grid">
               {user.shared_collections.map((c) => (
-                <Linkbox
-                  key={c.code}
-                  href={`/collections/${c.code}`}
-                  onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
-                  heading={c.headline}
-                  linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
-                  linkboxAriaLabel={c.headline}
-                  imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
-                  border
-                  size="small"
-                />
+                <CollectionLinkbox key={c.code} collection={c} />
               ))}
             </div>
           </>

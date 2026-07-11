@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Koros, Linkbox, Notification } from 'hds-react';
+import { Button, Koros, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FeedbackLink from '../components/FeedbackLink';
+import CollectionLinkbox from '../components/CollectionLinkbox';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function HomePage() {
-  const navigate = useNavigate();
   const { t } = useTranslation();
   useEffect(() => { document.title = t('titles.home'); }, [t]);
   const [user, setUser] = useState(null);
@@ -345,18 +345,7 @@ export default function HomePage() {
         ) : (
           <div className="collections-grid">
             {myCollections.filter((c) => c.status === 'ACTIVE').map((c) => (
-              <Linkbox
-                key={c.code}
-                href={`/collections/${c.code}`}
-                onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
-                heading={c.headline}
-                text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
-                linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
-                linkboxAriaLabel={c.headline}
-                imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
-                border
-                size="small"
-              />
+              <CollectionLinkbox key={c.code} collection={c} showInfo />
             ))}
           </div>
         )}
@@ -368,18 +357,7 @@ export default function HomePage() {
             <div className="spacer-m" />
             <div className="collections-grid">
               {myCollections.filter((c) => c.status === 'INACTIVE').map((c) => (
-                <Linkbox
-                  key={c.code}
-                  href={`/collections/${c.code}`}
-                  onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
-                  heading={c.headline}
-                  text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
-                  linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
-                  linkboxAriaLabel={c.headline}
-                  imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
-                  border
-                  size="small"
-                />
+                <CollectionLinkbox key={c.code} collection={c} showInfo />
               ))}
             </div>
           </>
@@ -397,18 +375,7 @@ export default function HomePage() {
         ) : (
           <div className="collections-grid">
             {invitedCollections.map((c) => (
-              <Linkbox
-                key={c.code}
-                href={`/collections/${c.code}`}
-                onClick={(e) => { e.preventDefault(); navigate(`/collections/${c.code}`); }}
-                heading={c.headline}
-                text={t('userPage.collectionInfo', { things: c.things.length, guests: c.invites.length })}
-                linkAriaLabel={t('userPage.viewCollection', { headline: c.headline })}
-                linkboxAriaLabel={c.headline}
-                imgProps={c.thumbnail_url ? { src: c.thumbnail_url, alt: c.headline } : undefined}
-                border
-                size="small"
-              />
+              <CollectionLinkbox key={c.code} collection={c} showInfo />
             ))}
           </div>
         )}
