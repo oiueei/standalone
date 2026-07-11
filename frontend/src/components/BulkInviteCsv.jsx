@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { FileInput, Button, Notification, IconInfoCircleFill } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import Papa from 'papaparse';
@@ -47,6 +47,7 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
   const [result, setResult] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [showFormat, setShowFormat] = useState(false);
+  const formatPanelId = useId();
   const sendLockRef = useRef(false);
 
   const handleFiles = (files) => {
@@ -143,20 +144,23 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
             className="bulk-add-info-button"
             aria-label={t('bulkInvite.formatTitle')}
             aria-expanded={showFormat}
+            aria-controls={showFormat ? formatPanelId : undefined}
             onClick={() => setShowFormat((v) => !v)}
           >
             <IconInfoCircleFill aria-hidden="true" />
           </button>
           {showFormat && (
-            <Notification
-              type="info"
-              size="small"
-              label={t('bulkInvite.formatTitle')}
-              className="bulk-add-format-popover"
-            >
-              <p className="bulk-add-format-body">{t('bulkInvite.formatBody')}</p>
-              <pre className="bulk-add-example">{EXAMPLE_CSV}</pre>
-            </Notification>
+            <div id={formatPanelId}>
+              <Notification
+                type="info"
+                size="small"
+                label={t('bulkInvite.formatTitle')}
+                className="bulk-add-format-popover"
+              >
+                <p className="bulk-add-format-body">{t('bulkInvite.formatBody')}</p>
+                <pre className="bulk-add-example">{EXAMPLE_CSV}</pre>
+              </Notification>
+            </div>
           )}
         </span>
       </div>

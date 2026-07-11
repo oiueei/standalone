@@ -126,5 +126,7 @@
   /* --color-info-light: #TODO; */
   /* --color-info-dark: #TODO; */
 
-  /* --color-focus-outline: #TODO; */
+  /* Same black as the keyboard focus rings on the custom toggle chips
+     (App.css, commit 026be78) — one focus-outline decision, not two. */
+  --color-focus-outline: var(--color-black-90);
 }

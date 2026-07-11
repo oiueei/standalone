@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'hds-react';
 
@@ -38,6 +38,7 @@ export default function InlineConfirm({
   confirmProps,
 }) {
   const { t } = useTranslation();
+  const panelId = useId();
   const controlled = openProp !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlled ? openProp : internalOpen;
@@ -58,11 +59,11 @@ export default function InlineConfirm({
 
   return (
     <>
-      <Button aria-expanded={open} onClick={handleTrigger} {...triggerProps}>
+      <Button aria-expanded={open} aria-controls={open ? panelId : undefined} onClick={handleTrigger} {...triggerProps}>
         {triggerLabel}
       </Button>
       {open && (
-        <div className="thing-report-confirm">
+        <div id={panelId} className="thing-report-confirm">
           <p><strong>{title}</strong></p>
           <p>{body}</p>
           <div className="button-row">
