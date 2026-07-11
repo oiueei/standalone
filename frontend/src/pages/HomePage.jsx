@@ -17,6 +17,8 @@ export default function HomePage() {
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [inboxNotifications, setInboxNotifications] = useState([]);
   const [offline, setOffline] = useState(false);
+  const [myCollectionsError, setMyCollectionsError] = useState(false);
+  const [invitedError, setInvitedError] = useState(false);
 
   const loadDashboard = useCallback((signal) => {
     // A failed fetch rejects with a TypeError ("Failed to fetch") only on a real
@@ -51,7 +53,9 @@ export default function HomePage() {
         const res = await apiFetch('/api/v1/collections/', { signal });
         if (res.ok) {
           const data = await res.json();
-          if (!signal?.aborted) setMyCollections(data.results);
+          if (!signal?.aborted) { setMyCollections(data.results); setMyCollectionsError(false); }
+        } else if (!signal?.aborted) {
+          setMyCollectionsError(true);
         }
       } catch (err) { onNetworkError(err); }
     };
@@ -61,7 +65,9 @@ export default function HomePage() {
         const res = await apiFetch('/api/v1/invited-collections/', { signal });
         if (res.ok) {
           const data = await res.json();
-          if (!signal?.aborted) setInvitedCollections(data);
+          if (!signal?.aborted) { setInvitedCollections(data); setInvitedError(false); }
+        } else if (!signal?.aborted) {
+          setInvitedError(true);
         }
       } catch (err) { onNetworkError(err); }
     };
@@ -203,6 +209,25 @@ export default function HomePage() {
     </Notification>
   );
 
+  // A section failed to load over a working connection (a non-OK HTTP response,
+  // not a network error): inline error + Retry, which re-runs the whole
+  // dashboard and clears the error so the section swaps back to "Loading…"
+  // while the refetch is in flight. Network errors stay the offline banner's
+  // job via onNetworkError.
+  const sectionError = (
+    <Notification type="error" label={t('home.loadErrorLabel')} style={{ marginBottom: 'var(--spacing-s)' }}>
+      {t('home.loadErrorBody')}
+      <div style={{ marginTop: 'var(--spacing-xs)' }}>
+        <Button
+          size="small"
+          onClick={() => { setMyCollectionsError(false); setInvitedError(false); loadDashboard(); }}
+        >
+          {t('common.retry')}
+        </Button>
+      </div>
+    </Notification>
+  );
+
   // Derive theeeme styles from the freshly-fetched colours (fall back to
   // localStorage/DEFAULT before the fetch resolves). Called at the top level so
   // the hook order stays stable across the `!user` early return below.
@@ -299,7 +324,9 @@ export default function HomePage() {
 
         <h2>{t('userPage.myCollections')}</h2>
         <div className="spacer-m" />
-        {myCollections === null ? (
+        {myCollectionsError ? (
+          sectionError
+        ) : myCollections === null ? (
           <p className="text-muted">{t('userPage.loadingCollections')}</p>
         ) : myCollections.filter((c) => c.status === 'ACTIVE').length === 0 ? (
           <div>
@@ -361,7 +388,9 @@ export default function HomePage() {
         <div className="spacer-xl" />
         <h2>{t('userPage.sharedWithMe')}</h2>
         <div className="spacer-m" />
-        {invitedCollections === null ? (
+        {invitedError ? (
+          sectionError
+        ) : invitedCollections === null ? (
           <p className="text-muted">{t('userPage.loadingCollections')}</p>
         ) : invitedCollections.length === 0 ? (
           <p>{t('userPage.noShared')}</p>

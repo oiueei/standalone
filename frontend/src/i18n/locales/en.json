@@ -177,6 +177,8 @@
     "invitedBy": "{{name}} has invited you to view",
     "offlineLabel": "Connection problem",
     "offlineBody": "We can't reach OIUEEI right now. Check your connection and try again.",
+    "loadErrorLabel": "Couldn't load this section",
+    "loadErrorBody": "Something went wrong on our end. Please try again.",
     "acceptInvitation": "Accept invitation",
     "declineInvitation": "Decline invitation",
     "dismiss": "Dismiss",

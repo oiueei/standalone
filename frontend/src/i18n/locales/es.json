@@ -159,6 +159,8 @@
     "invitedBy": "{{name}} te ha invitado a ver",
     "offlineLabel": "Problema de conexión",
     "offlineBody": "No podemos conectar con OIUEEI ahora mismo. Revisa tu conexión e inténtalo de nuevo.",
+    "loadErrorLabel": "No se ha podido cargar esta sección",
+    "loadErrorBody": "Algo ha fallado por nuestra parte. Inténtalo de nuevo.",
     "acceptInvitation": "Aceptar invitación",
     "declineInvitation": "Rechazar invitación",
     "dismiss": "Descartar",
