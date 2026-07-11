@@ -26,16 +26,29 @@ class TestComputeAvailability:
     def test_no_bookings_available_today(self):
         assert compute_availability([], today=TODAY) == (True, TODAY)
 
-    def test_today_blocked_returns_next_free_day(self):
+    def test_today_blocked_returns_return_day_as_next_free(self):
+        # The next free day is the booking's return day (end), not end + 1 —
+        # a return day is available for a fresh pickup (back-to-back).
         blocked = [_Block(date(2026, 6, 10), date(2026, 6, 15))]
-        assert compute_availability(blocked, today=TODAY) == (False, date(2026, 6, 16))
+        assert compute_availability(blocked, today=TODAY) == (False, date(2026, 6, 15))
 
-    def test_contiguous_ranges_skip_to_first_gap(self):
+    def test_back_to_back_ranges_skip_to_final_return_day(self):
+        # Two bookings sharing a boundary (first returns 6/15, second picks up
+        # 6/15) — 6/15 is a pickup day for the second, so the next free day is
+        # only the second booking's return day (6/20).
+        blocked = [
+            _Block(date(2026, 6, 12), date(2026, 6, 15)),
+            _Block(date(2026, 6, 15), date(2026, 6, 20)),
+        ]
+        assert compute_availability(blocked, today=TODAY) == (False, date(2026, 6, 20))
+
+    def test_return_day_gap_between_non_adjacent_ranges(self):
+        # First booking returns 6/14, second picks up 6/15 — 6/14 is free.
         blocked = [
             _Block(date(2026, 6, 12), date(2026, 6, 14)),
             _Block(date(2026, 6, 15), date(2026, 6, 20)),
         ]
-        assert compute_availability(blocked, today=TODAY) == (False, date(2026, 6, 21))
+        assert compute_availability(blocked, today=TODAY) == (False, date(2026, 6, 14))
 
     def test_future_booking_leaves_today_free(self):
         blocked = [_Block(date(2026, 7, 1), date(2026, 7, 5))]
@@ -54,10 +67,11 @@ class TestComputeAvailability:
         # within a 3-day horizon the next free day (day 6) is out of range
         assert compute_availability(blocked, today=TODAY, horizon_days=3) == (False, None)
 
-    def test_inclusive_end_day(self):
-        # A booking ending today blocks today; next free day is tomorrow.
+    def test_return_day_is_free_for_pickup(self):
+        # A booking ending today leaves today available — today is its return day,
+        # free for the next pickup (back-to-back handovers).
         blocked = [_Block(date(2026, 6, 1), TODAY)]
-        assert compute_availability(blocked, today=TODAY) == (False, TODAY + timedelta(days=1))
+        assert compute_availability(blocked, today=TODAY) == (True, TODAY)
 
 
 @pytest.mark.django_db
@@ -112,7 +126,8 @@ class TestAvailabilitySerializerFields:
         res = authenticated_client.get(f"/api/v1/things/{thing.code}/")
         assert res.status_code == 200
         assert res.data["available_today"] is False
-        assert res.data["next_available"] == today + timedelta(days=4)
+        # Return day (end) is free for the next pickup — back-to-back handovers.
+        assert res.data["next_available"] == today + timedelta(days=3)
 
     def test_gift_thing_has_null_availability_fields(self, authenticated_client, thing):
         res = authenticated_client.get(f"/api/v1/things/{thing.code}/")

@@ -43,15 +43,15 @@ def compute_availability(
     PENDING/ACCEPTED bookings (objects exposing ``start_date``/``end_date``),
     returns a ``(available_today, next_available)`` tuple:
 
-    - ``available_today`` (bool): True when *today* falls in no blocked range.
+    - ``available_today`` (bool): True when *today* is free for a fresh pickup.
     - ``next_available`` (date | None): the earliest free day on or after today,
       or None when every day within ``horizon_days`` is booked.
 
-    Range semantics are **inclusive** on both ends — identical to
-    ``BookingPeriod.has_overlap()`` and the frontend's ``isDateBlocked`` — so a
-    booking ending today blocks today and the next free day is ``end_date + 1``.
-    Rows with a null ``start_date``/``end_date`` (non-date-based bookings) are
-    skipped defensively.
+    Range semantics match ``BookingPeriod.has_overlap()``'s strict overlap: a
+    booking ``[s, e]`` blocks pickup on ``[s, e)`` but **not** on its return day
+    ``e`` — that day is free for the next pickup (back-to-back handovers). So a
+    booking ending today leaves today available. Rows with a null
+    ``start_date``/``end_date`` (non-date-based bookings) are skipped defensively.
     """
     if today is None:
         today = timezone.localdate()
@@ -63,10 +63,12 @@ def compute_availability(
     horizon = today + timedelta(days=horizon_days)
     cursor = today
     while cursor <= horizon:
-        covering = next((r for r in ranges if r[0] <= cursor <= r[1]), None)
+        # A day is blocked for pickup only on [start, end) — the return day (end)
+        # is free again, so jump straight to it rather than end + 1.
+        covering = next((r for r in ranges if r[0] <= cursor < r[1]), None)
         if covering is None:
             return (cursor == today, cursor)
-        cursor = covering[1] + timedelta(days=1)
+        cursor = covering[1]
     return (False, None)
 
 

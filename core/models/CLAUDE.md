@@ -286,7 +286,7 @@ SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]  # Thing becomes INACTIVE after 
 ### Business Rules
 
 1. **72h expiry** - PENDING bookings expire after `BOOKING_EXPIRY_HOURS` (default 72h).
-2. **Date-based (LEND/RENT)**: `start_date` and `end_date` required. No overlapping bookings. Thing stays ACTIVE.
+2. **Date-based (LEND/RENT)**: `start_date` and `end_date` required. No **strictly** overlapping bookings — a booking's return day may be the next booking's pickup day (back-to-back handovers); only a shared *interior* day conflicts. Thing stays ACTIVE.
 3. **Share (SHARE_THING)**: NOT date-based. No dates required — permanent ownership transfer on acceptance. Multiple pending requests allowed from different users.
 4. **Single-use (GIFT/SELL)**: No dates. Thing status changes to TAKEN on request, INACTIVE on accept. When `is_endless=True`: multiple simultaneous PENDING bookings allowed, status never TAKEN, thing stays ACTIVE after accept, no ThingTransfer created.
 5. **Swap (SWAP_THING)**: No dates. Requester offers own things via `offered_things` M2M. On acceptance, requested thing transfers to requester and all offered things transfer to original owner. All things stay ACTIVE. ThingTransfer records created for each thing involved.
@@ -301,7 +301,7 @@ SINGLE_USE_TYPES = ["GIFT_THING", "SELL_THING"]  # Thing becomes INACTIVE after 
 
 ### Class Methods
 
-- `has_overlap(thing_code, start_date, end_date, exclude_booking_code)` - Check for date conflicts.
+- `has_overlap(thing_code, start_date, end_date, exclude_booking_code)` - Check for date conflicts using **strict overlap** (`start < e AND s < end`): touching at a boundary (a return day equal to the next pickup day) is allowed; only a shared interior day is a conflict.
 - `get_blocked_periods(thing_code)` - Get all PENDING/ACCEPTED bookings
 - `expire_old_pending()` - Batch expire stale PENDING bookings (used by `manage.py expire_bookings`). For single-use types (GIFT/SELL), also restores the Thing to `ACTIVE` within the same transaction — prevents things getting permanently stuck in `TAKEN` after booking expiry.
 

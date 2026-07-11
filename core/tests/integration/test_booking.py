@@ -433,6 +433,85 @@ class TestBookingOverlap:
 
         assert response.status_code == status.HTTP_200_OK
 
+    def test_can_pick_up_on_an_existing_return_day(self, user, user2, lend_thing, collection):
+        """Back-to-back: a new pickup may land exactly on an existing return day."""
+        collection.add_invite(user2.code)
+        BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today() + timedelta(days=5),
+            end_date=date.today() + timedelta(days=10),
+            status="ACCEPTED",
+        )
+        user3 = User.objects.create(code="TEST03", email="test3@example.com")
+        collection.add_invite(user3.code)
+
+        # Pick up on day 10 (the existing booking's return day) → allowed.
+        response = get_client_for_user(user3).post(
+            f"/api/v1/things/{lend_thing.code}/request/",
+            {
+                "start_date": str(date.today() + timedelta(days=10)),
+                "end_date": str(date.today() + timedelta(days=13)),
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert BookingPeriod.objects.filter(thing_code=lend_thing, status="PENDING").exists()
+
+    def test_can_return_on_an_existing_pickup_day(self, user, user2, lend_thing, collection):
+        """Back-to-back: a new return may land exactly on an existing pickup day."""
+        collection.add_invite(user2.code)
+        BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today() + timedelta(days=10),
+            end_date=date.today() + timedelta(days=15),
+            status="ACCEPTED",
+        )
+        user3 = User.objects.create(code="TEST03", email="test3@example.com")
+        collection.add_invite(user3.code)
+
+        # Return on day 10 (the existing booking's pickup day) → allowed.
+        response = get_client_for_user(user3).post(
+            f"/api/v1/things/{lend_thing.code}/request/",
+            {
+                "start_date": str(date.today() + timedelta(days=6)),
+                "end_date": str(date.today() + timedelta(days=10)),
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_cannot_book_overlapping_by_one_interior_day(self, user, user2, lend_thing, collection):
+        """One shared interior day is still a conflict (strict overlap, not touching)."""
+        collection.add_invite(user2.code)
+        BookingPeriod.objects.create(
+            thing_code=lend_thing,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=date.today() + timedelta(days=5),
+            end_date=date.today() + timedelta(days=10),
+            status="ACCEPTED",
+        )
+        user3 = User.objects.create(code="TEST03", email="test3@example.com")
+        collection.add_invite(user3.code)
+
+        # Pick up on day 9 — interior to [5, 10] — overlapping by one day → 409.
+        response = get_client_for_user(user3).post(
+            f"/api/v1/things/{lend_thing.code}/request/",
+            {
+                "start_date": str(date.today() + timedelta(days=9)),
+                "end_date": str(date.today() + timedelta(days=13)),
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_409_CONFLICT
+
 
 @pytest.mark.django_db
 class TestBookingAcceptReject:

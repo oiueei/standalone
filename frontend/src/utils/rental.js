@@ -68,6 +68,8 @@ export const weekdayAllowed = (date, rentalWeekdays) =>
   rentalWeekdays.length === 0 || rentalWeekdays.includes(jsToPyWeekday(parseLocalDate(date).getDay()));
 
 // Is `date` inside any blocked [start_date, end_date] period (both ends inclusive)?
+// This is the calendar *display* range — the item is out from pickup through the
+// return day. Pickup selectability uses the stricter [start, end) below.
 export const isDateBlocked = (date, blockedPeriods) => {
   const d = parseLocalDate(date);
   return blockedPeriods.some((period) => {
@@ -77,21 +79,41 @@ export const isDateBlocked = (date, blockedPeriods) => {
   });
 };
 
-// Any day in [pickup, pickup+len] (pickup → return, inclusive) already booked?
+// Is `date` blocked for a PICKUP? A booking [s, e] blocks pickup on [s, e) — but
+// NOT on its return day e, which is free for the next pickup (back-to-back
+// handovers, mirroring BookingPeriod.has_overlap's strict overlap).
+export const isPickupBlocked = (date, blockedPeriods) => {
+  const d = parseLocalDate(date);
+  return blockedPeriods.some((period) => {
+    const start = parseLocalDate(period.start_date);
+    const end = parseLocalDate(period.end_date);
+    return d >= start && d < end;
+  });
+};
+
+// Would a rental of `len` days picked up on `pickup` strictly overlap any booking?
+// Candidate range is [pickup, pickup+len]; it conflicts with an existing [s, e]
+// iff they share an interior day (pickup < e AND s < return). Touching at a
+// boundary — the derived return landing exactly on another booking's start, or a
+// pickup on another booking's return day — is allowed.
 export const rangeBlocked = (pickup, len, blockedPeriods) => {
-  for (let i = 0; i <= len; i += 1) {
-    if (isDateBlocked(addDays(pickup, i), blockedPeriods)) return true;
-  }
-  return false;
+  const p = parseLocalDate(pickup);
+  const r = addDays(pickup, len);
+  return blockedPeriods.some((period) => {
+    const start = parseLocalDate(period.start_date);
+    const end = parseLocalDate(period.end_date);
+    return p < end && start < r;
+  });
 };
 
 // Disable a pickup day when it — or, once a length is chosen, its return day or any
 // day in between — breaks the weekday rule or overlaps an existing booking. The
 // return day is pickup + length: a one-week rental picked up on a Wednesday is
-// returned the NEXT Wednesday, so a single allowed weekday stays satisfiable.
+// returned the NEXT Wednesday, so a single allowed weekday stays satisfiable. A
+// day that is only another booking's return day stays selectable (back-to-back).
 export const isPickupDisabled = (date, { rentalWeekdays, blockedPeriods, duration }) => {
   if (!weekdayAllowed(date, rentalWeekdays)) return true;
-  if (isDateBlocked(date, blockedPeriods)) return true;
+  if (isPickupBlocked(date, blockedPeriods)) return true;
   if (duration) {
     const len = Number(duration);
     if (!weekdayAllowed(addDays(date, len), rentalWeekdays)) return true;

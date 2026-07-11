@@ -667,7 +667,7 @@ Creates a reservation/booking request. Returns 400 for WISH_THING (this type byp
 **Date-based (LEND/RENT):**
 - Requires `start_date` and `end_date`.
 - **Rental rules (#7):** resolves the applicable collection (the `collection_code` in the body — the SPA passes the collection context — else the thing's first collection with rules) and calls `collection.rental_violation(start, end)`. Returns 400 if the span isn't an allowed fixed duration or the pickup/return day isn't an allowed weekday. Collections without rules impose no constraint (legacy free range). This is the server-side backstop; the frontend already limits the picker.
-- Checks for overlap via `BookingPeriod.has_overlap()`. Returns 409 if conflict.
+- Checks for conflict via `BookingPeriod.has_overlap()` (**strict** overlap — a booking's return day may be the next's pickup day; only a shared interior day conflicts). Returns 409 if conflict.
 - Thing stays `ACTIVE` (multiple bookings for different date ranges allowed).
 
 **Request body:**

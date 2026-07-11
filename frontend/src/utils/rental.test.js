@@ -6,6 +6,7 @@ import {
   toISODate,
   weekdayAllowed,
   isDateBlocked,
+  isPickupBlocked,
   isPickupDisabled,
   derivedReturnDate,
 } from './rental';
@@ -89,6 +90,21 @@ describe('isDateBlocked', () => {
   });
 });
 
+describe('isPickupBlocked', () => {
+  const periods = [{ start_date: '2024-01-03', end_date: '2024-01-05' }];
+  test('blocks pickup on the start day and interior days', () => {
+    expect(isPickupBlocked('2024-01-03', periods)).toBe(true);
+    expect(isPickupBlocked('2024-01-04', periods)).toBe(true);
+  });
+  test('allows pickup on the return day (end) — back-to-back handover', () => {
+    expect(isPickupBlocked('2024-01-05', periods)).toBe(false);
+  });
+  test('is false outside the range', () => {
+    expect(isPickupBlocked('2024-01-02', periods)).toBe(false);
+    expect(isPickupBlocked('2024-01-06', periods)).toBe(false);
+  });
+});
+
 describe('isPickupDisabled', () => {
   const base = { rentalWeekdays: [2], blockedPeriods: [], duration: '' };
   test('disables a pickup on a disallowed weekday', () => {
@@ -112,5 +128,23 @@ describe('isPickupDisabled', () => {
       duration: '7',
     };
     expect(isPickupDisabled('2024-01-03', opts)).toBe(true); // 06 falls inside [03..10]
+  });
+  test('allows a chained Wednesday→Wednesday pickup on an existing return day', () => {
+    // Existing 7-day rental [Wed 01-03 → Wed 01-10]; a new week picked up on the
+    // return day 01-10 (also a Wednesday) is now valid — strict overlap only.
+    const opts = {
+      rentalWeekdays: [2], // Wednesday only
+      blockedPeriods: [{ start_date: '2024-01-03', end_date: '2024-01-10' }],
+      duration: '7',
+    };
+    expect(isPickupDisabled('2024-01-10', opts)).toBe(false);
+  });
+  test('still disables a pickup interior to an existing booking', () => {
+    const opts = {
+      rentalWeekdays: [],
+      blockedPeriods: [{ start_date: '2024-01-03', end_date: '2024-01-10' }],
+      duration: '7',
+    };
+    expect(isPickupDisabled('2024-01-08', opts)).toBe(true); // 08 is interior to [03..10)
   });
 });

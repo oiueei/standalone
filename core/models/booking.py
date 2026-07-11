@@ -134,15 +134,21 @@ class BookingPeriod(models.Model):
     @classmethod
     def has_overlap(cls, thing_code, start_date, end_date, exclude_booking_code=None):
         """
-        Check if there's an overlap with existing PENDING or ACCEPTED bookings.
+        Check if there's a conflict with existing PENDING or ACCEPTED bookings.
 
-        existing.start_date <= requested.end_date AND existing.end_date >= requested.start_date
+        Conflict is **strict overlap**, so a booking's return day may be the next
+        booking's pickup day (back-to-back handovers): a requested ``[start, end]``
+        conflicts with an existing ``[s, e]`` iff ``start < e AND s < end`` — i.e.
+        they share an interior day. Touching at a boundary (``start == e`` or
+        ``end == s``) is NOT a conflict.
+
+        existing.start_date < requested.end_date AND existing.end_date > requested.start_date
         """
         queryset = cls.objects.filter(
             thing_code=thing_code,
             status__in=[cls.Status.PENDING, cls.Status.ACCEPTED],
-            start_date__lte=end_date,
-            end_date__gte=start_date,
+            start_date__lt=end_date,
+            end_date__gt=start_date,
         )
         if exclude_booking_code:
             queryset = queryset.exclude(code=exclude_booking_code)
