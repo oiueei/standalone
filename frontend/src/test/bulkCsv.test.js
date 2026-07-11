@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'vitest';
+import Papa from 'papaparse';
 import { mapRow, validateRows, MAX_ROWS } from '../utils/bulkCsv';
+import { CSV_PARSE_OPTIONS } from '../utils/csv';
 
 describe('mapRow', () => {
   test('keeps known columns, trims them, and drops empty/whitespace cells', () => {
@@ -54,5 +56,37 @@ describe('validateRows', () => {
 
   test('passes when every row has a headline and bounds hold', () => {
     expect(validateRows(rowsOf(3))).toBeNull();
+  });
+});
+
+describe('CSV_PARSE_OPTIONS', () => {
+  // Regression for CODE B15: a Spanish-Excel CSV ("sep=;" hint + ";") parsed
+  // fine as a plain .csv but broke inside a .zip, where the string path skipped
+  // delimitersToGuess + stripSepLine. The shared options serve both paths.
+  test('strips the sep=; line and auto-detects ";" on a string (the ZIP path)', () => {
+    const text = 'sep=;\nheadline;type;fee\nCazo de acero;RENT_THING;1\nSartén;SELL_THING;3';
+    let captured;
+    Papa.parse(text, {
+      ...CSV_PARSE_OPTIONS,
+      complete: (result) => { captured = result; },
+    });
+    expect(captured.meta.delimiter).toBe(';');
+    expect(captured.meta.fields).toEqual(['headline', 'type', 'fee']);
+    expect(captured.data).toEqual([
+      { headline: 'Cazo de acero', type: 'RENT_THING', fee: '1' },
+      { headline: 'Sartén', type: 'SELL_THING', fee: '3' },
+    ]);
+  });
+
+  test('still auto-detects "," and lower-cases headers when there is no sep line', () => {
+    const text = 'Headline,Type\nCazo,GIFT_THING';
+    let captured;
+    Papa.parse(text, {
+      ...CSV_PARSE_OPTIONS,
+      complete: (result) => { captured = result; },
+    });
+    expect(captured.meta.delimiter).toBe(',');
+    expect(captured.meta.fields).toEqual(['headline', 'type']);
+    expect(captured.data).toEqual([{ headline: 'Cazo', type: 'GIFT_THING' }]);
   });
 });

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FileInput, Button, Notification } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import Papa from 'papaparse';
-import { stripSepLine, CSV_DELIMITERS } from '../utils/csv';
+import { CSV_PARSE_OPTIONS } from '../utils/csv';
 import { apiFetch } from '../services/api';
 import { uploadImageToCloudinary } from '../utils/uploadImage';
 import { MAX_ROWS, mapRow, validateRows } from '../utils/bulkCsv';
@@ -79,11 +79,7 @@ export default function BulkAddCsv({ collectionCode, onImported }) {
 
   const parseCsv = (file) => {
     Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      delimitersToGuess: CSV_DELIMITERS,
-      beforeFirstChunk: stripSepLine,
-      transformHeader: (h) => h.trim().toLowerCase(),
+      ...CSV_PARSE_OPTIONS,
       complete: (result) => {
         const parsed = (result.data || []).map((raw) => mapRow(raw, false))
           .filter((row) => Object.keys(row).length > 0);
@@ -114,9 +110,7 @@ export default function BulkAddCsv({ collectionCode, onImported }) {
       }
       const text = await csvEntry.async('string');
       Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-        transformHeader: (h) => h.trim().toLowerCase(),
+        ...CSV_PARSE_OPTIONS,
         complete: (result) => {
           const parsed = (result.data || []).map((raw) => mapRow(raw, true))
             .filter((row) => Object.keys(row).length > 0);

@@ -12,3 +12,20 @@ export const stripSepLine = (chunk) => chunk.replace(/^sep=.*\r?\n/i, '');
 
 /** Delimiters PapaParse should try when auto-detecting (comma, semicolon, tab). */
 export const CSV_DELIMITERS = [',', ';', '\t'];
+
+/**
+ * Shared PapaParse base options for the bulk-import flows. `parseCsv` and the
+ * in-ZIP `parseZip` path in BulkAddCsv both spread this and add their own
+ * `complete`/`error` callbacks, so delimiter auto-detection and the Excel
+ * `sep=;`-line stripping can never drift apart — a `;`-delimited CSV used to
+ * parse correctly as a plain `.csv` yet fail inside a `.zip`, where the string
+ * path omitted both options. PapaParse fires `beforeFirstChunk` for string input
+ * too (StringStreamer → ChunkStreamer.parseChunk), so one base serves both.
+ */
+export const CSV_PARSE_OPTIONS = {
+  header: true,
+  skipEmptyLines: true,
+  delimitersToGuess: CSV_DELIMITERS,
+  beforeFirstChunk: stripSepLine,
+  transformHeader: (header) => header.trim().toLowerCase(),
+};
