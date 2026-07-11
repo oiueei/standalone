@@ -460,10 +460,10 @@ Central source of truth for thing type definitions. Display labels are handled b
 
 All UI strings are externalised via `react-i18next`. No hardcoded strings in components.
 
-- **Setup:** `src/i18n/index.js` initialises i18next with `i18next-browser-languagedetector`, which reads `navigator.language` on every load (no cache) and falls back per `fallbackLng` for unsupported languages.
+- **Setup:** `src/i18n/index.js` initialises i18next with `i18next-browser-languagedetector` (detection order `localStorage` → `navigator`, the chosen language cached in `localStorage`), falling back per `fallbackLng` for unsupported languages. **English (the fallback) is bundled eagerly** in `resources` so the first paint is always translated; Spanish and Catalan load on demand through a tiny custom i18next backend (`partialBundledLanguages: true`, `load: 'currentOnly'`) — see Locale files.
 - **Supported languages:** English (`en`), Spanish (`es`), Catalan (`ca`).
 - **Retired languages:** Brazilian Portuguese (`pt-BR`), European Portuguese (`pt-PT`), Basque (`eu`), and Galician (`gl`) were dropped from `supportedLngs`/`resources` 2026-07 (paused, not deleted — the locale JSONs are recoverable from git history). `fallbackLng` is an object mapping each retired code (plus bare `pt`) to `['es']`, with `default: ['en']` for any other unsupported browser language.
-- **Locale files:** `src/i18n/locales/{lang}.json` — one JSON file per language with ~280 strings organised by namespace (common, titles, login, verify, home, collectionPage, thingPage, types, availability, condition, etc.).
+- **Locale files:** `src/i18n/locales/{lang}.json` — one JSON file per language with ~280 strings organised by namespace (common, titles, login, verify, home, collectionPage, thingPage, types, availability, condition, etc.). Only `en.json` ships in the main bundle; `es.json`/`ca.json` (~35 kB each) are **code-split into their own Vite chunks** via the backend's `import()` of the locale JSON and fetched only when that language is active (a non-English visitor briefly sees English before the chunk lands — `react: { useSuspense: false }`, so no spinner).
 - **`html[lang]`:** updated dynamically in `App.jsx` via `i18n.on('languageChanged', ...)`.
 - **Usage:** every page and component imports `useTranslation` and calls `t('namespace.key')`. Select options are built inline: `TYPE_VALUES.map(v => ({ label: t('types.' + v), value: v }))`.
 - **Initialisation:** `import './i18n'` in `App.jsx` (before HDS imports).

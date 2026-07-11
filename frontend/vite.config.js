@@ -8,8 +8,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     // vendor-hds is ~575 kB raw but only ~152 kB gzipped (under our 200 kB-gz
     // bar) — it's the irreducible hds-react library, shared and long-cached.
-    // Raising the limit keeps the build green; further wins (lazy per-language
-    // i18n locales, the HDS v6 tree-shaking) are tracked separately.
+    // Raising the limit keeps the build green; the per-language i18n locales are
+    // now code-split (see src/i18n/index.js), so the remaining win (HDS v6
+    // tree-shaking) is tracked separately.
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
