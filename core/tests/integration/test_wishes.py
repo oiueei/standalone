@@ -360,7 +360,7 @@ class TestWishThingCreate:
             format="json",
         )
         assert res.status_code == 400
-        assert "community" in res.data["error"].lower()
+        assert "community" in res.data["type"].lower()
 
     def test_create_wish_without_collection_rejected(self, wish_setup):
         s = wish_setup
@@ -370,7 +370,7 @@ class TestWishThingCreate:
             format="json",
         )
         assert res.status_code == 400
-        assert "community" in res.data["error"].lower()
+        assert "community" in res.data["type"].lower()
 
 
 @pytest.mark.django_db

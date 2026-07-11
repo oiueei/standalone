@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -84,6 +84,9 @@ class ThingViewSet(ModelViewSet):
         return obj
 
     def perform_create(self, serializer):
+        # Errors are raised as DRF exceptions (403 PermissionDenied / 404 NotFound
+        # / 400 ValidationError) and handled by the default exception handler —
+        # no instance-state protocol, so create() stays a plain 201 path.
         collection_code = self.request.data.get("collection_code")
         collection = None
 
@@ -92,27 +95,24 @@ class ThingViewSet(ModelViewSet):
         if collection_code:
             try:
                 collection = Collection.objects.get(code=collection_code)
-                if not collection.can_add_thing(self.request.user.code):
-                    self._create_error = (
-                        "You do not have permission to add things to this collection"
-                    )
-                    return
             except Collection.DoesNotExist:
-                self._create_error = "Collection not found"
-                return
+                raise NotFound("Collection not found") from None
+            if not collection.can_add_thing(self.request.user.code):
+                raise PermissionDenied(
+                    "You do not have permission to add things to this collection"
+                )
 
             # Type must be valid for the collection (community-only types, swap/
-            # share restrictions, per-collection allowlist) — shared with update.
+            # share restrictions, per-collection allowlist) — shared with update,
+            # so key it under "type" like perform_update does.
             err = type_validity_error(thing_type, collection)
             if err:
-                self._create_error = err
-                return
+                raise ValidationError({"type": err})
         else:
             # No collection: WISH/SHARE/SWAP require a specific collection.
             err = type_validity_error(thing_type, None)
             if err:
-                self._create_error = err
-                return
+                raise ValidationError({"type": err})
 
         # Tags must come from the collection's owner-defined vocabulary.
         tags = serializer.validated_data.get("tags", [])
@@ -120,8 +120,9 @@ class ThingViewSet(ModelViewSet):
             available = set(collection.tags) if collection else set()
             invalid = [t for t in tags if t not in available]
             if invalid:
-                self._create_error = f"These tags are not defined by the collection: {invalid}"
-                return
+                raise ValidationError(
+                    {"tags": f"These tags are not defined by the collection: {invalid}"}
+                )
 
         thing = Thing.objects.create(
             owner=self.request.user,
@@ -140,9 +141,8 @@ class ThingViewSet(ModelViewSet):
             thing=thing,
         )
 
-        # Store created thing for create response
+        # Store created thing for the create response
         self._created_thing = thing
-        self._create_error = None
 
     def perform_destroy(self, instance):
         # Snapshot code + type before delete() nulls the instance PK — the log must
@@ -211,11 +211,6 @@ class ThingViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        if getattr(self, "_create_error", None):
-            return Response(
-                {"error": self._create_error},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         return Response(
             ThingSerializer(self._created_thing, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED,

@@ -242,7 +242,7 @@ class TestShareThingCommunityRestriction:
             format="json",
         )
         assert response.status_code == 400
-        assert "community" in response.json()["error"].lower()
+        assert "community" in response.json()["type"].lower()
 
     def test_can_create_share_thing_in_community_collection(
         self, authenticated_client, community_collection
@@ -272,7 +272,7 @@ class TestShareThingCommunityRestriction:
             format="json",
         )
         assert response.status_code == 400
-        assert "community" in response.json()["error"].lower()
+        assert "community" in response.json()["type"].lower()
 
 
 @pytest.mark.django_db

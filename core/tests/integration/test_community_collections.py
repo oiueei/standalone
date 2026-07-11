@@ -156,7 +156,17 @@ class TestCommunityAddThing:
             },
             format="json",
         )
-        assert response.status_code == 400
+        # Not permitted to add to someone else's proprietary collection → 403.
+        assert response.status_code == 403
+
+    def test_create_thing_with_unknown_collection_is_404(self, authenticated_client):
+        """A collection_code that resolves to nothing → 404, not a generic 400."""
+        response = authenticated_client.post(
+            "/api/v1/things/",
+            {"type": "GIFT_THING", "headline": "My Gift", "collection_code": "NOPE99"},
+            format="json",
+        )
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db
