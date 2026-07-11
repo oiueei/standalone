@@ -409,8 +409,8 @@ Every theeeme palette has been verified for WCAG contrast compliance across all 
 
 | Compliance | Theeemes |
 |------------|----------|
-| AAA for all colour roles | Bussi, Kupari, Engel, Hopea, Suomenlinna, M&V |
-| AAA for all roles except AA for normal text in koros section | Vaakuna, Metro, Spåra |
+| AAA for all colour roles | Bussi, Kupari, Engel, Hopea, Suomenlinna, M&V, Vaakuna |
+| AAA for all roles except AA for normal text in koros section | Metro, Spåra |
 | AAA for all roles except AA for normal text in primary button | Kesä, Sumu |
 | AAA for all roles except AA for normal text in koros section and primary button | Kulta |
 
