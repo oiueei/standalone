@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button } from 'hds-react';
+import { Button, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -20,6 +21,7 @@ export default function DeleteThingPage() {
   const [thing, setThing] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     document.title = thing ? t('titles.deleteThing', { headline: thing.headline }) : t('titles.deleteThingDefault');
@@ -27,10 +29,11 @@ export default function DeleteThingPage() {
 
   useEffect(() => {
     if (!userCode) return;
+    setError(false);
     apiFetch(`/api/v1/things/${thingCode}/`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (data) setThing(data); })
-      .catch(() => {});
+      .then((data) => (data ? setThing(data) : setError(true)))
+      .catch(() => setError(true));
   }, [userCode, thingCode]);
 
   const handleDelete = async () => {
@@ -50,7 +53,15 @@ export default function DeleteThingPage() {
     }
   };
 
-  if (!thing) return null;
+  if (error) {
+    return (
+      <PageLayout title={t('common.error')} backTo={backPath} backLabel={backLabel}>
+        <Notification label={t('thingPage.errorLoading')} type="error" />
+      </PageLayout>
+    );
+  }
+
+  if (!thing) return <LoadingSpinner />;
 
   return (
     <PageLayout

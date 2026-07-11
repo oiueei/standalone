@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button } from 'hds-react';
+import { Button, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
+import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -20,6 +21,7 @@ export default function DeleteCollectionPage() {
   const [collection, setCollection] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     document.title = collection
@@ -29,10 +31,11 @@ export default function DeleteCollectionPage() {
 
   useEffect(() => {
     if (!userCode) return;
+    setError(false);
     apiFetch(`/api/v1/collections/${code}/`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (data) setCollection(data); })
-      .catch(() => {});
+      .then((data) => (data ? setCollection(data) : setError(true)))
+      .catch(() => setError(true));
   }, [userCode, code]);
 
   const handleDelete = async () => {
@@ -52,7 +55,15 @@ export default function DeleteCollectionPage() {
     }
   };
 
-  if (!collection) return null;
+  if (error) {
+    return (
+      <PageLayout title={t('common.error')} backTo={backPath} backLabel={backLabel}>
+        <Notification label={t('collectionPage.errorLoading')} type="error" />
+      </PageLayout>
+    );
+  }
+
+  if (!collection) return <LoadingSpinner />;
 
   return (
     <PageLayout
