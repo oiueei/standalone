@@ -304,7 +304,7 @@ def test_booking_request_creates_in_app_notification_for_owner(two_users, thing_
     ):
         resp = client.post(f"/api/v1/things/{thing.code}/request/", {}, format="json")
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == status.HTTP_201_CREATED
     notif = InAppNotification.objects.get(user=owner, type=InAppNotification.Type.BOOKING_REQUESTED)
     assert notif.payload["thing_headline"] == thing.headline
     assert notif.payload["requester_name"] == requester.name

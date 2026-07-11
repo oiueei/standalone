@@ -707,7 +707,7 @@ If all active collections containing the thing have a non-empty `pause_message` 
 **Responses:**
 | Status | Condition |
 |--------|-----------|
-| 200 | Request sent |
+| 201 | Request created (booking `PENDING`) |
 | 400 | Own thing / already pending / invalid data / collection inactive |
 | 403 | Not authorised to view thing |
 | 409 | Date overlap (date-based only) |

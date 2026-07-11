@@ -139,7 +139,7 @@ class TestHoldEvents:
 
         # Guest requests a hold on the GIFT thing.
         req = guest_client.post(f"/api/v1/things/{thing.code}/request/")
-        assert req.status_code == status.HTTP_200_OK
+        assert req.status_code == status.HTTP_201_CREATED
         requested = Event.objects.get(kind=Event.Kind.HOLD_REQUESTED)
         assert requested.actor_code == user2.code
         assert requested.thing_code == thing.code

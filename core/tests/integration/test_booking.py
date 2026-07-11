@@ -172,7 +172,7 @@ class TestBookingRequest:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         assert "booking_code" in response.data
 
@@ -285,7 +285,7 @@ class TestBookingRequest:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db
@@ -396,7 +396,7 @@ class TestBookingOverlap:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_can_book_dates_with_rejected_booking(self, user, user2, lend_thing, collection):
         """Can book dates that overlap with REJECTED booking."""
@@ -431,7 +431,7 @@ class TestBookingOverlap:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_can_pick_up_on_an_existing_return_day(self, user, user2, lend_thing, collection):
         """Back-to-back: a new pickup may land exactly on an existing return day."""
@@ -457,7 +457,7 @@ class TestBookingOverlap:
             },
             format="json",
         )
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert BookingPeriod.objects.filter(thing_code=lend_thing, status="PENDING").exists()
 
     def test_can_return_on_an_existing_pickup_day(self, user, user2, lend_thing, collection):
@@ -484,7 +484,7 @@ class TestBookingOverlap:
             },
             format="json",
         )
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_cannot_book_overlapping_by_one_interior_day(self, user, user2, lend_thing, collection):
         """One shared interior day is still a conflict (strict overlap, not touching)."""
@@ -629,7 +629,7 @@ class TestLendingThingStatusNotTaken:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
         lend_thing.refresh_from_db()
         assert lend_thing.status == "ACTIVE"
@@ -648,7 +648,7 @@ class TestLendingThingStatusNotTaken:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
         rent_thing.refresh_from_db()
         assert rent_thing.status == "ACTIVE"
@@ -706,7 +706,7 @@ class TestLendingThingStatusNotTaken:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
         # Verify 2 bookings exist
         bookings = BookingPeriod.objects.filter(thing_code=lend_thing)
@@ -786,7 +786,7 @@ class TestRentArticleWithFee:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
         # Fee calculation is done on frontend, not backend
         # Backend just stores the booking dates
@@ -803,7 +803,7 @@ class TestStandardReservationFlowUnchanged:
         client2 = get_client_for_user(user2)
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         assert "booking_code" in response.data
         # Should NOT have dates
@@ -831,7 +831,7 @@ class TestStandardReservationFlowUnchanged:
         client2 = get_client_for_user(user2)
         response = client2.post(f"/api/v1/things/{sell_thing.code}/request/")
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         assert "booking_code" in response.data
 
@@ -854,7 +854,7 @@ class TestSingleUseThingCompleteFlow:
         # Step 1: Requester creates booking request
         client2 = get_client_for_user(user2)
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         booking_code = response.data["booking_code"]
 
         # Verify thing is TAKEN
@@ -899,7 +899,7 @@ class TestSingleUseThingCompleteFlow:
         # Step 1: Requester creates booking request
         client2 = get_client_for_user(user2)
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         booking_code = response.data["booking_code"]
 
         # Step 2: Owner rejects via RSVP
@@ -923,7 +923,7 @@ class TestSingleUseThingCompleteFlow:
         # First user makes a request
         client2 = get_client_for_user(user2)
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
         # Create third user
         from core.models import User
@@ -967,7 +967,7 @@ class TestSingleUseThingCompleteFlow:
         client3 = get_client_for_user(user3)
         response = client3.post(f"/api/v1/things/{thing.code}/request/")
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
 
 
@@ -992,7 +992,7 @@ class TestDateBasedThingCompleteFlow:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         booking_code = response.data["booking_code"]
 
         # Verify two emails sent: request to owner + confirmation to requester
@@ -1069,7 +1069,7 @@ class TestDateBasedThingCompleteFlow:
             {"start_date": str(start), "end_date": str(end)},
             format="json",
         )
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_share_thing_stays_active_after_accept(self, api_client, user, user2, share_thing):
         """SHARE_THING stays ACTIVE after booking is accepted."""
@@ -1181,7 +1181,7 @@ class TestDateBasedThingCompleteFlow:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db
@@ -1197,7 +1197,7 @@ class TestBookingConfirmationEmail:
         client2 = get_client_for_user(user2)
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert len(mail.outbox) == 2
 
         # First email goes to owner with accept/reject links
@@ -1226,7 +1226,7 @@ class TestBookingConfirmationEmail:
             format="json",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         confirmation_email = mail.outbox[1]
         assert user2.email in confirmation_email.to
         assert lend_thing.headline in confirmation_email.body

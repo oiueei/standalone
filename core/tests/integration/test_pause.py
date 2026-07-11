@@ -162,7 +162,7 @@ def test_request_allowed_when_collection_is_not_paused(pause_users, pause_thing)
     with patch("core.services.email_service.send_booking_request_email"):
         resp = client.post(f"/api/v1/things/{pause_thing.code}/request/")
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == status.HTTP_201_CREATED
     assert resp.data["message"] == "Booking request sent"
 
 
@@ -186,7 +186,7 @@ def test_request_allowed_when_one_of_two_active_collections_is_not_paused(
     with patch("core.services.email_service.send_booking_request_email"):
         resp = client.post(f"/api/v1/things/{pause_thing.code}/request/")
 
-    assert resp.status_code == status.HTTP_200_OK
+    assert resp.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db

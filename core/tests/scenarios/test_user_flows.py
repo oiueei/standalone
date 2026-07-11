@@ -227,7 +227,7 @@ class TestShareCollectionFlow:
 
         # Step 6: Friend requests thing (BookingPeriod flow)
         response = client.post(f"/api/v1/things/{thing_code}/request/")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         booking_code = response.data["booking_code"]
 
@@ -453,7 +453,7 @@ class TestCompleteUserJourney:
 
         # Bob requests headphones (BookingPeriod flow)
         response = client.post(f"/api/v1/things/{thing_codes[0]}/request/")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         bob_booking_code = response.data["booking_code"]
 
@@ -493,7 +493,7 @@ class TestCompleteUserJourney:
         client.cookies.clear()
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {charlie_token.access_token}")
         response = client.post(f"/api/v1/things/{thing_codes[2]}/request/")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         charlie_booking_code = response.data["booking_code"]
 

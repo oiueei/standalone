@@ -184,7 +184,7 @@ class TestSwapRequest:
             {"offered_thing_codes": [guest_swap_thing.code]},
             format="json",
         )
-        assert res.status_code == 200
+        assert res.status_code == 201
         assert res.data["message"] == "Swap request sent"
         assert guest_swap_thing.code in res.data["offered_thing_codes"]
 
@@ -208,7 +208,7 @@ class TestSwapRequest:
             },
             format="json",
         )
-        assert res.status_code == 200
+        assert res.status_code == 201
         assert len(res.data["offered_thing_codes"]) == 2
 
     def test_swap_request_no_offerings(
@@ -691,7 +691,7 @@ class TestSwapMinimumItems:
             {"offered_thing_codes": [guest_things[0].code]},
             format="json",
         )
-        assert res.status_code == 200
+        assert res.status_code == 201
 
     def test_thing_serializer_exposes_minimum_and_count(
         self, auth_client_user_setup, swap_collection, owner_swap_thing, user2

@@ -128,7 +128,7 @@ def _book(setup, start, end):
 def test_request_accepts_valid_rental(rental_setup):
     mon = _next_weekday(0)
     res = _book(rental_setup, mon, mon + timedelta(days=3))  # 3 days, Mon → Thu return
-    assert res.status_code == 200
+    assert res.status_code == 201
     assert BookingPeriod.objects.filter(thing_code=rental_setup["thing"]).count() == 1
 
 
@@ -154,7 +154,7 @@ def test_request_without_rules_allows_any_dates(rental_setup):
     coll.save(update_fields=["rental_durations", "rental_weekdays"])
     sat = _next_weekday(5)
     res = _book(rental_setup, sat, sat + timedelta(days=10))
-    assert res.status_code == 200
+    assert res.status_code == 201
 
 
 # --- serializer -----------------------------------------------------------

@@ -81,7 +81,7 @@ def normal_gift(db, owner, coll):
 def test_endless_thing_stays_active_after_request(endless_gift, guest1):
     client = get_client(guest1)
     res = client.post(f"/api/v1/things/{endless_gift.code}/request/", {}, format="json")
-    assert res.status_code == status.HTTP_200_OK
+    assert res.status_code == status.HTTP_201_CREATED
     endless_gift.refresh_from_db()
     assert endless_gift.status == "ACTIVE"
 
@@ -92,8 +92,8 @@ def test_endless_thing_allows_multiple_pending(endless_gift, guest1, guest2):
     client2 = get_client(guest2)
     res1 = client1.post(f"/api/v1/things/{endless_gift.code}/request/", {}, format="json")
     res2 = client2.post(f"/api/v1/things/{endless_gift.code}/request/", {}, format="json")
-    assert res1.status_code == status.HTTP_200_OK
-    assert res2.status_code == status.HTTP_200_OK
+    assert res1.status_code == status.HTTP_201_CREATED
+    assert res2.status_code == status.HTTP_201_CREATED
     assert BookingPeriod.objects.filter(thing_code=endless_gift, status="PENDING").count() == 2
 
 

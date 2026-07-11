@@ -118,7 +118,7 @@ class ThingRequestView(APIView):
                 booking = request_share_booking(thing, request.user, owner_email)
                 return Response(
                     {"message": "Booking request sent", "booking_code": booking.code},
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_201_CREATED,
                 )
             elif thing.type in DATE_BASED_TYPES:
                 return self._request_date_based(request, thing, owner_email)
@@ -126,7 +126,7 @@ class ThingRequestView(APIView):
                 booking = request_standard_booking(thing, request.user, owner_email)
                 return Response(
                     {"message": "Booking request sent", "booking_code": booking.code},
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_201_CREATED,
                 )
         except BookingRequestError as exc:
             return Response({"error": exc.message}, status=exc.status_code)
@@ -151,7 +151,7 @@ class ThingRequestView(APIView):
                 "start_date": str(start_date),
                 "end_date": str(end_date),
             },
-            status=status.HTTP_200_OK,
+            status=status.HTTP_201_CREATED,
         )
 
     def _request_swap(self, request, thing, owner_email):
@@ -172,5 +172,5 @@ class ThingRequestView(APIView):
                 "booking_code": booking.code,
                 "offered_thing_codes": [t.code for t in offered_things],
             },
-            status=status.HTTP_200_OK,
+            status=status.HTTP_201_CREATED,
         )

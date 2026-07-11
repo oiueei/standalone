@@ -884,7 +884,7 @@ class TestThingViews:
 
         # Use /request/ endpoint (BookingPeriod flow)
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         assert "booking_code" in response.data
 
@@ -1406,7 +1406,7 @@ class TestReservationViews:
         client2 = self._get_client_for_user(user2)
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         assert response.data["message"] == "Booking request sent"
         assert "booking_code" in response.data
 
