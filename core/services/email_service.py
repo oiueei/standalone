@@ -29,6 +29,7 @@ from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.template.loader import render_to_string
 from django.utils.html import escape
 
+from core.services.email_texts import T
 from core.utils import redact_email
 
 logger = logging.getLogger(__name__)
@@ -150,11 +151,12 @@ def _with_footer(plain, html, email, category, user=_UNSET):
     if category == CATEGORY_MANDATORY:
         return plain, html
     link = _notifications_link(email, user=user)
-    footer_plain = f"\n\n---\nManage your email preferences: {link}"
+    manage = T("footer_manage")
+    footer_plain = f"\n\n---\n{manage}: {link}"
     footer_html = (
         '<hr style="border:none;border-top:1px solid #ddd;margin-top:24px;">'
         '<p style="color:#666;font-size:12px;">'
-        f'Manage your email preferences: <a href="{escape(link)}">{escape(link)}</a>'
+        f'{escape(manage)}: <a href="{escape(link)}">{escape(link)}</a>'
         "</p>"
     )
     return plain + footer_plain, html + footer_html
@@ -250,7 +252,7 @@ def _render_email(blocks):
 def _booking_detail_blocks(booking):
     """Date/quantity detail blocks shared by the three booking emails."""
     if booking.start_date and booking.end_date:
-        return [_field("Dates", f"{booking.start_date} - {booking.end_date}")]
+        return [_field(T("dates_label"), f"{booking.start_date} - {booking.end_date}")]
     return []
 
 
@@ -268,12 +270,12 @@ def _thing_url(thing):
 
 def send_magic_link_email(email, magic_link):
     """Send magic link authentication email."""
-    subject = "Hello, welcome to OIUEEI!"
-    plain = f"Hello! Click here to sign in: {magic_link}"
+    subject = T("magic_subject")
+    plain = T("magic_plain").format(link=magic_link)
     html = _render_email(
         [
-            _para("Hello! Click here to sign in:"),
-            _links((magic_link, "Sign in")),
+            _para(T("magic_intro")),
+            _links((magic_link, T("magic_cta"))),
         ]
     )
     _send(email, subject, plain, html, CATEGORY_MANDATORY)
@@ -283,16 +285,15 @@ def send_collection_invite_email(
     inviter_name, collection_headline, email, accept_link, reject_link
 ):
     """Send collection invitation email with accept and reject links."""
-    subject = "You have an invitation to OIUEEI!"
-    plain = (
-        f"You have been invited to view: {collection_headline}. "
-        f"Accept invitation: {accept_link} | Decline invitation: {reject_link}"
+    subject = T("invite_subject")
+    plain = T("invite_plain").format(
+        collection=collection_headline, accept=accept_link, reject=reject_link
     )
     html = _render_email(
         [
-            _para(f"{inviter_name} has invited you to view:"),
+            _para(T("invite_intro").format(inviter=inviter_name)),
             _strong(collection_headline),
-            _links((accept_link, "Accept invitation"), (reject_link, "Decline invitation")),
+            _links((accept_link, T("invite_accept_cta")), (reject_link, T("invite_decline_cta"))),
         ]
     )
     _send(email, subject, plain, html, CATEGORY_MANDATORY)
@@ -300,13 +301,13 @@ def send_collection_invite_email(
 
 def send_collection_revoke_email(owner_name, collection_headline, email):
     """Send collection access revoked notification email."""
-    subject = "Your access has been revoked"
-    plain = f"{owner_name} has revoked your access to '{collection_headline}'."
+    subject = T("revoke_subject")
+    plain = T("revoke_plain").format(owner=owner_name, collection=collection_headline)
     html = _render_email(
         [
-            _para(f"{owner_name} has revoked your access to:"),
+            _para(T("revoke_intro").format(owner=owner_name)),
             _strong(collection_headline),
-            _para("You will no longer be able to view this collection."),
+            _para(T("revoke_outro")),
         ]
     )
     _send(email, subject, plain, html, CATEGORY_MANDATORY)
@@ -320,24 +321,26 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
     requester_name = requester.display_name
 
     if booking.start_date and booking.end_date:
-        plain = (
-            f"{requester_name} has requested to hold '{thing.headline}' "
-            f"from {booking.start_date} to {booking.end_date}. "
-            f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
+        plain = T("booking_request_plain_dated").format(
+            requester=requester_name,
+            thing=thing.headline,
+            start=booking.start_date,
+            end=booking.end_date,
+            accept=accept_link,
+            reject=reject_link,
         )
     else:
-        plain = (
-            f"{requester_name} has requested to hold '{thing.headline}'. "
-            f"Confirm hold: {accept_link} | Cancel hold: {reject_link}"
+        plain = T("booking_request_plain").format(
+            requester=requester_name, thing=thing.headline, accept=accept_link, reject=reject_link
         )
 
-    subject = "You have a pending hold request"
+    subject = T("booking_request_subject")
     html = _render_email(
         [
-            _para(f"{requester_name} has requested:"),
+            _para(T("booking_request_intro").format(requester=requester_name)),
             _strong(thing.headline),
             *_booking_detail_blocks(booking),
-            _links((accept_link, "Confirm hold"), (reject_link, "Cancel hold")),
+            _links((accept_link, T("hold_confirm_cta")), (reject_link, T("hold_cancel_cta"))),
         ]
     )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -345,20 +348,22 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
 
 def send_booking_decision_email(booking, thing, accepted=True):
     """Send booking accept/reject notification email to requester."""
-    decision_word = "confirmed" if accepted else "cancelled"
+    decision_word = T("decision_confirmed") if accepted else T("decision_cancelled")
 
     if booking.start_date and booking.end_date:
-        plain = (
-            f"Your hold request for '{thing.headline}' "
-            f"from {booking.start_date} to {booking.end_date} has been {decision_word}."
+        plain = T("decision_plain_dated").format(
+            thing=thing.headline,
+            start=booking.start_date,
+            end=booking.end_date,
+            decision=decision_word,
         )
     else:
-        plain = f"Your hold request for '{thing.headline}' has been {decision_word}."
+        plain = T("decision_plain").format(thing=thing.headline, decision=decision_word)
 
-    subject = "We have news"
+    subject = T("decision_subject")
     html = _render_email(
         [
-            _para(f"Your request has been {decision_word}:"),
+            _para(T("decision_intro").format(decision=decision_word)),
             _strong(thing.headline),
             *_booking_detail_blocks(booking),
         ]
@@ -372,15 +377,12 @@ def send_booking_unavailable_email(booking, thing):
     Sent when the owner gave or swapped the thing to someone else, so this
     requester's PENDING booking was auto-declined. Warm, non-blaming tone.
     """
-    subject = "Someone got there first"
-    plain = (
-        f"'{thing.headline}' went to someone else this time. "
-        "No worries — things come and go around here, so keep an eye out!"
-    )
+    subject = T("unavailable_subject")
+    plain = T("unavailable_plain").format(thing=thing.headline)
     html = _render_email(
         [
-            _para(f"{thing.headline} went to someone else this time."),
-            _para("No worries — things come and go around here, so keep an eye out!"),
+            _para(T("unavailable_intro").format(thing=thing.headline)),
+            _para(T("unavailable_outro")),
         ]
     )
     _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -388,11 +390,11 @@ def send_booking_unavailable_email(booking, thing):
 
 def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
     """Send notification to collection owner that an invite was declined."""
-    subject = "Your invitation was rejected"
-    plain = f"{invitee_name} has declined the invitation to '{collection_headline}'."
+    subject = T("invite_rejected_subject")
+    plain = T("invite_rejected_plain").format(invitee=invitee_name, collection=collection_headline)
     html = _render_email(
         [
-            _para(f"{invitee_name} has declined your invitation to:"),
+            _para(T("invite_rejected_intro").format(invitee=invitee_name)),
             _strong(collection_headline),
         ]
     )
@@ -406,27 +408,27 @@ def send_booking_confirmation_email(requester, thing, booking):
     collection = thing.collections.first()
 
     if booking.start_date and booking.end_date:
-        plain = (
-            f"You've put a hold on '{thing.headline}' from "
-            f"{booking.start_date} to {booking.end_date}. "
-            f"We've let {owner_name} know — they'll get back to you soon. "
-            f"View thing: {thing_url}"
+        plain = T("confirmation_plain_dated").format(
+            thing=thing.headline,
+            start=booking.start_date,
+            end=booking.end_date,
+            owner=owner_name,
+            url=thing_url,
         )
     else:
-        plain = (
-            f"You've put a hold on '{thing.headline}'. "
-            f"We've let {owner_name} know — they'll get back to you soon. View thing: {thing_url}"
+        plain = T("confirmation_plain").format(
+            thing=thing.headline, owner=owner_name, url=thing_url
         )
 
-    subject = "Hold request sent"
+    subject = T("confirmation_subject")
     html = _render_email(
         [
-            _para("You've put a hold on:"),
+            _para(T("confirmation_intro")),
             _strong(thing.headline),
-            *([_field("Part of", collection.headline)] if collection else []),
+            *([_field(T("part_of_label"), collection.headline)] if collection else []),
             *_booking_detail_blocks(booking),
-            _para(f"We've let {owner_name} know — they'll get back to you soon."),
-            _links((thing_url, "View thing")),
+            _para(T("confirmation_outro").format(owner=owner_name)),
+            _links((thing_url, T("view_thing_cta"))),
         ]
     )
     _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -436,16 +438,16 @@ def send_faq_question_email(questioner_name, thing, question, owner_email):
     """Send FAQ question notification email to thing owner."""
     thing_url = _thing_url(thing)
 
-    subject = "There is a question to be answered"
-    plain = (
-        f"{questioner_name} has asked about '{thing.headline}': {question} View thing: {thing_url}"
+    subject = T("faq_question_subject")
+    plain = T("faq_question_plain").format(
+        questioner=questioner_name, thing=thing.headline, question=question, url=thing_url
     )
     html = _render_email(
         [
-            _para(f"{questioner_name} has asked a question about:"),
+            _para(T("faq_question_intro").format(questioner=questioner_name)),
             _strong(thing.headline),
-            _field("Question", question),
-            _links((thing_url, "View and reply")),
+            _field(T("question_label"), question),
+            _links((thing_url, T("faq_view_reply_cta"))),
         ]
     )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -453,14 +455,14 @@ def send_faq_question_email(questioner_name, thing, question, owner_email):
 
 def send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email):
     """Send FAQ answer notification email to questioner."""
-    subject = "Your question has been answered"
-    plain = f"{owner_name} has replied: {answer}"
+    subject = T("faq_answer_subject")
+    plain = T("faq_answer_plain").format(owner=owner_name, answer=answer)
     html = _render_email(
         [
-            _para(f"{owner_name} has replied to your question about:"),
+            _para(T("faq_answer_intro").format(owner=owner_name)),
             _strong(thing_headline),
-            _field("Your question", question),
-            _field("Reply", answer),
+            _field(T("your_question_label"), question),
+            _field(T("reply_label"), answer),
         ]
     )
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -468,13 +470,13 @@ def send_faq_answer_email(owner_name, thing_headline, question, answer, question
 
 def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     """Send FAQ hidden notification email to questioner."""
-    subject = "Your question has been hidden"
-    plain = f"{owner_name} has hidden your question: {question}"
+    subject = T("faq_hide_subject")
+    plain = T("faq_hide_plain").format(owner=owner_name, question=question)
     html = _render_email(
         [
-            _para(f"{owner_name} has hidden your question about:"),
+            _para(T("faq_hide_intro").format(owner=owner_name)),
             _strong(thing_headline),
-            _field("Question", question),
+            _field(T("question_label"), question),
         ]
     )
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -488,20 +490,14 @@ def send_thing_reported_email(thing, owner_email):
     """
     thing_url = _thing_url(thing)
 
-    subject = "Someone reported one of your listings"
-    plain = (
-        f"Someone reported your listing '{thing.headline}'. "
-        f"We don't share who reported it. Please take a look: {thing_url}"
-    )
+    subject = T("reported_subject")
+    plain = T("reported_plain").format(thing=thing.headline, url=thing_url)
     html = _render_email(
         [
-            _para("Someone reported one of your listings:"),
+            _para(T("reported_intro")),
             _strong(thing.headline),
-            _para(
-                "We don't share who reported it. Please take a look and make sure "
-                "everything is in order."
-            ),
-            _links((thing_url, "Review the listing")),
+            _para(T("reported_outro")),
+            _links((thing_url, T("reported_review_cta"))),
         ]
     )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -519,17 +515,15 @@ def send_broadcast_email(
     """
     collection_url = f"{_frontend_base_url()}/collections/{collection_code}"
 
-    full_subject = f"Hey! {collection_headline}"
-    plain = (
-        f"Message from {owner_name} ({collection_headline}):\n\n"
-        f"{message}\n\n"
-        f"I can help! {collection_url}"
+    full_subject = T("broadcast_subject").format(collection=collection_headline)
+    plain = T("broadcast_plain").format(
+        owner=owner_name, collection=collection_headline, message=message, url=collection_url
     )
     html = _render_email(
         [
-            _para(f"{owner_name} sent a message to {collection_headline}:"),
+            _para(T("broadcast_intro").format(owner=owner_name, collection=collection_headline)),
             _para(message),
-            _links((collection_url, "I can help!")),
+            _links((collection_url, T("broadcast_help_cta"))),
         ]
     )
 
@@ -555,15 +549,13 @@ def send_wish_posted_email(creator_name, wish, emails):
     """
     wish_url = _thing_url(wish)
 
-    subject = "A neighbour is looking for something"
-    plain = (
-        f"{creator_name} posted a new wish: '{wish.headline}'. Can you help? View it: {wish_url}"
-    )
+    subject = T("wish_posted_subject")
+    plain = T("wish_posted_plain").format(creator=creator_name, wish=wish.headline, url=wish_url)
     html = _render_email(
         [
-            _para(f"{creator_name} posted a new wish:"),
+            _para(T("wish_posted_intro").format(creator=creator_name)),
             _strong(wish.headline),
-            _links((wish_url, "See if you can help")),
+            _links((wish_url, T("wish_posted_cta"))),
         ]
     )
     for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
@@ -574,13 +566,15 @@ def send_wish_response_email(responder_name, wish, creator_email):
     """Notify a wish creator that someone answered their pedido."""
     wish_url = _thing_url(wish)
 
-    subject = "Someone answered your wish"
-    plain = f"{responder_name} answered your wish '{wish.headline}'. View the answer: {wish_url}"
+    subject = T("wish_response_subject")
+    plain = T("wish_response_plain").format(
+        responder=responder_name, wish=wish.headline, url=wish_url
+    )
     html = _render_email(
         [
-            _para(f"{responder_name} answered your wish:"),
+            _para(T("wish_response_intro").format(responder=responder_name)),
             _strong(wish.headline),
-            _links((wish_url, "View the answer")),
+            _links((wish_url, T("wish_response_cta"))),
         ]
     )
     _send(creator_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -588,16 +582,13 @@ def send_wish_response_email(responder_name, wish, creator_email):
 
 def send_wish_thanks_email(creator_name, wish, responder_email):
     """Thank the accepted responder when the wish creator marks it resolved."""
-    subject = "Thanks for your help"
-    plain = (
-        f"{creator_name} marked the wish '{wish.headline}' as resolved "
-        f"and wanted to thank you for your help."
-    )
+    subject = T("wish_thanks_subject")
+    plain = T("wish_thanks_plain").format(creator=creator_name, wish=wish.headline)
     html = _render_email(
         [
-            _para(f"{creator_name} marked this wish as resolved:"),
+            _para(T("wish_thanks_intro").format(creator=creator_name)),
             _strong(wish.headline),
-            _para("Thanks for helping out!"),
+            _para(T("wish_thanks_outro")),
         ]
     )
     _send(responder_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -605,13 +596,10 @@ def send_wish_thanks_email(creator_name, wish, responder_email):
 
 def send_return_reminder_email(requester_name, thing_headline, end_date, owner_email):
     """Remind the owner that a booking ends tomorrow."""
-    subject = "Reminder: a hold ends tomorrow"
-    plain = f"Reminder: {requester_name}'s hold on '{thing_headline}' ends {end_date}."
-    html = _render_email(
-        [
-            _para(f"Reminder: {requester_name}'s hold on {thing_headline} ends {end_date}."),
-        ]
-    )
+    subject = T("reminder_subject")
+    plain = T("reminder_plain").format(requester=requester_name, thing=thing_headline, end=end_date)
+    body = T("reminder_body").format(requester=requester_name, thing=thing_headline, end=end_date)
+    html = _render_email([_para(body)])
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
@@ -622,19 +610,21 @@ def send_swap_request_email(
     requester_name = requester.display_name
     offered_names = ", ".join(t.headline for t in offered_things)
 
-    subject = "You have a swap request"
-    plain = (
-        f"{requester_name} wants to swap '{thing.headline}' "
-        f"for: {offered_names}. "
-        f"Confirm swap: {accept_link} | Cancel swap: {reject_link}"
+    subject = T("swap_request_subject")
+    plain = T("swap_request_plain").format(
+        requester=requester_name,
+        thing=thing.headline,
+        offered=offered_names,
+        accept=accept_link,
+        reject=reject_link,
     )
     html = _render_email(
         [
-            _para(f"{requester_name} wants to swap:"),
+            _para(T("swap_request_intro").format(requester=requester_name)),
             _strong(thing.headline),
-            _para("In exchange for:"),
+            _para(T("swap_exchange_label")),
             _list(t.headline for t in offered_things),
-            _links((accept_link, "Confirm swap"), (reject_link, "Cancel swap")),
+            _links((accept_link, T("swap_confirm_cta")), (reject_link, T("swap_cancel_cta"))),
         ]
     )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -644,20 +634,16 @@ def send_swap_confirmation_email(requester, thing, offered_things, booking):
     """Send swap request confirmation to the requester."""
     offered_names = ", ".join(t.headline for t in offered_things)
 
-    subject = "Swap request sent"
-    plain = (
-        f"Your swap request for '{thing.headline}' "
-        f"(offering: {offered_names}) has been sent. "
-        f"The owner will get back to you soon."
-    )
+    subject = T("swap_conf_subject")
+    plain = T("swap_conf_plain").format(thing=thing.headline, offered=offered_names)
     html = _render_email(
         [
-            _para("Your swap request has been sent!"),
-            _para("You requested:"),
+            _para(T("swap_conf_sent")),
+            _para(T("swap_conf_requested_label")),
             _strong(thing.headline),
-            _para("You offered:"),
+            _para(T("swap_conf_offered_label")),
             _list(t.headline for t in offered_things),
-            _para("The owner will get back to you soon."),
+            _para(T("swap_conf_outro")),
         ]
     )
     _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -673,17 +659,15 @@ def send_digest_email(collection_headline, collection_code, thing_headlines, ema
 
     things_plain = "\n".join(f"  - {h}" for h in thing_headlines)
 
-    subject = f"What's new in {collection_headline}"
-    plain = (
-        f"New things in {collection_headline}:\n\n"
-        f"{things_plain}\n\n"
-        f"View collection: {collection_url}"
+    subject = T("digest_subject").format(collection=collection_headline)
+    plain = T("digest_plain").format(
+        collection=collection_headline, things=things_plain, url=collection_url
     )
     html = _render_email(
         [
-            _para(f"New things in {collection_headline}:"),
+            _para(T("digest_intro").format(collection=collection_headline)),
             _list(thing_headlines),
-            _links((collection_url, "View collection")),
+            _links((collection_url, T("view_collection_cta"))),
         ]
     )
 
@@ -734,13 +718,14 @@ def send_newsletter_email(
     base_url = _frontend_base_url()
     collection_url = f"{base_url}/collections/{collection_code}"
 
-    blocks = [_para(f"Newsletter for {collection_headline}:")]
+    newsletter_intro = T("newsletter_intro").format(collection=collection_headline)
+    blocks = [_para(newsletter_intro)]
     plain_blocks = []
 
     if new_thing_headlines:
         things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)
-        plain_blocks.append(f"New things:\n{things_plain}\n")
-        blocks.append(_heading("New things"))
+        plain_blocks.append(f"{T('newsletter_new_things')}:\n{things_plain}\n")
+        blocks.append(_heading(T("newsletter_new_things")))
         blocks.append(_list(new_thing_headlines))
 
     if transfer_entries:
@@ -748,8 +733,8 @@ def send_newsletter_email(
             f"  - {t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
             for t in transfer_entries
         )
-        plain_blocks.append(f"Ownership changes:\n{transfers_plain}\n")
-        blocks.append(_heading("Ownership changes"))
+        plain_blocks.append(f"{T('newsletter_transfers')}:\n{transfers_plain}\n")
+        blocks.append(_heading(T("newsletter_transfers")))
         blocks.append(
             _list(
                 f"{t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
@@ -757,13 +742,13 @@ def send_newsletter_email(
             )
         )
 
-    blocks.append(_links((collection_url, "View collection")))
+    blocks.append(_links((collection_url, T("view_collection_cta"))))
 
-    subject = f"Weekly newsletter: {collection_headline}"
+    subject = T("newsletter_subject").format(collection=collection_headline)
     plain = (
-        f"Newsletter for {collection_headline}:\n\n"
+        f"{newsletter_intro}\n\n"
         f"{''.join(b + chr(10) for b in plain_blocks)}"
-        f"View collection: {collection_url}"
+        f"{T('view_collection_cta')}: {collection_url}"
     )
     html = _render_email(blocks)
 

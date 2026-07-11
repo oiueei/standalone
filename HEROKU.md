@@ -111,6 +111,8 @@ heroku config:set \
 
 > **Optional — feedback form:** `VITE_FEEDBACK_URL` points the in-app feedback link (foot of Home/Welcome) at your own form, e.g. `heroku config:set VITE_FEEDBACK_URL='https://tally.so/r/xxxxx' -a your-app-name`. It is baked into the frontend at build time (config vars are visible to the Heroku build), so changing it requires a redeploy. Defaults to the project's Tally form.
 
+> **Optional — email language:** `EMAIL_LANGUAGE` sets the language ALL outbound email speaks (default `en`; `es` available), e.g. `heroku config:set EMAIL_LANGUAGE=es -a your-app-name`. Per-deployment, not per-user. Catalogues live in `core/services/email_texts/` — to add a language, copy `en.py` → `{lang}.py` and translate the values.
+
 > **Email** is configured separately — see the [Email](#email) section below. Magic-link sign-in does not work until SMTP is set.
 
 > **Note:** Heroku sometimes appends a random suffix to the hostname (e.g. `your-app-name-a1b2c3d4.herokuapp.com`). Check the exact URL after the first deploy and update `DJANGO_ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` if needed.

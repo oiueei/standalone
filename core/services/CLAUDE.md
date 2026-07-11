@@ -62,6 +62,10 @@ Every email belongs to one of three categories. Each function routes through the
 - **Multi-recipient**: functions that take `emails=[...]` (digest, newsletter, broadcast) use `_filter_recipients()` for a bulk query that drops opted-out addresses before iterating.
 - **Footer**: Cat. 2 and Cat. 3 emails get an auto-appended footer with a link to `/me/notifications/{token}` (see below). Cat. 1 has no footer — nothing to manage.
 
+#### Email language (`EMAIL_LANGUAGE` + `core/services/email_texts/`)
+
+A deployment speaks **one language** in all outbound email, picked by the `EMAIL_LANGUAGE` setting (env var, default `en`; the standalone repo stays English, www.oiueei.com sets `es`). It is per-deployment, **not per-user**. Every user-facing string lives in a per-language catalogue — `email_texts/en.py` (the reference + universal fallback) and `email_texts/es.py` — as flat `TEXTS` dicts of `str.format` templates, mirroring the `seed_data/{lang}.py` pattern. Senders call `T(key)` (from `core.services.email_texts`), which reads `settings.EMAIL_LANGUAGE` on every call (so `override_settings` works in tests) and falls back to English for an unknown language or missing key. `test_email_language.py` pins the en default, the es deployment, the fallback, and en↔es catalogue/placeholder parity (the email analogue of `i18nParity.test.js`). To add a language: copy `en.py` → `{lang}.py`, translate only the values (keep keys + `{placeholders}`), set the env var. The operator-facing `send_stats_summary_email` carries data built by the command and is not part of the catalogue.
+
 #### Signed tokens for unauthenticated preference editing
 
 - `make_notifications_token(user_code)` — returns a `TimestampSigner`-signed string (salt `notifications-prefs`, TTL 1 year) scoped to notification preferences editing.

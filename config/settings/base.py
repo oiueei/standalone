@@ -221,6 +221,10 @@ MAGIC_LINK_EXPIRY_HOURS = 24
 # Off by default so dev/test send synchronously and stay deterministic;
 # production.py turns it on.
 EMAIL_SEND_ASYNC = False
+# The single language all outbound email speaks (core/services/email_texts/):
+# the open-source standalone defaults to English; a deployment sets e.g.
+# EMAIL_LANGUAGE=es. Unknown codes fall back to English per key.
+EMAIL_LANGUAGE = os.environ.get("EMAIL_LANGUAGE", "en")
 MAGIC_LINK_BASE_URL = os.environ.get(
     "MAGIC_LINK_BASE_URL",
     "http://localhost:3000/verify",
