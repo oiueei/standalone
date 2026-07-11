@@ -304,7 +304,7 @@ Detail page for a thing with full information and FAQs section.
 
 - **API:** `POST /api/v1/auth/pop-in/` with `{ email, share_token }`.
 - Public route at `/share/:token`. The owner has previously generated this token via the `ShareCollectionMenu` in CollectionPage; anyone with the link can land here and join the collection.
-- Same UX as `PopInPage`: email input + magic link sent. After submit shows an inline `Notification`.
+- Same UX as `PopInPage` — both pages render the shared `MagicLinkJoinPage` component (see Shared Components) with their own copy; SharePage additionally sends `share_token` in the POST body.
 - Invalid / revoked / inactive-collection tokens return 200 with the same magic-link response (anti-enumeration). The user gets a magic link; if the token was invalid they simply land on `/welcome` or `/` rather than on the target collection.
 - Uses the standard `form-hero` + `Koros` layout with theeeme colours from localStorage (or defaults when the recipient has no prior session).
 
@@ -424,6 +424,7 @@ Detail page for a thing with full information and FAQs section.
 - **`BackLink`** (`src/components/BackLink.jsx`) — Reusable `← {label}` back navigation link. Props: `to`, `label`.
 - **`Toast`** (`src/components/Toast.jsx`) — Reusable toast notification wrapping HDS `Notification`. Props: `toast` (`{ type, message }`), `onClose`. Renders at `position="top-right"` with auto-close.
 - **`LoadingSpinner`** (`src/components/LoadingSpinner.jsx`) — Wrapper around HDS `LoadingSpinner` component.
+- **`MagicLinkJoinPage`** (`src/components/MagicLinkJoinPage.jsx`) — Shared pop-in landing page rendered by `PopInPage` and `SharePage`: a `PageLayout` hero + email form that POSTs to `/api/v1/auth/pop-in/` and swaps into a sent/error `Notification` (with the "you can close this tab" line on success). Props: `ns` (`'popin'` | `'share'` — namespace for the form strings and the `{ns}-email` input id), `docTitleKey` / `titleKey` / `descriptionKey` (full i18n keys — their names differ per page), `extraBody` (extra POST fields, e.g. SharePage's `share_token`). `JoinToAct` (JoinPage's variant of the same flow) deliberately stays separate — it renders unboxed inside another page's hero and reports errors inline.
 - **`FeedbackLink`** (`src/components/FeedbackLink.jsx`) — Quiet one-line alpha-feedback prompt ("Something odd? An idea? Tell me →") linking to the Tally form (`tally.so/r/A76Xkz`, same one as the README). Rendered at the foot of HomePage and WelcomePage (`.feedback-link`, muted `--color-black-60`).
 - **`ThingTags`** (`src/components/ThingTags.jsx`) — Shared tag row for thing type, status, pending questions, and the thing's **owner-defined tags** (`thing.tags`, rendered with `TAG_THEMES.custom`). Props: `thing`, `isOwner`. Uses `TAG_THEMES` from constants.
 - **`ThingReportFooter`** (`src/components/ThingReportFooter.jsx`) — The quiet "report this listing" footer on `ThingPage` (logged-in non-owners). Owns its open/submitting state + the report POST; expands an inline confirm (`.thing-report-confirm`, `aria-expanded`, no modal) and reports feedback via `onToast`. Props: `thingCode`, `onToast`.
