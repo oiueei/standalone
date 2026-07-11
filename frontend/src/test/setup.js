@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom';
+import { configure } from '@testing-library/react';
 import './i18n-mock';
+
+// findBy*/waitFor default to 1s, which pages with chained async fetches
+// (ThingPage → WishResponsesList → responses) can exceed under CI CPU load —
+// the thingWishConfirm flake. 5s only delays genuine failures, never passes.
+configure({ asyncUtilTimeout: 5000 });
 
 // Minimal localStorage mock for jsdom
 const store = {};
