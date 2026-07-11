@@ -71,9 +71,11 @@ class User(AbstractBaseUser):
 
     class AgeRange(models.TextChoices):
         UP_TO_21 = "UP_TO_21", "21 or under"
-        FROM_22_35 = "22_35", "22-35"
-        FROM_36_55 = "36_55", "36-55"
-        FROM_56 = "56_PLUS", "56 or over"
+        FROM_22_30 = "22_30", "22-30"
+        FROM_31_40 = "31_40", "31-40"
+        FROM_41_50 = "41_50", "41-50"
+        FROM_51_60 = "51_60", "51-60"
+        FROM_61 = "61_PLUS", "61 or over"
 
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     email = models.CharField(max_length=64, unique=True)

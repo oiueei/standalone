@@ -106,7 +106,12 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
       <div className="thing-card-body">
         {collectionMode === 'COMMUNITY' && (
           <p className="thing-card-meta">
-            {thing.owner_name}{thing.created && ` · ${new Date(thing.created).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })}`}
+            {thing.owner ? (
+              <Link to={`/${thing.owner}`} className="thing-card-owner-link">{thing.owner_name}</Link>
+            ) : (
+              thing.owner_name
+            )}
+            {thing.created && ` · ${new Date(thing.created).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })}`}
           </p>
         )}
         <h3 className="thing-card-headline">

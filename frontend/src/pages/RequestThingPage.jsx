@@ -3,7 +3,15 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, DateInput, Notification, Select } from 'hds-react';
 import { DATE_TYPES, SWAP_TYPE } from '../constants/things';
-import { durationLabel, isPickupDisabled, isDateBlocked, derivedReturnDate } from '../utils/rental';
+import {
+  durationLabel,
+  isPickupDisabled,
+  isDateBlocked,
+  derivedReturnDate,
+  isoToDisplay,
+  displayToIso,
+  DISPLAY_DATE_FORMAT,
+} from '../utils/rental';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -29,7 +37,10 @@ export default function RequestThingPage() {
 
   const [thing, setThing] = useState(null);
   useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);
-  const [startDate, setStartDate] = useState(location.state?.prefillDate || '');
+  // Date field state lives in the DISPLAY format (DD/MM/YYYY, what the DateInputs
+  // emit); it converts to ISO at the consumption boundaries (POST body, derived
+  // return date) via displayToIso.
+  const [startDate, setStartDate] = useState(isoToDisplay(location.state?.prefillDate) || '');
   const [endDate, setEndDate] = useState('');
   const [duration, setDuration] = useState('');
   const [attempted, setAttempted] = useState(false);
@@ -49,6 +60,14 @@ export default function RequestThingPage() {
       .then((data) => (data ? setThing(data) : setError(true)))
       .catch(() => setError(true));
   }, [userCode, thingCode, code]);
+
+  // With a single fixed rental length there is nothing to choose — preselect it
+  // so the pickup picker is usable straight away (#4).
+  useEffect(() => {
+    if (thing && DATE_TYPES.includes(thing.type) && (thing.rental_durations || []).length === 1) {
+      setDuration(String(thing.rental_durations[0]));
+    }
+  }, [thing]);
 
   useEffect(() => {
     if (!userCode || !thing || thing.type !== SWAP_TYPE) return;
@@ -96,12 +115,15 @@ export default function RequestThingPage() {
       if (isConstrainedRental) {
         // Renter picks a fixed length + a pickup date; the return date is derived
         // as pickup + length (a week rental comes back on the same weekday).
-        if (!duration || !startDate) return;
-        const end = derivedReturnDate(startDate, duration);
-        body = { start_date: startDate, end_date: end };
+        const startIso = displayToIso(startDate);
+        if (!duration || !startIso) return;
+        const end = derivedReturnDate(startIso, duration);
+        body = { start_date: startIso, end_date: end };
       } else {
-        if (!startDate || !endDate) return;
-        body = { start_date: startDate, end_date: endDate };
+        const startIso = displayToIso(startDate);
+        const endIso = displayToIso(endDate);
+        if (!startIso || !endIso) return;
+        body = { start_date: startIso, end_date: endIso };
       }
     }
     // Pass the collection context so the backend applies that collection's rental
@@ -243,7 +265,7 @@ export default function RequestThingPage() {
             label={t('rental.pickupLabel')}
             value={startDate}
             onChange={(value) => setStartDate(value)}
-            dateFormat="yyyy-MM-dd"
+            dateFormat={DISPLAY_DATE_FORMAT}
             language="en"
             required
             disabled={!duration}
@@ -255,9 +277,9 @@ export default function RequestThingPage() {
             isDateDisabledBy={pickupDisabled}
             malformedDateErrorText={t('request.dateOverlap')}
           />
-          {startDate && duration && (
+          {duration && displayToIso(startDate) && (
             <p className="thing-card-meta" style={{ marginTop: 'var(--spacing-2-xs)' }}>
-              {t('rental.returnBy', { date: derivedReturnDate(startDate, duration) })}
+              {t('rental.returnBy', { date: isoToDisplay(derivedReturnDate(displayToIso(startDate), duration)) })}
             </p>
           )}
         </div>
@@ -269,7 +291,7 @@ export default function RequestThingPage() {
             label={t('request.startLabel')}
             value={startDate}
             onChange={(value) => setStartDate(value)}
-            dateFormat="yyyy-MM-dd"
+            dateFormat={DISPLAY_DATE_FORMAT}
             language="en"
             required
             invalid={attempted && !startDate}
@@ -286,7 +308,7 @@ export default function RequestThingPage() {
             label={t('request.endLabel')}
             value={endDate}
             onChange={(value) => setEndDate(value)}
-            dateFormat="yyyy-MM-dd"
+            dateFormat={DISPLAY_DATE_FORMAT}
             language="en"
             required
             invalid={attempted && !endDate}

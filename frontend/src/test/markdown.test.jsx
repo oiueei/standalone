@@ -81,6 +81,35 @@ describe('markdownToHtml', () => {
     expect(result).toContain('Header');
     expect(result).toContain('Footer');
   });
+
+  test('renders pipe tables with a scroll wrapper', () => {
+    const result = markdownToHtml(
+      '| Día | Horario |\n|---|---|\n| Lunes - Viernes | 09:00 - 14:00 |\n| Domingo | Cerrado |'
+    );
+    expect(result).toContain('class="markdown-table-wrap"');
+    expect(result).toContain('<table><thead><tr><th>Día</th><th>Horario</th></tr></thead>');
+    expect(result).toContain('<td>Lunes - Viernes</td>');
+    expect(result).toContain('<td>Domingo</td><td>Cerrado</td>');
+  });
+
+  test('table cells render inline markdown and stay HTML-escaped', () => {
+    const result = markdownToHtml('| A | B |\n|---|---|\n| **bold** | <script>alert(1)</script> |');
+    expect(result).toContain('<td><strong>bold</strong></td>');
+    expect(result).not.toContain('<script>');
+    expect(result).toContain('&lt;script&gt;');
+  });
+
+  test('a pipe line without a separator row is not a table', () => {
+    const result = markdownToHtml('| just | text |\nplain line');
+    expect(result).not.toContain('<table>');
+    expect(result).toContain('| just | text |');
+  });
+
+  test('text after a table resumes normal rendering', () => {
+    const result = markdownToHtml('| A |\n|---|\n| x |\nAfter');
+    expect(result).toContain('</table></div>');
+    expect(result).toContain('<span>After</span>');
+  });
 });
 
 describe('MarkdownText component', () => {

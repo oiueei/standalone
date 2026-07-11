@@ -5,9 +5,11 @@
   },
   "ageRange": {
     "UP_TO_21": "21 o menos",
-    "22_35": "22–35",
-    "36_55": "36–55",
-    "56_PLUS": "56 o más"
+    "22_30": "22–30",
+    "31_40": "31–40",
+    "41_50": "41–50",
+    "51_60": "51–60",
+    "61_PLUS": "61 o más"
   },
   "communityProfile": {
     "heading": "Datos demográficos (opcional)",

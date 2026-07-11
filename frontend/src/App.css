@@ -1128,6 +1128,34 @@ figure[class*="Highlight-module_highlight"] {
   display: block;
 }
 
+/* The community-card owner attribution links to the member's profile. */
+.thing-card-owner-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* Pipe tables in Markdown bios: wide content scrolls inside its own wrapper so
+   the page body never scrolls horizontally on mobile. */
+.markdown-text .markdown-table-wrap {
+  overflow-x: auto;
+  margin: var(--spacing-2-xs) 0;
+}
+
+.markdown-text table {
+  border-collapse: collapse;
+}
+
+.markdown-text th,
+.markdown-text td {
+  border: 1px solid var(--color-black-20);
+  padding: var(--spacing-2-xs) var(--spacing-xs);
+  text-align: left;
+}
+
+.markdown-text th {
+  background-color: var(--color-black-5);
+}
+
 .share-timeline {
   border-left: 3px solid var(--color-bus);
   padding-left: var(--spacing-m);

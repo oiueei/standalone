@@ -18,15 +18,15 @@ class TestCommunityProfileFields:
     def test_update_saves_age_and_postal(self, authenticated_client, user):
         res = authenticated_client.put(
             USER.format(code=user.code),
-            {"age_range": "22_35", "postal_code": "48001"},
+            {"age_range": "22_30", "postal_code": "48001"},
             format="json",
         )
         assert res.status_code == 200
         user.refresh_from_db()
-        assert user.age_range == "22_35"
+        assert user.age_range == "22_30"
         assert user.postal_code == "48001"
         # Echoed back on the read serializer.
-        assert res.data["age_range"] == "22_35"
+        assert res.data["age_range"] == "22_30"
         assert res.data["postal_code"] == "48001"
 
     def test_invalid_age_range_rejected(self, authenticated_client, user):
@@ -45,7 +45,7 @@ class TestCommunityProfileFields:
         coll = Collection.objects.create(
             code="COMM02", owner=user, headline="C", mode=Collection.Mode.COMMUNITY
         )
-        user2.age_range = "36_55"
+        user2.age_range = "31_40"
         user2.postal_code = "28013"
         user2.save()
         coll.invites.add(user2)
@@ -53,14 +53,14 @@ class TestCommunityProfileFields:
         res = authenticated_client.get(COLLECTION.format(code=coll.code))
         assert res.status_code == 200
         member = next(m for m in res.data["invites"] if m["code"] == user2.code)
-        assert member["age_range"] == "36_55"
+        assert member["age_range"] == "31_40"
         assert member["postal_code"] == "28013"
 
     def test_proprietary_owner_does_not_see_demographics(self, authenticated_client, user, user2):
         coll = Collection.objects.create(
             code="PROP01", owner=user, headline="P", mode=Collection.Mode.PROPRIETARY
         )
-        user2.age_range = "36_55"
+        user2.age_range = "31_40"
         user2.save()
         coll.invites.add(user2)
 
@@ -73,7 +73,7 @@ class TestCommunityProfileFields:
         coll = Collection.objects.create(
             code="COMM03", owner=user, headline="C", mode=Collection.Mode.COMMUNITY
         )
-        user2.age_range = "36_55"
+        user2.age_range = "31_40"
         user2.save()
         coll.invites.add(user2)
 

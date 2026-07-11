@@ -109,6 +109,8 @@ heroku config:set \
 
 > **Cloudinary:** `CLOUDINARY_URL` powers image uploads. Create a free account at [cloudinary.com](https://cloudinary.com) and copy the value of *API environment variable* from your dashboard (Settings → API Keys). Format: `cloudinary://api_key:api_secret@cloud_name`. Without it the app runs, but image uploads fail.
 
+> **Optional — feedback form:** `VITE_FEEDBACK_URL` points the in-app feedback link (foot of Home/Welcome) at your own form, e.g. `heroku config:set VITE_FEEDBACK_URL='https://tally.so/r/xxxxx' -a your-app-name`. It is baked into the frontend at build time (config vars are visible to the Heroku build), so changing it requires a redeploy. Defaults to the project's Tally form.
+
 > **Email** is configured separately — see the [Email](#email) section below. Magic-link sign-in does not work until SMTP is set.
 
 > **Note:** Heroku sometimes appends a random suffix to the hostname (e.g. `your-app-name-a1b2c3d4.herokuapp.com`). Check the exact URL after the first deploy and update `DJANGO_ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` if needed.

@@ -9,6 +9,8 @@ import {
   isPickupBlocked,
   isPickupDisabled,
   derivedReturnDate,
+  isoToDisplay,
+  displayToIso,
 } from './rental';
 
 // Run in a UTC-negative timezone so a regression to UTC date parsing
@@ -146,5 +148,27 @@ describe('isPickupDisabled', () => {
       duration: '7',
     };
     expect(isPickupDisabled('2024-01-08', opts)).toBe(true); // 08 is interior to [03..10)
+  });
+});
+
+describe('isoToDisplay / displayToIso', () => {
+  test('round-trips a date between ISO and DD/MM/YYYY', () => {
+    expect(isoToDisplay('2026-07-15')).toBe('15/07/2026');
+    expect(displayToIso('15/07/2026')).toBe('2026-07-15');
+    expect(displayToIso(isoToDisplay('2024-01-03'))).toBe('2024-01-03');
+  });
+
+  test('displayToIso accepts loose single-digit day/month', () => {
+    expect(displayToIso('3/6/2026')).toBe('2026-06-03');
+  });
+
+  test('rejects malformed and impossible dates', () => {
+    expect(isoToDisplay('')).toBe('');
+    expect(isoToDisplay('15/07/2026')).toBe('');
+    expect(isoToDisplay(null)).toBe('');
+    expect(displayToIso('')).toBe('');
+    expect(displayToIso('2026-07-15')).toBe('');
+    expect(displayToIso('31/02/2026')).toBe(''); // impossible date
+    expect(displayToIso('99/99/9999')).toBe('');
   });
 });

@@ -704,9 +704,11 @@ class CollectionStatsView(APIView):
 
         age_labels = {
             "UP_TO_21": "Age 21 or under",
-            "22_35": "Age 22-35",
-            "36_55": "Age 36-55",
-            "56_PLUS": "Age 56 or over",
+            "22_30": "Age 22-30",
+            "31_40": "Age 31-40",
+            "41_50": "Age 41-50",
+            "51_60": "Age 51-60",
+            "61_PLUS": "Age 61 or over",
         }
         age_counts = Counter(u.age_range for u in members if u.age_range)
         for age_code, label in age_labels.items():

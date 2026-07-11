@@ -7,6 +7,7 @@
  *   - bullet           -> <ul><li>
  *   1. numbered        -> <ol><li>
  *   [text](url)        -> <a> (http/https only)
+ *   | a | b | pipe tables (GFM: header row + |---|---| separator) -> <table>
  *
  * All other content is HTML-escaped before processing.
  */
@@ -42,6 +43,15 @@ function renderInline(text) {
   return result;
 }
 
+// GFM pipe-table line shapes. The separator row (|---|---|, optional colons)
+// carries no escapable characters, so it can be tested on the raw line.
+const isTableRow = (l) => /^\s*\|.*\|\s*$/.test(l);
+const isTableSeparator = (l) => /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/.test(l);
+const tableCells = (escapedLine) => {
+  const trimmed = escapedLine.trim();
+  return trimmed.slice(1, -1).split('|').map((c) => c.trim());
+};
+
 function markdownToHtml(text) {
   if (!text) return '';
 
@@ -50,8 +60,30 @@ function markdownToHtml(text) {
   let inUl = false;
   let inOl = false;
 
-  for (const rawLine of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
     const line = escapeHtml(rawLine);
+
+    // Pipe table: a |header| row immediately followed by a |---| separator row.
+    // Cells are escaped (via `line`) before splitting, then get inline rendering.
+    if (isTableRow(rawLine) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+      if (inUl) { output.push('</ul>'); inUl = false; }
+      if (inOl) { output.push('</ol>'); inOl = false; }
+      const header = tableCells(line).map((c) => `<th>${renderInline(c)}</th>`).join('');
+      const bodyRows = [];
+      let j = i + 2;
+      while (j < lines.length && isTableRow(lines[j]) && !isTableSeparator(lines[j])) {
+        const cells = tableCells(escapeHtml(lines[j])).map((c) => `<td>${renderInline(c)}</td>`);
+        bodyRows.push(`<tr>${cells.join('')}</tr>`);
+        j++;
+      }
+      output.push(
+        `<div class="markdown-table-wrap"><table><thead><tr>${header}</tr></thead>` +
+          `<tbody>${bodyRows.join('')}</tbody></table></div>`
+      );
+      i = j - 1;
+      continue;
+    }
 
     // Unordered list: - text
     const ulMatch = line.match(/^- (.+)$/);

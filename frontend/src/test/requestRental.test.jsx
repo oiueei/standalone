@@ -57,11 +57,12 @@ async function openCalendar() {
   await waitFor(() => expect(document.querySelector('[data-date]')).toBeTruthy());
 }
 
-// Type a pickup date into the DateInput. HDS commits the field's value to its
-// onChange prop on blur/Enter (not on every keystroke), so change + blur.
-function typePickup(container, iso) {
+// Type a pickup date into the DateInput (DD/MM/YYYY — the display format). HDS
+// commits the field's value to its onChange prop on blur/Enter (not on every
+// keystroke), so change + blur.
+function typePickup(container, display) {
   const input = container.querySelector('#request-pickup-date');
-  fireEvent.change(input, { target: { value: iso } });
+  fireEvent.change(input, { target: { value: display } });
   fireEvent.blur(input);
 }
 
@@ -122,9 +123,9 @@ describe('RequestThingPage — derived return date', () => {
     await screen.findByRole('combobox', { name: /Rental length/ });
 
     await chooseDuration('1 week');
-    typePickup(container, '2026-06-03'); // Wednesday
+    typePickup(container, '03/06/2026'); // Wednesday
 
-    expect(await screen.findByText('Return by 2026-06-10')).toBeInTheDocument();
+    expect(await screen.findByText('Return by 10/06/2026')).toBeInTheDocument();
   });
 
   test('a two-week pickup returns two Wednesdays later', async () => {
@@ -132,9 +133,22 @@ describe('RequestThingPage — derived return date', () => {
     await screen.findByRole('combobox', { name: /Rental length/ });
 
     await chooseDuration('2 weeks');
-    typePickup(container, '2026-06-03'); // Wednesday
+    typePickup(container, '03/06/2026'); // Wednesday
 
-    expect(await screen.findByText('Return by 2026-06-17')).toBeInTheDocument();
+    expect(await screen.findByText('Return by 17/06/2026')).toBeInTheDocument();
+  });
+
+  test('a single fixed length is preselected — no choice needed (#4)', async () => {
+    setApi({ thing: { ...RENTAL_THING, rental_durations: [7] } });
+    const { container } = renderPage();
+    await screen.findByRole('combobox', { name: /Rental length/ });
+
+    // The pickup picker unlocks without touching the Select…
+    await waitFor(() => expect(container.querySelector('#request-pickup-date')).not.toBeDisabled());
+
+    // …and the derived return date appears straight after picking a pickup day.
+    typePickup(container, '03/06/2026'); // Wednesday
+    expect(await screen.findByText('Return by 10/06/2026')).toBeInTheDocument();
   });
 });
 

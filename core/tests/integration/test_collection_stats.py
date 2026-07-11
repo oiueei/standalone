@@ -33,7 +33,7 @@ class TestCollectionStats:
         coll = Collection.objects.create(
             code="PROP01", owner=user, headline="P", mode=Collection.Mode.PROPRIETARY
         )
-        user2.age_range = "22_35"
+        user2.age_range = "22_30"
         user2.postal_code = "48001"
         user2.save()
         coll.invites.add(user2)
@@ -43,12 +43,12 @@ class TestCollectionStats:
         assert f"{coll.code}-stats.csv" in res["Content-Disposition"]
         data = _csv_dict(res)
         assert data["Members"] == "1"
-        assert data["Age 22-35"] == "1"
+        assert data["Age 22-30"] == "1"
         assert data["Postal 48001"] == "1"
 
     def test_csv_counts_and_demographics(self, authenticated_client, user, user2):
         coll = self._community(user)
-        user2.age_range = "22_35"
+        user2.age_range = "22_30"
         user2.postal_code = "48001"
         user2.save()
         m2 = User.objects.create(code="MEM002", email="m2@example.com")  # no demographics
@@ -73,7 +73,7 @@ class TestCollectionStats:
         assert data["Things total"] == "2"
         assert data["Things active"] == "1"
         assert data["Things reserved"] == "1"
-        assert data["Age 22-35"] == "1"
+        assert data["Age 22-30"] == "1"
         assert data["Age not specified"] == "1"
         assert data["Postal 48001"] == "1"
         assert data["Postal not specified"] == "1"

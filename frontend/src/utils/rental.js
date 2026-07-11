@@ -63,6 +63,28 @@ export const toISODate = (d) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+// The DateInputs show DD/MM/YYYY (the everyday convention in all three locales);
+// the API and every helper above keep speaking ISO YYYY-MM-DD. These two convert
+// at the component boundary — pure string work, no Date parsing, so timezone-proof.
+export const DISPLAY_DATE_FORMAT = 'dd/MM/yyyy';
+
+// 'YYYY-MM-DD' → 'DD/MM/YYYY' ('' for anything else).
+export const isoToDisplay = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+};
+
+// 'DD/MM/YYYY' (loose D/M/YYYY accepted) → 'YYYY-MM-DD' ('' for malformed or
+// impossible dates like 31/02, which HDS also flags via malformedDateErrorText).
+export const displayToIso = (display) => {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec((display || '').trim());
+  if (!m) return '';
+  const [dd, mm, yyyy] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const d = new Date(yyyy, mm - 1, dd);
+  if (d.getFullYear() !== yyyy || d.getMonth() !== mm - 1 || d.getDate() !== dd) return '';
+  return `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+};
+
 // Weekday rule: allowed when unrestricted, or the date's Python weekday is listed.
 export const weekdayAllowed = (date, rentalWeekdays) =>
   rentalWeekdays.length === 0 || rentalWeekdays.includes(jsToPyWeekday(parseLocalDate(date).getDay()));
