@@ -211,6 +211,17 @@ export default function CollectionPage() {
                 isPublic={collection.visibility === 'PUBLIC'}
               />
             </div>
+            {/* Cold-start nudge (DESIGN §2/§6): the owner has something worth
+                showing but hasn't invited anyone — a quiet one-line pointer, no
+                banner or pressure. It disappears once the first guest joins. */}
+            {collection.invites.length === 0 && visibleThings.length > 0 && (
+              <p className="invite-nudge">
+                {t('collectionPage.inviteNudge')}{' '}
+                <Link to={`/collections/${code}/invites`} className="owner-link">
+                  {t('collectionPage.inviteNudgeLink')}
+                </Link>
+              </p>
+            )}
             </>
           )}
           {isAuthenticated && !isOwner && (collection.mode === 'COMMUNITY' || collection.is_member) && (

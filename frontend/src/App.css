@@ -472,6 +472,15 @@ div[class*="Linkbox-module_linkbox"] {
   font-size: var(--fontsize-body-s);
 }
 
+/* Owner cold-start nudge — a quiet line in the hero once the owner has things
+   but no guests yet (DESIGN §6, no banner). Hero text colour so it sits with
+   the owner controls above it; the AA-guaranteed color_05 keeps it legible. */
+.invite-nudge {
+  margin-top: var(--spacing-s);
+  font-size: var(--fontsize-body-s);
+  color: var(--hero-text-color, var(--color-black-90));
+}
+
 /* Quiet "Report" action in the ThingPage footer — deliberately understated so
    it doesn't compete with the primary actions above it. The confirm expands
    inline below the button (no modal). */
