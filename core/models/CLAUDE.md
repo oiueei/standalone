@@ -118,7 +118,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 
 4. **Removing things** - The owner can always remove any thing. In COMMUNITY mode, thing owners can remove their own things.
 
-5. **Only owner invites/revokes** - The `add_invite()` and `remove_invite()` methods modify the M2M relationship.
+5. **Only owner invites/revokes** - Enforced at the view level (`CollectionInviteView` + `IsCollectionOwner`), which also owns the invitation email/RSVP flow. The model-level `add_invite()`/`remove_invite()` helpers are test-only and perform no checks (see Methods).
 
 6. **Visible to owner, invites, and anyone when PUBLIC** - `can_view(user_code)` returns True for the owner, for an invited member, or for **anyone** (including an anonymous visitor, `user_code=None`) when `visibility=PUBLIC` and the collection is ACTIVE. INACTIVE collections remain owner-only regardless of visibility.
 
@@ -126,10 +126,7 @@ The `Collection` model represents a list of things (gifts, sales, orders) owned 
 
 ### Methods
 
-- `add_thing(thing_code)` - Adds a thing to the collection via M2M
-- `remove_thing(thing_code)` - Removes a thing from the collection via M2M
-- `add_invite(user_code)` - Invites a user to view the collection via M2M
-- `remove_invite(user_code)` - Revokes a user's invite via M2M
+- `add_thing(thing_code)` / `remove_thing(thing_code)` / `add_invite(user_code)` / `remove_invite(user_code)` - **Test-only fixture helpers** that mutate the M2Ms directly: no permission or type checks, no Event logging, no emails/RSVPs, and unknown codes are silent no-ops. Production code must go through the views (`ThingViewSet`, `CollectionViewSet`, `CollectionInviteView`), which enforce all of that.
 - `is_paused` — Property. Returns `bool(self.pause_message)`. True when the collection has a non-empty `pause_message`.
 - `is_owner(user_code)` - Returns True if user is the owner (`self.owner_id == user_code`)
 - `is_invited(user_code)` - Returns True if user is in invites (`self.invites.filter(code=user_code).exists()`)
@@ -344,8 +341,7 @@ The `Thing` model represents an item in a collection.
 
 - `is_owner(user_code)` - Check if user is the owner (`self.owner_id == user_code`)
 - `can_view(user_code)` - Check if user can view. Returns `False` if status is `INACTIVE` (unless user is owner). Otherwise True when the thing sits in an ACTIVE collection that the user is invited to, owns, **or that is PUBLIC** (anonymous-safe — `user_code=None` matches PUBLIC collections only; the membership/ownership terms are dropped for anonymous callers so a `NULL` code can't spuriously match an invitee-less collection).
-- `reserve(user_code)` - Add user to `deal` M2M. Does NOT change `status` (status is managed by the booking service)
-- `release(user_code)` - Remove user from `deal` M2M.
+- `reserve(user_code)` / `release(user_code)` - **Test-only fixture helpers** that add/remove a user on the `deal` M2M directly: no status transitions, no locking, no emails, and unknown codes are silent no-ops. The real reservation flow lives in `core/services/booking_service.py`; production code must not call these.
 - `availability_window(horizon_days=90)` - For date-based types (LEND/RENT) only, returns `{"available_today": bool, "next_available": date|None}` computed from the booking calendar via `core.services.booking_service.compute_availability`; returns `None` for all other types. Prefetch-aware (reuses `self._blocked_periods` when set, else queries `BookingPeriod.get_blocked_periods`) and memoised on the instance. Backs the `available_today` / `next_available` serializer fields.
 
 ### Reverse Relations

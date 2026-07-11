@@ -103,7 +103,12 @@ class Collection(models.Model):
         return f"{self.code}: {self.headline}"
 
     def add_thing(self, thing_code):
-        """Add a thing to this collection."""
+        """Test-only fixture helper: link a thing via the M2M.
+
+        Skips the views' permission/allowed-type checks and Event logging,
+        and an unknown code is a silent no-op. Production code must go
+        through the views instead of calling this.
+        """
         from core.models import Thing
 
         try:
@@ -113,7 +118,11 @@ class Collection(models.Model):
             pass
 
     def remove_thing(self, thing_code):
-        """Remove a thing from this collection."""
+        """Test-only fixture helper: unlink a thing via the M2M.
+
+        Same caveats as add_thing — no permission checks, no Event logging,
+        silent no-op on unknown codes. Not for production code.
+        """
         from core.models import Thing
 
         try:
@@ -123,7 +132,12 @@ class Collection(models.Model):
             pass
 
     def add_invite(self, user_code):
-        """Add a user to the invites list."""
+        """Test-only fixture helper: add a user to invites via the M2M.
+
+        Skips the views' owner check and the invitation email/RSVP flow,
+        and an unknown code is a silent no-op. Production code must go
+        through CollectionInviteView instead of calling this.
+        """
         from core.models import User
 
         try:
@@ -133,7 +147,11 @@ class Collection(models.Model):
             pass
 
     def remove_invite(self, user_code):
-        """Remove a user from the invites list."""
+        """Test-only fixture helper: remove a user from invites via the M2M.
+
+        Same caveats as add_invite — no owner check, no notifications,
+        silent no-op on unknown codes. Not for production code.
+        """
         from core.models import User
 
         try:

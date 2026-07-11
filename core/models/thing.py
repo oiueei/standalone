@@ -102,7 +102,12 @@ class Thing(models.Model):
         return self.owner_id == user_code
 
     def reserve(self, user_code):
-        """Add a user to the deal M2M (tracks who has reserved)."""
+        """Test-only fixture helper: add a user to the deal M2M.
+
+        The real reservation flow lives in core/services/booking_service.py
+        (status transitions, locking, emails); this does none of that, and
+        an unknown code is a silent no-op. Not for production code.
+        """
         from core.models import User
 
         try:
@@ -112,7 +117,11 @@ class Thing(models.Model):
             pass
 
     def release(self, user_code):
-        """Remove a user from the deal M2M."""
+        """Test-only fixture helper: remove a user from the deal M2M.
+
+        Same caveats as reserve — the booking service owns the real flow.
+        Not for production code.
+        """
         from core.models import User
 
         try:
