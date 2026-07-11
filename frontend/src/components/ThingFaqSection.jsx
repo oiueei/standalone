@@ -53,6 +53,8 @@ export default function ThingFaqSection({
         setFaqs((prev) => [...prev, ...(data.results || [])]);
         setFaqsNext(data.next || null);
       }
+    } catch {
+      onToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setLoadingMore(false);
     }

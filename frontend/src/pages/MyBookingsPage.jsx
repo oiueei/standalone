@@ -91,6 +91,8 @@ export default function MyBookingsPage() {
         setBookings((prev) => [...prev, ...(data.results || [])]);
         setNext(data.next || null);
       }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setLoadingMore(false);
     }
