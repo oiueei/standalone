@@ -343,6 +343,7 @@
     "uploadError": "Upload failed. Please try again.",
     "thumbnailLabel": "Thumbnail",
     "remove": "Remove",
+    "previewAlt": "Image preview",
     "addFile": "Add a file",
     "addFileGeneric": "Add file",
     "acceptHint": "Only image files."

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { FileInput, Button } from 'hds-react';
 import { useTranslation } from 'react-i18next';
-import { apiFetch } from '../services/api';
-import { resizeImage } from '../utils/resizeImage';
+import { uploadImageToCloudinary } from '../utils/uploadImage';
 import useTheeeme from '../hooks/useTheeeme';
 import hdsLang from '../utils/hdsLang';
 
@@ -50,34 +49,7 @@ export default function GalleryUpload({ items = [], onChange }) {
     const uploaded = [];
     try {
       for (const original of selected) {
-        const file = await resizeImage(original);
-
-        const sigRes = await apiFetch('/api/v1/upload/signature/', {
-          method: 'POST',
-          body: JSON.stringify({ folder: 'oiueei/things' }),
-        });
-        if (!sigRes.ok) throw new Error('signature_failed');
-        const { signature, timestamp, api_key, cloud_name, folder, public_id, allowed_formats, resource_type } =
-          await sigRes.json();
-
-        // Send back exactly the server-signed parameters — changing any of them
-        // (public_id, allowed_formats) would break the signature.
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('api_key', api_key);
-        formData.append('timestamp', String(timestamp));
-        formData.append('signature', signature);
-        formData.append('folder', folder);
-        formData.append('public_id', public_id);
-        formData.append('allowed_formats', allowed_formats);
-
-        const uploadRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloud_name}/${resource_type}/upload`,
-          { method: 'POST', body: formData }
-        );
-        if (!uploadRes.ok) throw new Error('upload_failed');
-        const data = await uploadRes.json();
-        uploaded.push({ publicId: data.public_id, url: data.secure_url });
+        uploaded.push(await uploadImageToCloudinary(original, 'oiueei/things'));
       }
       // Selected more than the remaining slots — keep what fit, flag the cap.
       if (truncated) setError(t('gallery.maxImages', { max: MAX_IMAGES }));

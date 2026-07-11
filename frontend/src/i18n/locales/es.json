@@ -325,6 +325,7 @@
     "uploadError": "Error al cargar. Inténtalo de nuevo.",
     "thumbnailLabel": "Miniatura",
     "remove": "Eliminar",
+    "previewAlt": "Vista previa de la imagen",
     "addFile": "Añadir imagen",
     "addFileGeneric": "Añadir archivo",
     "acceptHint": "Solo archivos de imagen."

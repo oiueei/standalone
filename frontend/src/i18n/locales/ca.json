@@ -325,6 +325,7 @@
     "uploadError": "Error en carregar. Torna-ho a intentar.",
     "thumbnailLabel": "Miniatura",
     "remove": "Eliminar",
+    "previewAlt": "Vista prèvia de la imatge",
     "addFile": "Afegir imatge",
     "addFileGeneric": "Afegir fitxer",
     "acceptHint": "Només fitxers d'imatge."
