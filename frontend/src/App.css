@@ -312,6 +312,18 @@ div[class*="Linkbox-module_linkbox"] {
   color: var(--color-white);
 }
 
+/* Keyboard focus for the hand-rolled toggle chips (FRONTEND C3). HDS components
+   carry their own focus styles; these custom buttons leaned on the browser
+   default. Black ring, offset so it reads on the page background even when the
+   chip itself is filled (a selected weekday / pressed tag). */
+.tag-chip:focus-visible,
+.weekday-chip:focus-visible,
+.theeeme-option:focus-visible,
+.koro-option:focus-visible {
+  outline: 3px solid var(--color-black-90);
+  outline-offset: 2px;
+}
+
 .things-grid {
   display: grid;
   grid-template-columns: 1fr;
