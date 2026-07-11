@@ -4,6 +4,36 @@ import { useTranslation } from 'react-i18next';
 import { Button, Notification, Koros } from 'hds-react';
 import useTheeeme from '../hooks/useTheeeme';
 
+/**
+ * The verifying / success / error states share the same form-hero + Koros
+ * scaffold; only the title, an optional hero action button and the page body
+ * differ. One layout keeps the three in lockstep.
+ */
+function VerifyScreen({ tc, koro, title, action, children }) {
+  return (
+    <div
+      className="form-page"
+      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    >
+      <div
+        className="form-hero"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+      >
+        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <h1 className="form-hero-title">{title}</h1>
+          {action}
+        </div>
+        <Koros
+          className="form-hero-koros"
+          type={koro}
+          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
+        />
+      </div>
+      <div className="page-container">{children}</div>
+    </div>
+  );
+}
+
 export default function VerifyPage() {
   const { code } = useParams();
   const navigate = useNavigate();
@@ -86,94 +116,38 @@ export default function VerifyPage() {
     return () => clearTimeout(timer);
   }, [code, navigate, t]);
 
+  const koro = localStorage.getItem('koro') || 'basic';
+  // Both the success and error heroes offer the same way out.
+  const exitAction = (
+    <div>
+      <Link to={isLoggedIn ? '/' : '/login'}>
+        <Button style={btnStyle}>{isLoggedIn ? t('verify.goToHomepage') : t('verify.goToLogin')}</Button>
+      </Link>
+    </div>
+  );
+
   if (success) {
     return (
-      <div
-        className="form-page"
-        style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
-      >
-        <div
-          className="form-hero"
-          style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-        >
-          <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-            <h1 className="form-hero-title">{title}</h1>
-            <div>
-              <Link to={isLoggedIn ? '/' : '/login'}>
-                <Button style={btnStyle}>{isLoggedIn ? t('verify.goToHomepage') : t('verify.goToLogin')}</Button>
-              </Link>
-            </div>
-          </div>
-          <Koros
-            className="form-hero-koros"
-            type={localStorage.getItem('koro') || 'basic'}
-            style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-          />
-        </div>
-        <div className="page-container">
-          <Notification label={t('common.done')} type="success">
-            {success}
-          </Notification>
-        </div>
-      </div>
+      <VerifyScreen tc={tc} koro={koro} title={title} action={exitAction}>
+        <Notification label={t('common.done')} type="success">
+          {success}
+        </Notification>
+      </VerifyScreen>
     );
   }
 
   if (error) {
     return (
-      <div
-        className="form-page"
-        style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
-      >
-        <div
-          className="form-hero"
-          style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-        >
-          <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-            <h1 className="form-hero-title">{t('verify.oops')}</h1>
-            <div>
-              <Link to={isLoggedIn ? '/' : '/login'}>
-                <Button style={btnStyle}>{isLoggedIn ? t('verify.goToHomepage') : t('verify.goToLogin')}</Button>
-              </Link>
-            </div>
-          </div>
-          <Koros
-            className="form-hero-koros"
-            type={localStorage.getItem('koro') || 'basic'}
-            style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-          />
-        </div>
-        <div className="page-container">
-          <Notification label={t('common.error')} type="error">
-            {error}
-          </Notification>
-          <p className="section-mt">
-            {t('verify.expiredHelp')}
-          </p>
-        </div>
-      </div>
+      <VerifyScreen tc={tc} koro={koro} title={t('verify.oops')} action={exitAction}>
+        <Notification label={t('common.error')} type="error">
+          {error}
+        </Notification>
+        <p className="section-mt">
+          {t('verify.expiredHelp')}
+        </p>
+      </VerifyScreen>
     );
   }
 
-  return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
-    >
-      <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <h1 className="form-hero-title">{t('verify.verifying')}</h1>
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={localStorage.getItem('koro') || 'basic'}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container" />
-    </div>
-  );
+  return <VerifyScreen tc={tc} koro={koro} title={t('verify.verifying')} />;
 }
