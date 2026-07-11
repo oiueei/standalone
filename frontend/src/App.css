@@ -713,6 +713,15 @@ div[class*="Linkbox-module_linkbox"] {
   margin-top: var(--spacing-s);
 }
 
+/* Each chip here is the owner's remove-a-tag control, so HDS makes the whole
+   tag role="button". HDS renders tags at 32px min-height — below the WCAG
+   2.5.5 target — so bump these interactive ones to 44px (matching the
+   deliberate .tag-chip / .weekday-chip targets). Scoped to role="button" so
+   the non-interactive label tags on cards keep their compact size. (O8) */
+.tag-chip-row [role="button"] {
+  min-height: 44px;
+}
+
 /* Gallery upload thumbnails (Add/Edit thing) */
 .gallery-thumbs {
   display: flex;
