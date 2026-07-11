@@ -375,3 +375,4 @@ After all four sessions are complete and `/ship` has been run, remind the user t
 git tag v0.X.0
 git push origin v0.X.0
 ```
+Tag on `development` (the branch this skill audits), not on `heroku` — the "commits since last tag" range above (`HEAD --not --tags`) only reflects unreleased work accurately when the tag sits on the audited branch.

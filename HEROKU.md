@@ -263,6 +263,8 @@ The daily commands are safe to run every day — each checks the date internally
 
 `stats_summary`'s weekly email is opt-in — set `STATS_EMAIL` to receive it (`heroku config:set STATS_EMAIL='you@your-domain.com' -a your-app-name`); it always prints to the log regardless.
 
+**Not in the daily chain:** `cleanup_orphan_images` (delete orphaned Cloudinary uploads) is a separate, manual command — dry-run by default, `--commit` to actually delete. It's destructive and gated behind Heroku shell access, so it isn't auto-scheduled; run it by hand roughly weekly. Quote the inner command so the Heroku CLI doesn't eat the flag: `heroku run --app <app> "python manage.py cleanup_orphan_images --commit"`.
+
 ## Troubleshooting
 
 **Bad Request (400)** — Check `DJANGO_ALLOWED_HOSTS`. The actual Heroku hostname may include a random suffix. Run `heroku open -a your-app-name` to confirm the exact URL.
