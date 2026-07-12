@@ -2,8 +2,10 @@
 
 The standalone repo defaults to English; www.oiueei.com sets EMAIL_LANGUAGE=es.
 These tests pin the default, the Spanish deployment, the unknown-code fallback,
-and the en/es catalogue parity (the email analogue of i18nParity.test.js).
+and the en/{es,ca} catalogue parity (the email analogue of i18nParity.test.js).
 """
+
+import string
 
 import pytest
 from django.core import mail
@@ -11,7 +13,7 @@ from django.test import override_settings
 
 from core.models import Collection, User
 from core.services import email_service
-from core.services.email_texts import T, en, es
+from core.services.email_texts import T, ca, en, es
 
 
 @pytest.mark.django_db
@@ -109,36 +111,52 @@ class TestEmailLanguage:
             assert "purchase" in msg.body
 
 
+# Catalogues that must mirror the en reference (keys, placeholders, viral shape).
+OTHER_CATALOGUES = [es, ca]
+
+
 class TestCatalogueParity:
-    def test_es_covers_exactly_the_en_keys(self):
-        assert set(es.TEXTS) == set(en.TEXTS)
+    @pytest.mark.parametrize("catalogue", OTHER_CATALOGUES, ids=["es", "ca"])
+    def test_covers_exactly_the_en_keys(self, catalogue):
+        assert set(catalogue.TEXTS) == set(en.TEXTS)
 
-    def test_viral_lines_shape_matches_between_languages(self):
-        # VIRAL_LINES must have the same length and the same dict keys in every
-        # catalogue (the analogue of the TEXTS parity above).
-        assert len(en.VIRAL_LINES) == len(es.VIRAL_LINES)
-        assert len(en.VIRAL_LINES) > 0
-        keys = {frozenset(d) for d in en.VIRAL_LINES} | {frozenset(d) for d in es.VIRAL_LINES}
-        assert keys == {frozenset({"text", "cta"})}
-
-    def test_placeholders_match_between_languages(self):
+    @pytest.mark.parametrize("catalogue", OTHER_CATALOGUES, ids=["es", "ca"])
+    def test_placeholders_match_en(self, catalogue):
         # A translation must keep every {placeholder} its English source has —
         # otherwise .format() raises at send time.
-        import string
-
         fmt = string.Formatter()
 
         def fields(template):
             return {name for _, name, _, _ in fmt.parse(template) if name}
 
-        mismatched = [key for key in en.TEXTS if fields(en.TEXTS[key]) != fields(es.TEXTS[key])]
+        mismatched = [k for k in en.TEXTS if fields(en.TEXTS[k]) != fields(catalogue.TEXTS[k])]
         assert mismatched == []
+
+    @pytest.mark.parametrize("catalogue", OTHER_CATALOGUES, ids=["es", "ca"])
+    def test_viral_lines_shape_matches_en(self, catalogue):
+        # VIRAL_LINES must have the same length and the same dict keys in every
+        # catalogue (the analogue of the TEXTS parity above).
+        assert len(en.VIRAL_LINES) == len(catalogue.VIRAL_LINES)
+        assert len(en.VIRAL_LINES) > 0
+        keys = {frozenset(d) for d in en.VIRAL_LINES} | {
+            frozenset(d) for d in catalogue.VIRAL_LINES
+        }
+        assert keys == {frozenset({"text", "cta"})}
 
     def test_T_reads_settings_lazily(self):
         with override_settings(EMAIL_LANGUAGE="es"):
             assert T("magic_cta") == "Iniciar sesión"
         with override_settings(EMAIL_LANGUAGE="en"):
             assert T("magic_cta") == "Sign in"
+        with override_settings(EMAIL_LANGUAGE="ca"):
+            assert T("magic_cta") == "Iniciar sessió"
+
+    @override_settings(EMAIL_LANGUAGE="ca")
+    def test_ca_smoke(self):
+        # The Catalan catalogue is wired end-to-end via the lazy import.
+        email_service.send_magic_link_email("a@example.com", "http://x/verify/tok")
+        assert mail.outbox[0].subject == "Hola, et donem la benvinguda a OIUEEI!"
+        assert "iniciar sessió" in mail.outbox[0].body
 
 
 @pytest.mark.django_db
