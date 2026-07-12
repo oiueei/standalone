@@ -157,9 +157,11 @@ Returns the current authenticated user's full profile via `UserSerializer`. Upda
 | | |
 |---|---|
 | **Endpoint** | `POST /api/v1/auth/logout/` |
-| **Permission** | `IsAuthenticated` |
+| **Permission** | `AllowAny`, `authentication_classes = []` |
 
 Logs out the current user. Reads the refresh token from the `refresh_token` HttpOnly cookie (scoped to `/api/v1/auth/` so it actually reaches this endpoint — `REFRESH_COOKIE_PATH`), blacklists it so it can't be reused to refresh, and clears both `access_token` and `refresh_token` cookies.
+
+**Authenticates nothing, on purpose — logout must never fail.** It used to be `IsAuthenticated`, which broke it in the two cases that matter most: an **expired access token** 401'd the request, leaving the still-valid (up to 7 days) refresh token unblacklisted; and a cookie-authenticated POST **without an `X-CSRFToken` header** was rejected by `CookieJWTAuthentication.enforce_csrf` with a 403, leaving every cookie alive while the SPA navigated to `/login` anyway — so the session came back to life on the next page load (the reported "logout doesn't log out" bug; `LogoutPage` now also goes through `apiFetch`, which sends the header). With no authenticator the view simply reads the refresh cookie, blacklists it (best-effort — an invalid token is swallowed) and **always** returns 200 with the three cookie-deleting headers. The trade-off is a CSRF-forced logout: a cross-site POST can end a session, never act inside one.
 
 ### TokenRefreshView
 

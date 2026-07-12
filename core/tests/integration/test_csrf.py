@@ -56,3 +56,31 @@ class TestCsrfEnforcement:
         res = client.get("/api/v1/auth/me/")
         assert res.status_code == 200
         assert "csrftoken" in res.cookies
+
+
+@pytest.mark.django_db
+class TestLogoutIsNeverBlocked:
+    """LogoutView authenticates nothing, so the CSRF check that guards every other
+    cookie-authed POST can't stop a user from ending their own session."""
+
+    def test_logout_without_csrf_token_still_succeeds(self, user):
+        client = APIClient(enforce_csrf_checks=True)
+        refresh = RefreshToken.for_user(user)
+        client.cookies["access_token"] = str(refresh.access_token)
+        client.cookies["refresh_token"] = str(refresh)
+
+        res = client.post("/api/v1/auth/logout/")
+
+        assert res.status_code == 200
+        assert res.cookies["access_token"].value == ""
+        assert res.cookies["refresh_token"].value == ""
+
+    def test_logout_without_csrf_token_blacklists_the_refresh_token(self, user):
+        client = APIClient(enforce_csrf_checks=True)
+        refresh = str(RefreshToken.for_user(user))
+        client.cookies["refresh_token"] = refresh
+
+        assert client.post("/api/v1/auth/logout/").status_code == 200
+
+        client.cookies["refresh_token"] = refresh
+        assert client.post("/api/v1/auth/refresh/").status_code == 401

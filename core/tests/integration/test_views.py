@@ -144,9 +144,28 @@ class TestAuthViews:
         assert response.data["message"] == "Successfully logged out"
 
     def test_logout_unauthenticated(self, api_client):
-        """Should reject logout for unauthenticated user."""
+        """Logout is best-effort: with no cookies at all it still 200s and still
+        sends the cookie-deleting headers (an expired access token must never
+        strand a live refresh token)."""
         response = api_client.post("/api/v1/auth/logout/")
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_200_OK
+        assert response.cookies["access_token"].value == ""
+        assert response.cookies["refresh_token"].value == ""
+
+    def test_logout_expired_access_token_still_blacklists_refresh(self, api_client, user):
+        """The bug: an expired access token 401'd the logout, so the refresh token
+        (valid for days) survived and could mint new access tokens."""
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = str(RefreshToken.for_user(user))
+        api_client.cookies["access_token"] = "expired.or.garbage"
+        api_client.cookies["refresh_token"] = refresh
+
+        response = api_client.post("/api/v1/auth/logout/")
+        assert response.status_code == status.HTTP_200_OK
+
+        api_client.cookies["refresh_token"] = refresh
+        assert api_client.post("/api/v1/auth/refresh/").status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_logout_with_refresh_token(self, authenticated_client, user):
         """Should logout and attempt to blacklist refresh token."""

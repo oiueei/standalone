@@ -595,12 +595,22 @@ class MeView(APIView):
 class LogoutView(APIView):
     """
     POST /api/v1/auth/logout/
-    Logout the current user.
+    Log the current user out. Unauthenticated by design — best-effort, always 200.
 
     Optionally accepts a refresh token to blacklist it.
     """
 
-    permission_classes = [IsAuthenticated]
+    # Logout must never fail, so it authenticates nothing. Authentication used to
+    # break it exactly when it mattered: an expired access token 401'd and left the
+    # still-valid (up to 7 days) refresh token unblacklisted, and a cookie-authed
+    # POST without an ``X-CSRFToken`` header 403'd in ``CookieJWTAuthentication``,
+    # leaving every cookie alive while the SPA navigated to /login anyway — the
+    # session then came back to life on the next page load. With no authenticator
+    # the view just reads the refresh cookie, blacklists it and drops the cookies.
+    # The trade-off is a CSRF-forced logout: it can only end a session, never act
+    # inside one.
+    authentication_classes = []
+    permission_classes = [AllowAny]
 
     def post(self, request):
         # Try to blacklist the refresh token from cookie or body

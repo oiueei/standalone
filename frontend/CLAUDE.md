@@ -318,8 +318,8 @@ Detail page for a thing with full information and FAQs section.
 
 ### LogoutPage (`src/pages/LogoutPage.jsx`)
 
-- Calls `POST /api/v1/auth/logout/` to clear auth cookies on the backend.
-- Clears `userCode` from `localStorage`.
+- Calls `POST /api/v1/auth/logout/` **via `apiFetch`** to clear auth cookies on the backend. It used a raw `fetch` with no `X-CSRFToken` header, so the POST was rejected by `CookieJWTAuthentication.enforce_csrf` (403) before `LogoutView` ran: the cookies survived, the refresh token was never blacklisted, and the session resurrected on the next page load — while the `.finally()` navigated to `/login` and made it *look* logged out. `LogoutView` now authenticates nothing either, so the request can't fail (see `core/views/CLAUDE.md`).
+- Clears `userCode` and `seenWelcome` from `localStorage`.
 - Navigates to `/login` immediately.
 
 ### AddThingPage (`src/pages/AddThingPage.jsx`)
