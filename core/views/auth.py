@@ -27,8 +27,12 @@ from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.serializers import RequestLinkSerializer, UserSerializer
 from core.services.booking_service import finalize_booking_decision
-from core.services.email_service import send_invite_rejected_email, send_magic_link_email
-from core.utils import get_client_ip, redact_email
+from core.services.email_service import (
+    send_collection_welcome_doc_email,
+    send_invite_rejected_email,
+    send_magic_link_email,
+)
+from core.utils import cloudinary_doc_url, get_client_ip, redact_email
 
 security_logger = logging.getLogger("security")
 
@@ -88,6 +92,32 @@ def _send_magic_link(email, magic_link, collection_headline=None):
         ).start()
     else:
         send_magic_link_email(email, magic_link, collection_headline)
+
+
+def _join_collection(collection, user):
+    """Add ``user`` to ``collection``'s members and run the first-join side effects.
+
+    Every join path funnels through here: accepting an invitation, a share-token
+    pop-in, joining a PUBLIC collection to act on it, and the onboarding
+    collections. It logs the MEMBER_JOINED event and — the first time this user
+    becomes a member — emails the collection's welcome & rules PDF, if the owner
+    set one.
+
+    "First time" is decided **before** the M2M add: the add is idempotent and
+    re-runs on every login-to-act pop-in, so an existing member re-entering must
+    not be sent the document again.
+    """
+    already_member = collection.invites.filter(code=user.code).exists()
+    collection.invites.add(user)
+    Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
+
+    if already_member or not collection.welcome_doc:
+        return
+    send_collection_welcome_doc_email(
+        collection.headline,
+        cloudinary_doc_url(collection.welcome_doc),
+        user.email,
+    )
 
 
 def email_ratelimit_key(group, request):
@@ -376,8 +406,7 @@ class VerifyLinkView(APIView):
         if rsvp.target_code:
             try:
                 collection = Collection.objects.get(code=rsvp.target_code)
-                collection.invites.add(user)
-                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
+                _join_collection(collection, user)
                 invited_collection = rsvp.target_code
             except Collection.DoesNotExist:
                 pass  # Collection was deleted, ignore
@@ -574,8 +603,7 @@ class PopInView(APIView):
                 shared_collection = None
 
             if shared_collection is not None:
-                shared_collection.invites.add(user)
-                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=shared_collection)
+                _join_collection(shared_collection, user)
                 joined = True
                 target_collection_code = shared_collection.code
                 join_headline = shared_collection.headline
@@ -595,8 +623,7 @@ class PopInView(APIView):
                 public_collection = None
 
             if public_collection is not None:
-                public_collection.invites.add(user)
-                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=public_collection)
+                _join_collection(public_collection, user)
                 joined = True
                 target_collection_code = public_collection.code
                 join_headline = public_collection.headline
@@ -605,8 +632,7 @@ class PopInView(APIView):
         if not joined:
             onboarding_collections = Collection.objects.filter(is_onboarding=True)
             for collection in onboarding_collections:
-                collection.invites.add(user)
-                Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
+                _join_collection(collection, user)
 
         rsvp = RSVP.objects.create(
             user_code=user,

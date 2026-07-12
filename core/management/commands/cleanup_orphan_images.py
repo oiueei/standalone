@@ -16,8 +16,11 @@ uploads that never became a record at all.
 (Quote the inner command so the Heroku CLI doesn't eat ``--commit``.)
 
 Safety rails:
-- Cross-references **every** DB image field — Thing.thumbnail + Thing.gallery,
-  User.photo, Collection.thumbnail — so anything in use is kept.
+- Cross-references **every** DB asset field — Thing.thumbnail + Thing.gallery,
+  User.photo, Collection.thumbnail and Collection.welcome_doc — so anything in use
+  is kept. The welcome PDF matters here: Cloudinary stores a PDF under
+  ``resource_type=image``, so it turns up in this sweep like any photo, and a
+  missing cross-reference would delete a live document.
 - Never touches the ``oiueei/seed/`` folder (the demo's shared image pool).
 - Only considers assets **older than --min-age-hours** (default 24h) so an
   in-flight upload mid-form isn't mistaken for an orphan, and **younger than
@@ -125,7 +128,13 @@ class Command(BaseCommand):
                 if public_id:
                     referenced.add(public_id)
         referenced.update(p for p in User.objects.values_list("photo", flat=True) if p)
-        referenced.update(t for t in Collection.objects.values_list("thumbnail", flat=True) if t)
+        for thumbnail, welcome_doc in Collection.objects.values_list("thumbnail", "welcome_doc"):
+            # welcome_doc is a PDF, but Cloudinary keeps it under resource_type=image,
+            # so this sweep sees it — it has to be protected like any other asset.
+            if thumbnail:
+                referenced.add(thumbnail)
+            if welcome_doc:
+                referenced.add(welcome_doc)
         return referenced
 
     def _iter_cloudinary(self, prefix):

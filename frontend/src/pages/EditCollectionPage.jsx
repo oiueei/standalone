@@ -7,6 +7,7 @@ import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
 import ImageUpload from '../components/ImageUpload';
+import PdfUpload from '../components/PdfUpload';
 import TagInput from '../components/TagInput';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -36,6 +37,8 @@ export default function EditCollectionPage() {
   const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [welcomeDoc, setWelcomeDoc] = useState('');
+  const [welcomeDocUrl, setWelcomeDocUrl] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [pauseSubmitting, setPauseSubmitting] = useState(false);
@@ -103,6 +106,8 @@ export default function EditCollectionPage() {
           setTags(data.tags || []);
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
+          setWelcomeDoc(data.welcome_doc || '');
+          setWelcomeDocUrl(data.welcome_doc_url || '');
           setPauseMessage(data.pause_message || '');
           setIsPaused(data.is_paused || false);
         } else {
@@ -149,6 +154,7 @@ export default function EditCollectionPage() {
       rental_weekdays: isSwap || isShare ? [] : rentalWeekdays,
       tags,
       thumbnail: thumbnail || '',
+      welcome_doc: welcomeDoc || '',
     };
 
     try {
@@ -311,6 +317,13 @@ export default function EditCollectionPage() {
           onChange={setThumbnail}
           currentUrl={thumbnailUrl}
           folder="oiueei/collections"
+        />
+        <PdfUpload
+          id="edit-collection-welcome-doc"
+          label={t('upload.welcomeDocLabel')}
+          onChange={setWelcomeDoc}
+          currentUrl={welcomeDocUrl}
+          helperText={t('upload.welcomeDocHelper')}
         />
       </div>
       <div className="form-actions">

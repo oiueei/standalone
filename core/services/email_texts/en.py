@@ -42,6 +42,14 @@ TEXTS = {
     "revoke_plain": "{owner} has revoked your access to '{collection}'.",
     "revoke_intro": "{owner} has revoked your access to:",
     "revoke_outro": "You will no longer be able to view this collection.",
+    # Collection welcome document (sent once, the first time someone joins)
+    "welcome_doc_subject": "Welcome to '{collection}'",
+    "welcome_doc_plain": (
+        "Welcome to '{collection}'. The group has a welcome and rules document — "
+        "please have a read: {url}"
+    ),
+    "welcome_doc_intro": "Welcome! The group has a welcome and rules document:",
+    "welcome_doc_outro": "Have a read before you get started.",
     # Booking request (to owner)
     "booking_request_subject": "You have a pending {action} request",
     "booking_request_plain_dated": (

@@ -54,7 +54,7 @@ Every email belongs to one of three categories. Each function routes through the
 
 | Category | Constant | User flag | Scope |
 |----------|----------|-----------|-------|
-| **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_revoke_email` |
+| **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_welcome_doc_email`, `send_collection_revoke_email` |
 | **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_thing_reported_email`, `send_return_reminder_email`, `send_broadcast_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
 | **Cat. 3 — News** | `CATEGORY_NEWS` | `User.notify_news` | `send_digest_email`, `send_newsletter_email` |
 
@@ -85,6 +85,7 @@ A deployment speaks **one language** in all outbound email, picked by the `EMAIL
 | `send_booking_decision_email(booking, thing, accepted)` | Owner accepts or rejects a booking | Requester |
 | `send_collection_invite_email(inviter_name, collection_headline, email, accept_link, reject_link)` | Owner invites a user to a collection | Invitee |
 | `send_invite_rejected_email(invitee_name, collection_headline, owner_email)` | Invitee declines a collection invitation | Collection owner |
+| `send_collection_welcome_doc_email(collection_headline, doc_url, email)` | A user becomes a member of a collection **for the first time** (any join path — invite, share-token pop-in, public-collection join, onboarding) and the owner has set a welcome PDF | The new member. The PDF travels as a **link** (Cloudinary), never an attachment. Membership lifecycle ⇒ Cat. 1: a member who never sees the rules can't follow them |
 | `send_collection_revoke_email(owner_name, collection_headline, email)` | Owner removes a user from a collection | Revoked user |
 | `send_faq_question_email(questioner_name, thing, question, owner_email)` | Guest asks a question on a thing | Thing owner |
 | `send_faq_answer_email(owner_name, thing, question, answer, questioner_email)` | Owner answers a FAQ | Questioner (the email links the thing — label is the thing headline, via `_thing_url`) |
@@ -131,7 +132,7 @@ Frees the Cloudinary images a record owns when the record itself is deleted, so 
 | Model | Assets |
 |-------|--------|
 | `Thing` | `thumbnail` and every `gallery` id |
-| `Collection` | `thumbnail` |
+| `Collection` | `thumbnail`, `welcome_doc` (the welcome PDF — also `resource_type=image`, so the default destroy kwargs are right) |
 | `User` | `photo` |
 
 #### Suspension (the demo-seed guard)

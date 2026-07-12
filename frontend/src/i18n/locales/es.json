@@ -333,7 +333,12 @@
     "previewAlt": "Vista previa de la imagen",
     "addFile": "Añadir imagen",
     "addFileGeneric": "Añadir archivo",
-    "acceptHint": "Solo archivos de imagen."
+    "acceptHint": "Solo archivos de imagen.",
+    "pdfHint": "Solo PDF, máximo 5 MB.",
+    "pdfView": "Ver el documento",
+    "pdfTooLarge": "El archivo es demasiado grande (máximo 5 MB).",
+    "welcomeDocLabel": "Documento de bienvenida (PDF)",
+    "welcomeDocHelper": "Opcional. Quien entra en el grupo lo recibe por correo, una sola vez."
   },
   "addThing": {
     "pageTitle": "Añadir artículo",

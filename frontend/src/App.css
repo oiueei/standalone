@@ -925,23 +925,36 @@ figure[class*="Highlight-module_highlight"] {
 }
 
 /* Image upload previews */
-.image-upload {
+.image-upload,
+.pdf-upload {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-s);
 }
 
 /* Make the HDS FileInput button fill the available width and follow theeeme colors */
-.image-upload div:has(> input[type="file"]) {
+.image-upload div:has(> input[type="file"]),
+.pdf-upload div:has(> input[type="file"]) {
   display: block;
   width: 100%;
 }
-.image-upload button[aria-hidden="true"] {
+.image-upload button[aria-hidden="true"],
+.pdf-upload button[aria-hidden="true"] {
   width: 100%;
   --border-color: var(--upload-border);
   --color: var(--upload-color);
   --background-color-hover: var(--upload-bg-hover);
   --color-hover: var(--upload-color-hover);
+}
+
+/* An uploaded PDF has no thumbnail to preview — just a link to open it and the
+   Remove button, side by side. */
+.pdf-upload-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-s);
+  flex-wrap: wrap;
 }
 
 .image-upload-preview img {

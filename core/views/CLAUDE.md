@@ -540,9 +540,12 @@ Shows a previously hidden FAQ.
 
 Generates a short-lived Cloudinary signed upload signature so the frontend can upload images directly to Cloudinary without routing the binary data through Django. The signature binds every parameter, so a client cannot tamper with them: the **`public_id` is generated server-side** (preventing arbitrary ids / overwrites), `allowed_formats` restricts accepted formats (raster photo formats only — SVG excluded), and `resource_type` is always `image` (not client-trusted). Cloudinary's `max_file_size` is not enforced on the current plan, so the per-file size cap stays a client-side check.
 
+**Document mode (the collection welcome PDF).** `{"kind": "document"}` narrows `allowed_formats` to **`pdf` alone** and adds a signed `max_file_size` of 5 MB (harmless while the plan ignores it, binding the day it doesn't — the real cap today is `PdfUpload`'s client-side check). Everything else is unchanged, including the server-generated `public_id` and `resource_type: image` — Cloudinary treats a PDF as a page-based image, so both kinds share the resource type. Any `kind` other than the literal `"document"` is an image upload, so an unknown value can only ever narrow to the existing defaults.
+
 **Request body:**
 ```json
 { "folder": "oiueei/things" }
+{ "folder": "oiueei/collections", "kind": "document" }
 ```
 
 Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`. Any other value falls back to `oiueei/users`.
@@ -557,9 +560,11 @@ Allowed folder values: `oiueei/users`, `oiueei/things`, `oiueei/collections`. An
     "folder": "oiueei/things",
     "public_id": "<server-generated>",
     "allowed_formats": "jpg,jpeg,png,...",
-    "resource_type": "image"
+    "resource_type": "image",
+    "max_file_size": 5242880
 }
 ```
+(`max_file_size` is present in document mode only.)
 
 **Frontend upload flow:**
 1. Call this endpoint to get the signed parameters.

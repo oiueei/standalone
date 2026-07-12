@@ -333,7 +333,12 @@
     "previewAlt": "Vista prèvia de la imatge",
     "addFile": "Afegir imatge",
     "addFileGeneric": "Afegir fitxer",
-    "acceptHint": "Només fitxers d'imatge."
+    "acceptHint": "Només fitxers d'imatge.",
+    "pdfHint": "Només PDF, màxim 5 MB.",
+    "pdfView": "Veure el document",
+    "pdfTooLarge": "El fitxer és massa gran (màxim 5 MB).",
+    "welcomeDocLabel": "Document de benvinguda (PDF)",
+    "welcomeDocHelper": "Opcional. Qui entra al grup el rep per correu, una sola vegada."
   },
   "addThing": {
     "pageTitle": "Afegir article",

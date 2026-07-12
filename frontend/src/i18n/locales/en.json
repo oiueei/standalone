@@ -351,7 +351,12 @@
     "previewAlt": "Image preview",
     "addFile": "Add a file",
     "addFileGeneric": "Add file",
-    "acceptHint": "Only image files."
+    "acceptHint": "Only image files.",
+    "pdfHint": "PDF only, max 5 MB.",
+    "pdfView": "View the document",
+    "pdfTooLarge": "The file is too large (max 5 MB).",
+    "welcomeDocLabel": "Welcome document (PDF)",
+    "welcomeDocHelper": "Optional. Everyone who joins the group receives it by email, once."
   },
   "addThing": {
     "pageTitle": "Add thing",

@@ -405,6 +405,27 @@ def send_collection_invite_email(
     _send(email, subject, plain, html, CATEGORY_MANDATORY)
 
 
+def send_collection_welcome_doc_email(collection_headline, doc_url, email):
+    """Send the collection's welcome & rules PDF to a member who has just joined.
+
+    A **link**, never an attachment: the file lives on Cloudinary, and mailing a
+    5 MB PDF to every joiner would be a good way to get the domain filtered.
+    Membership lifecycle, so it is mandatory (Cat. 1) like the invitation itself —
+    a member who never sees the rules can't follow them. Sent once, on the first
+    join (see ``CollectionJoinMixin.send_welcome_doc``).
+    """
+    subject = T("welcome_doc_subject").format(collection=collection_headline)
+    plain = T("welcome_doc_plain").format(collection=collection_headline, url=doc_url)
+    html = _render_email(
+        [
+            _para(T("welcome_doc_intro")),
+            _links((doc_url, collection_headline)),
+            _para(T("welcome_doc_outro")),
+        ]
+    )
+    _send(email, subject, plain, html, CATEGORY_MANDATORY)
+
+
 def send_collection_revoke_email(owner_name, collection_headline, email):
     """Send collection access revoked notification email."""
     subject = T("revoke_subject")

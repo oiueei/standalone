@@ -50,6 +50,10 @@ def _assets(instance):
     elif isinstance(instance, Collection):
         if instance.thumbnail:
             yield instance.thumbnail, {}
+        # The welcome PDF sits under resource_type=image too (Cloudinary treats a
+        # PDF as a page-based image), so the default destroy kwargs are right.
+        if instance.welcome_doc:
+            yield instance.welcome_doc, {}
     elif isinstance(instance, User):
         if instance.photo:
             yield instance.photo, {}

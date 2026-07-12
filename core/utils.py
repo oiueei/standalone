@@ -75,3 +75,21 @@ def cloudinary_url(image_id):
 
     url, _ = cloudinary.utils.cloudinary_url(image_id, fetch_format="auto", quality="auto")
     return url
+
+
+def cloudinary_doc_url(public_id):
+    """Build the delivery URL of an uploaded PDF (``Collection.welcome_doc``).
+
+    Cloudinary stores a PDF under ``resource_type=image`` (it treats it as a
+    page-based image), so the id lives in the same namespace as the photos — but
+    the URL must carry the ``.pdf`` extension and **no** ``f_auto``/``q_auto``:
+    those are photo transformations and would ask Cloudinary to re-encode the
+    document instead of serving it. Delivery also requires "Allow delivery of PDF
+    and ZIP files" to be on in the account's security settings (it is).
+    """
+    if not public_id:
+        return None
+    import cloudinary.utils
+
+    url, _ = cloudinary.utils.cloudinary_url(public_id, resource_type="image", format="pdf")
+    return url

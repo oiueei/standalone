@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 from core.models import RSVP, Collection, Thing
 from core.serializers.thing import ThingComputedFieldsMixin
-from core.utils import cloudinary_url
+from core.utils import cloudinary_doc_url, cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
 # Thing types valid for proprietary collections (excludes COMMUNITY-only types
@@ -120,6 +120,7 @@ class CollectionSerializer(serializers.ModelSerializer):
     owner = serializers.CharField(source="owner_id")
     owner_name = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
+    welcome_doc_url = serializers.SerializerMethodField()
     things = serializers.SerializerMethodField()
     invites = serializers.SerializerMethodField()
     pending_invites = serializers.SerializerMethodField()
@@ -150,6 +151,8 @@ class CollectionSerializer(serializers.ModelSerializer):
             "tags",
             "thumbnail",
             "thumbnail_url",
+            "welcome_doc",
+            "welcome_doc_url",
             "pause_message",
             "is_paused",
             "things",
@@ -175,6 +178,9 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         return cloudinary_url(obj.thumbnail) if obj.thumbnail else None
+
+    def get_welcome_doc_url(self, obj):
+        return cloudinary_doc_url(obj.welcome_doc) if obj.welcome_doc else None
 
     def get_things(self, obj):
         request = self.context.get("request")
@@ -253,6 +259,9 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField(required=False, allow_blank=True)
+    # The welcome PDF is a Cloudinary public_id like any other asset — same
+    # path-traversal-safe validation.
+    welcome_doc = ImageIdField(required=False, allow_blank=True)
     tags = serializers.ListField(
         child=SafeHeadlineField(max_length=32),
         max_length=12,
@@ -289,6 +298,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "rental_weekdays",
             "tags",
             "thumbnail",
+            "welcome_doc",
         ]
 
     def validate_tags(self, value):
@@ -423,6 +433,9 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     headline = SafeHeadlineField(max_length=64, required=False)
     description = SafeTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField(required=False, allow_blank=True)
+    # The welcome PDF is a Cloudinary public_id like any other asset — same
+    # path-traversal-safe validation.
+    welcome_doc = ImageIdField(required=False, allow_blank=True)
     pause_message = SafeTextField(max_length=256, required=False, allow_blank=True)
     tags = serializers.ListField(
         child=SafeHeadlineField(max_length=32),
@@ -461,6 +474,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "rental_weekdays",
             "tags",
             "thumbnail",
+            "welcome_doc",
             "pause_message",
         ]
 

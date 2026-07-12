@@ -46,6 +46,14 @@ TEXTS = {
     "revoke_plain": "{owner} ha revocat el teu accés a '{collection}'.",
     "revoke_intro": "{owner} ha revocat el teu accés a:",
     "revoke_outro": "Ja no podràs veure aquesta col·lecció.",
+    # Collection welcome document (sent once, the first time someone joins)
+    "welcome_doc_subject": "Et donem la benvinguda a '{collection}'",
+    "welcome_doc_plain": (
+        "Et donem la benvinguda a '{collection}'. El grup té un document de "
+        "benvinguda i normes — fes-hi una ullada: {url}"
+    ),
+    "welcome_doc_intro": "Benvinguda! El grup té un document de benvinguda i normes:",
+    "welcome_doc_outro": "Fes-hi una ullada abans de començar.",
     # Booking request (to owner)
     "booking_request_subject": "Tens una sol·licitud {action} pendent",
     "booking_request_plain_dated": (

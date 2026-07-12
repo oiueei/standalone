@@ -7,6 +7,7 @@ import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
 import ImageUpload from '../components/ImageUpload';
+import PdfUpload from '../components/PdfUpload';
 import TagInput from '../components/TagInput';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
@@ -33,6 +34,7 @@ export default function CreateCollectionPage() {
   const [rentalWeekdays, setRentalWeekdays] = useState([]);
   const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
+  const [welcomeDoc, setWelcomeDoc] = useState('');
   const [errors, setErrors] = useState({});
 
   const MODE_OPTIONS = [
@@ -97,6 +99,7 @@ export default function CreateCollectionPage() {
       rental_weekdays: isSwap || isShare ? [] : rentalWeekdays,
       tags,
       thumbnail: thumbnail || '',
+      welcome_doc: welcomeDoc || '',
     };
     if (description.trim()) body.description = description.trim();
     try {
@@ -197,6 +200,12 @@ export default function CreateCollectionPage() {
             value={thumbnail}
             onChange={setThumbnail}
             folder="oiueei/collections"
+          />
+          <PdfUpload
+            id="create-collection-welcome-doc"
+            label={t('upload.welcomeDocLabel')}
+            onChange={setWelcomeDoc}
+            helperText={t('upload.welcomeDocHelper')}
           />
         </div>
         <div className="form-actions">

@@ -11,11 +11,14 @@ without breaking it (verified against the live account):
   id (which could overwrite another asset) — only store the id Cloudinary
   returns.
 - ``allowed_formats`` restricts what Cloudinary will accept: raster photo formats
-  only (SVG is excluded — it can carry script).
-- ``resource_type`` is always ``image`` (never trusted from the client).
+  only (SVG is excluded — it can carry script), or ``pdf`` alone in document mode.
+- ``resource_type`` is always ``image`` (never trusted from the client). A PDF is
+  a page-based image to Cloudinary, so it lives under the same resource type.
 
 Note: Cloudinary's ``max_file_size`` upload parameter is not enforced on this
-account/plan (verified), so the per-file size cap stays a client-side check.
+account/plan (verified), so the per-file size cap stays a client-side check. It is
+signed anyway in document mode: harmless where it is ignored, binding the moment
+the plan starts enforcing it.
 """
 
 import secrets
@@ -34,6 +37,10 @@ ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections"}
 # excluded so an <img>-rendered upload can never carry active content.
 IMAGE_FORMATS = "jpg,jpeg,png,webp,gif,heic,heif,avif,bmp,tif,tiff"
 
+# Document mode (the collection welcome doc): PDF and nothing else.
+DOCUMENT_FORMATS = "pdf"
+DOCUMENT_MAX_BYTES = 5 * 1024 * 1024
+
 
 class CloudinarySignatureView(APIView):
     """
@@ -44,7 +51,8 @@ class CloudinarySignatureView(APIView):
     public_id, allowed_formats) alongside the file.
 
     Request body:
-        { "folder": "oiueei/things" }
+        { "folder": "oiueei/things" }                       # image (default)
+        { "folder": "oiueei/collections", "kind": "document" }   # PDF
 
     Response:
         {
@@ -54,8 +62,9 @@ class CloudinarySignatureView(APIView):
             "cloud_name": "...",
             "folder": "oiueei/things",
             "public_id": "<server-generated>",
-            "allowed_formats": "jpg,jpeg,png,...",
-            "resource_type": "image"
+            "allowed_formats": "jpg,jpeg,png,...",   # or "pdf" in document mode
+            "resource_type": "image",
+            "max_file_size": 5242880                 # document mode only
         }
     """
 
@@ -67,8 +76,14 @@ class CloudinarySignatureView(APIView):
         if folder not in ALLOWED_FOLDERS:
             folder = "oiueei/users"
 
+        # Anything that isn't the one document kind is an image upload — an unknown
+        # value can only ever narrow to the (unchanged) image defaults.
+        is_document = request.data.get("kind") == "document"
+
+        # Always image: Cloudinary treats a PDF as a page-based image, so both kinds
+        # share the resource type. Only the accepted formats differ.
         resource_type = "image"
-        allowed_formats = IMAGE_FORMATS
+        allowed_formats = DOCUMENT_FORMATS if is_document else IMAGE_FORMATS
         # Random id within the folder; `folder` is sent separately, so the public_id
         # itself carries no folder prefix (Cloudinary prepends `folder`).
         public_id = secrets.token_urlsafe(16)
@@ -80,6 +95,8 @@ class CloudinarySignatureView(APIView):
             "public_id": public_id,
             "timestamp": timestamp,
         }
+        if is_document:
+            params_to_sign["max_file_size"] = DOCUMENT_MAX_BYTES
 
         signature = cloudinary.utils.api_sign_request(
             params_to_sign, cloudinary.config().api_secret
@@ -95,5 +112,7 @@ class CloudinarySignatureView(APIView):
             "allowed_formats": allowed_formats,
             "resource_type": resource_type,
         }
+        if is_document:
+            response["max_file_size"] = DOCUMENT_MAX_BYTES
 
         return Response(response)
