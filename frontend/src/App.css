@@ -148,6 +148,47 @@ body {
   height: 85px;
 }
 
+/* Mobile-only wave (App.css media query below) — hidden here so desktop
+   (≥768px) stays pixel-identical to the layered composition above. */
+.hero-photo-top-koros {
+  display: none;
+}
+
+.hero-photo-top-koros svg {
+  height: 60px;
+}
+
+/* Mobile (<768px): stacked "image bottom" hero, replacing the layered
+   angled-koros composition above. Text content (.form-hero-split) already
+   flows normally above this block; here the wedge is hidden, the wave koros
+   shown (biting the photo's top edge via a negative margin, same -14px
+   technique as .form-hero--photo .form-hero-koros below), and the photo
+   becomes a plain full-width block instead of an absolutely-positioned
+   background. Nothing above this query changed. */
+@media (max-width: 767px) {
+  .hero-photo-diag {
+    display: none;
+  }
+
+  .hero-photo-top-koros {
+    display: block;
+    margin-bottom: -14px;
+  }
+
+  .hero-photo-wrap {
+    position: static;
+    inset: auto;
+    width: 100%;
+    height: 260px;
+  }
+
+  .hero-photo {
+    position: static;
+    width: 100%;
+    height: 100%;
+  }
+}
+
 .form-page {
   min-height: 100vh;
   background-color: var(--color-black-5);

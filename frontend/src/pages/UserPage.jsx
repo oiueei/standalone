@@ -8,6 +8,7 @@ import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import CollectionLinkbox from '../components/CollectionLinkbox';
+import HeroPhoto from '../components/HeroPhoto';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
@@ -122,26 +123,12 @@ export default function UserPage() {
           {heroContent}
         </div>
         {user.photo_url && (
-          <div className="hero-photo-wrap">
-            <img
-              className="hero-photo"
-              src={user.photo_url}
-              alt={t('userPage.photoAlt', { name: user.name || user.email })}
-            />
-            {/* a diagonal colour wedge (z1) carves the photo so the content reads */}
-            <div className="hero-photo-diag" aria-hidden="true">
-              <div
-                className="hero-photo-diag-fill"
-                style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-              />
-              <Koros
-                className="hero-photo-diag-koros"
-                type={koroType}
-                aria-hidden="true"
-                style={tc.color_03 ? { fill: `var(--color-${tc.color_03})` } : undefined}
-              />
-            </div>
-          </div>
+          <HeroPhoto
+            photoUrl={user.photo_url}
+            alt={t('userPage.photoAlt', { name: user.name || user.email })}
+            koroType={koroType}
+            color03={tc.color_03}
+          />
         )}
         <Koros
           className="form-hero-koros"
