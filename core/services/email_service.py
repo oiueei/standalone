@@ -21,6 +21,7 @@ stay as plain strings.
 """
 
 import logging
+import random
 import smtplib
 
 from django.conf import settings
@@ -29,7 +30,7 @@ from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.template.loader import render_to_string
 from django.utils.html import escape
 
-from core.services.email_texts import T
+from core.services.email_texts import T, viral_lines
 from core.utils import redact_email
 
 logger = logging.getLogger(__name__)
@@ -75,9 +76,18 @@ _UNSET = object()
 
 
 def _lookup_user(email):
-    from core.models import User
+    from django.db.models import Exists, OuterRef
 
-    return User.objects.filter(email=email).only("code", "notify_activity", "notify_news").first()
+    from core.models import Collection, User
+
+    return (
+        User.objects.annotate(
+            _owns_collection=Exists(Collection.objects.filter(owner=OuterRef("pk")))
+        )
+        .filter(email=email)
+        .only("code", "notify_activity", "notify_news")
+        .first()
+    )
 
 
 def _lookup_users(emails):
@@ -88,13 +98,17 @@ def _lookup_users(emails):
     ``users.get(email)`` (None) and ``_send`` treats them as opted-in non-users
     without firing another lookup.
     """
-    from core.models import User
+    from django.db.models import Exists, OuterRef
+
+    from core.models import Collection, User
 
     return {
         u.email: u
-        for u in User.objects.filter(email__in=list(emails)).only(
-            "code", "email", "notify_activity", "notify_news"
+        for u in User.objects.annotate(
+            _owns_collection=Exists(Collection.objects.filter(owner=OuterRef("pk")))
         )
+        .filter(email__in=list(emails))
+        .only("code", "email", "notify_activity", "notify_news")
     }
 
 
@@ -162,8 +176,33 @@ def _with_footer(plain, html, email, category, user=_UNSET):
     return plain + footer_plain, html + footer_html
 
 
-def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET):
-    """Send a single email through the category + footer pipeline.
+def _with_viral_line(plain, html, user=_UNSET):
+    """Prepend one random growth blurb above the preferences footer.
+
+    Shown to recipients who don't own a collection — the audience for "create
+    your own" — including not-yet-registered invitees (``user`` is None).
+    Suppressed for collection owners and when ``VIRAL_LINES`` is empty. The CTA
+    is the plain ``/collections/new`` URL, never tracking-wrapped (DESIGN §9).
+    """
+    lines = viral_lines()
+    if not lines:
+        return plain, html
+    if user is not _UNSET and user and getattr(user, "_owns_collection", False):
+        return plain, html
+    line = random.choice(lines)
+    url = f"{_frontend_base_url()}/collections/new"
+    plain += f"\n\n{line['text']}\n{line['cta']}: {url}"
+    html += (
+        '<p style="margin-top:24px;font-size:13px;">'
+        f"{escape(line['text'])} "
+        f'<a href="{escape(url)}">{escape(line["cta"])}</a>'
+        "</p>"
+    )
+    return plain, html
+
+
+def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET, include_viral=True):
+    """Send a single email through the category + footer + viral pipeline.
 
     Returns True if the email was dispatched, False if the recipient opted out
     or the send failed. A failed send (SMTP error / timeout / socket error / bad
@@ -175,9 +214,22 @@ def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET):
     batch-resolved User (or a known-absent None) so the preference + footer
     lookups don't fire a query per recipient. Single-recipient callers leave it
     as ``_UNSET`` and the lookup happens here, as before.
+
+    ``include_viral`` prepends a growth CTA above the footer (suppressed for
+    collection owners — see ``_with_viral_line``). The two marketing-free
+    senders — ``send_magic_link_email`` and ``send_stats_summary_email`` — pass
+    ``False``; everything else uses the default.
     """
+    # Resolve the recipient User once when something downstream needs it: the
+    # preference check (non-mandatory) or the viral-line ownership gate. A
+    # mandatory + include_viral=False send (magic link, stats summary) never
+    # triggers a lookup here.
+    if (category != CATEGORY_MANDATORY or include_viral) and user is _UNSET:
+        user = _lookup_user(to_email)
     if not _should_send(to_email, category, user=user):
         return False
+    if include_viral:
+        plain, html = _with_viral_line(plain, html, user=user)
     plain, html = _with_footer(plain, html, to_email, category, user=user)
     try:
         if reply_to:
@@ -298,7 +350,7 @@ def send_magic_link_email(email, magic_link, collection_headline=None):
             _links((magic_link, T("magic_cta"))),
         ]
     )
-    _send(email, subject, plain, html, CATEGORY_MANDATORY)
+    _send(email, subject, plain, html, CATEGORY_MANDATORY, include_viral=False)
 
 
 def send_collection_invite_email(
@@ -735,7 +787,14 @@ def send_stats_summary_email(recipient, subject, sections):
             plain_lines.append(f"  ({section['note']})")
         plain_lines.append("")
 
-    _send(recipient, subject, "\n".join(plain_lines), _render_email(blocks), CATEGORY_MANDATORY)
+    _send(
+        recipient,
+        subject,
+        "\n".join(plain_lines),
+        _render_email(blocks),
+        CATEGORY_MANDATORY,
+        include_viral=False,
+    )
 
 
 def send_newsletter_email(

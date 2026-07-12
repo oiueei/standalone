@@ -170,3 +170,49 @@ TEXTS = {
     "newsletter_new_things": "New things",
     "newsletter_transfers": "Ownership changes",
 }
+
+# Growth blurbs appended to outbound emails (above the preferences footer) to
+# turn guests into creators. One is chosen at random per send. The CTA always
+# points to {frontend_base}/collections/new; ``cta`` is the link label only.
+VIRAL_LINES = [
+    {
+        "text": (
+            "Refreshing your wardrobe? Make a collection with the clothes you no "
+            "longer wear and offer them to your friends."
+        ),
+        "cta": "Start here",
+    },
+    {
+        "text": (
+            "A drill you use twice a year? Make a collection with your tools and "
+            "lend them to your neighbours."
+        ),
+        "cta": "Create your collection",
+    },
+    {
+        "text": (
+            "Shelves full of books you've already read? Turn them into a "
+            "collection and give them a second life."
+        ),
+        "cta": "Easy as that",
+    },
+    {
+        "text": (
+            "Toys the kids have outgrown? Make a collection and pass them on to other families."
+        ),
+        "cta": "Create yours",
+    },
+    {
+        "text": (
+            "Moving soon? Make a collection with what you're not taking and find it a new home."
+        ),
+        "cta": "Start here",
+    },
+    {
+        "text": (
+            "A group of friends, your building, the PTA? Create a community "
+            "collection and share among everyone."
+        ),
+        "cta": "Create your group",
+    },
+]

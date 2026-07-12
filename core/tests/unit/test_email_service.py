@@ -23,6 +23,7 @@ def test_send_returns_false_on_smtp_error():
             "plain",
             "<p>html</p>",
             email_service.CATEGORY_MANDATORY,
+            include_viral=False,
         )
     assert result is False
 
@@ -39,6 +40,7 @@ def test_send_returns_false_on_socket_error():
             "plain",
             "<p>html</p>",
             email_service.CATEGORY_MANDATORY,
+            include_viral=False,
         )
     assert result is False
 

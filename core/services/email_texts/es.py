@@ -174,3 +174,51 @@ TEXTS = {
     "newsletter_new_things": "Cosas nuevas",
     "newsletter_transfers": "Cambios de dueño",
 }
+
+# Frases de crecimiento que se añaden a los correos salientes (encima del pie
+# de preferencias) para convertir invitados en creadores. Se elige una al azar
+# por envío. El CTA siempre apunta a {frontend_base}/collections/new; ``cta``
+# es solo la etiqueta del enlace.
+VIRAL_LINES = [
+    {
+        "text": (
+            "¿Renuevas el armario? Crea una colección con la ropa que ya no usas "
+            "y ofrécela a tus amigos."
+        ),
+        "cta": "Empieza aquí",
+    },
+    {
+        "text": (
+            "¿Un taladro que usas dos veces al año? Crea una colección con tus "
+            "herramientas y préstalas a tus vecinos."
+        ),
+        "cta": "Crea tu colección",
+    },
+    {
+        "text": (
+            "¿Estanterías llenas de libros ya leídos? Móntales una colección y "
+            "dales una segunda vida."
+        ),
+        "cta": "Así de fácil",
+    },
+    {
+        "text": (
+            "¿Juguetes que se han quedado pequeños? Crea una colección y pásalos a otras familias."
+        ),
+        "cta": "Crea la tuya",
+    },
+    {
+        "text": (
+            "¿Mudanza a la vista? Haz una colección con lo que no te llevas y "
+            "encuéntrale nueva casa."
+        ),
+        "cta": "Empieza por aquí",
+    },
+    {
+        "text": (
+            "¿Un grupo de amigos, la escalera, el AMPA? Cread una colección "
+            "comunitaria y compartid entre todos."
+        ),
+        "cta": "Crea vuestro grupo",
+    },
+]

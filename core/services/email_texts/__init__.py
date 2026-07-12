@@ -38,3 +38,18 @@ def T(key):
     """
     lang = getattr(settings, "EMAIL_LANGUAGE", "en")
     return _catalogue(lang).get(key) or _en.TEXTS[key]
+
+
+def viral_lines():
+    """The ``VIRAL_LINES`` growth blurbs in the deployment's email language.
+
+    Mirrors ``T``: reads ``settings.EMAIL_LANGUAGE`` per call and falls back to
+    the English list for an unknown language or a catalogue without one.
+    """
+    lang = getattr(settings, "EMAIL_LANGUAGE", "en")
+    if lang == "en":
+        return _en.VIRAL_LINES
+    try:
+        return import_module(f"{__name__}.{lang}").VIRAL_LINES
+    except (ImportError, AttributeError):
+        return _en.VIRAL_LINES

@@ -9,6 +9,7 @@ import pytest
 from django.core import mail
 from django.test import override_settings
 
+from core.models import Collection, User
 from core.services import email_service
 from core.services.email_texts import T, en, es
 
@@ -112,6 +113,14 @@ class TestCatalogueParity:
     def test_es_covers_exactly_the_en_keys(self):
         assert set(es.TEXTS) == set(en.TEXTS)
 
+    def test_viral_lines_shape_matches_between_languages(self):
+        # VIRAL_LINES must have the same length and the same dict keys in every
+        # catalogue (the analogue of the TEXTS parity above).
+        assert len(en.VIRAL_LINES) == len(es.VIRAL_LINES)
+        assert len(en.VIRAL_LINES) > 0
+        keys = {frozenset(d) for d in en.VIRAL_LINES} | {frozenset(d) for d in es.VIRAL_LINES}
+        assert keys == {frozenset({"text", "cta"})}
+
     def test_placeholders_match_between_languages(self):
         # A translation must keep every {placeholder} its English source has —
         # otherwise .format() raises at send time.
@@ -130,3 +139,49 @@ class TestCatalogueParity:
             assert T("magic_cta") == "Iniciar sesión"
         with override_settings(EMAIL_LANGUAGE="en"):
             assert T("magic_cta") == "Sign in"
+
+
+@pytest.mark.django_db
+class TestViralLine:
+    """The growth CTA appended above the preferences footer (S3)."""
+
+    def _thing(self):
+        class FakeCollections:
+            def first(self):
+                return None
+
+        class FakeThing:
+            headline = "Taladro"
+            code = "THG123"
+            collections = FakeCollections()
+
+        return FakeThing()
+
+    def test_line_present_for_non_owner(self):
+        # A registered user with no collection is exactly the target audience.
+        u = User.objects.create(code="GUEST1", email="guest@test.com", name="Guest")
+        mail.outbox.clear()
+        email_service.send_faq_answer_email("Lala", self._thing(), "¿Sigue?", "Sí", u.email)
+        assert "/collections/new" in mail.outbox[0].body
+        assert "/collections/new" in mail.outbox[0].alternatives[0][0]
+
+    def test_line_absent_for_collection_owner(self):
+        owner = User.objects.create(code="OWNR1", email="owner@test.com", name="Owner")
+        Collection.objects.create(code="OWNC1", owner=owner, headline="Mine", status="ACTIVE")
+        mail.outbox.clear()
+        email_service.send_faq_answer_email("Lala", self._thing(), "¿Sigue?", "Sí", owner.email)
+        assert "/collections/new" not in mail.outbox[0].body
+
+    def test_line_absent_on_magic_link(self):
+        u = User.objects.create(code="GUEST2", email="magic@test.com", name="Guest")
+        mail.outbox.clear()
+        email_service.send_magic_link_email(u.email, "http://x/verify/tok")
+        assert "/collections/new" not in mail.outbox[0].body
+
+    def test_footer_still_after_viral_line(self):
+        u = User.objects.create(code="GUEST3", email="foot@test.com", name="Guest")
+        mail.outbox.clear()
+        email_service.send_faq_answer_email("Lala", self._thing(), "¿Sigue?", "Sí", u.email)
+        body = mail.outbox[0].body
+        # Viral CTA appears before the preferences footer (footer always last).
+        assert body.index("/collections/new") < body.index("Manage your email preferences")

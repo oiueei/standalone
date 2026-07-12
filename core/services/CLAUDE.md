@@ -61,6 +61,7 @@ Every email belongs to one of three categories. Each function routes through the
 - **Lookup fallback**: if no `User` matches the recipient email (e.g. a not-yet-registered invitee), `_should_send` returns `True` — all emails reach non-users by default.
 - **Multi-recipient**: functions that take `emails=[...]` (digest, newsletter, broadcast) use `_filter_recipients()` for a bulk query that drops opted-out addresses before iterating.
 - **Footer**: Cat. 2 and Cat. 3 emails get an auto-appended footer with a link to `/me/notifications/{token}` (see below). Cat. 1 has no footer — nothing to manage.
+- **Viral CTA**: every send except `send_magic_link_email` and `send_stats_summary_email` (which pass `include_viral=False`) prepends one random growth blurb from the per-language `VIRAL_LINES` catalogue (`email_texts/{lang}.py`, read via `viral_lines()`) above the footer — the CTA is always the plain `{frontend_base}/collections/new` link, never tracking-wrapped (DESIGN §9). It is suppressed for recipients who already own ≥1 collection (the `_owns_collection` flag is folded into the existing `_lookup_user`/`_lookup_users` query via an `Exists` annotation — no extra round-trip), and for an empty list. So the bottom order is always: body → viral line (when shown) → preferences footer (when present).
 
 #### Email language (`EMAIL_LANGUAGE` + `core/services/email_texts/`)
 
@@ -111,7 +112,7 @@ A deployment speaks **one language** in all outbound email, picked by the `EMAIL
 - **Reply-To header**: `send_broadcast_email()` uses `EmailMultiAlternatives` with `reply_to` so invitees can respond directly to the collection owner (routed through `_send(..., reply_to=[owner_email])`). The visible body links to the collection (`/collections/{code}`) — the object that originated the message — rather than promising an email reply.
 - **Digest emails**: `send_digest_email()` lists new thing headlines in both plain text (bulleted) and HTML (`<ul>/<li>`) formats.
 - **Direct collection links**: `send_digest_email()` and `send_newsletter_email()` link straight to `{frontend_base}/collections/{code}`. Per DESIGN.md §9 we do not track email engagement — links are never wrapped in a redirect or tracking pixel.
-- **Preference pipeline**: every send goes through `_send()` → `_should_send()` + `_with_footer()`. Never call `send_mail` directly from outside this module — the preference check and footer would be bypassed.
+- **Preference pipeline**: every send goes through `_send()` → `_should_send()` + `_with_viral_line()` + `_with_footer()`. Never call `send_mail` directly from outside this module — the preference check, viral CTA and footer would be bypassed.
 
 ---
 
