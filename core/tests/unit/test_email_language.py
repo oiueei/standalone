@@ -35,8 +35,20 @@ class TestEmailLanguage:
 
     @override_settings(EMAIL_LANGUAGE="es")
     def test_footer_is_translated_on_activity_emails(self):
-        email_service.send_faq_answer_email("Lala", "Tienda", "¿Sigue?", "Sí", "q@example.com")
+        class FakeCollections:
+            def first(self):
+                return None
+
+        class FakeThing:
+            headline = "Tienda"
+            code = "THG123"
+            collections = FakeCollections()
+
+        email_service.send_faq_answer_email("Lala", FakeThing(), "¿Sigue?", "Sí", "q@example.com")
         assert "Gestiona tus preferencias de correo" in mail.outbox[0].body
+        # The thing headline is now the link label in both formats.
+        assert "Tienda" in mail.outbox[0].body
+        assert "Tienda" in mail.outbox[0].alternatives[0][0]
 
     @override_settings(EMAIL_LANGUAGE="es")
     def test_interpolated_decision_email_in_spanish(self):

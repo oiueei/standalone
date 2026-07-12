@@ -9,7 +9,6 @@ TEXTS = {
     # Shared
     "footer_manage": "Manage your email preferences",
     "dates_label": "Dates",
-    "view_thing_cta": "View thing",
     "view_collection_cta": "View collection",
     # Magic link
     "magic_subject": "Hello, welcome to OIUEEI!",
@@ -17,7 +16,7 @@ TEXTS = {
     "magic_intro": "Hello! Click here to sign in:",
     "magic_cta": "Sign in",
     # Collection invite
-    "invite_subject": "You have an invitation to OIUEEI!",
+    "invite_subject": "You have an invitation to '{collection}' - OIUEEI!",
     "invite_plain": (
         "You have been invited to view: {collection}. "
         "Accept invitation: {accept} | Decline invitation: {reject}"
@@ -86,7 +85,7 @@ TEXTS = {
     "faq_view_reply_cta": "View and reply",
     # FAQ answer (to questioner)
     "faq_answer_subject": "Your question has been answered",
-    "faq_answer_plain": "{owner} has replied: {answer}",
+    "faq_answer_plain": "{owner} has replied: {answer}. See '{thing}': {url}",
     "faq_answer_intro": "{owner} has replied to your question about:",
     "your_question_label": "Your question",
     "reply_label": "Reply",

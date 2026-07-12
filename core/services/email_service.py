@@ -285,7 +285,7 @@ def send_collection_invite_email(
     inviter_name, collection_headline, email, accept_link, reject_link
 ):
     """Send collection invitation email with accept and reject links."""
-    subject = T("invite_subject")
+    subject = T("invite_subject").format(collection=collection_headline)
     plain = T("invite_plain").format(
         collection=collection_headline, accept=accept_link, reject=reject_link
     )
@@ -428,7 +428,7 @@ def send_booking_confirmation_email(requester, thing, booking):
             *([_field(T("part_of_label"), collection.headline)] if collection else []),
             *_booking_detail_blocks(booking),
             _para(T("confirmation_outro").format(owner=owner_name)),
-            _links((thing_url, T("view_thing_cta"))),
+            _links((thing_url, thing.headline)),
         ]
     )
     _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
@@ -453,16 +453,20 @@ def send_faq_question_email(questioner_name, thing, question, owner_email):
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
 
 
-def send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email):
-    """Send FAQ answer notification email to questioner."""
+def send_faq_answer_email(owner_name, thing, question, answer, questioner_email):
+    """Send FAQ answer notification email to questioner, linking the thing."""
+    thing_url = _thing_url(thing)
     subject = T("faq_answer_subject")
-    plain = T("faq_answer_plain").format(owner=owner_name, answer=answer)
+    plain = T("faq_answer_plain").format(
+        owner=owner_name, answer=answer, thing=thing.headline, url=thing_url
+    )
     html = _render_email(
         [
             _para(T("faq_answer_intro").format(owner=owner_name)),
-            _strong(thing_headline),
+            _strong(thing.headline),
             _field(T("your_question_label"), question),
             _field(T("reply_label"), answer),
+            _links((thing_url, thing.headline)),
         ]
     )
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)

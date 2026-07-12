@@ -173,9 +173,7 @@ class FAQAnswerView(APIView):
         questioner = faq.questioner
         if questioner and questioner.email:
             owner_name = request.user.display_name
-            send_faq_answer_email(
-                owner_name, thing.headline, faq.question, faq.answer, questioner.email
-            )
+            send_faq_answer_email(owner_name, thing, faq.question, faq.answer, questioner.email)
             InAppNotification.objects.create(
                 user=questioner,
                 type=InAppNotification.Type.FAQ_ANSWERED,

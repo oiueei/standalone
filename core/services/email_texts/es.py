@@ -7,7 +7,6 @@ TEXTS = {
     # Shared
     "footer_manage": "Gestiona tus preferencias de correo",
     "dates_label": "Fechas",
-    "view_thing_cta": "Ver la cosa",
     "view_collection_cta": "Ver la colección",
     # Magic link
     "magic_subject": "¡Hola, te damos la bienvenida a OIUEEI!",
@@ -15,7 +14,7 @@ TEXTS = {
     "magic_intro": "¡Hola! Haz clic aquí para iniciar sesión:",
     "magic_cta": "Iniciar sesión",
     # Collection invite
-    "invite_subject": "¡Tienes una invitación a OIUEEI!",
+    "invite_subject": "¡Tienes una invitación a '{collection}' - OIUEEI!",
     "invite_plain": (
         "Te han invitado a ver: {collection}. "
         "Aceptar la invitación: {accept} | Rechazar la invitación: {reject}"
@@ -86,7 +85,7 @@ TEXTS = {
     "faq_view_reply_cta": "Ver y responder",
     # FAQ answer (to questioner)
     "faq_answer_subject": "Tu pregunta ha sido respondida",
-    "faq_answer_plain": "{owner} ha respondido: {answer}",
+    "faq_answer_plain": "{owner} ha respondido: {answer}. Ver '{thing}': {url}",
     "faq_answer_intro": "{owner} ha respondido a tu pregunta sobre:",
     "your_question_label": "Tu pregunta",
     "reply_label": "Respuesta",

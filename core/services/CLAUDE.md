@@ -86,7 +86,7 @@ A deployment speaks **one language** in all outbound email, picked by the `EMAIL
 | `send_invite_rejected_email(invitee_name, collection_headline, owner_email)` | Invitee declines a collection invitation | Collection owner |
 | `send_collection_revoke_email(owner_name, collection_headline, email)` | Owner removes a user from a collection | Revoked user |
 | `send_faq_question_email(questioner_name, thing, question, owner_email)` | Guest asks a question on a thing | Thing owner |
-| `send_faq_answer_email(owner_name, thing_headline, question, answer, questioner_email)` | Owner answers a FAQ | Questioner |
+| `send_faq_answer_email(owner_name, thing, question, answer, questioner_email)` | Owner answers a FAQ | Questioner (the email links the thing — label is the thing headline, via `_thing_url`) |
 | `send_faq_hide_email(owner_name, thing_headline, question, questioner_email)` | Owner hides a FAQ | Questioner |
 | `send_thing_reported_email(thing, owner_email)` | A member reports a thing | Thing owner (**anonymous** — the reporter is never named; body links to the listing so they can review it) |
 | `send_broadcast_email(owner_name, owner_email, collection_headline, collection_code, message, emails)` | Owner sends broadcast to collection | All collection invitees (individually, Reply-To owner + a link to the collection). Subject auto-generated as `Hey! {collection}`. |
@@ -98,7 +98,7 @@ A deployment speaks **one language** in all outbound email, picked by the `EMAIL
 | `send_wish_posted_email(creator_name, wish, emails)` | Member posts a wish with "Avisar al grupo" on | Every group member (individually; activity opt-out applies) |
 | `send_wish_response_email(responder_name, wish, creator_email)` | Member answers a wish | Wish creator |
 | `send_wish_thanks_email(creator_name, wish, responder_email)` | Wish creator marks it resolved | Accepted responder |
-| `send_stats_summary_email(recipient, subject, sections)` | `stats_summary` command (Mondays / `--email`) | The operator. Internal ops report — **CATEGORY_MANDATORY** (ignores `notify_*`, no footer). `sections` is the `[{title, rows, note?}]` structure the command builds; rendered to escaped HTML via the layout blocks |
+| `send_stats_summary_email(recipient, subject, sections)` | `stats_summary` command (weekly, `STATS_EMAIL_WEEKDAY` — default Monday — / `--email`) | The operator. Internal ops report — **CATEGORY_MANDATORY** (ignores `notify_*`, no footer). `sections` is the `[{title, rows, note?}]` structure the command builds; rendered to escaped HTML via the layout blocks |
 
 #### Patterns
 
