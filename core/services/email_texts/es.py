@@ -8,6 +8,15 @@ TEXTS = {
     "footer_manage": "Gestiona tus preferencias de correo",
     "dates_label": "Fechas",
     "view_collection_cta": "Ver la colección",
+    # Sustantivos de acción por tipo para los correos de reserva — calcan el
+    # vocabulario del frontend (thingCard.action / types): una solicitud SELL
+    # es "solicitud de compra", una LEND "solicitud de préstamo", etc. SWAP
+    # tiene sus propias plantillas; WISH nunca reserva.
+    "action_noun_GIFT_THING": "regalo",
+    "action_noun_SELL_THING": "compra",
+    "action_noun_LEND_THING": "préstamo",
+    "action_noun_RENT_THING": "alquiler",
+    "action_noun_SHARE_THING": "traspaso",
     # Magic link
     "magic_subject": "¡Hola, te damos la bienvenida a OIUEEI!",
     "magic_plain": "¡Hola! Haz clic aquí para iniciar sesión: {link}",
@@ -28,16 +37,17 @@ TEXTS = {
     "revoke_intro": "{owner} ha revocado tu acceso a:",
     "revoke_outro": "Ya no podrás ver esta colección.",
     # Booking request (to owner)
-    "booking_request_subject": "Tienes una solicitud de reserva pendiente",
+    "booking_request_subject": "Tienes una solicitud de {action} pendiente",
     "booking_request_plain_dated": (
-        "{requester} ha pedido reservar '{thing}' del {start} al {end}. "
+        "{requester} te ha enviado una solicitud de {action} para '{thing}' "
+        "del {start} al {end}. "
         "Confirmar la reserva: {accept} | Cancelar la reserva: {reject}"
     ),
     "booking_request_plain": (
-        "{requester} ha pedido reservar '{thing}'. "
+        "{requester} te ha enviado una solicitud de {action} para '{thing}'. "
         "Confirmar la reserva: {accept} | Cancelar la reserva: {reject}"
     ),
-    "booking_request_intro": "{requester} ha pedido:",
+    "booking_request_intro": "{requester} te ha enviado una solicitud de {action}:",
     "hold_confirm_cta": "Confirmar la reserva",
     "hold_cancel_cta": "Cancelar la reserva",
     # Booking decision (to requester)
@@ -45,10 +55,10 @@ TEXTS = {
     "decision_confirmed": "confirmada",
     "decision_cancelled": "cancelada",
     "decision_plain_dated": (
-        "Tu solicitud de reserva de '{thing}' del {start} al {end} ha sido {decision}."
+        "Tu solicitud de {action} de '{thing}' del {start} al {end} ha sido {decision}."
     ),
-    "decision_plain": "Tu solicitud de reserva de '{thing}' ha sido {decision}.",
-    "decision_intro": "Tu solicitud ha sido {decision}:",
+    "decision_plain": "Tu solicitud de {action} de '{thing}' ha sido {decision}.",
+    "decision_intro": "Tu solicitud de {action} ha sido {decision}:",
     # Booking auto-declined (someone else got it)
     "unavailable_subject": "Alguien llegó primero",
     "unavailable_plain": (
@@ -62,17 +72,17 @@ TEXTS = {
     "invite_rejected_plain": "{invitee} ha rechazado la invitación a '{collection}'.",
     "invite_rejected_intro": "{invitee} ha rechazado tu invitación a:",
     # Booking confirmation (to requester)
-    "confirmation_subject": "Solicitud de reserva enviada",
+    "confirmation_subject": "Solicitud de {action} enviada",
     "confirmation_plain_dated": (
-        "Has reservado '{thing}' del {start} al {end}. "
+        "Tu solicitud de {action} para '{thing}' del {start} al {end} se ha enviado. "
         "Hemos avisado a {owner} — te responderá pronto. "
         "Ver la cosa: {url}"
     ),
     "confirmation_plain": (
-        "Has reservado '{thing}'. "
+        "Tu solicitud de {action} para '{thing}' se ha enviado. "
         "Hemos avisado a {owner} — te responderá pronto. Ver la cosa: {url}"
     ),
-    "confirmation_intro": "Has reservado:",
+    "confirmation_intro": "Tu solicitud de {action} se ha enviado:",
     "part_of_label": "Parte de",
     "confirmation_outro": "Hemos avisado a {owner} — te responderá pronto.",
     # FAQ question (to owner)

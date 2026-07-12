@@ -59,11 +59,53 @@ class TestEmailLanguage:
 
         class FakeThing:
             headline = "Taladro"
+            type = "SELL_THING"
 
         email_service.send_booking_decision_email(FakeBooking(), FakeThing(), accepted=True)
         assert mail.outbox[0].subject == "Tenemos noticias"
         assert "ha sido confirmada" in mail.outbox[0].body
+        assert "compra" in mail.outbox[0].body
         assert "Taladro" in mail.outbox[0].body
+
+    def _send_sell_confirmation(self):
+        """Send a SELL confirmation and return the resulting mailbox message."""
+
+        class FakeOwner:
+            display_name = "Lala"
+
+        class FakeCollections:
+            def first(self):
+                return None
+
+        class FakeThing:
+            headline = "Drill"
+            code = "THG123"
+            type = "SELL_THING"
+            owner = FakeOwner()
+            collections = FakeCollections()
+
+        class FakeBooking:
+            start_date = None
+            end_date = None
+
+        class FakeRequester:
+            email = "r@example.com"
+
+        mail.outbox.clear()
+        email_service.send_booking_confirmation_email(FakeRequester(), FakeThing(), FakeBooking())
+        return mail.outbox[0]
+
+    def test_confirmation_carries_per_type_action_noun(self):
+        # A SELL confirmation must name the type's action noun — "compra" in the
+        # Spanish deployment, "purchase" in English — in both subject and body.
+        with override_settings(EMAIL_LANGUAGE="es"):
+            msg = self._send_sell_confirmation()
+            assert "compra" in msg.subject
+            assert "compra" in msg.body
+        with override_settings(EMAIL_LANGUAGE="en"):
+            msg = self._send_sell_confirmation()
+            assert "purchase" in msg.subject
+            assert "purchase" in msg.body
 
 
 class TestCatalogueParity:

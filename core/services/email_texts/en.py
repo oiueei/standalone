@@ -10,6 +10,15 @@ TEXTS = {
     "footer_manage": "Manage your email preferences",
     "dates_label": "Dates",
     "view_collection_cta": "View collection",
+    # Per-type action nouns for the booking emails — mirror the frontend's
+    # thingCard.action / types vocabulary so a SELL request reads "purchase
+    # request", a LEND request "loan request", etc. SWAP has its own templates;
+    # WISH never books.
+    "action_noun_GIFT_THING": "gift",
+    "action_noun_SELL_THING": "purchase",
+    "action_noun_LEND_THING": "loan",
+    "action_noun_RENT_THING": "rental",
+    "action_noun_SHARE_THING": "transfer",
     # Magic link
     "magic_subject": "Hello, welcome to OIUEEI!",
     "magic_plain": "Hello! Click here to sign in: {link}",
@@ -30,16 +39,16 @@ TEXTS = {
     "revoke_intro": "{owner} has revoked your access to:",
     "revoke_outro": "You will no longer be able to view this collection.",
     # Booking request (to owner)
-    "booking_request_subject": "You have a pending hold request",
+    "booking_request_subject": "You have a pending {action} request",
     "booking_request_plain_dated": (
-        "{requester} has requested to hold '{thing}' from {start} to {end}. "
+        "{requester} has sent a {action} request for '{thing}' from {start} to {end}. "
         "Confirm hold: {accept} | Cancel hold: {reject}"
     ),
     "booking_request_plain": (
-        "{requester} has requested to hold '{thing}'. "
+        "{requester} has sent a {action} request for '{thing}'. "
         "Confirm hold: {accept} | Cancel hold: {reject}"
     ),
-    "booking_request_intro": "{requester} has requested:",
+    "booking_request_intro": "{requester} has sent a {action} request:",
     "hold_confirm_cta": "Confirm hold",
     "hold_cancel_cta": "Cancel hold",
     # Booking decision (to requester)
@@ -47,10 +56,10 @@ TEXTS = {
     "decision_confirmed": "confirmed",
     "decision_cancelled": "cancelled",
     "decision_plain_dated": (
-        "Your hold request for '{thing}' from {start} to {end} has been {decision}."
+        "Your {action} request for '{thing}' from {start} to {end} has been {decision}."
     ),
-    "decision_plain": "Your hold request for '{thing}' has been {decision}.",
-    "decision_intro": "Your request has been {decision}:",
+    "decision_plain": "Your {action} request for '{thing}' has been {decision}.",
+    "decision_intro": "Your {action} request has been {decision}:",
     # Booking auto-declined (someone else got it)
     "unavailable_subject": "Someone got there first",
     "unavailable_plain": (
@@ -64,17 +73,17 @@ TEXTS = {
     "invite_rejected_plain": "{invitee} has declined the invitation to '{collection}'.",
     "invite_rejected_intro": "{invitee} has declined your invitation to:",
     # Booking confirmation (to requester)
-    "confirmation_subject": "Hold request sent",
+    "confirmation_subject": "Your {action} request was sent",
     "confirmation_plain_dated": (
-        "You've put a hold on '{thing}' from {start} to {end}. "
+        "Your {action} request for '{thing}' from {start} to {end} has been sent. "
         "We've let {owner} know — they'll get back to you soon. "
         "View thing: {url}"
     ),
     "confirmation_plain": (
-        "You've put a hold on '{thing}'. "
+        "Your {action} request for '{thing}' has been sent. "
         "We've let {owner} know — they'll get back to you soon. View thing: {url}"
     ),
-    "confirmation_intro": "You've put a hold on:",
+    "confirmation_intro": "Your {action} request has been sent:",
     "part_of_label": "Part of",
     "confirmation_outro": "We've let {owner} know — they'll get back to you soon.",
     # FAQ question (to owner)

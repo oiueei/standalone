@@ -265,6 +265,18 @@ def _thing_url(thing):
     return f"{base}/things/{thing.code}"
 
 
+def _action_noun(thing):
+    """The per-type action noun for the booking emails (e.g. 'purchase', 'compra').
+
+    Mirrors the frontend's per-type vocabulary (``thingCard.action`` / ``types``)
+    so a SELL request reads 'solicitud de compra' / 'purchase request', a LEND
+    request 'solicitud de préstamo' / 'loan request', etc. Only the five bookable
+    non-swap types carry a noun — SWAP has its own dedicated templates and WISH
+    never books, so this is never called for them.
+    """
+    return T(f"action_noun_{thing.type}")
+
+
 # --- Category 1: Mandatory -----------------------------------------------------
 
 
@@ -319,10 +331,12 @@ def send_collection_revoke_email(owner_name, collection_headline, email):
 def send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link):
     """Send booking request email to owner with accept/reject links."""
     requester_name = requester.display_name
+    action = _action_noun(thing)
 
     if booking.start_date and booking.end_date:
         plain = T("booking_request_plain_dated").format(
             requester=requester_name,
+            action=action,
             thing=thing.headline,
             start=booking.start_date,
             end=booking.end_date,
@@ -331,13 +345,17 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
         )
     else:
         plain = T("booking_request_plain").format(
-            requester=requester_name, thing=thing.headline, accept=accept_link, reject=reject_link
+            requester=requester_name,
+            action=action,
+            thing=thing.headline,
+            accept=accept_link,
+            reject=reject_link,
         )
 
-    subject = T("booking_request_subject")
+    subject = T("booking_request_subject").format(action=action)
     html = _render_email(
         [
-            _para(T("booking_request_intro").format(requester=requester_name)),
+            _para(T("booking_request_intro").format(requester=requester_name, action=action)),
             _strong(thing.headline),
             *_booking_detail_blocks(booking),
             _links((accept_link, T("hold_confirm_cta")), (reject_link, T("hold_cancel_cta"))),
@@ -349,21 +367,25 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
 def send_booking_decision_email(booking, thing, accepted=True):
     """Send booking accept/reject notification email to requester."""
     decision_word = T("decision_confirmed") if accepted else T("decision_cancelled")
+    action = _action_noun(thing)
 
     if booking.start_date and booking.end_date:
         plain = T("decision_plain_dated").format(
+            action=action,
             thing=thing.headline,
             start=booking.start_date,
             end=booking.end_date,
             decision=decision_word,
         )
     else:
-        plain = T("decision_plain").format(thing=thing.headline, decision=decision_word)
+        plain = T("decision_plain").format(
+            action=action, thing=thing.headline, decision=decision_word
+        )
 
     subject = T("decision_subject")
     html = _render_email(
         [
-            _para(T("decision_intro").format(decision=decision_word)),
+            _para(T("decision_intro").format(action=action, decision=decision_word)),
             _strong(thing.headline),
             *_booking_detail_blocks(booking),
         ]
@@ -406,9 +428,11 @@ def send_booking_confirmation_email(requester, thing, booking):
     owner_name = thing.owner.display_name
     thing_url = _thing_url(thing)
     collection = thing.collections.first()
+    action = _action_noun(thing)
 
     if booking.start_date and booking.end_date:
         plain = T("confirmation_plain_dated").format(
+            action=action,
             thing=thing.headline,
             start=booking.start_date,
             end=booking.end_date,
@@ -417,13 +441,13 @@ def send_booking_confirmation_email(requester, thing, booking):
         )
     else:
         plain = T("confirmation_plain").format(
-            thing=thing.headline, owner=owner_name, url=thing_url
+            action=action, thing=thing.headline, owner=owner_name, url=thing_url
         )
 
-    subject = T("confirmation_subject")
+    subject = T("confirmation_subject").format(action=action)
     html = _render_email(
         [
-            _para(T("confirmation_intro")),
+            _para(T("confirmation_intro").format(action=action)),
             _strong(thing.headline),
             *([_field(T("part_of_label"), collection.headline)] if collection else []),
             *_booking_detail_blocks(booking),
