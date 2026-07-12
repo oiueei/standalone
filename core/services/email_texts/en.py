@@ -21,6 +21,7 @@ TEXTS = {
     "action_noun_SHARE_THING": "transfer",
     # Magic link
     "magic_subject": "Hello, welcome to OIUEEI!",
+    "magic_subject_collection": "Hello, welcome to '{collection}' - OIUEEI!",
     "magic_plain": "Hello! Click here to sign in: {link}",
     "magic_intro": "Hello! Click here to sign in:",
     "magic_cta": "Sign in",

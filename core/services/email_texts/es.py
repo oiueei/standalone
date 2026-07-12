@@ -19,6 +19,7 @@ TEXTS = {
     "action_noun_SHARE_THING": "traspaso",
     # Magic link
     "magic_subject": "¡Hola, te damos la bienvenida a OIUEEI!",
+    "magic_subject_collection": "¡Hola, te damos la bienvenida a '{collection}' - OIUEEI!",
     "magic_plain": "¡Hola! Haz clic aquí para iniciar sesión: {link}",
     "magic_intro": "¡Hola! Haz clic aquí para iniciar sesión:",
     "magic_cta": "Iniciar sesión",

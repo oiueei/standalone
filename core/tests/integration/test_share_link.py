@@ -8,6 +8,7 @@ Covers:
 """
 
 import pytest
+from django.core import mail
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -240,6 +241,20 @@ class TestPopInWithShareToken:
         assert resp.status_code == 200
         assert resp.data["action"] == "MAGIC_LINK"
         assert resp.data["invited_collection"] == collection.code
+
+    def test_share_token_magic_link_subject_names_collection(self, share_link_setup):
+        # A private-share join names the collection in the magic-link subject.
+        collection = share_link_setup["collection"]
+        token = (
+            share_link_setup["owner_client"].post(URL.format(collection.code)).data["share_token"]
+        )
+        mail.outbox.clear()
+        share_link_setup["anon_client"].post(
+            POP_IN_URL,
+            {"email": "sharesubj@test.com", "share_token": token},
+            format="json",
+        )
+        assert "Share Club" in mail.outbox[0].subject
 
 
 @pytest.mark.django_db

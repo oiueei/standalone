@@ -8,6 +8,7 @@ ignored (same unified response, no enumeration oracle).
 """
 
 import pytest
+from django.core import mail
 from rest_framework.test import APIClient
 
 from core.models import RSVP, Collection, User
@@ -173,3 +174,23 @@ class TestPublicAutoJoin:
         resp = APIClient().get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert resp.status_code == 200
         assert "invited_collection" not in resp.data
+
+    def test_public_code_magic_link_subject_names_collection(self, join_setup):
+        # Joining a PUBLIC collection by code names it in the magic-link subject.
+        mail.outbox.clear()
+        join_setup["anon"].post(
+            POP_IN_URL,
+            {"email": "subj@test.com", "collection_code": "JPUB01"},
+            format="json",
+        )
+        assert "Open community" in mail.outbox[0].subject
+
+    def test_plain_popin_magic_link_subject_stays_generic(self, join_setup):
+        # The onboarding fallback carries no collection → generic subject.
+        mail.outbox.clear()
+        join_setup["anon"].post(
+            POP_IN_URL,
+            {"email": "generic@test.com"},
+            format="json",
+        )
+        assert mail.outbox[0].subject == "Hello, welcome to OIUEEI!"

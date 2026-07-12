@@ -63,8 +63,13 @@ def _set_auth_cookies(response, refresh):
     )
 
 
-def _send_magic_link(email, magic_link):
+def _send_magic_link(email, magic_link, collection_headline=None):
     """Send the magic-link email, off the request thread in production.
+
+    ``collection_headline`` (pop-in / share-link join) is forwarded to
+    ``send_magic_link_email`` so the subject can name the joined collection; it
+    is ``None`` for ``/login`` and the plain onboarding pop-in, which keep the
+    generic welcome subject.
 
     request-link only sends for a registered email, so a synchronous SMTP round
     trip would make "registered" responses measurably slower than "not
@@ -76,10 +81,12 @@ def _send_magic_link(email, magic_link):
     """
     if getattr(settings, "EMAIL_SEND_ASYNC", False):
         threading.Thread(
-            target=send_magic_link_email, args=(email, magic_link), daemon=True
+            target=send_magic_link_email,
+            args=(email, magic_link, collection_headline),
+            daemon=True,
         ).start()
     else:
-        send_magic_link_email(email, magic_link)
+        send_magic_link_email(email, magic_link, collection_headline)
 
 
 def email_ratelimit_key(group, request):
@@ -498,7 +505,10 @@ class PopInView(APIView):
         # a PUBLIC collection by code) stamp it on the magic-link RSVP so
         # VerifyLinkView drops them straight onto that collection after login,
         # instead of the generic /welcome. Empty for the plain onboarding fallback.
+        # ``join_headline`` mirrors that collection's headline so the magic-link
+        # subject can name it; it stays None for the plain onboarding fallback.
         target_collection_code = ""
+        join_headline = None
 
         # 1) An owner's share-token link (bearer credential).
         if share_token:
@@ -514,6 +524,7 @@ class PopInView(APIView):
                 Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=shared_collection)
                 joined = True
                 target_collection_code = shared_collection.code
+                join_headline = shared_collection.headline
 
         # 2) Login-to-act on a PUBLIC collection: the visitor joins it by code.
         # Strictly PUBLIC + ACTIVE — a code is never a way into a PRIVATE
@@ -534,6 +545,7 @@ class PopInView(APIView):
                 Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=public_collection)
                 joined = True
                 target_collection_code = public_collection.code
+                join_headline = public_collection.headline
 
         # 3) No specific target — add to the open demo/onboarding collections.
         if not joined:
@@ -547,7 +559,7 @@ class PopInView(APIView):
         )
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.token}"
-        _send_magic_link(email, magic_link)
+        _send_magic_link(email, magic_link, collection_headline=join_headline)
 
         security_logger.info(
             f"Pop-in request for {redact_email(email)} from IP {ip} "

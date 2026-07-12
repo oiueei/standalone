@@ -78,7 +78,7 @@ A deployment speaks **one language** in all outbound email, picked by the `EMAIL
 
 | Function | Trigger | Recipient |
 |----------|---------|-----------|
-| `send_magic_link_email(email, magic_link)` | User requests login | The user |
+| `send_magic_link_email(email, magic_link, collection_headline=None)` | User requests login / pop-in / share-link join | The user (subject names the joined collection when `collection_headline` is passed; generic welcome subject otherwise) |
 | `send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link)` | Guest submits a hold request | Thing owner |
 | `send_booking_confirmation_email(requester, thing, booking)` | Guest submits a hold request | Requester (confirmation of what was requested) |
 | `send_booking_decision_email(booking, thing, accepted)` | Owner accepts or rejects a booking | Requester |

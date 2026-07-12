@@ -280,9 +280,17 @@ def _action_noun(thing):
 # --- Category 1: Mandatory -----------------------------------------------------
 
 
-def send_magic_link_email(email, magic_link):
-    """Send magic link authentication email."""
-    subject = T("magic_subject")
+def send_magic_link_email(email, magic_link, collection_headline=None):
+    """Send magic link authentication email.
+
+    When ``collection_headline`` is given (a pop-in / share-link join), the
+    subject names the collection the visitor is joining; without it the generic
+    welcome subject is used (``/login`` and the plain onboarding pop-in).
+    """
+    if collection_headline:
+        subject = T("magic_subject_collection").format(collection=collection_headline)
+    else:
+        subject = T("magic_subject")
     plain = T("magic_plain").format(link=magic_link)
     html = _render_email(
         [

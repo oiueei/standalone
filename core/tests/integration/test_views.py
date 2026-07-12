@@ -49,6 +49,13 @@ class TestAuthViews:
         assert "If this email is registered" in response.data["message"]
         assert "email" not in response.data or response.data.get("email") is None
 
+    def test_request_link_magic_link_subject_stays_generic(self, api_client, user):
+        # /login never carries a collection, so its magic link keeps the generic
+        # welcome subject (only pop-in / share-link joins name the collection).
+        mail.outbox.clear()
+        api_client.post("/api/v1/auth/request-link/", {"email": user.email}, format="json")
+        assert mail.outbox[0].subject == "Hello, welcome to OIUEEI!"
+
     def test_request_link_invalid_email(self, api_client):
         """Should reject invalid email."""
         response = api_client.post(
