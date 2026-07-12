@@ -60,18 +60,25 @@ All pages use a consistent `form-hero` + `Koros` layout (the HDS Hero component 
 ```
 form-page
 ├── form-hero          (full-width, theeeme color_03 background)
-│   ├── form-hero-content  (max-width 1248px, text color from --hero-text-color CSS var using theeeme color_04)
+│   ├── form-hero-content  (max-width 1248px, text color from --hero-text-color CSS var using theeeme color_05)
 │   │   └── [back link, title, description]
+│   ├── ::after         (OIUEEI logo watermark, 40px — see below)
 │   └── Koros          (HDS Koros component, type from user.koro preference, 60px height, fill = theeeme color_02)
 └── page-container     (max-width 1248px, page content)
 ```
+
+**OIUEEI logo in the hero (S9):** brand presence via `public/oiueei-logo.svg` (monochrome, 556×161, tinted with a CSS `mask` so it inherits whatever colour var is in scope — the same technique for both uses below).
+
+- **Watermark** — every `form-hero` gets a `::after` pseudo-element (40px tall, ~138px wide, `App.css`), anchored to the right edge of the hero's *content column* at every width (`right: calc((100% - min(100%, 1248px)) / 2 + var(--spacing-s))`, matching `.form-hero-content`'s own centring math, not the raw viewport edge), filled `var(--hero-logo-color, var(--color-black-90))` — theeeme `color_02`, exposed via inline style on `.form-hero` itself (same mechanism as `--hero-text-color`) in `PageLayout.jsx` and the 8 pages that build a hero manually (`CollectionPage`, `HomePage`, `JoinPage`, `LoginPage`, `NotFoundPage`, `UserPage`, `VerifyPage`, `WelcomePage`). Decorative only — a pseudo-element has no accessibility surface. Suppressed below `breakpoint-m` (767px, collision risk with wrapped hero text — unverified without a live viewport) via `.form-hero--photo::after`/`.form-hero--no-watermark::after` (see below).
+- **Title replacement** — the one hero `<h1 class="form-hero-title">` whose text is the *literal* string "OIUEEI" (verified by grep across every locale: only `login.title` — `popin.title` is "Come meet us!", `share.pageTitle` is "Join us on OIUEEI", `notFound.title` is "Page not found", none qualify) renders `.form-hero-title-logo` (80px, `var(--hero-text-color)` — white on `/login`) instead of the text, and the `<h1>` carries `aria-label={t('login.title')}` so the accessible name survives. That page's `.form-hero` also gets the `form-hero--no-watermark` modifier class so there's never a double logo.
+- **Hero-photo pages (S7/S8)** — the watermark is suppressed there too (`.form-hero--photo::after { display: none }`): whether it stays legible over the diagonal-wedge/photo composition can't be confirmed without a screenshot, so this errs conservative rather than risk an illegible logo.
 
 ### Theeeme Color Roles
 
 | Token | Role |
 |-------|------|
 | `color_01` | Primary button background + secondary button border |
-| `color_02` | Body background + Koros SVG fill |
+| `color_02` | Body background + Koros SVG fill + hero logo watermark (`--hero-logo-color`) |
 | `color_03` | Koros section background |
 | `color_04` | Body text + secondary button text |
 | `color_05` | Koros text (title, description, back-link) via `--hero-text-color` |
@@ -110,6 +117,7 @@ The app ships a web app manifest (`public/manifest.webmanifest`) plus icons (`pu
 
 - **API:** `POST /api/v1/auth/request-link/` with `{ email }` and CSRF token
 - Uses the standard `form-hero` + `Koros` layout with theeeme colors from localStorage (if available from a previous session).
+- **Hero title is the OIUEEI logo (S9)**: the only hero `<h1>` in the app whose text is the literal string "OIUEEI" — it renders `.form-hero-title-logo` (an 80px masked `oiueei-logo.svg`, coloured via `--hero-text-color`) instead, with `aria-label={t('login.title')}` on the `<h1>` for the accessible name. The hero also carries `form-hero--no-watermark` to suppress the standard 40px logo watermark (see Page Layout Pattern) — no double logo.
 - Leads with a one-sentence pitch (`login.pitch` i18n key), then a brief description of OIUEEI (`login.description` i18n key).
 - Shows an open source paragraph with a link to the GitHub repository (`login.openSource` i18n key, rendered via `Trans` for the inline link).
 - Shows a one-line manifesto under the open-source paragraph (`login.manifesto`): "No ads, no trackers. Your data is not the product."

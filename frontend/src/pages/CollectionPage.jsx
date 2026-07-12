@@ -149,7 +149,7 @@ export default function CollectionPage() {
     >
       <div
         className={`form-hero${collection.thumbnail_url ? ' form-hero--photo' : ''}`}
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})`, '--hero-logo-color': `var(--color-${tc.color_02})` } : undefined}
       >
         <div className="form-hero-split">
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>

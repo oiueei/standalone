@@ -70,6 +70,61 @@ body {
   height: 60px;
 }
 
+/* OIUEEI logo watermark (S9): a 40px-tall CSS-mask of the brand mark
+   (556×161, tintable via mask since it's monochrome), anchored to the right
+   edge of the hero's CONTENT column — not the raw viewport edge — at every
+   width, matching exactly where .form-hero-content's own right padding
+   falls (same "(100% - min(100%, 1248px)) / 2" centring math). Decorative:
+   a ::after pseudo-element carries no accessibility surface, so no aria
+   attributes are needed or possible here. `--hero-logo-color` (theeeme
+   color_02) is set alongside the existing `--hero-text-color`/`background-color`
+   inline styles on `.form-hero` itself in PageLayout.jsx and the 8 pages that
+   build a hero manually. */
+.form-hero::after {
+  content: '';
+  position: absolute;
+  top: var(--spacing-l);
+  right: calc((100% - min(100%, 1248px)) / 2 + var(--spacing-s));
+  width: 138px;
+  height: 40px;
+  background-color: var(--hero-logo-color, var(--color-black-90));
+  mask: url('/oiueei-logo.svg') no-repeat center / contain;
+  -webkit-mask: url('/oiueei-logo.svg') no-repeat center / contain;
+  pointer-events: none;
+}
+
+/* Suppressed on a photo hero (S7/S8) — without a screenshot there's no way to
+   confirm the watermark stays legible over the diagonal wedge/photo, so this
+   errs conservative per the task's own fallback — and on a hero whose title
+   IS the logo (.form-hero-title-logo below), so there's never a double mark. */
+.form-hero--photo::after,
+.form-hero--no-watermark::after {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  /* The watermark can collide with wrapped hero text at narrow widths (no way
+     to confirm visually in this environment) — hidden below breakpoint-m. */
+  .form-hero::after {
+    display: none;
+  }
+}
+
+/* Title replacement (S9): the one hero <h1> whose text is the literal string
+   "OIUEEI" (LoginPage — verified by grep; popin/share/notFound's hero titles
+   turned out to be different copy, not that exact string) renders the logo
+   instead, coloured like the title text so it inherits --hero-text-color
+   (white on /login). The <h1> keeps aria-label="OIUEEI" so the accessible
+   name survives the text node's removal. */
+.form-hero-title-logo {
+  display: block;
+  width: 276px;
+  height: 80px;
+  background-color: var(--hero-text-color, var(--color-black-90));
+  mask: url('/oiueei-logo.svg') no-repeat center / contain;
+  -webkit-mask: url('/oiueei-logo.svg') no-repeat center / contain;
+}
+
 /* In the creator-profile photo hero the bottom wave overlaps the photo slightly
    so its troughs reveal the photo (not the hero background) beneath the wave. */
 .form-hero--photo .form-hero-koros {

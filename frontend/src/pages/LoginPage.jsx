@@ -52,11 +52,13 @@ export default function LoginPage() {
       style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
     >
       <div
-        className="form-hero"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
+        className="form-hero form-hero--no-watermark"
+        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})`, '--hero-logo-color': `var(--color-${tc.color_02})` } : undefined}
       >
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
-          <h1 className="form-hero-title">{t('login.title')}</h1>
+          <h1 className="form-hero-title" aria-label={t('login.title')}>
+            <span className="form-hero-title-logo" aria-hidden="true" />
+          </h1>
         </div>
         <Koros
           className="form-hero-koros"
