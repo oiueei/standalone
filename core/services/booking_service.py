@@ -34,8 +34,46 @@ class BookingRequestError(Exception):
         self.status_code = status_code
 
 
+def _pickup_blocked(day, ranges):
+    """Is ``day`` inside any booking's ``[start, end)``? (The return day is free.)"""
+    return any(start <= day < end for start, end in ranges)
+
+
+def _range_conflicts(start, end, ranges):
+    """Does ``[start, end]`` strictly overlap any booking? Mirrors
+    ``BookingPeriod.has_overlap()`` — touching at a boundary is allowed."""
+    return any(start < e and s < end for s, e in ranges)
+
+
+def _pickup_available(day, ranges, weekdays, durations):
+    """Can a rental be picked up on ``day`` under the collection's rental rules?
+
+    Mirrors the frontend picker (``frontend/src/utils/rental.js::isPickupDisabled``)
+    so the card's availability indicator and the date picker can never contradict
+    each other: the weekday must be allowed, the day must be free for pickup, and —
+    once the collection fixes the rental lengths — at least one of those lengths
+    must both land its return day on an allowed weekday and fit without overlapping
+    a booking.
+    """
+    if weekdays and day.weekday() not in weekdays:
+        return False
+    if _pickup_blocked(day, ranges):
+        return False
+    if not durations:
+        return True
+    return any(
+        (not weekdays or (day + timedelta(days=n)).weekday() in weekdays)
+        and not _range_conflicts(day, day + timedelta(days=n), ranges)
+        for n in durations
+    )
+
+
 def compute_availability(
-    blocked_periods, today=None, horizon_days=DEFAULT_AVAILABILITY_HORIZON_DAYS
+    blocked_periods,
+    today=None,
+    horizon_days=DEFAULT_AVAILABILITY_HORIZON_DAYS,
+    allowed_weekdays=None,
+    durations=None,
 ):
     """Compute live availability for a date-based thing from its blocked periods.
 
@@ -44,14 +82,22 @@ def compute_availability(
     returns a ``(available_today, next_available)`` tuple:
 
     - ``available_today`` (bool): True when *today* is free for a fresh pickup.
-    - ``next_available`` (date | None): the earliest free day on or after today,
-      or None when every day within ``horizon_days`` is booked.
+    - ``next_available`` (date | None): the earliest day a pickup could start on
+      or after today, or None when no day within ``horizon_days`` qualifies.
 
     Range semantics match ``BookingPeriod.has_overlap()``'s strict overlap: a
     booking ``[s, e]`` blocks pickup on ``[s, e)`` but **not** on its return day
     ``e`` — that day is free for the next pickup (back-to-back handovers). So a
     booking ending today leaves today available. Rows with a null
     ``start_date``/``end_date`` (non-date-based bookings) are skipped defensively.
+
+    ``allowed_weekdays`` (Python weekdays, 0=Mon…6=Sun) and ``durations`` (rental
+    lengths in days) are the governing collection's rental rules (#7). With them,
+    a day only counts as available if a real booking could actually start there —
+    otherwise a Wednesdays-only collection reported "available today" on a Monday
+    while the picker offered no selectable day (the card and the picker disagreed).
+    Either rule may be passed alone; with neither (both ``None``/empty) the result
+    is byte-identical to the unrestricted walk.
     """
     if today is None:
         today = timezone.localdate()
@@ -59,16 +105,30 @@ def compute_availability(
     ranges = sorted(
         (b.start_date, b.end_date) for b in blocked_periods if b.start_date and b.end_date
     )
+    weekdays = set(allowed_weekdays or ())
+    lengths = sorted({int(d) for d in (durations or ())})
 
     horizon = today + timedelta(days=horizon_days)
+
+    if not weekdays and not lengths:
+        cursor = today
+        while cursor <= horizon:
+            # A day is blocked for pickup only on [start, end) — the return day
+            # (end) is free again, so jump straight to it rather than end + 1.
+            covering = next((r for r in ranges if r[0] <= cursor < r[1]), None)
+            if covering is None:
+                return (cursor == today, cursor)
+            cursor = covering[1]
+        return (False, None)
+
+    # With rules in play a blocked span can't be skipped wholesale (the next legal
+    # pickup depends on the weekday and on which lengths still fit), so walk day
+    # by day — at most horizon_days iterations.
     cursor = today
     while cursor <= horizon:
-        # A day is blocked for pickup only on [start, end) — the return day (end)
-        # is free again, so jump straight to it rather than end + 1.
-        covering = next((r for r in ranges if r[0] <= cursor < r[1]), None)
-        if covering is None:
+        if _pickup_available(cursor, ranges, weekdays, lengths):
             return (cursor == today, cursor)
-        cursor = covering[1]
+        cursor += timedelta(days=1)
     return (False, None)
 
 

@@ -130,7 +130,7 @@ class Thing(models.Model):
         except User.DoesNotExist:
             pass
 
-    def availability_window(self, horizon_days=90):
+    def availability_window(self, horizon_days=90, collection=None):
         """Live availability for date-based things (LEND/RENT) from the booking calendar.
 
         Returns ``{"available_today": bool, "next_available": date|None}`` for
@@ -139,6 +139,15 @@ class Thing(models.Model):
         view prefetched it, otherwise issues a single ``get_blocked_periods`` query.
         Result is memoised on the instance so the two serializer fields that read
         it don't recompute.
+
+        The **governing collection's rental rules** (#7) are applied: its
+        ``rental_weekdays``/``rental_durations`` decide which days a pickup could
+        actually start on, so the indicator agrees with what the date picker
+        offers. ``collection`` names that collection when the caller already knows
+        it (the collection grid passes the collection being rendered); otherwise it
+        is resolved from the thing's collections the same way a booking request
+        does. A thing in two rule-setting collections uses the first one — the same
+        approximation ``resolve_rental_collection`` already makes.
         """
         if hasattr(self, "_availability_window_cache"):
             return self._availability_window_cache
@@ -154,9 +163,17 @@ class Thing(models.Model):
         else:
             blocked = list(BookingPeriod.get_blocked_periods(self.code))
 
-        from core.services.booking_service import compute_availability
+        from core.services.booking_service import compute_availability, resolve_rental_collection
 
-        available_today, next_available = compute_availability(blocked, horizon_days=horizon_days)
+        if collection is None:
+            collection = resolve_rental_collection(self)
+
+        available_today, next_available = compute_availability(
+            blocked,
+            horizon_days=horizon_days,
+            allowed_weekdays=collection.rental_weekdays if collection else None,
+            durations=collection.rental_durations if collection else None,
+        )
         self._availability_window_cache = {
             "available_today": available_today,
             "next_available": next_available,

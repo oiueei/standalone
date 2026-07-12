@@ -158,12 +158,21 @@ class ThingComputedFieldsMixin(serializers.Serializer):
                 }
         return None
 
+    def _availability_window(self, obj):
+        # The collection grid nests things inside a collection's own Prefetch, so it
+        # does NOT prefetch ``collections`` — letting availability_window() resolve
+        # the rule-setting collection itself would be an N+1 there. It is exactly
+        # the collection being rendered, so pass it (``parent_collection`` is only
+        # set on that path; standalone thing endpoints prefetch ``collections`` and
+        # resolve it for free).
+        return obj.availability_window(collection=self.context.get("parent_collection"))
+
     def get_available_today(self, obj):
-        window = obj.availability_window()
+        window = self._availability_window(obj)
         return window["available_today"] if window else None
 
     def get_next_available(self, obj):
-        window = obj.availability_window()
+        window = self._availability_window(obj)
         return window["next_available"] if window else None
 
 

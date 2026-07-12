@@ -74,6 +74,76 @@ class TestComputeAvailability:
         assert compute_availability(blocked, today=TODAY) == (True, TODAY)
 
 
+class TestComputeAvailabilityWithRentalRules:
+    """Rental rules (#7) constrain which days a pickup can actually start on, so the
+    card's indicator agrees with the picker (`rental.js::isPickupDisabled`)."""
+
+    MONDAY = date(2026, 6, 15)
+    WED = 2  # Python weekday for Wednesday
+
+    def test_wednesdays_only_with_next_wednesday_booked(self):
+        # The reported bug: asked on a Monday, in a Wednesdays-only collection whose
+        # next Wednesday (6/17) is already booked for a week, the card said
+        # "available today" — while the picker offered no selectable day.
+        blocked = [_Block(date(2026, 6, 17), date(2026, 6, 24))]
+        assert compute_availability(
+            blocked, today=self.MONDAY, allowed_weekdays=[self.WED], durations=[7]
+        ) == (False, date(2026, 6, 24))
+        # Without the rules the same calendar reads as free today — the old answer.
+        assert compute_availability(blocked, today=self.MONDAY) == (True, self.MONDAY)
+
+    def test_pickup_on_a_booking_return_day_is_allowed(self):
+        # 6/24 is the previous booking's return day and the next pickup day —
+        # back-to-back handovers stay possible under the rules too.
+        blocked = [_Block(date(2026, 6, 17), date(2026, 6, 24))]
+        assert compute_availability(
+            blocked, today=date(2026, 6, 24), allowed_weekdays=[self.WED], durations=[7]
+        ) == (True, date(2026, 6, 24))
+
+    def test_duration_that_does_not_fit_before_the_next_booking(self):
+        # No weekday rule, one fixed 7-day length: today's rental would run into a
+        # booking three days out, so the first day a 7-day rental fits is that
+        # booking's return day.
+        today = date(2026, 6, 12)
+        blocked = [_Block(today + timedelta(days=3), today + timedelta(days=10))]
+        assert compute_availability(blocked, today=today, durations=[7]) == (
+            False,
+            today + timedelta(days=10),
+        )
+
+    def test_longer_length_blocked_but_shorter_one_fits(self):
+        # Any single allowed length is enough — 14 days would overlap, 7 days fits.
+        today = date(2026, 6, 12)
+        blocked = [_Block(today + timedelta(days=10), today + timedelta(days=20))]
+        assert compute_availability(blocked, today=today, durations=[7, 14]) == (True, today)
+
+    def test_return_weekday_never_allowed_means_never_available(self):
+        # Wednesdays only + a 3-day length always returns on a Saturday — no legal
+        # pickup exists anywhere in the horizon.
+        assert compute_availability(
+            [], today=self.MONDAY, allowed_weekdays=[self.WED], durations=[3]
+        ) == (False, None)
+
+    def test_weekday_rule_alone(self):
+        # Weekdays without fixed lengths: the next allowed weekday, ignoring lengths.
+        assert compute_availability([], today=self.MONDAY, allowed_weekdays=[self.WED]) == (
+            False,
+            date(2026, 6, 17),
+        )
+
+    def test_empty_rules_behave_as_no_rules(self):
+        # Empty lists (a collection that sets neither) must not change the answer.
+        blocked = [_Block(date(2026, 6, 10), date(2026, 6, 15))]
+        assert compute_availability(
+            blocked, today=TODAY, allowed_weekdays=[], durations=[]
+        ) == compute_availability(blocked, today=TODAY)
+
+    def test_horizon_exhausted_under_rules(self):
+        assert compute_availability(
+            [], today=self.MONDAY, allowed_weekdays=[self.WED], durations=[7], horizon_days=1
+        ) == (False, None)
+
+
 @pytest.mark.django_db
 class TestAvailabilityWindowMethod:
     def _lend_thing(self, user):
@@ -90,6 +160,22 @@ class TestAvailabilityWindowMethod:
     def test_non_date_type_returns_none(self, thing):
         # `thing` fixture is GIFT_THING
         assert thing.availability_window() is None
+
+    def test_collection_rental_rules_are_applied(self, user, collection):
+        # The collection only lends on Wednesdays, for a week at a time. Unless today
+        # happens to be a Wednesday, the thing is not available today — and the next
+        # available day is a Wednesday.
+        collection.rental_weekdays = [2]
+        collection.rental_durations = [7]
+        collection.save()
+        thing = self._lend_thing(user)
+        collection.things.add(thing)
+
+        window = thing.availability_window()
+
+        today = date.today()
+        assert window["available_today"] is (today.weekday() == 2)
+        assert window["next_available"].weekday() == 2
 
 
 @pytest.mark.django_db
@@ -159,3 +245,21 @@ class TestCollectionCardAvailability:
         card = next(c for c in res.data["things"] if c["code"] == thing.code)
         assert card["available_today"] is None
         assert card["next_available"] is None
+
+    def test_card_honours_the_collection_rental_rules(self, authenticated_client, user, collection):
+        # The card reads the rules from the collection it is being rendered in (the
+        # grid doesn't prefetch each thing's collections, so it's passed via context).
+        collection.rental_weekdays = [2]
+        collection.rental_durations = [7]
+        collection.save()
+        thing = Thing.objects.create(
+            code="LEND04", type=Thing.Type.LEND_THING, owner=user, headline="Wednesdays only"
+        )
+        collection.things.add(thing)
+
+        res = authenticated_client.get(f"/api/v1/collections/{collection.code}/")
+
+        assert res.status_code == 200
+        card = next(c for c in res.data["things"] if c["code"] == thing.code)
+        assert card["available_today"] is (date.today().weekday() == 2)
+        assert card["next_available"].weekday() == 2
