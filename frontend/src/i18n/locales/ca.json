@@ -4,17 +4,18 @@
     "downloadStatsError": "No s'han pogut baixar les estadístiques."
   },
   "ageRange": {
-    "UP_TO_21": "21 o menys",
-    "22_30": "22–30",
-    "31_40": "31–40",
-    "41_50": "41–50",
-    "51_60": "51–60",
-    "61_PLUS": "61 o més"
+    "PRE_1946": "1945 o abans",
+    "BOOMER": "Boomers (1946–1964)",
+    "GEN_X": "Generació X (1965–1980)",
+    "GEN_Y": "Millennials (1981–1996)",
+    "GEN_Z": "Generació Z (1997–2012)",
+    "GEN_A": "Generació Alpha (2013–2024)",
+    "GEN_B": "Generació Beta (2025–2039)"
   },
   "communityProfile": {
     "heading": "Dades demogràfiques (opcional)",
     "helper": "Opcional. Només ho poden veure els propietaris de les col·leccions on participes — mai és públic.",
-    "ageLabel": "Franja d'edat",
+    "ageLabel": "Any de naixement",
     "ageUnset": "Prefereixo no dir-ho",
     "postalLabel": "Codi postal"
   },

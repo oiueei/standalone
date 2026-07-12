@@ -703,17 +703,18 @@ class CollectionStatsView(APIView):
         rows.append([f"Active members ({win}d)", len(active)])
 
         age_labels = {
-            "UP_TO_21": "Age 21 or under",
-            "22_30": "Age 22-30",
-            "31_40": "Age 31-40",
-            "41_50": "Age 41-50",
-            "51_60": "Age 51-60",
-            "61_PLUS": "Age 61 or over",
+            "PRE_1946": "Born 1945 or earlier",
+            "BOOMER": "Born 1946-1964 (Boomers)",
+            "GEN_X": "Born 1965-1980 (Gen X)",
+            "GEN_Y": "Born 1981-1996 (Millennials)",
+            "GEN_Z": "Born 1997-2012 (Gen Z)",
+            "GEN_A": "Born 2013-2024 (Gen Alpha)",
+            "GEN_B": "Born 2025-2039 (Gen Beta)",
         }
         age_counts = Counter(u.age_range for u in members if u.age_range)
         for age_code, label in age_labels.items():
             rows.append([label, age_counts.get(age_code, 0)])
-        rows.append(["Age not specified", sum(1 for u in members if not u.age_range)])
+        rows.append(["Birth year not specified", sum(1 for u in members if not u.age_range)])
 
         postal_counts = Counter(u.postal_code for u in members if u.postal_code)
         for postal, count in postal_counts.most_common(10):

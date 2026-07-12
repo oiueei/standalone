@@ -12,7 +12,7 @@ import ImageUpload from '../components/ImageUpload';
 import useTheeeme from '../hooks/useTheeeme';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 
-const AGE_RANGES = ['UP_TO_21', '22_30', '31_40', '41_50', '51_60', '61_PLUS'];
+const AGE_RANGES = ['PRE_1946', 'BOOMER', 'GEN_X', 'GEN_Y', 'GEN_Z', 'GEN_A', 'GEN_B'];
 
 export default function EditProfilePage() {
   const { t, i18n } = useTranslation();

@@ -4,17 +4,18 @@
     "downloadStatsError": "No se pudieron descargar las estadísticas."
   },
   "ageRange": {
-    "UP_TO_21": "21 o menos",
-    "22_30": "22–30",
-    "31_40": "31–40",
-    "41_50": "41–50",
-    "51_60": "51–60",
-    "61_PLUS": "61 o más"
+    "PRE_1946": "1945 o antes",
+    "BOOMER": "Boomers (1946–1964)",
+    "GEN_X": "Generación X (1965–1980)",
+    "GEN_Y": "Millennials (1981–1996)",
+    "GEN_Z": "Generación Z (1997–2012)",
+    "GEN_A": "Generación Alpha (2013–2024)",
+    "GEN_B": "Generación Beta (2025–2039)"
   },
   "communityProfile": {
     "heading": "Datos demográficos (opcional)",
     "helper": "Opcional. Solo lo pueden ver los propietarios de las colecciones en las que estás — nunca es público.",
-    "ageLabel": "Franja de edad",
+    "ageLabel": "Año de nacimiento",
     "ageUnset": "Prefiero no decirlo",
     "postalLabel": "Código postal"
   },
