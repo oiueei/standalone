@@ -72,6 +72,7 @@ class Command(BaseCommand):
                     collection_code=collection.code,
                     thing_headlines=headlines,
                     emails=invitee_emails,
+                    collection=collection,
                 )
             except Exception as exc:
                 self.stderr.write(self.style.WARNING(f"Digest failed for {collection.code}: {exc}"))
@@ -130,6 +131,7 @@ class Command(BaseCommand):
                     new_thing_headlines=new_thing_headlines,
                     transfer_entries=transfer_entries,
                     emails=invitee_emails,
+                    collection=collection,
                 )
             except Exception as exc:
                 self.stderr.write(

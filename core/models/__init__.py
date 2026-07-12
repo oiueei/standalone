@@ -3,6 +3,7 @@ from .booking import BookingPeriod
 from .collection import Collection
 from .event import Event
 from .faq import FAQ
+from .language import Language
 from .notification import InAppNotification
 from .report import Report
 from .rsvp import RSVP
@@ -19,6 +20,7 @@ __all__ = [
     "FAQ",
     "RSVP",
     "Theeeme",
+    "Language",
     "BookingPeriod",
     "ThingTransfer",
     "InAppNotification",

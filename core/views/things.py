@@ -186,7 +186,9 @@ class ThingViewSet(ModelViewSet):
             return
 
         creator_name = self.request.user.display_name
-        send_wish_posted_email(creator_name, wish, [m.email for m in members])
+        send_wish_posted_email(
+            creator_name, wish, [m.email for m in members], collection=collection
+        )
         InAppNotification.objects.bulk_create(
             [
                 InAppNotification(

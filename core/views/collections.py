@@ -327,6 +327,7 @@ class CollectionInviteView(APIView):
             email,
             accept_link,
             reject_link,
+            collection=collection,
         )
 
         return Response(
@@ -365,7 +366,9 @@ class CollectionInviteView(APIView):
             # Notify the removed user — invited_user is already in hand (fetched
             # above), so there's no need to re-query and no DoesNotExist to guard.
             owner_name = request.user.display_name
-            send_collection_revoke_email(owner_name, collection.headline, invited_user.email)
+            send_collection_revoke_email(
+                owner_name, collection.headline, invited_user.email, collection=collection
+            )
             InAppNotification.objects.create(
                 user=invited_user,
                 type=InAppNotification.Type.COLLECTION_REVOKED,
@@ -446,7 +449,7 @@ class CollectionLeaveView(APIView):
         )
 
 
-def _send_bulk_invites(inviter_name, headline, recipients):
+def _send_bulk_invites(inviter_name, headline, recipients, collection=None):
     """Send the collection-invite emails for a bulk invite without blocking.
 
     In production (``EMAIL_SEND_ASYNC``) the whole loop runs on a daemon thread so
@@ -460,7 +463,7 @@ def _send_bulk_invites(inviter_name, headline, recipients):
         for email, accept_link, reject_link in recipients:
             try:
                 send_collection_invite_email(
-                    inviter_name, headline, email, accept_link, reject_link
+                    inviter_name, headline, email, accept_link, reject_link, collection=collection
                 )
             except Exception:
                 # Per-email SMTP failures are already handled inside _send; anything
@@ -477,7 +480,9 @@ def _send_bulk_invites(inviter_name, headline, recipients):
         _run()
 
 
-def _send_broadcast(owner_name, owner_email, headline, collection_code, message, emails):
+def _send_broadcast(
+    owner_name, owner_email, headline, collection_code, message, emails, collection=None
+):
     """Send a collection broadcast without blocking the request.
 
     ``send_broadcast_email`` loops over every invitee with a sequential SMTP call
@@ -495,6 +500,7 @@ def _send_broadcast(owner_name, owner_email, headline, collection_code, message,
             collection_code=collection_code,
             message=message,
             emails=emails,
+            collection=collection,
         )
 
     if getattr(settings, "EMAIL_SEND_ASYNC", False):
@@ -599,7 +605,7 @@ class CollectionBulkInviteView(APIView):
                 invited.append(email)
                 recipients.append((email, accept_rsvp.action_link(), reject_rsvp.action_link()))
 
-        _send_bulk_invites(inviter_name, collection.headline, recipients)
+        _send_bulk_invites(inviter_name, collection.headline, recipients, collection=collection)
 
         logger.info(
             "Bulk invite: user=%s collection=%s invited=%d skipped=%d",
@@ -914,6 +920,7 @@ class CollectionBroadcastView(APIView):
             collection_code=collection.code,
             message=message,
             emails=invitee_emails,
+            collection=collection,
         )
 
         InAppNotification.objects.bulk_create(

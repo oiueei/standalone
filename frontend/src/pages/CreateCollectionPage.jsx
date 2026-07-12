@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Button, RadioButton } from 'hds-react';
+import { TextInput, TextArea, Select, Button, RadioButton } from 'hds-react';
 import { isLockedToSingleType, reconcileAllowedTypes } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
 import ImageUpload from '../components/ImageUpload';
 import PdfUpload from '../components/PdfUpload';
+import { SUPPORTED_LANGUAGES } from '../i18n';
 import TagInput from '../components/TagInput';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function CreateCollectionPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   useEffect(() => { document.title = t('titles.newCollection'); }, [t]);
   const location = useLocation();
@@ -34,6 +35,9 @@ export default function CreateCollectionPage() {
   const [rentalWeekdays, setRentalWeekdays] = useState([]);
   const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
+  // The group's email language. Defaults to whatever the owner is reading the app
+  // in; each member's own preference still wins over it.
+  const [language, setLanguage] = useState(i18n.resolvedLanguage || i18n.language);
   const [welcomeDoc, setWelcomeDoc] = useState('');
   const [errors, setErrors] = useState({});
 
@@ -99,6 +103,7 @@ export default function CreateCollectionPage() {
       rental_weekdays: isSwap || isShare ? [] : rentalWeekdays,
       tags,
       thumbnail: thumbnail || '',
+      language,
       welcome_doc: welcomeDoc || '',
     };
     if (description.trim()) body.description = description.trim();
@@ -193,6 +198,19 @@ export default function CreateCollectionPage() {
             label={t('createCollection.tagsLabel')}
             placeholder={t('createCollection.tagsPlaceholder')}
             helperText={t('createCollection.tagsHelper')}
+          />
+          <Select
+            language="en"
+            id="create-collection-language"
+            texts={{ label: t('collectionLanguage.label') }}
+            helper={t('collectionLanguage.helper')}
+            options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
+            value={language}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setLanguage(selectedOptions[0].value);
+              }
+            }}
           />
           <ImageUpload
             id="create-collection-thumbnail"

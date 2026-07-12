@@ -15,7 +15,7 @@ import useTheeeme from '../hooks/useTheeeme';
  * silently ignores it otherwise).
  */
 export default function JoinToAct({ collectionCode, collectionHeadline }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { btnStyle } = useTheeeme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,13 @@ export default function JoinToAct({ collectionCode, collectionHeadline }) {
       const res = await fetch('/api/v1/auth/pop-in/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify({ email, collection_code: collectionCode }),
+        // `language` is stored on a brand-new user, so their very first magic link
+        // already speaks the language they're reading this page in.
+        body: JSON.stringify({
+          email,
+          collection_code: collectionCode,
+          language: i18n.resolvedLanguage || i18n.language,
+        }),
       });
       if (res.ok) {
         localStorage.removeItem('seenWelcome');

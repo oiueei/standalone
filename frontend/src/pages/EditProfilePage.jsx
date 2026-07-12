@@ -35,6 +35,7 @@ export default function EditProfilePage() {
   const [theeemes, setTheeemes] = useState([]);
   const [notifyActivity, setNotifyActivity] = useState(true);
   const [notifyNews, setNotifyNews] = useState(false);
+  const [language, setLanguage] = useState('');
   const [ageRange, setAgeRange] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [errors, setErrors] = useState({});
@@ -60,6 +61,8 @@ export default function EditProfilePage() {
           setTheeeme(data.theeeme || '');
           setNotifyActivity(data.notify_activity ?? true);
           setNotifyNews(data.notify_news ?? false);
+          // Saved preference, else whatever the browser is showing right now.
+          setLanguage(data.language || i18n.resolvedLanguage || i18n.language);
           setAgeRange(data.age_range || '');
           setPostalCode(data.postal_code || '');
         } else {
@@ -77,7 +80,7 @@ export default function EditProfilePage() {
       }
     };
     fetchData();
-  }, [userCode, navigate, t]);
+  }, [userCode, navigate, t, i18n]);
 
   const validate = () => {
     const newErrors = {};
@@ -101,6 +104,8 @@ export default function EditProfilePage() {
       koro,
       notify_activity: notifyActivity,
       notify_news: notifyNews,
+      // Also the language OIUEEI writes to this user in (email included).
+      language,
       age_range: ageRange,
       postal_code: postalCode,
     };
@@ -193,10 +198,14 @@ export default function EditProfilePage() {
             language="en"
             id="edit-profile-language"
             texts={{ label: t('editProfile.languageLabel') }}
+            helper={t('editProfile.languageHelper')}
             options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
-            value={i18n.resolvedLanguage || i18n.language}
+            value={language || i18n.resolvedLanguage || i18n.language}
             onChange={(selectedOptions) => {
               if (selectedOptions.length > 0) {
+                // The interface switches at once (as it always did); Save then
+                // persists it, so the emails follow the interface.
+                setLanguage(selectedOptions[0].value);
                 i18n.changeLanguage(selectedOptions[0].value);
               }
             }}

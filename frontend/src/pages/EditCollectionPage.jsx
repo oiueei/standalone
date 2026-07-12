@@ -8,13 +8,14 @@ import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
 import ImageUpload from '../components/ImageUpload';
 import PdfUpload from '../components/PdfUpload';
+import { SUPPORTED_LANGUAGES } from '../i18n';
 import TagInput from '../components/TagInput';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function EditCollectionPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { code } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
@@ -37,6 +38,7 @@ export default function EditCollectionPage() {
   const [tags, setTags] = useState([]);
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [language, setLanguage] = useState('');
   const [welcomeDoc, setWelcomeDoc] = useState('');
   const [welcomeDocUrl, setWelcomeDocUrl] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
@@ -106,6 +108,9 @@ export default function EditCollectionPage() {
           setTags(data.tags || []);
           setThumbnail(data.thumbnail || '');
           setThumbnailUrl(data.thumbnail_url || '');
+          // Blank = inherit the deployment default; the members' own preference
+          // still wins over whatever the owner picks here.
+          setLanguage(data.language || i18n.resolvedLanguage || i18n.language);
           setWelcomeDoc(data.welcome_doc || '');
           setWelcomeDocUrl(data.welcome_doc_url || '');
           setPauseMessage(data.pause_message || '');
@@ -120,7 +125,7 @@ export default function EditCollectionPage() {
       }
     };
     fetchData();
-  }, [userCode, code, navigate, t]);
+  }, [userCode, code, navigate, t, i18n]);
 
   const validate = () => {
     setSubmitAttempted(true);
@@ -154,6 +159,7 @@ export default function EditCollectionPage() {
       rental_weekdays: isSwap || isShare ? [] : rentalWeekdays,
       tags,
       thumbnail: thumbnail || '',
+      language,
       welcome_doc: welcomeDoc || '',
     };
 
@@ -307,6 +313,19 @@ export default function EditCollectionPage() {
           onChange={(selectedOptions) => {
             if (selectedOptions.length > 0) {
               setDigestFrequency(selectedOptions[0].value);
+            }
+          }}
+        />
+        <Select
+          language="en"
+          id="edit-collection-language"
+          texts={{ label: t('collectionLanguage.label') }}
+          helper={t('collectionLanguage.helper')}
+          options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
+          value={language}
+          onChange={(selectedOptions) => {
+            if (selectedOptions.length > 0) {
+              setLanguage(selectedOptions[0].value);
             }
           }}
         />

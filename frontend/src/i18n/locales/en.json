@@ -408,7 +408,8 @@
     "aboutMarkdownHint": "New to Markdown? Write and preview it online for free at <0>dillinger.io</0>.",
     "photoLabel": "Profile photo",
     "photoHelper": "Shown on your profile, optional",
-    "maxAbout": "Maximum 2000 characters."
+    "maxAbout": "Maximum 2000 characters.",
+    "languageHelper": "OIUEEI also writes to you in this language (emails included)."
   },
   "editCollection": {
     "pageTitle": "Edit collection",
@@ -815,5 +816,9 @@
   "feedback": {
     "prompt": "Something odd? An idea?",
     "cta": "Tell me"
+  },
+  "collectionLanguage": {
+    "label": "Language of the group messages",
+    "helper": "The language the group's emails are written in. Any member who has set their own language reads them in theirs."
   }
 }

@@ -87,7 +87,7 @@ def _lookup_user(email):
             _owns_collection=Exists(Collection.objects.filter(owner=OuterRef("pk")))
         )
         .filter(email=email)
-        .only("code", "notify_activity", "notify_news")
+        .only("code", "language", "notify_activity", "notify_news")
         .first()
     )
 
@@ -110,8 +110,45 @@ def _lookup_users(emails):
             _owns_collection=Exists(Collection.objects.filter(owner=OuterRef("pk")))
         )
         .filter(email__in=list(emails))
-        .only("code", "email", "notify_activity", "notify_news")
+        .only("code", "email", "language", "notify_activity", "notify_news")
     }
+
+
+def resolve_email_language(user=None, collection=None):
+    """Which language an email to this recipient speaks.
+
+    Weakest to strongest: the **deployment default** (``EMAIL_LANGUAGE``), the
+    **collection's** language (the owner's choice for their group), the
+    **recipient's own** preference. Blank means "inherit", so a level only speaks
+    when it was actually set. Thing-scoped 1:1 emails (bookings, FAQs, swaps,
+    reminders) pass no collection — there is no group to speak for — so they are
+    the recipient's preference or the deployment default.
+    """
+    return (
+        (getattr(user, "language", "") or "")
+        or (getattr(collection, "language", "") or "")
+        or getattr(settings, "EMAIL_LANGUAGE", "en")
+    )
+
+
+def _texts(lang):
+    """``T`` bound to one language.
+
+    Senders shadow the module-level ``T`` with it (``T = _texts(lang)``), so every
+    ``T("key")`` in the body below speaks the recipient's language without
+    threading the argument through each call.
+    """
+    return functools.partial(T, lang=lang)
+
+
+def _recipient(email, collection=None):
+    """Resolve the recipient User once, plus the language their email speaks.
+
+    The User is then handed to ``_send`` so the preference check, the footer link
+    and the viral-line gate don't look it up all over again.
+    """
+    user = _lookup_user(email)
+    return user, resolve_email_language(user=user, collection=collection)
 
 
 def _should_send(email, category, user=_UNSET):
@@ -149,6 +186,29 @@ def _filter_recipients(emails, category):
     return [e for e in emails if e not in opted_out]
 
 
+def _send_per_language(emails, category, compose, collection=None, reply_to=None):
+    """Send one bulk email (digest, newsletter, broadcast, wish-posted) to a list of
+    recipients, **each in their own language**.
+
+    A group can be bilingual, so the body can't be composed once up front:
+    ``compose(lang)`` builds ``(subject, plain, html)`` and is called once per
+    distinct language present among the recipients (not once per recipient — a
+    50-member group in one language still composes once). Opt-outs are dropped
+    first, and the users are bulk-resolved in a single query so ``_send`` doesn't
+    re-look-up anyone.
+    """
+    recipients = _filter_recipients(emails, category)
+    users = _lookup_users(recipients)
+    composed = {}
+    for email in recipients:
+        user = users.get(email)
+        lang = resolve_email_language(user=user, collection=collection)
+        if lang not in composed:
+            composed[lang] = compose(lang)
+        subject, plain, html = composed[lang]
+        _send(email, subject, plain, html, category, reply_to=reply_to, user=user, lang=lang)
+
+
 def _frontend_base_url():
     return settings.MAGIC_LINK_BASE_URL.rsplit("/", 1)[0]
 
@@ -162,12 +222,12 @@ def _notifications_link(email, user=_UNSET):
     return f"{base}/me/notifications"
 
 
-def _with_footer(plain, html, email, category, user=_UNSET):
+def _with_footer(plain, html, email, category, user=_UNSET, lang=None):
     """Append the 'manage your emails' footer for Cat. 2 / Cat. 3 emails."""
     if category == CATEGORY_MANDATORY:
         return plain, html
     link = _notifications_link(email, user=user)
-    manage = T("footer_manage")
+    manage = T("footer_manage", lang)
     footer_plain = f"\n\n---\n{manage}: {link}"
     footer_html = (
         '<hr style="border:none;border-top:1px solid #ddd;margin-top:24px;">'
@@ -178,7 +238,7 @@ def _with_footer(plain, html, email, category, user=_UNSET):
     return plain + footer_plain, html + footer_html
 
 
-def _with_viral_line(plain, html, user=_UNSET):
+def _with_viral_line(plain, html, user=_UNSET, lang=None):
     """Prepend one random growth blurb above the preferences footer.
 
     Shown to recipients who don't own a collection — the audience for "create
@@ -186,7 +246,7 @@ def _with_viral_line(plain, html, user=_UNSET):
     Suppressed for collection owners and when ``VIRAL_LINES`` is empty. The CTA
     is the plain ``/collections/new`` URL, never tracking-wrapped (DESIGN §9).
     """
-    lines = viral_lines()
+    lines = viral_lines(lang)
     if not lines:
         return plain, html
     if user is not _UNSET and user and getattr(user, "_owns_collection", False):
@@ -229,7 +289,17 @@ def _logo_attachment():
     return image
 
 
-def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET, include_viral=True):
+def _send(
+    to_email,
+    subject,
+    plain,
+    html,
+    category,
+    reply_to=None,
+    user=_UNSET,
+    include_viral=True,
+    lang=None,
+):
     """Send a single email through the category + footer + viral pipeline.
 
     Returns True if the email was dispatched, False if the recipient opted out
@@ -247,6 +317,10 @@ def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET, 
     collection owners — see ``_with_viral_line``). The two marketing-free
     senders — ``send_magic_link_email`` and ``send_stats_summary_email`` — pass
     ``False``; everything else uses the default.
+
+    ``lang`` is the language the sender composed this email in (see
+    ``resolve_email_language``); the footer and the viral line follow it, so the
+    whole message speaks one language.
     """
     # Resolve the recipient User once when something downstream needs it: the
     # preference check (non-mandatory) or the viral-line ownership gate. A
@@ -257,8 +331,8 @@ def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET, 
     if not _should_send(to_email, category, user=user):
         return False
     if include_viral:
-        plain, html = _with_viral_line(plain, html, user=user)
-    plain, html = _with_footer(plain, html, to_email, category, user=user)
+        plain, html = _with_viral_line(plain, html, user=user, lang=lang)
+    plain, html = _with_footer(plain, html, to_email, category, user=user, lang=lang)
     try:
         # Always EmailMultiAlternatives (not the send_mail() shortcut) — the
         # inline logo needs .attach() on the message object, which send_mail()
@@ -333,10 +407,10 @@ def _render_email(blocks):
     )
 
 
-def _booking_detail_blocks(booking):
+def _booking_detail_blocks(booking, lang=None):
     """Date/quantity detail blocks shared by the three booking emails."""
     if booking.start_date and booking.end_date:
-        return [_field(T("dates_label"), f"{booking.start_date} - {booking.end_date}")]
+        return [_field(T("dates_label", lang), f"{booking.start_date} - {booking.end_date}")]
     return []
 
 
@@ -349,7 +423,7 @@ def _thing_url(thing):
     return f"{base}/things/{thing.code}"
 
 
-def _action_noun(thing):
+def _action_noun(thing, lang=None):
     """The per-type action noun for the booking emails (e.g. 'purchase', 'compra').
 
     Mirrors the frontend's per-type vocabulary (``thingCard.action`` / ``types``)
@@ -360,19 +434,24 @@ def _action_noun(thing):
     swaps (``finalize_booking_decision`` runs for every booking type), so a
     missing noun would be a KeyError mid-decision. Only WISH never books.
     """
-    return T(f"action_noun_{thing.type}")
+    return T(f"action_noun_{thing.type}", lang)
 
 
 # --- Category 1: Mandatory -----------------------------------------------------
 
 
-def send_magic_link_email(email, magic_link, collection_headline=None):
+def send_magic_link_email(email, magic_link, collection_headline=None, lang=None):
     """Send magic link authentication email.
 
     When ``collection_headline`` is given (a pop-in / share-link join), the
     subject names the collection the visitor is joining; without it the generic
     welcome subject is used (``/login`` and the plain onboarding pop-in).
+
+    ``lang`` is resolved by the caller (the auth views know the user and, on a
+    join, the collection) — this is the one email that must not look the recipient
+    up, so it stays a constant-time send (L10, email-enumeration timing oracle).
     """
+    T = _texts(lang)
     if collection_headline:
         subject = T("magic_subject_collection").format(collection=collection_headline)
     else:
@@ -384,13 +463,15 @@ def send_magic_link_email(email, magic_link, collection_headline=None):
             _links((magic_link, T("magic_cta"))),
         ]
     )
-    _send(email, subject, plain, html, CATEGORY_MANDATORY, include_viral=False)
+    _send(email, subject, plain, html, CATEGORY_MANDATORY, include_viral=False, lang=lang)
 
 
 def send_collection_invite_email(
-    inviter_name, collection_headline, email, accept_link, reject_link
+    inviter_name, collection_headline, email, accept_link, reject_link, collection=None
 ):
     """Send collection invitation email with accept and reject links."""
+    user, lang = _recipient(email, collection)
+    T = _texts(lang)
     subject = T("invite_subject").format(collection=collection_headline)
     plain = T("invite_plain").format(
         collection=collection_headline, accept=accept_link, reject=reject_link
@@ -402,18 +483,20 @@ def send_collection_invite_email(
             _links((accept_link, T("invite_accept_cta")), (reject_link, T("invite_decline_cta"))),
         ]
     )
-    _send(email, subject, plain, html, CATEGORY_MANDATORY)
+    _send(email, subject, plain, html, CATEGORY_MANDATORY, user=user, lang=lang)
 
 
-def send_collection_welcome_doc_email(collection_headline, doc_url, email):
+def send_collection_welcome_doc_email(collection_headline, doc_url, email, collection=None):
     """Send the collection's welcome & rules PDF to a member who has just joined.
 
     A **link**, never an attachment: the file lives on Cloudinary, and mailing a
     5 MB PDF to every joiner would be a good way to get the domain filtered.
     Membership lifecycle, so it is mandatory (Cat. 1) like the invitation itself —
     a member who never sees the rules can't follow them. Sent once, on the first
-    join (see ``CollectionJoinMixin.send_welcome_doc``).
+    join (see ``core/views/auth.py::_join_collection``).
     """
+    user, lang = _recipient(email, collection)
+    T = _texts(lang)
     subject = T("welcome_doc_subject").format(collection=collection_headline)
     plain = T("welcome_doc_plain").format(collection=collection_headline, url=doc_url)
     html = _render_email(
@@ -423,11 +506,13 @@ def send_collection_welcome_doc_email(collection_headline, doc_url, email):
             _para(T("welcome_doc_outro")),
         ]
     )
-    _send(email, subject, plain, html, CATEGORY_MANDATORY)
+    _send(email, subject, plain, html, CATEGORY_MANDATORY, user=user, lang=lang)
 
 
-def send_collection_revoke_email(owner_name, collection_headline, email):
+def send_collection_revoke_email(owner_name, collection_headline, email, collection=None):
     """Send collection access revoked notification email."""
+    user, lang = _recipient(email, collection)
+    T = _texts(lang)
     subject = T("revoke_subject")
     plain = T("revoke_plain").format(owner=owner_name, collection=collection_headline)
     html = _render_email(
@@ -437,7 +522,7 @@ def send_collection_revoke_email(owner_name, collection_headline, email):
             _para(T("revoke_outro")),
         ]
     )
-    _send(email, subject, plain, html, CATEGORY_MANDATORY)
+    _send(email, subject, plain, html, CATEGORY_MANDATORY, user=user, lang=lang)
 
 
 # --- Category 2: Activity ------------------------------------------------------
@@ -445,8 +530,10 @@ def send_collection_revoke_email(owner_name, collection_headline, email):
 
 def send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link):
     """Send booking request email to owner with accept/reject links."""
+    user, lang = _recipient(owner_email)
+    T = _texts(lang)
     requester_name = requester.display_name
-    action = _action_noun(thing)
+    action = _action_noun(thing, lang)
 
     if booking.start_date and booking.end_date:
         plain = T("booking_request_plain_dated").format(
@@ -472,17 +559,19 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
         [
             _para(T("booking_request_intro").format(requester=requester_name, action=action)),
             _strong(thing.headline),
-            *_booking_detail_blocks(booking),
+            *_booking_detail_blocks(booking, lang),
             _links((accept_link, T("hold_confirm_cta")), (reject_link, T("hold_cancel_cta"))),
         ]
     )
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_booking_decision_email(booking, thing, accepted=True):
     """Send booking accept/reject notification email to requester."""
+    user, lang = _recipient(booking.requester_email)
+    T = _texts(lang)
     decision_word = T("decision_confirmed") if accepted else T("decision_cancelled")
-    action = _action_noun(thing)
+    action = _action_noun(thing, lang)
 
     if booking.start_date and booking.end_date:
         plain = T("decision_plain_dated").format(
@@ -502,10 +591,10 @@ def send_booking_decision_email(booking, thing, accepted=True):
         [
             _para(T("decision_intro").format(action=action, decision=decision_word)),
             _strong(thing.headline),
-            *_booking_detail_blocks(booking),
+            *_booking_detail_blocks(booking, lang),
         ]
     )
-    _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_booking_unavailable_email(booking, thing):
@@ -514,6 +603,8 @@ def send_booking_unavailable_email(booking, thing):
     Sent when the owner gave or swapped the thing to someone else, so this
     requester's PENDING booking was auto-declined. Warm, non-blaming tone.
     """
+    user, lang = _recipient(booking.requester_email)
+    T = _texts(lang)
     subject = T("unavailable_subject")
     plain = T("unavailable_plain").format(thing=thing.headline)
     html = _render_email(
@@ -522,11 +613,13 @@ def send_booking_unavailable_email(booking, thing):
             _para(T("unavailable_outro")),
         ]
     )
-    _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(booking.requester_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
-def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
+def send_invite_rejected_email(invitee_name, collection_headline, owner_email, collection=None):
     """Send notification to collection owner that an invite was declined."""
+    user, lang = _recipient(owner_email, collection)
+    T = _texts(lang)
     subject = T("invite_rejected_subject")
     plain = T("invite_rejected_plain").format(invitee=invitee_name, collection=collection_headline)
     html = _render_email(
@@ -535,15 +628,17 @@ def send_invite_rejected_email(invitee_name, collection_headline, owner_email):
             _strong(collection_headline),
         ]
     )
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_booking_confirmation_email(requester, thing, booking):
     """Send booking confirmation email to the requester."""
+    user, lang = _recipient(requester.email)
+    T = _texts(lang)
     owner_name = thing.owner.display_name
     thing_url = _thing_url(thing)
     collection = thing.collections.first()
-    action = _action_noun(thing)
+    action = _action_noun(thing, lang)
 
     if booking.start_date and booking.end_date:
         plain = T("confirmation_plain_dated").format(
@@ -565,16 +660,18 @@ def send_booking_confirmation_email(requester, thing, booking):
             _para(T("confirmation_intro").format(action=action)),
             _strong(thing.headline),
             *([_field(T("part_of_label"), collection.headline)] if collection else []),
-            *_booking_detail_blocks(booking),
+            *_booking_detail_blocks(booking, lang),
             _para(T("confirmation_outro").format(owner=owner_name)),
             _links((thing_url, thing.headline)),
         ]
     )
-    _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_faq_question_email(questioner_name, thing, question, owner_email):
     """Send FAQ question notification email to thing owner."""
+    user, lang = _recipient(owner_email)
+    T = _texts(lang)
     thing_url = _thing_url(thing)
 
     subject = T("faq_question_subject")
@@ -589,11 +686,13 @@ def send_faq_question_email(questioner_name, thing, question, owner_email):
             _links((thing_url, T("faq_view_reply_cta"))),
         ]
     )
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_faq_answer_email(owner_name, thing, question, answer, questioner_email):
     """Send FAQ answer notification email to questioner, linking the thing."""
+    user, lang = _recipient(questioner_email)
+    T = _texts(lang)
     thing_url = _thing_url(thing)
     subject = T("faq_answer_subject")
     plain = T("faq_answer_plain").format(
@@ -608,11 +707,13 @@ def send_faq_answer_email(owner_name, thing, question, answer, questioner_email)
             _links((thing_url, thing.headline)),
         ]
     )
-    _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     """Send FAQ hidden notification email to questioner."""
+    user, lang = _recipient(questioner_email)
+    T = _texts(lang)
     subject = T("faq_hide_subject")
     plain = T("faq_hide_plain").format(owner=owner_name, question=question)
     html = _render_email(
@@ -622,7 +723,7 @@ def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
             _field(T("question_label"), question),
         ]
     )
-    _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_thing_reported_email(thing, owner_email):
@@ -631,6 +732,8 @@ def send_thing_reported_email(thing, owner_email):
     The reporter's identity is deliberately never included — the owner learns
     only *that* it was reported and *which* listing, so they can go and check it.
     """
+    user, lang = _recipient(owner_email)
+    T = _texts(lang)
     thing_url = _thing_url(thing)
 
     subject = T("reported_subject")
@@ -643,70 +746,78 @@ def send_thing_reported_email(thing, owner_email):
             _links((thing_url, T("reported_review_cta"))),
         ]
     )
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_broadcast_email(
-    owner_name, owner_email, collection_headline, collection_code, message, emails
+    owner_name, owner_email, collection_headline, collection_code, message, emails, collection=None
 ):
     """Send a broadcast email from a collection owner to all invitees.
 
     The subject is auto-generated as "Hey! {collection}" (the owner only writes
     the message). Carries a reply-to header (the owner) and a link to the
     collection — the object that originated the message — so recipients can open
-    it in-app.
+    it in-app. Composed per recipient language (see ``_compose_per_language``).
     """
     collection_url = f"{_frontend_base_url()}/collections/{collection_code}"
 
-    full_subject = T("broadcast_subject").format(collection=collection_headline)
-    plain = T("broadcast_plain").format(
-        owner=owner_name, collection=collection_headline, message=message, url=collection_url
-    )
-    html = _render_email(
-        [
-            _para(T("broadcast_intro").format(owner=owner_name, collection=collection_headline)),
-            _para(message),
-            _links((collection_url, T("broadcast_help_cta"))),
-        ]
-    )
-
-    recipients = _filter_recipients(emails, CATEGORY_ACTIVITY)
-    users = _lookup_users(recipients)
-    for email in recipients:
-        _send(
-            email,
-            full_subject,
-            plain,
-            html,
-            CATEGORY_ACTIVITY,
-            reply_to=[owner_email],
-            user=users.get(email),
+    def compose(lang):
+        T = _texts(lang)
+        return (
+            T("broadcast_subject").format(collection=collection_headline),
+            T("broadcast_plain").format(
+                owner=owner_name,
+                collection=collection_headline,
+                message=message,
+                url=collection_url,
+            ),
+            _render_email(
+                [
+                    _para(
+                        T("broadcast_intro").format(
+                            owner=owner_name, collection=collection_headline
+                        )
+                    ),
+                    _para(message),
+                    _links((collection_url, T("broadcast_help_cta"))),
+                ]
+            ),
         )
 
+    _send_per_language(
+        emails, CATEGORY_ACTIVITY, compose, collection=collection, reply_to=[owner_email]
+    )
 
-def send_wish_posted_email(creator_name, wish, emails):
+
+def send_wish_posted_email(creator_name, wish, emails, collection=None):
     """Notify a community that a member posted a new wish (pedido).
 
-    ``emails`` is the list of group members. Respects each recipient's
-    activity opt-out via ``_filter_recipients``.
+    ``emails`` is the list of group members. Respects each recipient's activity
+    opt-out, and each one reads it in their own language.
     """
     wish_url = _thing_url(wish)
 
-    subject = T("wish_posted_subject")
-    plain = T("wish_posted_plain").format(creator=creator_name, wish=wish.headline, url=wish_url)
-    html = _render_email(
-        [
-            _para(T("wish_posted_intro").format(creator=creator_name)),
-            _strong(wish.headline),
-            _links((wish_url, T("wish_posted_cta"))),
-        ]
-    )
-    for email in _filter_recipients(emails, CATEGORY_ACTIVITY):
-        _send(email, subject, plain, html, CATEGORY_ACTIVITY)
+    def compose(lang):
+        T = _texts(lang)
+        return (
+            T("wish_posted_subject"),
+            T("wish_posted_plain").format(creator=creator_name, wish=wish.headline, url=wish_url),
+            _render_email(
+                [
+                    _para(T("wish_posted_intro").format(creator=creator_name)),
+                    _strong(wish.headline),
+                    _links((wish_url, T("wish_posted_cta"))),
+                ]
+            ),
+        )
+
+    _send_per_language(emails, CATEGORY_ACTIVITY, compose, collection=collection)
 
 
 def send_wish_response_email(responder_name, wish, creator_email):
     """Notify a wish creator that someone answered their pedido."""
+    user, lang = _recipient(creator_email)
+    T = _texts(lang)
     wish_url = _thing_url(wish)
 
     subject = T("wish_response_subject")
@@ -720,11 +831,13 @@ def send_wish_response_email(responder_name, wish, creator_email):
             _links((wish_url, T("wish_response_cta"))),
         ]
     )
-    _send(creator_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(creator_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_wish_thanks_email(creator_name, wish, responder_email):
     """Thank the accepted responder when the wish creator marks it resolved."""
+    user, lang = _recipient(responder_email)
+    T = _texts(lang)
     subject = T("wish_thanks_subject")
     plain = T("wish_thanks_plain").format(creator=creator_name, wish=wish.headline)
     html = _render_email(
@@ -734,22 +847,26 @@ def send_wish_thanks_email(creator_name, wish, responder_email):
             _para(T("wish_thanks_outro")),
         ]
     )
-    _send(responder_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(responder_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_return_reminder_email(requester_name, thing_headline, end_date, owner_email):
     """Remind the owner that a booking ends tomorrow."""
+    user, lang = _recipient(owner_email)
+    T = _texts(lang)
     subject = T("reminder_subject")
     plain = T("reminder_plain").format(requester=requester_name, thing=thing_headline, end=end_date)
     body = T("reminder_body").format(requester=requester_name, thing=thing_headline, end=end_date)
     html = _render_email([_para(body)])
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_swap_request_email(
     requester, thing, offered_things, owner_email, accept_link, reject_link
 ):
     """Send swap request email to owner with offered thing headlines."""
+    user, lang = _recipient(owner_email)
+    T = _texts(lang)
     requester_name = requester.display_name
     offered_names = ", ".join(t.headline for t in offered_things)
 
@@ -770,11 +887,13 @@ def send_swap_request_email(
             _links((accept_link, T("swap_confirm_cta")), (reject_link, T("swap_cancel_cta"))),
         ]
     )
-    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 def send_swap_confirmation_email(requester, thing, offered_things, booking):
     """Send swap request confirmation to the requester."""
+    user, lang = _recipient(requester.email)
+    T = _texts(lang)
     offered_names = ", ".join(t.headline for t in offered_things)
 
     subject = T("swap_conf_subject")
@@ -789,35 +908,38 @@ def send_swap_confirmation_email(requester, thing, offered_things, booking):
             _para(T("swap_conf_outro")),
         ]
     )
-    _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY)
+    _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
 
 # --- Category 3: News / broadcast ---------------------------------------------
 
 
-def send_digest_email(collection_headline, collection_code, thing_headlines, emails):
+def send_digest_email(
+    collection_headline, collection_code, thing_headlines, emails, collection=None
+):
     """Send a digest email listing new things added to a collection."""
     base_url = _frontend_base_url()
     collection_url = f"{base_url}/collections/{collection_code}"
 
     things_plain = "\n".join(f"  - {h}" for h in thing_headlines)
 
-    subject = T("digest_subject").format(collection=collection_headline)
-    plain = T("digest_plain").format(
-        collection=collection_headline, things=things_plain, url=collection_url
-    )
-    html = _render_email(
-        [
-            _para(T("digest_intro").format(collection=collection_headline)),
-            _list(thing_headlines),
-            _links((collection_url, T("view_collection_cta"))),
-        ]
-    )
+    def compose(lang):
+        T = _texts(lang)
+        return (
+            T("digest_subject").format(collection=collection_headline),
+            T("digest_plain").format(
+                collection=collection_headline, things=things_plain, url=collection_url
+            ),
+            _render_email(
+                [
+                    _para(T("digest_intro").format(collection=collection_headline)),
+                    _list(thing_headlines),
+                    _links((collection_url, T("view_collection_cta"))),
+                ]
+            ),
+        )
 
-    recipients = _filter_recipients(emails, CATEGORY_NEWS)
-    users = _lookup_users(recipients)
-    for email in recipients:
-        _send(email, subject, plain, html, CATEGORY_NEWS, user=users.get(email))
+    _send_per_language(emails, CATEGORY_NEWS, compose, collection=collection)
 
 
 def send_stats_summary_email(recipient, subject, sections):
@@ -853,7 +975,12 @@ def send_stats_summary_email(recipient, subject, sections):
 
 
 def send_newsletter_email(
-    collection_headline, collection_code, new_thing_headlines, transfer_entries, emails
+    collection_headline,
+    collection_code,
+    new_thing_headlines,
+    transfer_entries,
+    emails,
+    collection=None,
 ):
     """Send a weekly newsletter for share collections.
 
@@ -868,41 +995,42 @@ def send_newsletter_email(
     base_url = _frontend_base_url()
     collection_url = f"{base_url}/collections/{collection_code}"
 
-    newsletter_intro = T("newsletter_intro").format(collection=collection_headline)
-    blocks = [_para(newsletter_intro)]
-    plain_blocks = []
+    def compose(lang):
+        T = _texts(lang)
+        newsletter_intro = T("newsletter_intro").format(collection=collection_headline)
+        blocks = [_para(newsletter_intro)]
+        plain_blocks = []
 
-    if new_thing_headlines:
-        things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)
-        plain_blocks.append(f"{T('newsletter_new_things')}:\n{things_plain}\n")
-        blocks.append(_heading(T("newsletter_new_things")))
-        blocks.append(_list(new_thing_headlines))
+        if new_thing_headlines:
+            things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)
+            plain_blocks.append(f"{T('newsletter_new_things')}:\n{things_plain}\n")
+            blocks.append(_heading(T("newsletter_new_things")))
+            blocks.append(_list(new_thing_headlines))
 
-    if transfer_entries:
-        transfers_plain = "\n".join(
-            f"  - {t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
-            for t in transfer_entries
-        )
-        plain_blocks.append(f"{T('newsletter_transfers')}:\n{transfers_plain}\n")
-        blocks.append(_heading(T("newsletter_transfers")))
-        blocks.append(
-            _list(
-                f"{t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
+        if transfer_entries:
+            transfers_plain = "\n".join(
+                f"  - {t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
                 for t in transfer_entries
             )
+            plain_blocks.append(f"{T('newsletter_transfers')}:\n{transfers_plain}\n")
+            blocks.append(_heading(T("newsletter_transfers")))
+            blocks.append(
+                _list(
+                    f"{t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
+                    for t in transfer_entries
+                )
+            )
+
+        blocks.append(_links((collection_url, T("view_collection_cta"))))
+
+        return (
+            T("newsletter_subject").format(collection=collection_headline),
+            (
+                f"{newsletter_intro}\n\n"
+                f"{''.join(b + chr(10) for b in plain_blocks)}"
+                f"{T('view_collection_cta')}: {collection_url}"
+            ),
+            _render_email(blocks),
         )
 
-    blocks.append(_links((collection_url, T("view_collection_cta"))))
-
-    subject = T("newsletter_subject").format(collection=collection_headline)
-    plain = (
-        f"{newsletter_intro}\n\n"
-        f"{''.join(b + chr(10) for b in plain_blocks)}"
-        f"{T('view_collection_cta')}: {collection_url}"
-    )
-    html = _render_email(blocks)
-
-    recipients = _filter_recipients(emails, CATEGORY_NEWS)
-    users = _lookup_users(recipients)
-    for email in recipients:
-        _send(email, subject, plain, html, CATEGORY_NEWS, user=users.get(email))
+    _send_per_language(emails, CATEGORY_NEWS, compose, collection=collection)

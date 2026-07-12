@@ -390,7 +390,8 @@
     "photoLabel": "Foto de perfil",
     "photoHelper": "Se muestra en tu perfil, opcional",
     "maxAbout": "Máximo 2000 caracteres.",
-    "emailPreferences": "Preferencias de email →"
+    "emailPreferences": "Preferencias de email →",
+    "languageHelper": "OIUEEI también te escribe en este idioma (correos incluidos)."
   },
   "editCollection": {
     "pageTitle": "Editar colección",
@@ -815,5 +816,9 @@
   "feedback": {
     "prompt": "¿Algo raro? ¿Una idea?",
     "cta": "Cuéntamelo"
+  },
+  "collectionLanguage": {
+    "label": "Idioma de los mensajes del grupo",
+    "helper": "El idioma en el que se escriben los correos del grupo. Quien haya elegido su propio idioma los recibe en el suyo."
   }
 }

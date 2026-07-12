@@ -8,6 +8,7 @@ from datetime import date
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import OperationalError, ProgrammingError, models
 
+from core.models.language import Language
 from core.utils import generate_id
 
 # Bussi — the documented default palette (seeded in migration 0036). Used only as
@@ -110,6 +111,10 @@ class User(AbstractBaseUser):
     # collection owner's stats CSV. Never public. Both default empty.
     age_range = models.CharField(max_length=8, choices=AgeRange.choices, blank=True, default="")
     postal_code = models.CharField(max_length=10, blank=True, default="")
+    # The language this user's own email is written in. Blank = inherit (the
+    # collection's language, else the deployment default). Strongest link in the
+    # hierarchy — see email_service.resolve_email_language.
+    language = models.CharField(max_length=2, choices=Language.choices, blank=True, default="")
 
     # Required for Django auth
     is_active = models.BooleanField(default=True)

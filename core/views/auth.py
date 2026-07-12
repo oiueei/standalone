@@ -21,13 +21,14 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import RSVP, Collection, User
+from core.models import RSVP, Collection, Language, User
 from core.models.booking import BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.serializers import RequestLinkSerializer, UserSerializer
 from core.services.booking_service import finalize_booking_decision
 from core.services.email_service import (
+    resolve_email_language,
     send_collection_welcome_doc_email,
     send_invite_rejected_email,
     send_magic_link_email,
@@ -68,7 +69,7 @@ def _set_auth_cookies(response, refresh):
     )
 
 
-def _send_magic_link(email, magic_link, collection_headline=None):
+def _send_magic_link(email, magic_link, collection_headline=None, user=None, collection=None):
     """Send the magic-link email, off the request thread in production.
 
     ``collection_headline`` (pop-in / share-link join) is forwarded to
@@ -76,22 +77,25 @@ def _send_magic_link(email, magic_link, collection_headline=None):
     is ``None`` for ``/login`` and the plain onboarding pop-in, which keep the
     generic welcome subject.
 
-    request-link only sends for a registered email, so a synchronous SMTP round
-    trip would make "registered" responses measurably slower than "not
-    registered" ones — a timing oracle for email enumeration (L10). When
-    ``EMAIL_SEND_ASYNC`` is on (production), dispatch to a daemon thread so the
-    response returns in constant time regardless. The send touches no DB
-    (magic-link email is Cat. 1 / mandatory) and already swallows its own errors.
-    Elsewhere it sends synchronously to keep tests deterministic.
+    The language is resolved **here**, from the user and (on a join) the collection
+    they are joining, and passed down — the email sender must not look the
+    recipient up: request-link only sends for a registered email, so a DB round
+    trip (or a synchronous SMTP one) would make "registered" responses measurably
+    slower than "not registered" ones — a timing oracle for email enumeration
+    (L10). When ``EMAIL_SEND_ASYNC`` is on (production), dispatch to a daemon
+    thread so the response returns in constant time regardless. The send touches no
+    DB (magic-link email is Cat. 1 / mandatory) and already swallows its own
+    errors. Elsewhere it sends synchronously to keep tests deterministic.
     """
+    lang = resolve_email_language(user=user, collection=collection)
     if getattr(settings, "EMAIL_SEND_ASYNC", False):
         threading.Thread(
             target=send_magic_link_email,
-            args=(email, magic_link, collection_headline),
+            args=(email, magic_link, collection_headline, lang),
             daemon=True,
         ).start()
     else:
-        send_magic_link_email(email, magic_link, collection_headline)
+        send_magic_link_email(email, magic_link, collection_headline, lang)
 
 
 def _join_collection(collection, user):
@@ -117,6 +121,7 @@ def _join_collection(collection, user):
         collection.headline,
         cloudinary_doc_url(collection.welcome_doc),
         user.email,
+        collection=collection,
     )
 
 
@@ -180,7 +185,7 @@ class RequestLinkView(APIView):
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.token}"
 
-        _send_magic_link(email, magic_link)
+        _send_magic_link(email, magic_link, user=user)
 
         return Response(
             {"message": unified_message},
@@ -453,6 +458,7 @@ class VerifyLinkView(APIView):
                     invitee_name,
                     collection.headline,
                     collection.owner.email,
+                    collection=collection,
                 )
                 InAppNotification.objects.create(
                     user=collection.owner,
@@ -561,6 +567,12 @@ class PopInView(APIView):
     share token). Only PUBLIC, ACTIVE collections qualify — a code can never be
     used to slip into a PRIVATE, invite-only collection — and an unknown or
     non-public code is silently ignored, same as an invalid share token.
+
+    Accepts optional `language` (`es`/`ca`/`en` — the UI language the visitor is
+    reading the pop-in page in). It is stored on a **newly created** user only, so
+    their very first magic link already speaks their language; anything else is
+    ignored, and an existing user's saved preference is never overwritten by the
+    browser they happened to arrive from.
     """
 
     permission_classes = [AllowAny]
@@ -576,8 +588,15 @@ class PopInView(APIView):
         collection_code = (request.data.get("collection_code") or "").strip() or None
         ip = get_client_ip(request)
 
+        language = (request.data.get("language") or "").strip().lower()
+        if language not in Language.values:
+            language = ""
+
         user, created = User.objects.get_or_create(email=email)
         if created:
+            if language:
+                user.language = language
+                user.save(update_fields=["language"])
             Event.log(Event.Kind.USER_JOINED, actor=user)
 
         # Join the relevant collection (if any), else fall back to the onboarding
@@ -588,10 +607,11 @@ class PopInView(APIView):
         # a PUBLIC collection by code) stamp it on the magic-link RSVP so
         # VerifyLinkView drops them straight onto that collection after login,
         # instead of the generic /welcome. Empty for the plain onboarding fallback.
-        # ``join_headline`` mirrors that collection's headline so the magic-link
-        # subject can name it; it stays None for the plain onboarding fallback.
+        # ``join_collection`` is that collection: the magic-link subject names it and
+        # the email speaks its language. Both stay empty/None for the plain
+        # onboarding fallback.
         target_collection_code = ""
-        join_headline = None
+        join_collection = None
 
         # 1) An owner's share-token link (bearer credential).
         if share_token:
@@ -606,7 +626,7 @@ class PopInView(APIView):
                 _join_collection(shared_collection, user)
                 joined = True
                 target_collection_code = shared_collection.code
-                join_headline = shared_collection.headline
+                join_collection = shared_collection
 
         # 2) Login-to-act on a PUBLIC collection: the visitor joins it by code.
         # Strictly PUBLIC + ACTIVE — a code is never a way into a PRIVATE
@@ -626,7 +646,7 @@ class PopInView(APIView):
                 _join_collection(public_collection, user)
                 joined = True
                 target_collection_code = public_collection.code
-                join_headline = public_collection.headline
+                join_collection = public_collection
 
         # 3) No specific target — add to the open demo/onboarding collections.
         if not joined:
@@ -642,7 +662,13 @@ class PopInView(APIView):
         )
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.token}"
-        _send_magic_link(email, magic_link, collection_headline=join_headline)
+        _send_magic_link(
+            email,
+            magic_link,
+            collection_headline=join_collection.headline if join_collection else None,
+            user=user,
+            collection=join_collection,
+        )
 
         security_logger.info(
             f"Pop-in request for {redact_email(email)} from IP {ip} "

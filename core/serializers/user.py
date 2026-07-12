@@ -4,7 +4,7 @@ User serializers for OIUEEI.
 
 from rest_framework import serializers
 
-from core.models import Theeeme, User
+from core.models import Language, Theeeme, User
 from core.utils import cloudinary_url
 from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
 
@@ -45,6 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
             "notify_news",
             "age_range",
             "postal_code",
+            "language",
         ]
         read_only_fields = [
             "code",
@@ -119,6 +120,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         choices=User.AgeRange.choices, required=False, allow_blank=True
     )
     postal_code = SafeHeadlineField(max_length=10, required=False, allow_blank=True)
+    # Blank = inherit (the collection's language, else the deployment default).
+    language = serializers.ChoiceField(choices=Language.choices, required=False, allow_blank=True)
 
     class Meta:
         model = User
@@ -133,4 +136,5 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "notify_news",
             "age_range",
             "postal_code",
+            "language",
         ]

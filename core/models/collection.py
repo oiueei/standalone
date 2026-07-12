@@ -7,6 +7,7 @@ import secrets
 from django.db import models
 from django.utils import timezone
 
+from core.models.language import Language
 from core.utils import generate_id
 
 
@@ -57,6 +58,10 @@ class Collection(models.Model):
     digest_frequency = models.CharField(
         max_length=7, choices=DigestFrequency.choices, default=DigestFrequency.NONE
     )
+    # The language this group's outbound email speaks. Blank = inherit the
+    # deployment default (EMAIL_LANGUAGE); a member's own preference still wins
+    # over it. See email_service.resolve_email_language.
+    language = models.CharField(max_length=2, choices=Language.choices, blank=True, default="")
     is_onboarding = models.BooleanField(default=False)
     is_swap = models.BooleanField(default=False)
     is_share = models.BooleanField(default=False)
