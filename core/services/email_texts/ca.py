@@ -8,7 +8,7 @@ TEXTS = {
     "footer_manage": "Gestiona les teves preferències de correu",
     "dates_label": "Dates",
     "view_collection_cta": "Veure la col·lecció",
-    # Sustantius d'acció per als correus de reserva — calcen el vocabulari del
+    # Substantius d'acció per als correus de reserva — calquen el vocabulari del
     # frontend (thingCard.action / types): una sol·licitud SELL és "sol·licitud
     # de compra", una LEND "sol·licitud de préstec", etc. SWAP té les seves
     # plantilles; WISH mai reserva.
@@ -130,8 +130,7 @@ TEXTS = {
     # Wish answered (to creator)
     "wish_response_subject": "Algú ha contestat la teva petició",
     "wish_response_plain": (
-        "{responder} ha contestat la teva petició '{wish}'. "
-        "Veure la resposta: {url}"
+        "{responder} ha contestat la teva petició '{wish}'. Veure la resposta: {url}"
     ),
     "wish_response_intro": "{responder} ha contestat la teva petició:",
     "wish_response_cta": "Veure la resposta",
@@ -200,7 +199,7 @@ VIRAL_LINES = [
     {
         "text": (
             "Prestatgeries plenes de llibres ja llegits? Munta'ls una col·lecció "
-            "i dóna'ls una segona vida."
+            "i dona'ls una segona vida."
         ),
         "cta": "Així de fàcil",
     },
