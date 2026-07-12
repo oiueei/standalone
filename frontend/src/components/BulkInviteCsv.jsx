@@ -1,11 +1,12 @@
 import { useId, useRef, useState } from 'react';
-import { FileInput, Button, Notification, IconInfoCircleFill } from 'hds-react';
+import { FileInput, Button, Notification } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import Papa from 'papaparse';
 import { apiFetch } from '../services/api';
 import { stripSepLine, CSV_DELIMITERS } from '../utils/csv';
 import useTheeeme from '../hooks/useTheeeme';
 import hdsLang from '../utils/hdsLang';
+import InfoPopover from './InfoPopover';
 
 const MAX_ROWS = 100;
 // An "email" column (required) and an optional "name" column.
@@ -46,7 +47,6 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
-  const [showFormat, setShowFormat] = useState(false);
   const formatPanelId = useId();
   const sendLockRef = useRef(false);
 
@@ -130,39 +130,12 @@ export default function BulkInviteCsv({ collectionCode, onInvited }) {
 
   return (
     <div className="bulk-add">
-      <div className="bulk-add-help-row">
+      <div className="info-popover-row">
         <p className="bulk-add-help">{t('bulkInvite.help')}</p>
-        <span
-          className="bulk-add-info"
-          onMouseEnter={() => setShowFormat(true)}
-          onMouseLeave={() => setShowFormat(false)}
-          onFocus={() => setShowFormat(true)}
-          onBlur={() => setShowFormat(false)}
-        >
-          <button
-            type="button"
-            className="bulk-add-info-button"
-            aria-label={t('bulkInvite.formatTitle')}
-            aria-expanded={showFormat}
-            aria-controls={showFormat ? formatPanelId : undefined}
-            onClick={() => setShowFormat((v) => !v)}
-          >
-            <IconInfoCircleFill aria-hidden="true" />
-          </button>
-          {showFormat && (
-            <div id={formatPanelId}>
-              <Notification
-                type="info"
-                size="small"
-                label={t('bulkInvite.formatTitle')}
-                className="bulk-add-format-popover"
-              >
-                <p className="bulk-add-format-body">{t('bulkInvite.formatBody')}</p>
-                <pre className="bulk-add-example">{EXAMPLE_CSV}</pre>
-              </Notification>
-            </div>
-          )}
-        </span>
+        <InfoPopover title={t('bulkInvite.formatTitle')} id={formatPanelId}>
+          <p className="bulk-add-format-body">{t('bulkInvite.formatBody')}</p>
+          <pre className="bulk-add-example">{EXAMPLE_CSV}</pre>
+        </InfoPopover>
       </div>
       <FileInput
         key={fileInputKey}

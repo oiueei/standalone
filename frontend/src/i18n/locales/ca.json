@@ -740,7 +740,9 @@
   },
   "bulkAdd": {
     "heading": "Afegir-ne diversos alhora (CSV)",
-    "help": "Puja un CSV amb una columna \"headline\" (obligatòria). Columnes opcionals: type, description, fee, availability, location, condition, tags (separa diversos tags amb |). Per afegir fotos, puja un ZIP amb el CSV i les imatges, i referencia cada foto pel seu nom de fitxer en una columna \"photo\".",
+    "help": "Afegeix diverses coses des d'un CSV — o un ZIP amb les fotos incloses.",
+    "formatTitle": "Format del CSV/ZIP",
+    "formatIntro": "Puja un CSV amb una columna \"headline\" (obligatòria). Columnes opcionals: type, description, fee, availability, location, condition, tags (separa diversos tags amb |). Per afegir fotos, puja un ZIP amb el CSV i les imatges, i referencia cada foto pel seu nom de fitxer en una columna \"photo\".",
     "fileLabel": "Fitxer CSV o ZIP",
     "empty": "No s'han trobat files al fitxer.",
     "tooMany": "Pots importar fins a {{max}} elements alhora.",

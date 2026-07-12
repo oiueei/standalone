@@ -1260,19 +1260,22 @@ main:focus {
   margin-bottom: var(--spacing-3-xs);
 }
 
-/* CSV format hint: an (i) icon that reveals a Notification popover on hover/focus. */
-.bulk-add-help-row {
+/* InfoPopover (src/components/InfoPopover.jsx): an (i) icon that reveals a
+   Notification panel on hover/focus/click. Used by BulkInviteCsv and
+   BulkAddCsv's format hints (below), and reusable anywhere else. */
+.info-popover-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-2-xs);
 }
 
-.bulk-add-info {
+.info-popover {
   position: relative;
   display: inline-flex;
 }
 
-.bulk-add-info-button {
+.info-popover-button {
   background: none;
   border: none;
   padding: 0;
@@ -1286,16 +1289,25 @@ main:focus {
   color: var(--color-black-60);
 }
 
-.bulk-add-info-button:hover {
+.info-popover-button:hover {
   color: var(--color-black-90);
 }
 
-.bulk-add-format-popover {
+/* Positioning lives here, on our own wrapper — never as a className passed to
+   the HDS Notification (its rendered root already carries HDS's own
+   `position: relative` at the same selector specificity, so the two fight
+   over the cascade depending on style-injection order). `justify-content:
+   space-between` on .info-popover-row keeps the icon flush at the row's
+   right edge, so anchoring the panel with `right: 0` here lines it up with
+   the page margin rather than a mid-row point; `max-width` is a second
+   guard so the panel can never exceed the viewport on very narrow screens. */
+.info-popover-panel {
   position: absolute;
   top: calc(100% + var(--spacing-2-xs));
   right: 0;
   z-index: 1000;
   width: min(360px, 85vw);
+  max-width: calc(100vw - 2 * var(--spacing-m));
   box-shadow: var(--box-shadow-m, 0 2px 8px rgba(0, 0, 0, 0.15));
   text-align: left;
 }
@@ -1315,10 +1327,6 @@ main:focus {
   line-height: 1.5;
   white-space: pre;
   overflow-x: auto;
-}
-
-.bulk-add-format {
-  margin-top: var(--spacing-m);
 }
 
 /* Quiet alpha-feedback line (FeedbackLink) at the foot of Home and Welcome. */

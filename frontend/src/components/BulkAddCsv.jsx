@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { FileInput, Button, Notification } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import Papa from 'papaparse';
@@ -8,6 +8,7 @@ import { uploadImageToCloudinary } from '../utils/uploadImage';
 import { MAX_ROWS, mapRow, validateRows } from '../utils/bulkCsv';
 import useTheeeme from '../hooks/useTheeeme';
 import hdsLang from '../utils/hdsLang';
+import InfoPopover from './InfoPopover';
 
 // Image extensions recognised inside a ZIP — kept in sync with the backend's
 // Cloudinary `IMAGE_FORMATS` allow-list (core/views/upload.py).
@@ -17,7 +18,7 @@ const MIME_BY_EXT = {
   gif: 'image/gif', bmp: 'image/bmp', tif: 'image/tiff', tiff: 'image/tiff',
   avif: 'image/avif', heic: 'image/heic', heif: 'image/heif',
 };
-// Shown in the bottom format hint. Language-agnostic, so it lives here rather
+// Shown in the format InfoPopover. Language-agnostic, so it lives here rather
 // than in the i18n bundles (matches BulkInviteCsv's EXAMPLE_CSV).
 const EXAMPLE_CSV = `headline,type,fee,location,condition,tags,photo
 Cazo de acero,RENT_THING,1,LC (08038),GOOD,Cocina,cazo.jpg`;
@@ -54,6 +55,7 @@ export default function BulkAddCsv({ collectionCode, onImported }) {
   const [importing, setImporting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const formatPanelId = useId();
 
   // Map row + validation logic live in ../utils/bulkCsv (pure + unit-tested).
   // Here we only translate the validation key into user-facing copy.
@@ -211,7 +213,19 @@ export default function BulkAddCsv({ collectionCode, onImported }) {
 
   return (
     <div className="bulk-add">
-      <p className="bulk-add-help">{t('bulkAdd.help')}</p>
+      <div className="info-popover-row">
+        <p className="bulk-add-help">{t('bulkAdd.help')}</p>
+        <InfoPopover title={t('bulkAdd.formatTitle')} id={formatPanelId}>
+          <p className="bulk-add-format-body">{t('bulkAdd.formatIntro')}</p>
+          <p className="bulk-add-format-body">{t('bulkAdd.formatBody')}</p>
+          <pre className="bulk-add-example">{EXAMPLE_CSV}</pre>
+          <p className="bulk-add-format-body">
+            <a href="/cocina-ejemplo.zip" download>
+              {t('bulkAdd.downloadExample')}
+            </a>
+          </p>
+        </InfoPopover>
+      </div>
       <FileInput
         key={fileInputKey}
         id="bulk-add-csv"
@@ -252,13 +266,6 @@ export default function BulkAddCsv({ collectionCode, onImported }) {
           </Button>
         </>
       )}
-      <div className="bulk-add-format">
-        <p className="bulk-add-help">{t('bulkAdd.formatBody')}</p>
-        <pre className="bulk-add-example">{EXAMPLE_CSV}</pre>
-        <p className="bulk-add-help">
-          <a href="/cocina-ejemplo.zip" download>{t('bulkAdd.downloadExample')}</a>
-        </p>
-      </div>
     </div>
   );
 }
