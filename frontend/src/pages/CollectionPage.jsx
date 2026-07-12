@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import ShareCollectionMenu from '../components/ShareCollectionMenu';
 import ThingLinkbox from '../components/ThingLinkbox';
+import HeroPhoto from '../components/HeroPhoto';
 import useTheeeme from '../hooks/useTheeeme';
 
 export default function CollectionPage() {
@@ -147,9 +148,10 @@ export default function CollectionPage() {
       style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
     >
       <div
-        className="form-hero"
+        className={`form-hero${collection.thumbnail_url ? ' form-hero--photo' : ''}`}
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
       >
+        <div className="form-hero-split">
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
           {!showWelcome && (
             <BackLink to="/" label={t('common.home')} />
@@ -244,6 +246,15 @@ export default function CollectionPage() {
             </>
           )}
         </div>
+        </div>
+        {collection.thumbnail_url && (
+          <HeroPhoto
+            photoUrl={collection.thumbnail_url}
+            alt={collection.headline}
+            koroType={koro}
+            color03={tc.color_03}
+          />
+        )}
         <Koros
           className="form-hero-koros"
           type={koro}
