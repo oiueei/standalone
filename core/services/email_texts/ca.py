@@ -11,12 +11,21 @@ TEXTS = {
     # Substantius d'acció per als correus de reserva — calquen el vocabulari del
     # frontend (thingCard.action / types): una sol·licitud SELL és "sol·licitud
     # de compra", una LEND "sol·licitud de préstec", etc. SWAP té les seves
-    # plantilles; WISH mai reserva.
-    "action_noun_GIFT_THING": "regal",
-    "action_noun_SELL_THING": "compra",
-    "action_noun_LEND_THING": "préstec",
-    "action_noun_RENT_THING": "lloguer",
-    "action_noun_SHARE_THING": "traspàs",
+    # plantilles de sol·licitud/confirmació, però el correu de decisió
+    # (send_booking_decision_email) és compartit i interpola {action} també per
+    # als intercanvis, així que SWAP necessita el seu substantiu. WISH mai
+    # reserva.
+    #
+    # A DIFERÈNCIA d'en/es, aquí els valors porten la preposició ("de compra",
+    # "d'intercanvi") i les plantilles diuen "sol·licitud {action}" — el català
+    # elideix "de" davant de vocal, i "sol·licitud de intercanvi" seria
+    # incorrecte.
+    "action_noun_GIFT_THING": "de regal",
+    "action_noun_SELL_THING": "de compra",
+    "action_noun_LEND_THING": "de préstec",
+    "action_noun_RENT_THING": "de lloguer",
+    "action_noun_SHARE_THING": "de traspàs",
+    "action_noun_SWAP_THING": "d'intercanvi",
     # Magic link
     "magic_subject": "Hola, et donem la benvinguda a OIUEEI!",
     "magic_subject_collection": "Hola, et donem la benvinguda a '{collection}' - OIUEEI!",
@@ -38,17 +47,17 @@ TEXTS = {
     "revoke_intro": "{owner} ha revocat el teu accés a:",
     "revoke_outro": "Ja no podràs veure aquesta col·lecció.",
     # Booking request (to owner)
-    "booking_request_subject": "Tens una sol·licitud de {action} pendent",
+    "booking_request_subject": "Tens una sol·licitud {action} pendent",
     "booking_request_plain_dated": (
-        "{requester} t'ha enviat una sol·licitud de {action} per a '{thing}' "
+        "{requester} t'ha enviat una sol·licitud {action} per a '{thing}' "
         "del {start} al {end}. "
         "Confirmar la reserva: {accept} | Cancel·lar la reserva: {reject}"
     ),
     "booking_request_plain": (
-        "{requester} t'ha enviat una sol·licitud de {action} per a '{thing}'. "
+        "{requester} t'ha enviat una sol·licitud {action} per a '{thing}'. "
         "Confirmar la reserva: {accept} | Cancel·lar la reserva: {reject}"
     ),
-    "booking_request_intro": "{requester} t'ha enviat una sol·licitud de {action}:",
+    "booking_request_intro": "{requester} t'ha enviat una sol·licitud {action}:",
     "hold_confirm_cta": "Confirmar la reserva",
     "hold_cancel_cta": "Cancel·lar la reserva",
     # Booking decision (to requester)
@@ -56,10 +65,10 @@ TEXTS = {
     "decision_confirmed": "confirmada",
     "decision_cancelled": "cancel·lada",
     "decision_plain_dated": (
-        "La teva sol·licitud de {action} de '{thing}' del {start} al {end} ha estat {decision}."
+        "La teva sol·licitud {action} de '{thing}' del {start} al {end} ha estat {decision}."
     ),
-    "decision_plain": "La teva sol·licitud de {action} de '{thing}' ha estat {decision}.",
-    "decision_intro": "La teva sol·licitud de {action} ha estat {decision}:",
+    "decision_plain": "La teva sol·licitud {action} de '{thing}' ha estat {decision}.",
+    "decision_intro": "La teva sol·licitud {action} ha estat {decision}:",
     # Booking auto-declined (someone else got it)
     "unavailable_subject": "Algú ha arribat abans",
     "unavailable_plain": (
@@ -73,17 +82,17 @@ TEXTS = {
     "invite_rejected_plain": "{invitee} ha rebutjat la invitació a '{collection}'.",
     "invite_rejected_intro": "{invitee} ha rebutjat la teva invitació a:",
     # Booking confirmation (to requester)
-    "confirmation_subject": "Sol·licitud de {action} enviada",
+    "confirmation_subject": "Sol·licitud {action} enviada",
     "confirmation_plain_dated": (
-        "La teva sol·licitud de {action} per a '{thing}' del {start} al {end} s'ha enviat. "
+        "La teva sol·licitud {action} per a '{thing}' del {start} al {end} s'ha enviat. "
         "Hem avisat {owner} — et respondrà aviat. "
         "Veure la cosa: {url}"
     ),
     "confirmation_plain": (
-        "La teva sol·licitud de {action} per a '{thing}' s'ha enviat. "
+        "La teva sol·licitud {action} per a '{thing}' s'ha enviat. "
         "Hem avisat {owner} — et respondrà aviat. Veure la cosa: {url}"
     ),
-    "confirmation_intro": "La teva sol·licitud de {action} s'ha enviat:",
+    "confirmation_intro": "La teva sol·licitud {action} s'ha enviat:",
     "part_of_label": "Part de",
     "confirmation_outro": "Hem avisat {owner} — et respondrà aviat.",
     # FAQ question (to owner)

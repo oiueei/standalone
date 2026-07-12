@@ -11,12 +11,16 @@ TEXTS = {
     # Sustantivos de acción por tipo para los correos de reserva — calcan el
     # vocabulario del frontend (thingCard.action / types): una solicitud SELL
     # es "solicitud de compra", una LEND "solicitud de préstamo", etc. SWAP
-    # tiene sus propias plantillas; WISH nunca reserva.
+    # tiene sus propias plantillas de solicitud/confirmación, pero el correo de
+    # decisión (send_booking_decision_email) es compartido e interpola {action}
+    # también para los intercambios, así que SWAP necesita su sustantivo. WISH
+    # nunca reserva.
     "action_noun_GIFT_THING": "regalo",
     "action_noun_SELL_THING": "compra",
     "action_noun_LEND_THING": "préstamo",
     "action_noun_RENT_THING": "alquiler",
     "action_noun_SHARE_THING": "traspaso",
+    "action_noun_SWAP_THING": "intercambio",
     # Magic link
     "magic_subject": "¡Hola, te damos la bienvenida a OIUEEI!",
     "magic_subject_collection": "¡Hola, te damos la bienvenida a '{collection}' - OIUEEI!",

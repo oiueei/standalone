@@ -132,6 +132,19 @@ class TestCatalogueParity:
         mismatched = [k for k in en.TEXTS if fields(en.TEXTS[k]) != fields(catalogue.TEXTS[k])]
         assert mismatched == []
 
+    def test_every_bookable_type_has_an_action_noun(self):
+        # Every type that can reach the shared booking emails needs a noun in
+        # the en reference (key parity extends it to es/ca). SWAP matters even
+        # though its request/confirmation emails use dedicated templates: the
+        # decision email is shared (finalize_booking_decision runs for every
+        # booking type), so a missing key is a KeyError mid-decision — after
+        # the ownership transfer already committed.
+        from core.models import Thing
+
+        bookable = [t for t in Thing.Type.values if t != Thing.Type.WISH_THING]
+        missing = [t for t in bookable if f"action_noun_{t}" not in en.TEXTS]
+        assert missing == []
+
     @pytest.mark.parametrize("catalogue", OTHER_CATALOGUES, ids=["es", "ca"])
     def test_viral_lines_shape_matches_en(self, catalogue):
         # VIRAL_LINES must have the same length and the same dict keys in every

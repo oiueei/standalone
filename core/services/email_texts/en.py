@@ -12,13 +12,16 @@ TEXTS = {
     "view_collection_cta": "View collection",
     # Per-type action nouns for the booking emails — mirror the frontend's
     # thingCard.action / types vocabulary so a SELL request reads "purchase
-    # request", a LEND request "loan request", etc. SWAP has its own templates;
-    # WISH never books.
+    # request", a LEND request "loan request", etc. SWAP's request/confirmation
+    # emails have their own dedicated templates, but the decision email
+    # (send_booking_decision_email) is shared and interpolates {action} for
+    # swaps too, so SWAP needs a noun as well. WISH never books.
     "action_noun_GIFT_THING": "gift",
     "action_noun_SELL_THING": "purchase",
     "action_noun_LEND_THING": "loan",
     "action_noun_RENT_THING": "rental",
     "action_noun_SHARE_THING": "transfer",
+    "action_noun_SWAP_THING": "swap",
     # Magic link
     "magic_subject": "Hello, welcome to OIUEEI!",
     "magic_subject_collection": "Hello, welcome to '{collection}' - OIUEEI!",

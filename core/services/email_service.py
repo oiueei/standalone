@@ -354,9 +354,11 @@ def _action_noun(thing):
 
     Mirrors the frontend's per-type vocabulary (``thingCard.action`` / ``types``)
     so a SELL request reads 'solicitud de compra' / 'purchase request', a LEND
-    request 'solicitud de préstamo' / 'loan request', etc. Only the five bookable
-    non-swap types carry a noun — SWAP has its own dedicated templates and WISH
-    never books, so this is never called for them.
+    request 'solicitud de préstamo' / 'loan request', etc. Every bookable type
+    carries a noun — including SWAP: its request/confirmation emails have their
+    own dedicated templates, but ``send_booking_decision_email`` is shared with
+    swaps (``finalize_booking_decision`` runs for every booking type), so a
+    missing noun would be a KeyError mid-decision. Only WISH never books.
     """
     return T(f"action_noun_{thing.type}")
 

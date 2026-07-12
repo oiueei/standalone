@@ -3,6 +3,7 @@ Integration tests for SWAP_THING item swapping feature.
 """
 
 import pytest
+from django.core import mail
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -580,6 +581,37 @@ class TestSwapAcceptance:
         assert guest_swap_thing.owner == user  # NOT stolen from the first recipient
         assert second_requested.owner == user3  # the second swap did not complete
         assert swap2.status == BookingPeriod.Status.PENDING
+
+    def test_accept_swap_via_api_sends_decision_email(
+        self,
+        auth_client_user,
+        swap_collection,
+        owner_swap_thing,
+        guest_swap_thing,
+        user,
+        user2,
+    ):
+        """The owner's accept runs finalize_booking_decision, whose decision
+        email interpolates the per-type action noun — swaps included (regression:
+        a missing action_noun_SWAP_THING key raised KeyError AFTER the ownership
+        transfer had committed, 500ing the decision). Unlike the accept_booking()
+        tests above, this goes through the actual API view so the email path runs."""
+        swap_collection.invites.add(user2)
+        booking = BookingPeriod.objects.create(
+            thing_code=owner_swap_thing,
+            thing_type="SWAP_THING",
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+        )
+        booking.offered_things.set([guest_swap_thing])
+
+        response = auth_client_user.post(f"/api/v1/bookings/{booking.code}/accept/")
+
+        assert response.status_code == 200
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].to == [user2.email]
+        assert "swap" in mail.outbox[0].body
 
 
 # --- Serializer tests ---
