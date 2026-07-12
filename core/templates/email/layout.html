@@ -3,6 +3,7 @@ every value rendered here is HTML-escaped automatically — email bodies no long
 rely on manual escape() calls in Python (R16). This is a comment block rather than
 a one-line hash comment, so the multi-line note is stripped from the render.{% endcomment %}
 <html>
+{% if has_logo %}<p><img src="cid:oiueei-logo" alt="OIUEEI" height="30" width="106"></p>{% endif %}
 {% for b in blocks %}{% if b.type == "para" %}
 <p>{{ b.text }}</p>
 {% elif b.type == "strong" %}

@@ -20,12 +20,14 @@ manual ``escape()`` in the body composition. Plain-text bodies (no XSS surface)
 stay as plain strings.
 """
 
+import functools
 import logging
 import random
 import smtplib
+from email.mime.image import MIMEImage
 
 from django.conf import settings
-from django.core.mail import BadHeaderError, EmailMultiAlternatives, send_mail
+from django.core.mail import BadHeaderError, EmailMultiAlternatives
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.template.loader import render_to_string
 from django.utils.html import escape
@@ -201,6 +203,32 @@ def _with_viral_line(plain, html, user=_UNSET):
     return plain, html
 
 
+@functools.lru_cache(maxsize=1)
+def _logo_bytes():
+    """Read the inline email logo once; None if the asset is missing.
+
+    Cached across the process lifetime — the file never changes at runtime, so
+    every send after the first skips the filesystem hit. A missing/corrupt
+    asset degrades to "no logo" everywhere (attachment and ``<img>`` both
+    skipped) rather than failing the send.
+    """
+    try:
+        return (settings.BASE_DIR / "frontend/public/oiueei-logo.png").read_bytes()
+    except OSError:
+        return None
+
+
+def _logo_attachment():
+    """Return the logo as an inline MIMEImage (Content-ID ``oiueei-logo``), or None."""
+    data = _logo_bytes()
+    if data is None:
+        return None
+    image = MIMEImage(data, "png")
+    image.add_header("Content-ID", "<oiueei-logo>")
+    image.add_header("Content-Disposition", "inline", filename="oiueei-logo.png")
+    return image
+
+
 def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET, include_viral=True):
     """Send a single email through the category + footer + viral pipeline.
 
@@ -232,20 +260,17 @@ def _send(to_email, subject, plain, html, category, reply_to=None, user=_UNSET, 
         plain, html = _with_viral_line(plain, html, user=user)
     plain, html = _with_footer(plain, html, to_email, category, user=user)
     try:
-        if reply_to:
-            msg = EmailMultiAlternatives(
-                subject=subject, body=plain, from_email=None, to=[to_email], reply_to=reply_to
-            )
-            msg.attach_alternative(html, "text/html")
-            msg.send()
-        else:
-            send_mail(
-                subject=subject,
-                message=plain,
-                from_email=None,
-                recipient_list=[to_email],
-                html_message=html,
-            )
+        # Always EmailMultiAlternatives (not the send_mail() shortcut) — the
+        # inline logo needs .attach() on the message object, which send_mail()
+        # never exposes.
+        msg = EmailMultiAlternatives(
+            subject=subject, body=plain, from_email=None, to=[to_email], reply_to=reply_to
+        )
+        msg.attach_alternative(html, "text/html")
+        logo = _logo_attachment()
+        if logo:
+            msg.attach(logo)
+        msg.send()
     except (smtplib.SMTPException, OSError, BadHeaderError) as exc:
         # OSError covers socket.timeout/connection errors (socket.timeout is an
         # OSError subclass). BadHeaderError (a ValueError) guards against a CR/LF
@@ -297,8 +322,15 @@ def _links(*links):
 
 
 def _render_email(blocks):
-    """Render the HTML body from a list of blocks through the autoescaping layout."""
-    return render_to_string("email/layout.html", {"blocks": blocks})
+    """Render the HTML body from a list of blocks through the autoescaping layout.
+
+    ``has_logo`` mirrors whether ``_send()`` will find the asset to attach —
+    the ``cid:`` reference is only rendered when there's a matching attachment
+    coming, so a missing file never leaves a broken image in the email.
+    """
+    return render_to_string(
+        "email/layout.html", {"blocks": blocks, "has_logo": _logo_bytes() is not None}
+    )
 
 
 def _booking_detail_blocks(booking):
