@@ -2,15 +2,17 @@
 
 Computes product metrics from three sources — current state (domain tables),
 accumulated history (the Event log), and retention (DailyActivity) — and prints
-them to stdout, emailing them to Carlos on Mondays (weekday-gated like
-``send_digests``; pass ``--email`` to force a send for a manual run).
+them to stdout, emailing them to the operator once a week — on Mondays by
+default, or the weekday set by ``STATS_EMAIL_WEEKDAY`` (0=Monday … 6=Sunday;
+weekday-gated like ``send_digests`` because Heroku Scheduler has no weekly
+frequency; pass ``--email`` to force a send for a manual run).
 
 Demo data never mixes into the real numbers: the five seed users
 (Lala/Lele/Lili/Lolo/Lulu), ``is_onboarding`` collections, and pop-in users who
 only ever landed in onboarding collections are split off into a separate
 "Demo funnel" section. Everything stays first-party and in our DB (DESIGN §9).
 
-Run daily via Heroku Scheduler (it self-gates to Mondays):
+Run daily via Heroku Scheduler (it self-gates to the configured weekday):
     ... && python manage.py stats_summary
 Manual, any day:
     heroku run --app <app> "python manage.py stats_summary --email"
@@ -39,7 +41,10 @@ def _avg(total, count, unit=""):
 
 
 class Command(BaseCommand):
-    help = "Print (and, on Mondays, email) the first-party product stats summary."
+    help = (
+        "Print (and, on the STATS_EMAIL_WEEKDAY — default Monday — email) "
+        "the first-party product stats summary."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -53,8 +58,18 @@ class Command(BaseCommand):
         self.stdout.write(render_text(sections))
 
         today = timezone.localdate()
-        if not (options["email"] or today.weekday() == 0):  # Monday
-            self.stdout.write("Not Monday — email skipped (use --email to force a send).")
+        try:
+            # 0=Monday … 6=Sunday. Heroku Scheduler has no weekly frequency, so the
+            # daily run gates itself; the deployment picks the day via config var.
+            email_day = int(os.environ.get("STATS_EMAIL_WEEKDAY", "0"))
+        except ValueError:
+            email_day = 0
+        if not (options["email"] or today.weekday() == email_day):
+            self.stdout.write(
+                "Not the stats-email weekday "
+                f"(STATS_EMAIL_WEEKDAY={email_day}, 0=Monday) — "
+                "email skipped (use --email to force a send)."
+            )
             return
 
         recipient = os.environ.get("STATS_EMAIL")

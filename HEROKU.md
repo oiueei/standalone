@@ -261,11 +261,11 @@ Heroku Scheduler config lives in the dashboard, so the intended schedule is vers
 | `python manage.py close_transfers` | daily (chained) | Sets `returned_date` on transfers whose ACCEPTED booking's `end_date` has passed. |
 | `python manage.py send_reminders` | daily (chained) | Return/delivery reminders for bookings due tomorrow. |
 | `python manage.py send_digests` | daily (chained) | Weekly digests + newsletters (Mondays) and monthly digests (1st); the command no-ops on other days. |
-| `python manage.py stats_summary` | daily (chained) | First-party product stats; prints every day, emails `STATS_EMAIL` on Mondays (skipped if unset). |
+| `python manage.py stats_summary` | daily (chained) | First-party product stats; prints every day, emails `STATS_EMAIL` once a week on `STATS_EMAIL_WEEKDAY` (0=Monday, default; skipped if `STATS_EMAIL` unset). |
 
 The daily commands are safe to run every day — each checks the date internally and no-ops when there's nothing to do.
 
-`stats_summary`'s weekly email is opt-in — set `STATS_EMAIL` to receive it (`heroku config:set STATS_EMAIL='you@your-domain.com' -a your-app-name`); it always prints to the log regardless.
+`stats_summary`'s weekly email is opt-in — set `STATS_EMAIL` to receive it (`heroku config:set STATS_EMAIL='you@your-domain.com' -a your-app-name`); it always prints to the log regardless. Move the send day with `STATS_EMAIL_WEEKDAY` (0=Monday … 6=Sunday, e.g. `4` for Friday).
 
 **Not in the daily chain:** `cleanup_orphan_images` (delete orphaned Cloudinary uploads) is a separate, manual command — dry-run by default, `--commit` to actually delete. It's destructive and gated behind Heroku shell access, so it isn't auto-scheduled; run it by hand roughly weekly. Quote the inner command so the Heroku CLI doesn't eat the flag: `heroku run --app <app> "python manage.py cleanup_orphan_images --commit"`.
 

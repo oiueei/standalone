@@ -203,7 +203,7 @@ class TestStatsCommand:
             call_command("stats_summary", stdout=out)
         text = out.getvalue()
         assert "OIUEEI stats summary" in text
-        assert "Not Monday" in text
+        assert "email skipped" in text
         assert len(mail.outbox) == 0
 
     def test_monday_sends_email(self, monkeypatch):
@@ -214,6 +214,28 @@ class TestStatsCommand:
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == ["ops@example.com"]
         assert "Stats email sent" in out.getvalue()
+
+    def test_weekday_config_var_moves_the_email_day(self, monkeypatch):
+        """STATS_EMAIL_WEEKDAY relocates the weekly send (here 1 = Tuesday)."""
+        monkeypatch.setenv("STATS_EMAIL", "ops@example.com")
+        monkeypatch.setenv("STATS_EMAIL_WEEKDAY", "1")
+        with time_machine.travel(TUESDAY):
+            out = StringIO()
+            call_command("stats_summary", stdout=out)
+        assert len(mail.outbox) == 1
+        with time_machine.travel(MONDAY):
+            out = StringIO()
+            call_command("stats_summary", stdout=out)
+        # Monday no longer sends once the day is moved.
+        assert len(mail.outbox) == 1
+
+    def test_garbage_weekday_config_falls_back_to_monday(self, monkeypatch):
+        monkeypatch.setenv("STATS_EMAIL", "ops@example.com")
+        monkeypatch.setenv("STATS_EMAIL_WEEKDAY", "friday")
+        with time_machine.travel(MONDAY):
+            out = StringIO()
+            call_command("stats_summary", stdout=out)
+        assert len(mail.outbox) == 1
 
     def test_email_flag_forces_send_on_non_monday(self, monkeypatch):
         monkeypatch.setenv("STATS_EMAIL", "ops@example.com")

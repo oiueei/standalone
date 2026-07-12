@@ -274,7 +274,7 @@ python manage.py cleanup_rsvps     # delete expired RSVPs (24h+)
 python manage.py close_transfers   # close overdue loan transfers
 python manage.py send_reminders    # return/delivery reminders (daily)
 python manage.py send_digests      # weekly/monthly digest emails (daily)
-python manage.py stats_summary     # product stats (prints daily; emails on Mondays)
+python manage.py stats_summary     # product stats (prints daily; emails on STATS_EMAIL_WEEKDAY, default Monday)
 
 # One-off: seed the Event analytics log from existing rows (idempotent).
 # Run once, the day tracking ships, before forward events accumulate.
@@ -305,7 +305,8 @@ python manage.py backfill_events
 | `RSVP_BASE_URL` | Prod | Base URL for RSVP action links in emails (default in dev: `http://localhost:3000/rsvp`) |
 | `SHARE_LINK_BASE_URL` | Prod | Base URL for public collection share links (default in dev: `http://localhost:3000/share`) |
 | `CLOUDINARY_URL` | Uploads | Cloudinary credentials for image uploads: `cloudinary://api_key:api_secret@cloud_name` (free account at cloudinary.com) |
-| `STATS_EMAIL` | No | Recipient for the weekly `stats_summary` command email (Mondays / `--email`). Unset skips the email — third-party deploys don't email metrics anywhere by default. |
+| `STATS_EMAIL` | No | Recipient for the weekly `stats_summary` command email (`--email` forces a send). Unset skips the email — third-party deploys don't email metrics anywhere by default. |
+| `STATS_EMAIL_WEEKDAY` | No | Weekday for the weekly `stats_summary` email: 0=Monday (default) … 6=Sunday. |
 
 ## Onboarding & access
 
