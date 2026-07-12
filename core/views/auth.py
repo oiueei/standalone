@@ -10,6 +10,7 @@ import logging
 import threading
 
 from django.conf import settings
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_ratelimit.decorators import ratelimit
@@ -137,10 +138,12 @@ class RequestLinkView(APIView):
 
         security_logger.info(f"Magic link requested for {redact_email(email)} from IP {ip}")
 
-        # Create RSVP
+        # Create RSVP. ``origin=LOGIN`` tells VerifyLinkView this is a returning
+        # user, not a first visit — they never land on /welcome again.
         rsvp = RSVP.objects.create(
             user_code=user,
             user_email=email,
+            origin=RSVP.Origin.LOGIN,
         )
 
         # Send magic link email
@@ -186,6 +189,12 @@ class VerifyLinkView(APIView):
 
     # Actions that GET must not commit — only an explicit POST may.
     CONFIRM_ACTIONS = frozenset({RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT})
+
+    # Where the SPA sends the user after a successful login (``landing`` in the
+    # response). Server-decided, so it survives a cleared localStorage.
+    LANDING_COLLECTION = "collection"
+    LANDING_WELCOME = "welcome"
+    LANDING_HOME = "home"
 
     def _resolve_rsvp(self, request, token):
         """Look up and expiry-check an RSVP token.
@@ -282,8 +291,35 @@ class VerifyLinkView(APIView):
         user_data = UserSerializer(user).data
         return user, refresh, user_data
 
+    def _solo_collection_code(self, user):
+        """The user's single ACTIVE collection (owned or invited), or None.
+
+        Two rows are enough to answer "exactly one?", so the query stops there.
+        """
+        codes = list(
+            Collection.objects.filter(
+                Q(owner=user) | Q(invites=user), status=Collection.Status.ACTIVE
+            )
+            .distinct()
+            .values_list("code", flat=True)[:2]
+        )
+        return codes[0] if len(codes) == 1 else None
+
     def _handle_magic_link(self, request, rsvp):
-        """Handle magic link authentication."""
+        """Handle magic link authentication.
+
+        Decides where the SPA lands the user (``landing``), which used to be a
+        client-side ``seenWelcome`` localStorage heuristic — and since logout
+        cleared that key, every re-login looked like a first visit and dumped
+        returning users on /welcome. The rules, in order:
+
+        1. The link carries a collection (``target_code``: a share-token or
+           public-collection pop-in) → that collection. They joined it to get there.
+        2. Otherwise a link born in the plain ``/popin`` → /welcome. A genuinely
+           new visitor with nothing else to see.
+        3. Otherwise (``/login``, and any legacy magic link with no origin) → their
+           single ACTIVE collection when they have exactly one, else home.
+        """
         ip = get_client_ip(request)
 
         result = self._authenticate_user(request, rsvp)
@@ -293,11 +329,12 @@ class VerifyLinkView(APIView):
 
         # A pop-in / share-link magic link can carry the collection the visitor
         # came to join (``target_code``, stamped by PopInView). Drop them straight
-        # onto it after login instead of the generic /welcome — they were already
-        # added to its invites (private share) or it is PUBLIC (login-to-act).
+        # onto it after login — they were already added to its invites (private
+        # share) or it is PUBLIC (login-to-act).
         invited_collection = None
         if rsvp.target_code and Collection.objects.filter(code=rsvp.target_code).exists():
             invited_collection = rsvp.target_code
+        origin = rsvp.origin
 
         rsvp.delete()
 
@@ -308,7 +345,20 @@ class VerifyLinkView(APIView):
             "user": user_data,
         }
         if invited_collection:
+            response_data["landing"] = self.LANDING_COLLECTION
+            response_data["collection"] = invited_collection
+            # Kept for compatibility; it is also what tells the SPA the landing was
+            # an invitation (it shows the collection's welcome box).
             response_data["invited_collection"] = invited_collection
+        elif origin == RSVP.Origin.POPIN:
+            response_data["landing"] = self.LANDING_WELCOME
+        else:
+            solo = self._solo_collection_code(user)
+            if solo:
+                response_data["landing"] = self.LANDING_COLLECTION
+                response_data["collection"] = solo
+            else:
+                response_data["landing"] = self.LANDING_HOME
 
         response = Response(response_data, status=status.HTTP_200_OK)
         _set_auth_cookies(response, refresh)
@@ -343,8 +393,12 @@ class VerifyLinkView(APIView):
         response_data = {
             "action": "COLLECTION_INVITE",
             "user": user_data,
+            # Same landing contract as the magic link, for symmetry. An invitation
+            # always lands on its collection — unless it was deleted meanwhile.
+            "landing": self.LANDING_COLLECTION if invited_collection else self.LANDING_HOME,
         }
         if invited_collection:
+            response_data["collection"] = invited_collection
             response_data["invited_collection"] = invited_collection
 
         response = Response(response_data, status=status.HTTP_200_OK)
@@ -555,7 +609,10 @@ class PopInView(APIView):
                 Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
 
         rsvp = RSVP.objects.create(
-            user_code=user, user_email=email, target_code=target_collection_code
+            user_code=user,
+            user_email=email,
+            target_code=target_collection_code,
+            origin=RSVP.Origin.POPIN,
         )
         magic_link_base = getattr(settings, "MAGIC_LINK_BASE_URL", "http://localhost:3000/verify")
         magic_link = f"{magic_link_base}/{rsvp.token}"

@@ -39,6 +39,12 @@ class RSVP(models.Model):
         BOOKING_ACCEPT = "BOOKING_ACCEPT", "Booking Accept"
         BOOKING_REJECT = "BOOKING_REJECT", "Booking Reject"
 
+    class Origin(models.TextChoices):
+        """Where a MAGIC_LINK was born — it decides where the user lands after login."""
+
+        POPIN = "POPIN", "Pop-in"
+        LOGIN = "LOGIN", "Login"
+
     code = models.CharField(max_length=6, primary_key=True, default=generate_id)
     # High-entropy (~134-bit) token that backs every email action link. The
     # 6-char PK (~31 bits) stays for joins/target lookups, but URLs use this so
@@ -59,6 +65,12 @@ class RSVP(models.Model):
         max_length=20, choices=Action.choices, default=Action.MAGIC_LINK, db_index=True
     )
     target_code = models.CharField(max_length=6, null=True, blank=True, db_index=True)
+
+    # Where a MAGIC_LINK came from (``/popin`` vs ``/login``). Blank on every other
+    # action — and on magic links minted before this field existed, which
+    # VerifyLinkView reads as LOGIN. See ``core/views/CLAUDE.md`` (VerifyLinkView)
+    # for the landing rules it feeds.
+    origin = models.CharField(max_length=5, choices=Origin.choices, blank=True, default="")
 
     # Additional context data (JSON) for the action
     context = models.JSONField(default=dict, blank=True)

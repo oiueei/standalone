@@ -95,9 +95,18 @@ export default function VerifyPage() {
           if (data.user?.code && data.user.code !== prevUserCode) {
             localStorage.removeItem('seenWelcome');
           }
-          if (data.invited_collection) {
-            navigate(`/collections/${data.invited_collection}`, { state: { fromInvite: true } });
-          } else if (!localStorage.getItem('seenWelcome')) {
+          // The backend decides where to land (`landing`): the collection the link
+          // was for, /welcome for a genuinely new pop-in visitor, else home (or
+          // their single collection). It used to be decided here from `seenWelcome`
+          // — which logout wipes, so every re-login looked like a first visit and
+          // dumped returning users on /welcome. `invited_collection` still marks an
+          // invitation, which is what the collection's welcome box keys off.
+          const target = data.collection || data.invited_collection;
+          if (data.landing === 'collection' && target) {
+            navigate(`/collections/${target}`, {
+              state: { fromInvite: !!data.invited_collection },
+            });
+          } else if (data.landing === 'welcome') {
             navigate('/welcome');
           } else {
             navigate('/');

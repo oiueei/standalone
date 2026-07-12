@@ -51,11 +51,19 @@ Routes to the appropriate handler based on `rsvp.action`:
 
 | Action | Handler | Commit verb | Description |
 |--------|---------|-------------|-------------|
-| `MAGIC_LINK` | `_handle_magic_link` | GET | Authenticates user, sets auth cookies; if the RSVP carries a `target_code` (pop-in / share-link join), returns `invited_collection` so the SPA lands on that collection |
-| `COLLECTION_INVITE` | `_handle_collection_invite` | GET | Adds user to collection invites M2M, sets auth cookies, deletes sibling `COLLECTION_REJECT` RSVP |
+| `MAGIC_LINK` | `_handle_magic_link` | GET | Authenticates user, sets auth cookies, and returns the `landing` contract below |
+| `COLLECTION_INVITE` | `_handle_collection_invite` | GET | Adds user to collection invites M2M, sets auth cookies, deletes sibling `COLLECTION_REJECT` RSVP. Returns `landing: "collection"` + `collection` + `invited_collection` (or `landing: "home"` if the collection was deleted meanwhile) |
 | `COLLECTION_REJECT` | `_handle_collection_reject` | GET | Notifies collection owner of rejection, deletes sibling `COLLECTION_INVITE` RSVP, no JWT |
 | `BOOKING_ACCEPT` | `_handle_booking_accept` | **POST** | Accepts booking via `accept_booking()` service (GET previews only) |
 | `BOOKING_REJECT` | `_handle_booking_reject` | **POST** | Rejects booking via `reject_booking()` service (GET previews only) |
+
+**Post-login landing (`landing`).** The successful-login response carries where the SPA should send the user — `"collection"` (plus `collection`, the code), `"welcome"`, or `"home"`. It used to be decided in the browser from the `seenWelcome` localStorage key, but logout clears that key, so every re-login looked like a first visit and dropped returning users on `/welcome`. The rules, in order:
+
+1. The RSVP carries a `target_code` — a share-token or public-collection pop-in — ⇒ **that collection** (they joined it precisely to get there). `invited_collection` is still returned alongside `collection`: it is what tells the SPA the landing came from an invitation (it shows the collection's welcome box).
+2. Otherwise the link was born in the plain `/popin` (`RSVP.origin == POPIN`) ⇒ **`/welcome`** — a genuinely new visitor with nothing else to see.
+3. Otherwise (`/login`, `origin == LOGIN` — and any legacy magic link with a blank `origin`) ⇒ their **single ACTIVE collection** (owned or invited) when they have exactly one, else **home**. `_solo_collection_code()` stops the query at two rows.
+
+`RSVP.origin` is stamped `LOGIN` by `RequestLinkView` and `POPIN` by `PopInView`; it is blank on every other action. `seenWelcome` survives only as the suppressor for `CollectionPage`'s first-time welcome box — it no longer decides navigation.
 
 **Common behaviour (`_resolve_rsvp` → `_dispatch`):**
 1. Looks up RSVP by `token` (the high-entropy URL token, not the PK). Returns 401 if not found.

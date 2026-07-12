@@ -160,9 +160,12 @@ class TestPublicAutoJoin:
         assert resp.status_code == 200
         assert resp.data["action"] == "MAGIC_LINK"
         assert resp.data["invited_collection"] == "JPUB01"
+        assert resp.data["landing"] == "collection"
+        assert resp.data["collection"] == "JPUB01"
 
-    def test_verify_onboarding_join_has_no_redirect(self, join_setup):
-        # No specific target → no invited_collection → SPA falls through to /welcome.
+    def test_verify_onboarding_join_lands_on_welcome(self, join_setup):
+        # No specific target + born in the plain /popin → a genuinely new visitor,
+        # so they land on /welcome.
         join_setup["anon"].post(
             POP_IN_URL,
             {"email": "nodest@test.com"},
@@ -170,10 +173,12 @@ class TestPublicAutoJoin:
         )
         user = User.objects.get(email="nodest@test.com")
         rsvp = RSVP.objects.get(user_code=user, action=RSVP.Action.MAGIC_LINK)
+        assert rsvp.origin == RSVP.Origin.POPIN
 
         resp = APIClient().get(f"/api/v1/auth/verify/{rsvp.token}/")
         assert resp.status_code == 200
         assert "invited_collection" not in resp.data
+        assert resp.data["landing"] == "welcome"
 
     def test_public_code_magic_link_subject_names_collection(self, join_setup):
         # Joining a PUBLIC collection by code names it in the magic-link subject.
