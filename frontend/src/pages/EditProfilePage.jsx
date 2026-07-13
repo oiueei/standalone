@@ -80,7 +80,13 @@ export default function EditProfilePage() {
       }
     };
     fetchData();
-  }, [userCode, navigate, t, i18n]);
+    // t/i18n must stay out of this array: i18n.changeLanguage() (the language
+    // Select below) gives them a new identity on every change, which re-ran
+    // this effect, re-fetched /auth/me/, and clobbered every unsaved field
+    // (including the language pick itself) with the server's stale copy (S7).
+    // This load is meant to run once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userCode, navigate]);
 
   const validate = () => {
     const newErrors = {};
