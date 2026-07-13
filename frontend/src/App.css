@@ -71,7 +71,7 @@ body {
 }
 
 /* OIUEEI logo watermark (S9): a 40px-tall CSS-mask of the brand mark
-   (556×161, tintable via mask since it's monochrome), anchored to the right
+   (566×161, tintable via mask since it's monochrome), anchored to the right
    edge of the hero's CONTENT column — not the raw viewport edge — at every
    width, matching exactly where .form-hero-content's own right padding
    falls (same "(100% - min(100%, 1248px)) / 2" centring math). Decorative:
@@ -85,7 +85,7 @@ body {
   position: absolute;
   top: var(--spacing-l);
   right: calc((100% - min(100%, 1248px)) / 2 + var(--spacing-s));
-  width: 138px;
+  width: 141px;
   height: 40px;
   background-color: var(--hero-logo-color, var(--color-black-90));
   mask: url('/oiueei-logo.svg') no-repeat center / contain;
@@ -118,7 +118,7 @@ body {
    name survives the text node's removal. */
 .form-hero-title-logo {
   display: block;
-  width: 276px;
+  width: 282px;
   height: 80px;
   background-color: var(--hero-text-color, var(--color-black-90));
   mask: url('/oiueei-logo.svg') no-repeat center / contain;
