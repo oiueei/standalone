@@ -73,3 +73,27 @@ def test_html_email_embeds_logo_inline():
     html_body = msg.alternatives[0][0]
     assert "cid:oiueei-logo" in html_body
     assert "cid:oiueei-logo" not in msg.body
+
+
+@pytest.mark.django_db
+def test_logo_send_uses_multipart_related():
+    """The CID logo rides in multipart/related, not the default multipart/mixed,
+    so Apple Mail renders it once inline instead of also appending a full-size
+    copy with a paperclip (S1). The multipart/alternative (plain + html) stays
+    nested inside, and the logo keeps its Content-ID."""
+    email_service.send_invite_rejected_email("Ana", "Ropa de invierno", "owner@example.com")
+
+    assert len(mail.outbox) == 1
+    msg = mail.outbox[0].message()
+    assert msg.get_content_type() == "multipart/related"
+
+    # The alternative (plain + html) is nested inside the related wrapper.
+    alternative = next(
+        part for part in msg.get_payload() if part.get_content_type() == "multipart/alternative"
+    )
+    subtypes = {part.get_content_type() for part in alternative.get_payload()}
+    assert subtypes == {"text/plain", "text/html"}
+
+    # The logo is still inline by CID, now a related sibling of the alternative.
+    logo = next(part for part in msg.get_payload() if part["Content-ID"] == "<oiueei-logo>")
+    assert logo.get_content_type() == "image/png"

@@ -354,6 +354,13 @@ def _send(
         msg.attach_alternative(html, "text/html")
         logo = _logo_attachment()
         if logo:
+            # The logo is a CID reference, not a loose file: wrap the
+            # alternative + image in multipart/related (not the default
+            # multipart/mixed). Apple Mail treats a mixed sibling as a normal
+            # attachment even when the HTML references its CID, so it rendered
+            # the 30px inline logo AND a full-size copy + paperclip at the end
+            # (user-reported on iOS Apple Mail).
+            msg.mixed_subtype = "related"
             msg.attach(logo)
         msg.send()
     except (smtplib.SMTPException, OSError, BadHeaderError) as exc:
