@@ -48,9 +48,11 @@ def test_send_returns_false_on_socket_error():
     assert result is False
 
 
+@pytest.mark.django_db
 def test_public_send_does_not_raise_when_provider_is_down():
     """A mandatory email (magic link) must not raise when SMTP fails — the
-    sign-in action it backs must not 500 because mail is temporarily down."""
+    sign-in action it backs must not 500 because mail is temporarily down.
+    Needs DB access now (S2): the viral-line gate looks the recipient up."""
     with patch(
         "core.services.email_service.EmailMultiAlternatives.send",
         side_effect=smtplib.SMTPException("down"),

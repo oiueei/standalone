@@ -203,10 +203,34 @@ class TestViralLine:
         email_service.send_faq_answer_email("Lala", self._thing(), "¿Sigue?", "Sí", owner.email)
         assert "/collections/new" not in mail.outbox[0].body
 
-    def test_line_absent_on_magic_link(self):
+    def test_line_present_on_magic_link_for_non_owner(self):
+        # S2: the magic link is the one email every user gets, so the growth
+        # CTA runs here too now — still gated by collection ownership.
         u = User.objects.create(code="GUEST2", email="magic@test.com", name="Guest")
         mail.outbox.clear()
         email_service.send_magic_link_email(u.email, "http://x/verify/tok")
+        assert "/collections/new" in mail.outbox[0].body
+
+    def test_line_present_on_magic_link_for_unregistered_address(self):
+        # Not-yet-registered invitees (PopInView, before the User row exists
+        # at send time in some callers) are exactly the growth target too.
+        mail.outbox.clear()
+        email_service.send_magic_link_email("not-yet-registered@test.com", "http://x/verify/tok")
+        assert "/collections/new" in mail.outbox[0].body
+
+    def test_line_absent_on_magic_link_for_collection_owner(self):
+        owner = User.objects.create(code="OWNR2", email="magicowner@test.com", name="Owner")
+        Collection.objects.create(code="OWNC2", owner=owner, headline="Mine", status="ACTIVE")
+        mail.outbox.clear()
+        email_service.send_magic_link_email(owner.email, "http://x/verify/tok")
+        assert "/collections/new" not in mail.outbox[0].body
+
+    def test_line_absent_on_stats_summary(self):
+        # The operator report is never growth copy, regardless of ownership.
+        mail.outbox.clear()
+        email_service.send_stats_summary_email(
+            "oiueei@disroot.org", "Weekly stats", [{"title": "Users", "rows": [("Total", 5)]}]
+        )
         assert "/collections/new" not in mail.outbox[0].body
 
     def test_footer_still_after_viral_line(self):

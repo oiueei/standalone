@@ -325,18 +325,20 @@ def _send(
     as ``_UNSET`` and the lookup happens here, as before.
 
     ``include_viral`` prepends a growth CTA above the footer (suppressed for
-    collection owners — see ``_with_viral_line``). The two marketing-free
-    senders — ``send_magic_link_email`` and ``send_stats_summary_email`` — pass
-    ``False``; everything else uses the default.
+    collection owners — see ``_with_viral_line``). ``send_stats_summary_email``
+    is the one sender that passes ``False`` (an operator report, not growth
+    copy); everything else, including ``send_magic_link_email`` since S2, uses
+    the default — so magic-link sends now do the one recipient lookup they
+    used to skip (see that function's docstring for why the extra query is
+    still timing-safe).
 
     ``lang`` is the language the sender composed this email in (see
     ``resolve_email_language``); the footer and the viral line follow it, so the
     whole message speaks one language.
     """
     # Resolve the recipient User once when something downstream needs it: the
-    # preference check (non-mandatory) or the viral-line ownership gate. A
-    # mandatory + include_viral=False send (magic link, stats summary) never
-    # triggers a lookup here.
+    # preference check (non-mandatory) or the viral-line ownership gate. Only
+    # the mandatory + include_viral=False send (stats summary) skips it.
     if (category != CATEGORY_MANDATORY or include_viral) and user is _UNSET:
         user = _lookup_user(to_email)
     if not _should_send(to_email, category, user=user):
@@ -466,8 +468,13 @@ def send_magic_link_email(email, magic_link, collection_headline=None, lang=None
     welcome subject is used (``/login`` and the plain onboarding pop-in).
 
     ``lang`` is resolved by the caller (the auth views know the user and, on a
-    join, the collection) — this is the one email that must not look the recipient
-    up, so it stays a constant-time send (L10, email-enumeration timing oracle).
+    join, the collection) so language resolution never looks the recipient up
+    on its own (L10, email-enumeration timing oracle). The viral-line gate does
+    add one ``User`` lookup inside ``_send()`` now (S2) — safe here because both
+    callers only reach this function after already resolving the recipient
+    (``RequestLinkView`` only for a confirmed-registered address; ``PopInView``
+    after ``get_or_create``), so the extra query carries no new
+    registered/unregistered timing signal.
     """
     T = _texts(lang)
     if collection_headline:
@@ -483,7 +490,7 @@ def send_magic_link_email(email, magic_link, collection_headline=None, lang=None
             _links((magic_link, T("magic_cta"))),
         ]
     )
-    _send(email, subject, plain, html, CATEGORY_MANDATORY, include_viral=False, lang=lang)
+    _send(email, subject, plain, html, CATEGORY_MANDATORY, lang=lang)
 
 
 def send_collection_invite_email(
