@@ -14,6 +14,7 @@ from ..models.notification import InAppNotification
 class InboxView(APIView):
     """
     GET  /api/v1/inbox/         — list unread notifications for current user
+    GET  /api/v1/inbox/?collection={code} — only the ones about that collection
     DELETE /api/v1/inbox/{code}/ — dismiss (delete) a notification
 
     Both routes resolve to this one view, so each handler takes an optional
@@ -29,6 +30,12 @@ class InboxView(APIView):
             # There is no single-notification GET — only the collection is listable.
             raise MethodNotAllowed("GET")
         notifications = InAppNotification.objects.filter(user=request.user)
+        # A collection's own page shows the notifications born in it, so the owner
+        # sees a hold request where the thing lives — not only on Home. Payloads
+        # written before the key existed carry no collection and never match.
+        collection = (request.query_params.get("collection") or "").strip()
+        if collection:
+            notifications = notifications.filter(payload__collection_code=collection)
         return Response(
             [
                 {"code": n.code, "type": n.type, "payload": n.payload, "created": n.created}

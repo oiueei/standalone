@@ -111,11 +111,16 @@ class ThingRequestView(APIView):
 
         # Route based on thing type. Serializer validation stays here (HTTP-layer
         # parsing); the create + side effects live in booking_service.
+        # The collection the requester was looking at when they asked (the SPA sends
+        # it whenever it has one). It picks the collection the owner's notification
+        # deep-links to and shows up on — a thing can live in several.
+        collection_code = request.data.get("collection_code")
+
         try:
             if thing.type == Thing.Type.SWAP_THING:
                 return self._request_swap(request, thing, owner_email)
             elif thing.type == Thing.Type.SHARE_THING:
-                booking = request_share_booking(thing, request.user, owner_email)
+                booking = request_share_booking(thing, request.user, owner_email, collection_code)
                 return Response(
                     {"message": "Booking request sent", "booking_code": booking.code},
                     status=status.HTTP_201_CREATED,
@@ -123,7 +128,9 @@ class ThingRequestView(APIView):
             elif thing.type in DATE_BASED_TYPES:
                 return self._request_date_based(request, thing, owner_email)
             else:
-                booking = request_standard_booking(thing, request.user, owner_email)
+                booking = request_standard_booking(
+                    thing, request.user, owner_email, collection_code
+                )
                 return Response(
                     {"message": "Booking request sent", "booking_code": booking.code},
                     status=status.HTTP_201_CREATED,
@@ -139,10 +146,17 @@ class ThingRequestView(APIView):
 
         start_date = serializer.validated_data["start_date"]
         end_date = serializer.validated_data["end_date"]
-        rental_collection = resolve_rental_collection(thing, request.data.get("collection_code"))
+        collection_code = request.data.get("collection_code")
+        rental_collection = resolve_rental_collection(thing, collection_code)
 
         booking = request_date_based_booking(
-            thing, request.user, owner_email, start_date, end_date, rental_collection
+            thing,
+            request.user,
+            owner_email,
+            start_date,
+            end_date,
+            rental_collection,
+            collection_code,
         )
         return Response(
             {

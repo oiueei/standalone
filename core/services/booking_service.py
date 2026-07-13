@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from django.db import transaction
 from django.utils import timezone
 
-from core.models import RSVP, Thing
+from core.models import RSVP, Collection, Thing
 from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
@@ -154,6 +154,7 @@ def cancel_booking(booking):
         if booking.thing_type in SINGLE_USE_TYPES and not thing.is_endless:
             thing.status = Thing.Status.ACTIVE
             thing.save(update_fields=["status"])
+    _clear_request_notifications(booking)
     return thing
 
 
@@ -280,6 +281,27 @@ def _delete_booking_rsvps(booking_code):
     ).delete()
 
 
+def _clear_request_notifications(booking):
+    """Drop the owner's "someone asked for this" notification once the request is settled.
+
+    A BOOKING_REQUESTED / SWAP_REQUESTED notification is a question put to the owner:
+    accept or reject? Accept, reject, auto-decline and requester-cancel all answer it,
+    so leaving it in the inbox asks for a decision that no longer exists — the owner
+    reads it as still pending and can't tell the stale ones from the live ones.
+
+    Matched by ``payload__booking_code``, so notifications created before that key
+    existed simply don't match — they stay until dismissed by hand.
+    """
+    InAppNotification.objects.filter(
+        user=booking.owner_code,
+        type__in=[
+            InAppNotification.Type.BOOKING_REQUESTED,
+            InAppNotification.Type.SWAP_REQUESTED,
+        ],
+        payload__booking_code=booking.code,
+    ).delete()
+
+
 def _decline_conflicting_siblings(booking):
     """Reject other PENDING bookings for the same, now-transferred, thing.
 
@@ -325,6 +347,10 @@ def finalize_booking_decision(booking, accepted):
         return None
 
     owner_name = booking.owner_code.display_name
+    # The booking doesn't record which collection it was made through, so the
+    # requester-side notification deep-links through the same approximation the
+    # request-side one used.
+    collection = resolve_request_collection(thing)
     InAppNotification.objects.create(
         user=booking.requester_code,
         type=(
@@ -332,9 +358,15 @@ def finalize_booking_decision(booking, accepted):
             if accepted
             else InAppNotification.Type.BOOKING_REJECTED
         ),
-        payload={"thing_headline": thing.headline, "owner_name": owner_name},
+        payload={
+            "thing_headline": thing.headline,
+            "owner_name": owner_name,
+            "thing_code": thing.code,
+            "collection_code": collection.code if collection else "",
+        },
     )
     send_booking_decision_email(booking, thing, accepted=accepted)
+    _clear_request_notifications(booking)
     if accepted:
         # Anchored to the requester (like HOLD_REQUESTED) so a guest's request→accept
         # funnel and the overall holds success rate are both a plain count by kind.
@@ -351,10 +383,17 @@ def finalize_booking_decision(booking, accepted):
             InAppNotification.objects.create(
                 user=sibling.requester_code,
                 type=InAppNotification.Type.BOOKING_UNAVAILABLE,
-                payload={"thing_headline": thing.headline},
+                payload={
+                    "thing_headline": thing.headline,
+                    "thing_code": thing.code,
+                    "collection_code": collection.code if collection else "",
+                },
             )
             send_booking_unavailable_email(sibling, thing)
             _delete_booking_rsvps(sibling.code)
+            # The owner never decided this one — the transfer did — but their inbox
+            # still holds its request notification, and it can no longer be acted on.
+            _clear_request_notifications(sibling)
 
     return thing
 
@@ -388,7 +427,29 @@ def resolve_rental_collection(thing, collection_code=None):
     return None
 
 
-def request_share_booking(thing, requester, owner_email):
+def resolve_request_collection(thing, collection_code=None):
+    """Resolve which collection a booking request was made through.
+
+    Feeds the notification payload: it deep-links there and the collection's own
+    inbox filters by it. A thing can live in several collections, so the request's
+    own context wins — ``collection_code`` is the collection the requester was
+    actually looking at when they asked. Without it (a request from the standalone
+    /things/<code> page) this is an approximation: the collection whose rental rules
+    govern the thing, else its first ACTIVE one. Returns None for a thing that sits
+    in no active collection — the notification then simply carries no collection.
+    """
+    code = (collection_code or "").strip()
+    if code:
+        for collection in thing.collections.all():
+            if collection.code == code:
+                return collection
+    return (
+        resolve_rental_collection(thing)
+        or thing.collections.filter(status=Collection.Status.ACTIVE).first()
+    )
+
+
+def request_share_booking(thing, requester, owner_email, collection_code=None):
     """SHARE_THING — no dates, permanent transfer on acceptance, thing stays ACTIVE."""
     with transaction.atomic():
         Thing.objects.select_for_update().get(code=thing.code)
@@ -408,12 +469,18 @@ def request_share_booking(thing, requester, owner_email):
             owner_code=thing.owner,
         )
 
-    send_booking_request_notifications(requester, thing, booking, owner_email)
+    send_booking_request_notifications(requester, thing, booking, owner_email, collection_code)
     return booking
 
 
 def request_date_based_booking(
-    thing, requester, owner_email, start_date, end_date, rental_collection=None
+    thing,
+    requester,
+    owner_email,
+    start_date,
+    end_date,
+    rental_collection=None,
+    collection_code=None,
 ):
     """LEND/RENT — date-based booking with rental-rules + overlap enforcement."""
     # Enforce the collection's rental rules (fixed durations + allowed pickup/
@@ -441,11 +508,11 @@ def request_date_based_booking(
             end_date=end_date,
         )
 
-    send_booking_request_notifications(requester, thing, booking, owner_email)
+    send_booking_request_notifications(requester, thing, booking, owner_email, collection_code)
     return booking
 
 
-def request_standard_booking(thing, requester, owner_email):
+def request_standard_booking(thing, requester, owner_email, collection_code=None):
     """GIFT/SELL — no dates; single-use things flip to TAKEN to block other requests."""
     with transaction.atomic():
         thing = Thing.objects.select_for_update().get(code=thing.code)
@@ -472,7 +539,7 @@ def request_standard_booking(thing, requester, owner_email):
             thing.status = Thing.Status.TAKEN
             thing.save(update_fields=["status"])
 
-    send_booking_request_notifications(requester, thing, booking, owner_email)
+    send_booking_request_notifications(requester, thing, booking, owner_email, collection_code)
     return booking
 
 
@@ -533,11 +600,15 @@ def request_swap_booking(thing, requester, owner_email, offered_codes):
         )
         booking.offered_things.set(offered_things)
 
-    send_swap_request_notifications(requester, thing, offered_things, booking, owner_email)
+    send_swap_request_notifications(
+        requester, thing, offered_things, booking, owner_email, thing_collection
+    )
     return booking, offered_things
 
 
-def send_booking_request_notifications(requester, thing, booking, owner_email):
+def send_booking_request_notifications(
+    requester, thing, booking, owner_email, collection_code=None
+):
     """Fan out a hold request: owner email (RSVP-protected), requester
     confirmation, in-app notification, and a HOLD_REQUESTED event."""
     from core.services.email_service import (
@@ -550,12 +621,18 @@ def send_booking_request_notifications(requester, thing, booking, owner_email):
         requester, thing, booking, owner_email, rsvp_accept.action_link(), rsvp_reject.action_link()
     )
     send_booking_confirmation_email(requester, thing, booking)
+    collection = resolve_request_collection(thing, collection_code)
     InAppNotification.objects.create(
         user=thing.owner,
         type=InAppNotification.Type.BOOKING_REQUESTED,
         payload={
             "thing_headline": thing.headline,
             "requester_name": requester.display_name,
+            # The codes let the inbox deep-link the request, show it on its own
+            # collection's page, and drop it once the owner has decided.
+            "booking_code": booking.code,
+            "thing_code": thing.code,
+            "collection_code": collection.code if collection else "",
         },
     )
     Event.log(
@@ -566,9 +643,12 @@ def send_booking_request_notifications(requester, thing, booking, owner_email):
     )
 
 
-def send_swap_request_notifications(requester, thing, offered_things, booking, owner_email):
+def send_swap_request_notifications(
+    requester, thing, offered_things, booking, owner_email, collection=None
+):
     """Fan out a swap request (as send_booking_request_notifications, with the
-    offered things listed to the owner)."""
+    offered things listed to the owner). The swap collection is already resolved by
+    the caller — a swap only exists inside one."""
     from core.services.email_service import (
         send_swap_confirmation_email,
         send_swap_request_email,
@@ -590,6 +670,9 @@ def send_swap_request_notifications(requester, thing, offered_things, booking, o
         payload={
             "thing_headline": thing.headline,
             "requester_name": requester.display_name,
+            "booking_code": booking.code,
+            "thing_code": thing.code,
+            "collection_code": collection.code if collection else "",
         },
     )
     Event.log(

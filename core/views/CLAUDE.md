@@ -223,10 +223,14 @@ Updates own profile via `UserUpdateSerializer` (partial update). Accepts optiona
 
 | | |
 |---|---|
-| **Endpoints** | `GET /api/v1/inbox/` and `DELETE /api/v1/inbox/{code}/` |
+| **Endpoints** | `GET /api/v1/inbox/[?collection={code}]` and `DELETE /api/v1/inbox/{code}/` |
 | **Permission** | `IsAuthenticated` |
 
 GET lists the current user's in-app notifications (`code`, `type`, `payload`, `created`). DELETE dismisses (hard-deletes) one, scoped to the requesting user — a code belonging to someone else 404s. Both URL routes resolve to this one view; each handler takes an optional `code` and returns a clean **405** for the combination it doesn't serve (`GET /inbox/{code}/` and `DELETE /inbox/`) rather than a signature-mismatch 500.
+
+**`?collection={code}`** narrows the list to the notifications born in that collection (`payload__collection_code`, a JSONField lookup that works on SQLite and PostgreSQL alike) — no param means today's behaviour, everything. It is what lets a collection's own page show its owner the hold requests for the things that live there, instead of stranding them on Home (O1); the frontend `InboxNotifications` component is the only caller. Payloads written before the key existed carry no collection and so never match a filtered list.
+
+Booking notifications also **clear themselves** once the request they announce is settled — see [`booking_service`](../services/CLAUDE.md#the-request-notifications-lifecycle). Both decision paths (this API's `BookingActionView` and the email/RSVP `VerifyLinkView`) converge on `finalize_booking_decision`, so neither can leave a stale one behind.
 
 ---
 
@@ -706,6 +710,7 @@ Creates a reservation/booking request. Returns 400 for WISH_THING (this type byp
 - Thing status changes to `TAKEN` (blocks other requests).
 
 **Common behaviour:**
+0. Reads an optional **`collection_code`** from the body — the collection the requester was browsing. It already governed the rental rules (above); it now also decides which collection the owner's in-app notification belongs to, so the request shows up on the right collection's page (a thing can live in several — see `resolve_request_collection`). The SPA sends it from the card and the detail page whenever it has one; the standalone `/things/:code` page has none and the service approximates.
 1. Validates owner email in the parent `post()` method (shared across all type handlers).
 2. Creates `BookingPeriod` with status `PENDING`.
 3. Creates two RSVPs (`BOOKING_ACCEPT` and `BOOKING_REJECT`) for the owner's email action links via `booking_service.send_booking_request_notifications()` (or `send_swap_request_notifications()` for SWAP_THING).

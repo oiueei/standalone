@@ -399,7 +399,7 @@ For security considerations, view patterns, service layer, and utilities documen
 
 ## InAppNotification
 
-The `InAppNotification` model stores in-app inbox notifications. Every user-action email that targets another party also creates an `InAppNotification` for that party. Displayed on `HomePage` as dismissible HDS `Notification` banners.
+The `InAppNotification` model stores in-app inbox notifications. Every user-action email that targets another party also creates an `InAppNotification` for that party. Rendered by the shared `InboxNotifications` component as dismissible HDS `Notification` banners — on `HomePage` (all of them) and, filtered by `collection_code`, on a collection's own page for its owner (O1).
 
 ### Fields
 
@@ -418,11 +418,11 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 | `BROADCAST` | Owner sends a broadcast to collection | Each invitee | `owner_name`, `collection_headline`, `message`, `collection_code` |
 | `COLLECTION_DELETED` | Owner deletes a collection | Each invitee | `collection_headline`, `owner_name` |
 | `COLLECTION_REVOKED` | Owner removes a guest from collection | Removed user | `collection_headline`, `owner_name` |
-| `BOOKING_ACCEPTED` | Owner accepts a hold request | Requester | `thing_headline`, `owner_name` |
-| `BOOKING_REJECTED` | Owner rejects a hold request | Requester | `thing_headline`, `owner_name` |
-| `BOOKING_UNAVAILABLE` | Owner accepts a rival SHARE/SWAP request for the same thing | Each auto-declined sibling requester | `thing_headline` |
-| `BOOKING_REQUESTED` | User requests a hold (non-swap) | Thing owner | `thing_headline`, `requester_name` |
-| `SWAP_REQUESTED` | User proposes a swap | Thing owner | `thing_headline`, `requester_name` |
+| `BOOKING_ACCEPTED` | Owner accepts a hold request | Requester | `thing_headline`, `owner_name`, `thing_code`, `collection_code` |
+| `BOOKING_REJECTED` | Owner rejects a hold request | Requester | `thing_headline`, `owner_name`, `thing_code`, `collection_code` |
+| `BOOKING_UNAVAILABLE` | Owner accepts a rival SHARE/SWAP request for the same thing | Each auto-declined sibling requester | `thing_headline`, `thing_code`, `collection_code` |
+| `BOOKING_REQUESTED` | User requests a hold (non-swap) | Thing owner | `thing_headline`, `requester_name`, `booking_code`, `thing_code`, `collection_code` |
+| `SWAP_REQUESTED` | User proposes a swap | Thing owner | `thing_headline`, `requester_name`, `booking_code`, `thing_code`, `collection_code` |
 | `FAQ_QUESTION` | User asks a FAQ question | Thing owner | `thing_headline`, `questioner_name` |
 | `FAQ_ANSWERED` | Owner answers a FAQ | Questioner | `thing_headline`, `owner_name` |
 | `FAQ_HIDDEN` | Owner hides a FAQ | Questioner | `thing_headline`, `owner_name` |
@@ -433,14 +433,15 @@ The `InAppNotification` model stores in-app inbox notifications. Every user-acti
 | `WISH_RESPONSE` | Member answers a wish | Wish creator | `wish_headline`, `responder_name`, `wish_code`, `collection_code` |
 | `WISH_ACCEPTED` | Creator accepts an answer | Responder | `wish_headline`, `owner_name`, `wish_code`, `collection_code` |
 
-The three wish payloads carry `wish_code` + `collection_code` so the HomePage inbox banner can render a deep link to `/collections/{collection_code}/things/{wish_code}` (the wish page).
+The three wish payloads carry `wish_code` + `collection_code` so the inbox banner can render a deep link to `/collections/{collection_code}/things/{wish_code}` (the wish page). The five booking payloads carry **`thing_code` + `collection_code`** for the same reason (the banner links the thing, where a hold is actually answered) and so a collection's page can filter its own; the two *request* types additionally carry **`booking_code`**, which is what lets the decision clear them (see below). `collection_code` is `""` when the thing sits in no active collection — a thing can live in several, so it records the one the request was made through (`booking_service.resolve_request_collection`).
 
 ### Business Rules
 
 1. **One notification per action** — Created atomically alongside the corresponding email.
 2. **Dismissal via DELETE** — `DELETE /api/v1/inbox/{code}/` removes the record (one-time dismiss).
-3. **Ordered newest-first** — Default ordering is `-created`.
-4. **Cascades on user delete** — `on_delete=CASCADE` on the `user` FK.
+3. **A settled request clears its own notification** — `BOOKING_REQUESTED`/`SWAP_REQUESTED` ask the owner to decide; accept, reject, auto-decline and requester-cancel all answer that question, and `booking_service._clear_request_notifications()` deletes the notification (matched by `payload__booking_code`) so the inbox never asks twice. Rows written before the key existed don't match and stay until dismissed by hand.
+4. **Ordered newest-first** — Default ordering is `-created`.
+5. **Cascades on user delete** — `on_delete=CASCADE` on the `user` FK.
 
 ### Reverse Relations
 
