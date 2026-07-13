@@ -221,3 +221,62 @@ class TestBulkFeeDecimalComma:
         res = self._fee_of(auth_client, collection, "1,234.56")
         assert res.status_code == 400
         assert "Ambiguous" in str(res.data["errors"][0]["errors"]["fee"])
+
+
+class TestBulkTagAlias:
+    """A CSV tag may name a localized vocabulary entry in any of its
+    languages, not just the byte-identical canonical JSON (S10)."""
+
+    LOCALIZED_TAG = '{"es": "Crianza", "ca": "Criança"}'
+
+    def _tagged(self, auth_client, collection, tags):
+        rows = [{"type": "GIFT_THING", "headline": "Tagged", "tags": tags}]
+        return auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
+
+    def _set_vocabulary(self, collection, tags):
+        collection.tags = tags
+        collection.save(update_fields=["tags"])
+
+    def test_an_alias_in_one_language_resolves_to_the_canonical_string(
+        self, auth_client, collection
+    ):
+        self._set_vocabulary(collection, [self.LOCALIZED_TAG])
+        res = self._tagged(auth_client, collection, ["Crianza"])
+        assert res.status_code == 201
+        assert Thing.objects.get(code=res.data["codes"][0]).tags == [self.LOCALIZED_TAG]
+
+    def test_an_alias_in_another_language_also_resolves(self, auth_client, collection):
+        self._set_vocabulary(collection, [self.LOCALIZED_TAG])
+        res = self._tagged(auth_client, collection, ["Criança"])
+        assert res.status_code == 201
+        assert Thing.objects.get(code=res.data["codes"][0]).tags == [self.LOCALIZED_TAG]
+
+    def test_an_alias_matches_case_insensitively(self, auth_client, collection):
+        self._set_vocabulary(collection, [self.LOCALIZED_TAG])
+        res = self._tagged(auth_client, collection, ["criança"])
+        assert res.status_code == 201
+        assert Thing.objects.get(code=res.data["codes"][0]).tags == [self.LOCALIZED_TAG]
+
+    def test_the_exact_canonical_string_still_works(self, auth_client, collection):
+        self._set_vocabulary(collection, [self.LOCALIZED_TAG])
+        res = self._tagged(auth_client, collection, [self.LOCALIZED_TAG])
+        assert res.status_code == 201
+        assert Thing.objects.get(code=res.data["codes"][0]).tags == [self.LOCALIZED_TAG]
+
+    def test_an_unknown_tag_still_fails(self, auth_client, collection):
+        self._set_vocabulary(collection, [self.LOCALIZED_TAG])
+        res = self._tagged(auth_client, collection, ["Nope"])
+        assert res.status_code == 400
+        assert "not defined" in str(res.data["errors"][0]["errors"]["tags"])
+        assert collection.things.count() == 0
+
+    def test_an_alias_matching_two_entries_is_rejected_as_ambiguous(self, auth_client, collection):
+        # Both vocabulary entries carry "Crianza" as their Spanish text.
+        self._set_vocabulary(
+            collection,
+            [self.LOCALIZED_TAG, '{"es": "Crianza", "ca": "Altra"}'],
+        )
+        res = self._tagged(auth_client, collection, ["Crianza"])
+        assert res.status_code == 400
+        assert "more than one" in str(res.data["errors"][0]["errors"]["tags"])
+        assert collection.things.count() == 0

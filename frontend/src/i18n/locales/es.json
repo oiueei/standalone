@@ -767,7 +767,7 @@
     "zipError": "No pudimos leer ese ZIP. Revisa el archivo e inténtalo de nuevo.",
     "imageUploadError": "Algunas fotos no se pudieron subir. Revisa las imágenes e inténtalo de nuevo.",
     "uploadingImages": "Subiendo fotos… ({{done}}/{{total}})",
-    "formatBody": "Los tags van en una celda separados por | (y deben estar definidos en la colección). La columna fee acepta tanto 1.5 como 1,5. Para las fotos, comprime el CSV junto con las imágenes y pon el nombre de cada foto en la columna \"photo\" — así:",
+    "formatBody": "Los tags van en una celda separados por | (y deben estar definidos en la colección — escribe la etiqueta en cualquiera de sus idiomas, por ejemplo \"Crianza\" o \"Criança\"). La columna fee acepta tanto 1.5 como 1,5. Para las fotos, comprime el CSV junto con las imágenes y pon el nombre de cada foto en la columna \"photo\" — así:",
     "downloadExample": "Descargar ejemplo (ZIP)"
   },
   "gallery": {

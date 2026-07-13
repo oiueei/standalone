@@ -28,7 +28,59 @@ from core.serializers import (
 )
 from core.serializers.thing import optimise_thing_queryset
 from core.services.email_service import send_wish_posted_email
+from core.utils import parse_localized
 from core.views._helpers import type_validity_error, viewer_code
+
+
+def _resolve_tag_aliases(tags, vocabulary):
+    """Resolve bulk-CSV tags against a collection's tag vocabulary, accepting
+    any language of a localized entry as an alias for its canonical string
+    (S10) — without this a CSV must carry the byte-identical
+    ``{"es": "Crianza", "ca": "Criança"}`` JSON, which no human can type.
+
+    Builds ``{value.casefold(): canonical}`` over the vocabulary: a localized
+    entry (see ``core.utils.parse_localized``) contributes each of its
+    per-language values, a plain entry contributes its own casefolded self.
+    A tag matches (a) exactly — kept as-is, today's behaviour — or (b) via the
+    alias map, in which case the **canonical** vocabulary string is what's
+    returned, so a thing's stored tags stay directly comparable to the
+    vocabulary and to each other regardless of which language the CSV used.
+
+    Returns ``(resolved, unknown, ambiguous)``. ``resolved`` mirrors ``tags``
+    with every match replaced by its canonical string. ``unknown`` lists tags
+    that matched nothing (today's error). ``ambiguous`` lists tags whose
+    casefolded alias maps to more than one distinct canonical entry — rejected
+    rather than guessed, since vocabularies are owner-authored and a
+    collision is a real ambiguity, not noise.
+    """
+    vocabulary = vocabulary or []
+    exact = set(vocabulary)
+
+    alias_map = {}
+    ambiguous_keys = set()
+    for canonical in vocabulary:
+        localized = parse_localized(canonical)
+        values = localized.values() if localized else [canonical]
+        for value in values:
+            key = value.casefold()
+            existing = alias_map.get(key)
+            if existing is not None and existing != canonical:
+                ambiguous_keys.add(key)
+            alias_map[key] = canonical
+
+    resolved, unknown, ambiguous = [], [], []
+    for tag in tags:
+        if tag in exact:
+            resolved.append(tag)
+            continue
+        key = tag.casefold()
+        if key in ambiguous_keys:
+            ambiguous.append(tag)
+        elif key in alias_map:
+            resolved.append(alias_map[key])
+        else:
+            unknown.append(tag)
+    return resolved, unknown, ambiguous
 
 
 class ThingViewSet(ModelViewSet):
@@ -290,21 +342,36 @@ class ThingBulkCreateView(APIView):
                 errors.append({"row": index, "errors": {"type": [type_error]}})
                 continue
             # Tags must belong to the collection's vocabulary (mirrors the
-            # single-create subset check in ThingViewSet.perform_create).
+            # single-create subset check in ThingViewSet.perform_create), but
+            # a CSV tag may also name a localized entry by any of its
+            # languages (S10) — resolved to the vocabulary's canonical string.
             tags = serializer.validated_data.get("tags", [])
             if tags:
-                available = set(collection.tags or [])
-                invalid = [tag for tag in tags if tag not in available]
-                if invalid:
+                resolved, unknown, ambiguous = _resolve_tag_aliases(tags, collection.tags)
+                if unknown:
                     errors.append(
                         {
                             "row": index,
                             "errors": {
-                                "tags": [f"These tags are not defined by the collection: {invalid}"]
+                                "tags": [f"These tags are not defined by the collection: {unknown}"]
                             },
                         }
                     )
                     continue
+                if ambiguous:
+                    errors.append(
+                        {
+                            "row": index,
+                            "errors": {
+                                "tags": [
+                                    "These tags match more than one entry in the collection's "
+                                    f"vocabulary — use the exact label: {ambiguous}"
+                                ]
+                            },
+                        }
+                    )
+                    continue
+                serializer.validated_data["tags"] = resolved
             validated.append(serializer.validated_data)
 
         if errors:
