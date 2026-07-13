@@ -77,6 +77,7 @@ export default function ThingPage() {
     onThingChange: (patch) => setThing((prev) => ({ ...prev, ...patch })),
     setToast,
     activateSuccessMessage: t('thingPage.thingReactivated'),
+    collectionCode,
   });
 
   // The owner "Confirm hold" label, with its in-flight ("Confirming…") state. Shared

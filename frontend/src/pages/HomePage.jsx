@@ -6,22 +6,25 @@ import { apiFetch } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FeedbackLink from '../components/FeedbackLink';
 import CollectionLinkbox from '../components/CollectionLinkbox';
+import InboxNotifications from '../components/InboxNotifications';
 import useTheeeme from '../hooks/useTheeeme';
 import { useLocalized } from '../utils/localized';
 
 export default function HomePage() {
   const { t } = useTranslation();
-  // Owner content (inbox headlines, invitations) may carry one text per language.
+  // Owner content (invitation headlines) may carry one text per language.
   const L = useLocalized();
   useEffect(() => { document.title = t('titles.home'); }, [t]);
   const [user, setUser] = useState(null);
   const [myCollections, setMyCollections] = useState(null);
   const [invitedCollections, setInvitedCollections] = useState(null);
   const [pendingInvitations, setPendingInvitations] = useState([]);
-  const [inboxNotifications, setInboxNotifications] = useState([]);
   const [offline, setOffline] = useState(false);
   const [myCollectionsError, setMyCollectionsError] = useState(false);
   const [invitedError, setInvitedError] = useState(false);
+  // The inbox fetches itself; bumping this makes it re-fetch alongside a dashboard
+  // retry (a returning connection, the Retry buttons).
+  const [inboxReloads, setInboxReloads] = useState(0);
 
   const loadDashboard = useCallback((signal) => {
     // A failed fetch rejects with a TypeError ("Failed to fetch") only on a real
@@ -85,22 +88,22 @@ export default function HomePage() {
       } catch (err) { onNetworkError(err); }
     };
 
-    const fetchInbox = async () => {
-      try {
-        const res = await apiFetch('/api/v1/inbox/', { signal });
-        if (res.ok) {
-          const data = await res.json();
-          if (!signal?.aborted) setInboxNotifications(data);
-        }
-      } catch (err) { onNetworkError(err); }
-    };
-
     fetchMe();
     fetchMyCollections();
     fetchInvitedCollections();
     fetchPendingInvitations();
-    fetchInbox();
   }, []);
+
+  // Stable across renders so the inbox's fetch effect doesn't re-run on every one.
+  const handleNetworkError = useCallback((err) => {
+    if (err?.name === 'TypeError' || !navigator.onLine) setOffline(true);
+  }, []);
+
+  const reloadDashboard = useCallback(() => {
+    setOffline(false);
+    setInboxReloads((n) => n + 1);
+    loadDashboard();
+  }, [loadDashboard]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -110,114 +113,19 @@ export default function HomePage() {
 
   useEffect(() => {
     // Re-fetch automatically when the browser regains connectivity.
-    const onOnline = () => { setOffline(false); loadDashboard(); };
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
-  }, [loadDashboard]);
+    window.addEventListener('online', reloadDashboard);
+    return () => window.removeEventListener('online', reloadDashboard);
+  }, [reloadDashboard]);
 
   const dismissInvitation = (acceptCode) => {
     setPendingInvitations((prev) => prev.filter((inv) => inv.accept_code !== acceptCode));
-  };
-
-  const dismissInboxNotification = async (code) => {
-    setInboxNotifications((prev) => prev.filter((n) => n.code !== code));
-    try {
-      await apiFetch(`/api/v1/inbox/${code}/`, { method: 'DELETE' });
-    } catch (err) {
-      if (err?.name === 'TypeError' || !navigator.onLine) setOffline(true);
-    }
-  };
-
-  const ALERT_TYPES = new Set([
-    'COLLECTION_DELETED', 'COLLECTION_REVOKED', 'BOOKING_REJECTED', 'FAQ_HIDDEN', 'INVITE_REJECTED',
-    'THING_REPORTED',
-  ]);
-  const SUCCESS_TYPES = new Set(['BOOKING_ACCEPTED']);
-
-  const inboxNotificationType = (type) => {
-    if (ALERT_TYPES.has(type)) return 'alert';
-    if (SUCCESS_TYPES.has(type)) return 'success';
-    return 'info';
-  };
-
-  // An inbox payload carries the headline as the owner wrote it — which may be
-  // one text per language. Resolve the three headline keys once, then the
-  // builders below interpolate plain words like they always did.
-  const localizedPayload = (payload) => ({
-    ...payload,
-    collection_headline: L(payload.collection_headline),
-    thing_headline: L(payload.thing_headline),
-    wish_headline: L(payload.wish_headline),
-  });
-
-  const inboxNotificationLabel = (n, tFn) => {
-    const p = localizedPayload(n.payload);
-    switch (n.type) {
-      case 'COLLECTION_DELETED': return tFn('home.collectionDeletedLabel');
-      case 'COLLECTION_REVOKED': return tFn('home.collectionRevokedLabel');
-      case 'BOOKING_ACCEPTED': return tFn('home.bookingAcceptedLabel');
-      case 'BOOKING_REJECTED': return tFn('home.bookingRejectedLabel');
-      case 'BOOKING_REQUESTED': return tFn('home.bookingRequestedLabel');
-      case 'BOOKING_UNAVAILABLE': return tFn('home.bookingUnavailableLabel');
-      case 'SWAP_REQUESTED': return tFn('home.swapRequestedLabel');
-      case 'FAQ_QUESTION': return tFn('home.faqQuestionLabel');
-      case 'FAQ_ANSWERED': return tFn('home.faqAnsweredLabel');
-      case 'FAQ_HIDDEN': return tFn('home.faqHiddenLabel');
-      case 'INVITE_REJECTED': return tFn('home.inviteRejectedLabel');
-      case 'THING_REPORTED': return tFn('home.reportedLabel');
-      case 'WISH_POSTED': return tFn('home.wishPostedLabel');
-      case 'WISH_RESPONSE': return tFn('home.wishResponseLabel');
-      case 'WISH_ACCEPTED': return tFn('home.wishAcceptedLabel');
-      default: return tFn('home.broadcastLabel', { owner_name: p.owner_name, collection_headline: p.collection_headline });
-    }
-  };
-
-  const inboxNotificationBody = (n, tFn) => {
-    const p = localizedPayload(n.payload);
-    switch (n.type) {
-      case 'COLLECTION_DELETED': return tFn('home.collectionDeletedBody', { collection_headline: p.collection_headline, owner_name: p.owner_name });
-      case 'COLLECTION_REVOKED': return tFn('home.collectionRevokedBody', { collection_headline: p.collection_headline, owner_name: p.owner_name });
-      case 'BOOKING_ACCEPTED': return tFn('home.bookingAcceptedBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
-      case 'BOOKING_REJECTED': return tFn('home.bookingRejectedBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
-      case 'BOOKING_REQUESTED': return tFn('home.bookingRequestedBody', { thing_headline: p.thing_headline, requester_name: p.requester_name });
-      case 'BOOKING_UNAVAILABLE': return tFn('home.bookingUnavailableBody', { thing_headline: p.thing_headline });
-      case 'SWAP_REQUESTED': return tFn('home.swapRequestedBody', { thing_headline: p.thing_headline, requester_name: p.requester_name });
-      case 'FAQ_QUESTION': return tFn('home.faqQuestionBody', { thing_headline: p.thing_headline, questioner_name: p.questioner_name });
-      case 'FAQ_ANSWERED': return tFn('home.faqAnsweredBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
-      case 'FAQ_HIDDEN': return tFn('home.faqHiddenBody', { thing_headline: p.thing_headline, owner_name: p.owner_name });
-      case 'INVITE_REJECTED': return tFn('home.inviteRejectedBody', { collection_headline: p.collection_headline, invitee_name: p.invitee_name });
-      case 'THING_REPORTED': return tFn('home.reportedBody', { thing_headline: p.thing_headline });
-      case 'WISH_POSTED': return tFn('home.wishPostedBody', { creator_name: p.creator_name, wish_headline: p.wish_headline });
-      case 'WISH_RESPONSE': return tFn('home.wishResponseBody', { responder_name: p.responder_name, wish_headline: p.wish_headline });
-      case 'WISH_ACCEPTED': return tFn('home.wishAcceptedBody', { owner_name: p.owner_name, wish_headline: p.wish_headline });
-      default: return tFn('home.broadcastBody', { message: p.message });
-    }
-  };
-
-  // Deep link to the object that originated a notification: the wish page for
-  // wish notifications, the collection for a broadcast. Returns {to, label} or null.
-  const inboxNotificationLink = (n) => {
-    const p = n.payload || {};
-    if (p.wish_code) {
-      const to = p.collection_code
-        ? `/collections/${p.collection_code}/things/${p.wish_code}`
-        : `/things/${p.wish_code}`;
-      return { to, label: t('home.viewWish') };
-    }
-    if (n.type === 'BROADCAST' && p.collection_code) {
-      return { to: `/collections/${p.collection_code}`, label: t('home.viewCollection') };
-    }
-    if (n.type === 'THING_REPORTED' && p.thing_code) {
-      return { to: `/things/${p.thing_code}`, label: t('home.viewThing') };
-    }
-    return null;
   };
 
   const offlineBanner = (
     <Notification type="alert" label={t('home.offlineLabel')} style={{ marginBottom: 'var(--spacing-s)' }}>
       {t('home.offlineBody')}
       <div style={{ marginTop: 'var(--spacing-xs)' }}>
-        <Button size="small" onClick={() => { setOffline(false); loadDashboard(); }}>{t('common.retry')}</Button>
+        <Button size="small" onClick={reloadDashboard}>{t('common.retry')}</Button>
       </div>
     </Notification>
   );
@@ -233,7 +141,7 @@ export default function HomePage() {
       <div style={{ marginTop: 'var(--spacing-xs)' }}>
         <Button
           size="small"
-          onClick={() => { setMyCollectionsError(false); setInvitedError(false); loadDashboard(); }}
+          onClick={() => { setMyCollectionsError(false); setInvitedError(false); reloadDashboard(); }}
         >
           {t('common.retry')}
         </Button>
@@ -284,33 +192,7 @@ export default function HomePage() {
 
         {offline && offlineBanner}
 
-        {inboxNotifications.length > 0 && (
-          <>
-            {inboxNotifications.map((n) => {
-              const link = inboxNotificationLink(n);
-              return (
-                <Notification
-                  key={n.code}
-                  type={inboxNotificationType(n.type)}
-                  label={inboxNotificationLabel(n, t)}
-                  dismissible
-                  closeButtonLabelText={t('home.dismiss')}
-                  onClose={() => dismissInboxNotification(n.code)}
-                  style={{ marginBottom: 'var(--spacing-s)' }}
-                >
-                  {inboxNotificationBody(n, t)}
-                  {link && (
-                    <>
-                      {' '}
-                      <Link to={link.to}>{link.label}</Link>
-                    </>
-                  )}
-                </Notification>
-              );
-            })}
-            <div className="spacer-m" />
-          </>
-        )}
+        <InboxNotifications reloadKey={inboxReloads} onNetworkError={handleNetworkError} />
 
         {pendingInvitations.length > 0 && (
           <>

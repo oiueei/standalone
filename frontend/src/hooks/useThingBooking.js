@@ -29,6 +29,11 @@ import { apiFetch, extractApiError } from '../services/api';
  * - `bookingKeepsStatus`  — when true, accept/reject keeps `thing.status` (date/order/
  *                           swap/endless flows); when false it flips it (GIFT/SELL).
  * - `activateSuccessMessage` — toast shown after a successful reactivate (ThingPage only).
+ * - `collectionCode`      — the collection the requester is browsing, sent with the
+ *                           request. A thing can live in several, so this is what
+ *                           decides which one the owner's notification belongs to
+ *                           (the backend approximates only when it's absent — the
+ *                           standalone /things/:code page has no collection).
  *
  * Returns `{ submitting, requested, bookingAction, bookings, activePendingCode,
  * handleRequest, handleActivate, handleBookingAction }`.
@@ -42,6 +47,7 @@ export default function useThingBooking(thing, {
   fetchOnEndless = false,
   bookingKeepsStatus = false,
   activateSuccessMessage = null,
+  collectionCode = null,
 } = {}) {
   const { t } = useTranslation();
 
@@ -99,7 +105,7 @@ export default function useThingBooking(thing, {
     try {
       const res = await apiFetch(`/api/v1/things/${code}/request/`, {
         method: 'POST',
-        body: JSON.stringify({}),
+        body: JSON.stringify(collectionCode ? { collection_code: collectionCode } : {}),
       });
       if (res.ok) {
         setRequested(true);

@@ -21,7 +21,7 @@ import useThingBooking from './useThingBooking';
  * - `collectionOwner` — explicit collection owner code (ThingLinkbox prop);
  *                       falls back to `thing.collection_owner`.
  * - `onThingChange` / `setToast` / `initialActivePending` / `initialRequested`
- *   / `fetchOnEndless` / `activateSuccessMessage` — forwarded to
+ *   / `fetchOnEndless` / `activateSuccessMessage` / `collectionCode` — forwarded to
  *   {@link useThingBooking} (card vs page seeds differ).
  *
  * `bookingKeepsStatus` is derived here (`needsPage || is_endless`, identical in
@@ -44,6 +44,7 @@ export default function useThingActions(thing, userCode, {
   initialRequested = false,
   fetchOnEndless = false,
   activateSuccessMessage = null,
+  collectionCode = null,
 } = {}) {
   const { t } = useTranslation();
 
@@ -73,6 +74,7 @@ export default function useThingActions(thing, userCode, {
     fetchOnEndless,
     bookingKeepsStatus,
     activateSuccessMessage,
+    collectionCode,
   });
   const { submitting, requested, bookings } = booking;
 

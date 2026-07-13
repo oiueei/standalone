@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import ShareCollectionMenu from '../components/ShareCollectionMenu';
 import ThingLinkbox from '../components/ThingLinkbox';
+import InboxNotifications from '../components/InboxNotifications';
 import HeroPhoto from '../components/HeroPhoto';
 import useTheeeme from '../hooks/useTheeeme';
 import { useLocalized } from '../utils/localized';
@@ -267,6 +268,10 @@ export default function CollectionPage() {
         />
       </div>
       <div className="page-container">
+      {/* The owner's notifications for this collection — a hold request is answered
+          on the thing, so it should reach them where the things are, not only on
+          Home. A member's own notifications (wish answers, FAQs) stay on Home. */}
+      {isOwner && <InboxNotifications collection={code} />}
       {isOwner && collection.status === 'INACTIVE' && (
         <Notification label={t('common.notice')} type="info" style={{ marginBottom: 'var(--spacing-m)' }}>
           {t('collectionPage.inactiveNotice')}

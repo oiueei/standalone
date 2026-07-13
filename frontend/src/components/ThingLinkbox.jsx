@@ -64,6 +64,7 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
     initialActivePending: thing.pending_booking,
     initialRequested: thing.type === SHARE_TYPE && !!thing.my_pending_booking,
     fetchOnEndless: true,
+    collectionCode: collectionCode || thing.collection_code,
   });
 
   // Anonymous visitor (loginToAct): show the action buttons, but route each click
