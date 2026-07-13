@@ -48,8 +48,10 @@ class Collection(models.Model):
         related_name="owned_collections",
     )
     created = models.DateTimeField(default=timezone.now)
-    headline = models.CharField(max_length=64)
-    description = models.CharField(max_length=256, blank=True, default="")
+    # 256/1024 for the same reason as Thing.headline/description: the owner may
+    # write one text per language as inline JSON; 64/256 stay the visible limits.
+    headline = models.CharField(max_length=256)
+    description = models.CharField(max_length=1024, blank=True, default="")
     status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE)
     mode = models.CharField(max_length=12, choices=Mode.choices, default=Mode.PROPRIETARY)
     visibility = models.CharField(

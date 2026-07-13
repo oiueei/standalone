@@ -8,7 +8,13 @@ from rest_framework import serializers
 from core.models import RSVP, Collection, Thing
 from core.serializers.thing import ThingComputedFieldsMixin
 from core.utils import cloudinary_doc_url, cloudinary_url
-from core.validators import ImageIdField, SafeHeadlineField, SafeTextField
+from core.validators import (
+    LOCALIZED_TAG_STORAGE,
+    ImageIdField,
+    LocalizedHeadlineField,
+    LocalizedTextField,
+    SafeTextField,
+)
 
 # Thing types valid for proprietary collections (excludes COMMUNITY-only types
 # WISH_THING, SHARE_THING and the SWAP_THING which is gated by
@@ -257,14 +263,14 @@ class CollectionSerializer(serializers.ModelSerializer):
 class CollectionCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a collection."""
 
-    headline = SafeHeadlineField(max_length=64)
-    description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    headline = LocalizedHeadlineField(max_length=64)
+    description = LocalizedTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField(required=False, allow_blank=True)
     # The welcome PDF is a Cloudinary public_id like any other asset — same
     # path-traversal-safe validation.
     welcome_doc = ImageIdField(required=False, allow_blank=True)
     tags = serializers.ListField(
-        child=SafeHeadlineField(max_length=32),
+        child=LocalizedHeadlineField(max_length=32, storage_max_length=LOCALIZED_TAG_STORAGE),
         max_length=12,
         required=False,
         allow_empty=True,
@@ -339,7 +345,8 @@ def _normalize_tags(tags):
 
     Used by both collection serializers so the owner-defined tag vocabulary is
     always clean. The ListField (max_length=12) caps the raw count and
-    SafeHeadlineField rejects HTML / over-length labels before this runs.
+    LocalizedHeadlineField rejects HTML / over-length labels before this runs (a
+    label may be a per-language map, in which case each language is checked).
     """
     seen = set()
     result = []
@@ -432,15 +439,15 @@ def _validate_collection_flags(
 class CollectionUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating a collection."""
 
-    headline = SafeHeadlineField(max_length=64, required=False)
-    description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    headline = LocalizedHeadlineField(max_length=64, required=False)
+    description = LocalizedTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField(required=False, allow_blank=True)
     # The welcome PDF is a Cloudinary public_id like any other asset — same
     # path-traversal-safe validation.
     welcome_doc = ImageIdField(required=False, allow_blank=True)
     pause_message = SafeTextField(max_length=256, required=False, allow_blank=True)
     tags = serializers.ListField(
-        child=SafeHeadlineField(max_length=32),
+        child=LocalizedHeadlineField(max_length=32, storage_max_length=LOCALIZED_TAG_STORAGE),
         max_length=12,
         required=False,
         allow_empty=True,

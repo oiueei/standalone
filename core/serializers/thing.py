@@ -9,9 +9,11 @@ from core.models import Thing
 from core.models.booking import BookingPeriod
 from core.utils import cloudinary_url
 from core.validators import (
+    LOCALIZED_TAG_STORAGE,
     ImageIdField,
+    LocalizedHeadlineField,
+    LocalizedTextField,
     SafeHeadlineField,
-    SafeTextField,
     reject_spreadsheet_formula,
 )
 
@@ -322,8 +324,8 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
 class ThingCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a thing."""
 
-    headline = SafeHeadlineField(max_length=64)
-    description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    headline = LocalizedHeadlineField(max_length=64)
+    description = LocalizedTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
     gallery = serializers.ListField(
@@ -333,7 +335,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
         allow_empty=True,
     )
     tags = serializers.ListField(
-        child=SafeHeadlineField(max_length=32),
+        child=LocalizedHeadlineField(max_length=32, storage_max_length=LOCALIZED_TAG_STORAGE),
         max_length=12,
         required=False,
         allow_empty=True,
@@ -363,8 +365,8 @@ class ThingCreateSerializer(serializers.ModelSerializer):
 class ThingUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating a thing."""
 
-    headline = SafeHeadlineField(max_length=64, required=False)
-    description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    headline = LocalizedHeadlineField(max_length=64, required=False)
+    description = LocalizedTextField(max_length=256, required=False, allow_blank=True)
     thumbnail = ImageIdField()
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
     gallery = serializers.ListField(
@@ -374,7 +376,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
         allow_empty=True,
     )
     tags = serializers.ListField(
-        child=SafeHeadlineField(max_length=32),
+        child=LocalizedHeadlineField(max_length=32, storage_max_length=LOCALIZED_TAG_STORAGE),
         max_length=12,
         required=False,
         allow_empty=True,
@@ -428,14 +430,14 @@ class ThingBulkRowSerializer(serializers.ModelSerializer):
     view (the serializer has no collection context).
     """
 
-    headline = SafeHeadlineField(max_length=64)
-    description = SafeTextField(max_length=256, required=False, allow_blank=True)
+    headline = LocalizedHeadlineField(max_length=64)
+    description = LocalizedTextField(max_length=256, required=False, allow_blank=True)
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
     fee = serializers.DecimalField(
         max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
     )
     tags = serializers.ListField(
-        child=SafeHeadlineField(max_length=32),
+        child=LocalizedHeadlineField(max_length=32, storage_max_length=LOCALIZED_TAG_STORAGE),
         max_length=12,
         required=False,
         allow_empty=True,

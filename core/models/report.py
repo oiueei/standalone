@@ -22,7 +22,10 @@ class Report(models.Model):
     # SET_NULL on both FKs so the moderation log survives the thing / reporter
     # being deleted later; the headline snapshot keeps the row readable.
     thing = models.ForeignKey(Thing, on_delete=models.SET_NULL, null=True, related_name="reports")
-    thing_headline = models.CharField(max_length=64, blank=True)
+    # Follows Thing.headline (256): a localized headline is longer than the 64 an
+    # owner sees, and a snapshot too narrow to hold it would make reporting the
+    # thing fail outright on PostgreSQL.
+    thing_headline = models.CharField(max_length=256, blank=True)
     reporter = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name="reports_made"
     )

@@ -33,7 +33,7 @@ from django.template.loader import render_to_string
 from django.utils.html import escape
 
 from core.services.email_texts import T, viral_lines
-from core.utils import redact_email
+from core.utils import redact_email, resolve_localized
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +139,17 @@ def _texts(lang):
     threading the argument through each call.
     """
     return functools.partial(T, lang=lang)
+
+
+def _local(lang):
+    """``resolve_localized`` bound to one language.
+
+    Senders bind it as ``L`` next to ``T`` and pass **every owner-written value**
+    through it — a headline may carry one text per language (inline JSON, see
+    ``core.utils.parse_localized``), and the recipient must read theirs rather than
+    the raw map. Plain headlines, which is nearly all of them, come back untouched.
+    """
+    return functools.partial(resolve_localized, lang=lang)
 
 
 def _recipient(email, collection=None):
@@ -453,7 +464,9 @@ def send_magic_link_email(email, magic_link, collection_headline=None, lang=None
     """
     T = _texts(lang)
     if collection_headline:
-        subject = T("magic_subject_collection").format(collection=collection_headline)
+        subject = T("magic_subject_collection").format(
+            collection=resolve_localized(collection_headline, lang)
+        )
     else:
         subject = T("magic_subject")
     plain = T("magic_plain").format(link=magic_link)
@@ -471,15 +484,14 @@ def send_collection_invite_email(
 ):
     """Send collection invitation email with accept and reject links."""
     user, lang = _recipient(email, collection)
-    T = _texts(lang)
-    subject = T("invite_subject").format(collection=collection_headline)
-    plain = T("invite_plain").format(
-        collection=collection_headline, accept=accept_link, reject=reject_link
-    )
+    T, L = _texts(lang), _local(lang)
+    headline = L(collection_headline)
+    subject = T("invite_subject").format(collection=headline)
+    plain = T("invite_plain").format(collection=headline, accept=accept_link, reject=reject_link)
     html = _render_email(
         [
             _para(T("invite_intro").format(inviter=inviter_name)),
-            _strong(collection_headline),
+            _strong(headline),
             _links((accept_link, T("invite_accept_cta")), (reject_link, T("invite_decline_cta"))),
         ]
     )
@@ -496,13 +508,14 @@ def send_collection_welcome_doc_email(collection_headline, doc_url, email, colle
     join (see ``core/views/auth.py::_join_collection``).
     """
     user, lang = _recipient(email, collection)
-    T = _texts(lang)
-    subject = T("welcome_doc_subject").format(collection=collection_headline)
-    plain = T("welcome_doc_plain").format(collection=collection_headline, url=doc_url)
+    T, L = _texts(lang), _local(lang)
+    headline = L(collection_headline)
+    subject = T("welcome_doc_subject").format(collection=headline)
+    plain = T("welcome_doc_plain").format(collection=headline, url=doc_url)
     html = _render_email(
         [
             _para(T("welcome_doc_intro")),
-            _links((doc_url, collection_headline)),
+            _links((doc_url, headline)),
             _para(T("welcome_doc_outro")),
         ]
     )
@@ -512,13 +525,14 @@ def send_collection_welcome_doc_email(collection_headline, doc_url, email, colle
 def send_collection_revoke_email(owner_name, collection_headline, email, collection=None):
     """Send collection access revoked notification email."""
     user, lang = _recipient(email, collection)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
+    headline = L(collection_headline)
     subject = T("revoke_subject")
-    plain = T("revoke_plain").format(owner=owner_name, collection=collection_headline)
+    plain = T("revoke_plain").format(owner=owner_name, collection=headline)
     html = _render_email(
         [
             _para(T("revoke_intro").format(owner=owner_name)),
-            _strong(collection_headline),
+            _strong(headline),
             _para(T("revoke_outro")),
         ]
     )
@@ -531,15 +545,16 @@ def send_collection_revoke_email(owner_name, collection_headline, email, collect
 def send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link):
     """Send booking request email to owner with accept/reject links."""
     user, lang = _recipient(owner_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     requester_name = requester.display_name
     action = _action_noun(thing, lang)
+    headline = L(thing.headline)
 
     if booking.start_date and booking.end_date:
         plain = T("booking_request_plain_dated").format(
             requester=requester_name,
             action=action,
-            thing=thing.headline,
+            thing=headline,
             start=booking.start_date,
             end=booking.end_date,
             accept=accept_link,
@@ -549,7 +564,7 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
         plain = T("booking_request_plain").format(
             requester=requester_name,
             action=action,
-            thing=thing.headline,
+            thing=headline,
             accept=accept_link,
             reject=reject_link,
         )
@@ -558,7 +573,7 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
     html = _render_email(
         [
             _para(T("booking_request_intro").format(requester=requester_name, action=action)),
-            _strong(thing.headline),
+            _strong(headline),
             *_booking_detail_blocks(booking, lang),
             _links((accept_link, T("hold_confirm_cta")), (reject_link, T("hold_cancel_cta"))),
         ]
@@ -569,28 +584,27 @@ def send_booking_request_email(requester, thing, booking, owner_email, accept_li
 def send_booking_decision_email(booking, thing, accepted=True):
     """Send booking accept/reject notification email to requester."""
     user, lang = _recipient(booking.requester_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     decision_word = T("decision_confirmed") if accepted else T("decision_cancelled")
     action = _action_noun(thing, lang)
+    headline = L(thing.headline)
 
     if booking.start_date and booking.end_date:
         plain = T("decision_plain_dated").format(
             action=action,
-            thing=thing.headline,
+            thing=headline,
             start=booking.start_date,
             end=booking.end_date,
             decision=decision_word,
         )
     else:
-        plain = T("decision_plain").format(
-            action=action, thing=thing.headline, decision=decision_word
-        )
+        plain = T("decision_plain").format(action=action, thing=headline, decision=decision_word)
 
     subject = T("decision_subject")
     html = _render_email(
         [
             _para(T("decision_intro").format(action=action, decision=decision_word)),
-            _strong(thing.headline),
+            _strong(headline),
             *_booking_detail_blocks(booking, lang),
         ]
     )
@@ -604,12 +618,13 @@ def send_booking_unavailable_email(booking, thing):
     requester's PENDING booking was auto-declined. Warm, non-blaming tone.
     """
     user, lang = _recipient(booking.requester_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
+    headline = L(thing.headline)
     subject = T("unavailable_subject")
-    plain = T("unavailable_plain").format(thing=thing.headline)
+    plain = T("unavailable_plain").format(thing=headline)
     html = _render_email(
         [
-            _para(T("unavailable_intro").format(thing=thing.headline)),
+            _para(T("unavailable_intro").format(thing=headline)),
             _para(T("unavailable_outro")),
         ]
     )
@@ -619,13 +634,14 @@ def send_booking_unavailable_email(booking, thing):
 def send_invite_rejected_email(invitee_name, collection_headline, owner_email, collection=None):
     """Send notification to collection owner that an invite was declined."""
     user, lang = _recipient(owner_email, collection)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
+    headline = L(collection_headline)
     subject = T("invite_rejected_subject")
-    plain = T("invite_rejected_plain").format(invitee=invitee_name, collection=collection_headline)
+    plain = T("invite_rejected_plain").format(invitee=invitee_name, collection=headline)
     html = _render_email(
         [
             _para(T("invite_rejected_intro").format(invitee=invitee_name)),
-            _strong(collection_headline),
+            _strong(headline),
         ]
     )
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
@@ -634,16 +650,17 @@ def send_invite_rejected_email(invitee_name, collection_headline, owner_email, c
 def send_booking_confirmation_email(requester, thing, booking):
     """Send booking confirmation email to the requester."""
     user, lang = _recipient(requester.email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     owner_name = thing.owner.display_name
     thing_url = _thing_url(thing)
     collection = thing.collections.first()
     action = _action_noun(thing, lang)
+    headline = L(thing.headline)
 
     if booking.start_date and booking.end_date:
         plain = T("confirmation_plain_dated").format(
             action=action,
-            thing=thing.headline,
+            thing=headline,
             start=booking.start_date,
             end=booking.end_date,
             owner=owner_name,
@@ -651,18 +668,18 @@ def send_booking_confirmation_email(requester, thing, booking):
         )
     else:
         plain = T("confirmation_plain").format(
-            action=action, thing=thing.headline, owner=owner_name, url=thing_url
+            action=action, thing=headline, owner=owner_name, url=thing_url
         )
 
     subject = T("confirmation_subject").format(action=action)
     html = _render_email(
         [
             _para(T("confirmation_intro").format(action=action)),
-            _strong(thing.headline),
-            *([_field(T("part_of_label"), collection.headline)] if collection else []),
+            _strong(headline),
+            *([_field(T("part_of_label"), L(collection.headline))] if collection else []),
             *_booking_detail_blocks(booking, lang),
             _para(T("confirmation_outro").format(owner=owner_name)),
-            _links((thing_url, thing.headline)),
+            _links((thing_url, headline)),
         ]
     )
     _send(requester.email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
@@ -671,17 +688,18 @@ def send_booking_confirmation_email(requester, thing, booking):
 def send_faq_question_email(questioner_name, thing, question, owner_email):
     """Send FAQ question notification email to thing owner."""
     user, lang = _recipient(owner_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     thing_url = _thing_url(thing)
+    headline = L(thing.headline)
 
     subject = T("faq_question_subject")
     plain = T("faq_question_plain").format(
-        questioner=questioner_name, thing=thing.headline, question=question, url=thing_url
+        questioner=questioner_name, thing=headline, question=question, url=thing_url
     )
     html = _render_email(
         [
             _para(T("faq_question_intro").format(questioner=questioner_name)),
-            _strong(thing.headline),
+            _strong(headline),
             _field(T("question_label"), question),
             _links((thing_url, T("faq_view_reply_cta"))),
         ]
@@ -692,19 +710,20 @@ def send_faq_question_email(questioner_name, thing, question, owner_email):
 def send_faq_answer_email(owner_name, thing, question, answer, questioner_email):
     """Send FAQ answer notification email to questioner, linking the thing."""
     user, lang = _recipient(questioner_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     thing_url = _thing_url(thing)
+    headline = L(thing.headline)
     subject = T("faq_answer_subject")
     plain = T("faq_answer_plain").format(
-        owner=owner_name, answer=answer, thing=thing.headline, url=thing_url
+        owner=owner_name, answer=answer, thing=headline, url=thing_url
     )
     html = _render_email(
         [
             _para(T("faq_answer_intro").format(owner=owner_name)),
-            _strong(thing.headline),
+            _strong(headline),
             _field(T("your_question_label"), question),
             _field(T("reply_label"), answer),
-            _links((thing_url, thing.headline)),
+            _links((thing_url, headline)),
         ]
     )
     _send(questioner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
@@ -713,13 +732,13 @@ def send_faq_answer_email(owner_name, thing, question, answer, questioner_email)
 def send_faq_hide_email(owner_name, thing_headline, question, questioner_email):
     """Send FAQ hidden notification email to questioner."""
     user, lang = _recipient(questioner_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     subject = T("faq_hide_subject")
     plain = T("faq_hide_plain").format(owner=owner_name, question=question)
     html = _render_email(
         [
             _para(T("faq_hide_intro").format(owner=owner_name)),
-            _strong(thing_headline),
+            _strong(L(thing_headline)),
             _field(T("question_label"), question),
         ]
     )
@@ -733,15 +752,16 @@ def send_thing_reported_email(thing, owner_email):
     only *that* it was reported and *which* listing, so they can go and check it.
     """
     user, lang = _recipient(owner_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     thing_url = _thing_url(thing)
+    headline = L(thing.headline)
 
     subject = T("reported_subject")
-    plain = T("reported_plain").format(thing=thing.headline, url=thing_url)
+    plain = T("reported_plain").format(thing=headline, url=thing_url)
     html = _render_email(
         [
             _para(T("reported_intro")),
-            _strong(thing.headline),
+            _strong(headline),
             _para(T("reported_outro")),
             _links((thing_url, T("reported_review_cta"))),
         ]
@@ -762,22 +782,19 @@ def send_broadcast_email(
     collection_url = f"{_frontend_base_url()}/collections/{collection_code}"
 
     def compose(lang):
-        T = _texts(lang)
+        T, L = _texts(lang), _local(lang)
+        headline = L(collection_headline)
         return (
-            T("broadcast_subject").format(collection=collection_headline),
+            T("broadcast_subject").format(collection=headline),
             T("broadcast_plain").format(
                 owner=owner_name,
-                collection=collection_headline,
+                collection=headline,
                 message=message,
                 url=collection_url,
             ),
             _render_email(
                 [
-                    _para(
-                        T("broadcast_intro").format(
-                            owner=owner_name, collection=collection_headline
-                        )
-                    ),
+                    _para(T("broadcast_intro").format(owner=owner_name, collection=headline)),
                     _para(message),
                     _links((collection_url, T("broadcast_help_cta"))),
                 ]
@@ -798,14 +815,15 @@ def send_wish_posted_email(creator_name, wish, emails, collection=None):
     wish_url = _thing_url(wish)
 
     def compose(lang):
-        T = _texts(lang)
+        T, L = _texts(lang), _local(lang)
+        headline = L(wish.headline)
         return (
             T("wish_posted_subject"),
-            T("wish_posted_plain").format(creator=creator_name, wish=wish.headline, url=wish_url),
+            T("wish_posted_plain").format(creator=creator_name, wish=headline, url=wish_url),
             _render_email(
                 [
                     _para(T("wish_posted_intro").format(creator=creator_name)),
-                    _strong(wish.headline),
+                    _strong(headline),
                     _links((wish_url, T("wish_posted_cta"))),
                 ]
             ),
@@ -817,17 +835,16 @@ def send_wish_posted_email(creator_name, wish, emails, collection=None):
 def send_wish_response_email(responder_name, wish, creator_email):
     """Notify a wish creator that someone answered their pedido."""
     user, lang = _recipient(creator_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     wish_url = _thing_url(wish)
+    headline = L(wish.headline)
 
     subject = T("wish_response_subject")
-    plain = T("wish_response_plain").format(
-        responder=responder_name, wish=wish.headline, url=wish_url
-    )
+    plain = T("wish_response_plain").format(responder=responder_name, wish=headline, url=wish_url)
     html = _render_email(
         [
             _para(T("wish_response_intro").format(responder=responder_name)),
-            _strong(wish.headline),
+            _strong(headline),
             _links((wish_url, T("wish_response_cta"))),
         ]
     )
@@ -837,13 +854,14 @@ def send_wish_response_email(responder_name, wish, creator_email):
 def send_wish_thanks_email(creator_name, wish, responder_email):
     """Thank the accepted responder when the wish creator marks it resolved."""
     user, lang = _recipient(responder_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
+    headline = L(wish.headline)
     subject = T("wish_thanks_subject")
-    plain = T("wish_thanks_plain").format(creator=creator_name, wish=wish.headline)
+    plain = T("wish_thanks_plain").format(creator=creator_name, wish=headline)
     html = _render_email(
         [
             _para(T("wish_thanks_intro").format(creator=creator_name)),
-            _strong(wish.headline),
+            _strong(headline),
             _para(T("wish_thanks_outro")),
         ]
     )
@@ -853,10 +871,11 @@ def send_wish_thanks_email(creator_name, wish, responder_email):
 def send_return_reminder_email(requester_name, thing_headline, end_date, owner_email):
     """Remind the owner that a booking ends tomorrow."""
     user, lang = _recipient(owner_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
+    headline = L(thing_headline)
     subject = T("reminder_subject")
-    plain = T("reminder_plain").format(requester=requester_name, thing=thing_headline, end=end_date)
-    body = T("reminder_body").format(requester=requester_name, thing=thing_headline, end=end_date)
+    plain = T("reminder_plain").format(requester=requester_name, thing=headline, end=end_date)
+    body = T("reminder_body").format(requester=requester_name, thing=headline, end=end_date)
     html = _render_email([_para(body)])
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang)
 
@@ -866,14 +885,16 @@ def send_swap_request_email(
 ):
     """Send swap request email to owner with offered thing headlines."""
     user, lang = _recipient(owner_email)
-    T = _texts(lang)
+    T, L = _texts(lang), _local(lang)
     requester_name = requester.display_name
-    offered_names = ", ".join(t.headline for t in offered_things)
+    headline = L(thing.headline)
+    offered_headlines = [L(t.headline) for t in offered_things]
+    offered_names = ", ".join(offered_headlines)
 
     subject = T("swap_request_subject")
     plain = T("swap_request_plain").format(
         requester=requester_name,
-        thing=thing.headline,
+        thing=headline,
         offered=offered_names,
         accept=accept_link,
         reject=reject_link,
@@ -881,9 +902,9 @@ def send_swap_request_email(
     html = _render_email(
         [
             _para(T("swap_request_intro").format(requester=requester_name)),
-            _strong(thing.headline),
+            _strong(headline),
             _para(T("swap_exchange_label")),
-            _list(t.headline for t in offered_things),
+            _list(offered_headlines),
             _links((accept_link, T("swap_confirm_cta")), (reject_link, T("swap_cancel_cta"))),
         ]
     )
@@ -893,18 +914,20 @@ def send_swap_request_email(
 def send_swap_confirmation_email(requester, thing, offered_things, booking):
     """Send swap request confirmation to the requester."""
     user, lang = _recipient(requester.email)
-    T = _texts(lang)
-    offered_names = ", ".join(t.headline for t in offered_things)
+    T, L = _texts(lang), _local(lang)
+    headline = L(thing.headline)
+    offered_headlines = [L(t.headline) for t in offered_things]
+    offered_names = ", ".join(offered_headlines)
 
     subject = T("swap_conf_subject")
-    plain = T("swap_conf_plain").format(thing=thing.headline, offered=offered_names)
+    plain = T("swap_conf_plain").format(thing=headline, offered=offered_names)
     html = _render_email(
         [
             _para(T("swap_conf_sent")),
             _para(T("swap_conf_requested_label")),
-            _strong(thing.headline),
+            _strong(headline),
             _para(T("swap_conf_offered_label")),
-            _list(t.headline for t in offered_things),
+            _list(offered_headlines),
             _para(T("swap_conf_outro")),
         ]
     )
@@ -921,19 +944,18 @@ def send_digest_email(
     base_url = _frontend_base_url()
     collection_url = f"{base_url}/collections/{collection_code}"
 
-    things_plain = "\n".join(f"  - {h}" for h in thing_headlines)
-
     def compose(lang):
-        T = _texts(lang)
+        T, L = _texts(lang), _local(lang)
+        headline = L(collection_headline)
+        headlines = [L(h) for h in thing_headlines]
+        things_plain = "\n".join(f"  - {h}" for h in headlines)
         return (
-            T("digest_subject").format(collection=collection_headline),
-            T("digest_plain").format(
-                collection=collection_headline, things=things_plain, url=collection_url
-            ),
+            T("digest_subject").format(collection=headline),
+            T("digest_plain").format(collection=headline, things=things_plain, url=collection_url),
             _render_email(
                 [
-                    _para(T("digest_intro").format(collection=collection_headline)),
-                    _list(thing_headlines),
+                    _para(T("digest_intro").format(collection=headline)),
+                    _list(headlines),
                     _links((collection_url, T("view_collection_cta"))),
                 ]
             ),
@@ -996,35 +1018,33 @@ def send_newsletter_email(
     collection_url = f"{base_url}/collections/{collection_code}"
 
     def compose(lang):
-        T = _texts(lang)
-        newsletter_intro = T("newsletter_intro").format(collection=collection_headline)
+        T, L = _texts(lang), _local(lang)
+        headline = L(collection_headline)
+        newsletter_intro = T("newsletter_intro").format(collection=headline)
         blocks = [_para(newsletter_intro)]
         plain_blocks = []
 
         if new_thing_headlines:
-            things_plain = "\n".join(f"  - {h}" for h in new_thing_headlines)
+            headlines = [L(h) for h in new_thing_headlines]
+            things_plain = "\n".join(f"  - {h}" for h in headlines)
             plain_blocks.append(f"{T('newsletter_new_things')}:\n{things_plain}\n")
             blocks.append(_heading(T("newsletter_new_things")))
-            blocks.append(_list(new_thing_headlines))
+            blocks.append(_list(headlines))
 
         if transfer_entries:
-            transfers_plain = "\n".join(
-                f"  - {t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
+            transfer_lines = [
+                f"{t['date']} — {L(t['thing'])}: {t['from_name']} → {t['to_name']}"
                 for t in transfer_entries
-            )
+            ]
+            transfers_plain = "\n".join(f"  - {line}" for line in transfer_lines)
             plain_blocks.append(f"{T('newsletter_transfers')}:\n{transfers_plain}\n")
             blocks.append(_heading(T("newsletter_transfers")))
-            blocks.append(
-                _list(
-                    f"{t['date']} — {t['thing']}: {t['from_name']} → {t['to_name']}"
-                    for t in transfer_entries
-                )
-            )
+            blocks.append(_list(transfer_lines))
 
         blocks.append(_links((collection_url, T("view_collection_cta"))))
 
         return (
-            T("newsletter_subject").format(collection=collection_headline),
+            T("newsletter_subject").format(collection=headline),
             (
                 f"{newsletter_intro}\n\n"
                 f"{''.join(b + chr(10) for b in plain_blocks)}"

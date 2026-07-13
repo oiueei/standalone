@@ -4,11 +4,14 @@ Custom validators and fields for OIUEEI.
 Provides secure validation for user inputs including:
 - Image IDs (alphanumeric only)
 - Headlines (no HTML/XSS)
+- Owner content that may carry one text per language (the ``Localized*`` fields)
 """
 
 import re
 
 from rest_framework import serializers
+
+from core.utils import parse_localized
 
 
 def validate_image_id(value):
@@ -117,6 +120,76 @@ class SafeTextField(serializers.CharField):
     def to_internal_value(self, data):
         value = super().to_internal_value(data)
         return validate_text(value)
+
+
+# How much room the *column* gives an owner-localized value: the same text in
+# every language OIUEEI speaks (3 × the visible limit) plus the JSON scaffolding.
+# The visible limit — what one language may say — stays what it always was and is
+# what the field is constructed with. Tags live in a JSONField, so their storage
+# cap is ours to pick rather than a column width.
+LOCALIZED_HEADLINE_STORAGE = 256
+LOCALIZED_TEXT_STORAGE = 1024
+LOCALIZED_TAG_STORAGE = 160
+
+
+def _validate_localized(value, visible_max_length, guard):
+    """Validate a value the owner may have written as a ``{lang: text}`` map.
+
+    Plain text keeps exactly the limit it always had. A localized map is checked
+    **per language**: each text runs through the same HTML / unsafe-scheme (and,
+    for headlines, line-break) guard as a plain value would, and each must fit the
+    visible limit on its own — three languages don't buy three times the length.
+
+    The *raw* string is guarded too (the field's own `Safe*` `to_internal_value`
+    ran first, and its `max_length` is the storage cap), so markup can't hide in a
+    key, and a map whose JSON scaffolding overflows the column is a 400 rather
+    than a PostgreSQL `DataError` at write time — SQLite would let it through
+    locally (see the max_length note in the root CLAUDE.md).
+    """
+    localized = parse_localized(value)
+    if localized is None:
+        if len(value) > visible_max_length:
+            raise serializers.ValidationError(
+                f"Ensure this field has no more than {visible_max_length} characters."
+            )
+        return value
+    for lang, text in localized.items():
+        guard(text)
+        if len(text) > visible_max_length:
+            raise serializers.ValidationError(
+                f"The {lang} text is longer than {visible_max_length} characters."
+            )
+    return value
+
+
+class LocalizedHeadlineField(SafeHeadlineField):
+    """A headline (or tag label) the owner may write as a ``{lang: text}`` map.
+
+    ``max_length`` is what one language may say; the column is wide enough for all
+    three. A multi-line (pretty-printed) map is rejected like any other headline
+    with a line break in it — headlines flow into email Subject lines — so the map
+    must be written on one line, which is how the form's example shows it.
+    """
+
+    def __init__(self, max_length, storage_max_length=LOCALIZED_HEADLINE_STORAGE, **kwargs):
+        self.visible_max_length = max_length
+        super().__init__(max_length=storage_max_length, **kwargs)
+
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        return _validate_localized(value, self.visible_max_length, validate_headline)
+
+
+class LocalizedTextField(SafeTextField):
+    """A description the owner may write as a ``{lang: text}`` map (Markdown allowed)."""
+
+    def __init__(self, max_length, storage_max_length=LOCALIZED_TEXT_STORAGE, **kwargs):
+        self.visible_max_length = max_length
+        super().__init__(max_length=storage_max_length, **kwargs)
+
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        return _validate_localized(value, self.visible_max_length, validate_text)
 
 
 # Characters a spreadsheet treats as the start of a formula (CSV injection).

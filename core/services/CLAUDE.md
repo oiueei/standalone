@@ -75,6 +75,8 @@ Blank means "inherit", so a level only speaks when it was actually set — exist
 
 Senders **shadow the module-level `T` with a language-bound one** (`T = _texts(lang)`), so every `T("key")` in the body speaks the recipient's language without threading the argument through each call. `_send(..., lang=)` follows it for the footer and viral line, so the whole message is in one language.
 
+Senders bind **`L = _local(lang)`** next to `T` and pass every **owner-written** value through it — a collection headline, a thing headline, a wish headline (O6: any of them may carry one text per language as inline JSON). So the resolution happens exactly where the recipient's language is already known, and a Catalan member reads "…a 'Les coses de mama'…" while their Spanish neighbour reads "…a 'Las cosas de mamá'…" from the same row. A plain headline — nearly all of them — comes back untouched. The one operator-facing sender, `send_stats_summary_email`, carries aggregate numbers, not owner content.
+
 - **Collection-scoped emails pass their collection**: invite (+ bulk), invite-rejected, revoke, welcome-doc, broadcast, digest, newsletter, wish-posted, and the pop-in/join magic link.
 - **Thing-scoped 1:1 emails pass only the recipient** (bookings, FAQs, swaps, reminders, reports): there is no group to speak for, so it's their preference or the deployment default — never a guessed collection.
 - **Bulk sends compose per language**: `_send_per_language(emails, category, compose, collection=...)` drops opt-outs, bulk-resolves the users in one query, and calls `compose(lang)` once per *distinct* language among the recipients — so one digest to a bilingual group leaves in two languages while a 50-member single-language group still composes once.

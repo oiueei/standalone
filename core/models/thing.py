@@ -56,8 +56,12 @@ class Thing(models.Model):
         related_name="owned_things",
     )
     created = models.DateTimeField(default=timezone.now)
-    headline = models.CharField(max_length=64)
-    description = models.CharField(max_length=256, blank=True, default="")
+    # 256/1024, not the 64/256 an owner sees: the field may hold one text per
+    # language as inline JSON (see core.utils.parse_localized), so the column has
+    # room for all three plus the JSON scaffolding. The per-language limits are
+    # enforced by the serializer (LocalizedHeadlineField / LocalizedTextField).
+    headline = models.CharField(max_length=256)
+    description = models.CharField(max_length=1024, blank=True, default="")
     thumbnail = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(max_length=8, choices=Status.choices, default=Status.ACTIVE)
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

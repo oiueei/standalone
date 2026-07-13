@@ -4,6 +4,7 @@ Utility functions for OIUEEI.
 
 import hashlib
 import hmac
+import json
 import secrets
 import string
 
@@ -65,6 +66,61 @@ def get_client_ip(request):
     if x_forwarded_for:
         return x_forwarded_for.split(",")[-1].strip()
     return request.META.get("REMOTE_ADDR", "unknown")
+
+
+def parse_localized(value):
+    """Read owner content as a ``{lang: text}`` map, or ``None`` if it isn't one.
+
+    Owners of bilingual groups can write a headline, a description or a tag label
+    as inline JSON — ``{"es": "Las cosas de mamá", "ca": "Les coses de mama"}`` —
+    and every reader sees it in their own language. There is no per-field schema
+    behind it: the map lives in the existing CharField, and the parse is what
+    makes it a map.
+
+    Deliberately **strict**, because everything it rejects renders verbatim: a
+    value only qualifies when it is a JSON *object* whose keys are all languages
+    OIUEEI speaks (at least one) and whose values are all non-empty strings.
+    Anything else — plain text, a JSON list, ``{"es": ""}``, an unknown key — is
+    prose the owner happened to write, and comes back as ``None`` so the caller
+    shows it untouched. Surrounding whitespace is tolerated (a pasted example
+    usually carries some).
+    """
+    from core.models.language import Language
+
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text.startswith("{"):
+        return None
+    try:
+        parsed = json.loads(text)
+    except ValueError:
+        return None
+    if not isinstance(parsed, dict) or not parsed:
+        return None
+    languages = set(Language.values)
+    for key, text_in_lang in parsed.items():
+        if key not in languages:
+            return None
+        if not isinstance(text_in_lang, str) or not text_in_lang.strip():
+            return None
+    return parsed
+
+
+def resolve_localized(value, lang=None):
+    """The text a reader of ``lang`` should see for a possibly-localized value.
+
+    Plain text is returned unchanged. A localized map (see ``parse_localized``)
+    resolves through ``lang`` → ``es`` → the first key it has, so a reader whose
+    language the owner didn't write still gets words rather than JSON.
+    """
+    localized = parse_localized(value)
+    if localized is None:
+        return value
+    for key in (lang, "es"):
+        if key and key in localized:
+            return localized[key]
+    return next(iter(localized.values()))
 
 
 def cloudinary_url(image_id):
