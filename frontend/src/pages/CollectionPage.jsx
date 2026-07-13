@@ -319,7 +319,7 @@ export default function CollectionPage() {
                 aria-pressed={effectiveTag === tag}
                 onClick={() => setActiveTag(effectiveTag === tag ? null : tag)}
               >
-                {tag} ({count})
+                {L(tag)} ({count})
               </button>
             );
           })}
