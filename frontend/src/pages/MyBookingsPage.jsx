@@ -8,6 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized } from '../utils/localized';
 
 // Booking status is a semantic state — HDS StatusLabel owns this (no hardcoded
 // green/red hex). The thing *type* stays a plain Tag (it's a category, not a state).
@@ -22,6 +23,8 @@ const STATUS_TYPES = {
 export default function MyBookingsPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  // Owner content (headlines, tags) may carry one text per language.
+  const L = useLocalized();
   const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
   const [bookings, setBookings] = useState(null);
   const [next, setNext] = useState(null);
@@ -116,7 +119,7 @@ export default function MyBookingsPage() {
     _type: b.thing_type,
     _status: b.status,
     _thingCode: b.thing_code,
-    _thingHeadline: b.thing_headline || b.thing_code,
+    _thingHeadline: L(b.thing_headline) || b.thing_code,
     _ownerName: b.owner_name,
     _startDate: b.start_date,
     _endDate: b.end_date,

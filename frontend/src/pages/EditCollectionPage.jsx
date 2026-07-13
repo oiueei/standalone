@@ -10,19 +10,24 @@ import ImageUpload from '../components/ImageUpload';
 import PdfUpload from '../components/PdfUpload';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 import TagInput from '../components/TagInput';
+import LocalizedInfo from '../components/LocalizedInfo';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized, localizedCounter } from '../utils/localized';
 
 export default function EditCollectionPage() {
   const { t, i18n } = useTranslation();
+  // The form holds the raw value (the owner edits the map itself); only the
+  // page title and the back label show the resolved words.
+  const L = useLocalized();
   const { code } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
   const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
   const [loading, setLoading] = useState(true);
   const [headline, setHeadline] = useState('');
-  useEffect(() => { document.title = headline ? t('titles.editCollection', { headline }) : t('titles.editCollectionDefault'); }, [headline, t]);
+  useEffect(() => { document.title = headline ? t('titles.editCollection', { headline: L(headline) }) : t('titles.editCollectionDefault'); }, [headline, t, L]);
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('ACTIVE');
   const [mode, setMode] = useState('PROPRIETARY');
@@ -131,7 +136,8 @@ export default function EditCollectionPage() {
     setSubmitAttempted(true);
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
-    if (headline.length > 64) newErrors.headline = t('editCollection.maxHeadline');
+    if (localizedCounter(headline, 64).over) newErrors.headline = t('editCollection.maxHeadline');
+    if (localizedCounter(description, 256).over) newErrors.description = t('editCollection.maxDescription');
     setErrors(newErrors);
     const allowedTypesOk = locked || allowedThingTypes.length > 0;
     return Object.keys(newErrors).length === 0 && allowedTypesOk;
@@ -219,7 +225,7 @@ export default function EditCollectionPage() {
   return (
     <PageLayout
       backTo={`/collections/${code}`}
-      backLabel={headline || t('common.collection')}
+      backLabel={L(headline) || t('common.collection')}
     >
         <h1 className="page-title-xl">{t('editCollection.pageTitle')}</h1>
       <div className="form-grid">
@@ -231,15 +237,18 @@ export default function EditCollectionPage() {
           required
           invalid={!!errors.headline}
           errorText={errors.headline}
-          helperText={`${headline.length}/64`}
+          helperText={localizedCounter(headline, 64).text}
         />
         <TextArea
           id="edit-collection-description"
           label={t('editCollection.descriptionLabel')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          helperText={`${description.length}/256`}
+          invalid={!!errors.description}
+          errorText={errors.description}
+          helperText={localizedCounter(description, 256).text}
         />
+        <LocalizedInfo id="edit-collection-localized-info" />
         <Select
                 language="en"
           id="edit-collection-status"
@@ -296,13 +305,16 @@ export default function EditCollectionPage() {
           errors={{ ...errors, allowedThingTypes: allowedTypesError }}
           theeemeColor01={tc.color_01}
         />
-        <TagInput
-          tags={tags}
-          onChange={setTags}
-          label={t('createCollection.tagsLabel')}
-          placeholder={t('createCollection.tagsPlaceholder')}
-          helperText={t('createCollection.tagsHelper')}
-        />
+        <div>
+          <TagInput
+            tags={tags}
+            onChange={setTags}
+            label={t('createCollection.tagsLabel')}
+            placeholder={t('createCollection.tagsPlaceholder')}
+            helperText={t('createCollection.tagsHelper')}
+          />
+          <LocalizedInfo id="edit-collection-tags-info" variant="tags" />
+        </div>
         <Select
                 language="en"
           id="edit-collection-digest"
@@ -350,7 +362,7 @@ export default function EditCollectionPage() {
           {submitting ? t('common.saving') : t('common.save')}
         </Button>
         <Button variant="secondary" fullWidth disabled={submitting} onClick={() => {
-          navigate(`/collections/${code}/delete`, { state: { backPath: `/collections/${code}/edit`, backLabel: headline || t('common.collection') } });
+          navigate(`/collections/${code}/delete`, { state: { backPath: `/collections/${code}/edit`, backLabel: L(headline) || t('common.collection') } });
         }} style={{
           '--background-color': 'var(--color-white)',
           '--border-color': tc.color_01 ? `var(--color-${tc.color_01})` : undefined,

@@ -17,6 +17,7 @@ import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized } from '../utils/localized';
 
 export default function RequestThingPage() {
   const { code, thingCode } = useParams();
@@ -36,7 +37,9 @@ export default function RequestThingPage() {
   MAX_DATE.setDate(MAX_DATE.getDate() + 90);
 
   const [thing, setThing] = useState(null);
-  useEffect(() => { document.title = thing ? t('titles.holdThing', { headline: thing.headline }) : t('titles.holdDefault'); }, [thing, t]);
+  const L = useLocalized();
+  const headline = L(thing?.headline);
+  useEffect(() => { document.title = thing ? t('titles.holdThing', { headline }) : t('titles.holdDefault'); }, [thing, headline, t]);
   // Date field state lives in the DISPLAY format (DD/MM/YYYY, what the DateInputs
   // emit); it converts to ISO at the consumption boundaries (POST body, derived
   // return date) via displayToIso.
@@ -176,7 +179,7 @@ export default function RequestThingPage() {
 
   return (
     <PageLayout
-      title={t('request.pageTitle', { headline: thing.headline })}
+      title={t('request.pageTitle', { headline })}
       backTo={backPath}
       backLabel={backLabel}
     >
@@ -209,7 +212,7 @@ export default function RequestThingPage() {
               <Checkbox
                 key={item.code}
                 id={`swap-offer-${item.code}`}
-                label={item.headline}
+                label={L(item.headline)}
                 checked={selectedOfferings.includes(item.code)}
                 onChange={(e) => {
                   if (e.target.checked) {

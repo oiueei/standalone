@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useLocalized } from '../utils/localized';
 
 /**
  * Owner-only list of a thing's future bookings (pending + confirmed), shared by
@@ -8,6 +9,9 @@ import { useTranslation } from 'react-i18next';
  */
 export default function OwnerBookingsList({ bookings, activePendingCode, isOwner }) {
   const { t, i18n } = useTranslation();
+  // Hooks run before the early return — an offered thing's headline may be a
+  // per-language map like any other owner content.
+  const L = useLocalized();
   if (!isOwner || bookings.length === 0) return null;
 
   const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
@@ -24,7 +28,7 @@ export default function OwnerBookingsList({ bookings, activePendingCode, isOwner
               <>{new Date(b.start_date).toLocaleDateString(i18n.language)} – {new Date(b.end_date).toLocaleDateString(i18n.language)}</>
             )}
             {b.offered_thing_headlines && b.offered_thing_headlines.length > 0 && (
-              <><br />{t('swap.offeredItems')}: {b.offered_thing_headlines.join(', ')}</>
+              <><br />{t('swap.offeredItems')}: {b.offered_thing_headlines.map(L).join(', ')}</>
             )}
             {' '}
             <span style={{ color: b.status === 'ACCEPTED' ? 'var(--color-success)' : 'var(--color-alert-dark)' }}>

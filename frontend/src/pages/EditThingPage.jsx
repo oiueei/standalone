@@ -9,9 +9,12 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ThingForm from '../components/ThingForm';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized, localizedCounter } from '../utils/localized';
 
 export default function EditThingPage() {
   const { t } = useTranslation();
+  // Owner content (headlines, tags) may carry one text per language.
+  const L = useLocalized();
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
@@ -20,7 +23,7 @@ export default function EditThingPage() {
   const [loading, setLoading] = useState(true);
   const [thingType, setThingType] = useState('');
   const [headline, setHeadline] = useState('');
-  useEffect(() => { document.title = headline ? t('titles.editThing', { headline }) : t('titles.editThingDefault'); }, [headline, t]);
+  useEffect(() => { document.title = headline ? t('titles.editThing', { headline: L(headline) }) : t('titles.editThingDefault'); }, [headline, t, L]);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
@@ -75,12 +78,13 @@ export default function EditThingPage() {
   }, [userCode, thingCode, navigate, code, t]);
 
   const returnPath = thingCollectionCode ? `/collections/${thingCollectionCode}` : '/';
-  const returnLabel = thingCollectionHeadline || (thingCollectionCode ? t('common.collection') : t('common.home'));
+  const returnLabel = L(thingCollectionHeadline) || (thingCollectionCode ? t('common.collection') : t('common.home'));
 
   const validate = () => {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('addThing.titleRequired');
-    if (headline.length > 64) newErrors.headline = t('addThing.maxHeadline');
+    if (localizedCounter(headline, 64).over) newErrors.headline = t('addThing.maxHeadline');
+    if (localizedCounter(description, 256).over) newErrors.description = t('addThing.maxDescription');
     if (FEE_TYPES.includes(thingType) && (fee === '' || fee === undefined)) {
       newErrors.fee = t('addThing.priceRequired');
     }

@@ -350,13 +350,14 @@
     "conditionLabel": "Estado",
     "locationLabel": "Ubicación",
     "titleRequired": "El título es obligatorio.",
-    "maxHeadline": "Máximo 64 caracteres.",
+    "maxHeadline": "Máximo 64 caracteres por idioma.",
     "priceRequired": "El precio es obligatorio para este tipo.",
     "maxLocation": "Máximo 32 caracteres.",
     "errorCreating": "Error al crear el artículo.",
     "tagsLabel": "Etiquetas",
     "tagsPlaceholder": "Selecciona etiquetas",
-    "tagsHelper": "Elige entre las etiquetas de esta colección"
+    "tagsHelper": "Elige entre las etiquetas de esta colección",
+    "maxDescription": "La descripción es demasiado larga: 256 caracteres por idioma."
   },
   "editThing": {
     "pageTitle": "Editar artículo",
@@ -410,9 +411,10 @@
     "digestMonthly": "Mensual (día 1)",
     "digestHelper": "Envía automáticamente a los invitados un resumen de las novedades.",
     "titleRequired": "El título es obligatorio.",
-    "maxHeadline": "Máximo 64 caracteres.",
+    "maxHeadline": "Máximo 64 caracteres por idioma.",
     "errorLoading": "Error al cargar la colección.",
-    "errorSaving": "Error al guardar."
+    "errorSaving": "Error al guardar.",
+    "maxDescription": "La descripción es demasiado larga: 256 caracteres por idioma."
   },
   "createCollection": {
     "pageTitle": "Crear colección",
@@ -424,7 +426,7 @@
     "modeProprietaryDesc": "Solo tú puedes añadir cosas a esta lista.",
     "modeCommunityDesc": "Todos los invitados también pueden añadir sus propias cosas.",
     "titleRequired": "El título es obligatorio.",
-    "maxHeadline": "Máximo 64 caracteres.",
+    "maxHeadline": "Máximo 64 caracteres por idioma.",
     "errorCreating": "Error al crear la colección.",
     "allowedTypesLabel": "Qué se puede añadir a esta colección",
     "allowedTypesPlaceholder": "Elige uno o más tipos",
@@ -434,7 +436,8 @@
     "allowedTypesAtLeastOne": "Elige al menos un tipo.",
     "tagsLabel": "Etiquetas",
     "tagsPlaceholder": "p. ej. Vintage, Cocina, Exterior",
-    "tagsHelper": "Etiquetas opcionales para organizar las cosas de esta colección"
+    "tagsHelper": "Etiquetas opcionales para organizar las cosas de esta colección",
+    "maxDescription": "La descripción es demasiado larga: 256 caracteres por idioma."
   },
   "welcome": {
     "greeting": "Hola, {{name}}",
@@ -774,7 +777,8 @@
     "thumbAlt": "Foto de la galería {{index}}"
   },
   "tags": {
-    "add": "Añadir"
+    "add": "Añadir",
+    "tooLong": "Una etiqueta supera los {{limit}} caracteres (por idioma)."
   },
   "errorBoundary": {
     "title": "Algo ha salido mal",
@@ -820,5 +824,13 @@
   "collectionLanguage": {
     "label": "Idioma de los mensajes del grupo",
     "helper": "El idioma en el que se escriben los correos del grupo. Quien haya elegido su propio idioma los recibe en el suyo."
+  },
+  "localized": {
+    "hint": "¿Grupo bilingüe? Puedes escribir un texto por idioma.",
+    "tagsHint": "Las etiquetas también admiten una palabra por idioma.",
+    "infoTitle": "Un texto por idioma",
+    "infoBody": "Si tu grupo lee en dos idiomas, escribe el título o la descripción como un pequeño mapa: copia esto y cambia las palabras. Cada persona lo leerá en su idioma, en la web y en sus correos.",
+    "tagsInfoBody": "Una etiqueta funciona igual: escríbela como un mapa y cada miembro verá la suya.",
+    "infoFallback": "Idiomas: es (español), ca (catalán), en (inglés). Puedes escribir en uno solo si lo prefieres: todo lo que no sea un mapa se muestra tal cual lo escribiste."
   }
 }

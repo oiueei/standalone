@@ -9,17 +9,21 @@ import Toast from '../components/Toast';
 import TooltipButton from '../components/TooltipButton';
 import BulkInviteCsv from '../components/BulkInviteCsv';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized } from '../utils/localized';
 
 export default function ManageInvitesPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  // Owner content (headlines, tags) may carry one text per language.
+  const L = useLocalized();
   const { tc, btnStyle } = useTheeeme();
   const [loading, setLoading] = useState(true);
   const [invites, setInvites] = useState([]);
   const [pendingInvites, setPendingInvites] = useState([]);
   const [collectionHeadline, setCollectionHeadline] = useState('');
-  useEffect(() => { document.title = collectionHeadline ? t('titles.guests', { headline: collectionHeadline }) : t('titles.guestsDefault'); }, [collectionHeadline, t]);
+  const headline = L(collectionHeadline);
+  useEffect(() => { document.title = headline ? t('titles.guests', { headline }) : t('titles.guestsDefault'); }, [headline, t]);
   const [isOwner, setIsOwner] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
@@ -109,7 +113,7 @@ export default function ManageInvitesPage() {
     <PageLayout
       title={t('manageInvites.pageTitle')}
       backTo={`/collections/${code}`}
-      backLabel={collectionHeadline || t('common.collection')}
+      backLabel={headline || t('common.collection')}
     >
       {invites.length === 0 && pendingInvites.length === 0 ? (
         <p>{t('manageInvites.noGuests')} {isOwner && t('manageInvites.noGuestsCta')}</p>
@@ -171,7 +175,7 @@ export default function ManageInvitesPage() {
                 <TooltipButton
                   tooltip={t('manageInvites.removeTooltip')}
                   onClick={() => navigate(`/collections/${code}/invites/remove`, {
-                    state: { guestCode: row._code, guestName: row._name, backLabel: collectionHeadline || 'Guests' },
+                    state: { guestCode: row._code, guestName: row._name, backLabel: headline || 'Guests' },
                   })}
                 >
                   <IconCrossCircle aria-hidden />

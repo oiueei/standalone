@@ -17,6 +17,7 @@ import Toast from '../components/Toast';
 import MarkdownText from '../components/MarkdownText';
 import ImageCarousel from '../components/ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
+import { useLocalized } from '../utils/localized';
 import useTheeeme from '../hooks/useTheeeme';
 import useThingActions from '../hooks/useThingActions';
 
@@ -31,7 +32,10 @@ export default function ThingPage() {
   const [thing, setThing] = useState(null);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
-  useEffect(() => { document.title = thing ? t('titles.thing', { headline: thing.headline }) : t('titles.thingDefault'); }, [thing, t]);
+  // The owner may have written this thing's text once per language.
+  const L = useLocalized();
+  const headline = L(thing?.headline);
+  useEffect(() => { document.title = thing ? t('titles.thing', { headline }) : t('titles.thingDefault'); }, [thing, headline, t]);
 
   // Anonymous visitor on a PUBLIC collection: like ThingLinkbox's login-to-act
   // mode, show the action buttons but route each click to the collection's join
@@ -39,7 +43,7 @@ export default function ThingPage() {
   const collectionCode = code || thing?.collection_code;
   const loginToAct = !isAuthenticated && !!collectionCode;
   const goJoin = () => navigate(`/collections/${collectionCode}/join`, {
-    state: { collectionHeadline: thing?.collection_headline },
+    state: { collectionHeadline: L(thing?.collection_headline) },
   });
 
   // Owner-button-matrix + reservation view-model (shared with ThingLinkbox).
@@ -141,7 +145,7 @@ export default function ThingPage() {
     : `/things/${thing.code}/edit`;
 
   const backPath = collectionCode ? `/collections/${collectionCode}` : '/';
-  const backLabel = thing.collection_headline || (collectionCode ? t('common.collection') : t('common.home'));
+  const backLabel = L(thing.collection_headline) || (collectionCode ? t('common.collection') : t('common.home'));
 
   const requestPath = code
     ? `/collections/${code}/things/${thing.code}/request`
@@ -159,9 +163,9 @@ export default function ThingPage() {
           const images = [thing.thumbnail_url, ...(thing.gallery_urls || [])].filter(Boolean);
           if (images.length === 0) return null;
           if (images.length === 1) {
-            return <img src={images[0]} alt={thing.headline} className="detail-image" loading="lazy" onError={onImageError} />;
+            return <img src={images[0]} alt={headline} className="detail-image" loading="lazy" onError={onImageError} />;
           }
-          return <ImageCarousel images={images} alt={thing.headline} />;
+          return <ImageCarousel images={images} alt={headline} />;
         })()}
 
         <p className="thing-card-meta">
@@ -169,9 +173,9 @@ export default function ThingPage() {
           {thing.owner_name && ` — ${thing.owner_name}`}
         </p>
 
-        <h1 className="page-title">{thing.headline}</h1>
+        <h1 className="page-title">{headline}</h1>
 
-        {thing.description && <MarkdownText text={thing.description} />}
+        {thing.description && <MarkdownText text={L(thing.description)} />}
 
         <ThingTags thing={thing} isOwner={isOwner} showType={false} />
 
@@ -279,7 +283,7 @@ export default function ThingPage() {
               thingCode={thing.code}
               collectionCode={collectionCode}
               backPath={code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`}
-              backLabel={thing.headline}
+              backLabel={headline}
             />
           )
         )}
@@ -291,7 +295,7 @@ export default function ThingPage() {
             fullWidth
             disabled={loginToAct ? loginButtonDisabled : buttonDisabled}
             style={btnStyle}
-            onClick={loginToAct ? goJoin : (needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: thing.headline } }) : handleRequest)}
+            onClick={loginToAct ? goJoin : (needsPage ? () => navigate(requestPath, { state: { backPath: code ? `/collections/${code}/things/${thing.code}` : `/things/${thing.code}`, backLabel: headline } }) : handleRequest)}
           >
             {buttonLabel}
           </Button>

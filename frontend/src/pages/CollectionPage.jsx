@@ -11,6 +11,7 @@ import ShareCollectionMenu from '../components/ShareCollectionMenu';
 import ThingLinkbox from '../components/ThingLinkbox';
 import HeroPhoto from '../components/HeroPhoto';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized } from '../utils/localized';
 
 export default function CollectionPage() {
   const { code } = useParams();
@@ -27,7 +28,11 @@ export default function CollectionPage() {
   const [broadcastSending, setBroadcastSending] = useState(false);
   const [broadcastResult, setBroadcastResult] = useState(null);
   const [activeTag, setActiveTag] = useState(null);
-  useEffect(() => { document.title = collection ? t('titles.collection', { headline: collection.headline }) : t('titles.collectionDefault'); }, [collection, t]);
+  // The owner may have written the collection's text once per language; every
+  // child (cards, share menu, back labels) gets the resolved words from here.
+  const L = useLocalized();
+  const headline = L(collection?.headline);
+  useEffect(() => { document.title = collection ? t('titles.collection', { headline }) : t('titles.collectionDefault'); }, [collection, headline, t]);
 
   // Stable across renders (functional setState, no deps) so memoised ThingLinkbox
   // cards don't re-render when unrelated page state (broadcast box, tag filter)
@@ -157,7 +162,7 @@ export default function CollectionPage() {
             <BackLink to="/" label={t('common.home')} />
           )}
           <h1 className="form-hero-title">
-            {collection.headline}
+            {headline}
             {collection.mode === 'COMMUNITY' && (
               <>{' '}<Tag theme={{ '--tag-background': 'var(--color-engel)', '--tag-color': 'var(--color-black-90)' }}>{t('collectionPage.communityTag')}</Tag></>
             )}
@@ -175,7 +180,7 @@ export default function CollectionPage() {
               </Tag></>
             )}
           </h1>
-          {collection.description && <MarkdownText text={collection.description} className="form-hero-text" />}
+          {collection.description && <MarkdownText text={L(collection.description)} className="form-hero-text" />}
           {!isOwner && collection.owner_name && (
             <p className="form-hero-text" style={{ fontSize: 'var(--fontsize-body-m)' }}>
               <strong>{t(collection.mode === 'COMMUNITY' ? 'collectionPage.curator' : 'collectionPage.owner')}</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
@@ -208,7 +213,7 @@ export default function CollectionPage() {
             <div className="share-menu-wrap">
               <ShareCollectionMenu
                 collectionCode={code}
-                collectionHeadline={collection.headline}
+                collectionHeadline={headline}
                 ownerName={collection.owner_name}
                 isPublic={collection.visibility === 'PUBLIC'}
               />
@@ -238,7 +243,7 @@ export default function CollectionPage() {
             )}
             {collection.is_member && (
               <p className="leave-group">
-                <Link to={`/collections/${code}/leave`} state={{ headline: collection.headline }}>
+                <Link to={`/collections/${code}/leave`} state={{ headline }}>
                   {t('collectionPage.leaveGroup')}
                 </Link>
               </p>
@@ -250,7 +255,7 @@ export default function CollectionPage() {
         {collection.thumbnail_url && (
           <HeroPhoto
             photoUrl={collection.thumbnail_url}
-            alt={collection.headline}
+            alt={headline}
             koroType={koro}
             color03={tc.color_03}
           />
@@ -280,7 +285,7 @@ export default function CollectionPage() {
           onClick={(e) => {
             e.preventDefault();
             setShowWelcome(false);
-            navigate('/welcome', { state: { collectionHeadline: collection.headline } });
+            navigate('/welcome', { state: { collectionHeadline: headline } });
           }}
           heading={t('collectionPage.welcomeHeading')}
           text={t('collectionPage.welcomeText')}
@@ -340,7 +345,7 @@ export default function CollectionPage() {
               thing={thing}
               userCode={userCode}
               collectionCode={code}
-              collectionHeadline={collection.headline}
+              collectionHeadline={headline}
               collectionOwner={collection.owner}
               collectionMode={collection.mode}
               isPaused={collection.is_paused}
@@ -414,7 +419,7 @@ export default function CollectionPage() {
                 thing={thing}
                 userCode={userCode}
                 collectionCode={code}
-                collectionHeadline={collection.headline}
+                collectionHeadline={headline}
                 collectionOwner={collection.owner}
                 collectionMode={collection.mode}
                 hideType={singleType}

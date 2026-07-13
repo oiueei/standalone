@@ -7,9 +7,12 @@ import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized } from '../utils/localized';
 
 export default function DeleteThingPage() {
   const { t } = useTranslation();
+  // Owner content (headlines, tags) may carry one text per language.
+  const L = useLocalized();
   const { thingCode } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,8 +27,8 @@ export default function DeleteThingPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    document.title = thing ? t('titles.deleteThing', { headline: thing.headline }) : t('titles.deleteThingDefault');
-  }, [thing, t]);
+    document.title = thing ? t('titles.deleteThing', { headline: L(thing.headline) }) : t('titles.deleteThingDefault');
+  }, [thing, t, L]);
 
   useEffect(() => {
     if (!userCode) return;
@@ -65,7 +68,7 @@ export default function DeleteThingPage() {
 
   return (
     <PageLayout
-      title={t('deleteThing.pageTitle', { headline: thing.headline })}
+      title={t('deleteThing.pageTitle', { headline: L(thing.headline) })}
       backTo={backPath}
       backLabel={backLabel}
     >

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '../constants/things';
 import ImageUpload from './ImageUpload';
 import GalleryUpload from './GalleryUpload';
+import LocalizedInfo from './LocalizedInfo';
+import { useLocalized, localizedCounter } from '../utils/localized';
 
 /**
  * The shared field cluster of the Add and Edit thing forms: type selector, the
@@ -52,6 +54,7 @@ export default function ThingForm({
   setGallery,
 }) {
   const { t } = useTranslation();
+  const L = useLocalized();
   const toggleTheme = theeemeColor01 ? { '--toggle-button-color': `var(--color-${theeemeColor01})` } : undefined;
 
   const showEndless = ['GIFT_THING', 'SELL_THING'].includes(type);
@@ -109,15 +112,18 @@ export default function ThingForm({
         required
         invalid={!!errors.headline}
         errorText={errors.headline}
-        helperText={`${headline.length}/64`}
+        helperText={localizedCounter(headline, 64).text}
       />
       <TextArea
         id={`${idPrefix}-description`}
         label={t('addThing.descriptionLabel')}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        helperText={`${description.length}/256`}
+        invalid={!!errors.description}
+        errorText={errors.description}
+        helperText={localizedCounter(description, 256).text}
       />
+      <LocalizedInfo id={`${idPrefix}-localized-info`} />
       {showFee && (
         <NumberInput
           id={`${idPrefix}-fee`}
@@ -176,8 +182,8 @@ export default function ThingForm({
             placeholder: t('addThing.tagsPlaceholder'),
             assistive: t('addThing.tagsHelper'),
           }}
-          options={collectionTags.map((tg) => ({ label: tg, value: tg }))}
-          value={tags.map((tg) => ({ label: tg, value: tg }))}
+          options={collectionTags.map((tg) => ({ label: L(tg), value: tg }))}
+          value={tags.map((tg) => ({ label: L(tg), value: tg }))}
           onChange={(opts) => setTags(opts.map((o) => o.value))}
         />
       )}

@@ -350,13 +350,14 @@
     "conditionLabel": "Estat",
     "locationLabel": "Ubicació",
     "titleRequired": "El títol és obligatori.",
-    "maxHeadline": "Màxim 64 caràcters.",
+    "maxHeadline": "Màxim 64 caràcters per idioma.",
     "priceRequired": "El preu és obligatori per a aquest tipus.",
     "maxLocation": "Màxim 32 caràcters.",
     "errorCreating": "Error en crear l'article.",
     "tagsLabel": "Etiquetes",
     "tagsPlaceholder": "Selecciona etiquetes",
-    "tagsHelper": "Tria entre les etiquetes d'aquesta col·lecció"
+    "tagsHelper": "Tria entre les etiquetes d'aquesta col·lecció",
+    "maxDescription": "La descripció és massa llarga: 256 caràcters per idioma."
   },
   "editThing": {
     "pageTitle": "Editar article",
@@ -410,9 +411,10 @@
     "digestMonthly": "Mensual (dia 1)",
     "digestHelper": "Envia automàticament als convidats un resum de les novetats.",
     "titleRequired": "El títol és obligatori.",
-    "maxHeadline": "Màxim 64 caràcters.",
+    "maxHeadline": "Màxim 64 caràcters per idioma.",
     "errorLoading": "Error en carregar la col·lecció.",
-    "errorSaving": "Error en desar."
+    "errorSaving": "Error en desar.",
+    "maxDescription": "La descripció és massa llarga: 256 caràcters per idioma."
   },
   "createCollection": {
     "pageTitle": "Crear col·lecció",
@@ -424,7 +426,7 @@
     "modeProprietaryDesc": "Només tu pots afegir coses a aquesta llista.",
     "modeCommunityDesc": "Tots els convidats també poden afegir les seves pròpies coses.",
     "titleRequired": "El títol és obligatori.",
-    "maxHeadline": "Màxim 64 caràcters.",
+    "maxHeadline": "Màxim 64 caràcters per idioma.",
     "errorCreating": "Error en crear la col·lecció.",
     "allowedTypesLabel": "Què es pot afegir a aquesta col·lecció",
     "allowedTypesPlaceholder": "Tria un o més tipus",
@@ -434,7 +436,8 @@
     "allowedTypesAtLeastOne": "Tria almenys un tipus.",
     "tagsLabel": "Etiquetes",
     "tagsPlaceholder": "p. ex. Vintage, Cuina, Exterior",
-    "tagsHelper": "Etiquetes opcionals per organitzar les coses d'aquesta col·lecció"
+    "tagsHelper": "Etiquetes opcionals per organitzar les coses d'aquesta col·lecció",
+    "maxDescription": "La descripció és massa llarga: 256 caràcters per idioma."
   },
   "welcome": {
     "greeting": "Hola, {{name}}",
@@ -774,7 +777,8 @@
     "thumbAlt": "Foto de la galeria {{index}}"
   },
   "tags": {
-    "add": "Afegeix"
+    "add": "Afegeix",
+    "tooLong": "Una etiqueta supera els {{limit}} caràcters (per idioma)."
   },
   "errorBoundary": {
     "title": "Alguna cosa ha anat malament",
@@ -820,5 +824,13 @@
   "collectionLanguage": {
     "label": "Llengua dels missatges del grup",
     "helper": "La llengua en què s’escriuen els correus del grup. Qui hagi triat la seva pròpia llengua els rep en la seva."
+  },
+  "localized": {
+    "hint": "Grup bilingüe? Pots escriure un text per idioma.",
+    "tagsHint": "Les etiquetes també admeten una paraula per idioma.",
+    "infoTitle": "Un text per idioma",
+    "infoBody": "Si el teu grup llegeix en dos idiomes, escriu el títol o la descripció com un petit mapa: copia això i canvia les paraules. Cadascú ho llegirà en el seu idioma, al web i als seus correus.",
+    "tagsInfoBody": "Una etiqueta funciona igual: escriu-la com un mapa i cada membre veurà la seva.",
+    "infoFallback": "Idiomes: es (castellà), ca (català), en (anglès). Pots escriure només en un si ho prefereixes: tot el que no sigui un mapa es mostra tal com ho has escrit."
   }
 }

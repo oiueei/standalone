@@ -6,6 +6,7 @@ import { WISH_KIND_I18N } from '../constants/things';
 import { apiFetch } from '../services/api';
 import InlineConfirm from './InlineConfirm';
 import MarkdownText, { sanitizeUrl } from './MarkdownText';
+import { useLocalized } from '../utils/localized';
 
 /**
  * The answers section of a wish (WISH_THING) on ThingPage: the creator sees
@@ -29,6 +30,8 @@ export default function WishResponsesList({
   onResolved,
 }) {
   const { t } = useTranslation();
+  // An answer that offers a listing shows that listing's headline — owner content.
+  const L = useLocalized();
   const [responses, setResponses] = useState([]);
   const [responsesNext, setResponsesNext] = useState(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -126,7 +129,7 @@ export default function WishResponsesList({
               {r.kind === 'HAVE_THIS' && r.thing && (
                 <p>
                   <Link to={code ? `/collections/${code}/things/${r.thing}` : `/things/${r.thing}`}>
-                    {r.thing_headline}
+                    {L(r.thing_headline)}
                   </Link>
                   {r.thing_type && <> ({t('types.' + r.thing_type)})</>}
                 </p>

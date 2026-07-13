@@ -10,6 +10,8 @@ import ImageUpload from '../components/ImageUpload';
 import PdfUpload from '../components/PdfUpload';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 import TagInput from '../components/TagInput';
+import LocalizedInfo from '../components/LocalizedInfo';
+import { localizedCounter } from '../utils/localized';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 
@@ -77,7 +79,8 @@ export default function CreateCollectionPage() {
     setSubmitAttempted(true);
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('createCollection.titleRequired');
-    if (headline.length > 64) newErrors.headline = t('createCollection.maxHeadline');
+    if (localizedCounter(headline, 64).over) newErrors.headline = t('createCollection.maxHeadline');
+    if (localizedCounter(description, 256).over) newErrors.description = t('createCollection.maxDescription');
     setErrors(newErrors);
     // Locked selects (swap, share) auto-fill, so they pass by construction.
     const allowedTypesOk = locked || allowedThingTypes.length > 0;
@@ -140,15 +143,18 @@ export default function CreateCollectionPage() {
             required
             invalid={!!errors.headline}
             errorText={errors.headline}
-            helperText={`${headline.length}/64`}
+            helperText={localizedCounter(headline, 64).text}
           />
           <TextArea
             id="create-collection-description"
             label={t('createCollection.descriptionLabel')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            helperText={`${description.length}/256`}
+            invalid={!!errors.description}
+            errorText={errors.description}
+            helperText={localizedCounter(description, 256).text}
           />
+          <LocalizedInfo id="create-collection-localized-info" />
           <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
             <legend style={{ fontWeight: 700, fontSize: 'var(--fontsize-body-m)', marginBottom: 'var(--spacing-2-xs)', padding: 0 }}>
               {t('createCollection.modeLabel')}
@@ -192,13 +198,16 @@ export default function CreateCollectionPage() {
             errors={{ ...errors, allowedThingTypes: allowedTypesError }}
             theeemeColor01={theeemeColors.color_01}
           />
-          <TagInput
-            tags={tags}
-            onChange={setTags}
-            label={t('createCollection.tagsLabel')}
-            placeholder={t('createCollection.tagsPlaceholder')}
-            helperText={t('createCollection.tagsHelper')}
-          />
+          <div>
+            <TagInput
+              tags={tags}
+              onChange={setTags}
+              label={t('createCollection.tagsLabel')}
+              placeholder={t('createCollection.tagsPlaceholder')}
+              helperText={t('createCollection.tagsHelper')}
+            />
+            <LocalizedInfo id="create-collection-tags-info" variant="tags" />
+          </div>
           <Select
             language="en"
             id="create-collection-language"

@@ -368,13 +368,14 @@
     "conditionLabel": "Condition",
     "locationLabel": "Location",
     "titleRequired": "Title is required.",
-    "maxHeadline": "Maximum 64 characters.",
+    "maxHeadline": "Maximum 64 characters per language.",
     "priceRequired": "Price is required for this type.",
     "maxLocation": "Maximum 32 characters.",
     "errorCreating": "Error creating thing.",
     "tagsLabel": "Tags",
     "tagsPlaceholder": "Select tags",
-    "tagsHelper": "Choose from this collection's tags"
+    "tagsHelper": "Choose from this collection's tags",
+    "maxDescription": "Description is too long: 256 characters per language."
   },
   "editThing": {
     "pageTitle": "Edit thing",
@@ -428,9 +429,10 @@
     "digestMonthly": "Monthly (1st of month)",
     "digestHelper": "Automatically email guests a summary of new things.",
     "titleRequired": "Title is required.",
-    "maxHeadline": "Maximum 64 characters.",
+    "maxHeadline": "Maximum 64 characters per language.",
     "errorLoading": "Error loading collection.",
-    "errorSaving": "Error saving."
+    "errorSaving": "Error saving.",
+    "maxDescription": "Description is too long: 256 characters per language."
   },
   "createCollection": {
     "pageTitle": "Create collection",
@@ -442,7 +444,7 @@
     "modeProprietaryDesc": "Only you can add things to this list.",
     "modeCommunityDesc": "Everyone you invite can add their own things too.",
     "titleRequired": "Title is required.",
-    "maxHeadline": "Maximum 64 characters.",
+    "maxHeadline": "Maximum 64 characters per language.",
     "errorCreating": "Error creating collection.",
     "allowedTypesLabel": "What can be added to this collection",
     "allowedTypesPlaceholder": "Pick one or more types",
@@ -452,7 +454,8 @@
     "allowedTypesAtLeastOne": "Pick at least one type.",
     "tagsLabel": "Tags",
     "tagsPlaceholder": "e.g. Vintage, Kitchen, Outdoor",
-    "tagsHelper": "Optional labels to organise this collection's things"
+    "tagsHelper": "Optional labels to organise this collection's things",
+    "maxDescription": "Description is too long: 256 characters per language."
   },
   "welcome": {
     "greeting": "Hello, {{name}}",
@@ -792,7 +795,8 @@
     "thumbAlt": "Gallery photo {{index}}"
   },
   "tags": {
-    "add": "Add"
+    "add": "Add",
+    "tooLong": "One label is over {{limit}} characters (per language)."
   },
   "rental": {
     "durationsLabel": "Rental lengths",
@@ -820,5 +824,13 @@
   "collectionLanguage": {
     "label": "Language of the group messages",
     "helper": "The language the group's emails are written in. Any member who has set their own language reads them in theirs."
+  },
+  "localized": {
+    "hint": "Bilingual group? You can write one text per language.",
+    "tagsHint": "Tags can hold one label per language too.",
+    "infoTitle": "One text per language",
+    "infoBody": "If your group reads in two languages, write the title or the description as a small map — copy this and change the words. Everyone then reads it in their own language, in the app and in their emails.",
+    "tagsInfoBody": "A tag label works the same way — write it as a map and each member sees their own.",
+    "infoFallback": "Languages: es (Spanish), ca (Catalan), en (English). Write in one only if you prefer — anything that isn't a map is shown exactly as you typed it."
   }
 }

@@ -14,6 +14,7 @@ import OwnerBookingsList from './OwnerBookingsList';
 import Toast from './Toast';
 import ImageCarousel from './ImageCarousel';
 import { onImageError } from '../utils/imageFallback';
+import { useLocalized } from '../utils/localized';
 
 // Memoised: CollectionPage keeps broadcast/tag-filter state at its root, so a
 // keystroke in the broadcast box re-renders the page. With stable props (the
@@ -22,6 +23,9 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
+  // The owner may have written the headline / description once per language.
+  const L = useLocalized();
+  const headline = L(thing.headline);
 
   const { btnStyle, btnSecondaryStyle } = useTheeeme();
 
@@ -65,7 +69,7 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
   // Anonymous visitor (loginToAct): show the action buttons, but route each click
   // to the collection's join page — they log in there and come back able to act.
   const joinPath = `/collections/${collectionCode || thing.collection_code}/join`;
-  const goJoin = () => navigate(joinPath, { state: { collectionHeadline: collectionHeadline || thing.collection_headline } });
+  const goJoin = () => navigate(joinPath, { state: { collectionHeadline: collectionHeadline || L(thing.collection_headline) } });
   // The owner "Confirm hold" label, with its in-flight ("Confirming…") state. Shared
   // by the plain accept Button and the ownership-transfer <InlineConfirm> trigger.
   const acceptLabel = bookingActionVerb === 'accept' ? t('thingCard.confirming') : t('thingCard.confirmHold');
@@ -80,6 +84,7 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
 
   const deleteBackPath = collectionCode ? `/collections/${collectionCode}` : '/';
   const deleteBackLabel = collectionCode ? (collectionHeadline || t('common.collection')) : t('common.home');
+
 
   const thingPath = collectionCode
     ? `/collections/${collectionCode}/things/${thing.code}`
@@ -97,11 +102,11 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
         if (images.length === 1) {
           return (
             <Link to={thingPath}>
-              <img src={images[0]} alt={thing.headline} className="thing-card-image" loading="lazy" onError={onImageError} />
+              <img src={images[0]} alt={headline} className="thing-card-image" loading="lazy" onError={onImageError} />
             </Link>
           );
         }
-        return <ImageCarousel images={images} alt={thing.headline} variant="card" to={thingPath} />;
+        return <ImageCarousel images={images} alt={headline} variant="card" to={thingPath} />;
       })()}
       <div className="thing-card-body">
         {collectionMode === 'COMMUNITY' && (
@@ -115,10 +120,10 @@ function ThingLinkbox({ thing, userCode, collectionCode, collectionHeadline, col
           </p>
         )}
         <h3 className="thing-card-headline">
-          <Link to={thingPath} className="thing-card-link">{thing.headline}</Link>
+          <Link to={thingPath} className="thing-card-link">{headline}</Link>
         </h3>
         {thing.description && (
-          <MarkdownText text={thing.description} className="thing-card-description" />
+          <MarkdownText text={L(thing.description)} className="thing-card-description" />
         )}
         <ThingTags thing={thing} isOwner={isOwner} showType={false} />
         <ThingInfoRows thing={thing} isDateBased={isDateBased} hideType={hideType}>

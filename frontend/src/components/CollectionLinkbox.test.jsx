@@ -31,4 +31,19 @@ describe('CollectionLinkbox', () => {
     expect(screen.getByText(/2.*·.*1/)).toBeInTheDocument();
     expect(screen.getByRole('link')).toHaveAttribute('href', '/collections/COL001');
   });
+
+  test('a headline written once per language reads as words, never as raw JSON (O6)', () => {
+    // The test i18n mock runs in English, so the English text is what shows.
+    const bilingual = {
+      ...collection,
+      headline: '{"es": "Las cosas de mamá", "ca": "Les coses de mama", "en": "Mum\'s things"}',
+    };
+    render(
+      <MemoryRouter>
+        <CollectionLinkbox collection={bilingual} showInfo />
+      </MemoryRouter>
+    );
+    expect(screen.getByText("Mum's things")).toBeInTheDocument();
+    expect(screen.queryByText(/\{"es"/)).toBeNull();
+  });
 });

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Linkbox } from 'hds-react';
+import { useLocalized } from '../utils/localized';
 
 /**
  * A collection row (HDS Linkbox, no thumbnail) used in the collection grids
@@ -19,16 +20,17 @@ import { Linkbox } from 'hds-react';
 export default function CollectionLinkbox({ collection, showInfo = false }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const headline = useLocalized()(collection.headline);
   return (
     <Linkbox
       href={`/collections/${collection.code}`}
       onClick={(e) => { e.preventDefault(); navigate(`/collections/${collection.code}`); }}
-      heading={collection.headline}
+      heading={headline}
       text={showInfo
         ? t('userPage.collectionInfo', { things: collection.things.length, guests: collection.invites.length })
         : undefined}
-      linkAriaLabel={t('userPage.viewCollection', { headline: collection.headline })}
-      linkboxAriaLabel={collection.headline}
+      linkAriaLabel={t('userPage.viewCollection', { headline })}
+      linkboxAriaLabel={headline}
       border
       size="small"
     />

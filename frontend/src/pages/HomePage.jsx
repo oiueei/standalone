@@ -7,9 +7,12 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import FeedbackLink from '../components/FeedbackLink';
 import CollectionLinkbox from '../components/CollectionLinkbox';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized } from '../utils/localized';
 
 export default function HomePage() {
   const { t } = useTranslation();
+  // Owner content (inbox headlines, invitations) may carry one text per language.
+  const L = useLocalized();
   useEffect(() => { document.title = t('titles.home'); }, [t]);
   const [user, setUser] = useState(null);
   const [myCollections, setMyCollections] = useState(null);
@@ -137,8 +140,18 @@ export default function HomePage() {
     return 'info';
   };
 
+  // An inbox payload carries the headline as the owner wrote it — which may be
+  // one text per language. Resolve the three headline keys once, then the
+  // builders below interpolate plain words like they always did.
+  const localizedPayload = (payload) => ({
+    ...payload,
+    collection_headline: L(payload.collection_headline),
+    thing_headline: L(payload.thing_headline),
+    wish_headline: L(payload.wish_headline),
+  });
+
   const inboxNotificationLabel = (n, tFn) => {
-    const p = n.payload;
+    const p = localizedPayload(n.payload);
     switch (n.type) {
       case 'COLLECTION_DELETED': return tFn('home.collectionDeletedLabel');
       case 'COLLECTION_REVOKED': return tFn('home.collectionRevokedLabel');
@@ -160,7 +173,7 @@ export default function HomePage() {
   };
 
   const inboxNotificationBody = (n, tFn) => {
-    const p = n.payload;
+    const p = localizedPayload(n.payload);
     switch (n.type) {
       case 'COLLECTION_DELETED': return tFn('home.collectionDeletedBody', { collection_headline: p.collection_headline, owner_name: p.owner_name });
       case 'COLLECTION_REVOKED': return tFn('home.collectionRevokedBody', { collection_headline: p.collection_headline, owner_name: p.owner_name });
@@ -311,7 +324,7 @@ export default function HomePage() {
                 onClose={() => dismissInvitation(inv.accept_code)}
                 style={{ marginBottom: 'var(--spacing-s)' }}
               >
-                <strong>{inv.collection_headline}</strong>
+                <strong>{L(inv.collection_headline)}</strong>
                 <div style={{ marginTop: 'var(--spacing-xs)', display: 'flex', gap: 'var(--spacing-s)', flexWrap: 'wrap' }}>
                   <Link to={`/verify/${inv.accept_code}`}>{t('home.acceptInvitation')}</Link>
                   <Link to={`/verify/${inv.reject_code}`}>{t('home.declineInvitation')}</Link>

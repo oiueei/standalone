@@ -7,9 +7,12 @@ import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized } from '../utils/localized';
 
 export default function DeleteCollectionPage() {
   const { t } = useTranslation();
+  // Owner content (headlines, tags) may carry one text per language.
+  const L = useLocalized();
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,9 +28,9 @@ export default function DeleteCollectionPage() {
 
   useEffect(() => {
     document.title = collection
-      ? t('titles.deleteCollection', { headline: collection.headline })
+      ? t('titles.deleteCollection', { headline: L(collection.headline) })
       : t('titles.deleteCollectionDefault');
-  }, [collection, t]);
+  }, [collection, t, L]);
 
   useEffect(() => {
     if (!userCode) return;
@@ -67,7 +70,7 @@ export default function DeleteCollectionPage() {
 
   return (
     <PageLayout
-      title={t('deleteCollection.pageTitle', { headline: collection.headline })}
+      title={t('deleteCollection.pageTitle', { headline: L(collection.headline) })}
       backTo={backPath}
       backLabel={backLabel}
     >

@@ -9,9 +9,12 @@ import ThingForm from '../components/ThingForm';
 import BulkAddCsv from '../components/BulkAddCsv';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
+import { useLocalized, localizedCounter } from '../utils/localized';
 
 export default function AddThingPage() {
   const { t } = useTranslation();
+  // Owner content (headlines, tags) may carry one text per language.
+  const L = useLocalized();
   const { code } = useParams();
   const navigate = useNavigate();
   const routerLocation = useLocation();
@@ -82,7 +85,8 @@ export default function AddThingPage() {
   const computeErrors = () => {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('addThing.titleRequired');
-    else if (headline.length > 64) newErrors.headline = t('addThing.maxHeadline');
+    else if (localizedCounter(headline, 64).over) newErrors.headline = t('addThing.maxHeadline');
+    if (localizedCounter(description, 256).over) newErrors.description = t('addThing.maxDescription');
     if (FEE_TYPES.includes(type) && (fee === '' || fee === undefined)) {
       newErrors.fee = t('addThing.priceRequired');
     }
@@ -185,7 +189,7 @@ export default function AddThingPage() {
   return (
     <PageLayout
       backTo={`/collections/${code}`}
-      backLabel={collectionHeadline || t('common.collection')}
+      backLabel={L(collectionHeadline) || t('common.collection')}
     >
         <h1 className="page-title-xl">{t('addThing.pageTitle')}</h1>
         {respondWishCode && (

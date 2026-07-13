@@ -1397,6 +1397,27 @@ main:focus {
   text-align: left;
 }
 
+/* The "one text per language" hint (LocalizedInfo), sitting under the field it
+   describes in an .info-popover-row — quiet by default, since most owners write
+   in one language and never need it. The example inside the panel is a code
+   sample the owner copies, so it may wrap anywhere rather than push the panel
+   wider than the viewport. */
+.localized-hint {
+  font-size: var(--fontsize-body-s);
+  color: var(--color-black-60);
+}
+
+.localized-example {
+  display: block;
+  margin: var(--spacing-2-xs) 0;
+  padding: var(--spacing-2-xs);
+  background: var(--color-black-5);
+  font-family: var(--font-monospace, monospace);
+  font-size: var(--fontsize-body-s);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 .bulk-add-format-body {
   margin: 0 0 var(--spacing-2-xs);
 }
