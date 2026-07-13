@@ -767,7 +767,7 @@
     "zipError": "No hem pogut llegir aquest ZIP. Revisa el fitxer i torna-ho a provar.",
     "imageUploadError": "No s'han pogut pujar algunes fotos. Revisa les imatges i torna-ho a provar.",
     "uploadingImages": "Pujant fotos… ({{done}}/{{total}})",
-    "formatBody": "Els tags van en una cel·la separats per | (i han d'estar definits a la col·lecció). Per a les fotos, comprimeix el CSV juntament amb les imatges i posa el nom de cada foto a la columna \"photo\" — així:",
+    "formatBody": "Els tags van en una cel·la separats per | (i han d'estar definits a la col·lecció). La columna fee accepta tant 1.5 com 1,5. Per a les fotos, comprimeix el CSV juntament amb les imatges i posa el nom de cada foto a la columna \"photo\" — així:",
     "downloadExample": "Baixar exemple (ZIP)"
   },
   "gallery": {

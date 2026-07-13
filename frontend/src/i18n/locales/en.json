@@ -785,7 +785,7 @@
     "zipError": "We couldn't read that ZIP. Check the file and try again.",
     "imageUploadError": "Some photos couldn't be uploaded. Check the images and try again.",
     "uploadingImages": "Uploading photos… ({{done}}/{{total}})",
-    "formatBody": "Tags go in one cell separated by | (and must be defined in the collection). For photos, zip the CSV together with the image files and name each photo in the \"photo\" column — like this:",
+    "formatBody": "Tags go in one cell separated by | (and must be defined in the collection). The fee column accepts either 1.5 or 1,5. For photos, zip the CSV together with the image files and name each photo in the \"photo\" column — like this:",
     "downloadExample": "Download example (ZIP)"
   },
   "gallery": {

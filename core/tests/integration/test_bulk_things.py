@@ -187,3 +187,37 @@ class TestBulkCreate:
         events = Event.objects.filter(kind=Event.Kind.THING_ADDED, collection_code=collection.code)
         assert events.count() == 2
         assert set(events.values_list("thing_code", flat=True)) == set(res.data["codes"])
+
+
+class TestBulkFeeDecimalComma:
+    """Spanish/Catalan spreadsheet exports write decimals as a comma (S9)."""
+
+    def _fee_of(self, auth_client, collection, fee):
+        rows = [{"type": "SELL_THING", "headline": "Priced item", "fee": fee}]
+        return auth_client.post(URL.format(code=collection.code), {"rows": rows}, format="json")
+
+    def test_accepts_a_dot_decimal(self, auth_client, collection):
+        res = self._fee_of(auth_client, collection, "1.5")
+        assert res.status_code == 201
+        assert str(Thing.objects.get(code=res.data["codes"][0]).fee) == "1.50"
+
+    def test_accepts_a_comma_decimal(self, auth_client, collection):
+        res = self._fee_of(auth_client, collection, "1,5")
+        assert res.status_code == 201
+        assert str(Thing.objects.get(code=res.data["codes"][0]).fee) == "1.50"
+
+    def test_integers_are_unchanged(self, auth_client, collection):
+        res = self._fee_of(auth_client, collection, "10")
+        assert res.status_code == 201
+        assert str(Thing.objects.get(code=res.data["codes"][0]).fee) == "10.00"
+
+    def test_rejects_dot_then_comma_as_ambiguous(self, auth_client, collection):
+        res = self._fee_of(auth_client, collection, "1.234,56")
+        assert res.status_code == 400
+        assert "Ambiguous" in str(res.data["errors"][0]["errors"]["fee"])
+        assert collection.things.count() == 0
+
+    def test_rejects_comma_then_dot_as_ambiguous(self, auth_client, collection):
+        res = self._fee_of(auth_client, collection, "1,234.56")
+        assert res.status_code == 400
+        assert "Ambiguous" in str(res.data["errors"][0]["errors"]["fee"])

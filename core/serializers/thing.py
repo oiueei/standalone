@@ -420,6 +420,31 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
         return value
 
 
+class LocaleDecimalField(serializers.DecimalField):
+    """A ``DecimalField`` that also accepts a decimal comma (bulk-CSV only, S9).
+
+    Spanish/Catalan spreadsheet exports write decimals as ``1,5``; a plain
+    ``DecimalField`` 400s on that. When the input is a string with exactly one
+    ``,`` and no ``.``, the comma is the decimal separator and gets normalised
+    to a dot before validation runs. A string carrying **both** ``.`` and
+    ``,`` is ambiguous (thousands separator or decimal?) and is rejected
+    outright rather than guessed — never guess with money. Anything else
+    (already-dotted, an integer, multiple commas with no dot, ...) is left for
+    the parent field to accept or reject as it always did.
+    """
+
+    def to_internal_value(self, data):
+        if isinstance(data, str) and "," in data:
+            if "." in data:
+                raise serializers.ValidationError(
+                    "Ambiguous number: use either a comma or a dot as the decimal "
+                    "separator, not both."
+                )
+            if data.count(",") == 1:
+                data = data.replace(",", ".")
+        return super().to_internal_value(data)
+
+
 class ThingBulkRowSerializer(serializers.ModelSerializer):
     """One row of a CSV bulk import (F-9).
 
@@ -433,7 +458,10 @@ class ThingBulkRowSerializer(serializers.ModelSerializer):
     headline = LocalizedHeadlineField(max_length=64)
     description = LocalizedTextField(max_length=256, required=False, allow_blank=True)
     location = SafeHeadlineField(max_length=32, required=False, allow_blank=True)
-    fee = serializers.DecimalField(
+    # LocaleDecimalField (not the plain DecimalField the other Thing
+    # serializers use): a CSV row is the one path with no NumberInput to
+    # normalise a locale decimal comma before it reaches the server (S9).
+    fee = LocaleDecimalField(
         max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
     )
     tags = serializers.ListField(
