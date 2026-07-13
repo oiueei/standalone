@@ -15,10 +15,10 @@ without breaking it (verified against the live account):
 - ``resource_type`` is always ``image`` (never trusted from the client). A PDF is
   a page-based image to Cloudinary, so it lives under the same resource type.
 
-Note: Cloudinary's ``max_file_size`` upload parameter is not enforced on this
-account/plan (verified), so the per-file size cap stays a client-side check. It is
-signed anyway in document mode: harmless where it is ignored, binding the moment
-the plan starts enforcing it.
+Note: ``max_file_size`` is not a signable Cloudinary upload parameter — its own
+signature computation excludes it, so signing it here made ours diverge from
+Cloudinary's and every document upload failed with "Invalid Signature" (S3, prod
+outage). The per-file size cap stays a client-side check (``PdfUpload``).
 """
 
 import secrets
@@ -39,7 +39,6 @@ IMAGE_FORMATS = "jpg,jpeg,png,webp,gif,heic,heif,avif,bmp,tif,tiff"
 
 # Document mode (the collection welcome doc): PDF and nothing else.
 DOCUMENT_FORMATS = "pdf"
-DOCUMENT_MAX_BYTES = 5 * 1024 * 1024
 
 
 class CloudinarySignatureView(APIView):
@@ -63,8 +62,7 @@ class CloudinarySignatureView(APIView):
             "folder": "oiueei/things",
             "public_id": "<server-generated>",
             "allowed_formats": "jpg,jpeg,png,...",   # or "pdf" in document mode
-            "resource_type": "image",
-            "max_file_size": 5242880                 # document mode only
+            "resource_type": "image"
         }
     """
 
@@ -95,8 +93,6 @@ class CloudinarySignatureView(APIView):
             "public_id": public_id,
             "timestamp": timestamp,
         }
-        if is_document:
-            params_to_sign["max_file_size"] = DOCUMENT_MAX_BYTES
 
         signature = cloudinary.utils.api_sign_request(
             params_to_sign, cloudinary.config().api_secret
@@ -112,7 +108,5 @@ class CloudinarySignatureView(APIView):
             "allowed_formats": allowed_formats,
             "resource_type": resource_type,
         }
-        if is_document:
-            response["max_file_size"] = DOCUMENT_MAX_BYTES
 
         return Response(response)

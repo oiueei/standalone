@@ -1,8 +1,8 @@
 import { apiFetch } from '../services/api';
 
-// The collection welcome doc: PDF only, 5 MB. The server signs `max_file_size`
-// too, but Cloudinary doesn't enforce it on this plan — so this client check is
-// the cap that actually holds today, and the signed one binds the day it starts.
+// The collection welcome doc: PDF only, 5 MB. `max_file_size` isn't a signable
+// Cloudinary upload parameter (signing it broke every document upload — S3), so
+// this client check is the only size cap there is.
 export const PDF_MAX_BYTES = 5 * 1024 * 1024;
 
 /**
@@ -27,7 +27,6 @@ export async function uploadPdfToCloudinary(file, folder = 'oiueei/collections')
     public_id,
     allowed_formats,
     resource_type,
-    max_file_size,
   } = await sigRes.json();
 
   // Send back exactly the server-signed parameters — changing any of them would
@@ -40,7 +39,6 @@ export async function uploadPdfToCloudinary(file, folder = 'oiueei/collections')
   formData.append('folder', signedFolder);
   formData.append('public_id', public_id);
   formData.append('allowed_formats', allowed_formats);
-  if (max_file_size) formData.append('max_file_size', String(max_file_size));
 
   // A PDF is a page-based image to Cloudinary, so it uploads (and is delivered)
   // under resource_type=image like every other asset.

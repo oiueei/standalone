@@ -98,7 +98,7 @@ class TestWelcomeDocOnJoin:
 
 @pytest.mark.django_db
 class TestDocumentSignature:
-    def test_document_mode_signs_pdf_only_and_a_size_cap(self, authenticated_client):
+    def test_document_mode_signs_pdf_only(self, authenticated_client):
         res = authenticated_client.post(
             SIGNATURE_URL,
             {"folder": "oiueei/collections", "kind": "document"},
@@ -107,7 +107,8 @@ class TestDocumentSignature:
 
         assert res.status_code == 200
         assert res.data["allowed_formats"] == "pdf"
-        assert res.data["max_file_size"] == 5 * 1024 * 1024
+        # max_file_size isn't a signable Cloudinary parameter (S3) — never returned.
+        assert "max_file_size" not in res.data
         # A PDF is a page-based image to Cloudinary — same resource type as a photo.
         assert res.data["resource_type"] == "image"
 
