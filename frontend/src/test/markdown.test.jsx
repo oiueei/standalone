@@ -110,6 +110,39 @@ describe('markdownToHtml', () => {
     expect(result).toContain('</table></div>');
     expect(result).toContain('<span>After</span>');
   });
+
+  test('renders # / ## / ### as h3 / h4 / h5', () => {
+    expect(markdownToHtml('# Título')).toBe('<h3>Título</h3>');
+    expect(markdownToHtml('## Título')).toBe('<h4>Título</h4>');
+    expect(markdownToHtml('### Título')).toBe('<h5>Título</h5>');
+  });
+
+  test('deeper heading levels cap at h5', () => {
+    expect(markdownToHtml('#### Título')).toBe('<h5>Título</h5>');
+    expect(markdownToHtml('###### Título')).toBe('<h5>Título</h5>');
+  });
+
+  test('a heading escapes HTML and still renders inline markdown', () => {
+    const result = markdownToHtml('# **Bold** <script>alert(1)</script>');
+    expect(result).toBe('<h3><strong>Bold</strong> &lt;script&gt;alert(1)&lt;/script&gt;</h3>');
+    expect(result).not.toContain('<script>');
+  });
+
+  test('a heading between paragraphs does not disturb the surrounding text', () => {
+    const result = markdownToHtml('Before\n## Título\nAfter');
+    expect(result).toBe('<span>Before</span><h4>Título</h4><span>After</span>');
+  });
+
+  test('a heading closes an open list', () => {
+    const result = markdownToHtml('- Item\n# Título');
+    expect(result).toBe('<ul><li>Item</li></ul><h3>Título</h3>');
+  });
+
+  test('a bare # with no text is not treated as a heading', () => {
+    const result = markdownToHtml('#');
+    expect(result).not.toContain('<h3>');
+    expect(result).toContain('#');
+  });
 });
 
 describe('MarkdownText component', () => {

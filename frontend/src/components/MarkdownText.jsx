@@ -8,6 +8,9 @@
  *   1. numbered        -> <ol><li>
  *   [text](url)        -> <a> (http/https only)
  *   | a | b | pipe tables (GFM: header row + |---|---| separator) -> <table>
+ *   # / ## / ###+ heading -> <h3> / <h4> / <h5> (deeper levels cap at <h5> —
+ *     the page around this component already owns h1/h2, so a bio can't
+ *     outrank the page's own outline)
  *
  * All other content is HTML-escaped before processing.
  */
@@ -82,6 +85,17 @@ function markdownToHtml(text) {
           `<tbody>${bodyRows.join('')}</tbody></table></div>`
       );
       i = j - 1;
+      continue;
+    }
+
+    // Heading: # / ## / ###+ text -> h3 / h4 / h5 (capped — the surrounding
+    // page already owns h1/h2).
+    const headingMatch = line.match(/^(#{1,6}) (.+)$/);
+    if (headingMatch) {
+      if (inUl) { output.push('</ul>'); inUl = false; }
+      if (inOl) { output.push('</ol>'); inOl = false; }
+      const tag = `h${Math.min(headingMatch[1].length, 3) + 2}`;
+      output.push(`<${tag}>${renderInline(headingMatch[2])}</${tag}>`);
       continue;
     }
 

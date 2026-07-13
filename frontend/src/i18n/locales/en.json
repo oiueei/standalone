@@ -406,7 +406,7 @@
     "emailPreferences": "Email preferences →",
     "aboutLabel": "About",
     "aboutHelper": "Markdown supported",
-    "aboutMarkdownHint": "New to Markdown? Write and preview it online for free at <0>dillinger.io</0>.",
+    "aboutMarkdownHint": "New to Markdown? Write and preview it online for free at <0>dillinger.io</0>. Headings (# Title) work too.",
     "photoLabel": "Profile photo",
     "photoHelper": "Shown on your profile, optional",
     "maxAbout": "Maximum 2000 characters.",

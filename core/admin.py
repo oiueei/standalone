@@ -2,6 +2,7 @@
 Django Admin configuration for OIUEEI.
 """
 
+from django import forms
 from django.contrib import admin
 
 from core.models import FAQ, RSVP, Collection, Report, Theeeme, Thing, User
@@ -12,6 +13,17 @@ from core.models.booking import BookingPeriod
 class UserAdmin(admin.ModelAdmin):
     list_display = ["code", "email", "name", "created"]
     search_fields = ["code", "email", "name"]
+
+    def get_form(self, request, obj=None, **kwargs):
+        # about is a CharField (max_length=2000, not TextField — see
+        # core/models/CLAUDE.md), so the admin's default widget is a
+        # single-line <input>, which silently strips every pasted newline
+        # out of a multi-line Markdown bio (S8) — the API/TextArea save path
+        # preserves them fine; only this default admin widget doesn't.
+        # formfield_overrides can't target one field by name, so override the
+        # widget per-request here instead.
+        kwargs["widgets"] = {"about": forms.Textarea}
+        return super().get_form(request, obj, **kwargs)
 
 
 @admin.register(Collection)
