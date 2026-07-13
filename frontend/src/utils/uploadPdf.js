@@ -12,7 +12,7 @@ export const PDF_MAX_BYTES = 5 * 1024 * 1024;
  * with `kind: 'document'` so the signature only accepts a PDF. No resize: a
  * document is not a photo. Returns the Cloudinary `{ publicId, url }`.
  */
-export async function uploadPdfToCloudinary(file, folder = 'oiueei/collections') {
+export async function uploadPdfToCloudinary(file, folder = 'oiueei/documents') {
   const sigRes = await apiFetch('/api/v1/upload/signature/', {
     method: 'POST',
     body: JSON.stringify({ folder, kind: 'document' }),

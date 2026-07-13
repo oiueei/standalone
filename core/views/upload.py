@@ -31,7 +31,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections"}
+ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections", "oiueei/documents"}
 
 # Raster photo formats only — SVG and other script-bearing/non-photo formats are
 # excluded so an <img>-rendered upload can never carry active content.
@@ -50,8 +50,8 @@ class CloudinarySignatureView(APIView):
     public_id, allowed_formats) alongside the file.
 
     Request body:
-        { "folder": "oiueei/things" }                       # image (default)
-        { "folder": "oiueei/collections", "kind": "document" }   # PDF
+        { "folder": "oiueei/things" }              # image (default)
+        { "kind": "document" }                      # PDF — folder is forced, see below
 
     Response:
         {
@@ -70,13 +70,20 @@ class CloudinarySignatureView(APIView):
 
     @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
     def post(self, request):
-        folder = request.data.get("folder", "oiueei/users")
-        if folder not in ALLOWED_FOLDERS:
-            folder = "oiueei/users"
-
         # Anything that isn't the one document kind is an image upload — an unknown
         # value can only ever narrow to the (unchanged) image defaults.
         is_document = request.data.get("kind") == "document"
+
+        if is_document:
+            # Document mode always signs the documents folder — an image-mode
+            # request may not choose it, keeping images out of it (S4).
+            folder = "oiueei/documents"
+        else:
+            folder = request.data.get("folder", "oiueei/users")
+            # oiueei/documents is document-only (forced above, never client-chosen)
+            # — an image request naming it falls back like any other bad value.
+            if folder not in ALLOWED_FOLDERS or folder == "oiueei/documents":
+                folder = "oiueei/users"
 
         # Always image: Cloudinary treats a PDF as a page-based image, so both kinds
         # share the resource type. Only the accepted formats differ.

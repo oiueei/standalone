@@ -112,6 +112,20 @@ class TestDocumentSignature:
         # A PDF is a page-based image to Cloudinary — same resource type as a photo.
         assert res.data["resource_type"] == "image"
 
+    def test_document_mode_always_signs_the_documents_folder(self, authenticated_client):
+        # S4: document mode forces oiueei/documents regardless of the body's folder.
+        res = authenticated_client.post(
+            SIGNATURE_URL,
+            {"folder": "oiueei/collections", "kind": "document"},
+            format="json",
+        )
+        assert res.data["folder"] == "oiueei/documents"
+
+    def test_document_mode_ignores_a_missing_folder_too(self, authenticated_client):
+        res = authenticated_client.post(SIGNATURE_URL, {"kind": "document"}, format="json")
+        assert res.status_code == 200
+        assert res.data["folder"] == "oiueei/documents"
+
     def test_image_mode_is_unchanged(self, authenticated_client):
         res = authenticated_client.post(SIGNATURE_URL, {"folder": "oiueei/things"}, format="json")
 
@@ -119,6 +133,15 @@ class TestDocumentSignature:
         assert "pdf" not in res.data["allowed_formats"]
         assert "max_file_size" not in res.data
         assert res.data["resource_type"] == "image"
+
+    def test_image_mode_cannot_choose_the_documents_folder(self, authenticated_client):
+        # S4: oiueei/documents is document-only — an image request naming it
+        # falls back like any other disallowed value.
+        res = authenticated_client.post(
+            SIGNATURE_URL, {"folder": "oiueei/documents"}, format="json"
+        )
+        assert res.status_code == 200
+        assert res.data["folder"] == "oiueei/users"
 
     def test_an_unknown_kind_falls_back_to_an_image_upload(self, authenticated_client):
         res = authenticated_client.post(

@@ -20,7 +20,10 @@ Safety rails:
   User.photo, Collection.thumbnail and Collection.welcome_doc — so anything in use
   is kept. The welcome PDF matters here: Cloudinary stores a PDF under
   ``resource_type=image``, so it turns up in this sweep like any photo, and a
-  missing cross-reference would delete a live document.
+  missing cross-reference would delete a live document. The default ``--prefix``
+  is the whole ``oiueei/`` tree, so moving welcome docs to their own
+  ``oiueei/documents/`` folder (S4) needed no change here — they were always
+  swept alongside every other subfolder, cross-referenced the same way.
 - Never touches the ``oiueei/seed/`` folder (the demo's shared image pool).
 - Only considers assets **older than --min-age-hours** (default 24h) so an
   in-flight upload mid-form isn't mistaken for an orphan, and **younger than

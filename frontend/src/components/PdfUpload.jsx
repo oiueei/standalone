@@ -16,7 +16,7 @@ import hdsLang from '../utils/hdsLang';
  *   label       – visible label text
  *   onChange    – called with the new public_id (or '') on upload / remove
  *   currentUrl  – full URL of the current saved PDF (for the initial link)
- *   folder      – Cloudinary upload folder (default 'oiueei/collections')
+ *   folder      – Cloudinary upload folder (default 'oiueei/documents')
  *   helperText  – optional helper text shown below the input
  */
 export default function PdfUpload({
@@ -24,7 +24,7 @@ export default function PdfUpload({
   label,
   onChange,
   currentUrl,
-  folder = 'oiueei/collections',
+  folder = 'oiueei/documents',
   helperText,
 }) {
   const { t, i18n } = useTranslation();
