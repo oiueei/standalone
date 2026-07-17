@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from 'hds-react';
 
 export default function TooltipButton({ tooltip, onClick, disabled, children }) {
   const [visible, setVisible] = useState(false);
@@ -11,26 +12,17 @@ export default function TooltipButton({ tooltip, onClick, disabled, children }) 
       onFocus={() => setVisible(true)}
       onBlur={() => setVisible(false)}
     >
-      <button
+      <Button
+        variant="supplementary"
+        size="small"
+        iconStart={children}
         aria-label={tooltip}
         onClick={onClick}
         disabled={disabled}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: disabled ? 'default' : 'pointer',
-          padding: 'var(--spacing-xs)',
-          // WCAG 2.5.5 / mobile-first: keep the tap target at least 44×44.
-          minWidth: '44px',
-          minHeight: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: disabled ? 'var(--color-black-40)' : 'var(--color-black-90)',
-        }}
-      >
-        {children}
-      </button>
+        // WCAG 2.5.5 / mobile-first: size="small" keeps the tap target at
+        // least 44×44 (--min-size). DESIGN §11: black icon, black-40 disabled.
+        style={{ '--color': 'var(--color-black-90)', '--color-disabled': 'var(--color-black-40)' }}
+      />
       {visible && !disabled && (
         <div style={{
           position: 'absolute',
@@ -41,7 +33,7 @@ export default function TooltipButton({ tooltip, onClick, disabled, children }) 
           padding: '4px 8px',
           borderRadius: '2px',
           fontSize: 'var(--fontsize-body-s)',
-          whiteSpace: 'nowrap',
+          maxWidth: 'min(280px, 80vw)',
           zIndex: 1000,
           pointerEvents: 'none',
         }}>
