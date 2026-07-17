@@ -31,7 +31,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-ALLOWED_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections", "oiueei/documents"}
+# Image-mode folders only — "oiueei/documents" is document-mode-only (forced
+# below, never client-chosen) and deliberately absent from this set.
+IMAGE_FOLDERS = {"oiueei/users", "oiueei/things", "oiueei/collections"}
 
 # Raster photo formats only — SVG and other script-bearing/non-photo formats are
 # excluded so an <img>-rendered upload can never carry active content.
@@ -80,9 +82,9 @@ class CloudinarySignatureView(APIView):
             folder = "oiueei/documents"
         else:
             folder = request.data.get("folder", "oiueei/users")
-            # oiueei/documents is document-only (forced above, never client-chosen)
-            # — an image request naming it falls back like any other bad value.
-            if folder not in ALLOWED_FOLDERS or folder == "oiueei/documents":
+            # oiueei/documents isn't in IMAGE_FOLDERS, so naming it here falls
+            # back like any other value the image mode doesn't recognise.
+            if folder not in IMAGE_FOLDERS:
                 folder = "oiueei/users"
 
         # Always image: Cloudinary treats a PDF as a page-based image, so both kinds
