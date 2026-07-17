@@ -7,6 +7,11 @@ on:
     branches: [main, development]
 
 # Least-privilege default token, and cancel superseded runs on the same ref.
+# Every third-party action is pinned to a full commit SHA (the trailing comment
+# is the tag it resolved from): a tag like v6 is movable, so pinning by tag
+# would let a compromised action repo swap the code under us. When bumping,
+# resolve the new SHA with: git ls-remote https://github.com/<owner>/<repo> "refs/tags/<tag>^{}"
+# (fall back to refs/tags/<tag> when the tag is lightweight and has no ^{} line).
 permissions:
   contents: read
 
@@ -20,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
           cache: "pip"
@@ -53,7 +58,7 @@ jobs:
           pytest -v --cov=core --cov-report=xml --cov-report=term-missing --cov-fail-under=80
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v6
         with:
           files: ./coverage.xml
           flags: unittests
@@ -69,10 +74,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Set up Node 24
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"
           cache: "npm"
@@ -98,12 +103,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
 
@@ -113,6 +118,11 @@ jobs:
           pip-audit -r requirements/production.txt
 
       - name: Secret scan (gitleaks)
+        # The sha256 is from gitleaks_8.21.2_checksums.txt on the release page —
+        # verified before extraction so a tampered release asset (or a MITM'd
+        # download) fails the job instead of running arbitrary code in CI.
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz | tar -xzf - gitleaks
+          curl -sSfL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
+          echo "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
           ./gitleaks detect --redact --no-banner
