@@ -392,6 +392,7 @@ Detail page for a thing with full information and FAQs section.
   - When paused: shows the current message in a styled `<blockquote>` + "Resume collection" button. Submits `PATCH { pause_message: "" }`.
   - Both actions are independent PATCHes from the main Save; no page reload.
   - Shows success toast on pause/resume.
+- **Stats download** below the Pause section (same border/spacer pattern, design round): a secondary "Download stats (CSV)" button (`GET /api/v1/collections/{code}/stats/` → blob → `{code}-stats.csv`), with an inline error `Notification` on failure. Moved here from the CollectionPage hero — an admin tool belongs with the collection's other owner-only settings, not in a hero button slot shown on every visit.
 - Pre-populates all fields from the current collection data, including existing `thumbnail_url` for preview.
 - On save: navigates to `/collections/{code}`.
 

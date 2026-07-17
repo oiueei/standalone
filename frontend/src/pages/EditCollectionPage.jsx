@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, RadioButton } from 'hds-react';
+import { TextInput, TextArea, Select, Button, RadioButton, Notification } from 'hds-react';
 import { isLockedToSingleType, reconcileAllowedTypes } from '../constants/things';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
@@ -49,6 +49,7 @@ export default function EditCollectionPage() {
   const [pauseMessage, setPauseMessage] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   const [pauseSubmitting, setPauseSubmitting] = useState(false);
+  const [statsError, setStatsError] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -219,6 +220,25 @@ export default function EditCollectionPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setPauseSubmitting(false);
+    }
+  };
+
+  const handleDownloadStats = async () => {
+    setStatsError(false);
+    try {
+      const res = await apiFetch(`/api/v1/collections/${code}/stats/`);
+      if (!res.ok) throw new Error('stats');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${code}-stats.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setStatsError(true);
     }
   };
 
@@ -412,6 +432,21 @@ export default function EditCollectionPage() {
               : (isPaused ? t('pause.resumeButton') : t('pause.pauseButton'))}
           </Button>
         </div>
+      </div>
+      <div style={{ marginTop: 'var(--spacing-xl)', borderTop: '1px solid var(--color-black-20)', paddingTop: 'var(--spacing-m)' }}>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={handleDownloadStats}
+          style={btnSecondaryStyle}
+        >
+          {t('stats.downloadStats')}
+        </Button>
+        {statsError && (
+          <Notification type="error" size="small" style={{ marginTop: 'var(--spacing-xs)' }}>
+            {t('stats.downloadStatsError')}
+          </Notification>
+        )}
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />
     </PageLayout>
