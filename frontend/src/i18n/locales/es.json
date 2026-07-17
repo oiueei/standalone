@@ -687,7 +687,7 @@
     "label": "Sin límite — varias personas pueden reservar a la vez, la cosa siempre está activa"
   },
   "broadcast": {
-    "heading": "Difusión",
+    "heading": "Mensajes al grupo",
     "openButton": "Enviar mensaje a los invitados",
     "messageLabel": "Mensaje",
     "sendButton": "Enviar difusión",

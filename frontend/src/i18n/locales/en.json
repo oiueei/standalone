@@ -705,7 +705,7 @@
     "label": "Endless — multiple people can hold at the same time, thing stays active forever"
   },
   "broadcast": {
-    "heading": "Broadcast",
+    "heading": "Messages to the group",
     "openButton": "Send a message to guests",
     "messageLabel": "Message",
     "sendButton": "Send broadcast",
