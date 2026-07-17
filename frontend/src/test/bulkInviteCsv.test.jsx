@@ -60,6 +60,7 @@ describe('BulkInviteCsv', () => {
           { email: 'lala@mail.com', reason: 'already_member' },
           { email: 'lele@mail.com', reason: 'already_invited' },
           { email: 'lili@mail.com', reason: 'duplicate' },
+          { email: 'lulu@mail.com', reason: 'daily_limit' },
         ],
       })
     );
@@ -69,11 +70,14 @@ describe('BulkInviteCsv', () => {
     fireEvent.click(await screen.findByText('Send 1 invitations'));
 
     expect(await screen.findByText(/1 invitations sent\./)).toBeInTheDocument();
-    expect(screen.getByText('4 skipped:')).toBeInTheDocument();
+    expect(screen.getByText('5 skipped:')).toBeInTheDocument();
     expect(screen.getByText('nope — invalid email')).toBeInTheDocument();
     expect(screen.getByText('lala@mail.com — already a member')).toBeInTheDocument();
     expect(screen.getByText('lele@mail.com — already invited')).toBeInTheDocument();
     expect(screen.getByText('lili@mail.com — duplicate')).toBeInTheDocument();
+    expect(
+      screen.getByText('lulu@mail.com — daily invitation limit reached')
+    ).toBeInTheDocument();
   });
 
   test('an unknown skip reason falls back to "invalid email" rather than a blank', async () => {

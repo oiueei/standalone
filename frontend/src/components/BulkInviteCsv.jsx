@@ -26,6 +26,7 @@ const REASON_KEY = {
   duplicate: 'bulkInvite.reasonDuplicate',
   already_member: 'bulkInvite.reasonAlreadyMember',
   already_invited: 'bulkInvite.reasonAlreadyInvited',
+  daily_limit: 'bulkInvite.reasonDailyLimit',
 };
 
 /**

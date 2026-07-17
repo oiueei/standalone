@@ -9,6 +9,7 @@ from collections import Counter
 from datetime import timedelta
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count, Prefetch
 from django.http import HttpResponse
@@ -257,6 +258,39 @@ class CollectionViewSet(ModelViewSet):
         )
 
 
+# Daily cap on invitation *emails* per account, shared by the single and bulk
+# invite endpoints. The per-view rate limits count requests, and one bulk request
+# fans out up to MAX_ROWS emails — 5/h x 100 rows was ~500 owner-authored emails
+# an hour from a free pop-in account, a spam/phishing vector riding the
+# platform's sending domain. This counts the emails themselves. Coarse abuse
+# prevention, not an exact quota: it follows RATELIMIT_ENABLE (the same switch
+# the django-ratelimit decorators read, so dev and tests stay consistent) and
+# its DatabaseCache read-then-set shares base.py's I7 non-atomicity note.
+INVITE_EMAILS_PER_DAY = 150
+_INVITE_QUOTA_TTL = 60 * 60 * 24  # ~24h; the date is in the key, so it rolls over anyway.
+_INVITE_QUOTA_MESSAGE = "Daily invitation limit reached. Try again tomorrow."
+
+
+def _invite_quota_key(user_code):
+    return f"invq:{user_code}:{timezone.localdate().isoformat()}"
+
+
+def _invite_quota_left(user_code):
+    """Invitation emails this account may still send today; ``None`` = unlimited."""
+    if not getattr(settings, "RATELIMIT_ENABLE", True):
+        return None
+    cap = getattr(settings, "INVITE_EMAILS_PER_DAY", INVITE_EMAILS_PER_DAY)
+    return max(cap - cache.get(_invite_quota_key(user_code), 0), 0)
+
+
+def _consume_invite_quota(user_code, count):
+    """Record ``count`` invitation emails against today's quota."""
+    if count <= 0 or not getattr(settings, "RATELIMIT_ENABLE", True):
+        return
+    key = _invite_quota_key(user_code)
+    cache.set(key, cache.get(key, 0) + count, _INVITE_QUOTA_TTL)
+
+
 class CollectionInviteView(APIView):
     """
     POST /api/v1/collections/{collection_code}/invite/
@@ -277,6 +311,13 @@ class CollectionInviteView(APIView):
         )
         if denied:
             return denied
+
+        # Checked before get_or_create so a quota-blocked request creates no User row.
+        if _invite_quota_left(request.user.code) == 0:
+            return Response(
+                {"error": _INVITE_QUOTA_MESSAGE},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
 
         serializer = CollectionInviteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -329,6 +370,7 @@ class CollectionInviteView(APIView):
             reject_link,
             collection=collection,
         )
+        _consume_invite_quota(request.user.code, 1)
 
         return Response(
             {
@@ -533,6 +575,16 @@ class CollectionBulkInviteView(APIView):
         if denied:
             return denied
 
+        # None = unlimited (RATELIMIT_ENABLE off in dev/tests). Exhausted → 429
+        # outright; a partially-available quota lets the batch run and reports the
+        # overflow per row below, so the owner sees exactly which addresses wait.
+        quota_left = _invite_quota_left(request.user.code)
+        if quota_left == 0:
+            return Response(
+                {"error": _INVITE_QUOTA_MESSAGE},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         rows = request.data.get("invites") if isinstance(request.data, dict) else None
         if not isinstance(rows, list) or not rows:
             return Response({"error": "No emails to invite."}, status=status.HTTP_400_BAD_REQUEST)
@@ -572,6 +624,12 @@ class CollectionBulkInviteView(APIView):
         recipients = []  # (email, accept_link, reject_link)
         with transaction.atomic():
             for email, name in candidates:
+                # Past today's cap: report the rest of the batch per row (the
+                # frontend shows the reason) rather than silently dropping it.
+                # Before get_or_create, so a quota-skipped row creates no User.
+                if quota_left is not None and len(invited) >= quota_left:
+                    skipped.append({"email": email, "reason": "daily_limit"})
+                    continue
                 defaults = {"email": email}
                 if name:
                     defaults["name"] = name
@@ -605,6 +663,7 @@ class CollectionBulkInviteView(APIView):
                 invited.append(email)
                 recipients.append((email, accept_rsvp.action_link(), reject_rsvp.action_link()))
 
+        _consume_invite_quota(request.user.code, len(invited))
         _send_bulk_invites(inviter_name, collection.headline, recipients, collection=collection)
 
         logger.info(

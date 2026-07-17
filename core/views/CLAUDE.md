@@ -355,9 +355,11 @@ CSV/ZIP bulk-add (F-9). Body is `{"rows": [{type, headline, description, fee, av
 |---|---|
 | **Endpoint** | `POST /api/v1/collections/{collection_code}/invite/` |
 | **Permission** | `IsAuthenticated` + collection owner |
-| **Rate limit** | 30 requests/hour per user |
+| **Rate limit** | 30 requests/hour per user, plus the shared daily invitation-email quota (below) |
 
 Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
+
+**Daily invitation-email quota (shared with the bulk endpoint).** The per-view rate limits count *requests*, so one bulk request could still fan out 100 emails (5/h × 100 rows ≈ 500 owner-authored emails an hour from a free pop-in account — a spam vector riding the platform's sending domain). `INVITE_EMAILS_PER_DAY` (default 150, settings-overridable) counts the invitation *emails* an account sends per day, shared between this endpoint and `CollectionBulkInviteView`. Exhausted → **429** `{"error": ...}` before any User/RSVP is created. The counter lives on the shared cache (`invq:{user}:{date}`, ~24h TTL) and follows `RATELIMIT_ENABLE` — off in dev/tests, same switch as the django-ratelimit decorators; its read-then-set shares the DatabaseCache non-atomicity note (I7) in `config/settings/base.py`.
 
 **Request body:**
 ```json
@@ -450,9 +452,9 @@ Sends a broadcast email from the collection owner to all invitees. Validates `me
 |---|---|
 | **Endpoint** | `POST /api/v1/collections/{collection_code}/invite/bulk/` |
 | **Permission** | `IsAuthenticated` + collection owner |
-| **Rate limit** | 5 requests/hour per user |
+| **Rate limit** | 5 requests/hour per user, plus the shared daily invitation-email quota (see `CollectionInviteView`) |
 
-Invites many guests at once from a client-parsed CSV (`{"invites": [{"email": ..., "name": ...?}, ...]}`, capped at `MAX_ROWS=100`). Best-effort: valid, new addresses are invited (accept + reject RSVP pair created, invite email sent) and the rest are reported as skipped with a reason (`invalid`, `duplicate`, `already_member`, `already_invited`) — one bad row never fails the batch.
+Invites many guests at once from a client-parsed CSV (`{"invites": [{"email": ..., "name": ...?}, ...]}`, capped at `MAX_ROWS=100`). Best-effort: valid, new addresses are invited (accept + reject RSVP pair created, invite email sent) and the rest are reported as skipped with a reason (`invalid`, `duplicate`, `already_member`, `already_invited`, `daily_limit`) — one bad row never fails the batch. The **daily quota** (`INVITE_EMAILS_PER_DAY`, shared with the single endpoint) is enforced per email actually sent: an exhausted quota returns **429** outright; a batch that crosses the cap mid-way invites up to the remaining allowance and reports the overflow rows as skipped with reason `daily_limit` (no User row is created for those), so the owner sees exactly which addresses wait for tomorrow.
 
 **Response (200):** `{ "invited": 2, "skipped": [{"email": "...", "reason": "..."}], "total": 3 }`
 
@@ -927,6 +929,7 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 - `/auth/pop-in/` — 5 requests per minute per IP **and** 5 per hour per account (email)
 - `/auth/verify/{token}/` — 10 requests per minute per IP
 - `/collections/{code}/invite/` POST — 30 requests per hour per user
+- Invitation **emails** (single + bulk combined) — 150 per day per account (`INVITE_EMAILS_PER_DAY`; counts emails, not requests, so the bulk fan-out can't multiply past it)
 - `/things/{code}/request/` POST — 10 requests per hour per user
 - `/things/{code}/faq/` POST — 20 requests per hour per user
 - `/collections/{code}/broadcast/` POST — 5 requests per day per user

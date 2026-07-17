@@ -37,6 +37,7 @@
     "reasonDuplicate": "duplicate",
     "reasonAlreadyMember": "already a member",
     "reasonAlreadyInvited": "already invited",
+    "reasonDailyLimit": "daily invitation limit reached",
     "error": "We couldn't send the invitations. Check the file and try again."
   },
   "errorBoundary": {

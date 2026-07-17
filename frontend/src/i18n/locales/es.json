@@ -37,6 +37,7 @@
     "reasonDuplicate": "duplicado",
     "reasonAlreadyMember": "ya es miembro",
     "reasonAlreadyInvited": "ya invitado",
+    "reasonDailyLimit": "límite diario de invitaciones alcanzado",
     "error": "No pudimos enviar las invitaciones. Revisa el archivo e inténtalo de nuevo."
   },
   "joinToAct": {

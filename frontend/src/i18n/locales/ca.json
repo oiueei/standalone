@@ -37,6 +37,7 @@
     "reasonDuplicate": "duplicat",
     "reasonAlreadyMember": "ja és membre",
     "reasonAlreadyInvited": "ja convidat",
+    "reasonDailyLimit": "límit diari d'invitacions assolit",
     "error": "No hem pogut enviar les invitacions. Revisa el fitxer i torna-ho a provar."
   },
   "joinToAct": {

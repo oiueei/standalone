@@ -334,6 +334,7 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 | Rate Limiting | Pop-in | 5 req/min per IP + 5 req/hour per email |
 | Rate Limiting | Collection invite | 30 req/hour per user |
 | Rate Limiting | Collection bulk invite | 5 req/hour per user |
+| Rate Limiting | Invitation emails | 150/day per account, single + bulk combined (`INVITE_EMAILS_PER_DAY`) |
 | Rate Limiting | Collection share-link | 30 req/hour per user |
 | Rate Limiting | Thing request | 10 req/hour per user |
 | Rate Limiting | Thing bulk create | 10 req/hour per user |
