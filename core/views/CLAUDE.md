@@ -27,6 +27,8 @@ Requests a magic link for passwordless authentication.
 3. If user found: creates an RSVP with action `MAGIC_LINK` and sends magic link email via `send_magic_link_email()`.
 4. Logs request to `security` logger with IP.
 
+**Anti-enumeration, and the timing delta that remains (L10).** The response body is identical either way, and the SMTP send is dispatched to a daemon thread in production (`EMAIL_SEND_ASYNC`) so the slow part can't be timed — that was L10. What it did not close: the `RSVP.objects.create()` INSERT (and the thread spawn itself) run **only** on the registered path, so a registered address still answers marginally faster-to-measure than an unregistered one. This is **known and accepted**, not an oversight. Equalising it would mean writing the RSVP from inside the daemon thread and spawning that thread on both paths — a DB write with no connection cleanup, and a failed INSERT downgraded from a 500 to a silent no-email — to hide a sub-millisecond difference that the rate limits (5/min per IP, 5/hour per email) already cap sampling of far below the point where it could be averaged out of network noise.
+
 **Responses:**
 | Status | Condition |
 |--------|-----------|

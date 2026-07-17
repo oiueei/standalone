@@ -183,6 +183,17 @@ class RequestLinkView(APIView):
 
         # Create RSVP. ``origin=LOGIN`` tells VerifyLinkView this is a returning
         # user, not a first visit — they never land on /welcome again.
+        #
+        # This INSERT is the timing signal L10 left behind: it only runs for a
+        # registered address, so those responses are a hair slower than the early
+        # return above. Known and accepted, not overlooked. Closing it is not the
+        # one-line move it looks like — the delta is everything past the early
+        # return, this write *and* the thread spawn, so equalising would mean
+        # writing the RSVP from the daemon thread and spawning that thread on both
+        # paths: a DB write with no connection cleanup, and a failed INSERT
+        # downgraded from a 500 into a silent no-email. The rate limits (5/m per
+        # IP, 5/h per email) cap sampling far below what averaging a sub-millisecond
+        # difference out of network noise would take, so the trade isn't worth it.
         rsvp = RSVP.objects.create(
             user_code=user,
             user_email=email,
