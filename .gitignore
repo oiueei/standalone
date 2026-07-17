@@ -15,6 +15,10 @@ eggs/
 venv/
 ENV/
 
+# Node (frontend/.gitignore covers frontend/node_modules; this catches an
+# accidental npm install at the repo root)
+node_modules/
+
 # Django
 *.log
 db.sqlite3
