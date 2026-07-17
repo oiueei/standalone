@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
@@ -64,5 +64,36 @@ describe('CollectionPage with a collection thumbnail', () => {
 
     const results = await axe(container);
     expect(results).toHaveNoViolations();
+  });
+});
+
+describe('CollectionPage anonymous visitor intro', () => {
+  test('shows a join link for a signed-out visitor', async () => {
+    localStorage.clear();
+    render(
+      <MemoryRouter initialEntries={['/collections/COL001']}>
+        <Routes>
+          <Route path="/collections/:code" element={<CollectionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const link = await screen.findByRole('link', { name: /join to take part/i });
+    expect(link).toHaveAttribute('href', '/collections/COL001/join');
+  });
+
+  test('does not show the join link for an authenticated visitor', async () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/collections/COL001']}>
+        <Routes>
+          <Route path="/collections/:code" element={<CollectionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector('.form-hero-title')).toHaveTextContent('Kitchen Collection');
+    });
+    expect(screen.queryByRole('link', { name: /join to take part/i })).toBeNull();
   });
 });

@@ -187,6 +187,14 @@ export default function CollectionPage() {
               <strong>{t(collection.mode === 'COMMUNITY' ? 'collectionPage.curator' : 'collectionPage.owner')}</strong> <Link to={`/${collection.owner}`} className="owner-link">{collection.owner_name}</Link>
             </p>
           )}
+          {!isAuthenticated && (
+            <p className="invite-nudge">
+              {t('collectionPage.anonIntro')}{' '}
+              <Link to={`/collections/${code}/join`} className="owner-link">
+                {t('collectionPage.anonIntroLink')}
+              </Link>
+            </p>
+          )}
           {isOwner && (
             <>
             <div className="spacer-m"></div>
