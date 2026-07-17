@@ -15,22 +15,33 @@ vi.mock('../services/api', () => ({
   getCsrfToken: vi.fn(() => 'mock-csrf'),
 }));
 
-import { apiFetch } from '../services/api';
+import { apiFetch, extractApiError } from '../services/api';
 import ThingLinkbox from '../components/ThingLinkbox';
 import ThingPage from '../pages/ThingPage';
 
-function mockResponse(data, ok = true) {
-  return { ok, status: ok ? 200 : 400, json: () => Promise.resolve(data) };
+function mockResponse(data, ok = true, status = ok ? 200 : 400) {
+  return { ok, status, json: () => Promise.resolve(data) };
 }
 
 // Route apiFetch by URL. `thing` feeds the ThingPage detail fetch; `calendar`
 // feeds the owner bookings fetch; `responses` feeds the wish answers fetch.
-function setApi({ thing = {}, calendar = [], responses = [], requestOk = true } = {}) {
+// `request`/`activate`/`booking` override a single route outright, for the
+// failure branches that need a status code or a throw.
+function setApi({
+  thing = {}, calendar = [], responses = [], requestOk = true,
+  request = null, activate = null, booking = null,
+} = {}) {
   apiFetch.mockImplementation((url) => {
     if (/\/things\/[^/]+\/calendar\//.test(url)) return Promise.resolve(mockResponse(calendar));
-    if (/\/things\/[^/]+\/request\//.test(url)) return Promise.resolve(mockResponse({}, requestOk));
-    if (/\/things\/[^/]+\/activate\//.test(url)) return Promise.resolve(mockResponse({}));
-    if (/\/bookings\/[^/]+\/(accept|reject)\//.test(url)) return Promise.resolve(mockResponse({}));
+    if (/\/things\/[^/]+\/request\//.test(url)) {
+      return request ? request() : Promise.resolve(mockResponse({}, requestOk));
+    }
+    if (/\/things\/[^/]+\/activate\//.test(url)) {
+      return activate ? activate() : Promise.resolve(mockResponse({}));
+    }
+    if (/\/bookings\/[^/]+\/(accept|reject)\//.test(url)) {
+      return booking ? booking() : Promise.resolve(mockResponse({}));
+    }
     if (/\/things\/[^/]+\/faq\//.test(url)) return Promise.resolve(mockResponse({ results: [] }));
     if (/\/things\/[^/]+\/transfers\//.test(url)) return Promise.resolve(mockResponse({ total_transfers: 0, transfers: [] }));
     if (/\/things\/[^/]+\/responses\//.test(url)) return Promise.resolve(mockResponse({ results: responses }));
@@ -89,6 +100,9 @@ beforeEach(() => {
   }));
   localStorage.setItem('koro', 'basic');
   vi.clearAllMocks();
+  // clearAllMocks keeps implementations, so a test that gives the server a
+  // reason to state would otherwise hand it to every test after it.
+  extractApiError.mockResolvedValue('');
   setApi();
 });
 
@@ -406,5 +420,238 @@ describe('ThingPage — anonymous login-to-act', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Answer' }));
 
     await waitFor(() => expect(screen.getByTestId('navigated')).toBeInTheDocument());
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// useThingBooking — handleRequest, and how a refused hold reaches the user
+// A hold that silently does nothing is the worst outcome here: the guest walks
+// away thinking they asked. Every branch has to say something.
+// ════════════════════════════════════════════════════════════════════════
+describe('useThingBooking — a guest asks for a hold', () => {
+  const claim = (props = {}) => {
+    renderLinkbox({ thing: makeThing({ type: 'GIFT_THING' }), userCode: 'GUEST1', ...props });
+    fireEvent.click(screen.getByRole('button', { name: 'Claim' }));
+  };
+
+  test('a hold that lands confirms it', async () => {
+    claim();
+
+    expect(await screen.findByText('Hold requested — you’ll hear back soon.')).toBeInTheDocument();
+  });
+
+  // A thing can live in several collections, and only the requester knows which
+  // one they were looking at — it decides where the owner's notification lands.
+  test('the request carries the collection the requester was browsing', async () => {
+    claim({ collectionCode: 'COL001' });
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/things/THG001/request/', {
+        method: 'POST',
+        body: JSON.stringify({ collection_code: 'COL001' }),
+      })
+    );
+  });
+
+  // Nothing to send when there is no collection context (the standalone
+  // /things/:code view) — the backend falls back to its own approximation.
+  test('a card with no collection context sends none', async () => {
+    claim();
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/things/THG001/request/', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      })
+    );
+  });
+
+  test('a rate limit asks the guest to wait', async () => {
+    setApi({ request: () => Promise.resolve(mockResponse({}, false, 429)) });
+    claim();
+
+    expect(
+      await screen.findByText('Too many attempts — please wait a moment and try again.')
+    ).toBeInTheDocument();
+  });
+
+  test('a 400 surfaces the reason the server gave', async () => {
+    extractApiError.mockResolvedValue('You already hold this item.');
+    setApi({ request: () => Promise.resolve(mockResponse({}, false, 400)) });
+    claim();
+
+    expect(await screen.findByText('You already hold this item.')).toBeInTheDocument();
+  });
+
+  test('a 400 with no usable body falls back to our own copy', async () => {
+    extractApiError.mockResolvedValue(null);
+    setApi({ request: () => Promise.resolve(mockResponse({}, false, 400)) });
+    claim();
+
+    expect(await screen.findByText('Invalid request.')).toBeInTheDocument();
+  });
+
+  test('a server error is reported as one', async () => {
+    setApi({ request: () => Promise.resolve(mockResponse({}, false, 500)) });
+    claim();
+
+    expect(await screen.findByText('Error sending request.')).toBeInTheDocument();
+  });
+
+  test('a dropped connection is reported', async () => {
+    setApi({ request: () => Promise.reject(new Error('network down')) });
+    claim();
+
+    expect(await screen.findByText('Connection error.')).toBeInTheDocument();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// useThingBooking — handleBookingAction: what a decision does to the thing
+// The patch differs by type (bookingKeepsStatus), which is the whole reason the
+// option exists — a rental keeps circulating, a gift does not.
+// ════════════════════════════════════════════════════════════════════════
+describe('useThingBooking — the owner decides a hold', () => {
+  function renderOwner(thing, api = {}) {
+    const onUpdateThing = vi.fn();
+    setApi({ calendar: [{ code: 'BK1', status: 'PENDING', end_date: '2099-12-31' }], ...api });
+    renderLinkbox({ thing, userCode: 'OWNER1', onUpdateThing });
+    return onUpdateThing;
+  }
+
+  // GIFT/SELL (bookingKeepsStatus false): the thing is gone once given.
+  test('accepting a gift retires the thing', async () => {
+    const onUpdateThing = renderOwner(makeThing({ type: 'GIFT_THING', status: 'TAKEN' }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm hold' }));
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/bookings/BK1/accept/', { method: 'POST' })
+    );
+    expect(onUpdateThing).toHaveBeenCalledWith('THG001', {
+      status: 'INACTIVE',
+      pending_booking: null,
+    });
+    expect(await screen.findByText('Hold confirmed.')).toBeInTheDocument();
+  });
+
+  test('rejecting a gift puts it back on offer', async () => {
+    const onUpdateThing = renderOwner(makeThing({ type: 'GIFT_THING', status: 'TAKEN' }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel hold' }));
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/bookings/BK1/reject/', { method: 'POST' })
+    );
+    expect(onUpdateThing).toHaveBeenCalledWith('THG001', { status: 'ACTIVE', pending_booking: null });
+    expect(await screen.findByText('Hold cancelled.')).toBeInTheDocument();
+  });
+
+  // LEND/RENT (bookingKeepsStatus true): the thing keeps circulating, so a
+  // decision may only move which request is waiting — never the status.
+  test.each([
+    ['accepting', 'Confirm hold', 'accept'],
+    ['rejecting', 'Cancel hold', 'reject'],
+  ])('%s a rental leaves the thing active', async (_name, label, action) => {
+    const onUpdateThing = renderOwner(makeThing({ type: 'LEND_THING', status: 'ACTIVE' }));
+
+    fireEvent.click(await screen.findByRole('button', { name: label }));
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith(`/api/v1/bookings/BK1/${action}/`, { method: 'POST' })
+    );
+    // No `status` key at all — an exact match is the point of the assertion.
+    expect(onUpdateThing).toHaveBeenCalledWith('THG001', { pending_booking: null });
+  });
+
+  test('deciding one request advances to the next one waiting', async () => {
+    const onUpdateThing = renderOwner(makeThing({ type: 'LEND_THING', status: 'ACTIVE' }), {
+      calendar: [
+        { code: 'BK1', status: 'PENDING', end_date: '2099-12-31' },
+        { code: 'BK2', status: 'PENDING', end_date: '2099-12-31' },
+      ],
+    });
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm hold' }));
+
+    await waitFor(() =>
+      expect(onUpdateThing).toHaveBeenCalledWith('THG001', { pending_booking: 'BK2' })
+    );
+
+    // The buttons now act on the second request, with no reload in between.
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel hold' }));
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/bookings/BK2/reject/', { method: 'POST' })
+    );
+  });
+
+  // The calendar returns past bookings too; a finished one must not become the
+  // request the owner's buttons are pointed at.
+  test('a booking that already ended is not the one decided', async () => {
+    renderOwner(makeThing({ type: 'LEND_THING', status: 'ACTIVE' }), {
+      calendar: [
+        { code: 'BKOLD', status: 'PENDING', end_date: '2020-01-01' },
+        { code: 'BKNOW', status: 'PENDING', end_date: '2099-12-31' },
+      ],
+    });
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm hold' }));
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/bookings/BKNOW/accept/', { method: 'POST' })
+    );
+  });
+
+  test.each([
+    ['confirm', 'Confirm hold', 'Error confirming hold.'],
+    ['cancel', 'Cancel hold', 'Error cancelling hold.'],
+  ])('a failed %s says which way it failed and leaves the thing alone', async (_n, label, message) => {
+    const onUpdateThing = renderOwner(makeThing({ type: 'GIFT_THING', status: 'TAKEN' }), {
+      booking: () => Promise.resolve(mockResponse({}, false)),
+    });
+
+    fireEvent.click(await screen.findByRole('button', { name: label }));
+
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(onUpdateThing).not.toHaveBeenCalled();
+  });
+
+  test('a dropped connection while deciding is reported', async () => {
+    renderOwner(makeThing({ type: 'GIFT_THING', status: 'TAKEN' }), {
+      booking: () => Promise.reject(new Error('network down')),
+    });
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm hold' }));
+
+    expect(await screen.findByText('Connection error.')).toBeInTheDocument();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// useThingBooking — handleActivate
+// ════════════════════════════════════════════════════════════════════════
+describe('useThingBooking — reactivating a thing', () => {
+  test('reactivating puts it back and clears the deal it was in', async () => {
+    const onUpdateThing = vi.fn();
+    renderLinkbox({ thing: makeThing({ status: 'INACTIVE' }), userCode: 'OWNER1', onUpdateThing });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reactivate' }));
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/things/THG001/activate/', { method: 'POST' })
+    );
+    expect(onUpdateThing).toHaveBeenCalledWith('THG001', { status: 'ACTIVE', deal: [] });
+  });
+
+  test('a failed reactivate is reported and leaves the thing inactive', async () => {
+    const onUpdateThing = vi.fn();
+    setApi({ activate: () => Promise.resolve(mockResponse({}, false)) });
+    renderLinkbox({ thing: makeThing({ status: 'INACTIVE' }), userCode: 'OWNER1', onUpdateThing });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reactivate' }));
+
+    expect(await screen.findByText('Error reactivating thing.')).toBeInTheDocument();
+    expect(onUpdateThing).not.toHaveBeenCalled();
   });
 });
