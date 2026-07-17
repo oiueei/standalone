@@ -178,13 +178,34 @@ def accept_booking(booking):
     get_or_create for idempotency, backed by the (booking, thing) unique
     constraint.
 
+    A SWAP takes every Thing row it touches in one PK-ordered lock, so two
+    crossed swaps can't deadlock against each other — see the comment inline.
+
     Returns the Thing on success, or None if the booking was no longer PENDING.
     """
     with transaction.atomic():
         booking = BookingPeriod.objects.select_for_update().get(code=booking.code)
         if booking.status != BookingPeriod.Status.PENDING:
             return None
-        thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
+        offered_things = None
+        if booking.thing_type == Thing.Type.SWAP_THING:
+            # A swap is the one accept that locks several Thing rows, so it is the
+            # one that can deadlock: two owners accepting *crossed* swaps (A asks
+            # for X offering Y while B asks for Y offering X) would take X→Y and
+            # Y→X and wait on each other until PostgreSQL aborts one. Locking every
+            # row involved in ONE query ordered by PK gives both transactions the
+            # same order, so the second simply waits its turn.
+            offered_codes = list(booking.offered_things.values_list("code", flat=True))
+            locked = {
+                t.code: t
+                for t in Thing.objects.select_for_update()
+                .filter(code__in=[booking.thing_code_id, *offered_codes])
+                .order_by("code")
+            }
+            thing = locked[booking.thing_code_id]
+            offered_things = [locked[code] for code in offered_codes]
+        else:
+            thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
         # Ownership re-validation for ownership-transferring types (SHARE/SWAP):
         # the booking snapshots owner_code at request time. If an earlier accepted
         # booking already transferred the thing away, this one is stale — bail out
@@ -196,13 +217,11 @@ def accept_booking(booking):
         ):
             return None
         # A SWAP snapshots the offered things at request time too. Re-validate them
-        # under the lock before any mutation: an offered thing already handed off by
-        # an earlier accepted swap (or since deactivated) makes this booking stale —
-        # bail out like an already-processed booking so the same item can never be
-        # transferred twice (stolen from the recipient it first went to).
-        offered_things = None
+        # under the lock (taken above) before any mutation: an offered thing already
+        # handed off by an earlier accepted swap (or since deactivated) makes this
+        # booking stale — bail out like an already-processed booking so the same item
+        # can never be transferred twice (stolen from the recipient it first went to).
         if booking.thing_type == Thing.Type.SWAP_THING:
-            offered_things = list(booking.offered_things.select_for_update())
             for offered in offered_things:
                 if (
                     offered.owner_id != booking.requester_code_id
