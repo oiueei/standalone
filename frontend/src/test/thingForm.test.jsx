@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
 
@@ -112,6 +112,41 @@ describe('AddThingPage — field visibility', () => {
     // Default stays SHARE (a DETAIL_TYPE, not a FEE_TYPE): availability shows, fee hidden.
     expect(container.querySelector('#add-thing-fee')).toBeNull();
     expect(screen.getByText('Availability')).toBeInTheDocument();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// AddThingPage — the (i) explaining the thing types (O2)
+// ════════════════════════════════════════════════════════════════════════
+describe('AddThingPage — type explainer popover', () => {
+  test('the (i) opens and describes each type the collection offers', async () => {
+    const { container } = renderAdd({ collection: { mode: 'PROPRIETARY' } });
+
+    // Icon-only, accessible name = the panel title.
+    const info = await screen.findByRole('button', { name: 'What each type means' });
+    fireEvent.click(info);
+
+    // A PROPRIETARY collection offers GIFT (among others) — its description shows.
+    expect(await screen.findByText(/whoever claims it keeps it/)).toBeInTheDocument();
+    // The bold type label sits next to its description, inside the panel (the same
+    // word is also a Select option, so scope the lookup to the popover).
+    const panel = within(container.querySelector('#add-thing-type-info'));
+    expect(panel.getByText('Gift')).toBeInTheDocument();
+  });
+
+  // The panel is built from the already-filtered typeOptions, so a type the
+  // collection can't hold is never explained. A swap-only collection offers only
+  // SWAP + WISH: GIFT/SHARE must be absent.
+  test('does not list a type the collection filtered out', async () => {
+    renderAdd({ collection: { mode: 'COMMUNITY', is_swap: true } });
+
+    fireEvent.click(await screen.findByRole('button', { name: 'What each type means' }));
+
+    // SWAP is offered here, so its description is present…
+    expect(await screen.findByText(/accepting exchanges ownership both ways/)).toBeInTheDocument();
+    // …but GIFT and SHARE are not part of a swap collection's options.
+    expect(screen.queryByText(/whoever claims it keeps it/)).toBeNull();
+    expect(screen.queryByText(/it keeps circulating in the group/)).toBeNull();
   });
 });
 

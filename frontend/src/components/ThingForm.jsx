@@ -4,11 +4,13 @@ import { FEE_TYPES, DETAIL_TYPES, AVAILABILITY_VALUES, CONDITION_VALUES } from '
 import ImageUpload from './ImageUpload';
 import GalleryUpload from './GalleryUpload';
 import LocalizedInfo from './LocalizedInfo';
+import InfoPopover from './InfoPopover';
 import { useLocalized, localizedCounter } from '../utils/localized';
 
 /**
- * The shared field cluster of the Add and Edit thing forms: type selector, the
- * endless / notify-group toggles, headline, description, fee, the
+ * The shared field cluster of the Add and Edit thing forms: type selector (with
+ * an (i) `InfoPopover` explaining each offered type — O2), the endless /
+ * notify-group toggles, headline, description, fee, the
  * availability/condition/location detail fields, the per-thing tags select, the
  * thumbnail upload and gallery.
  *
@@ -67,18 +69,31 @@ export default function ThingForm({
   return (
     <>
       {showTypeSelector && (
-        <Select
-          language="en"
-          id={`${idPrefix}-type`}
-          texts={{ label: t('addThing.typeLabel') }}
-          options={typeOptions}
-          value={type}
-          onChange={(selectedOptions) => {
-            if (selectedOptions.length > 0) {
-              setType(selectedOptions[0].value);
-            }
-          }}
-        />
+        <>
+          <Select
+            language="en"
+            id={`${idPrefix}-type`}
+            texts={{ label: t('addThing.typeLabel') }}
+            options={typeOptions}
+            value={type}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setType(selectedOptions[0].value);
+              }
+            }}
+          />
+          {/* One-word type names don't tell a first-timer that a "Share" transfers
+              ownership or a "Wish" isn't an object. The (i) explains each type the
+              collection actually offers — built from typeOptions, already filtered,
+              so it never lists one the owner can't pick (O2). */}
+          <div className="info-popover-row info-popover-row--end">
+            <InfoPopover id={`${idPrefix}-type-info`} title={t('typeInfo.title')}>
+              {typeOptions.map(({ label, value }) => (
+                <p key={value}><b>{label}</b> — {t('typeInfo.' + value)}</p>
+              ))}
+            </InfoPopover>
+          </div>
+        </>
       )}
       {showEndless && (
         <div className="toggle-left">

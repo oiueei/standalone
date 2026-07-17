@@ -1355,6 +1355,12 @@ main:focus {
   gap: var(--spacing-2-xs);
 }
 
+/* Icon-only variant: no hint text on the left (the field's own label carries the
+   context), so the lone (i) sits flush right — e.g. the thing-type explainer. */
+.info-popover-row--end {
+  justify-content: flex-end;
+}
+
 .info-popover {
   position: relative;
   display: inline-flex;

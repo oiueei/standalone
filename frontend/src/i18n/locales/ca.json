@@ -565,6 +565,16 @@
     "WISH_THING": "Petició",
     "SWAP_THING": "Intercanvi"
   },
+  "typeInfo": {
+    "title": "Què significa cada tipus",
+    "GIFT_THING": "Es regala — qui el demana se'l queda.",
+    "SELL_THING": "En venda al preu que posis.",
+    "RENT_THING": "Es lloga per dies, amb preu.",
+    "LEND_THING": "Es deixa uns dies i torna.",
+    "SHARE_THING": "En acceptar una petició passa a ser de qui l'ha demanat — i segueix circulant pel grup.",
+    "WISH_THING": "No és un objecte: és una petició al grup. Els altres contesten com poden ajudar.",
+    "SWAP_THING": "S'intercanvia per coses d'un altre membre — en acceptar, la propietat canvia en tots dos sentits."
+  },
   "availability": {
     "IMMEDIATE": "Immediata",
     "NEXT_WEEK": "La setmana que ve",

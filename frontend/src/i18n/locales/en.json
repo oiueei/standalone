@@ -583,6 +583,16 @@
     "WISH_THING": "Wish",
     "SWAP_THING": "Swap"
   },
+  "typeInfo": {
+    "title": "What each type means",
+    "GIFT_THING": "A give-away — whoever claims it keeps it.",
+    "SELL_THING": "For sale at the price you set.",
+    "RENT_THING": "Rented out for a fee, by dates.",
+    "LEND_THING": "Borrowed for a few days, then returned.",
+    "SHARE_THING": "Accepting a request gives it to the requester — it keeps circulating in the group.",
+    "WISH_THING": "Not an object: a request to the group. Others answer how they can help.",
+    "SWAP_THING": "Traded for another member's things — accepting exchanges ownership both ways."
+  },
   "availability": {
     "IMMEDIATE": "Immediate",
     "NEXT_WEEK": "Next week",

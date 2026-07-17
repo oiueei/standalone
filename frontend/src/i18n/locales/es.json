@@ -565,6 +565,16 @@
     "WISH_THING": "Pedido",
     "SWAP_THING": "Intercambio"
   },
+  "typeInfo": {
+    "title": "Qué significa cada tipo",
+    "GIFT_THING": "Se regala — quien lo pide se lo queda.",
+    "SELL_THING": "En venta al precio que pongas.",
+    "RENT_THING": "Se alquila por días, con precio.",
+    "LEND_THING": "Se presta unos días y vuelve.",
+    "SHARE_THING": "Al aceptar una petición pasa a ser de quien lo pidió — y sigue circulando en el grupo.",
+    "WISH_THING": "No es un objeto: es una petición al grupo. Los demás contestan cómo ayudar.",
+    "SWAP_THING": "Se intercambia por cosas de otro miembro — al aceptar, la propiedad cambia en ambos sentidos."
+  },
   "availability": {
     "IMMEDIATE": "Inmediata",
     "NEXT_WEEK": "La semana que viene",
