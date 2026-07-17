@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { configure } from '@testing-library/react';
+import nodeConsole from 'node:console';
 import './i18n-mock';
 
 // findBy*/waitFor default to 1s, which pages with chained async fetches
@@ -30,3 +31,21 @@ if (!globalThis.ResizeObserver) {
     disconnect() {}
   };
 }
+
+// jsdom can't parse HDS's CSS and logs this on every stylesheet import —
+// harmless, but it buries real failures in CI output. Drop only this
+// message; everything else still reaches console.error. jsdom's
+// VirtualConsole forwards to the *original* node:console object it was
+// handed at environment setup, ahead of Vitest's own console wrapper, so
+// that's the object that actually needs patching (patching globalThis.console
+// alone leaves this one call site un-intercepted).
+function withoutCssParseNoise(original) {
+  return (...args) => {
+    if (typeof args[0] === 'string' && args[0].includes('Could not parse CSS stylesheet')) {
+      return;
+    }
+    original(...args);
+  };
+}
+nodeConsole.error = withoutCssParseNoise(nodeConsole.error);
+console.error = withoutCssParseNoise(console.error);
