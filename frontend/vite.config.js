@@ -31,6 +31,11 @@ export default defineConfig(({ mode }) => ({
     globals: true,
     setupFiles: './src/test/setup.js',
     css: false,
+    // The jest-axe smoke tests on the heaviest form pages take ~4-6 s on a shared
+    // CI runner once V8 coverage instrumentation is on (the suite runs 2× slower
+    // there than locally) — the 5 s vitest default made them flake. Passing tests
+    // don't wait, so the higher ceiling costs nothing.
+    testTimeout: 20000,
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'html'],
