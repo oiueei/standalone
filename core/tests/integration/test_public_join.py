@@ -11,7 +11,7 @@ import pytest
 from django.core import mail
 from rest_framework.test import APIClient
 
-from core.models import RSVP, Collection, User
+from core.models import RSVP, Collection, Event, User
 
 POP_IN_URL = "/api/v1/auth/pop-in/"
 
@@ -199,3 +199,57 @@ class TestPublicAutoJoin:
             format="json",
         )
         assert mail.outbox[0].subject == "Hello, welcome to OIUEEI!"
+
+
+@pytest.mark.django_db
+class TestMemberJoinedIsLoggedOncePerJoin:
+    """One person joining once must read as one join.
+
+    The M2M add is idempotent and pop-in re-runs on every login-to-act visit, so
+    logging MEMBER_JOINED unconditionally counted a returning member as a fresh
+    join each time — inflating member-join counts and the guest→creator funnel in
+    stats_summary, which reads one MEMBER_JOINED per person as the entry point.
+    """
+
+    EMAIL = "rejoin@test.com"
+
+    def _pop_in(self, join_setup):
+        return join_setup["anon"].post(
+            POP_IN_URL,
+            {"email": self.EMAIL, "collection_code": "JPUB01"},
+            format="json",
+        )
+
+    def _joins(self, user, collection):
+        return Event.objects.filter(
+            kind=Event.Kind.MEMBER_JOINED,
+            actor_code=user.code,
+            collection_code=collection.code,
+        ).count()
+
+    def test_a_first_join_is_logged(self, join_setup):
+        self._pop_in(join_setup)
+
+        user = User.objects.get(email=self.EMAIL)
+        assert self._joins(user, join_setup["public"]) == 1
+
+    def test_re_entering_as_an_existing_member_logs_nothing_new(self, join_setup):
+        # Three visits, one member: the login-to-act pop-in fires on every attempt
+        # to act on a public collection, not just the first.
+        self._pop_in(join_setup)
+        self._pop_in(join_setup)
+        self._pop_in(join_setup)
+
+        user = User.objects.get(email=self.EMAIL)
+        assert self._joins(user, join_setup["public"]) == 1
+        assert join_setup["public"].invites.filter(code=user.code).exists()
+
+    def test_rejoining_after_leaving_is_a_real_join_and_logs_again(self, join_setup):
+        self._pop_in(join_setup)
+        user = User.objects.get(email=self.EMAIL)
+
+        # Leaving takes the user out of invites, so coming back is a genuine join.
+        join_setup["public"].invites.remove(user)
+        self._pop_in(join_setup)
+
+        assert self._joins(user, join_setup["public"]) == 2

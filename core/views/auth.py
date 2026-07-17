@@ -103,19 +103,27 @@ def _join_collection(collection, user):
 
     Every join path funnels through here: accepting an invitation, a share-token
     pop-in, joining a PUBLIC collection to act on it, and the onboarding
-    collections. It logs the MEMBER_JOINED event and — the first time this user
-    becomes a member — emails the collection's welcome & rules PDF, if the owner
-    set one.
+    collections. The first time this user becomes a member it logs the
+    MEMBER_JOINED event and emails the collection's welcome & rules PDF, if the
+    owner set one.
 
     "First time" is decided **before** the M2M add: the add is idempotent and
-    re-runs on every login-to-act pop-in, so an existing member re-entering must
-    not be sent the document again.
+    re-runs on every login-to-act pop-in (a share-token re-visit, a public
+    collection re-join, repeat onboarding), so an existing member re-entering
+    must be a no-op — they must not be sent the document again, and must not log
+    a second MEMBER_JOINED, which would count one person as many joins and
+    inflate the guest→creator funnel in stats_summary.
+
+    A member who left is out of ``invites``, so a genuine re-join after a
+    MEMBER_LEFT logs again — which is what it is.
     """
     already_member = collection.invites.filter(code=user.code).exists()
     collection.invites.add(user)
-    Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
+    if already_member:
+        return
 
-    if already_member or not collection.welcome_doc:
+    Event.log(Event.Kind.MEMBER_JOINED, actor=user, collection=collection)
+    if not collection.welcome_doc:
         return
     send_collection_welcome_doc_email(
         collection.headline,
