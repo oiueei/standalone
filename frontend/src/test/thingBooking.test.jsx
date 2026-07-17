@@ -437,7 +437,7 @@ describe('useThingBooking — a guest asks for a hold', () => {
   test('a hold that lands confirms it', async () => {
     claim();
 
-    expect(await screen.findByText('Hold requested — you’ll hear back soon.')).toBeInTheDocument();
+    expect(await screen.findByText("Request sent — you'll hear back soon.")).toBeInTheDocument();
   });
 
   // A thing can live in several collections, and only the requester knows which
