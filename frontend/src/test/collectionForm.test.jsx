@@ -117,6 +117,23 @@ describe('CreateCollectionPage', () => {
       expect(body).toMatchObject({ headline: 'My Swap', mode: 'COMMUNITY', is_swap: true });
     });
   });
+
+  // O1: the optional fields (thumbnail, welcome doc, tags, language, rental rules)
+  // fold into a "More options" accordion, closed on load, so the happy path is
+  // just title + mode + who-can-add. Nothing inside it is required or can block
+  // submit, so the form is still completable without ever opening it.
+  test('optional fields stay hidden until "More options" is opened', async () => {
+    const { container } = renderCreate();
+
+    const thumb = () => container.querySelector('#create-collection-thumbnail');
+    expect(thumb()).not.toBeVisible();
+    expect(container.querySelector('#create-collection-welcome-doc')).not.toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+
+    await waitFor(() => expect(thumb()).toBeVisible());
+    expect(container.querySelector('#create-collection-welcome-doc')).toBeVisible();
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -191,6 +208,21 @@ describe('EditCollectionPage — load + pause + submit', () => {
     expect(container.querySelector('#pause-message')).toBeNull();
     expect(screen.getByText('Back in a week')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Resume collection' })).toBeInTheDocument();
+  });
+
+  // O1 on Edit: digest, language, thumbnail and the welcome doc fold into the
+  // same "More options" accordion; status, mode and the identity cluster stay
+  // visible. The digest select is the Edit-only field that moved.
+  test('the digest select is hidden until "More options" is opened', async () => {
+    const { container } = renderEdit({ headline: 'Comm', mode: 'PROPRIETARY', allowed_thing_types: ['GIFT_THING'] });
+
+    await screen.findByDisplayValue('Comm');
+    const digest = () => container.querySelector('#edit-collection-digest');
+    expect(digest()).not.toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+
+    await waitFor(() => expect(digest()).toBeVisible());
   });
 
   test('PATCHes /api/v1/collections/{code}/ with the edited fields', async () => {

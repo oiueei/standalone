@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, RadioButton } from 'hds-react';
+import { TextInput, TextArea, Select, Button, RadioButton, Accordion } from 'hds-react';
 import { isLockedToSingleType, reconcileAllowedTypes } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
+import RentalRulesFields from '../components/RentalRulesFields';
 import ImageUpload from '../components/ImageUpload';
 import PdfUpload from '../components/PdfUpload';
 import { SUPPORTED_LANGUAGES } from '../i18n';
@@ -189,52 +190,69 @@ export default function CreateCollectionPage() {
             setRequireMinimumSwapItems={setRequireMinimumSwapItems}
             allowedThingTypes={allowedThingTypes}
             setAllowedThingTypes={setAllowedThingTypes}
-            rentalDurations={rentalDurations}
-            setRentalDurations={setRentalDurations}
-            rentalWeekdays={rentalWeekdays}
-            setRentalWeekdays={setRentalWeekdays}
             visibility={visibility}
             setVisibility={setVisibility}
             errors={{ ...errors, allowedThingTypes: allowedTypesError }}
             theeemeColor01={theeemeColors.color_01}
           />
-          <div>
-            <TagInput
-              tags={tags}
-              onChange={setTags}
-              label={t('createCollection.tagsLabel')}
-              placeholder={t('createCollection.tagsPlaceholder')}
-              helperText={t('createCollection.tagsHelper')}
-            />
-            <LocalizedInfo id="create-collection-tags-info" variant="tags" />
-          </div>
-          <Select
-            language="en"
-            id="create-collection-language"
-            texts={{ label: t('collectionLanguage.label') }}
-            helper={t('collectionLanguage.helper')}
-            options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
-            value={language}
-            onChange={(selectedOptions) => {
-              if (selectedOptions.length > 0) {
-                setLanguage(selectedOptions[0].value);
-              }
-            }}
-          />
-          <ImageUpload
-            id="create-collection-thumbnail"
-            label={t('upload.thumbnailLabel')}
-            value={thumbnail}
-            onChange={setThumbnail}
-            folder="oiueei/collections"
-          />
-          <PdfUpload
-            id="create-collection-welcome-doc"
-            label={t('upload.welcomeDocLabel')}
-            onChange={setWelcomeDoc}
-            helperText={t('upload.welcomeDocHelper')}
-          />
         </div>
+        {/* Everything optional, with a safe default, folds away so the happy path
+            (title, mode, who can add) reads at a glance (DESIGN §3, O1). */}
+        <Accordion
+          heading={t('createCollection.advancedTitle')}
+          language="en"
+          headingLevel={2}
+          theme={theeemeColors.color_04 ? { '--header-color': `var(--color-${theeemeColors.color_04})` } : undefined}
+        >
+          <div className="form-grid">
+            <div>
+              <TagInput
+                tags={tags}
+                onChange={setTags}
+                label={t('createCollection.tagsLabel')}
+                placeholder={t('createCollection.tagsPlaceholder')}
+                helperText={t('createCollection.tagsHelper')}
+              />
+              <LocalizedInfo id="create-collection-tags-info" variant="tags" />
+            </div>
+            {!isSwap && !isShare && (
+              <RentalRulesFields
+                idPrefix="create-collection"
+                rentalDurations={rentalDurations}
+                setRentalDurations={setRentalDurations}
+                rentalWeekdays={rentalWeekdays}
+                setRentalWeekdays={setRentalWeekdays}
+                theeemeColor01={theeemeColors.color_01}
+              />
+            )}
+            <Select
+              language="en"
+              id="create-collection-language"
+              texts={{ label: t('collectionLanguage.label') }}
+              helper={t('collectionLanguage.helper')}
+              options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
+              value={language}
+              onChange={(selectedOptions) => {
+                if (selectedOptions.length > 0) {
+                  setLanguage(selectedOptions[0].value);
+                }
+              }}
+            />
+            <ImageUpload
+              id="create-collection-thumbnail"
+              label={t('upload.thumbnailLabel')}
+              value={thumbnail}
+              onChange={setThumbnail}
+              folder="oiueei/collections"
+            />
+            <PdfUpload
+              id="create-collection-welcome-doc"
+              label={t('upload.welcomeDocLabel')}
+              onChange={setWelcomeDoc}
+              helperText={t('upload.welcomeDocHelper')}
+            />
+          </div>
+        </Accordion>
         <div className="form-actions">
           <Button
             fullWidth

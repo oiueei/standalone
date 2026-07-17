@@ -456,6 +456,7 @@
     "allowedTypesSwapHelper": "Swap mode only accepts swap things.",
     "allowedTypesShareHelper": "Share-only mode only accepts share things.",
     "allowedTypesAtLeastOne": "Pick at least one type.",
+    "advancedTitle": "More options",
     "tagsLabel": "Tags",
     "tagsPlaceholder": "e.g. Vintage, Kitchen, Outdoor",
     "tagsHelper": "Optional labels to organise this collection's things",

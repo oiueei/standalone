@@ -6,13 +6,16 @@ import {
   isLockedToSingleType,
   reconcileAllowedTypes,
 } from '../constants/things';
-import { RENTAL_DURATION_PRESETS, WEEKDAY_VALUES, durationLabel, weekdayLabel, weekdayNarrow } from '../utils/rental';
 
 /**
- * The shared mode/swap/share field cluster of the Create and Edit
- * collection forms: the COMMUNITY-only toggles (swap, require-3-items, share,
- * newsletter) and the allowed-thing-types
- * multi-select (locked + pre-filled when a flag forces a single type).
+ * The shared identity cluster of the Create and Edit collection forms — the part
+ * that stays visible above the "More options" accordion (O1): the visibility
+ * toggle, the COMMUNITY-only toggles (swap, require-3-items, share, newsletter)
+ * and the allowed-thing-types multi-select (locked + pre-filled when a flag
+ * forces a single type; its "pick at least one" rule must never hide).
+ *
+ * The rental-rules fields that used to trail this cluster now live in
+ * `RentalRulesFields` (rendered by the pages inside the accordion).
  *
  * Controlled: every value + setter is owned by the page; this component only
  * renders the cluster and holds the (identical-across-both-pages) toggle
@@ -32,16 +35,12 @@ export default function CollectionForm({
   setRequireMinimumSwapItems,
   allowedThingTypes,
   setAllowedThingTypes,
-  rentalDurations = [],
-  setRentalDurations = () => {},
-  rentalWeekdays = [],
-  setRentalWeekdays = () => {},
   visibility = 'PRIVATE',
   setVisibility = () => {},
   errors,
   theeemeColor01,
 }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const toggleTheme = theeemeColor01 ? { '--toggle-button-color': `var(--color-${theeemeColor01})` } : undefined;
   const locked = isLockedToSingleType({ isSwap, isShare });
 
@@ -159,63 +158,6 @@ export default function CollectionForm({
           invalid={!!errors.allowedThingTypes}
         />
       </div>
-      {/* Rental rules (#7) — for lending/renting items. Hidden for swap/share-only
-          collections, which can't hold LEND/RENT things. */}
-      {!isSwap && !isShare && (
-        <>
-          <Select
-            language="en"
-            multiSelect
-            id={`${idPrefix}-rental-durations`}
-            texts={{
-              label: t('rental.durationsLabel'),
-              placeholder: t('rental.durationsPlaceholder'),
-              assistive: t('rental.durationsHelper'),
-            }}
-            options={RENTAL_DURATION_PRESETS.map((p) => ({ label: t(p.key), value: String(p.days) }))}
-            value={rentalDurations.map((d) => ({ label: durationLabel(d, t), value: String(d) }))}
-            onChange={(opts) => setRentalDurations(opts.map((o) => Number(o.value)).sort((a, b) => a - b))}
-          />
-          <div className="weekday-field">
-            <p className="weekday-field-label" id={`${idPrefix}-rental-weekdays-label`}>
-              {t('rental.weekdaysLabel')}
-            </p>
-            <div
-              className="weekday-chips"
-              role="group"
-              aria-labelledby={`${idPrefix}-rental-weekdays-label`}
-            >
-              {WEEKDAY_VALUES.map((w) => {
-                const selected = rentalWeekdays.includes(w);
-                const full = weekdayLabel(w, i18n.language);
-                return (
-                  <button
-                    key={w}
-                    type="button"
-                    className={`weekday-chip${selected ? ' selected' : ''}`}
-                    aria-pressed={selected}
-                    aria-label={full}
-                    title={full}
-                    onClick={() =>
-                      setRentalWeekdays(
-                        selected
-                          ? rentalWeekdays.filter((x) => x !== w)
-                          : [...rentalWeekdays, w].sort((a, b) => a - b)
-                      )
-                    }
-                    style={selected && theeemeColor01
-                      ? { backgroundColor: `var(--color-${theeemeColor01})`, borderColor: `var(--color-${theeemeColor01})`, color: 'var(--color-white)' }
-                      : undefined}
-                  >
-                    {weekdayNarrow(w, i18n.language)}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="weekday-field-helper">{t('rental.weekdaysHelper')}</p>
-          </div>
-        </>
-      )}
     </>
   );
 }

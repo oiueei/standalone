@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { TextInput, TextArea, Select, Button, RadioButton, Notification } from 'hds-react';
+import { TextInput, TextArea, Select, Button, RadioButton, Notification, Accordion } from 'hds-react';
 import { isLockedToSingleType, reconcileAllowedTypes } from '../constants/things';
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
+import RentalRulesFields from '../components/RentalRulesFields';
 import ImageUpload from '../components/ImageUpload';
 import PdfUpload from '../components/PdfUpload';
 import { SUPPORTED_LANGUAGES } from '../i18n';
@@ -316,67 +317,84 @@ export default function EditCollectionPage() {
           setRequireMinimumSwapItems={setRequireMinimumSwapItems}
           allowedThingTypes={allowedThingTypes}
           setAllowedThingTypes={setAllowedThingTypes}
-          rentalDurations={rentalDurations}
-          setRentalDurations={setRentalDurations}
-          rentalWeekdays={rentalWeekdays}
-          setRentalWeekdays={setRentalWeekdays}
           visibility={visibility}
           setVisibility={setVisibility}
           errors={{ ...errors, allowedThingTypes: allowedTypesError }}
           theeemeColor01={tc.color_01}
         />
-        <div>
-          <TagInput
-            tags={tags}
-            onChange={setTags}
-            label={t('createCollection.tagsLabel')}
-            placeholder={t('createCollection.tagsPlaceholder')}
-            helperText={t('createCollection.tagsHelper')}
-          />
-          <LocalizedInfo id="edit-collection-tags-info" variant="tags" />
-        </div>
-        <Select
-                language="en"
-          id="edit-collection-digest"
-          texts={{ label: t('editCollection.digestLabel') }}
-          helper={t('editCollection.digestHelper')}
-          options={DIGEST_OPTIONS}
-          value={digestFrequency}
-          onChange={(selectedOptions) => {
-            if (selectedOptions.length > 0) {
-              setDigestFrequency(selectedOptions[0].value);
-            }
-          }}
-        />
-        <Select
-          language="en"
-          id="edit-collection-language"
-          texts={{ label: t('collectionLanguage.label') }}
-          helper={t('collectionLanguage.helper')}
-          options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
-          value={language}
-          onChange={(selectedOptions) => {
-            if (selectedOptions.length > 0) {
-              setLanguage(selectedOptions[0].value);
-            }
-          }}
-        />
-        <ImageUpload
-          id="edit-collection-thumbnail"
-          label={t('upload.thumbnailLabel')}
-          value={thumbnail}
-          onChange={setThumbnail}
-          currentUrl={thumbnailUrl}
-          folder="oiueei/collections"
-        />
-        <PdfUpload
-          id="edit-collection-welcome-doc"
-          label={t('upload.welcomeDocLabel')}
-          onChange={setWelcomeDoc}
-          currentUrl={welcomeDocUrl}
-          helperText={t('upload.welcomeDocHelper')}
-        />
       </div>
+      {/* Everything optional, with a safe default, folds away so the happy path
+          (title, status, mode, who can add) reads at a glance (DESIGN §3, O1). */}
+      <Accordion
+        heading={t('createCollection.advancedTitle')}
+        language="en"
+        headingLevel={2}
+        theme={tc.color_04 ? { '--header-color': `var(--color-${tc.color_04})` } : undefined}
+      >
+        <div className="form-grid">
+          <div>
+            <TagInput
+              tags={tags}
+              onChange={setTags}
+              label={t('createCollection.tagsLabel')}
+              placeholder={t('createCollection.tagsPlaceholder')}
+              helperText={t('createCollection.tagsHelper')}
+            />
+            <LocalizedInfo id="edit-collection-tags-info" variant="tags" />
+          </div>
+          {!isSwap && !isShare && (
+            <RentalRulesFields
+              idPrefix="edit-collection"
+              rentalDurations={rentalDurations}
+              setRentalDurations={setRentalDurations}
+              rentalWeekdays={rentalWeekdays}
+              setRentalWeekdays={setRentalWeekdays}
+              theeemeColor01={tc.color_01}
+            />
+          )}
+          <Select
+            language="en"
+            id="edit-collection-digest"
+            texts={{ label: t('editCollection.digestLabel') }}
+            helper={t('editCollection.digestHelper')}
+            options={DIGEST_OPTIONS}
+            value={digestFrequency}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setDigestFrequency(selectedOptions[0].value);
+              }
+            }}
+          />
+          <Select
+            language="en"
+            id="edit-collection-language"
+            texts={{ label: t('collectionLanguage.label') }}
+            helper={t('collectionLanguage.helper')}
+            options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
+            value={language}
+            onChange={(selectedOptions) => {
+              if (selectedOptions.length > 0) {
+                setLanguage(selectedOptions[0].value);
+              }
+            }}
+          />
+          <ImageUpload
+            id="edit-collection-thumbnail"
+            label={t('upload.thumbnailLabel')}
+            value={thumbnail}
+            onChange={setThumbnail}
+            currentUrl={thumbnailUrl}
+            folder="oiueei/collections"
+          />
+          <PdfUpload
+            id="edit-collection-welcome-doc"
+            label={t('upload.welcomeDocLabel')}
+            onChange={setWelcomeDoc}
+            currentUrl={welcomeDocUrl}
+            helperText={t('upload.welcomeDocHelper')}
+          />
+        </div>
+      </Accordion>
       <div className="form-actions">
         <Button disabled={submitting} onClick={handleSubmit} style={{ ...btnStyle, width: '100%' }}>
           {submitting ? t('common.saving') : t('common.save')}

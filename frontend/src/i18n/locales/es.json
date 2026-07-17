@@ -438,6 +438,7 @@
     "allowedTypesSwapHelper": "El modo intercambio solo permite cosas del tipo intercambio.",
     "allowedTypesShareHelper": "El modo exclusivamente share solo permite cosas del tipo share.",
     "allowedTypesAtLeastOne": "Elige al menos un tipo.",
+    "advancedTitle": "Más opciones",
     "tagsLabel": "Etiquetas",
     "tagsPlaceholder": "p. ej. Vintage, Cocina, Exterior",
     "tagsHelper": "Etiquetas opcionales para organizar las cosas de esta colección",

@@ -438,6 +438,7 @@
     "allowedTypesSwapHelper": "El mode intercanvi només accepta coses d'intercanvi.",
     "allowedTypesShareHelper": "El mode exclusivament share només accepta coses share.",
     "allowedTypesAtLeastOne": "Tria almenys un tipus.",
+    "advancedTitle": "Més opcions",
     "tagsLabel": "Etiquetes",
     "tagsPlaceholder": "p. ex. Vintage, Cuina, Exterior",
     "tagsHelper": "Etiquetes opcionals per organitzar les coses d'aquesta col·lecció",
