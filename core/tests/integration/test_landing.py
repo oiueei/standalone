@@ -46,6 +46,17 @@ class TestMagicLinkLanding:
         assert res.data["collection"] == collection.code
         assert res.data["invited_collection"] == collection.code
 
+    def test_link_carrying_an_inactive_collection_falls_back(self, user, collection):
+        # The collection went INACTIVE between the pop-in and the click — landing
+        # there would 403. The origin rule takes over instead (POPIN -> welcome).
+        collection.status = Collection.Status.INACTIVE
+        collection.save()
+        res = _verify(_magic_link(user, origin=RSVP.Origin.POPIN, target_code=collection.code))
+
+        assert res.data["landing"] == "welcome"
+        assert "collection" not in res.data
+        assert "invited_collection" not in res.data
+
     def test_login_with_exactly_one_collection_lands_on_it(self, user, collection):
         # `collection` is this user's only one.
         res = _verify(_magic_link(user))

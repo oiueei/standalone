@@ -384,9 +384,17 @@ class VerifyLinkView(APIView):
         # A pop-in / share-link magic link can carry the collection the visitor
         # came to join (``target_code``, stamped by PopInView). Drop them straight
         # onto it after login — they were already added to its invites (private
-        # share) or it is PUBLIC (login-to-act).
+        # share) or it is PUBLIC (login-to-act). If the collection went INACTIVE
+        # between the pop-in and the click, this simply doesn't match — the
+        # origin rules below (POPIN -> /welcome, else solo-collection/home) take
+        # over naturally instead of landing the user on a page that 403s.
         invited_collection = None
-        if rsvp.target_code and Collection.objects.filter(code=rsvp.target_code).exists():
+        if (
+            rsvp.target_code
+            and Collection.objects.filter(
+                code=rsvp.target_code, status=Collection.Status.ACTIVE
+            ).exists()
+        ):
             invited_collection = rsvp.target_code
         origin = rsvp.origin
 
