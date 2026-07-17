@@ -45,13 +45,14 @@ export default defineConfig(({ mode }) => ({
       ],
       // Ratchet floor: set ~2-3 points below the suite's current coverage so it
       // guards against regression without blocking. Raise it as coverage grows.
-      // Bumped after the rental / a11y / palette tests (O3/O4) and the CSV-options
-      // tests lifted coverage to ~57.5 / 50.8 / 44.3 / 60.7.
+      // Bumped after the O1-O4 upload-pipeline / bulk-CSV / FAQ / booking-decision
+      // tests lifted coverage to ~71.8 / 63.2 / 60.3 / 75.2 (v8 wobbles ±0.03
+      // between runs, hence the wider-than-usual gap on branches/functions).
       thresholds: {
-        statements: 55,
-        branches: 48,
-        functions: 42,
-        lines: 58,
+        statements: 69,
+        branches: 60,
+        functions: 57,
+        lines: 72,
       },
     },
   },
