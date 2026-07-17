@@ -187,8 +187,9 @@ Reusable component for rendering a thing as an HDS `Card`. Used by `CollectionPa
 
 - **Card**: the component uses HDS `Card` (a `<div>`-based container) instead of `Linkbox`, since it contains interactive elements (buttons, links). The thumbnail and headline are wrapped in `<Link>` components for navigation to `ThingPage` (`/collections/{code}/things/{thingCode}` or `/things/{thingCode}`). No `stopPropagation` hacks needed.
 - **Community attribution** (before headline, COMMUNITY collections only): when `collectionMode === 'COMMUNITY'`, renders a `thing-card-meta` paragraph showing `owner_name` — linked to the member's profile (`/{thing.owner}`, `.thing-card-owner-link`) — and the creation date formatted as dd/mm (`toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit' })`). Uses the `collectionMode` prop passed from `CollectionPage`.
-- **Tags row** (before headline): HDS `Tag` components in a flex row showing:
+- **Tags row** (before headline): HDS `Tag` components (rendered by the shared `ThingTags` component) in a flex row showing:
   - **Type** tag (always): Gift, Sale, Order, Rental, Lend, Share, Wish.
+  - **New** tag (everyone, design round S7): shown for `NEW_THING_WINDOW_DAYS` (7) days after `thing.created`, excluding INACTIVE things ("newly available", not "recently created but hidden") — summer-yellow/black `TAG_THEMES.fresh`. Stateless (no per-user tracking, DESIGN §9): a pure function of `created` + `status`, matches the weekly digest cadence. Always leads the row, right after the type tag, even when `showType` is false.
   - **Requested** tag (owner only, `status === 'TAKEN'`): amber background.
   - **Inactive** tag (owner only, `status === 'INACTIVE'`): grey background.
   - **Pending questions** tag (owner only, `pending_questions > 0`): amber background — uses the `pending_questions` serializer field (count of unanswered FAQs).

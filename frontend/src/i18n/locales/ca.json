@@ -311,7 +311,8 @@
   "thingTags": {
     "requested": "Sol·licitat",
     "inactive": "Inactiu",
-    "pendingQuestions": "Preguntes pendents"
+    "pendingQuestions": "Preguntes pendents",
+    "new": "Novetat"
   },
   "request": {
     "pageTitle": "Reservar: {{headline}}",

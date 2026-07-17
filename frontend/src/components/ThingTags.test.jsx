@@ -4,6 +4,8 @@ import ThingTags from './ThingTags';
 
 const thing = { type: 'GIFT_THING', status: 'ACTIVE', tags: ['Vintage'] };
 
+const daysAgo = (n) => new Date(Date.now() - n * 24 * 3600 * 1000).toISOString();
+
 describe('ThingTags', () => {
   test('shows the thing type and its owner-defined tags', () => {
     render(<ThingTags thing={thing} isOwner={false} />);
@@ -18,5 +20,20 @@ describe('ThingTags', () => {
 
     expect(screen.getByText('Toys')).toBeInTheDocument();
     expect(screen.queryByText(/\{"es"/)).toBeNull();
+  });
+
+  test('tags a thing created 2 days ago as new', () => {
+    render(<ThingTags thing={{ ...thing, created: daysAgo(2) }} isOwner={false} />);
+    expect(screen.getByText('New')).toBeInTheDocument();
+  });
+
+  test('does not tag a thing created 8 days ago as new', () => {
+    render(<ThingTags thing={{ ...thing, created: daysAgo(8) }} isOwner={false} />);
+    expect(screen.queryByText('New')).toBeNull();
+  });
+
+  test('does not tag a recently created but INACTIVE thing as new', () => {
+    render(<ThingTags thing={{ ...thing, created: daysAgo(2), status: 'INACTIVE' }} isOwner />);
+    expect(screen.queryByText('New')).toBeNull();
   });
 });

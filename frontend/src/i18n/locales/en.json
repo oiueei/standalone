@@ -329,7 +329,8 @@
   "thingTags": {
     "requested": "Requested",
     "inactive": "Inactive",
-    "pendingQuestions": "Pending questions"
+    "pendingQuestions": "Pending questions",
+    "new": "New"
   },
   "request": {
     "pageTitle": "Request: {{headline}}",

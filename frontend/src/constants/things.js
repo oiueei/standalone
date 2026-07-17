@@ -72,4 +72,7 @@ export const TAG_THEMES = {
   // Owner-defined collection tags assigned to a thing — neutral bussi tint,
   // distinct from the amber status tags and grey inactive tag.
   custom: { '--tag-background': 'var(--color-bus-light)', '--tag-color': 'var(--color-bus)' },
+  // "New" signal (design round, S7) — summer yellow + black text, AA contrast,
+  // warm rather than alarming.
+  fresh: { '--tag-background': 'var(--color-summer)', '--tag-color': 'var(--color-black-90)' },
 };
