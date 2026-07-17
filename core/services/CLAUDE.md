@@ -66,7 +66,7 @@ Every email belongs to one of three categories. Each function routes through the
 | Category | Constant | User flag | Scope |
 |----------|----------|-----------|-------|
 | **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_welcome_doc_email`, `send_collection_revoke_email` |
-| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_thing_reported_email`, `send_return_reminder_email`, `send_broadcast_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
+| **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_booking_unavailable_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_thing_reported_email`, `send_return_reminder_email`, `send_broadcast_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
 | **Cat. 3 — News** | `CATEGORY_NEWS` | `User.notify_news` | `send_digest_email`, `send_newsletter_email` |
 
 - **Lookup fallback**: if no `User` matches the recipient email (e.g. a not-yet-registered invitee), `_should_send` returns `True` — all emails reach non-users by default.
@@ -112,6 +112,7 @@ Every user-facing string lives in a per-language catalogue — `email_texts/en.p
 | `send_booking_request_email(requester, thing, booking, owner_email, accept_link, reject_link)` | Guest submits a hold request | Thing owner |
 | `send_booking_confirmation_email(requester, thing, booking)` | Guest submits a hold request | Requester (confirmation of what was requested) |
 | `send_booking_decision_email(booking, thing, accepted)` | Owner accepts or rejects a booking | Requester |
+| `send_booking_unavailable_email(booking, thing)` | Owner's accept of a rival SHARE/SWAP request auto-declines this pending sibling | This booking's requester (warm, non-blaming — the thing went to someone else) |
 | `send_collection_invite_email(inviter_name, collection_headline, email, accept_link, reject_link)` | Owner invites a user to a collection | Invitee |
 | `send_invite_rejected_email(invitee_name, collection_headline, owner_email)` | Invitee declines a collection invitation | Collection owner |
 | `send_collection_welcome_doc_email(collection_headline, doc_url, email)` | A user becomes a member of a collection **for the first time** (any join path — invite, share-token pop-in, public-collection join, onboarding) and the owner has set a welcome PDF | The new member. The PDF travels as a **link** (Cloudinary), never an attachment. Membership lifecycle ⇒ Cat. 1: a member who never sees the rules can't follow them |

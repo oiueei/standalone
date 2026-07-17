@@ -964,7 +964,7 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 ### Service Layer
 
 Business logic is extracted into `core/services/`:
-- `email_service.py` — All email HTML composition and sending (22 `send_*` functions). Uses `django.utils.html.escape()`.
+- `email_service.py` — All email HTML composition and sending (23 `send_*` functions). Uses `django.utils.html.escape()`.
 - `booking_service.py` — `accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`. The reservation-**request** side lives here too: `request_share_booking()`, `request_date_based_booking()`, `request_standard_booking()`, and `request_swap_booking()` (plus `resolve_rental_collection()` and the `send_*_request_notifications()` email/notification helpers). They raise `BookingRequestError(message, status_code)` on a rule violation; `ThingRequestView` catches it and returns `{"error": message}`.
 
 ### Utilities
