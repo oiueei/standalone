@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -9,12 +9,18 @@ import {
   IconEnvelope,
   IconShare,
   IconWhatsapp,
+  LoadingSpinner,
   Select,
 } from 'hds-react';
-import { QRCodeSVG } from 'qrcode.react';
 import useTheeeme from '../hooks/useTheeeme';
 import { apiFetch } from '../services/api';
 import Toast from './Toast';
+
+// qrcode.react only renders once the owner opens the QR dialog — split it
+// out of the CollectionPage chunk instead of shipping it to every visitor.
+const QRCodeSVG = lazy(() =>
+  import('qrcode.react').then((m) => ({ default: m.QRCodeSVG }))
+);
 
 /**
  * Share menu for the CollectionPage hero (owner only).
@@ -213,7 +219,19 @@ export default function ShareCollectionMenu({ collectionCode, collectionHeadline
           <Dialog.Content>
             <p>{t('shareMenu.qrHelper')}</p>
             <div className="share-qr-code">
-              <QRCodeSVG value={qrUrl} size={232} level="M" marginSize={2} title={qrTitle} />
+              <Suspense
+                fallback={
+                  <div
+                    style={{ width: 232, height: 232, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <LoadingSpinner small loadingText={t('common.loading')} />
+                  </div>
+                }
+              >
+                <QRCodeSVG value={qrUrl} size={232} level="M" marginSize={2} title={qrTitle} />
+              </Suspense>
             </div>
             <p className="share-qr-url">{qrUrl}</p>
           </Dialog.Content>
