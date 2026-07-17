@@ -569,7 +569,7 @@
     "END_OF_MONTH": "Fi de mes",
     "NEXT_MONTH": "El mes que ve",
     "nextAvailable": "{{date}}",
-    "noneSoon": "No"
+    "noneSoon": "No disponible aviat"
   },
   "condition": {
     "NEW": "Nou",
