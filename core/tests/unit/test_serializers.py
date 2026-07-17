@@ -208,6 +208,37 @@ class TestThingSerializer:
         assert data["collection_code"] is None
         assert data["collection_headline"] is None
 
+    def test_pending_questions_excludes_hidden_faqs(self):
+        """A question the owner hid is dealt with, not pending — the badge
+        must not keep nagging about it forever."""
+        owner = User.objects.create(code="PQOWN1", email="pqowner@example.com")
+        questioner = User.objects.create(code="PQASK1", email="pqasker@example.com")
+        thing = Thing.objects.create(code="PQTH01", owner=owner, headline="Pending Q")
+
+        visible_unanswered = FAQ.objects.create(
+            thing=thing, questioner=questioner, question="Visible?", answer=""
+        )
+        FAQ.objects.create(thing=thing, questioner=questioner, question="Answered?", answer="Yes")
+        hidden_unanswered = FAQ.objects.create(
+            thing=thing,
+            questioner=questioner,
+            question="Hidden?",
+            answer="",
+            is_visible=False,
+        )
+
+        assert ThingSerializer(thing).data["pending_questions"] == 1
+
+        # Showing the hidden one again restores it to the count.
+        hidden_unanswered.is_visible = True
+        hidden_unanswered.save()
+        assert ThingSerializer(thing).data["pending_questions"] == 2
+
+        # Hiding the other unanswered one drops it back out.
+        visible_unanswered.is_visible = False
+        visible_unanswered.save()
+        assert ThingSerializer(thing).data["pending_questions"] == 1
+
 
 class TestThingCreateSerializer:
     """Tests for ThingCreateSerializer."""

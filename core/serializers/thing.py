@@ -131,7 +131,7 @@ class ThingComputedFieldsMixin(serializers.Serializer):
 
     def get_pending_questions(self, obj):
         # Use prefetched faq_set cache if available
-        return sum(1 for faq in obj.faq_set.all() if faq.answer == "")
+        return sum(1 for faq in obj.faq_set.all() if faq.answer == "" and faq.is_visible)
 
     def get_transfer_count(self, obj):
         if hasattr(obj, "_transfer_count"):
