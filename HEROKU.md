@@ -269,6 +269,40 @@ The daily commands are safe to run every day — each checks the date internally
 
 **Not in the daily chain:** `cleanup_orphan_images` (delete orphaned Cloudinary uploads) is a separate, manual command — dry-run by default, `--commit` to actually delete. It's destructive and gated behind Heroku shell access, so it isn't auto-scheduled; run it by hand roughly weekly. Quote the inner command so the Heroku CLI doesn't eat the flag: `heroku run --app <app> "python manage.py cleanup_orphan_images --commit"`.
 
+## Backups & the restore drill
+
+Scheduled logical backups run daily (`heroku pg:backups:schedule DATABASE_URL --at '04:00 Europe/Madrid' -a your-app-name`; check with `heroku pg:backups:schedules`). **An untested backup is a hope, not a backup** — run this drill after any big schema change, and at least every ~6 months. It restores the latest backup into a **throwaway** database and never touches production:
+
+```bash
+# 1. Confirm backups exist and are Completed
+heroku pg:backups -a your-app-name
+
+# 2. Create a throwaway database (cents/hour, prorated).
+#    Note the HEROKU_POSTGRESQL_<COLOR>_URL name it prints.
+heroku addons:create heroku-postgresql:essential-0 -a your-app-name
+heroku addons:wait -a your-app-name
+
+# 3. Restore the latest backup INTO THE THROWAWAY — always name the target!
+#    (Without an explicit target, pg:backups:restore restores over DATABASE_URL:
+#    that is the disaster-recovery command, not the drill.)
+heroku pg:backups:restore <backup-id> HEROKU_POSTGRESQL_<COLOR>_URL \
+  -a your-app-name --confirm your-app-name
+
+# 4. Verify from a one-off dyno (no local psql needed): row counts + the
+#    migrations table. Keep the python free of inner quotes — print bare numbers.
+heroku run -a your-app-name -- bash -c 'DATABASE_URL=$HEROKU_POSTGRESQL_<COLOR>_URL \
+  python manage.py shell -c "from core.models import User, Collection, Thing
+from django.db.migrations.recorder import MigrationRecorder
+print(User.objects.count(), Collection.objects.count(), Thing.objects.count(), MigrationRecorder.Migration.objects.count())"'
+
+# 5. Sanity-check: counts should match production minus whatever happened after
+#    the backup's timestamp. Then destroy the throwaway (stops the billing):
+heroku addons:destroy <addon-name> -a your-app-name --confirm your-app-name
+heroku pg:info -a your-app-name   # only DATABASE_URL should remain
+```
+
+The app restarts briefly when the throwaway is attached and again when destroyed (config vars change) — harmless.
+
 ## Troubleshooting
 
 **Bad Request (400)** — Check `DJANGO_ALLOWED_HOSTS`. The actual Heroku hostname may include a random suffix. Run `heroku open -a your-app-name` to confirm the exact URL.
