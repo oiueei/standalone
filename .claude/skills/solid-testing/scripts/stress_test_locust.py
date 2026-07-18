@@ -43,14 +43,16 @@ class AnonymousVisitor(HttpUser):
 
     @task(5)
     def browse_public_collection(self):
-        self.client.get(f"/api/v1/collections/{PUBLIC_COLLECTION}/",
-                        name="/collections/{code} [anon]")
+        self.client.get(
+            f"/api/v1/collections/{PUBLIC_COLLECTION}/", name="/collections/{code} [anon]"
+        )
 
     @task(2)
     def read_a_thing(self):
         with self.client.get(
             f"/api/v1/collections/{PUBLIC_COLLECTION}/",
-            name="/collections/{code} [anon]", catch_response=True,
+            name="/collections/{code} [anon]",
+            catch_response=True,
         ) as res:
             things = (res.json() or {}).get("things", []) if res.ok else []
             if things:
@@ -89,8 +91,9 @@ class AuthenticatedMember(HttpUser):
     def read_shared_collection(self):
         if not self.token:
             return
-        self.client.get(f"/api/v1/collections/{PUBLIC_COLLECTION}/",
-                        name="/collections/{code} [member]")
+        self.client.get(
+            f"/api/v1/collections/{PUBLIC_COLLECTION}/", name="/collections/{code} [member]"
+        )
 
     @task(1)
     def my_bookings(self):
@@ -107,7 +110,8 @@ class AuthenticatedMember(HttpUser):
             return
         with self.client.get(
             f"/api/v1/collections/{PUBLIC_COLLECTION}/",
-            name="/collections/{code} [member]", catch_response=True,
+            name="/collections/{code} [member]",
+            catch_response=True,
         ) as res:
             things = (res.json() or {}).get("things", []) if res.ok else []
         if things:
@@ -115,7 +119,8 @@ class AuthenticatedMember(HttpUser):
             with self.client.post(
                 f"/api/v1/things/{code}/faq/",
                 json={"question": f"Load test q{random.randint(1, 9999)}"},
-                name="/things/{code}/faq [write]", catch_response=True,
+                name="/things/{code}/faq [write]",
+                catch_response=True,
             ) as res:
                 if res.status_code == 429:
                     res.success()  # the rate limiter answering is expected behaviour

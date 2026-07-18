@@ -30,8 +30,13 @@ def run(cmd, cwd):
 
 def backend(worst_n):
     rc = run(
-        ["pytest", "-q", "--cov=core", f"--cov-report=json:{BACKEND_JSON}",
-         "--cov-report=term:skip-covered"],
+        [
+            "pytest",
+            "-q",
+            "--cov=core",
+            f"--cov-report=json:{BACKEND_JSON}",
+            "--cov-report=term:skip-covered",
+        ],
         cwd=REPO,
     )
     if not BACKEND_JSON.exists():
@@ -39,8 +44,11 @@ def backend(worst_n):
         return rc or 1
     data = json.loads(BACKEND_JSON.read_text())
     files = [
-        (meta["summary"]["percent_covered"], path,
-         meta["summary"]["num_statements"] - meta["summary"]["covered_lines"])
+        (
+            meta["summary"]["percent_covered"],
+            path,
+            meta["summary"]["num_statements"] - meta["summary"]["covered_lines"],
+        )
         for path, meta in data["files"].items()
         if meta["summary"]["num_statements"] > 0 and "/migrations/" not in path
     ]
@@ -56,9 +64,18 @@ def backend(worst_n):
 def frontend(worst_n):
     # vitest is configured with the json-summary reporter via --coverage;
     # fall back gracefully if the repo config only emits text.
-    rc = run(["npm", "run", "test:coverage", "--silent", "--",
-              "--coverage.reporter=text-summary", "--coverage.reporter=json-summary"],
-             cwd=REPO / "frontend")
+    rc = run(
+        [
+            "npm",
+            "run",
+            "test:coverage",
+            "--silent",
+            "--",
+            "--coverage.reporter=text-summary",
+            "--coverage.reporter=json-summary",
+        ],
+        cwd=REPO / "frontend",
+    )
     if not FRONTEND_SUMMARY.exists():
         print("frontend: no coverage-summary.json (text summary above is authoritative)")
         return rc
@@ -67,9 +84,7 @@ def frontend(worst_n):
     print("\n== Frontend totals (vs the vite.config ratchet) ==")
     for k in ("statements", "branches", "functions", "lines"):
         print(f"  {k:>10}: {total[k]['pct']}%")
-    files = sorted(
-        ((v["lines"]["pct"], k) for k, v in data.items() if v["lines"]["total"] > 0)
-    )
+    files = sorted(((v["lines"]["pct"], k) for k, v in data.items() if v["lines"]["total"] > 0))
     print(f"\n== Frontend worst {worst_n} files (line %) ==")
     for pct, path in files[:worst_n]:
         print(f"  {pct:6.1f}%  {path.replace(str(REPO / 'frontend') + '/', '')}")
@@ -88,8 +103,10 @@ def main():
         rc |= backend(args.worst)
     if not args.backend_only:
         rc |= frontend(args.worst)
-    print("\nReminder: a gap is a question ('which behaviour is unprotected?'),"
-          " not a quota. See SKILL.md — the Prime Directive.")
+    print(
+        "\nReminder: a gap is a question ('which behaviour is unprotected?'),"
+        " not a quota. See SKILL.md — the Prime Directive."
+    )
     sys.exit(rc)
 
 
