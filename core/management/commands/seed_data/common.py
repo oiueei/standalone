@@ -12,7 +12,37 @@ them with ``SEED_IMAGE_FOLDER`` (oiueei/seed/) at seed time — that's the Cloud
 folder the demo fixtures actually live in, kept apart from real user uploads.
 """
 
+import json
 from datetime import date
+
+
+def _localized_tag(**texts):
+    """A tag label carrying one text per language (O6).
+
+    The stored value is the serialized ``{lang: text}`` map. Things reference
+    their collection's vocabulary **by raw string**, so each label is defined
+    once as a constant below and reused byte-identically everywhere it appears.
+    A label that reads the same in every language stays a plain string instead.
+    """
+    return json.dumps(texts, ensure_ascii=False)
+
+
+# Lili's lending library vocabulary.
+TAG_COCINA = _localized_tag(es="Cocina", ca="Cuina", en="Kitchen")
+TAG_JARDIN = _localized_tag(es="Jardín", ca="Jardí", en="Garden")
+TAG_BRICOLAJE = _localized_tag(es="Bricolaje", ca="Bricolatge", en="DIY")
+TAG_CRIANZA = _localized_tag(es="Crianza", ca="Criança", en="Parenting")
+TAG_HOGAR = _localized_tag(es="Hogar", ca="Llar", en="Home")
+TAG_LIMPIEZA = _localized_tag(es="Limpieza", ca="Neteja", en="Cleaning")
+TAG_DEPORTE = _localized_tag(es="Deporte", ca="Esport", en="Sports")
+TAG_OCIO = _localized_tag(es="Ocio", ca="Lleure", en="Leisure")
+TAG_ELECTRONICA = _localized_tag(es="Electrónica", ca="Electrònica", en="Electronics")
+
+# Lele's circuit-swap vocabulary. "shields" is the same jargon everywhere → plain.
+TAG_SENSORES = _localized_tag(es="sensores", ca="sensors", en="sensors")
+TAG_PLACAS = _localized_tag(es="placas", ca="plaques", en="boards")
+TAG_SHIELDS = "shields"
+TAG_MODULOS = _localized_tag(es="módulos", ca="mòduls", en="modules")
 
 USERS = [
     {
@@ -79,15 +109,15 @@ COLLECTIONS = [
         "is_onboarding": True,
         "allowed_thing_types": ["RENT_THING"],
         "tags": [
-            "Cocina",
-            "Jardín",
-            "Bricolaje",
-            "Crianza",
-            "Hogar",
-            "Limpieza",
-            "Deporte",
-            "Ocio",
-            "Electrónica",
+            TAG_COCINA,
+            TAG_JARDIN,
+            TAG_BRICOLAJE,
+            TAG_CRIANZA,
+            TAG_HOGAR,
+            TAG_LIMPIEZA,
+            TAG_DEPORTE,
+            TAG_OCIO,
+            TAG_ELECTRONICA,
         ],
         "thumbnail": "l1l1C1",
     },
@@ -100,7 +130,7 @@ COLLECTIONS = [
         "invites": ["La1aN1", "l1l13S", "l0l0oh", "1u1ucs"],
         "is_onboarding": True,
         "allowed_thing_types": ["SWAP_THING"],
-        "tags": ["sensors", "boards", "shields", "modules"],
+        "tags": [TAG_SENSORES, TAG_PLACAS, TAG_SHIELDS, TAG_MODULOS],
         "thumbnail": "l1l1C2",
     },
     {
@@ -174,7 +204,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l101",
         "fee": "1.00",
-        "tags": ["Crianza"],
+        "tags": [TAG_CRIANZA],
     },
     {
         "code": "l1l102",
@@ -183,7 +213,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l102",
         "fee": "3.00",
-        "tags": ["Crianza"],
+        "tags": [TAG_CRIANZA],
     },
     {
         "code": "l1l103",
@@ -192,7 +222,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l103",
         "fee": "1.00",
-        "tags": ["Ocio", "Crianza"],
+        "tags": [TAG_OCIO, TAG_CRIANZA],
     },
     {
         "code": "l1l104",
@@ -201,7 +231,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l104",
         "fee": "5.00",
-        "tags": ["Crianza", "Jardín"],
+        "tags": [TAG_CRIANZA, TAG_JARDIN],
     },
     {
         "code": "l1l105",
@@ -210,7 +240,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l105",
         "fee": "1.00",
-        "tags": ["Crianza"],
+        "tags": [TAG_CRIANZA],
     },
     {
         "code": "l1l106",
@@ -219,7 +249,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l106",
         "fee": "3.00",
-        "tags": ["Jardín"],
+        "tags": [TAG_JARDIN],
     },
     {
         "code": "l1l107",
@@ -228,7 +258,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l107",
         "fee": "3.00",
-        "tags": ["Electrónica"],
+        "tags": [TAG_ELECTRONICA],
     },
     {
         "code": "l1l108",
@@ -237,7 +267,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l108",
         "fee": "3.00",
-        "tags": ["Ocio", "Electrónica"],
+        "tags": [TAG_OCIO, TAG_ELECTRONICA],
     },
     {
         "code": "l1l109",
@@ -246,7 +276,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l109",
         "fee": "1.00",
-        "tags": ["Limpieza"],
+        "tags": [TAG_LIMPIEZA],
     },
     {
         "code": "l1l110",
@@ -255,7 +285,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l110",
         "fee": "3.00",
-        "tags": ["Limpieza"],
+        "tags": [TAG_LIMPIEZA],
     },
     {
         "code": "l1l111",
@@ -264,7 +294,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l111",
         "fee": "5.00",
-        "tags": ["Limpieza"],
+        "tags": [TAG_LIMPIEZA],
     },
     {
         "code": "l1l112",
@@ -273,7 +303,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l112",
         "fee": "3.00",
-        "tags": ["Bricolaje"],
+        "tags": [TAG_BRICOLAJE],
     },
     {
         "code": "l1l113",
@@ -282,7 +312,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l113",
         "fee": "3.00",
-        "tags": ["Bricolaje"],
+        "tags": [TAG_BRICOLAJE],
     },
     {
         "code": "l1l114",
@@ -291,7 +321,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l114",
         "fee": "1.00",
-        "tags": ["Deporte"],
+        "tags": [TAG_DEPORTE],
     },
     {
         "code": "l1l115",
@@ -300,7 +330,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l115",
         "fee": "1.00",
-        "tags": ["Deporte"],
+        "tags": [TAG_DEPORTE],
     },
     {
         "code": "l1l116",
@@ -309,7 +339,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l116",
         "fee": "1.00",
-        "tags": ["Deporte"],
+        "tags": [TAG_DEPORTE],
     },
     {
         "code": "l1l117",
@@ -318,7 +348,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l117",
         "fee": "1.00",
-        "tags": ["Deporte"],
+        "tags": [TAG_DEPORTE],
     },
     {
         "code": "l1l118",
@@ -327,7 +357,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l118",
         "fee": "5.00",
-        "tags": ["Deporte"],
+        "tags": [TAG_DEPORTE],
     },
     {
         "code": "l1l119",
@@ -336,7 +366,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l119",
         "fee": "1.00",
-        "tags": ["Cocina"],
+        "tags": [TAG_COCINA],
     },
     {
         "code": "l1l120",
@@ -345,7 +375,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l120",
         "fee": "3.00",
-        "tags": ["Cocina"],
+        "tags": [TAG_COCINA],
     },
     {
         "code": "l1l121",
@@ -354,7 +384,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l121",
         "fee": "3.00",
-        "tags": ["Cocina"],
+        "tags": [TAG_COCINA],
     },
     {
         "code": "l1l122",
@@ -363,7 +393,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l122",
         "fee": "3.00",
-        "tags": ["Cocina"],
+        "tags": [TAG_COCINA],
     },
     {
         "code": "l1l123",
@@ -372,7 +402,7 @@ THINGS = [
         "collections": ["l1l1C1"],
         "thumbnail": "l1l123",
         "fee": "1.00",
-        "tags": ["Cocina"],
+        "tags": [TAG_COCINA],
     },
     {
         "code": "1u1u01",
@@ -482,7 +512,7 @@ THINGS = [
         "owner_code": "La1aN1",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L301",
-        "tags": ["shields"],
+        "tags": [TAG_SHIELDS],
     },
     {
         "code": "L3L302",
@@ -490,7 +520,7 @@ THINGS = [
         "owner_code": "L3L3oo",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L302",
-        "tags": ["sensors"],
+        "tags": [TAG_SENSORES],
     },
     {
         "code": "L3L303",
@@ -498,7 +528,7 @@ THINGS = [
         "owner_code": "l0l0oh",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L303",
-        "tags": ["modules"],
+        "tags": [TAG_MODULOS],
     },
     {
         "code": "L3L304",
@@ -506,7 +536,7 @@ THINGS = [
         "owner_code": "1u1ucs",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L304",
-        "tags": ["shields"],
+        "tags": [TAG_SHIELDS],
     },
     {
         "code": "L3L305",
@@ -514,7 +544,7 @@ THINGS = [
         "owner_code": "l1l13S",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L305",
-        "tags": ["boards"],
+        "tags": [TAG_PLACAS],
     },
     {
         "code": "L3L306",
@@ -522,7 +552,7 @@ THINGS = [
         "owner_code": "l1l13S",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L306",
-        "tags": ["sensors"],
+        "tags": [TAG_SENSORES],
     },
     {
         "code": "L3L307",
@@ -530,7 +560,7 @@ THINGS = [
         "owner_code": "l1l13S",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L307",
-        "tags": ["sensors"],
+        "tags": [TAG_SENSORES],
     },
     {
         "code": "L3L308",
@@ -538,7 +568,7 @@ THINGS = [
         "owner_code": "l1l13S",
         "collections": ["L3L3C1"],
         "thumbnail": "L3L308",
-        "tags": ["sensors"],
+        "tags": [TAG_SENSORES],
     },
 ]
 

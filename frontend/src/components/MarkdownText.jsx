@@ -55,7 +55,7 @@ const tableCells = (escapedLine) => {
   return trimmed.slice(1, -1).split('|').map((c) => c.trim());
 };
 
-function markdownToHtml(text) {
+function markdownToHtml(text, headingBase = 3) {
   if (!text) return '';
 
   const lines = text.split('\n');
@@ -88,13 +88,15 @@ function markdownToHtml(text) {
       continue;
     }
 
-    // Heading: # / ## / ###+ text -> h3 / h4 / h5 (capped — the surrounding
-    // page already owns h1/h2).
+    // Heading: # / ## / ###+ text -> h{base} / h{base+1} / h{base+2} (capped).
+    // The default base is 3 (a bio inside a page that already owns h1/h2);
+    // a page whose markdown IS the content (LegalPage) passes base 2 so the
+    // outline doesn't skip a level (axe heading-order).
     const headingMatch = line.match(/^(#{1,6}) (.+)$/);
     if (headingMatch) {
       if (inUl) { output.push('</ul>'); inUl = false; }
       if (inOl) { output.push('</ol>'); inOl = false; }
-      const tag = `h${Math.min(headingMatch[1].length, 3) + 2}`;
+      const tag = `h${Math.min(headingMatch[1].length, 3) + headingBase - 1}`;
       output.push(`<${tag}>${renderInline(headingMatch[2])}</${tag}>`);
       continue;
     }
@@ -137,9 +139,9 @@ function markdownToHtml(text) {
 // eslint-disable-next-line react-refresh/only-export-components -- pure helpers co-located for unit tests (markdown.test.jsx) and reuse (sanitizeUrl on ThingPage)
 export { markdownToHtml, sanitizeUrl };
 
-export default function MarkdownText({ text, className = '' }) {
+export default function MarkdownText({ text, className = '', headingBase = 3 }) {
   if (!text) return null;
-  const html = markdownToHtml(text);
+  const html = markdownToHtml(text, headingBase);
   return (
     <div
       className={`markdown-text ${className}`.trim()}

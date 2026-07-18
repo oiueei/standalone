@@ -50,6 +50,45 @@ TEXTS = {
     ),
     "welcome_doc_intro": "Welcome! The group has a welcome and rules document:",
     "welcome_doc_outro": "Have a read before you get started.",
+    # Account deletion confirmation (right to erasure)
+    "account_delete_subject": "Delete your OIUEEI account?",
+    "account_delete_plain": (
+        "You asked to delete your OIUEEI account. If you confirm, it is immediate and "
+        "irreversible: your account, your collections, your things and their photos, "
+        "and your pending requests are permanently deleted. Questions you asked on "
+        "other people's things and the history of things that passed through your "
+        "hands stay, without your name. Confirm here (the link works for 24 hours): "
+        "{link} — if you didn't request this, ignore this email and nothing will "
+        "happen."
+    ),
+    "account_delete_intro": (
+        "You asked to delete your OIUEEI account. This is the confirmation step — "
+        "nothing has been deleted yet."
+    ),
+    "account_delete_deletes": (
+        "If you confirm, it is immediate and irreversible: your account, your "
+        "collections, your things and their photos, and your pending requests are "
+        "permanently deleted."
+    ),
+    "account_delete_keeps": (
+        "Questions you asked on other people's things and the history of things that "
+        'passed through your hands stay, without your name — shown as "former '
+        'member".'
+    ),
+    "account_delete_cta": "Confirm the deletion",
+    "account_delete_outro": (
+        "The link works for 24 hours and the page asks you to confirm once more. If "
+        "you didn't request this, ignore this email — nothing will happen."
+    ),
+    # Contact form (support channel, to the operator)
+    "contact_subject": "OIUEEI contact: {sender}",
+    "collab_subject": "OIUEEI collaboration: {sender}",
+    "contact_plain": (
+        "Someone wrote through the contact form.\n\nName: {name}\nEmail: {email}\n\n{message}"
+    ),
+    "contact_intro": "Someone wrote through the contact form:",
+    "contact_name_label": "Name",
+    "contact_email_label": "Email",
     # Booking request (to owner)
     "booking_request_subject": "You have a pending {action} request",
     "booking_request_plain_dated": (

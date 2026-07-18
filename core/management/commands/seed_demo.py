@@ -2,19 +2,27 @@
 Seed demo data for OIUEEI (Lala, Lele, Lili, Lolo, Lulu and all their things).
 
 This command is idempotent — run it as many times as you like. The text content
-for each supported language lives in `core/management/commands/seed_data/`; the
-command selects one via the `--lang` flag.
+for each supported language lives in `core/management/commands/seed_data/`.
+
+**Collection and thing text is seeded in every language at once** (O6): each
+headline/description is stored as a localized ``{"es": …, "ca": …, "en": …}``
+map built from all the language files, so every reader sees the demo in their
+own language — one seeding serves every deployment. Tag labels are localized
+too (as constants in ``common.py``). The ``--lang`` flag only chooses the
+language of the **non-localizable** text: user bios, FAQ questions/answers,
+wish-response messages and locations (plain columns).
 
 Usage:
-    python manage.py seed_demo                     # English (default)
-    python manage.py seed_demo --lang=es           # Spanish
-    python manage.py seed_demo --lang=es --reset   # wipe demos, re-seed in Spanish
-    heroku run python manage.py seed_demo --app …  # Heroku one-off dyno
+    python manage.py seed_demo                     # non-localizable text in English
+    python manage.py seed_demo --lang=es           # … in Spanish
+    python manage.py seed_demo --lang=ca --reset   # wipe demos, re-seed, Catalan FAQs
+    heroku run --app … "python manage.py seed_demo --lang=es"
 
-To add a new language, copy `seed_data/en.py` to e.g. `seed_data/ca.py`, translate
+To add a new language, copy `seed_data/en.py` to e.g. `seed_data/pt.py`, translate
 the text fields, and add the code to SUPPORTED_LANGS below.
 """
 
+import json
 from importlib import import_module
 from types import SimpleNamespace
 
@@ -26,7 +34,16 @@ from core.models.transfer import ThingTransfer
 
 from .seed_data import common
 
-SUPPORTED_LANGS = ["en", "es"]
+SUPPORTED_LANGS = ["en", "es", "ca"]
+
+# Entities whose text every reader should get in their own language, and the
+# fields the {lang: text} maps are built for. Everything else (user bios, FAQs,
+# wish responses) is plain-column text and follows --lang.
+_LOCALIZED_ENTITIES = ("COLLECTIONS", "THINGS")
+_LOCALIZED_FIELDS = ("headline", "description")
+
+# Key order inside a stored map — es first mirrors resolve_localized's fallback.
+_LANG_ORDER = ["es", "ca", "en"]
 
 # User codes that identify demo accounts — used by --reset to scope deletion.
 DEMO_USER_CODES = ["La1aN1", "L3L3oo", "l1l13S", "l0l0oh", "1u1ucs"]
@@ -59,14 +76,47 @@ def _merge_by(key, skeleton, localised):
     return [{**row, **text_by_key.get(row[key], {})} for row in skeleton]
 
 
+def _localize(values_by_lang):
+    """One stored value from a text's per-language variants.
+
+    All present variants identical (or just one) → the plain string, so the
+    localized machinery stays invisible where it buys nothing. Distinct →
+    the serialized strict ``{lang: text}`` map that ``core.utils.parse_localized``
+    recognises, so each reader resolves their own language.
+    """
+    present = {lang: values_by_lang[lang] for lang in _LANG_ORDER if values_by_lang.get(lang)}
+    distinct = set(present.values())
+    if len(distinct) <= 1:
+        return next(iter(distinct), "")
+    return json.dumps(present, ensure_ascii=False)
+
+
 def load_seed_data(lang):
-    """Build the seed data for ``lang``: the shared structural skeleton
-    (``common``) with the language's translatable text merged on top."""
-    text = import_module(f"core.management.commands.seed_data.{lang}")
+    """Build the seed data: the shared structural skeleton (``common``) with
+    ``lang``'s text merged on top — and, for collections/things, the
+    headline/description rebuilt as localized maps across ALL languages."""
+    texts = {
+        code: import_module(f"core.management.commands.seed_data.{code}")
+        for code in SUPPORTED_LANGS
+    }
     merged = {
-        entity: _merge_by(key, getattr(common, entity), getattr(text, entity))
+        entity: _merge_by(key, getattr(common, entity), getattr(texts[lang], entity))
         for entity, key in _MERGE_KEYS.items()
     }
+    for entity in _LOCALIZED_ENTITIES:
+        key = _MERGE_KEYS[entity]
+        rows_by_lang = {
+            code: {row[key]: row for row in getattr(texts[code], entity)}
+            for code in SUPPORTED_LANGS
+        }
+        for row in merged[entity]:
+            for field in _LOCALIZED_FIELDS:
+                row[field] = _localize(
+                    {
+                        code: rows_by_lang[code].get(row[key], {}).get(field, "")
+                        for code in SUPPORTED_LANGS
+                    }
+                )
     return SimpleNamespace(**merged)
 
 

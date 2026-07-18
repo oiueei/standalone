@@ -8,6 +8,7 @@ import FeedbackLink from '../components/FeedbackLink';
 import CollectionLinkbox from '../components/CollectionLinkbox';
 import InboxNotifications from '../components/InboxNotifications';
 import useTheeeme from '../hooks/useTheeeme';
+import ContactCorner from '../components/ContactCorner';
 import { useLocalized } from '../utils/localized';
 
 export default function HomePage() {
@@ -168,6 +169,7 @@ export default function HomePage() {
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})`, '--hero-logo-color': `var(--color-${tc.color_02})` } : undefined}
       >
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <ContactCorner />
           <h1 className="form-hero-title" style={{ paddingTop: 'var(--spacing-xl)' }}>{t('home.greeting', { name: user.name || user.email })}</h1>
           {user.headline && <p className="form-hero-text">{user.headline}</p>}
           <div className="button-row-wide">

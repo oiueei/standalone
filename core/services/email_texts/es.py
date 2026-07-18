@@ -49,6 +49,45 @@ TEXTS = {
     ),
     "welcome_doc_intro": "¡Bienvenida! El grupo tiene un documento de bienvenida y normas:",
     "welcome_doc_outro": "Échale un vistazo antes de empezar.",
+    # Account deletion confirmation (right to erasure)
+    "account_delete_subject": "¿Borrar tu cuenta de OIUEEI?",
+    "account_delete_plain": (
+        "Has pedido borrar tu cuenta de OIUEEI. Si confirmas, es inmediato e "
+        "irreversible: tu cuenta, tus colecciones, tus cosas con sus fotos y tus "
+        "solicitudes pendientes se borran para siempre. Las preguntas que hiciste "
+        "sobre cosas de otras personas y el historial de cosas que pasaron por tus "
+        "manos se conservan, sin tu nombre. Confirma aquí (el enlace funciona "
+        "durante 24 horas): {link} — si no lo has pedido tú, ignora este correo y "
+        "no pasará nada."
+    ),
+    "account_delete_intro": (
+        "Has pedido borrar tu cuenta de OIUEEI. Este es el paso de confirmación — "
+        "todavía no se ha borrado nada."
+    ),
+    "account_delete_deletes": (
+        "Si confirmas, es inmediato e irreversible: tu cuenta, tus colecciones, tus "
+        "cosas con sus fotos y tus solicitudes pendientes se borran para siempre."
+    ),
+    "account_delete_keeps": (
+        "Las preguntas que hiciste sobre cosas de otras personas y el historial de "
+        "cosas que pasaron por tus manos se conservan, sin tu nombre — se muestran "
+        "como «antiguo miembro»."
+    ),
+    "account_delete_cta": "Confirmar el borrado",
+    "account_delete_outro": (
+        "El enlace funciona durante 24 horas y en la página confirmarás una vez "
+        "más. Si no lo has pedido tú, ignora este correo — no pasará nada."
+    ),
+    # Contact form (support channel, to the operator)
+    "contact_subject": "Contacto OIUEEI: {sender}",
+    "collab_subject": "Colaboración OIUEEI: {sender}",
+    "contact_plain": (
+        "Alguien ha escrito por el formulario de contacto.\n\n"
+        "Nombre: {name}\nEmail: {email}\n\n{message}"
+    ),
+    "contact_intro": "Alguien ha escrito por el formulario de contacto:",
+    "contact_name_label": "Nombre",
+    "contact_email_label": "Email",
     # Booking request (to owner)
     "booking_request_subject": "Tienes una solicitud de {action} pendiente",
     "booking_request_plain_dated": (

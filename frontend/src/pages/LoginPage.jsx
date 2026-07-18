@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { TextInput, Button, Notification, Koros } from 'hds-react';
 import { getCsrfToken } from '../services/api';
 import useTheeeme from '../hooks/useTheeeme';
+import ContactCorner from '../components/ContactCorner';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -56,6 +57,7 @@ export default function LoginPage() {
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})`, '--hero-logo-color': `var(--color-${tc.color_02})` } : undefined}
       >
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <ContactCorner />
           <h1 className="form-hero-title" aria-label={t('login.title')}>
             <span className="form-hero-title-logo" aria-hidden="true" />
           </h1>
@@ -80,6 +82,11 @@ export default function LoginPage() {
           />
         </p>
         <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>{t('login.manifesto')}</p>
+        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-2-xs)' }}>
+          <Link to="/legal" style={{ color: 'var(--color-black-60)', textDecoration: 'underline', fontSize: 'var(--fontsize-body-s)' }}>
+            {t('login.legalLink')}
+          </Link>
+        </p>
         {status ? (
           <>
             <Notification label={status === 'success' ? t('common.sent') : status === 'alert' ? t('common.warning') : t('common.error')} type={status}>
@@ -110,7 +117,12 @@ export default function LoginPage() {
             </div>
           </form>
         )}
-        <div style={{ maxWidth: '400px', marginTop: 'var(--spacing-m)' }}>
+        <p style={{ maxWidth: '400px', marginTop: 'var(--spacing-m)' }}>
+          <Link to="/contact" style={{ textDecoration: 'underline' }}>
+            {t('login.loginHelp')}
+          </Link>
+        </p>
+        <div style={{ maxWidth: '400px', marginTop: 'var(--spacing-s)' }}>
           <Link to="/popin">
             <Button variant="secondary" fullWidth style={btnSecondaryStyle}>
               {t('login.popIn')}

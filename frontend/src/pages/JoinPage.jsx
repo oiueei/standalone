@@ -5,6 +5,7 @@ import { Koros } from 'hds-react';
 import BackLink from '../components/BackLink';
 import JoinToAct from '../components/JoinToAct';
 import useTheeeme from '../hooks/useTheeeme';
+import ContactCorner from '../components/ContactCorner';
 
 /**
  * Login-to-act landing page for a PUBLIC collection. An anonymous visitor who
@@ -32,6 +33,7 @@ export default function JoinPage() {
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})`, '--hero-logo-color': `var(--color-${tc.color_02})` } : undefined}
       >
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <ContactCorner />
           <BackLink to={`/collections/${code}`} label={headline || t('common.collection')} />
           <h1 className="form-hero-title">{t('joinToAct.heading')}</h1>
         </div>

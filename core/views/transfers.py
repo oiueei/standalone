@@ -38,12 +38,15 @@ class ThingTransferView(APIView):
 
         total_transfers = len(transfers)
 
-        # Unique homes = unique users who have held the item (both from and to)
+        # Unique homes = unique users who have held the item (both from and to).
+        # A deleted account's hops carry NULL users (SET_NULL, right to erasure):
+        # they held the item, but nulls are indistinguishable from each other, so
+        # they count as at most one former home rather than inflating per hop.
         user_codes = set()
         for t in transfers:
             user_codes.add(t.from_user_id)
             user_codes.add(t.to_user_id)
-        unique_homes = len(user_codes)
+        unique_homes = len(user_codes - {None}) + (1 if None in user_codes else 0)
 
         # Current holder = most recent unreturned transfer's to_user (the list is
         # ordered -lent_date, so the first unreturned row is the most recent).
@@ -53,13 +56,16 @@ class ThingTransferView(APIView):
         if current_transfer:
             current_holder = current_transfer.to_user_id
             # Bare name, not display_name — shown community-wide in the journey,
-            # so the email fallback would leak addresses (L2).
-            current_holder_name = current_transfer.to_user.name
+            # so the email fallback would leak addresses (L2). A NULL user is a
+            # deleted account: no code, no name (right to erasure).
+            current_holder_name = (
+                current_transfer.to_user.name if current_transfer.to_user else None
+            )
 
         # Original owner = from_user of the oldest transfer (last in -lent_date order)
         oldest = transfers[-1] if transfers else None
         original_owner = oldest.from_user_id if oldest else None
-        original_owner_name = (oldest.from_user.name) if oldest else None
+        original_owner_name = oldest.from_user.name if oldest and oldest.from_user else None
 
         # Is this a SHARE_THING in a COMMUNITY collection?
         is_share_in_community = (

@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
 import CollectionLinkbox from '../components/CollectionLinkbox';
 import HeroPhoto from '../components/HeroPhoto';
+import ContactCorner from '../components/ContactCorner';
 
 export default function UserPage() {
   const { userCode: paramCode } = useParams();
@@ -88,6 +89,7 @@ export default function UserPage() {
 
   const heroContent = (
     <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+      <ContactCorner />
       <BackLink to="/" label={t('common.home')} />
       <div className="spacer-m" />
       {user.headline && <p style={{ fontSize: 'var(--fontsize-heading-m)', fontWeight: 700, lineHeight: 'var(--lineheight-m)', letterSpacing: '-0.2px', color: 'var(--hero-text-color, var(--color-black-90))' }}>{user.headline}</p>}

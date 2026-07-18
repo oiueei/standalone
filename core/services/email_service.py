@@ -536,6 +536,79 @@ def send_collection_welcome_doc_email(collection_headline, doc_url, email, colle
     _send(email, subject, plain, html, CATEGORY_MANDATORY, user=user, lang=lang)
 
 
+def send_account_delete_email(user, delete_link):
+    """Send the right-to-erasure confirmation link (Cat. 1).
+
+    The safety step of account deletion: the in-app button only *requests*
+    deletion; nothing is deleted until the recipient opens this link and
+    confirms once more on the page it lands on (the link previews on GET and
+    commits on POST, like a booking decision — a mail scanner can't erase an
+    account). ``include_viral=False``: a growth CTA on an erasure email would
+    be grotesque.
+    """
+    lang = resolve_email_language(user=user)
+    T = _texts(lang)
+    subject = T("account_delete_subject")
+    plain = T("account_delete_plain").format(link=delete_link)
+    html = _render_email(
+        [
+            _para(T("account_delete_intro")),
+            _para(T("account_delete_deletes")),
+            _para(T("account_delete_keeps")),
+            _links((delete_link, T("account_delete_cta"))),
+            _para(T("account_delete_outro")),
+        ]
+    )
+    _send(
+        user.email,
+        subject,
+        plain,
+        html,
+        CATEGORY_MANDATORY,
+        user=user,
+        include_viral=False,
+        lang=lang,
+    )
+
+
+def send_contact_email(name, email, message, kind="support"):
+    """Forward a contact-form message to the operator (the support channel).
+
+    Recipient: ``CONTACT_EMAIL`` env var, defaulting to ``DEFAULT_FROM_EMAIL``
+    (the operator mails themselves). ``Reply-To`` is the sender, so answering
+    is one click. ``kind`` labels the subject — ``support`` (contact page) or
+    ``collab`` (collaborate page) — same pipe, different inbox label. Operator
+    mail: mandatory category, no viral CTA, deployment language.
+    """
+    import os
+
+    recipient = os.environ.get("CONTACT_EMAIL", "") or settings.DEFAULT_FROM_EMAIL
+    lang = resolve_email_language()
+    T = _texts(lang)
+    sender = name or email
+    subject_key = "collab_subject" if kind == "collab" else "contact_subject"
+    subject = T(subject_key).format(sender=sender)
+    plain = T("contact_plain").format(name=name or "-", email=email, message=message)
+    html = _render_email(
+        [
+            _para(T("contact_intro")),
+            _field(T("contact_name_label"), name or "-"),
+            _field(T("contact_email_label"), email),
+            _para(message),
+        ]
+    )
+    _send(
+        recipient,
+        subject,
+        plain,
+        html,
+        CATEGORY_MANDATORY,
+        reply_to=[email],
+        include_viral=False,
+        lang=lang,
+    )
+
+
 def send_collection_revoke_email(owner_name, collection_headline, email, collection=None):
     """Send collection access revoked notification email."""
     user, lang = _recipient(email, collection)

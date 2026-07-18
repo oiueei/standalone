@@ -14,7 +14,7 @@ The `User` model represents a person who can own collections, be invited to othe
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
 | `email` | CharField(64) | **Yes** | Unique email address for authentication |
-| `name` | CharField(32) | No | Display name |
+| `name` | CharField(32) | No | **Public name** — presented in the profile editor as "Nombre público" with a helper making its reach explicit ("your name, a nickname, anything you like — it's how everyone will see you"). One field, chosen pseudonymity: each user decides how identifying their public name is (early-bird hardening, 2026-07-18). Never auto-filled from anywhere |
 | `created` | DateField | Auto | Date the user was created |
 | `last_activity` | DateField | No | Date of last login/activity. Null until the user's first verify — `update_last_activity()` populates it. |
 | `headline` | CharField(64) | No | Short bio/tagline |
@@ -46,6 +46,8 @@ The `User` model represents a person who can own collections, be invited to othe
 6. **Last activity is updated on login** - The `update_last_activity()` method is called on each successful authentication. Newly-created users have `last_activity = None` until that first call; subsequent calls bump the date to today.
 
 7. **Email notification preferences** - `notify_activity` (default on) and `notify_news` (default off — news is an explicit opt-in per DESIGN §6) are consulted by `core/services/email_service.py` before sending. Magic links and invitations (Cat. 1) are mandatory and always sent regardless of these flags.
+
+8. **Right to erasure** - Any user can delete their own account (`POST /api/v1/auth/delete-account/` → emailed 24h confirmation link → explicit POST commit). The deletion is one `user.delete()` inside a transaction (`core/services/account_service.py`): collections, things, bookings, RSVPs, notifications and daily activity cascade; FAQ questions and ThingTransfer hops on *other people's* things survive with the user FK nulled; Cloudinary assets are destroyed by the `post_delete` handlers.
 
 ### Methods
 
@@ -184,7 +186,7 @@ The `FAQ` model represents a question and answer about a thing. Invited users ca
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
 | `thing` | ForeignKey(Thing) | **Yes** | The thing this FAQ is about |
 | `created` | DateTimeField | Auto | Timestamp when FAQ was created |
-| `questioner` | ForeignKey(User) | **Yes** | User who asked the question |
+| `questioner` | ForeignKey(User) | No | User who asked the question. **SET_NULL + `null=True`**: deleting the questioner's account keeps the question (knowledge about the thing) but sheds the attribution (right to erasure) — serialised as `questioner=null`, `questioner_name=""` |
 | `question` | CharField(64) | **Yes** | The question text |
 | `answer` | CharField(256) | No | The answer text (empty until answered) |
 | `is_visible` | BooleanField | No | Whether FAQ is visible (default: True) |
@@ -192,7 +194,7 @@ The `FAQ` model represents a question and answer about a thing. Invited users ca
 ### Business Rules
 
 1. **FK to Thing** - Each FAQ references a thing via ForeignKey.
-2. **FK to User** - Questioner tracked via ForeignKey.
+2. **FK to User** - Questioner tracked via ForeignKey (`SET_NULL` — the Q&A outlives a deleted account, anonymised).
 3. **Only invited users can ask** - Must be invited to the collection containing the thing.
 4. **Owner cannot ask questions** - Returns 400 Bad Request.
 5. **Only owner can answer** - Returns 403 Forbidden for others.
@@ -241,6 +243,7 @@ The `RSVP` model is the central intermediary for all email-based actions. It ser
 | `COLLECTION_REJECT` | Decline invitation to a collection |
 | `BOOKING_ACCEPT` | Accept a booking (all thing types) |
 | `BOOKING_REJECT` | Reject a booking (all thing types) |
+| `ACCOUNT_DELETE` | Right-to-erasure confirmation link (24h expiry, default). GET previews; only an explicit POST commits — and the frontend never auto-commits it (unlike bookings, the person must press the on-page confirm button) |
 
 ### Business Rules
 
@@ -369,8 +372,8 @@ The `ThingTransfer` model tracks the physical journey of a thing between users (
 |-------|------|----------|-------------|
 | `code` | CharField(6) | Auto | Primary key, 6-character alphanumeric ID |
 | `thing` | ForeignKey(Thing) | **Yes** | The thing being transferred |
-| `from_user` | ForeignKey(User) | **Yes** | User lending/giving the thing |
-| `to_user` | ForeignKey(User) | **Yes** | User receiving the thing |
+| `from_user` | ForeignKey(User) | No | User lending/giving the thing. **SET_NULL + `null=True`** — a deleted account keeps its hops in other people's things' journeys but sheds the name (right to erasure; the journey of the deleted user's *own* things still cascades away with the things) |
+| `to_user` | ForeignKey(User) | No | User receiving the thing. Same SET_NULL erasure behaviour |
 | `booking` | ForeignKey(BookingPeriod) | No | The booking that triggered this transfer (null for manual transfers) |
 | `lent_date` | DateField | **Yes** | Date the thing was handed over |
 | `returned_date` | DateField | No | Date the thing was returned (null = still with `to_user`) |
@@ -380,7 +383,7 @@ The `ThingTransfer` model tracks the physical journey of a thing between users (
 
 1. **Created on booking acceptance** — When `accept_booking()` is called in the booking service, a `ThingTransfer` is automatically created with `from_user` = owner, `to_user` = requester, and `lent_date` = booking's `start_date` (or today for types without dates).
 2. **Closed by management command** — The `close_transfers` daily command sets `returned_date = today` for transfers linked to ACCEPTED bookings whose `end_date` has passed.
-3. **Booking FK uses SET_NULL** — If a booking is deleted, the transfer record survives (the physical handoff happened regardless).
+3. **Booking FK uses SET_NULL** — If a booking is deleted, the transfer record survives (the physical handoff happened regardless). The two user FKs follow the same logic for account deletion: the hop stays, the name goes (`unique_homes` counts the nulls as at most one former home; the serializer returns `""` names and the frontend renders "former member").
 4. **Ordering** — Default ordering is `-lent_date` (most recent first).
 
 ### Key Methods

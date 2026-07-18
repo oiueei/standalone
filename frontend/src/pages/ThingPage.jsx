@@ -367,7 +367,9 @@ export default function ThingPage() {
                 <div className="share-timeline">
                   {transfers.transfers.map((tr) => (
                     <div key={tr.code} className="share-timeline-entry">
-                      <strong>{tr.to_user_name}</strong>
+                      {/* An empty name is a deleted account: the hop stays, the
+                          name goes (right to erasure). */}
+                      <strong>{tr.to_user_name || t('common.formerMember')}</strong>
                       {' — '}
                       {new Date(tr.lent_date).toLocaleDateString(i18n.language)}
                       {tr.returned_date && (
@@ -387,7 +389,8 @@ export default function ThingPage() {
                 <ul className="thing-card-bookings">
                   {transfers.transfers.map((tr) => (
                     <li key={tr.code}>
-                      {tr.from_user_name} {t('transfers.to')} {tr.to_user_name}
+                      {tr.from_user_name || t('common.formerMember')} {t('transfers.to')}{' '}
+                      {tr.to_user_name || t('common.formerMember')}
                       {' — '}
                       {t(isSwap ? 'transfers.swappedOn' : 'transfers.lentOn', { date: new Date(tr.lent_date).toLocaleDateString(i18n.language) })}
                       {tr.returned_date && (

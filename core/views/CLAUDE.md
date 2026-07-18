@@ -58,6 +58,7 @@ Routes to the appropriate handler based on `rsvp.action`:
 | `COLLECTION_REJECT` | `_handle_collection_reject` | GET | Notifies collection owner of rejection, deletes sibling `COLLECTION_INVITE` RSVP, no JWT |
 | `BOOKING_ACCEPT` | `_handle_booking_accept` | **POST** | Accepts booking via `accept_booking()` service (GET previews only) |
 | `BOOKING_REJECT` | `_handle_booking_reject` | **POST** | Rejects booking via `reject_booking()` service (GET previews only) |
+| `ACCOUNT_DELETE` | `_handle_account_delete` | **POST** | Erases the account via `account_service.delete_account()` (GET previews only: name, email, owned collection/thing counts). Unlike bookings, the frontend **never auto-commits** this preview — the person must press the explicit on-page confirm button. The commit response also clears the auth cookies (the session died with the account); the RSVP itself cascades away with the user row |
 
 **Post-login landing (`landing`).** The successful-login response carries where the SPA should send the user — `"collection"` (plus `collection`, the code), `"welcome"`, or `"home"`. It used to be decided in the browser from the `seenWelcome` localStorage key, but logout clears that key, so every re-login looked like a first visit and dropped returning users on `/welcome`. The rules, in order:
 
@@ -173,6 +174,18 @@ Logs out the current user. Reads the refresh token from the `refresh_token` Http
 
 **Authenticates nothing, on purpose — logout must never fail.** It used to be `IsAuthenticated`, which broke it in the two cases that matter most: an **expired access token** 401'd the request, leaving the still-valid (up to 7 days) refresh token unblacklisted; and a cookie-authenticated POST **without an `X-CSRFToken` header** was rejected by `CookieJWTAuthentication.enforce_csrf` with a 403, leaving every cookie alive while the SPA navigated to `/login` anyway — so the session came back to life on the next page load (the reported "logout doesn't log out" bug; `LogoutPage` now also goes through `apiFetch`, which sends the header). With no authenticator the view simply reads the refresh cookie, blacklists it (best-effort — an invalid token is swallowed) and **always** returns 200 with the three cookie-deleting headers. The trade-off is a CSRF-forced logout: a cross-site POST can end a session, never act inside one.
 
+### AccountDeleteRequestView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/auth/delete-account/` |
+| **Permission** | `IsAuthenticated` |
+| **Rate limit** | 3 requests/hour per user |
+
+Step one of the right-to-erasure flow. Deletes any previous `ACCOUNT_DELETE` RSVP for the account (resend-safe: at most one live link), creates a fresh one (24h expiry) and emails its confirmation link via `send_account_delete_email` (Cat. 1, always delivered, no viral CTA). **Nothing is deleted here** — the deletion commits in `VerifyLinkView._handle_account_delete`, on an explicit POST from the page the link lands on, so a stolen browser session alone can't erase an account (the attacker would also need the mailbox). Returns `200 {"message": "Confirmation email sent"}`.
+
+---
+
 ### TokenRefreshView
 
 | | |
@@ -187,6 +200,20 @@ Rotates auth tokens. Reads the `refresh_token` from the HttpOnly cookie, validat
 |--------|-----------|
 | 200 | Tokens rotated successfully |
 | 401 | Missing, invalid, or expired refresh token |
+
+---
+
+## Contact View (`core/views/contact.py`)
+
+### ContactView
+
+| | |
+|---|---|
+| **Endpoint** | `POST /api/v1/contact/` |
+| **Permission** | `AllowAny` — anonymous on purpose: the person who most needs the support channel is the one who can't log in |
+| **Rate limit** | 5 requests/hour per IP |
+
+Forwards a support/feedback message to the operator's mailbox (`CONTACT_EMAIL` env var, defaulting to `DEFAULT_FROM_EMAIL`) via `send_contact_email`, with the sender's address as `Reply-To` so answering is one click. Body: `{name?, email, message, kind?}` (`ContactSerializer` — SafeHeadline name ≤32, EmailField, SafeText message ≤2000, so HTML/injection is rejected at the boundary; `kind` is `support` (default, the contact page) or `collab` (the collaborate page) and only changes the operator's subject line). Fixed recipient: the form can annoy exactly one mailbox, never relay spam to third parties. Returns `200 {"message": "Message received"}`.
 
 ---
 
@@ -775,7 +802,7 @@ Returns the transfer history (Loan Chain) and aggregate stats for a thing.
 1. Looks up thing by `thing_code`. Returns 404 if not found.
 2. Checks `thing.can_view(user_code)`. Returns 403 if not authorised.
 3. Queries all transfers for the thing, ordered by `-lent_date`.
-4. Computes `unique_homes` (distinct user codes across all `from_user` and `to_user` fields).
+4. Computes `unique_homes` (distinct user codes across all `from_user` and `to_user` fields; NULL users — deleted accounts — count as at most one former home).
 5. Computes `current_holder` from the most recent unreturned transfer's `to_user`.
 6. Computes `original_owner` from the `from_user` of the oldest transfer (by `lent_date`). Null if no transfers.
 7. Computes `is_share_in_community`: True when the thing is a `SHARE_THING` and belongs to at least one `COMMUNITY` collection.
@@ -913,7 +940,7 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 4. **CSRF (cookie auth)** — because the access token rides in a cookie, `CookieJWTAuthentication` runs DRF's CSRF check (`enforce_csrf`, mirroring `SessionAuthentication`) for **cookie-authenticated unsafe methods** — defence in depth behind the cookie's `SameSite=Lax`. Bearer-header auth is exempt (the header is never sent cross-site), so API clients and the Bearer-token test suite are unaffected. `MeView` GET sets the `csrftoken` cookie via `@ensure_csrf_cookie` (hit on every app load); the SPA reads it and sends it as `X-CSRFToken` on every unsafe request. The test client disables the check by default (`enforce_csrf_checks=False`), so only `test_csrf.py` (which opts in) exercises it.
 5. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections.
 6. **Custom DRF permissions** — `IsThingOwner` and `IsCollectionOwner` in `core/permissions.py`.
-7. **Public collections (anonymous read)** — a collection with `visibility=PUBLIC` (and ACTIVE) is readable without authentication. The read endpoints `CollectionViewSet.retrieve`, `ThingViewSet.retrieve`, the FAQ list (GET on `ThingFAQListView`), `ThingTransferView` and `ThingCalendarView` are `AllowAny`, each gated by an **anonymous-safe** `can_view` (a `viewer_code(request)` helper passes the user's code, or `None` for a visitor, into the model guard — `None` matches PUBLIC collections only). Every *write/act* endpoint (reserve, ask a question, answer, add a thing, manage invites/visibility) still requires authentication plus membership/ownership, so an anonymous visitor may browse a public collection but must log in to act. INACTIVE things are excluded from the serialised `things` for any non-owner, and the collection *list* (`GET /collections/`) stays private (it returns only the caller's own collections).
+7. **Public collections (anonymous read)** — a collection with `visibility=PUBLIC` (and ACTIVE) is readable without authentication. The read endpoints `CollectionViewSet.retrieve`, `ThingViewSet.retrieve`, the FAQ list (GET on `ThingFAQListView`), `ThingTransferView` and `ThingCalendarView` are `AllowAny`, each gated by an **anonymous-safe** `can_view` (a `viewer_code(request)` helper passes the user's code, or `None` for a visitor, into the model guard — `None` matches PUBLIC collections only). Every *write/act* endpoint (reserve, ask a question, answer, add a thing, manage invites/visibility) still requires authentication plus membership/ownership, so an anonymous visitor may browse a public collection but must log in to act. INACTIVE things are excluded from the serialised `things` for any non-owner, the member roster serialises **codes only** for anonymous readers (names are for logged-in members; emails for the owner), and the collection *list* (`GET /collections/`) stays private (it returns only the caller's own collections).
 
 ### Input Validation
 
@@ -941,6 +968,8 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 - `/collections/{code}/add-thing/` POST — 60 requests per hour per user
 - `/wish-responses/{code}/accept/` POST — 30 requests per hour per user
 - `/collections/{code}/leave/` POST — 30 requests per hour per user
+- `/auth/delete-account/` POST — 3 requests per hour per user
+- `/contact/` POST — 5 requests per hour per IP
 
 ### Secure Code Practices
 
@@ -967,7 +996,7 @@ One-off, idempotent seed of the `Event` log from existing rows (users → `USER_
 ### Service Layer
 
 Business logic is extracted into `core/services/`:
-- `email_service.py` — All email HTML composition and sending (23 `send_*` functions). Uses `django.utils.html.escape()`.
+- `email_service.py` — All email HTML composition and sending (25 `send_*` functions). Uses `django.utils.html.escape()`.
 - `booking_service.py` — `accept_booking()`, `reject_booking()`, and `cancel_booking()` handle status transitions for Thing and BookingPeriod, wrapped in `transaction.atomic()`. The reservation-**request** side lives here too: `request_share_booking()`, `request_date_based_booking()`, `request_standard_booking()`, and `request_swap_booking()` (plus `resolve_rental_collection()` and the `send_*_request_notifications()` email/notification helpers). They raise `BookingRequestError(message, status_code)` on a rule violation; `ThingRequestView` catches it and returns `{"error": message}`.
 
 ### Utilities

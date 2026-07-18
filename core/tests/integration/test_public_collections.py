@@ -70,6 +70,29 @@ def test_authenticated_non_member_can_read_public_collection(authenticated_clien
     assert res.status_code == 200
 
 
+def test_anonymous_reader_gets_member_count_but_no_names(api_client, user, user2):
+    # Real names of a group's members don't belong to the open web: an anonymous
+    # reader keeps the count (codes) but no name and no email.
+    coll = _collection(user, Collection.Visibility.PUBLIC)
+    coll.invites.add(user2)
+    res = api_client.get(f"/api/v1/collections/{coll.code}/")
+    assert res.status_code == 200
+    invites = res.json()["invites"]
+    assert len(invites) == 1
+    assert set(invites[0]) == {"code"}
+
+
+def test_logged_in_guest_still_sees_member_names_but_never_emails(
+    authenticated_client2, user, user2
+):
+    coll = _collection(user, Collection.Visibility.PUBLIC)
+    coll.invites.add(user2)
+    res = authenticated_client2.get(f"/api/v1/collections/{coll.code}/")
+    invites = res.json()["invites"]
+    assert invites[0]["name"] == user2.name
+    assert "email" not in invites[0]
+
+
 def test_collection_list_still_requires_auth(api_client, user):
     _collection(user, Collection.Visibility.PUBLIC)
     res = api_client.get("/api/v1/collections/")

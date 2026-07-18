@@ -5,11 +5,13 @@ IMPORTANT: All email action links use RSVP codes as intermediaries.
 Never expose real codes (booking_code, reservation_code, etc.) in URLs.
 """
 
+from django.db import connection
 from django.http import JsonResponse
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views.auth import (
+    AccountDeleteRequestView,
     LogoutView,
     MeView,
     PopInView,
@@ -35,6 +37,7 @@ from .views.collections import (
     InvitedCollectionsView,
     MyPendingInvitationsView,
 )
+from .views.contact import ContactView
 from .views.faq import FAQAnswerView, FAQDetailView, FAQVisibilityView, ThingFAQListView
 from .views.inbox import InboxView
 from .views.notifications import NotificationsByTokenView
@@ -53,6 +56,18 @@ from .views.wishes import ThingWishResponseView, WishResolveView, WishResponseAc
 
 
 def health_check(request):
+    """Liveness + database health, for uptime monitors.
+
+    A bare 200 would keep reporting "up" through a database outage — the one
+    failure mode a monitor most needs to catch. The check is one SELECT 1, so a
+    5-minute polling cadence costs nothing. The body never carries error detail:
+    this endpoint is public.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+    except Exception:
+        return JsonResponse({"status": "degraded"}, status=503)
     return JsonResponse({"status": "ok"})
 
 
@@ -69,6 +84,9 @@ urlpatterns = [
     path("auth/verify/<str:token>/", VerifyLinkView.as_view(), name="verify-link"),
     path("auth/me/", MeView.as_view(), name="me"),
     path("auth/logout/", LogoutView.as_view(), name="logout"),
+    path("auth/delete-account/", AccountDeleteRequestView.as_view(), name="delete-account"),
+    # Support channel — anonymous on purpose (a locked-out user is the main case)
+    path("contact/", ContactView.as_view(), name="contact"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     # RSVP action endpoint (unified handler for all email-based actions)
     # Handles: MAGIC_LINK, COLLECTION_INVITE, BOOKING_ACCEPT/REJECT

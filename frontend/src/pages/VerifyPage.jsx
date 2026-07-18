@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, Koros } from 'hds-react';
 import useTheeeme from '../hooks/useTheeeme';
+import ContactCorner from '../components/ContactCorner';
 
 /**
  * The verifying / success / error states share the same form-hero + Koros
@@ -20,6 +21,7 @@ function VerifyScreen({ tc, koro, title, action, children }) {
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})`, '--hero-logo-color': `var(--color-${tc.color_02})` } : undefined}
       >
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <ContactCorner />
           <h1 className="form-hero-title">{title}</h1>
           {action}
         </div>
@@ -42,6 +44,11 @@ export default function VerifyPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [title, setTitle] = useState('');
+  // ACCOUNT_DELETE preview data — unlike a booking decision, account deletion
+  // is never auto-committed from the load effect: the person must press the
+  // explicit confirm button below.
+  const [deletePreview, setDeletePreview] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   // Guards the auto-commit POST so React 19 StrictMode's double-invoked effect
   // (dev only) can't fire the irreversible booking decision twice.
   const committedRef = useRef(false);
@@ -60,7 +67,12 @@ export default function VerifyPage() {
       try {
         const res = await fetch(`/api/v1/auth/verify/${code}/`);
         const data = await res.json();
-        if (res.ok && data.requires_confirmation) {
+        if (res.ok && data.requires_confirmation && data.action === 'ACCOUNT_DELETE') {
+          // Deleting an account is the one action even a real click must not
+          // commit implicitly: show the preview (whose account, how much goes
+          // with it) and wait for the explicit button below.
+          setDeletePreview(data);
+        } else if (res.ok && data.requires_confirmation) {
           // Booking accept/reject is irreversible, so the API only *previews* on a
           // bare GET — an email link-scanner must never decide a hold. The human's
           // single click was opening this link, so commit it now with a POST fired
@@ -134,6 +146,57 @@ export default function VerifyPage() {
       </Link>
     </div>
   );
+
+  const handleAccountDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/v1/auth/verify/${code}/`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const done = await res.json();
+      if (res.ok && done.action === 'ACCOUNT_DELETE') {
+        // The account is gone — so is everything this browser knew about it.
+        localStorage.removeItem('userCode');
+        localStorage.removeItem('seenWelcome');
+        localStorage.removeItem('theeemeColors');
+        localStorage.removeItem('koro');
+        setDeletePreview(null);
+        setTitle(t('verify.accountDeletedTitle'));
+        setSuccess(t('verify.accountDeletedBody'));
+      } else {
+        setDeletePreview(null);
+        setError(t('verify.invalidOrExpired'));
+      }
+    } catch {
+      setError(t('common.connectionError'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (deletePreview && !success && !error) {
+    return (
+      <VerifyScreen tc={tc} koro={koro} title={t('verify.accountDeleteTitle')}>
+        <p>
+          {t('verify.accountDeleteSummary', {
+            email: deletePreview.email,
+            collections: deletePreview.collections,
+            things: deletePreview.things,
+          })}
+        </p>
+        <p className="section-mt">{t('deleteAccount.whatStays')}</p>
+        <div className="section-mt" style={{ display: 'flex', gap: 'var(--spacing-s)', flexWrap: 'wrap' }}>
+          <Button variant="danger" disabled={deleting} onClick={handleAccountDelete}>
+            {deleting ? t('verify.accountDeleting') : t('verify.accountDeleteConfirm')}
+          </Button>
+          <Link to={isLoggedIn ? '/' : '/login'}>
+            <Button variant="secondary">{t('common.cancel')}</Button>
+          </Link>
+        </div>
+      </VerifyScreen>
+    );
+  }
 
   if (success) {
     return (

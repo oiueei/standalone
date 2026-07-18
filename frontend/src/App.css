@@ -93,6 +93,37 @@ body {
   pointer-events: none;
 }
 
+/* Support channel (i8): quiet speech-bubble link at the hero's top-right,
+   just left of the logo watermark (vertically centred on its 40px). Rendered
+   inside .form-hero-content so --hero-text-color resolves (visible on dark
+   theeemes, like the back link), positioned against .form-hero. 44px target. */
+.contact-corner {
+  position: absolute;
+  top: calc(var(--spacing-l) - 2px);
+  right: calc((100% - min(100%, 1248px)) / 2 + var(--spacing-s) + 141px + var(--spacing-s));
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hero-text-color, var(--color-black-90));
+  z-index: 1;
+}
+
+/* No watermark beside it (photo heroes, the login logo-title hero, and every
+   hero below breakpoint-m, where the watermark is suppressed): the icon takes
+   the content column's right edge itself. */
+.form-hero--photo .contact-corner,
+.form-hero--no-watermark .contact-corner {
+  right: calc((100% - min(100%, 1248px)) / 2 + var(--spacing-s));
+}
+
+@media (max-width: 767px) {
+  .contact-corner {
+    right: calc((100% - min(100%, 1248px)) / 2 + var(--spacing-s));
+  }
+}
+
 /* Suppressed on a photo hero (S7/S8) — without a screenshot there's no way to
    confirm the watermark stays legible over the diagonal wedge/photo, so this
    errs conservative per the task's own fallback — and on a hero whose title
@@ -247,6 +278,18 @@ body {
 .form-page {
   min-height: 100vh;
   background-color: var(--color-black-5);
+}
+
+/* The global colophon (i14): quiet, centred, painted with the viewer's theeeme
+   color_02 (inline, from SiteFooter) so it continues the page background with
+   no seam — this is only the fallback. Icons-black rule (§11): the ♥︎ is a text
+   glyph inheriting the text colour. */
+.site-footer {
+  text-align: center;
+  font-size: var(--fontsize-body-s);
+  color: var(--color-black-90);
+  background-color: var(--color-black-5);
+  padding: var(--spacing-m) var(--spacing-s) var(--spacing-l);
 }
 
 .form-actions {

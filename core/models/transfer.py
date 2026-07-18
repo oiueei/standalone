@@ -32,19 +32,30 @@ class ThingTransfer(models.Model):
         db_column="thing",
         related_name="transfers",
     )
+    # SET_NULL, not CASCADE: the physical handoff happened regardless of whether
+    # either party later deletes their account, and a thing's journey belongs to
+    # the thing (same reasoning as the nullable booking FK below). A deleted
+    # account keeps its hops but sheds its name (right to erasure) — the
+    # frontend renders "former member" for the null. Note the journey of the
+    # deleted user's OWN things still disappears: those rows cascade with the
+    # thing itself.
     from_user = models.ForeignKey(
         "User",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         to_field="code",
         db_column="from_user",
         related_name="transfers_out",
+        null=True,
+        blank=True,
     )
     to_user = models.ForeignKey(
         "User",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         to_field="code",
         db_column="to_user",
         related_name="transfers_in",
+        null=True,
+        blank=True,
     )
     booking = models.ForeignKey(
         "BookingPeriod",

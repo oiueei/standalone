@@ -12,8 +12,8 @@ class FAQSerializer(serializers.ModelSerializer):
     """Full FAQ serializer."""
 
     thing = serializers.CharField(source="thing_id")
-    questioner = serializers.CharField(source="questioner_id")
-    questioner_name = serializers.CharField(source="questioner.name", read_only=True)
+    questioner = serializers.CharField(source="questioner_id", allow_null=True)
+    questioner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = FAQ
@@ -33,6 +33,12 @@ class FAQSerializer(serializers.ModelSerializer):
             "created",
             "questioner",
         ]
+
+    def get_questioner_name(self, obj):
+        # A deleted account keeps its questions but sheds its name (right to
+        # erasure — FAQ.questioner is SET_NULL); the frontend renders its own
+        # "former member" label for the empty value.
+        return obj.questioner.name if obj.questioner else ""
 
 
 class FAQCreateSerializer(serializers.Serializer):

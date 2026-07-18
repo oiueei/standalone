@@ -22,12 +22,18 @@ class FAQ(models.Model):
         related_name="faq_set",
     )
     created = models.DateTimeField(default=timezone.now)
+    # SET_NULL, not CASCADE: a deleted account keeps its questions — the answer
+    # ("does it run on butane?") is knowledge about the thing, not about the
+    # asker — but sheds the attribution (right to erasure). The frontend renders
+    # a "former member" label for the null.
     questioner = models.ForeignKey(
         "User",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         to_field="code",
         db_column="questioner",
         related_name="asked_faqs",
+        null=True,
+        blank=True,
     )
     question = models.CharField(max_length=64)
     answer = models.CharField(max_length=256, blank=True, default="")

@@ -88,7 +88,8 @@
     "edit": "Editar",
     "send": "Enviar",
     "sending": "Enviando...",
-    "back": "Volver"
+    "back": "Volver",
+    "formerMember": "Antiguo miembro"
   },
   "titles": {
     "home": "Inicio — OIUEEI",
@@ -121,7 +122,11 @@
     "deleteCollectionDefault": "Eliminar colección — OIUEEI",
     "share": "Únete — OIUEEI",
     "notifications": "Preferencias de email — OIUEEI",
-    "popin": "Pásate — OIUEEI"
+    "popin": "Pásate — OIUEEI",
+    "deleteAccount": "Borrar cuenta — OIUEEI",
+    "legal": "Legal y privacidad — OIUEEI",
+    "contact": "Contacto — OIUEEI",
+    "collaborate": "Colabora — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -133,9 +138,11 @@
     "errorSendingLink": "Error al enviar el enlace.",
     "pitch": "Comparte lo que tienes con la gente en la que confías — sin anuncios, sin desconocidos.",
     "description": "OIUEEI es una aplicación de código abierto para compartir lo que tienes con la gente que te rodea. Crea una colección — cosas para regalar, vender, prestar o intercambiar — y compártela con tu círculo: podrán mirar, reservar y preguntar.",
-    "openSource": "OIUEEI es de código abierto. Puedes encontrar el proyecto en <1>GitHub</1>. Si quieres solicitar acceso o colaborar, ponte en contacto.",
+    "openSource": "El código de OIUEEI es público — disponible bajo licencia BUSL 1.1, MIT a partir de 2030. El proyecto vive en <1>GitHub</1>: ideas, propuestas y colaboración, allí. ¿Nuevo por aquí? El botón «Pop in» de abajo es la puerta.",
     "manifesto": "Sin anuncios, sin rastreadores. Tus datos no son el producto.",
-    "popIn": "¿Nuevo por aquí? Pásate →"
+    "popIn": "¿Nuevo por aquí? Pásate →",
+    "legalLink": "Aviso legal y privacidad",
+    "loginHelp": "¿Problemas para entrar? Cuéntanoslo e intentamos ayudarte lo antes posible →"
   },
   "verify": {
     "declined": "Rechazado",
@@ -149,7 +156,13 @@
     "invalidOrExpired": "Enlace inválido o caducado.",
     "expiredHelp": "Si tu enlace ha caducado, pide a quien te invitó que te envíe uno nuevo, o solicita un nuevo enlace mágico.",
     "goToHomepage": "Ir al inicio",
-    "goToLogin": "Ir a entrar"
+    "goToLogin": "Ir a entrar",
+    "accountDeleteTitle": "¿Borrar tu cuenta?",
+    "accountDeleteSummary": "Estás a punto de borrar para siempre la cuenta {{email}}: se van con ella {{collections}} colecciones y {{things}} cosas, con sus fotos y cualquier solicitud pendiente.",
+    "accountDeleteConfirm": "Borrar mi cuenta para siempre",
+    "accountDeleting": "Borrando…",
+    "accountDeletedTitle": "Cuenta borrada",
+    "accountDeletedBody": "Tu cuenta y tus datos se han borrado. Gracias por haber formado parte de OIUEEI."
   },
   "home": {
     "greeting": "Hola, {{name}}",
@@ -380,7 +393,7 @@
   },
   "editProfile": {
     "pageTitle": "Editar perfil",
-    "nameLabel": "Nombre",
+    "nameLabel": "Nombre público",
     "bioLabel": "Presentación",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
@@ -396,7 +409,9 @@
     "photoHelper": "Se muestra en tu perfil, opcional",
     "maxAbout": "Máximo 2000 caracteres.",
     "emailPreferences": "Preferencias de email →",
-    "languageHelper": "OIUEEI también te escribe en este idioma (correos incluidos)."
+    "languageHelper": "OIUEEI también te escribe en este idioma (correos incluidos).",
+    "deleteAccount": "Borrar cuenta",
+    "nameHelper": "Tu nombre, un apodo, lo que quieras — es como te verán los demás en OIUEEI."
   },
   "editCollection": {
     "pageTitle": "Editar colección",
@@ -447,11 +462,11 @@
   "welcome": {
     "greeting": "Hola, {{name}}",
     "pageTitle": "¡Bienvenido a OIUEEI!",
-    "description": "OIUEEI es una plataforma de código abierto para compartir dentro de comunidades de confianza. Crea colecciones para regalos, ventas, préstamos, intercambios y deseos — luego invita a amigos a explorar, reservar e interactuar. Todo queda entre personas que se conocen.",
+    "description": "OIUEEI es una plataforma de código público para compartir dentro de comunidades de confianza. Crea colecciones para regalos, ventas, préstamos, intercambios y deseos — luego invita a amigos a explorar, reservar e interactuar. Todo queda entre personas que se conocen.",
     "createShare": "OIUEEI gira en torno a tus propias colecciones. Crea una para lo que quieras compartir —regalos, ventas, préstamos, intercambios o deseos— e invita a tus círculos: familia, amigos, vecinos, tu calle. Solo quienes invites pueden verla y participar.",
     "commitmentTitle": "Nuestro compromiso",
     "commitmentBody1": "OIUEEI funciona sin anuncios y sin analíticas de terceros: nadie te rastrea mientras la usas. Tus datos no son el producto — no se venden ni se comparten con nadie.",
-    "commitmentBody2": "El código es abierto y puedes leerlo entero; este compromiso está <1>escrito en nuestras normas de diseño</1>. No es la letra pequeña: es el punto de partida.",
+    "commitmentBody2": "El código es público y puedes leerlo todo; este compromiso está <1>escrito en nuestras reglas de diseño</1>. No es la letra pequeña: es el punto de partida.",
     "createCollection": "Crear colección",
     "editProfile": "Editar perfil",
     "whoUsesTitle": "¿Quién usa OIUEEI?",
@@ -472,7 +487,8 @@
     "personaLoloLink1": "El salón verde de Lolo",
     "personaLuluLink1": "El estante fantasma de Lulu",
     "personaLalaLink2": "La venta del sabático de Lala",
-    "enterCta": "Entrar y ver cómo funciona"
+    "enterCta": "Entrar y ver cómo funciona",
+    "legalLink": "Aviso legal y privacidad →"
   },
   "myBookings": {
     "pageTitle": "Mis solicitudes",
@@ -847,5 +863,41 @@
     "infoBody": "Si tu grupo lee en dos idiomas, escribe el título o la descripción como un pequeño mapa: copia esto y cambia las palabras. Cada persona lo leerá en su idioma, en la web y en sus correos.",
     "tagsInfoBody": "Una etiqueta funciona igual: escríbela como un mapa y cada miembro verá la suya.",
     "infoFallback": "Idiomas: es (español), ca (catalán), en (inglés). Puedes escribir en uno solo si lo prefieres: todo lo que no sea un mapa se muestra tal cual lo escribiste."
+  },
+  "deleteAccount": {
+    "pageTitle": "Borrar tu cuenta",
+    "intro": "Borrar tu cuenta es inmediato e irreversible una vez lo confirmes. Esta página te cuenta exactamente qué se borra y qué se conserva.",
+    "whatGoesTitle": "Qué se borra",
+    "whatGoes": "Tu cuenta, tus colecciones, tus cosas con sus fotos y tus solicitudes pendientes — para siempre.",
+    "whatStaysTitle": "Qué se conserva",
+    "whatStays": "Las preguntas que hiciste sobre cosas de otras personas y el historial de cosas que pasaron por tus manos se conservan, sin tu nombre — se muestran como «Antiguo miembro».",
+    "emailStep": "Para asegurarnos de que eres tú, te enviaremos un enlace de confirmación por correo. No se borra nada hasta que lo abras y confirmes allí.",
+    "sendButton": "Enviarme el correo de confirmación",
+    "sending": "Enviando…",
+    "sentLabel": "Revisa tu correo",
+    "sentBody": "Te hemos enviado el enlace de confirmación. Funciona durante 24 horas. Si cambias de idea, simplemente ignóralo — no pasará nada.",
+    "error": "No hemos podido enviar el correo. Inténtalo de nuevo."
+  },
+  "legal": {
+    "pageTitle": "Legal y privacidad"
+  },
+  "contact": {
+    "pageTitle": "Contáctanos",
+    "intro": "Todo comentario, problema o idea nos importa — de verdad. Cuéntanos qué pasa y te contestamos lo antes posible.",
+    "nameLabel": "Nombre (opcional)",
+    "emailLabel": "Email",
+    "messageLabel": "Mensaje",
+    "sentLabel": "¡Recibido!",
+    "sentBody": "Hemos recibido tu mensaje — te contestaremos lo antes posible.",
+    "error": "No hemos podido enviar tu mensaje. Inténtalo de nuevo.",
+    "linkLabel": "¿Problemas, sugerencias, comentarios? Contáctanos"
+  },
+  "collaborate": {
+    "pageTitle": "Colabora con OIUEEI",
+    "intro": "Colaboraciones de diseño, producto, desarrollo y beta-testing: si andas metido en el mundillo del open source o de la economía social y solidaria, eres más que bienvenido. Cuéntanos quién eres y qué te apetece aportar — contestamos lo antes posible.",
+    "linkFromContact": "¿Diseño, producto, código o beta-testing? Colaboraciones →"
+  },
+  "footer": {
+    "madeIn": "Hecho con ♥︎ desde la Zona Franca, Barcelona, Cataluña, España, UE"
   }
 }

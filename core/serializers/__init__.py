@@ -16,6 +16,7 @@ from .collection import (
     CollectionSerializer,
     CollectionUpdateSerializer,
 )
+from .contact import ContactSerializer
 from .faq import FAQAnswerSerializer, FAQCreateSerializer, FAQSerializer
 from .theeeme import TheeemeSerializer
 from .thing import (
@@ -30,6 +31,7 @@ from .wish import WishResponseCreateSerializer, WishResponseSerializer
 
 __all__ = [
     "RequestLinkSerializer",
+    "ContactSerializer",
     "UserSerializer",
     "UserPublicSerializer",
     "UserUpdateSerializer",

@@ -1,6 +1,6 @@
 ## What is OIUEEI?
 
-An open-source web application for people to share their belongings with friends and others around. Users can create collections (wishlists, gift lists, items for sale) and share them with friends who can then reserve items or ask questions.
+A source-available web application (BUSL 1.1 — every line public and auditable; MIT from 2030; self-hosting in production is allowed, offering it as a competing hosted service is not) for people to share their belongings with friends and others around. Users can create collections (wishlists, gift lists, items for sale) and share them with friends who can then reserve items or ask questions.
 
 ## Authorship & Development
 
@@ -52,7 +52,7 @@ Our goal is to **stay as close to upstream HDS as possible** to benefit from acc
 ### Why HDS?
 
 - **Accessibility built-in** — All HDS components are WCAG 2.1 AA audited.
-- **Open source (MIT)** — Fully compatible with OIUEEI's open-source license.
+- **Open source (MIT)** — Fully compatible with OIUEEI's source-available licence (BUSL 1.1).
 - **Production-proven** — Used across hundreds of City of Helsinki digital services.
 - **React-native support** — Aligns with our tech stack (React + Vite).
 
@@ -86,11 +86,12 @@ core/
       send_digests.py     # Weekly/monthly digest emails
       stats_summary.py    # First-party product stats (stdout + Monday email)
       backfill_events.py  # One-off: seed the Event log from existing rows
-      seed_demo.py        # Populate demo data (idempotent; --lang=en|es)
+      seed_demo.py        # Populate demo data (idempotent; --lang=en|es|ca)
       seed_data/
-        common.py         # non-translatable (transfers)
+        common.py         # structure + localized tag constants (non-translatable)
         en.py             # English demo content
         es.py             # Spanish demo content
+        ca.py             # Catalan demo content
   tests/
     unit/            # Model, serializer, validator, security tests
     integration/     # View and booking integration tests
@@ -144,6 +145,7 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | POST | `/api/v1/auth/refresh/` | Rotate access/refresh tokens via HttpOnly cookies |
 | GET | `/api/v1/auth/me/` | Get authenticated user |
 | POST | `/api/v1/auth/logout/` | Log out (clears auth cookies) |
+| POST | `/api/v1/auth/delete-account/` | Request account deletion (rate limited: 3/h): emails a 24h single-use confirmation link; the deletion itself commits via a POST on the verify endpoint (GET only previews) |
 
 ### Users
 | Method | URL | Description |
@@ -221,7 +223,8 @@ All relationships use proper Django ForeignKey and ManyToManyField:
 | DELETE | `/api/v1/inbox/{code}/` | Dismiss an in-app notification |
 | POST | `/api/v1/upload/signature/` | Get a signed Cloudinary upload signature (rate limited: 30/h) |
 | GET | `/api/v1/theeemes/` | List all available theeemes |
-| GET | `/api/v1/health/` | Health check endpoint |
+| POST | `/api/v1/contact/` | Support/contact form (anonymous on purpose — a locked-out user is the main case; rate limited: 5/h per IP). Forwards the message to the operator with the sender as Reply-To; `kind: support\|collab` labels the subject (the `/contact` and `/collaborate` pages) |
+| GET | `/api/v1/health/` | Health check: verifies app **and** database (`SELECT 1`) — 200 ok / 503 degraded. Point your uptime monitor here |
 | - | `/oiueei-admin/` | Django Admin (requires password) |
 
 **Note:** Reservation accept/reject actions can be performed via RSVP links sent by email or via authenticated API endpoints (`/bookings/{code}/accept/` and `/bookings/{code}/reject/`). Requesters can cancel their own pending bookings via `/bookings/{code}/cancel/`. Email links use RSVP codes as intermediaries to avoid exposing real codes in URLs.
@@ -246,13 +249,16 @@ python manage.py migrate
 # 3. Seed demo data — recommended before exploring the app or running the frontend.
 #    Without it the Welcome page example collections and the /popin demo land on empty/404 pages.
 #    (Lala, Lele, Lili, Lolo, Lulu and their collections — idempotent.)
-python manage.py seed_demo                 # English (default)
-python manage.py seed_demo --lang=es       # Spanish
-python manage.py seed_demo --lang=es --reset   # wipe demos, re-seed in Spanish
+#    Collection/thing text is ALWAYS seeded in all three languages at once
+#    (inline {es,ca,en} maps — every reader sees their own); --lang only picks
+#    the language of the plain-column text (user bios, FAQs, wish responses).
+python manage.py seed_demo                 # plain-column text in English (default)
+python manage.py seed_demo --lang=es       # … in Spanish (also: --lang=ca)
+python manage.py seed_demo --lang=es --reset   # wipe demos first, then re-seed
 # On Heroku (quote the inner command — the Heroku CLI otherwise grabs inner flags like --lang as its own):
 #   heroku run --app <your-app> "python manage.py seed_demo --lang=es"
 # Pass --reset to wipe existing demo data first (leaves other users/collections untouched).
-# Adding a new language: copy core/management/commands/seed_data/en.py to e.g. ca.py,
+# Adding a new language: copy core/management/commands/seed_data/en.py to e.g. pt.py,
 # translate the text fields, add the code to SUPPORTED_LANGS in seed_demo.py.
 
 # 4. Run the servers
@@ -305,6 +311,7 @@ python manage.py backfill_events
 | `RSVP_BASE_URL` | Prod | Base URL for RSVP action links in emails (default in dev: `http://localhost:3000/rsvp`) |
 | `SHARE_LINK_BASE_URL` | Prod | Base URL for public collection share links (default in dev: `http://localhost:3000/share`) |
 | `CLOUDINARY_URL` | Uploads | Cloudinary credentials for image uploads: `cloudinary://api_key:api_secret@cloud_name` (free account at cloudinary.com) |
+| `CONTACT_EMAIL` | No | Recipient of the `/contact` support form (default: `DEFAULT_FROM_EMAIL` — the operator mails themselves) |
 | `STATS_EMAIL` | No | Recipient for the weekly `stats_summary` command email (`--email` forces a send). Unset skips the email — third-party deploys don't email metrics anywhere by default. |
 | `STATS_EMAIL_WEEKDAY` | No | Weekday for the weekly `stats_summary` email: 0=Monday (default) … 6=Sunday. |
 
@@ -349,6 +356,8 @@ OIUEEI has no open public self-registration on its main model — accounts are c
 | Rate Limiting | Collection add-thing | 60 req/hour per user |
 | Rate Limiting | Wish response accept | 30 req/hour per user |
 | Rate Limiting | Collection leave | 30 req/hour per user |
+| Rate Limiting | Account delete request | 3 req/hour per user |
+| Rate Limiting | Contact form | 5 req/hour per IP |
 | Headers | HSTS | 1-year strict transport security with preload |
 | Headers | X-Frame-Options | DENY (prevents clickjacking) |
 | Headers | Content-Type | nosniff (prevents MIME confusion) |
@@ -370,6 +379,8 @@ OIUEEI does not sell or share user data with third parties. There is **no third-
 
 Product metrics are **first-party only**: an append-only `Event` log and a `(user, date)` `DailyActivity` record, both computed into an aggregate `stats_summary` that is printed and emailed to the operator. They record less than the web-server logs already hold, never leave our DB, and are never wrapped in tracking pixels or redirect links. Demo/seed activity is reported separately so it can't inflate the real numbers.
 
+**Right to erasure**: every user can delete their own account from their profile (Edit profile → Delete account). Deletion is immediate and irreversible once confirmed via an emailed 24h link: the account, its collections, things, photos and pending requests are permanently deleted (Cloudinary assets included). Questions asked on other people's things and an item's transfer history survive **anonymised** — the content stays with the thing, the name goes ("former member").
+
 Full ethical commitment and the rules I follow: [DESIGN.md §9](DESIGN.md#9-user-data-is-never-a-product).
 
 
@@ -380,7 +391,7 @@ Full ethical commitment and the rules I follow: [DESIGN.md §9](DESIGN.md#9-user
 - **Proper FK/M2M**: All relationships use Django ForeignKey and ManyToManyField (migrated from JSONField arrays). This enables `select_related`/`prefetch_related`, cascade deletes, and referential integrity.
 - **Centralized email**: All email HTML composition lives in `email_service.py` with `django.utils.html.escape()` for XSS prevention. Every send is routed through a preference pipeline that filters Cat. 2 (activity) and Cat. 3 (news) based on `User.notify_activity` / `notify_news`; Cat. 1 (magic links, invitations, revokes) is always delivered. Non-mandatory emails carry a footer with a `TimestampSigner`-signed link to `/me/notifications/{token}` so recipients can toggle preferences without logging in (see `NotificationsByTokenView`).
 - **RSVP intermediary**: All email action links use RSVP codes. Real entity codes are never exposed in URLs.
-- **Seed data out of migrations**: Demo fixtures (Lala/Lele/Lili/Lolo/Lulu and their collections) live in `core/management/commands/seed_demo.py` + `seed_data/{lang}.py`, not in migrations. Fresh environments start with a clean DB and only get demo data when `python manage.py seed_demo` is run explicitly. The command is idempotent (`update_or_create` / `get_or_create`) and supports multiple languages (`--lang=en|es`, default English). Text content per language lives in its own module so you can switch the same DB between languages just by re-running the command. The old seed migrations (`0037`–`0076`) are retained as no-ops to preserve migration history.
+- **Seed data out of migrations**: Demo fixtures (Lala/Lele/Lili/Lolo/Lulu and their collections) live in `core/management/commands/seed_demo.py` + `seed_data/{lang}.py`, not in migrations. Fresh environments start with a clean DB and only get demo data when `python manage.py seed_demo` is run explicitly. The command is idempotent (`update_or_create` / `get_or_create`). Collection/thing text is always seeded **in all three languages at once** as inline localized maps (`{"es": …, "ca": …, "en": …}` — every reader resolves their own, see the multilingual-content notes); `--lang=en|es|ca` (default English) only selects the language of the plain-column text (user bios, FAQs, wish responses). The old seed migrations (`0037`–`0076`) are retained as no-ops to preserve migration history.
 
 ## Default Data
 
@@ -438,6 +449,19 @@ All UI components are sourced from the [Helsinki Design System](https://hds.hel.
 ### Validation
 
 Main pages are validated with [axe DevTools](https://www.deque.com/axe/devtools/) to detect WCAG violations. Automated accessibility checks are integrated into the frontend test suite via `jest-axe`.
+
+## Legal
+
+The app ships a public **`/legal`** page (commitment, legal notice, privacy, basic terms — es/ca/en, following the UI language). Its content lives in `frontend/src/legal/{lang}.js` and is **per-deployment**:
+
+- The standalone repo carries a **generic, operator-neutral** text. **If you self-host OIUEEI, you are the data controller of your instance**: edit those files with your identity, contact, legal bases and processors before inviting real users.
+- The official deployment (www.oiueei.com) replaces those files on its deploy branch with the full RGPD/LSSI version of its owner.
+
+**Licence**: [Business Source License 1.1](LICENSE) — the code is public and auditable, production self-hosting is allowed, and the one restriction is offering OIUEEI to third parties as a hosted service that competes with the licensor's paid offering. On the Change Date (2030-02-02) it becomes MIT.
+
+### Need a hand running your own OIUEEI?
+
+Self-hosting is allowed and encouraged. If you'd like help deploying your own instance, adapting it to your community, or building custom features on top of it, I offer exactly that as an on-demand service — write to **oiueei@disroot.org** and tell me what you have in mind.
 
 ## Acknowledgements
 

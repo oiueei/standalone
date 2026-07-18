@@ -10,9 +10,9 @@ from core.models.transfer import ThingTransfer
 class ThingTransferSerializer(serializers.ModelSerializer):
     """Individual transfer record."""
 
-    from_user = serializers.CharField(source="from_user_id")
+    from_user = serializers.CharField(source="from_user_id", allow_null=True)
     from_user_name = serializers.SerializerMethodField()
-    to_user = serializers.CharField(source="to_user_id")
+    to_user = serializers.CharField(source="to_user_id", allow_null=True)
     to_user_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -29,11 +29,13 @@ class ThingTransferSerializer(serializers.ModelSerializer):
 
     def get_from_user_name(self, obj):
         # Bare name, not display_name — the journey is shown community-wide, so
-        # the email fallback would leak addresses (L2).
-        return obj.from_user.name
+        # the email fallback would leak addresses (L2). A null user is a deleted
+        # account (SET_NULL, right to erasure): the hop stays, the name goes —
+        # the frontend renders its own "former member" label for the empty value.
+        return obj.from_user.name if obj.from_user else ""
 
     def get_to_user_name(self, obj):
-        return obj.to_user.name
+        return obj.to_user.name if obj.to_user else ""
 
 
 class ThingTransferStatsSerializer(serializers.Serializer):

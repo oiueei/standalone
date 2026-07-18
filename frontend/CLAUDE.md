@@ -16,6 +16,7 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/magic-link/:code` | `VerifyPage` | Alias for /verify/:code |
 | `/me` | `UserPage` | Own profile (fetches userCode from `/auth/me/` if needed) |
 | `/me/edit` | `EditProfilePage` | Edit own profile |
+| `/me/delete` | `DeleteAccountPage` | Right-to-erasure entry: states what is deleted / what stays, then emails the 24h confirmation link (`POST /auth/delete-account/`). Nothing is deleted here |
 | `/me/notifications/:token` | `NotificationsPage` | Manage email preferences via a signed (`TimestampSigner`, ~1y TTL) token from the email footer link. Without `:token` redirects to `/me/edit`. |
 | `/collections/new` | `CreateCollectionPage` | Create a new collection |
 | `/collections/:code` | `CollectionPage` | Collection detail with things and invites. **Public route** — anonymous read when the collection is PUBLIC (gated server-side by `can_view`). |
@@ -40,6 +41,9 @@ React frontend using HDS (Helsinki Design System) from npm with OIUEEI customiza
 | `/popin` | `PopInPage` | Open-door onboarding: enter email, get magic link, join onboarding collections |
 | `/share/:token` | `SharePage` | Public collection share-link landing: enter email, get magic link, join the collection identified by `:token` |
 | `/collections/:code/join` | `JoinPage` | **Public route** — login-to-act landing for a PUBLIC collection. An anonymous visitor who clicks an action button (reserve/order/respond) on a public collection lands here; enters email → pop-in joins them to `:code` + magic link → after verifying they're dropped back on the collection, able to act. |
+| `/contact` | `ContactPage` | **Public route** — the support channel (a locked-out user is the main case): name (optional) + reply email + message → `POST /api/v1/contact/` (forwarded to the operator, Reply-To = sender) → success `Notification`. Reached from the `ContactCorner` speech-bubble in every hero and the "trouble signing in?" line on LoginPage. Both this and `/collaborate` render the shared **`ContactFormPage`** component (`src/components/ContactFormPage.jsx` — the `MagicLinkJoinPage` pattern: per-page `docTitleKey`/`titleKey`/`introKey` + `kind` + optional footer children) |
+| `/collaborate` | `CollaboratePage` | **Public route** — the collaborate door (design, product, code, beta-testing; open-source / social-economy folks): same shared form as `/contact` posting `kind: "collab"` (the operator's inbox subject differs). Linked from ContactPage |
+| `/legal` | `LegalPage` | **Public route** — commitment (manifesto), legal notice, privacy and basic terms, in the reader's language. Content lives in `src/legal/{es,ca,en}.js` (Markdown via `MarkdownText`): the standalone repo ships a generic operator-neutral text (each self-hoster is their own data controller and must fill in their identity); the official www.oiueei.com deploy branch replaces those files with the full RGPD/LSSI version. Linked from LoginPage (under the manifesto line) and WelcomePage (commitment section) |
 | `/:userCode` | `UserPage` | Displays a user's public profile |
 | `*` | `NotFoundPage` | 404 page for unknown routes |
 
@@ -66,6 +70,10 @@ form-page
 │   └── Koros          (HDS Koros component, type from user.koro preference, 60px height, fill = theeeme color_02)
 └── page-container     (max-width 1248px, page content)
 ```
+
+**Site footer (i14):** a global one-line colophon (`SiteFooter`, mounted once in `App.jsx` after `<main>`): "Made with ♥︎ in Zona Franca, Barcelona, Catalonia, Spain, EU" (`footer.madeIn`, ×3 locales). Painted with the viewer's theeeme `color_02` (same token as `.form-page`'s background) so there is no colour seam; `useLocation()` re-renders it per navigation so a theeeme change is picked up. The heart is U+2665+U+FE0E (text presentation — inherits colour, never a red emoji).
+
+**Contact corner (i8):** every hero also carries `ContactCorner` (`src/components/ContactCorner.jsx`) — a quiet `IconSpeechbubbleText` link to `/contact` (44px target, `aria-label`/`title` from `contact.linkLabel`), rendered as the first child of `.form-hero-content` (so `--hero-text-color` resolves and it stays visible on dark theeemes, like the back link) and absolutely positioned against `.form-hero`: just left of the logo watermark at ≥768px, at the content column's right edge on photo/no-watermark heroes and below `breakpoint-m` (`.contact-corner` in App.css). Inserted in `PageLayout` plus the 8 manual-hero pages.
 
 **OIUEEI logo in the hero (S9):** brand presence via `public/oiueei-logo.svg` (monochrome, 566×161 — the viewBox matches the art's real bounds; a 556×161 viewBox shipped initially and clipped the wordmark's last glyph, fixed in the 2026-07-13 round, S5), tinted with a CSS `mask` so it inherits whatever colour var is in scope — the same technique for both uses below).
 
@@ -120,7 +128,7 @@ The app ships a web app manifest (`public/manifest.webmanifest`) plus icons (`pu
 - **Hero title is the OIUEEI logo (S9)**: the only hero `<h1>` in the app whose text is the literal string "OIUEEI" — it renders `.form-hero-title-logo` (an 80px masked `oiueei-logo.svg`, coloured via `--hero-text-color`) instead, with `aria-label={t('login.title')}` on the `<h1>` for the accessible name. The hero also carries `form-hero--no-watermark` to suppress the standard 40px logo watermark (see Page Layout Pattern) — no double logo.
 - Leads with a one-sentence pitch (`login.pitch` i18n key), then a brief description of OIUEEI (`login.description` i18n key).
 - Shows an open source paragraph with a link to the GitHub repository (`login.openSource` i18n key, rendered via `Trans` for the inline link).
-- Shows a one-line manifesto under the open-source paragraph (`login.manifesto`): "No ads, no trackers. Your data is not the product."
+- Shows a one-line manifesto under the open-source paragraph (`login.manifesto`): "No ads, no trackers. Your data is not the product." A quiet muted link to `/legal` (`login.legalLink`) sits under it. Below the form, a "trouble signing in?" line (`login.loginHelp`) links to `/contact` — the locked-out user's lifeline.
 - Sends a magic link to the provided email address.
 - After submission, replaces the form with a `Notification` component:
   - `success` — Unified message displayed (backend returns 200 regardless of email existence for anti-enumeration)
@@ -132,6 +140,7 @@ The app ships a web app manifest (`public/manifest.webmanifest`) plus icons (`pu
 - **API:** `GET /api/v1/auth/verify/{code}/` (resolve) and `POST` of the same URL (commit a booking decision).
 - Fetches (GET) on mount using the `:code` route parameter.
 - **Booking accept/reject — one-click auto-commit:** when the GET returns `requires_confirmation` (a `BOOKING_ACCEPT`/`BOOKING_REJECT` preview, no mutation), the page **immediately fires the committing `POST`** from within the load effect, showing the "Verifying…" screen until it resolves to the confirmed/rejected success screen. The owner's single click (opening the email link) is enough — no second on-page button. Safety is preserved because the commit only runs from **real JS execution**: an email link-scanner or prefetch does a bare GET, runs no JS, and so still can't decide a hold (the backend also refuses to commit on GET). A `committedRef` guard stops React 19 StrictMode's dev-only double-invoked effect from POSTing twice.
+- **ACCOUNT_DELETE is the exception to the auto-commit**: when the GET preview's `action` is `ACCOUNT_DELETE`, the page renders a dedicated confirmation screen (account email, owned collection/thing counts, the what-stays line) and the committing POST only fires from the explicit **"Delete my account forever"** danger button — never from the load effect. On success it clears `userCode`/`seenWelcome`/`theeemeColors`/`koro` from localStorage and shows the goodbye screen (`verify.accountDeleted*`); a Cancel button exits to home/login.
 - On `COLLECTION_REJECT` action: shows success `Notification` confirming the invitation was declined and the owner was notified. Shows "Go to login" button. No login/redirect.
 - On success: stores `userCode` in `localStorage`. Auth tokens are set as HttpOnly cookies by the backend. **The destination comes from the backend's `landing` field** (see `core/views/CLAUDE.md` → VerifyLinkView): `collection` ⇒ `/collections/{data.collection}` (with `{ state: { fromInvite: true } }` when `data.invited_collection` is also present — i.e. the landing came from an invitation, which is what shows the collection's welcome box), `welcome` ⇒ `/welcome`, anything else ⇒ `/`. It used to be decided here from `seenWelcome`, but `LogoutPage` clears that key, so every re-login looked like a first visit and dumped returning users on `/welcome`. `seenWelcome` now only suppresses `CollectionPage`'s first-time Welcome Linkbox.
 - On failure: shows error `Notification` with helpful guidance and "Go to login" button (resolves dead-end for expired links).
@@ -240,7 +249,7 @@ Detail page for a thing with full information and FAQs section.
   - Lists all FAQs with question, `questioner_name`, and answer. Hidden FAQs shown with reduced opacity (owner only).
   - **Owner:** inline `TextArea` to answer unanswered questions, "Hide"/"Show" toggle button per FAQ.
   - **Non-owner:** `Fieldset`-wrapped form to ask a new question.
-- **Journey section** (below FAQs): fetches `GET /api/v1/things/{thingCode}/transfers/` on mount. Shown only when `total_transfers > 0`. For SHARE_THING in COMMUNITY collections (`is_share_in_community`): shows "Sharing history" heading, "Originally shared by {name}" block, "Shared by N people" narrative, and a CSS timeline (`.share-timeline`). For other things: displays the standard journey view with journey count (unique homes), current holder name, and a timeline of transfers (from → to, lent date, returned date).
+- **Journey section** (below FAQs): fetches `GET /api/v1/things/{thingCode}/transfers/` on mount. Shown only when `total_transfers > 0`. For SHARE_THING in COMMUNITY collections (`is_share_in_community`): shows "Sharing history" heading, "Originally shared by {name}" block, "Shared by N people" narrative, and a CSS timeline (`.share-timeline`). For other things: displays the standard journey view with journey count (unique homes), current holder name, and a timeline of transfers (from → to, lent date, returned date). An empty `from/to_user_name` is a deleted account (right to erasure): the timeline renders `common.formerMember` ("Former member") in its place.
 - **Report footer** (#12): a quiet supplementary `Button` with `IconAlertCircleFill` (`.thing-report-footer`), shown only to logged-in non-owners. Clicking **expands an inline confirm right below the button** (`.thing-report-confirm`, `aria-expanded` on the button — no modal): "Report this listing?" + a note that the owner is told *someone* reported it, never who, and Report/Cancel actions. Confirming `POST`s `/api/v1/things/{thingCode}/report/` and shows a thank-you Toast (`thingPage.reportThanks`). The backend records an anonymous `Report` (moderation log) and sends the owner an anonymous `THING_REPORTED` notification + email. Reporting is authenticated-only and idempotent per member.
 
 ### RequestThingPage (`src/pages/RequestThingPage.jsx`)
@@ -349,13 +358,22 @@ Detail page for a thing with full information and FAQs section.
 - **API:** `GET /api/v1/auth/me/` to load, `GET /api/v1/theeemes/` to list themes, `PUT /api/v1/users/{userCode}/` to save
 - **Back link**: dynamic via `location.state.backPath` / `location.state.backLabel` (defaults to `← Home` / `/`).
 - Simple form with h1 title + `form-grid` layout:
-  - `TextInput` for name, `TextArea` for headline (short "Bio", max 64), `TextArea` for `about` (long free-form Markdown profile content, max 2000, "Markdown supported" helper), `ImageUpload` for the profile `photo` (folder `oiueei/users`), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid). All five are saved with the profile via the single PUT.
+  - `TextInput` for the **public name** (`editProfile.nameLabel` "Nombre público" + `nameHelper` stating it's how everyone will see them — chosen pseudonymity, one field), `TextArea` for headline (short "Bio", max 64), `TextArea` for `about` (long free-form Markdown profile content, max 2000, "Markdown supported" helper), `ImageUpload` for the profile `photo` (folder `oiueei/users`), `TheeemeSelector` for theeeme (visual colour swatch grid from API), `KoroSelector` for koro (visual Koros SVG preview grid). All five are saved with the profile via the single PUT.
   - **Language `Select`** — switches the UI immediately (`i18n.changeLanguage`, as it always did) **and** saves `User.language` with the profile, so OIUEEI's emails follow the interface. It is the strongest level of the email language hierarchy: it beats the collection's language and the deployment default (see `core/services/CLAUDE.md`).
   - **The profile-load effect is mount-once, deliberately** (S7): its dependency array is `[userCode, navigate]`, not `[userCode, navigate, t, i18n]` — `t`/`i18n` get a new identity on every `i18n.changeLanguage()` call (fired by this same Select), so including them re-ran the effect on every language change, re-fetched `/auth/me/`, and clobbered every unsaved field — including the language pick itself — with the server's stale copy (the user couldn't leave their saved language). An `eslint-disable-next-line react-hooks/exhaustive-deps` documents why.
   - **Email preferences section** (h2 heading + `notifications.intro` paragraph + `form-grid`): three HDS `ToggleButton` components (wrapped in `.toggle-left`) — "Sign-in links and invitations" (always checked, `disabled`, renders black pill, Cat. 1), "Activity between users" (`notify_activity`, Cat. 2), and "News and announcements" (`notify_news`, Cat. 3). Each has a sub-label helper text rendered as a `<span>` inside the label prop. Preferences are saved together with profile fields via a single Save button.
   - "Save" button below the preferences section.
+  - **Delete account** — a quiet muted link (border-top separated, below Save) to `/me/delete`. An entrance, not a trigger: the deletion has its own page and still requires the emailed confirmation.
 - Pre-populates all fields (including `notify_activity`/`notify_news`) from the current user profile.
 - On success: navigates to `/`.
+
+### DeleteAccountPage (`src/pages/DeleteAccountPage.jsx`)
+
+- **API:** `POST /api/v1/auth/delete-account/` (rate limited 3/h server-side).
+- Accessible from `/me/delete` (protected route), reached via the quiet link at the bottom of EditProfilePage.
+- `PageLayout` page that states the erasure map before anything happens: **what is deleted** (account, collections, things + photos, pending requests — permanently) and **what stays** (questions on other people's things and transfer-history hops, anonymised as "Former member" — `deleteAccount.*` i18n namespace).
+- One HDS `Button variant="danger"` ("Send me the confirmation email") requests the emailed 24h link and swaps into a success `Notification` ("Check your email"). Errors (429 / server / network) render inline and keep the button.
+- **Nothing is deleted on this page.** The deletion commits on `VerifyPage` when the emailed link is opened and its explicit confirm button pressed (see VerifyPage's ACCOUNT_DELETE note).
 
 ### NotificationsPage (`src/pages/NotificationsPage.jsx`)
 

@@ -26,9 +26,11 @@ from core.models.booking import BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.serializers import RequestLinkSerializer, UserSerializer
+from core.services.account_service import delete_account
 from core.services.booking_service import finalize_booking_decision
 from core.services.email_service import (
     resolve_email_language,
+    send_account_delete_email,
     send_collection_welcome_doc_email,
     send_invite_rejected_email,
     send_magic_link_email,
@@ -241,8 +243,13 @@ class VerifyLinkView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
 
-    # Actions that GET must not commit — only an explicit POST may.
-    CONFIRM_ACTIONS = frozenset({RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT})
+    # Actions that GET must not commit — only an explicit POST may. Account
+    # deletion goes further than the bookings: the frontend never auto-commits
+    # it from the load effect either — the person must press an explicit
+    # on-page button (see VerifyPage).
+    CONFIRM_ACTIONS = frozenset(
+        {RSVP.Action.BOOKING_ACCEPT, RSVP.Action.BOOKING_REJECT, RSVP.Action.ACCOUNT_DELETE}
+    )
 
     # Where the SPA sends the user after a successful login (``landing`` in the
     # response). Server-decided, so it survives a cleared localStorage.
@@ -282,6 +289,7 @@ class VerifyLinkView(APIView):
             "COLLECTION_REJECT": self._handle_collection_reject,
             "BOOKING_ACCEPT": self._handle_booking_accept,
             "BOOKING_REJECT": self._handle_booking_reject,
+            "ACCOUNT_DELETE": self._handle_account_delete,
         }
         handler = action_handlers.get(rsvp.action)
         if not handler:
@@ -301,6 +309,16 @@ class VerifyLinkView(APIView):
         booking or consuming the RSVP — the commit happens on POST.
         """
         data = {"action": rsvp.action, "requires_confirmation": True}
+        if rsvp.action == RSVP.Action.ACCOUNT_DELETE:
+            # What the confirmation screen states: whose account, and how much
+            # goes with it. The token bearer is the account owner reading their
+            # own data — the same trust level as a magic link.
+            user = rsvp.user_code
+            data["name"] = user.name
+            data["email"] = user.email
+            data["collections"] = user.owned_collections.count()
+            data["things"] = user.owned_things.count()
+            return Response(data, status=status.HTTP_200_OK)
         booking = BookingPeriod.objects.filter(code=rsvp.target_code).first()
         if booking and booking.thing_code:
             data["thing_headline"] = booking.thing_code.headline
@@ -569,6 +587,28 @@ class VerifyLinkView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    def _handle_account_delete(self, request, rsvp):
+        """Commit the right-to-erasure confirmation.
+
+        Reached only via POST (``CONFIRM_ACTIONS``), fired by the explicit
+        confirm button on the page the email link lands on — never by a link
+        scanner's GET, never auto-committed from a load effect. The RSVP is not
+        deleted here: it cascades away with the user row.
+        """
+        user = rsvp.user_code
+        ip = get_client_ip(request)
+        user_code = delete_account(user)
+        security_logger.info(f"Account {user_code} erased via RSVP confirmation from IP {ip}")
+        response = Response(
+            {"action": "ACCOUNT_DELETE", "message": "Account deleted"},
+            status=status.HTTP_200_OK,
+        )
+        # The session died with the account — drop the auth cookies so the SPA
+        # doesn't keep presenting credentials for a user that no longer exists.
+        response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path=REFRESH_COOKIE_PATH)
+        return response
+
     def _handle_booking_accept(self, request, rsvp):
         """Handle booking accept action for all thing types."""
         return self._handle_booking_action(rsvp, accepted=True)
@@ -726,6 +766,42 @@ class MeView(APIView):
         user.update_last_activity()
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+
+class AccountDeleteRequestView(APIView):
+    """
+    POST /api/v1/auth/delete-account/
+
+    Step one of the right-to-erasure flow: the authenticated user asks to
+    delete their account. Nothing is deleted here — this only (re)creates the
+    single-use ``ACCOUNT_DELETE`` RSVP (24h expiry) and emails its confirmation
+    link (Cat. 1, always delivered). The deletion itself happens in
+    ``VerifyLinkView._handle_account_delete``, on an explicit POST from the
+    page that link lands on — so a stolen browser session alone can't erase an
+    account; the attacker would also need the mailbox.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @method_decorator(ratelimit(key="user", rate="3/h", method="POST", block=True))
+    def post(self, request):
+        user = request.user
+        ip = get_client_ip(request)
+        # Resend-safe: at most one live confirmation link per account.
+        RSVP.objects.filter(user_code=user, action=RSVP.Action.ACCOUNT_DELETE).delete()
+        rsvp = RSVP.objects.create(
+            user_code=user,
+            user_email=user.email,
+            action=RSVP.Action.ACCOUNT_DELETE,
+        )
+        send_account_delete_email(user, rsvp.action_link())
+        security_logger.info(
+            f"Account deletion requested for {user.code} from IP {ip} (confirmation emailed)"
+        )
+        return Response(
+            {"message": "Confirmation email sent"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class LogoutView(APIView):

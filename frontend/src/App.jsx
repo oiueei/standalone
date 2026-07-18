@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import RequireAuth from './components/RequireAuth';
 import LoadingSpinner from './components/LoadingSpinner';
+import SiteFooter from './components/SiteFooter';
 import './App.css';
 
 // Pages are lazy-loaded so each route ships as its own chunk: the initial bundle
@@ -25,6 +26,7 @@ const ThingPage = lazy(() => import('./pages/ThingPage'));
 const CreateCollectionPage = lazy(() => import('./pages/CreateCollectionPage'));
 const EditCollectionPage = lazy(() => import('./pages/EditCollectionPage'));
 const EditProfilePage = lazy(() => import('./pages/EditProfilePage'));
+const DeleteAccountPage = lazy(() => import('./pages/DeleteAccountPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const ManageInvitesPage = lazy(() => import('./pages/ManageInvitesPage'));
 const LogoutPage = lazy(() => import('./pages/LogoutPage'));
@@ -41,6 +43,9 @@ const PopInPage = lazy(() => import('./pages/PopInPage'));
 const SharePage = lazy(() => import('./pages/SharePage'));
 const JoinPage = lazy(() => import('./pages/JoinPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const LegalPage = lazy(() => import('./pages/LegalPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const CollaboratePage = lazy(() => import('./pages/CollaboratePage'));
 
 /**
  * On every route change (but not the initial mount), move focus to the main
@@ -98,6 +103,9 @@ function App() {
         <Route path="/magic-link/:code" element={<VerifyPage />} />
         <Route path="/me/notifications/:token" element={<NotificationsPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/legal" element={<LegalPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/collaborate" element={<CollaboratePage />} />
         <Route path="/popin" element={<PopInPage />} />
         <Route path="/share/:token" element={<SharePage />} />
 
@@ -114,6 +122,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/me" element={<UserPage />} />
           <Route path="/me/edit" element={<EditProfilePage />} />
+          <Route path="/me/delete" element={<DeleteAccountPage />} />
           <Route path="/collections/new" element={<CreateCollectionPage />} />
           <Route path="/collections/:code/edit" element={<EditCollectionPage />} />
           <Route path="/collections/:code/delete" element={<DeleteCollectionPage />} />
@@ -146,6 +155,7 @@ function App() {
         </Routes>
         </Suspense>
       </main>
+      <SiteFooter />
     </BrowserRouter>
   );
 }

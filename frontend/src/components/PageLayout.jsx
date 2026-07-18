@@ -1,5 +1,6 @@
 import { Koros } from 'hds-react';
 import BackLink from './BackLink';
+import ContactCorner from './ContactCorner';
 import useTheeeme from '../hooks/useTheeeme';
 
 /**
@@ -34,6 +35,7 @@ export default function PageLayout({ title, backTo, backLabel, description, chil
           className="form-hero-content"
           style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}
         >
+          <ContactCorner />
           {backTo && <BackLink to={backTo} label={backLabel} />}
           {title && <h1 className="form-hero-title">{title}</h1>}
           {description && <p className="form-hero-text">{description}</p>}

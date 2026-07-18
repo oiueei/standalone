@@ -38,6 +38,10 @@ class RSVP(models.Model):
         COLLECTION_REJECT = "COLLECTION_REJECT", "Collection Reject"
         BOOKING_ACCEPT = "BOOKING_ACCEPT", "Booking Accept"
         BOOKING_REJECT = "BOOKING_REJECT", "Booking Reject"
+        # Right-to-erasure confirmation link (short-lived, default 24h expiry).
+        # Like the booking decisions, it only ever commits on POST — see
+        # VerifyLinkView.CONFIRM_ACTIONS.
+        ACCOUNT_DELETE = "ACCOUNT_DELETE", "Account Delete"
 
     class Origin(models.TextChoices):
         """Where a MAGIC_LINK was born — it decides where the user lands after login."""

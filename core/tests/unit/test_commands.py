@@ -276,10 +276,16 @@ class TestSeedDemoCommand:
         assert Thing.objects.get(code="La1a01").gallery == ["oiueei/seed/La1a01_b"]
 
     def test_maps_tags_key(self):
-        """Regression guard: _seed_collections and _seed_things must copy `tags`."""
+        """Regression guard: _seed_collections and _seed_things must copy `tags`.
+
+        Tag labels are localized {lang: text} maps now (O6) — the stored value
+        is the serialized constant from seed_data/common.py, byte-identical
+        between the vocabulary and the thing that wears it."""
+        from core.management.commands.seed_data.common import TAG_MODULOS, TAG_SENSORES
+
         call_command("seed_demo")
-        assert "modules" in Collection.objects.get(code="L3L3C1").tags
-        assert Thing.objects.get(code="L3L302").tags == ["sensors"]
+        assert TAG_MODULOS in Collection.objects.get(code="L3L3C1").tags
+        assert Thing.objects.get(code="L3L302").tags == [TAG_SENSORES]
 
     def test_maps_user_photo_key(self):
         """Regression guard: _seed_users must copy the `photo` key onto the user
@@ -320,15 +326,21 @@ class TestSeedDemoCommand:
             assert {r[key] for r in en_rows} == {r[key] for r in es_rows}
 
     def test_merge_yields_structure_and_text(self):
-        """R17: merged rows carry both skeleton fields and localised text, and the
-        languages genuinely differ in their text."""
+        """R17 + O6: merged rows carry skeleton fields plus text. Thing text is
+        now a localized map identical whatever --lang says (every reader gets
+        their language from the same row); --lang still picks the plain-column
+        text, so the FAQ question genuinely differs between languages."""
         from core.management.commands.seed_demo import load_seed_data
+        from core.utils import resolve_localized
 
-        en = {t["code"]: t for t in load_seed_data("en").THINGS}
-        es = {t["code"]: t for t in load_seed_data("es").THINGS}
-        sample = en["La1a01"]
+        en = load_seed_data("en")
+        es = load_seed_data("es")
+        sample = {t["code"]: t for t in en.THINGS}["La1a01"]
         assert sample["type"] == "SELL_THING" and sample["owner_code"] == "La1aN1"  # skeleton
-        assert sample["headline"] and sample["headline"] != es["La1a01"]["headline"]  # text
+        headline = sample["headline"]
+        assert headline == {t["code"]: t for t in es.THINGS}["La1a01"]["headline"]  # same map
+        assert resolve_localized(headline, "en") != resolve_localized(headline, "es")
+        assert en.FAQS[0]["question"] != es.FAQS[0]["question"]  # --lang still matters
 
 
 @pytest.mark.django_db

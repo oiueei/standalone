@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { TextInput, TextArea, Button, ToggleButton, Select } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
@@ -152,7 +152,7 @@ export default function EditProfilePage() {
             onChange={(e) => setName(e.target.value)}
             invalid={!!errors.name}
             errorText={errors.name}
-            helperText={`${name.length}/32`}
+            helperText={`${t('editProfile.nameHelper')} ${name.length}/32`}
           />
           <TextInput
             id="edit-profile-headline"
@@ -285,6 +285,14 @@ export default function EditProfilePage() {
           >
             {submitting ? t('common.saving') : t('common.save')}
           </Button>
+        </div>
+        {/* Right to erasure — a quiet link, not a red button: deletion has its
+            own page that explains everything and still requires an email
+            confirmation, so this is an entrance, not the trigger. */}
+        <div style={{ marginTop: 'var(--spacing-xl)', borderTop: '1px solid var(--color-black-20)', paddingTop: 'var(--spacing-m)' }}>
+          <Link to="/me/delete" style={{ color: 'var(--color-black-60)', textDecoration: 'underline' }}>
+            {t('editProfile.deleteAccount')}
+          </Link>
         </div>
         <Toast toast={toast} onClose={() => setToast(null)} />
     </PageLayout>

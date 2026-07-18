@@ -130,6 +130,10 @@ import RemoveGuestPage from '../pages/RemoveGuestPage';
 import LeaveCollectionPage from '../pages/LeaveCollectionPage';
 import EditCollectionPage from '../pages/EditCollectionPage';
 import EditProfilePage from '../pages/EditProfilePage';
+import DeleteAccountPage from '../pages/DeleteAccountPage';
+import LegalPage from '../pages/LegalPage';
+import ContactPage from '../pages/ContactPage';
+import CollaboratePage from '../pages/CollaboratePage';
 import NotificationsPage from '../pages/NotificationsPage';
 import ManageInvitesPage from '../pages/ManageInvitesPage';
 import HomePage from '../pages/HomePage';
@@ -183,6 +187,10 @@ smokeAndAxe('CreateCollectionPage', CreateCollectionPage);
 smokeAndAxe('MyBookingsPage', MyBookingsPage);
 smokeAndAxe('HomePage', HomePage);
 smokeAndAxe('EditProfilePage', EditProfilePage);
+smokeAndAxe('DeleteAccountPage', DeleteAccountPage);
+smokeAndAxe('LegalPage', LegalPage);
+smokeAndAxe('ContactPage', ContactPage);
+smokeAndAxe('CollaboratePage', CollaboratePage);
 smokeAndAxe('NotificationsPage', NotificationsPage);
 
 // ── Pages with route params ────────────────────────────────────────────

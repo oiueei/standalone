@@ -94,7 +94,8 @@
     "edit": "Edit",
     "send": "Send",
     "sending": "Sending...",
-    "back": "Back"
+    "back": "Back",
+    "formerMember": "Former member"
   },
   "titles": {
     "home": "Home — OIUEEI",
@@ -127,7 +128,11 @@
     "user": "{{name}} — OIUEEI",
     "notFound": "Page not found — OIUEEI",
     "popin": "Pop in — OIUEEI",
-    "share": "Join — OIUEEI"
+    "share": "Join — OIUEEI",
+    "deleteAccount": "Delete account — OIUEEI",
+    "legal": "Legal & privacy — OIUEEI",
+    "contact": "Contact — OIUEEI",
+    "collaborate": "Collaborate — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -139,9 +144,11 @@
     "errorSendingLink": "Error sending link.",
     "pitch": "Share what you have with the people you trust — no ads, no strangers.",
     "description": "OIUEEI is an open-source app for sharing what you own with the people around you. Create a collection — things to give away, sell, lend or swap — and share it with your circle: they can browse, reserve and ask.",
-    "openSource": "OIUEEI is open source. You can find the project on <1>GitHub</1>. If you would like to request access or collaborate, get in touch.",
+    "openSource": "OIUEEI's code is public — source-available under BUSL 1.1, MIT from 2030. The project lives on <1>GitHub</1>: ideas, issues and collaboration are welcome there. New here? The Pop in button below is the door.",
     "manifesto": "No ads, no trackers. Your data is not the product.",
-    "popIn": "New here? Pop in →"
+    "popIn": "New here? Pop in →",
+    "legalLink": "Legal notice & privacy",
+    "loginHelp": "Trouble signing in? Tell us and we'll try to help as soon as we can →"
   },
   "popin": {
     "title": "Come meet us!",
@@ -167,7 +174,13 @@
     "invalidOrExpired": "Invalid or expired link.",
     "expiredHelp": "If your link has expired, ask the person who invited you to send a new one, or request a new magic link.",
     "goToHomepage": "Go to homepage",
-    "goToLogin": "Go to login"
+    "goToLogin": "Go to login",
+    "accountDeleteTitle": "Delete your account?",
+    "accountDeleteSummary": "You're about to permanently delete the account {{email}}: {{collections}} collections and {{things}} things go with it, along with their photos and any pending requests.",
+    "accountDeleteConfirm": "Delete my account forever",
+    "accountDeleting": "Deleting…",
+    "accountDeletedTitle": "Account deleted",
+    "accountDeletedBody": "Your account and your data have been deleted. Thank you for having been part of OIUEEI."
   },
   "home": {
     "greeting": "Hello, {{name}}",
@@ -398,7 +411,7 @@
   },
   "editProfile": {
     "pageTitle": "Edit profile",
-    "nameLabel": "Name",
+    "nameLabel": "Public name",
     "bioLabel": "Bio",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
@@ -414,7 +427,9 @@
     "photoLabel": "Profile photo",
     "photoHelper": "Shown on your profile, optional",
     "maxAbout": "Maximum 2000 characters.",
-    "languageHelper": "OIUEEI also writes to you in this language (emails included)."
+    "languageHelper": "OIUEEI also writes to you in this language (emails included).",
+    "deleteAccount": "Delete account",
+    "nameHelper": "Your name, a nickname, anything you like — it's how everyone on OIUEEI will see you."
   },
   "editCollection": {
     "pageTitle": "Edit collection",
@@ -465,11 +480,11 @@
   "welcome": {
     "greeting": "Hello, {{name}}",
     "pageTitle": "Welcome to OIUEEI!",
-    "description": "OIUEEI is an open-source platform for sharing within trusted communities. Create collections for gifts, sales, loans, swaps and wishes — then invite friends to browse, reserve and interact. Everything stays between people who know each other.",
+    "description": "OIUEEI is a source-available platform for sharing within trusted communities. Create collections for gifts, sales, loans, swaps and wishes — then invite friends to browse, reserve and interact. Everything stays between people who know each other.",
     "createShare": "OIUEEI revolves around your own collections. Create one for anything you'd like to share — gifts, sales, loans, swaps or wishes — and invite your circles: family, friends, neighbours, your street. Only the people you invite can see it and join in.",
     "commitmentTitle": "Our commitment",
     "commitmentBody1": "OIUEEI runs without ads and without third-party analytics: nobody tracks you while you use it. Your data is not the product — it is never sold or shared with anyone.",
-    "commitmentBody2": "The code is open and you can read all of it; this commitment is <1>written into our design rules</1>. It's not the fine print: it's the starting point.",
+    "commitmentBody2": "The code is public and you can read all of it; this commitment is <1>written into our design rules</1>. It's not the fine print: it's the starting point.",
     "createCollection": "Create collection",
     "editProfile": "Edit profile",
     "whoUsesTitle": "Who uses OIUEEI?",
@@ -490,7 +505,8 @@
     "personaLoloLink1": "Lolo's Leafy Lounge",
     "personaLuluLink1": "Lulu's Phantom Shelf",
     "personaLalaLink2": "Lala's sabbatical sale",
-    "enterCta": "Enter and see how it works"
+    "enterCta": "Enter and see how it works",
+    "legalLink": "Legal notice & privacy →"
   },
   "myBookings": {
     "pageTitle": "My requests",
@@ -847,5 +863,41 @@
     "infoBody": "If your group reads in two languages, write the title or the description as a small map — copy this and change the words. Everyone then reads it in their own language, in the app and in their emails.",
     "tagsInfoBody": "A tag label works the same way — write it as a map and each member sees their own.",
     "infoFallback": "Languages: es (Spanish), ca (Catalan), en (English). Write in one only if you prefer — anything that isn't a map is shown exactly as you typed it."
+  },
+  "deleteAccount": {
+    "pageTitle": "Delete your account",
+    "intro": "Deleting your account is immediate and irreversible once you confirm it. This page tells you exactly what goes and what stays.",
+    "whatGoesTitle": "What is deleted",
+    "whatGoes": "Your account, your collections, your things and their photos, and your pending requests — permanently.",
+    "whatStaysTitle": "What stays",
+    "whatStays": "Questions you asked on other people's things and the history of things that passed through your hands stay, without your name — shown as “Former member”.",
+    "emailStep": "To make sure it's really you, we'll email you a confirmation link. Nothing is deleted until you open it and confirm there.",
+    "sendButton": "Send me the confirmation email",
+    "sending": "Sending…",
+    "sentLabel": "Check your email",
+    "sentBody": "We've sent you the confirmation link. It works for 24 hours. If you change your mind, simply ignore it — nothing will happen.",
+    "error": "We couldn't send the email. Please try again."
+  },
+  "legal": {
+    "pageTitle": "Legal & privacy"
+  },
+  "contact": {
+    "pageTitle": "Contact us",
+    "intro": "Every comment, problem or idea matters to us — truly. Tell us what's going on and we'll get back to you as soon as we can.",
+    "nameLabel": "Name (optional)",
+    "emailLabel": "Email",
+    "messageLabel": "Message",
+    "sentLabel": "Received!",
+    "sentBody": "We've got your message — we'll reply as soon as we can.",
+    "error": "We couldn't send your message. Please try again.",
+    "linkLabel": "Problems, suggestions, comments? Contact us"
+  },
+  "collaborate": {
+    "pageTitle": "Collaborate with OIUEEI",
+    "intro": "Design, product, development and beta-testing collaborations: if you're into open source or the social and solidarity economy, you're more than welcome. Tell us who you are and what you'd like to bring — we'll reply as soon as we can.",
+    "linkFromContact": "Design, product, code or beta-testing? Collaborations →"
+  },
+  "footer": {
+    "madeIn": "Made with ♥︎ in Zona Franca, Barcelona, Catalonia, Spain, EU"
   }
 }

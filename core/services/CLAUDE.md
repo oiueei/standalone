@@ -65,7 +65,7 @@ Every email belongs to one of three categories. Each function routes through the
 
 | Category | Constant | User flag | Scope |
 |----------|----------|-----------|-------|
-| **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_welcome_doc_email`, `send_collection_revoke_email` |
+| **Cat. 1 — Mandatory** | `CATEGORY_MANDATORY` | (ignored — always sent) | `send_magic_link_email`, `send_collection_invite_email`, `send_collection_welcome_doc_email`, `send_collection_revoke_email`, `send_account_delete_email` |
 | **Cat. 2 — Activity** | `CATEGORY_ACTIVITY` | `User.notify_activity` | `send_booking_request_email`, `send_booking_decision_email`, `send_booking_confirmation_email`, `send_booking_unavailable_email`, `send_invite_rejected_email`, `send_faq_question_email`, `send_faq_answer_email`, `send_faq_hide_email`, `send_thing_reported_email`, `send_return_reminder_email`, `send_broadcast_email`, `send_swap_request_email`, `send_swap_confirmation_email`, `send_wish_posted_email`, `send_wish_response_email`, `send_wish_thanks_email` |
 | **Cat. 3 — News** | `CATEGORY_NEWS` | `User.notify_news` | `send_digest_email`, `send_newsletter_email` |
 
@@ -117,6 +117,8 @@ Every user-facing string lives in a per-language catalogue — `email_texts/en.p
 | `send_invite_rejected_email(invitee_name, collection_headline, owner_email)` | Invitee declines a collection invitation | Collection owner |
 | `send_collection_welcome_doc_email(collection_headline, doc_url, email)` | A user becomes a member of a collection **for the first time** (any join path — invite, share-token pop-in, public-collection join, onboarding) and the owner has set a welcome PDF | The new member. The PDF travels as a **link** (Cloudinary), never an attachment. Membership lifecycle ⇒ Cat. 1: a member who never sees the rules can't follow them |
 | `send_collection_revoke_email(owner_name, collection_headline, email)` | Owner removes a user from a collection | Revoked user |
+| `send_account_delete_email(user, delete_link)` | User requests account deletion (`AccountDeleteRequestView`) | The account owner. States what is deleted and what stays anonymised; the link previews on GET and commits on POST (24h, single-use). `include_viral=False` — a growth CTA on an erasure email would be grotesque |
+| `send_contact_email(name, email, message, kind)` | Anonymous-capable contact/collaborate form (`ContactView`; `kind` picks the subject — support/collab) | The operator (`CONTACT_EMAIL` env, default `DEFAULT_FROM_EMAIL`), with the sender as `Reply-To`. Operator mail: mandatory category, `include_viral=False`, deployment language |
 | `send_faq_question_email(questioner_name, thing, question, owner_email)` | Guest asks a question on a thing | Thing owner |
 | `send_faq_answer_email(owner_name, thing, question, answer, questioner_email)` | Owner answers a FAQ | Questioner (the email links the thing — label is the thing headline, via `_thing_url`) |
 | `send_faq_hide_email(owner_name, thing_headline, question, questioner_email)` | Owner hides a FAQ | Questioner |
@@ -145,6 +147,12 @@ Every user-facing string lives in a per-language catalogue — `email_texts/en.p
 - **Digest emails**: `send_digest_email()` lists new thing headlines in both plain text (bulleted) and HTML (`<ul>/<li>`) formats.
 - **Direct collection links**: `send_digest_email()` and `send_newsletter_email()` link straight to `{frontend_base}/collections/{code}`. Per DESIGN.md §9 we do not track email engagement — links are never wrapped in a redirect or tracking pixel.
 - **Preference pipeline**: every send goes through `_send()` → `_should_send()` + `_with_viral_line()` + `_with_footer()`. Never build an `EmailMultiAlternatives` directly from outside this module — the preference check, viral CTA, footer and logo attachment would all be bypassed.
+
+---
+
+### `account_service.py` — Account Erasure (Right to Be Forgotten)
+
+One function, `delete_account(user)`: a `user.delete()` inside `transaction.atomic()` plus a security-log line, returning the (now dangling) user code. The module exists because the *erasure map* deserves one written-down home — the schema already encodes it: collections/things/bookings/RSVPs/notifications/daily-activity **cascade**; FAQ questions and ThingTransfer hops on other people's things **survive with the user FK nulled** (SET_NULL — content stays, attribution goes, rendered as "former member"); `Report` rows were already SET_NULL; the `Event` log holds only code snapshots (never exposed); Cloudinary assets are destroyed by the `cloudinary_cleanup` `post_delete` handlers, which fire for cascade-deleted rows too. Called only from `VerifyLinkView._handle_account_delete` (the emailed-link commit step).
 
 ---
 

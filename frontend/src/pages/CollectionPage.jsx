@@ -12,6 +12,7 @@ import ThingLinkbox from '../components/ThingLinkbox';
 import InboxNotifications from '../components/InboxNotifications';
 import HeroPhoto from '../components/HeroPhoto';
 import useTheeeme from '../hooks/useTheeeme';
+import ContactCorner from '../components/ContactCorner';
 import { useLocalized } from '../utils/localized';
 
 export default function CollectionPage() {
@@ -139,6 +140,7 @@ export default function CollectionPage() {
       >
         <div className="form-hero-split">
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <ContactCorner />
           {!showWelcome && (
             <BackLink to="/" label={t('common.home')} />
           )}

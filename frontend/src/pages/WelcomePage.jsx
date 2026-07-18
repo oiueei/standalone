@@ -6,6 +6,7 @@ import BackLink from "../components/BackLink";
 import FeedbackLink from "../components/FeedbackLink";
 import { apiFetch } from "../services/api";
 import useTheeeme from "../hooks/useTheeeme";
+import ContactCorner from "../components/ContactCorner";
 
 const PERSONA_LINKS = {
   Lala: [{ code: "La1aC1", key: "personaLalaLink2" }],
@@ -69,6 +70,7 @@ export default function WelcomePage() {
               : undefined
           }
         >
+          <ContactCorner />
           <BackLink to="/" label={t("common.home")} />
           <div className="spacer-m" />
           {userName && (
@@ -150,6 +152,12 @@ export default function WelcomePage() {
               />,
             ]}
           />
+        </p>
+        <div className="spacer-s" />
+        <p>
+          <Link to="/legal" style={{ textDecoration: "underline" }}>
+            {t("welcome.legalLink")}
+          </Link>
         </p>
         <div className="spacer-xl" />
         <h2>{t("welcome.whoUsesTitle")}</h2>

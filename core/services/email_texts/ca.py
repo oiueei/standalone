@@ -54,6 +54,45 @@ TEXTS = {
     ),
     "welcome_doc_intro": "Benvinguda! El grup té un document de benvinguda i normes:",
     "welcome_doc_outro": "Fes-hi una ullada abans de començar.",
+    # Account deletion confirmation (right to erasure)
+    "account_delete_subject": "Vols esborrar el teu compte d'OIUEEI?",
+    "account_delete_plain": (
+        "Has demanat esborrar el teu compte d'OIUEEI. Si confirmes, és immediat i "
+        "irreversible: el teu compte, les teves col·leccions, les teves coses amb "
+        "les seves fotos i les teves sol·licituds pendents s'esborren per sempre. "
+        "Les preguntes que vas fer sobre coses d'altres persones i l'historial de "
+        "coses que van passar per les teves mans es conserven, sense el teu nom. "
+        "Confirma aquí (l'enllaç funciona durant 24 hores): {link} — si no ho has "
+        "demanat tu, ignora aquest correu i no passarà res."
+    ),
+    "account_delete_intro": (
+        "Has demanat esborrar el teu compte d'OIUEEI. Aquest és el pas de "
+        "confirmació — encara no s'ha esborrat res."
+    ),
+    "account_delete_deletes": (
+        "Si confirmes, és immediat i irreversible: el teu compte, les teves "
+        "col·leccions, les teves coses amb les seves fotos i les teves sol·licituds "
+        "pendents s'esborren per sempre."
+    ),
+    "account_delete_keeps": (
+        "Les preguntes que vas fer sobre coses d'altres persones i l'historial de "
+        "coses que van passar per les teves mans es conserven, sense el teu nom — "
+        "es mostren com a «antic membre»."
+    ),
+    "account_delete_cta": "Confirmar l'esborrat",
+    "account_delete_outro": (
+        "L'enllaç funciona durant 24 hores i a la pàgina confirmaràs un cop més. "
+        "Si no ho has demanat tu, ignora aquest correu — no passarà res."
+    ),
+    # Contact form (support channel, to the operator)
+    "contact_subject": "Contacte OIUEEI: {sender}",
+    "collab_subject": "Col·laboració OIUEEI: {sender}",
+    "contact_plain": (
+        "Algú ha escrit pel formulari de contacte.\n\nNom: {name}\nEmail: {email}\n\n{message}"
+    ),
+    "contact_intro": "Algú ha escrit pel formulari de contacte:",
+    "contact_name_label": "Nom",
+    "contact_email_label": "Email",
     # Booking request (to owner)
     "booking_request_subject": "Tens una sol·licitud {action} pendent",
     "booking_request_plain_dated": (

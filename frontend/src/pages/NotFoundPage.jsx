@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Koros } from 'hds-react';
 import useTheeeme from '../hooks/useTheeeme';
+import ContactCorner from '../components/ContactCorner';
 
 export default function NotFoundPage() {
   const { t } = useTranslation();
@@ -21,6 +22,7 @@ export default function NotFoundPage() {
         style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})`, '--hero-logo-color': `var(--color-${tc.color_02})` } : undefined}
       >
         <div className="form-hero-content" style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}>
+          <ContactCorner />
           <h1 className="form-hero-title">{t('notFound.title')}</h1>
           <div>
             <Link to={isLoggedIn ? '/' : '/login'}>
