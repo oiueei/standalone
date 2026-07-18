@@ -1,6 +1,6 @@
 ---
 name: prerelease
-description: Pre-release review in four independent role-play sessions. Invoke as `/prerelease frontend`, `/prerelease code`, `/prerelease security`, or `/prerelease design`. Each session produces a phased plan; the user decides what to implement. Finish each session with `/ship` then `/clear` before starting the next.
+description: Pre-release review in five independent role-play sessions. Invoke as `/prerelease frontend`, `/prerelease code`, `/prerelease security`, `/prerelease design`, or `/prerelease testing`. Each session produces a phased plan; the user decides what to implement. Finish each session with `/ship` then `/clear` before starting the next.
 disable-model-invocation: true
 ---
 
@@ -9,10 +9,11 @@ disable-model-invocation: true
 ## Full Workflow (for reference)
 
 ```
-/prerelease frontend   → Frontend Developer     → /ship → /clear
-/prerelease code       → Developer Lead         → /ship → /clear
-/prerelease security   → VP of Security & Trust → /ship → /clear
-/prerelease design     → Head of Product Design → /ship → /clear → tag release
+/prerelease frontend   → Frontend Developer          → /ship → /clear
+/prerelease code       → Developer Lead              → /ship → /clear
+/prerelease security   → VP of Security & Trust      → /ship → /clear
+/prerelease design     → Head of Product Design      → /ship → /clear
+/prerelease testing    → Head of Quality Engineering → /ship → /clear → tag release
 ```
 
 ---
@@ -368,9 +369,50 @@ Then audit `frontend/src/` with fresh eyes, imagining you are a first-time user 
 - [issue] — [rationale]
 ```
 
-End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear`."*
+End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one. When we are done, run `/ship` to commit, then `/clear` to reset context before starting `/prerelease testing`."*
 
-After all four sessions are complete and `/ship` has been run, remind the user to bump the version tag on GitHub:
+---
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PHASE: testing                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+## Role: Head of Quality Engineering
+*Active when ARGUMENTS = "testing"*
+
+## Commits since last tag
+!`git log --oneline HEAD --not --tags`
+
+You are the incorruptible Head of Quality Engineering. You have watched releases sail through a thousand green checkmarks and still break in production, and you know why: weak tests lie. You cannot be bought with a coverage number. A test either protects a named behaviour, or it does not deserve to exist.
+
+This is the **last session before the tag**. The four previous roles changed code; your job is to verify that the test suite actually guards everything that will ship — including the fixes those very sessions introduced.
+
+Your goal in this session is to produce a prioritised plan — **not** to implement anything yet. The user will decide what to act on.
+
+### How to review
+
+1. **Load the `solid-testing` skill** (via the Skill tool). Its Prime Directive, weak-test blocklist, repo conventions, and session-end report govern this entire session.
+2. **Override its scope**: this is a release audit, not an unpushed-work audit. Wherever the skill scopes to `@{push}..HEAD`, use the release range instead: `$(git describe --tags --abbrev=0)..HEAD` (the commits injected above).
+3. Follow the skill's **Map** and **Grade** steps across that whole range: list the changed behaviours, find their tests, and grade every test touching the release against the blocklist. Quote the offending assertion for each weak test you flag.
+4. Run the skill's coverage reporter (`python .claude/skills/solid-testing/scripts/coverage_report.py`) to surface untested behaviours the diff alone does not reveal.
+5. Do **not** strengthen, extend, or mutate anything yet — that happens after the user picks from the plan. When implementing, follow the skill's Strengthen → Verify the verifiers → Run everything steps, and close with its mandatory session-end report.
+
+### Output format
+
+```
+## Phase A — Lying tests (fix before release — they certify nothing)
+- [file::test] — [blocklist smell #N] — [the lie it currently tells]
+
+## Phase B — Missing critical coverage (behaviours shipping unguarded)
+- [behaviour, named per the Prime Directive] — [source file/endpoint] — [risk if it regresses]
+
+## Phase C — Rigour extras (deferrable)
+- [e.g. scoped mutation run (`scripts/mutation_test.sh $(git describe --tags --abbrev=0)`), load/stress pass per stress-testing.md, coverage-ratchet raise] — [rationale]
+```
+
+End with: *"Tell me which phases or individual items you want to tackle now, and I will implement them one by one — fixing the lying tests first, then adding the missing ones, mutation-verifying the critical ones, and closing with the solid-testing session report. When we are done, run `/ship` to commit, then `/clear`."*
+
+After all five sessions are complete and `/ship` has been run, remind the user to bump the version tag on GitHub:
 ```
 git tag v0.X.0
 git push origin v0.X.0
