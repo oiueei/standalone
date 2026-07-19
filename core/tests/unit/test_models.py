@@ -546,11 +546,17 @@ class TestBookingPeriodModel:
         "thing_type,date_based,single_use",
         [
             ("LEND_THING", True, False),
+            ("RENT_THING", True, False),
             ("GIFT_THING", False, True),
+            ("SELL_THING", False, True),
+            ("SHARE_THING", False, False),
+            ("SWAP_THING", False, False),
         ],
     )
     def test_booking_type_classification(self, thing_type, date_based, single_use):
-        """is_date_based / is_single_use classify each type."""
+        """is_date_based / is_single_use classify each type. The full matrix
+        matters: a type wrongly in SINGLE_USE_TYPES would flip things INACTIVE
+        on accept; wrongly in DATE_BASED_TYPES it would demand dates."""
         from core.models.booking import BookingPeriod
 
         owner = self._create_user()
@@ -607,6 +613,32 @@ class TestBookingPeriodModel:
             )
             is False
         )
+
+    def test_has_overlap_back_to_back_boundary(self):
+        """Back-to-back handovers are legal: a pickup ON the return day (or a
+        return ON the pickup day) does not overlap. compute_availability and
+        the frontend picker both promise this — if has_overlap ever went
+        inclusive, the card would offer a day the endpoint 409s."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        thing = self._create_thing(owner, thing_type="LEND_THING")
+        BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type="LEND_THING",
+            requester_code=self._create_user("REQ001"),
+            requester_email="req@example.com",
+            owner_code=owner,
+            start_date="2026-03-01",
+            end_date="2026-03-10",
+        )
+        # Pickup on the existing booking's return day — free.
+        assert BookingPeriod.has_overlap(thing.code, "2026-03-10", "2026-03-15") is False
+        # Return on the existing booking's pickup day — free.
+        assert BookingPeriod.has_overlap(thing.code, "2026-02-25", "2026-03-01") is False
+        # One day inside either edge — taken.
+        assert BookingPeriod.has_overlap(thing.code, "2026-03-09", "2026-03-15") is True
+        assert BookingPeriod.has_overlap(thing.code, "2026-02-25", "2026-03-02") is True
 
 
 @pytest.mark.django_db

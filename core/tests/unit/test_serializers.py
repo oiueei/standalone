@@ -368,6 +368,35 @@ class TestInputBounds:
         )
         assert serializer.is_valid()
 
+    def test_past_start_date_rejected(self):
+        """A pickup cannot start in the past — otherwise a backdated booking
+        would block days that already happened."""
+        from datetime import date, timedelta
+
+        from core.serializers.booking import ThingRequestWithDatesSerializer
+
+        yesterday = date.today() - timedelta(days=1)
+        serializer = ThingRequestWithDatesSerializer(
+            data={"start_date": str(yesterday), "end_date": str(date.today())}
+        )
+        assert not serializer.is_valid()
+        assert "start_date" in serializer.errors
+
+    def test_end_before_start_rejected(self):
+        """A return before the pickup is not a date range."""
+        from datetime import date, timedelta
+
+        from core.serializers.booking import ThingRequestWithDatesSerializer
+
+        serializer = ThingRequestWithDatesSerializer(
+            data={
+                "start_date": str(date.today() + timedelta(days=5)),
+                "end_date": str(date.today() + timedelta(days=2)),
+            }
+        )
+        assert not serializer.is_valid()
+        assert "end_date" in serializer.errors
+
 
 @pytest.mark.django_db
 class TestCoMemberNameLeak:

@@ -6,6 +6,8 @@ the `Thing.availability_window()` model method, and the serializer fields.
 from datetime import date, timedelta
 
 import pytest
+import time_machine
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Thing
 from core.models.booking import BookingPeriod
@@ -161,10 +163,12 @@ class TestAvailabilityWindowMethod:
         # `thing` fixture is GIFT_THING
         assert thing.availability_window() is None
 
+    @time_machine.travel(date(2026, 6, 15))  # a Monday — fixed, so both branches are pinned
     def test_collection_rental_rules_are_applied(self, user, collection):
-        # The collection only lends on Wednesdays, for a week at a time. Unless today
-        # happens to be a Wednesday, the thing is not available today — and the next
-        # available day is a Wednesday.
+        # The collection only lends on Wednesdays, for a week at a time. Asked on
+        # a Monday, the thing is not available today and the next available day
+        # is that Wednesday. (Unfrozen, this test used to assert a different
+        # branch depending on the weekday CI happened to run.)
         collection.rental_weekdays = [2]
         collection.rental_durations = [7]
         collection.save()
@@ -173,9 +177,8 @@ class TestAvailabilityWindowMethod:
 
         window = thing.availability_window()
 
-        today = date.today()
-        assert window["available_today"] is (today.weekday() == 2)
-        assert window["next_available"].weekday() == 2
+        assert window["available_today"] is False
+        assert window["next_available"] == date(2026, 6, 17)
 
 
 @pytest.mark.django_db
@@ -246,7 +249,7 @@ class TestCollectionCardAvailability:
         assert card["available_today"] is None
         assert card["next_available"] is None
 
-    def test_card_honours_the_collection_rental_rules(self, authenticated_client, user, collection):
+    def test_card_honours_the_collection_rental_rules(self, api_client, user, collection):
         # The card reads the rules from the collection it is being rendered in (the
         # grid doesn't prefetch each thing's collections, so it's passed via context).
         collection.rental_weekdays = [2]
@@ -257,9 +260,16 @@ class TestCollectionCardAvailability:
         )
         collection.things.add(thing)
 
-        res = authenticated_client.get(f"/api/v1/collections/{collection.code}/")
+        # Freeze to a fixed Monday so both branches are pinned (unfrozen, this
+        # test used to assert a different branch depending on CI's weekday).
+        # The JWT must be minted INSIDE the window — a token from real "now"
+        # is not yet valid back on the frozen date.
+        with time_machine.travel(date(2026, 6, 15)):
+            refresh = RefreshToken.for_user(user)
+            api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+            res = api_client.get(f"/api/v1/collections/{collection.code}/")
 
         assert res.status_code == 200
         card = next(c for c in res.data["things"] if c["code"] == thing.code)
-        assert card["available_today"] is (date.today().weekday() == 2)
-        assert card["next_available"].weekday() == 2
+        assert card["available_today"] is False
+        assert card["next_available"] == date(2026, 6, 17)
