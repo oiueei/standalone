@@ -520,6 +520,6 @@ class TestCompleteUserJourney:
         response = client.get(f"/api/v1/things/{thing_codes[2]}/")
         assert charlie.code in response.data["deal"]
 
-        # Blanket still active (date-based things remain ACTIVE after booking)
+        # The blanket was never requested by anyone, so it stays ACTIVE.
         response = client.get(f"/api/v1/things/{thing_codes[1]}/")
         assert response.data["status"] == "ACTIVE"
