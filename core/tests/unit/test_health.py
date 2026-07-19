@@ -27,3 +27,10 @@ class TestHealthCheck:
     def test_head_works_for_monitors(self, api_client):
         # Uptime monitors often probe with HEAD to save bandwidth.
         assert api_client.head(HEALTH_URL).status_code == 200
+
+    def test_head_degraded_when_the_database_is_down(self, api_client):
+        # A HEAD-probing monitor must also see the outage — 200 here would
+        # report "up" straight through a database failure.
+        with patch("core.urls.connection") as mock_connection:
+            mock_connection.cursor.side_effect = Exception("db down")
+            assert api_client.head(HEALTH_URL).status_code == 503

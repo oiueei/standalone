@@ -15,8 +15,10 @@ def test_ratelimited_maps_to_429():
 def test_genuine_permission_denied_still_403():
     res = api_exception_handler(PermissionDenied(), {})
     assert res.status_code == 403
+    assert "detail" in res.data
 
 
 def test_not_found_delegates_to_default():
     res = api_exception_handler(NotFound(), {})
     assert res.status_code == 404
+    assert "detail" in res.data

@@ -188,3 +188,5 @@ def test_admin_login_page_still_loads():
     login page — a GET still renders (the limit only throttles POST attempts)."""
     resp = Client().get("/oiueei-admin/login/")
     assert resp.status_code == 200
+    # 200 alone could be an error page — the actual login form must render.
+    assert b'name="username"' in resp.content

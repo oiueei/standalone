@@ -56,8 +56,11 @@ def test_public_send_does_not_raise_when_provider_is_down():
     with patch(
         "core.services.email_service.EmailMultiAlternatives.send",
         side_effect=smtplib.SMTPException("down"),
-    ):
+    ) as mock_send:
         email_service.send_magic_link_email("nobody@example.com", "https://x/verify/ABC123")
+    # The send must have been ATTEMPTED — otherwise this test would also pass
+    # if the function silently skipped sending, which is a different bug.
+    mock_send.assert_called_once()
 
 
 @pytest.mark.django_db
