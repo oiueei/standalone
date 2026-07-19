@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification, ToggleButton } from 'hds-react';
-import { apiFetch } from '../services/api';
+import { getCsrfToken } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageLayout from '../components/PageLayout';
 import Toast from '../components/Toast';
@@ -33,7 +33,11 @@ export default function NotificationsPage() {
 
     const load = async () => {
       try {
-        const res = await apiFetch(`/api/v1/notifications/token/${token}/`);
+        // Plain fetch on purpose: the token in the URL is the whole credential,
+        // and the backend answers 401 for an invalid/expired one. apiFetch's
+        // 401 handling would bounce this (typically anonymous) reader to
+        // /login instead of showing the invalid-link message below.
+        const res = await fetch(`/api/v1/notifications/token/${token}/`);
         if (res.ok) {
           const data = await res.json();
           setNotifyActivity(data.notify_activity);
@@ -56,8 +60,9 @@ export default function NotificationsPage() {
     setToast(null);
     const body = { notify_activity: notifyActivity, notify_news: notifyNews };
     try {
-      const res = await apiFetch(`/api/v1/notifications/token/${token}/`, {
+      const res = await fetch(`/api/v1/notifications/token/${token}/`, {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
         body: JSON.stringify(body),
       });
       if (res.ok) {
