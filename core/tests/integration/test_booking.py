@@ -13,6 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import RSVP, Thing, User
 from core.models.booking import BookingPeriod
+from core.models.transfer import ThingTransfer
 
 
 @pytest.fixture
@@ -222,6 +223,8 @@ class TestBookingRequest:
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        # The denial must leave no half-created request behind.
+        assert BookingPeriod.objects.count() == 0
 
     def test_booking_requires_dates_for_lend(self, user, user2, lend_thing, collection):
         """LEND_THING requires start_date and end_date."""
@@ -584,6 +587,10 @@ class TestBookingAcceptReject:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "expired" in response.data["error"].lower()
+        # The stale link must not have accepted anything.
+        booking.refresh_from_db()
+        assert booking.status != "ACCEPTED"
+        assert ThingTransfer.objects.count() == 0
 
     def test_cannot_accept_already_accepted_booking(self, api_client, user, user2, lend_thing):
         """Cannot accept booking that's already accepted."""
@@ -603,6 +610,8 @@ class TestBookingAcceptReject:
         response = api_client.post(f"/api/v1/rsvp/{rsvp.token}/")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        # A re-accept must not run the accept side effects again.
+        assert ThingTransfer.objects.count() == 0
 
     def test_booking_not_found(self, api_client):
         """Should return 401 for non-existent RSVP."""
@@ -1401,6 +1410,10 @@ class TestBookingActionView:
         response = authenticated_client.post(f"/api/v1/bookings/{booking.code}/accept/")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        # The stale accept must not have gone through.
+        booking.refresh_from_db()
+        assert booking.status != "ACCEPTED"
+        assert ThingTransfer.objects.count() == 0
 
     def test_accept_deletes_rsvps(self, authenticated_client, user, user2, lend_thing):
         """Accepting via API deletes outstanding RSVP links for the booking."""

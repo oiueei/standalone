@@ -671,6 +671,7 @@ class TestCollectionViews:
             format="json",
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not collection.things.filter(code=thing.code).exists()
 
     def test_add_other_users_thing_to_collection_denied(
         self, authenticated_client, user, user2, collection
@@ -877,6 +878,8 @@ class TestThingViews:
         client.credentials(HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(user).access_token}")
         response = client.delete(f"/api/v1/things/{share_thing.code}/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        # The thing (and its journey) survive the denied delete.
+        assert Thing.objects.filter(code=share_thing.code).exists()
 
     def test_non_collection_owner_cannot_delete_others_thing(self, user, user2, thing, collection):
         """Invited user cannot delete a thing owned by someone else."""
@@ -894,6 +897,9 @@ class TestThingViews:
         )
         response = client3.delete(f"/api/v1/things/{thing.code}/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        from core.models import Thing
+
+        assert Thing.objects.filter(code=thing.code).exists()
 
     def test_request_thing(self, authenticated_client, user, user2, thing, collection):
         """Should request thing via BookingPeriod flow."""
@@ -947,6 +953,8 @@ class TestThingViews:
 
         response = client2.post(f"/api/v1/things/{thing.code}/hide/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        thing.refresh_from_db()
+        assert thing.status == "ACTIVE"
 
     def test_hide_thing_requires_active_status(self, authenticated_client, thing):
         """Cannot hide a TAKEN thing — must cancel the hold first."""
@@ -982,6 +990,8 @@ class TestThingViews:
 
         response = client2.post(f"/api/v1/things/{thing.code}/activate/")
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        thing.refresh_from_db()
+        assert thing.status == "INACTIVE"
 
     def test_activate_thing_requires_inactive_status(self, authenticated_client, thing):
         """Cannot activate an already ACTIVE thing."""
@@ -1366,6 +1376,9 @@ class TestSecurityRestrictions:
             format="json",
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        from core.models import FAQ
+
+        assert FAQ.objects.count() == 0
 
     # User profile access tests
 
@@ -1462,6 +1475,11 @@ class TestReservationViews:
         response = client2.post(f"/api/v1/things/{thing.code}/request/")
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
+        from core.models.booking import BookingPeriod
+
+        assert BookingPeriod.objects.count() == 0
+        thing.refresh_from_db()
+        assert thing.status == "ACTIVE"  # not flipped to TAKEN by a denied request
 
     def test_request_reservation_denied_for_non_active_thing(self, user, user2, thing, collection):
         """Should deny request for non-active thing."""

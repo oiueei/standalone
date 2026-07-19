@@ -190,6 +190,7 @@ class TestWishRespond:
             format="json",
         )
         assert res.status_code == 400
+        assert WishResponse.objects.count() == 0
 
     def test_stranger_cannot_respond(self, wish_setup):
         s = wish_setup
@@ -199,6 +200,7 @@ class TestWishRespond:
             format="json",
         )
         assert res.status_code == 403
+        assert WishResponse.objects.count() == 0
 
     def test_respond_to_non_wish_rejected(self, wish_setup):
         s = wish_setup
@@ -212,6 +214,7 @@ class TestWishRespond:
             format="json",
         )
         assert res.status_code == 400
+        assert WishResponse.objects.count() == 0
 
 
 @pytest.mark.django_db
@@ -268,6 +271,8 @@ class TestWishAccept:
         )
         res = s["invitee2_client"].post(f"/api/v1/wish-responses/{r.code}/accept/")
         assert res.status_code == 403
+        r.refresh_from_db()
+        assert r.status != "ACCEPTED"
 
     def test_accepting_second_response_releases_first(self, wish_setup):
         s = wish_setup
@@ -315,6 +320,8 @@ class TestWishResolve:
         s = wish_setup
         res = s["invitee_client"].post(f"/api/v1/things/{s['wish'].code}/resolve/")
         assert res.status_code == 403
+        s["wish"].refresh_from_db()
+        assert s["wish"].status == "ACTIVE"
 
     def test_resolve_already_resolved(self, wish_setup):
         s = wish_setup

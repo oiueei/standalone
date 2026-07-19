@@ -97,6 +97,7 @@ class TestCommunityAddThing:
             format="json",
         )
         assert response.status_code == 403
+        assert not collection.things.filter(code=thing.code).exists()
 
     def test_invitee_cannot_add_others_thing_community(self, authenticated_client2, user, user2):
         """Invited user cannot add someone else's thing to a community collection."""
@@ -110,6 +111,7 @@ class TestCommunityAddThing:
             format="json",
         )
         assert response.status_code == 403
+        assert not coll.things.filter(code=thing.code).exists()
 
     def test_stranger_cannot_add_thing_community(self, authenticated_client2, user):
         """Non-invited user should NOT be able to add things to a community collection."""
@@ -122,6 +124,7 @@ class TestCommunityAddThing:
             format="json",
         )
         assert response.status_code == 403
+        assert not coll.things.filter(code=thing.code).exists()
 
     def test_create_thing_with_community_collection(self, authenticated_client2, user, user2):
         """Invited user should create a thing directly into a community collection."""
@@ -233,3 +236,4 @@ class TestCommunityRemoveThing:
             format="json",
         )
         assert response.status_code == 403
+        assert collection.things.filter(code=thing.code).exists()

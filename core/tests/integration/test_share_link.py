@@ -93,10 +93,14 @@ class TestShareLinkGeneration:
             URL.format(share_link_setup["collection"].code)
         )
         assert resp.status_code == 403
+        share_link_setup["collection"].refresh_from_db()
+        assert share_link_setup["collection"].share_token is None
 
     def test_anonymous_cannot_generate(self, share_link_setup):
         resp = share_link_setup["anon_client"].post(URL.format(share_link_setup["collection"].code))
         assert resp.status_code in (401, 403)
+        share_link_setup["collection"].refresh_from_db()
+        assert share_link_setup["collection"].share_token is None
 
 
 @pytest.mark.django_db
@@ -121,6 +125,9 @@ class TestShareLinkRevocation:
 
         resp = share_link_setup["stranger_client"].delete(URL.format(collection.code))
         assert resp.status_code == 403
+        # The owner's live link must survive the denied revocation.
+        collection.refresh_from_db()
+        assert collection.share_token is not None
 
 
 @pytest.mark.django_db

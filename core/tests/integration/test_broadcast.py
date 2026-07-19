@@ -76,22 +76,24 @@ class TestCollectionBroadcast:
         assert email.reply_to == ["browner@test.com"]
 
     def test_invitee_cannot_broadcast(self, broadcast_setup):
-        """Only the owner can send broadcasts."""
+        """Only the owner can send broadcasts — and a denial sends nothing."""
         resp = broadcast_setup["invitee_client"].post(
             URL.format(broadcast_setup["collection"].code),
             {"subject": "Hello", "message": "Hi everyone"},
             format="json",
         )
         assert resp.status_code == 403
+        assert len(mail.outbox) == 0
 
     def test_stranger_cannot_broadcast(self, broadcast_setup):
-        """Unrelated users cannot broadcast."""
+        """Unrelated users cannot broadcast — and a denial sends nothing."""
         resp = broadcast_setup["stranger_client"].post(
             URL.format(broadcast_setup["collection"].code),
             {"subject": "Hello", "message": "Hi everyone"},
             format="json",
         )
         assert resp.status_code == 403
+        assert len(mail.outbox) == 0
 
     def test_broadcast_empty_collection(self, broadcast_setup):
         """Broadcast to collection with no invitees returns 400."""
@@ -111,6 +113,7 @@ class TestCollectionBroadcast:
             format="json",
         )
         assert resp.status_code == 400
+        assert len(mail.outbox) == 0
 
     def test_broadcast_html_rejected(self, broadcast_setup):
         """HTML tags in the message are rejected by SafeTextField."""
@@ -120,6 +123,7 @@ class TestCollectionBroadcast:
             format="json",
         )
         assert resp.status_code == 400
+        assert len(mail.outbox) == 0
 
     def test_broadcast_email_content(self, broadcast_setup):
         """Broadcast email includes owner name, collection name, and message."""
