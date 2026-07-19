@@ -222,6 +222,7 @@ class TestSwapRequest:
             format="json",
         )
         assert res.status_code == 400
+        assert BookingPeriod.objects.count() == 0
 
     def test_swap_request_too_many_offerings(
         self, auth_client_user2, swap_collection, owner_swap_thing, user2
@@ -235,6 +236,7 @@ class TestSwapRequest:
             format="json",
         )
         assert res.status_code == 400
+        assert BookingPeriod.objects.count() == 0
 
     def test_patch_type_forbidden_by_collection_rejected(
         self, authenticated_client, swap_collection, owner_swap_thing
@@ -277,6 +279,7 @@ class TestSwapRequest:
             format="json",
         )
         assert res.status_code == 400
+        assert BookingPeriod.objects.count() == 0
 
     def test_swap_request_inactive_thing(
         self,
@@ -296,6 +299,7 @@ class TestSwapRequest:
             format="json",
         )
         assert res.status_code == 400
+        assert BookingPeriod.objects.count() == 0
 
     def test_swap_request_wrong_collection(
         self, auth_client_user2, swap_collection, owner_swap_thing, user2
@@ -322,6 +326,7 @@ class TestSwapRequest:
             format="json",
         )
         assert res.status_code == 400
+        assert BookingPeriod.objects.count() == 0
 
     def test_swap_request_thing_not_in_any_swap_collection(self, auth_client_user2, user, user2):
         """A SWAP_THING whose only collection isn't is_swap=True (an irregular
@@ -690,6 +695,7 @@ class TestSwapMinimumItems:
         )
         assert res.status_code == 400
         assert "at least 3" in res.data["error"]
+        assert BookingPeriod.objects.count() == 0
 
     def test_swap_request_succeeds_when_at_minimum(
         self,

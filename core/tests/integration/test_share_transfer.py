@@ -198,6 +198,8 @@ class TestShareThingHideRestriction:
             f"/api/v1/things/{share_thing.code}/hide/", format="json"
         )
         assert response.status_code == 403
+        share_thing.refresh_from_db()
+        assert share_thing.status == "ACTIVE"
 
     def test_new_thing_owner_can_hide_after_transfer(
         self, authenticated_client2, user, user2, share_thing, community_collection

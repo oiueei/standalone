@@ -103,6 +103,7 @@ def test_endless_thing_blocks_duplicate_from_same_user(endless_gift, guest1):
     client.post(f"/api/v1/things/{endless_gift.code}/request/", {}, format="json")
     res2 = client.post(f"/api/v1/things/{endless_gift.code}/request/", {}, format="json")
     assert res2.status_code == status.HTTP_400_BAD_REQUEST
+    assert BookingPeriod.objects.filter(thing_code=endless_gift).count() == 1
 
 
 @pytest.mark.django_db
@@ -120,6 +121,7 @@ def test_normal_gift_blocks_second_request_when_taken(normal_gift, guest1, guest
     client1.post(f"/api/v1/things/{normal_gift.code}/request/", {}, format="json")
     res2 = client2.post(f"/api/v1/things/{normal_gift.code}/request/", {}, format="json")
     assert res2.status_code == status.HTTP_400_BAD_REQUEST
+    assert BookingPeriod.objects.filter(thing_code=normal_gift).count() == 1
 
 
 # --- Accept behaviour ---
