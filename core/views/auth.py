@@ -21,7 +21,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import RSVP, Collection, InvitationProposal, Thing, User
+from core.models import RSVP, Collection, InvitationProposal, InvitationRecord, Thing, User
 from core.models.booking import BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
@@ -41,6 +41,7 @@ from core.services.invitation_service import (
     approve_proposal,
     proposal_approval_blocked,
     reject_proposal,
+    resolve_invitation,
 )
 from core.services.join_quota import consume_join_quota, join_quota_exhausted
 from core.services.team import managers_ready_collections
@@ -184,6 +185,10 @@ def _join_collection(collection, user, source=""):
     collection.invites.add(user)
     if already_member:
         return
+
+    # Whatever door they came through, an invitation sent to this address is
+    # answered now (a no-op when there never was one).
+    resolve_invitation(collection, user.email, InvitationRecord.State.ACCEPTED)
 
     # The member counter only moves on a genuine join, and this is the single
     # funnel every join path goes through (invite acceptance, share token,
@@ -708,6 +713,7 @@ class VerifyLinkView(APIView):
         if rsvp.target_code:
             try:
                 collection = Collection.objects.get(code=rsvp.target_code)
+                resolve_invitation(collection, user.email, InvitationRecord.State.DECLINED)
                 invitee_name = user.display_name
                 send_invite_rejected_email(
                     invitee_name,

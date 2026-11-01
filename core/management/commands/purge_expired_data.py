@@ -38,7 +38,17 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 from django.utils import timezone
 
-from core.models import RSVP, Collection, DailyActivity, Event, InAppNotification, Report, User
+from core.models import (
+    RSVP,
+    Collection,
+    DailyActivity,
+    Event,
+    InAppNotification,
+    InvitationRecord,
+    Report,
+    User,
+)
+from core.models.invitation_record import INVITE_RECORD_MONTHS
 from core.services.account_service import delete_account
 from core.services.email_service import send_inactivity_warning_email
 
@@ -112,6 +122,7 @@ class Command(BaseCommand):
             self._daily_activity,
             self._notifications,
             self._reports,
+            self._invitation_records,
         ]
         results = []
         for step in steps:
@@ -356,3 +367,13 @@ class Command(BaseCommand):
         if commit and count:
             rows.delete()
         return (f"Reports deleted (>{months}m)", count)
+
+    def _invitation_records(self, now, commit):
+        """Dated from ``sent_at``. The period is ``INVITE_RECORD_MONTHS``, a constant and
+        not a ``RETENTION_*`` setting: the invitation email promises a year, so there is
+        no value an operator could choose, and no "keep indefinitely" to switch on."""
+        rows = InvitationRecord.objects.filter(sent_at__lt=months_ago(INVITE_RECORD_MONTHS, now))
+        count = rows.count()
+        if commit and count:
+            rows.delete()
+        return (f"Invitation records deleted (>{INVITE_RECORD_MONTHS}m)", count)

@@ -4,6 +4,7 @@ from .braaanding import Braaanding
 from .collection import Collection
 from .event import Event
 from .faq import FAQ
+from .invitation_record import InvitationRecord
 from .language import Language
 from .network_point import NetworkPoint
 from .notification import InAppNotification
@@ -29,6 +30,7 @@ __all__ = [
     "InAppNotification",
     "Report",
     "InvitationProposal",
+    "InvitationRecord",
     "NetworkPoint",
     "Event",
     "DailyActivity",

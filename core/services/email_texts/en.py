@@ -73,7 +73,7 @@ TEXTS = {
     "invite_source_note": (
         "You got this because someone invited you — that's where we got your "
         "address, and it's only used to send you this invitation. Decline it or "
-        "do nothing, and you won't hear from us again."
+        "do nothing, and that person can't invite you by email again for a year."
     ),
     # Collection access revoked
     "revoke_subject": "Your access has been revoked",

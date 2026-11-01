@@ -712,37 +712,6 @@ def test_the_approved_notification_is_marked_approved_for_the_old_inbox_branch(g
 
 
 @pytest.mark.django_db
-def test_a_resend_clears_only_the_invitation_pair_it_is_replacing(group):
-    """`deliver_invitation` wipes the pending RSVPs for this user+collection
-    before minting a fresh pair, so a resend doesn't leave two live invitations.
-    It must stay scoped to the two invitation actions: dropping the `action__in`
-    survived mutation, and would delete every RSVP that person holds against
-    this collection — including a magic link they are about to click.
-    """
-    invitee = User.objects.create(email="lele12@your-domain.test")
-    unrelated = RSVP.objects.create(
-        user_code=invitee,
-        user_email=invitee.email,
-        action=RSVP.Action.MAGIC_LINK,
-        target_code=group.code,
-    )
-
-    with patch("core.services.invitation_service.send_collection_invite_email"):
-        deliver_invitation(group, invitee.email, "Lala")
-        deliver_invitation(group, invitee.email, "Lala")  # the resend
-
-    assert RSVP.objects.filter(code=unrelated.code).exists(), (
-        "a resend must not invalidate an unrelated live link"
-    )
-    # And it did do its own job: one live pair, not two.
-    for action in (RSVP.Action.COLLECTION_INVITE, RSVP.Action.COLLECTION_REJECT):
-        assert (
-            RSVP.objects.filter(user_code=invitee, target_code=group.code, action=action).count()
-            == 1
-        )
-
-
-@pytest.mark.django_db
 class TestANewCollectionAsksItsOwnerNothing:
     """``allow_member_proposals`` is off for a new collection. Being
     asked to approve strangers is something the person who runs a group chooses,

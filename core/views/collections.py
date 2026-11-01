@@ -58,14 +58,18 @@ from core.services.email_service import (
 )
 from core.services.export_service import collection_stats_rows
 from core.services.invitation_service import (
+    _ALREADY_ASKED_MESSAGE,
     _INVITE_QUOTA_MESSAGE,
+    InvitationAlreadyAsked,
     ProposalAlreadyDecided,
     _consume_invite_quota,
     _invite_quota_left,
     approve_proposal,
     create_proposal,
     deliver_invitation,
+    invitation_blocked,
     proposal_approval_blocked,
+    record_invitation,
     reject_proposal,
 )
 from core.services.join_quota import consume_join_quota, join_quota_exhausted
@@ -364,13 +368,18 @@ class CollectionInviteView(APIView):
         # (invitation_service.deliver_invitation): the get_or_create, the RSVP
         # pair, the email and the quota all live there, so the two routes into an
         # invitation cannot drift.
-        invited_user, already_invited = deliver_invitation(
-            collection,
-            email,
-            # Bare name: this reaches somebody outside the group entirely.
-            request.user.name,
-            quota_user_code=request.user.code,
-        )
+        try:
+            invited_user, already_invited = deliver_invitation(
+                collection,
+                email,
+                # Bare name: this reaches somebody outside the group entirely.
+                request.user.name,
+                quota_user_code=request.user.code,
+            )
+        except InvitationAlreadyAsked:
+            return Response(
+                refusal_body(_ALREADY_ASKED_MESSAGE), status=status.HTTP_400_BAD_REQUEST
+            )
         if already_invited:
             return Response(
                 refusal_body(
@@ -1119,7 +1128,7 @@ class CollectionBulkInviteView(APIView):
     Invite many guests at once from a client-parsed CSV
     (``{"invites": [{"email": ..., "name": ...?}, ...]}``). Best-effort: valid,
     new addresses are invited and emailed; the rest are reported as skipped with a
-    reason (invalid / duplicate / already_member / already_invited) — one bad row
+    reason (invalid / duplicate / already_member / already_asked / already_invited) — one bad row
     never fails the batch. Owner or co-owner, capped at ``MAX_ROWS`` and
     rate-limited.
     """
@@ -1223,6 +1232,18 @@ class CollectionBulkInviteView(APIView):
                 if quota_left is not None and len(invited) >= quota_left:
                     skipped.append({"email": email, "reason": "daily_limit"})
                     continue
+                # Both answers come before get_or_create, so a row skipped here
+                # creates no User. Somebody inside is a member whatever their
+                # record says; an address already invited is not mailed again.
+                inside = User.objects.filter(email=email).first()
+                if inside is not None and (
+                    collection.is_owner(inside.code) or collection.is_invited(inside.code)
+                ):
+                    skipped.append({"email": email, "reason": "already_member"})
+                    continue
+                if invitation_blocked(collection, email, request.user.code):
+                    skipped.append({"email": email, "reason": "already_asked"})
+                    continue
                 defaults = {"email": email}
                 if name:
                     defaults["name"] = name
@@ -1230,11 +1251,6 @@ class CollectionBulkInviteView(APIView):
                 if created:
                     Event.log(Event.Kind.USER_JOINED, actor=invited_user)
 
-                if collection.is_owner(invited_user.code) or collection.is_invited(
-                    invited_user.code
-                ):
-                    skipped.append({"email": email, "reason": "already_member"})
-                    continue
                 if RSVP.objects.filter(
                     user_code=invited_user,
                     target_code=collection_code,
@@ -1255,6 +1271,7 @@ class CollectionBulkInviteView(APIView):
                     action=RSVP.Action.COLLECTION_REJECT,
                     target_code=collection_code,
                 )
+                record_invitation(collection, email, request.user.code)
                 invited.append(email)
                 recipients.append((email, accept_rsvp.action_link(), reject_rsvp.action_link()))
 

@@ -461,7 +461,7 @@ CSV/ZIP bulk-add (F-9). Each row's verb is derived from the collection's kind an
 | **Permission** | `IsAuthenticated` + collection curator (owner or co-owner) |
 | **Rate limit** | 30 requests/hour per user, plus the shared daily invitation-email quota (below) |
 
-Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited (in M2M). Deletes any existing pending RSVPs for the same user+collection before creating new ones (resend-safe). Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
+Invites a user to a collection by email. Creates user if they don't exist (`get_or_create`). Returns 400 if the user is already invited (in M2M). **One invitation per person**: an address that this collection's founder or the one inviting has already invited and that has not accepted (`SENT` with the invitation still pending, or `DECLINED`) is refused before anything is created with **400 `invite_already_asked`** ("This person has already been invited. They can join with the share link."), so there is no resend and a blocked address leaves no `User`, RSVP, email or quota spent (`InvitationRecord`, `invitation_service.invitation_blocked`). Someone who accepted once can be invited to another group of the same founder. Joining by the share link or a public collection is never blocked. Creates two RSVPs (`COLLECTION_INVITE` for accept and `COLLECTION_REJECT` for decline) and sends invitation email with both links.
 
 **Daily invitation-email quota (shared with the bulk endpoint).** The per-view rate limits count *requests*, so one bulk request could still fan out 100 emails (5/h × 100 rows ≈ 500 owner-authored emails an hour from one free account — a spam vector riding the platform's sending domain). `INVITE_EMAILS_PER_DAY` counts the invitation *emails* an account sends per day — **operator policy, not a product rule**: it guards a particular deployment's sending reputation, so the standalone ships it **unset (= unlimited)** and each operator sets their own (0 also means unlimited). It is shared between this endpoint and `CollectionBulkInviteView`. Exhausted → **429** `{"error": ...}` before any User/RSVP is created. The counter lives on the shared cache (`invq:{user}:{date}`, ~24h TTL) and follows `RATELIMIT_ENABLE` — off in dev/tests, same switch as the django-ratelimit decorators; its read-then-set shares the DatabaseCache non-atomicity note in `config/settings/base.py`.
 
@@ -684,7 +684,7 @@ Sends a broadcast email from the acting curator — the owner or a co-owner — 
 | **Permission** | `IsAuthenticated` + collection curator (owner or co-owner) |
 | **Rate limit** | 5 requests/hour per user, plus the shared daily invitation-email quota (see `CollectionInviteView`) |
 
-Invites many guests at once from a client-parsed CSV (`{"invites": [{"email": ..., "name": ...?}, ...]}`, capped at `MAX_ROWS=100`). Best-effort: valid, new addresses are invited (accept + reject RSVP pair created, invite email sent) and the rest are reported as skipped with a reason (`invalid`, `duplicate`, `already_member`, `already_invited`, `daily_limit`) — one bad row never fails the batch. The **daily quota** (`INVITE_EMAILS_PER_DAY`, shared with the single endpoint) is enforced per email actually sent: an exhausted quota returns **429** outright; a batch that crosses the cap mid-way invites up to the remaining allowance and reports the overflow rows as skipped with reason `daily_limit` (no User row is created for those), so the owner sees exactly which addresses wait for tomorrow.
+Invites many guests at once from a client-parsed CSV (`{"invites": [{"email": ..., "name": ...?}, ...]}`, capped at `MAX_ROWS=100`). Best-effort: valid, new addresses are invited (accept + reject RSVP pair created, invite email sent) and the rest are reported as skipped with a reason (`invalid`, `duplicate`, `already_member`, `already_asked`, `already_invited`, `daily_limit`) — one bad row never fails the batch. The **daily quota** (`INVITE_EMAILS_PER_DAY`, shared with the single endpoint) is enforced per email actually sent: an exhausted quota returns **429** outright; a batch that crosses the cap mid-way invites up to the remaining allowance and reports the overflow rows as skipped with reason `daily_limit` (no User row is created for those), so the owner sees exactly which addresses wait for tomorrow.
 
 **Response (200):** `{ "invited": 2, "skipped": [{"email": "...", "reason": "..."}], "total": 3 }`
 
@@ -1173,6 +1173,8 @@ Enforces the retention table (GDPR art. 5.1.e): one period per category of data,
 - A commit run logs its counts to the `security` logger: automated erasure leaves the same trail a user-requested one does.
 
 ---
+
+`purge_expired_data` also deletes `InvitationRecord` rows whose `sent_at` is more than `INVITE_RECORD_MONTHS` (12) months old. That period is a constant in `core/models/invitation_record.py`, not a `RETENTION_*` setting and not switchable off: the invitation email promises "a year".
 
 ### Management Command: `backfill_events`
 
