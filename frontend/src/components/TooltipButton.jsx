@@ -9,13 +9,14 @@ import { Button } from 'hds-react';
  * action. Our two callers (MyBookingsPage's cancel, ManageInvitesPage's
  * resend/remove) are action buttons inside `Table` cells, where the bubble is
  * the visible label for an icon. The Button itself is HDS; only the bubble is
- * ours, and it satisfies the three WCAG 1.4.13 conditions for content shown on
+ * ours (it takes the look of HDS's small Tooltip placed on top), and it satisfies the three WCAG 1.4.13 conditions for content shown on
  * hover or focus:
  *
  *  - dismissible — Escape hides it without moving focus;
- *  - hoverable   — no `pointer-events: none`, so the pointer may travel onto it
- *                  (it sits above the button, which is the direction a pointer
- *                  drifts when reading);
+ *  - hoverable   — no `pointer-events: none`, and a transparent bridge fills the
+ *                  gap to the button, so the pointer may travel onto it (it sits
+ *                  above the button, which is the direction a pointer drifts
+ *                  when reading);
  *  - persistent  — it stays until blur, mouse-leave or Escape; nothing times out.
  *
  * The bubble is `aria-hidden`: it repeats the button's own `aria-label`

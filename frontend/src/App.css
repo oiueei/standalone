@@ -1164,8 +1164,12 @@ body :focus-visible {
 }
 
 /* Icon-only action button whose label appears on hover/focus (TooltipButton).
-   The bubble deliberately keeps pointer events so WCAG 1.4.13 "hoverable" holds:
-   a pointer drifting up from the button onto the bubble must not dismiss it. */
+   The bubble takes the look of HDS's small Tooltip placed on top (Tooltip-module_*
+   in hds-react 6): coat-of-arms-light fill, an 8px coat-of-arms edge on the side
+   facing the button and an 8px arrow hanging from it. It keeps pointer events so
+   WCAG 1.4.13 "hoverable" holds: the transparent bridge in ::before covers the
+   10px gap to the button, so a pointer drifting up onto the bubble never leaves
+   the wrapper and does not dismiss it. */
 .tooltip-button {
   position: relative;
   display: inline-flex;
@@ -1173,15 +1177,39 @@ body :focus-visible {
 
 .tooltip-button-bubble {
   position: absolute;
-  bottom: calc(100% + 4px);
+  bottom: calc(100% + 10px);
   right: 0;
   z-index: 1000;
-  padding: 4px 8px;
-  border-radius: 2px;
-  background-color: var(--color-black-90);
-  color: var(--color-white);
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(21.875rem, 80vw);
+  padding: var(--spacing-3-xs) var(--spacing-2-xs);
+  border-bottom: 8px solid var(--color-coat-of-arms);
+  background-color: var(--color-coat-of-arms-light);
+  color: var(--color-black-90);
   font-size: var(--fontsize-body-s);
-  max-width: min(280px, 80vw);
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.tooltip-button-bubble::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+
+.tooltip-button-bubble::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + 8px);
+  /* centred on the button: half its width (the 44px minimum target) less the arrow's 8px */
+  right: calc(22px - 8px);
+  border: 8px solid transparent;
+  border-top-color: var(--color-coat-of-arms);
+  border-bottom-width: 0;
 }
 
 /* Rental pickup/return weekday chips (#7) — a compact [L M X J V S D] toggle row
