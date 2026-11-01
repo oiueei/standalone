@@ -9,7 +9,6 @@ import {
 } from 'hds-react';
 import { formatDate } from '../utils/rental';
 import { hasAmount } from '../constants/things';
-import NetworkPointLine from './NetworkPointLine';
 import DepositPolicy from './DepositPolicy';
 
 /**
@@ -17,14 +16,14 @@ import DepositPolicy from './DepositPolicy';
  * availability (live for date-based types, the static enum hint otherwise),
  * location and condition. Extra rows specific to a view (e.g. answer/transfer
  * counts on ThingLinkbox) are passed as `children` and rendered after the core
- * rows inside the same container.
+ * rows inside the same container; `lead` is a row a view opens with (ThingPage's pickup
+ * point), which the card does not carry.
  */
-export default function ThingInfoRows({ thing, isDateBased, hideType = false, children }) {
+export default function ThingInfoRows({ thing, isDateBased, hideType = false, lead, children }) {
   const { t } = useTranslation();
   return (
     <div className="thing-card-info">
-      {/* In a network: who lends it, where and when. */}
-      <NetworkPointLine point={thing.network_point} />
+      {lead}
       {/* Type row — hidden when the collection allows only one thing type (redundant). */}
       {!hideType && (
         <div className="thing-card-info-row">

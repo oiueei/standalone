@@ -12,6 +12,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import InlineConfirm from '../components/InlineConfirm';
 import ThingTags from '../components/ThingTags';
 import ThingInfoRows from '../components/ThingInfoRows';
+import NetworkPointLine from '../components/NetworkPointLine';
 import OwnerBookingsList from '../components/OwnerBookingsList';
 import ThingReportFooter from '../components/ThingReportFooter';
 import ThingFaqSection from '../components/ThingFaqSection';
@@ -351,7 +352,13 @@ export default function ThingPage() {
 
         <ThingTags thing={thing} isOwner={canManage} showType={false} />
 
-        <ThingInfoRows thing={thing} isDateBased={isDateBased} />
+        <ThingInfoRows
+          thing={thing}
+          isDateBased={isDateBased}
+          // In a network: who lends it, where and when. The card leaves it out: the
+          // filter above the grid already says who lends.
+          lead={<NetworkPointLine point={thing.network_point} />}
+        />
 
         {/* Owner bookings list */}
         <OwnerBookingsList
