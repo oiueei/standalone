@@ -3,6 +3,20 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 import { StrictMode, useEffect } from 'react';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import VerifyPage from '../pages/VerifyPage';
+
+// `useNavigate` gives a new function whenever the address moves (it is built from the
+// location); this wrapper gives one on every render, which is the same property without
+// depending on how a given router version memoises it.
+vi.mock('react-router', async (orig) => {
+  const actual = await orig();
+  return {
+    ...actual,
+    useNavigate: () => {
+      const navigate = actual.useNavigate();
+      return (...args) => navigate(...args);
+    },
+  };
+});
 import i18n from '../i18n';
 import { switchLanguage } from './settle';
 
@@ -116,8 +130,8 @@ describe('VerifyPage auto-commit', () => {
   test('StrictMode double-invoke fires the committing POST exactly once', async () => {
     // StrictMode (dev build) mounts → runs the effect twice. committedRef must
     // keep the irreversible booking-decision POST to a single fire even though
-    // the preview GET runs twice. Method-keyed mock so the assertion is robust
-    // to the async interleaving of the two effect runs.
+    // the effect runs twice; the link itself is asked for once (`redeemedRef`).
+    // Method-keyed mock so the assertion is robust to the async interleaving.
     globalThis.fetch = vi.fn((url, opts = {}) =>
       opts.method === 'POST'
         ? Promise.resolve(mockResponse({ action: 'BOOKING_ACCEPT' }))
@@ -127,10 +141,8 @@ describe('VerifyPage auto-commit', () => {
     renderVerify(true);
 
     expect(await screen.findByText('The request has been confirmed!')).toBeInTheDocument();
-    // The preview GET ran twice (proving the double-invoke actually happened,
-    // so this test is not vacuous) …
-    expect(getCalls(globalThis.fetch)).toHaveLength(2);
-    // … but the commit POST fired exactly once.
+    // The preview GET and the commit POST each went out exactly once.
+    expect(getCalls(globalThis.fetch)).toHaveLength(1);
     expect(postCalls(globalThis.fetch)).toHaveLength(1);
   });
 });
@@ -465,7 +477,7 @@ describe('the owner answering a member’s suggestion', () => {
     renderVerify(true);
 
     expect(await screen.findByText(/lolo1@your-domain\.test/)).toBeInTheDocument();
-    expect(getCalls(globalThis.fetch)).toHaveLength(2); // the effect really did run twice
+    expect(getCalls(globalThis.fetch)).toHaveLength(1); // the effect ran twice, the link was asked once
     expect(postCalls(globalThis.fetch)).toHaveLength(1);
   });
 });
@@ -676,3 +688,55 @@ describe('a stalled network', () => {
     expect(screen.queryByText('Connection error.')).toBeNull();
   });
 });
+
+describe('a magic link is redeemed once, however the router moves under the page', () => {
+  // Signing in navigates to the collection, whose page is a lazy chunk: while it loads
+  // the verify page is still mounted and the address has already changed, which gives
+  // `useNavigate` a new identity. An effect that depends on it ran again and asked for
+  // the link a second time, spent, and painted "invalid or expired" for an instant.
+  // `Routes` keeps the location it was given, so the page stays up as it does while the
+  // chunk loads, and it renders again when the router's location moves under it.
+  const STAYED = { pathname: `/verify/${CODE}`, search: '', hash: '', state: null, key: 'k' };
+
+  test('after a sign-in that navigates, the link was asked for once and no error shows', async () => {
+    localStorage.clear();
+    // The first answer signs in; a link is single-use, so any later one finds it spent.
+    let asked = 0;
+    globalThis.fetch = vi.fn(() => {
+      asked += 1;
+      return Promise.resolve(
+        asked === 1
+          ? mockResponse({
+              action: 'MAGIC_LINK',
+              user: { code: 'USR002', name: 'Lele', email: 'lele@your-domain.test' },
+              landing: 'collection',
+              collection: 'COL001',
+              collection_kind: 'LIBRARY',
+            })
+          : mockResponse({ error: 'spent' }, false, 400)
+      );
+    });
+    render(
+      <MemoryRouter initialEntries={[`/verify/${CODE}`]}>
+        <Routes location={STAYED}>
+          <Route path="/verify/:code" element={<VerifyPage />} />
+        </Routes>
+        <Landing />
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText('landed on /library/COL001')).toBeInTheDocument();
+    // Let whatever the navigation re-ran settle.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    expect(getCalls(globalThis.fetch)).toHaveLength(1);
+    expect(screen.queryByText(/invalid or expired/i)).toBeNull();
+  });
+});
+
+function Landing() {
+  const { pathname } = useLocation();
+  return <p>{`landed on ${pathname}`}</p>;
+}

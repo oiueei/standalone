@@ -35,11 +35,18 @@ export default function VerifyPage() {
   // Guards the auto-commit POST so React 19 StrictMode's double-invoked effect
   // (dev only) can't fire the irreversible booking decision twice.
   const committedRef = useRef(false);
+  // The code this page has already asked the server about. A link is single-use, so
+  // it is redeemed once per code whatever re-runs the effect below: the second GET
+  // would find it spent and paint "invalid or expired" under a person who has just
+  // signed in.
+  const redeemedRef = useRef(null);
   const isLoggedIn = !!localStorage.getItem('userCode');
 
   const { btnStyle } = useTheeeme();
 
   useEffect(() => {
+    if (redeemedRef.current === code) return undefined;
+    redeemedRef.current = code;
     let settled = false;
     // Don't let a stalled network leave the user stuck on "Verifying…" forever:
     // after 15s with no response, fall through to the existing error screen.
@@ -168,8 +175,11 @@ export default function VerifyPage() {
     // a visitor who already had a session. Nothing here is translated after a
     // language could have changed except the failure messages, which read `t` as
     // it was when the link was opened.
+    // `navigate` is not one either: it changes identity with every address, and the
+    // sign-in navigates away while the next page's chunk loads and this one is still
+    // mounted. The effect redeems the link once per `code` (`redeemedRef`).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, navigate]);
+  }, [code]);
 
   // Both the success and error heroes offer the same way out.
   const exitAction = (
