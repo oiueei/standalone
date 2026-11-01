@@ -71,6 +71,9 @@ async function openApp() {
   const { default: App } = await import('../App');
   render(<App />);
   await screen.findByText('Drill');
+  // The inbox is asked for once the collection is painted; its answer is waited for here,
+  // inside the test, and not left to land right after this returns.
+  await settle(globalThis.fetch);
 }
 
 describe('the network’s filter keeps the reader where they are', () => {
@@ -125,6 +128,8 @@ describe('the network’s filter keeps the reader where they are', () => {
     await waitFor(() => expect(window.location.pathname).toBe('/library/COL001/ENTA01'));
     await waitFor(() => expect(document.activeElement).toBe(document.getElementById('main')));
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' });
+    // Going back mounts the collection again, and with it the inbox's request.
+    await settle(globalThis.fetch);
   });
 
   test('going to another page still brings the focus to the main content', async () => {
