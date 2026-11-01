@@ -107,6 +107,15 @@ function renderAt(path, collection = NETWORK) {
   );
 }
 
+// Renders, waits for the first thing to be painted and then for everything the page asked
+// once the collection was there. `InboxNotifications` mounts only with the collection and
+// its answer would otherwise land right after `findByText` returns, outside `act`.
+async function openAt(path, first, collection = NETWORK) {
+  renderAt(path, collection);
+  await screen.findByText(first);
+  await settle(apiFetch);
+}
+
 const grid = () => document.querySelector('.things-grid');
 const shown = () =>
   within(grid())
@@ -139,9 +148,7 @@ beforeEach(() => {
 
 describe('the network’s filter by who lends', () => {
   test('one chip per dinamizador with something to show, by the name of their point', async () => {
-    renderAt('/library/COL001');
-
-    await screen.findByText('Drill');
+    await openAt('/library/COL001', 'Drill');
     const names = within(lenderRow())
       .getAllByRole('button')
       .map((b) => b.textContent);
@@ -150,8 +157,7 @@ describe('the network’s filter by who lends', () => {
   });
 
   test('pressing one filters the cards and puts the dinamizador in the address', async () => {
-    renderAt('/library/COL001');
-    await screen.findByText('Drill');
+    await openAt('/library/COL001', 'Drill');
 
     fireEvent.click(chip('Cooperativa'));
 
@@ -163,8 +169,7 @@ describe('the network’s filter by who lends', () => {
   });
 
   test('"All" goes back to the collection’s own address', async () => {
-    renderAt('/library/COL001/ENTA01');
-    await screen.findByText('Drill');
+    await openAt('/library/COL001/ENTA01', 'Drill');
 
     fireEvent.click(chip('All'));
 
@@ -173,16 +178,13 @@ describe('the network’s filter by who lends', () => {
   });
 
   test('an address naming a dinamizador opens already filtered', async () => {
-    renderAt('/library/COL001/ENTB01');
-
-    await screen.findByText('Rake');
+    await openAt('/library/COL001/ENTB01', 'Rake');
     expect(shown()).toEqual(['Rake']);
     expect(chip('Lili')).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('the dinamizador and a tag narrow the list together', async () => {
-    renderAt('/library/COL001/ENTA01');
-    await screen.findByText('Drill');
+    await openAt('/library/COL001/ENTA01', 'Drill');
 
     fireEvent.click(screen.getByRole('button', { name: /^Garden/ }));
 
@@ -194,9 +196,7 @@ describe('the network’s filter by who lends', () => {
       ...NETWORK,
       things: NETWORK.things.filter((t) => t.owner === 'ENTA01'),
     };
-    renderAt('/library/COL001', onlyLele);
-
-    await screen.findByText('Drill');
+    await openAt('/library/COL001', 'Drill', onlyLele);
     expect(screen.queryByRole('group', { name: 'Who lends' })).toBeNull();
     expect(shown()).toHaveLength(2);
   });
@@ -206,9 +206,7 @@ describe('the network’s filter by who lends', () => {
       ...NETWORK,
       things: NETWORK.things.filter((t) => t.owner === 'ENTA01'),
     };
-    renderAt('/library/COL001/ENTA01', onlyLele);
-
-    await screen.findByText('Drill');
+    await openAt('/library/COL001/ENTA01', 'Drill', onlyLele);
     expect(shown()).toHaveLength(2);
     expect(screen.queryByText(/not found|error/i)).toBeNull();
   });
@@ -218,34 +216,27 @@ describe('the network’s filter by who lends', () => {
       ...NETWORK,
       things: NETWORK.things.filter((t) => t.owner !== 'ENTB01' && t.owner !== 'FOUN01'),
     };
-    renderAt('/library/COL001', {
+    await openAt('/library/COL001', 'Drill', {
       ...two,
       things: [...two.things, NETWORK.things.find((t) => t.owner === 'ENTB01')],
     });
-
-    await screen.findByText('Drill');
     expect(lenderRow()).toBeInTheDocument();
   });
 
   test('a code that is nobody’s shows the whole collection, with no error', async () => {
-    renderAt('/library/COL001/NOBODY');
-
-    await screen.findByText('Drill');
+    await openAt('/library/COL001/NOBODY', 'Drill');
     expect(shown()).toHaveLength(4);
     expect(chip('All')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByText(/not found|error/i)).toBeNull();
   });
 
   test('a dinamizador with nothing to show is not a filter either', async () => {
-    renderAt('/library/COL001/ENTC01');
-
-    await screen.findByText('Drill');
+    await openAt('/library/COL001/ENTC01', 'Drill');
     expect(shown()).toHaveLength(4);
   });
 
   test('moving between filters does not load the collection again', async () => {
-    renderAt('/library/COL001');
-    await screen.findByText('Drill');
+    await openAt('/library/COL001', 'Drill');
     const loads = () => apiFetch.mock.calls.filter(([u]) => u === '/api/v1/collections/COL001/');
     const before = loads().length;
 
@@ -256,9 +247,7 @@ describe('the network’s filter by who lends', () => {
   });
 
   test('a collection that is not a network has no such row, and an address naming a code shows it as it is', async () => {
-    renderAt('/library/COL001/ENTA01', { ...NETWORK, mode: 'PROPRIETARY' });
-
-    await screen.findByText('Drill');
+    await openAt('/library/COL001/ENTA01', 'Drill', { ...NETWORK, mode: 'PROPRIETARY' });
     expect(screen.queryByRole('group', { name: 'Who lends' })).toBeNull();
     expect(shown()).toHaveLength(4);
   });

@@ -244,7 +244,7 @@ class ThingViewSet(ModelViewSet):
         # The type stays editable, but a PATCH can't move a thing to a type its
         # collection forbids — re-validate against every collection it's in.
         thing = serializer.instance
-        collections = list(thing.collections.all())
+        collections = thing.collections_in_order()
         validated = serializer.validated_data
         # Its collection's kind and its price give the verb, and an edit that
         # touches either puts it back in step. A thing of the other family that a
@@ -333,7 +333,9 @@ class ThingViewSet(ModelViewSet):
     @staticmethod
     def _tell_owner_of_rescue(thing, founder):
         """The founder of a network hid an entity's thing: its owner hears of it."""
-        collection = next((c for c in thing.collections.all() if c.can_rescue(founder.code)), None)
+        collection = next(
+            (c for c in thing.collections_in_order() if c.can_rescue(founder.code)), None
+        )
         InAppNotification.objects.create(
             user=thing.owner,
             type=InAppNotification.Type.THING_HIDDEN,

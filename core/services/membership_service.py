@@ -175,7 +175,7 @@ def delete_thing(thing, *, actor):
     back — except ``actor``, who knows. Whoever has the thing in hand is told to return
     it, and in a network is given the pickup point of its owner to return it to.
     """
-    collection = next(iter(thing.collections.all()), None)
+    collection = next(iter(thing.collections_in_order()), None)
     with transaction.atomic(), deleting_as(actor):
         to_tell = people_told_on_delete(thing, actor)
         group_headline = collection.headline if collection else ""

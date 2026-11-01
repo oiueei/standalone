@@ -139,7 +139,7 @@ class ThingFAQListView(APIView):
         # the one thing that does.
         questioner_name = request.user.name
         # A thing sits in one collection; read from the prefetch, so no query.
-        collection = next(iter(thing.collections.all()), None)
+        collection = next(iter(thing.collections_in_order()), None)
         for manager in thing.managers():
             if manager.code == request.user.code:
                 continue
