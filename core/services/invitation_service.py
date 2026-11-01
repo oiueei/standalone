@@ -8,10 +8,12 @@ quota — which is the point. Two code paths would drift, and the one used less
 often is the one that would rot.
 """
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from core.models import RSVP, InvitationProposal, InvitationRecord, User
@@ -82,6 +84,45 @@ def record_invitation(collection, email, inviter_code):
             "resolved_at": None,
         },
     )
+
+
+def invitation_acceptance(days=30, settle_days=7):
+    """How the invitations each account sent were answered, for a deployment's report.
+
+    One row per ``inviter`` over the records sent between ``days`` and ``settle_days``
+    ago, both ends included: ``{"inviter": code, "sent", "accepted", "declined",
+    "unanswered"}``, most sent first. Anything sent in the last ``settle_days`` is left
+    out, or somebody who has just sent a batch would look like an account whose
+    invitations nobody accepts.
+
+    It only measures: nobody is stopped or blocked by what it says.
+    """
+    now = timezone.now()
+    State = InvitationRecord.State
+    rows = (
+        InvitationRecord.objects.filter(
+            sent_at__gte=now - timedelta(days=days),
+            sent_at__lte=now - timedelta(days=settle_days),
+        )
+        .values("inviter_id")
+        .annotate(
+            sent=Count("pk"),
+            accepted=Count("pk", filter=Q(state=State.ACCEPTED)),
+            declined=Count("pk", filter=Q(state=State.DECLINED)),
+            unanswered=Count("pk", filter=Q(state=State.SENT)),
+        )
+        .order_by("-sent", "inviter_id")
+    )
+    return [
+        {
+            "inviter": row["inviter_id"],
+            "sent": row["sent"],
+            "accepted": row["accepted"],
+            "declined": row["declined"],
+            "unanswered": row["unanswered"],
+        }
+        for row in rows
+    ]
 
 
 def resolve_invitation(collection, email, state):
