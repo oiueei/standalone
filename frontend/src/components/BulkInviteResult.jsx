@@ -7,6 +7,7 @@ const REASON_KEY = {
   duplicate: 'bulkInvite.reasonDuplicate',
   already_member: 'bulkInvite.reasonAlreadyMember',
   already_invited: 'bulkInvite.reasonAlreadyInvited',
+  already_asked: 'bulkInvite.reasonAlreadyAsked',
   daily_limit: 'bulkInvite.reasonDailyLimit',
 };
 

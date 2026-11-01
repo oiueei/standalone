@@ -6,7 +6,6 @@ import {
   Button,
   Notification,
   Table,
-  IconEnvelope,
   IconCrossCircle,
   IconStar,
   IconStarFill,
@@ -70,7 +69,6 @@ export default function ManageInvitesPage() {
   // shape the CSV tool says it in; null for none, or after a single invitation.
   const [bulkResult, setBulkResult] = useState(null);
   const [toast, setToast] = useState(null);
-  const [resending, setResending] = useState(null);
   const [promoting, setPromoting] = useState(null);
   // The member a curator has clicked to promote, pending confirmation. Promotion
   // hands over nearly the founder's whole reach — the member list (with emails)
@@ -82,7 +80,6 @@ export default function ManageInvitesPage() {
   // says how many go (the same form as leaving a community group).
   const [demoteCandidate, setDemoteCandidate] = useState(null);
   const inviteLockRef = useRef(false);
-  const resendLockRef = useRef(false);
 
   const fetchCollection = useCallback(async () => {
     try {
@@ -155,28 +152,6 @@ export default function ManageInvitesPage() {
       setToast({ type: 'error', message: t('common.connectionError') });
     } finally {
       setAnswering(null);
-    }
-  };
-
-  const handleResend = async (email) => {
-    if (resendLockRef.current) return;
-    resendLockRef.current = true;
-    setResending(email);
-    try {
-      const res = await apiFetch(`/api/v1/collections/${code}/invite/`, {
-        method: 'POST',
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) {
-        setToast({ type: 'success', message: t('manageInvites.invitationResent') });
-      } else {
-        setToast({ type: 'error', message: t('manageInvites.errorResending') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setResending(null);
-      resendLockRef.current = false;
     }
   };
 
@@ -424,15 +399,6 @@ export default function ManageInvitesPage() {
                           justifyContent: 'flex-end',
                         }}
                       >
-                        {row._isPending && (
-                          <TooltipButton
-                            tooltip={t('manageInvites.resendTooltip')}
-                            onClick={() => handleResend(row._email)}
-                            disabled={resending === row._email}
-                          >
-                            <IconEnvelope aria-hidden />
-                          </TooltipButton>
-                        )}
                         {/* Any curator promotes or demotes a co-curator now
                         (2026-09) — the founder is not a distinct tier here.
                         The founder's own row cannot be demoted (they are an

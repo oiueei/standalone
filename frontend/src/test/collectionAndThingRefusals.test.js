@@ -10,6 +10,7 @@ import { switchLanguage } from './settle';
 const CASES = [
   ['already_invited', undefined, 'Esta persona ya está invitada a esta colección.'],
   ['owner_cannot_leave', undefined, 'Quien fundó el grupo no puede abandonarlo.'],
+  ['invite_already_asked', undefined, es.requestErrors.invite_already_asked],
   ['joins_spent', undefined, es.requestErrors.joins_spent],
   ['invite_quota_exhausted', undefined, es.requestErrors.invite_quota_exhausted],
   ['too_many_invites', { max: 100 }, 'Se pueden enviar como máximo 100 invitaciones de una vez.'],

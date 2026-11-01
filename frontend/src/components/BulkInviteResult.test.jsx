@@ -36,18 +36,20 @@ describe('BulkInviteResult', () => {
             { email: 'lele@your-domain.test', reason: 'already_member' },
             { email: 'lili@your-domain.test', reason: 'already_invited' },
             { email: 'lolo@your-domain.test', reason: 'daily_limit' },
+            { email: 'lulu@your-domain.test', reason: 'already_asked' },
           ],
         }}
       />
     );
 
-    expect(screen.getByText('5 skipped:')).toBeInTheDocument();
+    expect(screen.getByText('6 skipped:')).toBeInTheDocument();
     expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
       'bad — invalid email',
       'lala@your-domain.test — duplicate',
       'lele@your-domain.test — already a member',
       'lili@your-domain.test — already invited',
       'lolo@your-domain.test — daily invitation limit reached',
+      'lulu@your-domain.test — already had an invitation',
     ]);
   });
 
