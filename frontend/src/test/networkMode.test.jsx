@@ -90,14 +90,15 @@ describe('Creating a network', () => {
   test('a library offers the network, with a line saying what it is', async () => {
     await renderCreate('LIBRARY');
 
-    expect(screen.getByRole('radio', { name: 'Network' })).toBeInTheDocument();
-    expect(screen.getByText(/each puts in its own things and lends them/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: /^Network:.*each puts in its own things and lends them/i })
+    ).toBeInTheDocument();
   });
 
   test.each(['STALL', 'SHED'])('a %s does not offer it', async (kind) => {
     await renderCreate(kind);
 
-    expect(screen.queryByRole('radio', { name: 'Network' })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /^Network:/ })).toBeNull();
   });
 
   test('choosing it sends the mode', async () => {
@@ -105,7 +106,7 @@ describe('Creating a network', () => {
     fireEvent.change(container.querySelector('#create-collection-headline'), {
       target: { value: 'The network' },
     });
-    fireEvent.click(screen.getByRole('radio', { name: 'Network' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Network:/ }));
 
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
@@ -135,15 +136,15 @@ describe('Editing a network', () => {
     renderEdit(NETWORK);
 
     expect(await screen.findByText(/This library is a network/i)).toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: 'Community' })).toBeNull();
-    expect(screen.queryByRole('radio', { name: 'Network' })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /^Community:/ })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /^Network:/ })).toBeNull();
   });
 
   test('another library still chooses between its two modes and is not offered a network', async () => {
     renderEdit({ ...NETWORK, mode: 'PROPRIETARY' });
 
-    expect(await screen.findByRole('radio', { name: 'Community' })).toBeInTheDocument();
-    expect(screen.queryByRole('radio', { name: 'Network' })).toBeNull();
+    expect(await screen.findByRole('radio', { name: /^Community:/ })).toBeInTheDocument();
+    expect(screen.queryByRole('radio', { name: /^Network:/ })).toBeNull();
   });
 });
 

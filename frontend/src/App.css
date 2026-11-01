@@ -1071,17 +1071,6 @@ body :focus-visible {
   max-width: 100%;
 }
 
-/* The collection-mode group's per-option description (CollectionModeField),
-   indented under its radio so it reads as that option's explanation and not as
-   the next one's label. Was an inline style object in both the Create and the
-   Edit form; the legend's own five went away with HDS SelectionGroup, and so did
-   the per-option margin — the group's grid gap is HDS's job now. */
-.mode-option-desc {
-  margin: 0 0 0 var(--spacing-l);
-  font-size: var(--fontsize-body-s);
-  color: var(--color-black-70);
-}
-
 .summary-grid {
   display: grid;
   gap: var(--spacing-s);
@@ -1855,14 +1844,8 @@ figure[class*='Highlight-module_highlight'] {
   align-items: center;
 }
 
-/* Explanation under an HDS ToggleButton (`ToggleWithHelp`): HDS has no helper text for it. */
-.toggle-help {
-  margin: var(--spacing-3-xs) 0 0;
-  font-size: var(--fontsize-body-s);
-  color: var(--color-black-70);
-}
-/* Disabled+checked toggle: darker grey than HDS default (black-10) */
-.toggle-with-help button[aria-pressed='true'][disabled] {
+/* The always-on sign-in toggle (disabled, checked): darker grey than HDS default (black-10) */
+#notify-magic[aria-pressed='true'][disabled] {
   background-color: var(--color-black-90) !important;
   border-color: var(--color-black-90) !important;
 }

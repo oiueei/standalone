@@ -127,13 +127,11 @@ export default function EditCollectionPage() {
 
   const ALL_MODE_OPTIONS = [
     {
-      label: t('editCollection.modeProprietary'),
-      description: t('createCollection.modeProprietaryDesc'),
+      label: t('createCollection.modeProprietaryFull'),
       value: 'PROPRIETARY',
     },
     {
-      label: t('editCollection.modeCommunity'),
-      description: t('createCollection.modeCommunityDesc'),
+      label: t('createCollection.modeCommunityFull'),
       value: 'COMMUNITY',
     },
   ];

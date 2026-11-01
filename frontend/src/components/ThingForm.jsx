@@ -1,5 +1,4 @@
-import { Select, TextInput, TextArea, NumberInput } from 'hds-react';
-import ToggleWithHelp from './ToggleWithHelp';
+import { Select, TextInput, TextArea, NumberInput, ToggleButton } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import {
   DATE_TYPES,
@@ -124,8 +123,9 @@ export default function ThingForm({
   return (
     <>
       {showEndless && (
-        <ToggleWithHelp
+        <ToggleButton
           id={`${idPrefix}-is-endless`}
+          variant="inline"
           label={t('endless.label')}
           checked={isEndless}
           onChange={(val) => setIsEndless(!val)}

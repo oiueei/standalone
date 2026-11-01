@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { useTranslation, Trans } from 'react-i18next';
-import { TextInput, TextArea, Button, Select } from 'hds-react';
-import ToggleWithHelp from '../components/ToggleWithHelp';
+import { TextInput, TextArea, Button, Select, ToggleButton } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -248,10 +247,10 @@ export default function EditProfilePage() {
       <h2 style={{ marginTop: 'var(--spacing-xl)' }}>{t('notifications.pageTitle')}</h2>
       <p style={{ marginBottom: 'var(--spacing-m)' }}>{t('notifications.intro')}</p>
       <div className="form-grid">
-        <ToggleWithHelp
+        <ToggleButton
           id="notify-magic"
-          label={t('notifications.magicLabel')}
-          help={t('notifications.magicHelper')}
+          variant="inline"
+          label={t('notifications.magicFull')}
           checked
           disabled
           onChange={() => {}}
@@ -261,10 +260,10 @@ export default function EditProfilePage() {
               : undefined
           }
         />
-        <ToggleWithHelp
+        <ToggleButton
           id="notify-activity"
-          label={t('notifications.activityLabel')}
-          help={t('notifications.activityHelper')}
+          variant="inline"
+          label={t('notifications.activityFull')}
           checked={notifyActivity}
           onChange={(val) => setNotifyActivity(!val)}
           theme={
@@ -273,10 +272,10 @@ export default function EditProfilePage() {
               : undefined
           }
         />
-        <ToggleWithHelp
+        <ToggleButton
           id="notify-news"
-          label={t('notifications.newsLabel')}
-          help={t('notifications.newsHelper')}
+          variant="inline"
+          label={t('notifications.newsFull')}
           checked={notifyNews}
           onChange={(val) => setNotifyNews(!val)}
           theme={

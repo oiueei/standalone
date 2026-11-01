@@ -25,6 +25,23 @@ describe('NotificationsPage (email prefs via the signed footer token)', () => {
     vi.restoreAllMocks();
   });
 
+  test('each toggle is named by its title and its explanation together, with no paragraph apart', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ notify_activity: true, notify_news: false }),
+    });
+    const { container } = renderWithToken();
+    await screen.findByRole('heading', { name: 'Email preferences' });
+
+    expect(
+      screen.getByRole('button', {
+        name: "Activity between users (recommended): Booking requests and confirmations, questions and answers, reminders, and messages from a group's owner.",
+      })
+    ).toBeInTheDocument();
+    expect(container.querySelector('[aria-describedby]')).toBeNull();
+  });
+
   test('the emailed token loads the saved preferences — no login involved', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
