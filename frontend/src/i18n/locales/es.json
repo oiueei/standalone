@@ -1102,7 +1102,6 @@
     "conditionsTitle": "Tus condiciones",
     "conditionsIntro": "Lo que dejes vacío es lo que dice la red.",
     "save": "Guardar",
-    "saved": "Guardado.",
     "errorSaving": "No se ha podido guardar el punto de recogida.",
     "errorLoading": "No se ha podido cargar el punto de recogida.",
     "notANetwork": "Solo una red tiene puntos de recogida.",

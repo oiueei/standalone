@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Button } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
@@ -32,6 +32,7 @@ export default function NetworkPointPage() {
   const { t } = useTranslation();
   const L = useLocalized();
   const { code } = useParams();
+  const navigate = useNavigate();
   const base = useCollectionBase(code);
   const { tc, btnStyle } = useTheeeme();
   const userCode = localStorage.getItem('userCode');
@@ -124,7 +125,8 @@ export default function NetworkPointPage() {
         }),
       });
       if (res.ok) {
-        setToast({ type: 'success', message: t('networkPoint.saved') });
+        // Saving ends the visit, as the collection's and the profile's forms do.
+        navigate(base);
       } else if (res.status === 429) {
         setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else if (res.status === 400) {

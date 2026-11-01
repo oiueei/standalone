@@ -1102,7 +1102,6 @@
     "conditionsTitle": "Your conditions",
     "conditionsIntro": "Whatever you leave empty is what the network says.",
     "save": "Save",
-    "saved": "Saved.",
     "errorSaving": "The pickup point could not be saved.",
     "errorLoading": "The pickup point could not be loaded.",
     "notANetwork": "Only a network has pickup points.",
