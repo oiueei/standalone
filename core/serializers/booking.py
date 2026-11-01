@@ -87,7 +87,7 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
         # A thing lives in one collection; the list is read (the view prefetches
         # `thing_code__collections`, so it costs no extra query) and the first is
         # taken, which also covers a row from before that rule that sits in more.
-        cols = list(obj.thing_code.collections.all())
+        cols = obj.thing_code.collections_in_order()
         return cols[0] if cols else None
 
     def get_collection_code(self, obj):

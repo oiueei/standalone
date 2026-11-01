@@ -162,6 +162,17 @@ class Thing(models.Model):
             for c in self.collections.all()
         )
 
+    def collections_in_order(self):
+        """The collections this thing sits in, oldest first, then by code.
+
+        ``collections.all()`` has no ``ORDER BY``, so the rows come back in whatever order
+        the database picks (and a prefetch can change it). Wherever the code takes "the
+        first" collection it takes it from here. A thing lives in one collection, so this
+        only matters for a row from before that rule. Sorted in Python over the prefetched
+        rows: it costs no query.
+        """
+        return sorted(self.collections.all(), key=lambda c: (c.created, c.code))
+
     def can_rescue(self, user_code):
         """The founder of a network this thing sits in (``Collection.can_rescue``):
         may reject a pending request on it and hide it, and nothing else. Apart

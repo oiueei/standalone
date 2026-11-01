@@ -359,6 +359,28 @@ def test_owner_still_sees_their_own_private_collection_on_their_thing(authentica
     assert "secreto" in res.json()["collection_tags"]
 
 
+def test_the_first_collection_of_a_thing_is_the_earliest_whatever_order_the_rows_come_in(user):
+    """`collections.all()` has no ORDER BY, so Postgres may hand the rows back in any order
+    (a prefetch of the co-owners is enough to change it). "The first" must not depend on
+    that: it is the oldest, then the code, and the owner reads both collections here."""
+    from django.db.models import Prefetch
+    from rest_framework.test import APIRequestFactory
+
+    from core.serializers import ThingSerializer
+
+    private, _reachable, thing = _thing_in_two_collections(user)
+    request = APIRequestFactory().get(f"/api/v1/things/{thing.code}/")
+    request.user = user
+    # The rows in the opposite order to the one a reader would call "the first".
+    reversed_rows = Prefetch("collections", queryset=Collection.objects.order_by("-created"))
+    loaded = Thing.objects.prefetch_related(reversed_rows).get(code=thing.code)
+    assert [c.code for c in loaded.collections.all()][0] != private.code
+
+    data = ThingSerializer(loaded, context={"request": request}).data
+
+    assert data["collection_code"] == private.code
+
+
 # --- who contributed a thing (owner_name) ---------------------------------
 
 

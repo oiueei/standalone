@@ -501,7 +501,7 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
         A context with no request is internal use (a serializer called directly,
         no viewer to judge): everything is viewable, as before.
         """
-        collections = list(obj.collections.all())
+        collections = obj.collections_in_order()
         request = self.context.get("request")
         if request is None:
             return collections
