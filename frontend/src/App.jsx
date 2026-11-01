@@ -68,7 +68,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage'));
  * `<Route>` elements rather than a component, because `<Routes>` only reads its
  * own `<Route>` children.
  *
- * **Every sub-route is `caseSensitive`.** A code is six capitals and digits and the
+ * **Every sub-route is `caseSensitive`.** A code is six letters and digits and the
  * sub-routes `delete` and `import` are six letters: React Router matches paths
  * without regard to case by default, so a member whose code is `DELETE` would open
  * `/library/ABC123/DELETE` — the address of a dinamizador's filter of the collection
@@ -76,7 +76,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage'));
  */
 /**
  * The collection's page, or the collection filtered by one of a network's
- * dinamizadores (`/:curatorCode`). The optional segment is a user's code: six capitals
+ * dinamizadores (`/:curatorCode`). The optional segment is a user's code: six letters
  * and digits. Anything else there is not a page of the app (`/library/ABC123/foo`) and
  * gets the usual "not found"; a code that names nobody shows the collection as it is.
  */

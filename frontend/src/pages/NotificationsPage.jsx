@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification } from 'hds-react';
-import ToggleWithHelp from '../components/ToggleWithHelp';
+import { Button, Notification, ToggleButton } from 'hds-react';
 import { getCsrfToken } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageLayout from '../components/PageLayout';
@@ -94,10 +93,10 @@ export default function NotificationsPage() {
         <>
           <p>{t('notifications.intro')}</p>
           <div className="form-grid">
-            <ToggleWithHelp
+            <ToggleButton
               id="notify-magic"
-              label={t('notifications.magicLabel')}
-              help={t('notifications.magicHelper')}
+              variant="inline"
+              label={t('notifications.magicFull')}
               checked
               disabled
               onChange={() => {}}
@@ -107,10 +106,10 @@ export default function NotificationsPage() {
                   : undefined
               }
             />
-            <ToggleWithHelp
+            <ToggleButton
               id="notify-activity"
-              label={t('notifications.activityLabel')}
-              help={t('notifications.activityHelper')}
+              variant="inline"
+              label={t('notifications.activityFull')}
               checked={notifyActivity}
               onChange={(val) => {
                 setNotifyActivity(!val);
@@ -122,10 +121,10 @@ export default function NotificationsPage() {
                   : undefined
               }
             />
-            <ToggleWithHelp
+            <ToggleButton
               id="notify-news"
-              label={t('notifications.newsLabel')}
-              help={t('notifications.newsHelper')}
+              variant="inline"
+              label={t('notifications.newsFull')}
               checked={notifyNews}
               onChange={(val) => {
                 setNotifyNews(!val);

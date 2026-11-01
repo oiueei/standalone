@@ -51,17 +51,10 @@ describe('NetworkPointLine', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  test('the thing’s info rows open with it', () => {
+  test('the thing’s info rows open with the line a view hands them', () => {
     const thing = { type: 'LEND_THING', network_point: POINT, fee: null, deposit: null };
-    render(<ThingInfoRows thing={thing} isDateBased />);
+    render(<ThingInfoRows thing={thing} isDateBased lead={<NetworkPointLine point={POINT} />} />);
 
     expect(screen.getByTestId('network-point-line')).toBeInTheDocument();
-  });
-
-  test('and carry none outside a network', () => {
-    const thing = { type: 'LEND_THING', network_point: null, fee: null, deposit: null };
-    render(<ThingInfoRows thing={thing} isDateBased />);
-
-    expect(screen.queryByTestId('network-point-line')).toBeNull();
   });
 });

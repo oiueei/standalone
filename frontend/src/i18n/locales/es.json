@@ -77,10 +77,9 @@
     "error": "Algo ha ido mal. Inténtalo de nuevo."
   },
   "visibility": {
-    "publicLabel": "Colección pública",
-    "publicHelper": "Cualquiera con el enlace puede verla y unirse para participar. Desactívalo para mantenerla solo por invitación.",
     "publicTag": "Pública",
-    "privateTag": "Privada"
+    "privateTag": "Privada",
+    "publicFull": "Colección pública: Cualquiera con el enlace puede verla y unirse para participar. Desactívalo para mantenerla solo por invitación."
   },
   "accountMenu": {
     "label": "Tu cuenta"
@@ -550,8 +549,6 @@
     "statusHelper": "Las colecciones inactivas no son visibles para los miembros.",
     "networkFixed": "Esta biblioteca es una red: varias entidades, cada una presta sus cosas desde su punto de recogida. Una biblioteca nace red o no, y no se puede cambiar.",
     "modeLabel": "Modo",
-    "modeProprietary": "Propia",
-    "modeCommunity": "Comunitaria",
     "digestLabel": "Correos resumen",
     "digestNone": "Ninguno",
     "digestWeekly": "Semanal (lunes)",
@@ -568,12 +565,6 @@
     "titleLabel": "Título",
     "descriptionLabel": "Descripción",
     "modeLabel": "Modo",
-    "modeProprietary": "Propia",
-    "modeCommunity": "Comunitaria",
-    "modeProprietaryDesc": "Solo quien dinamiza el grupo añade cosas; de entrada, tú.",
-    "modeCommunityDesc": "Todos los miembros también pueden añadir sus propias cosas.",
-    "modeNetwork": "Red",
-    "modeNetworkDesc": "Varias entidades comparten una biblioteca: cada una pone sus cosas y las presta desde su propio punto de recogida. Tú llevas la red; ellas, lo suyo.",
     "titleRequired": "El título es obligatorio.",
     "maxHeadline": "Máximo 64 caracteres por idioma.",
     "errorCreating": "Error al crear la colección.",
@@ -584,7 +575,10 @@
     "tagsLabel": "Etiquetas",
     "tagsPlaceholder": "p. ej. Vintage, Cocina, Exterior",
     "tagsHelper": "Etiquetas opcionales para organizar las cosas de esta colección",
-    "maxDescription": "La descripción es demasiado larga: 2000 caracteres por idioma."
+    "maxDescription": "La descripción es demasiado larga: 2000 caracteres por idioma.",
+    "modeProprietaryFull": "Propia: Solo quien dinamiza el grupo añade cosas; de entrada, tú.",
+    "modeCommunityFull": "Comunitaria: Todos los miembros también pueden añadir sus propias cosas.",
+    "modeNetworkFull": "Red: Varias entidades comparten una biblioteca: cada una pone sus cosas y las presta desde su propio punto de recogida. Tú llevas la red; ellas, lo suyo."
   },
   "myBookings": {
     "pageTitle": "Mis solicitudes",
@@ -694,8 +688,7 @@
     "ownerReject": "Ahora no",
     "ownerApproved": "Invitación enviada.",
     "ownerDeclined": "Rechazada. Se lo hemos dicho al miembro, sin decir por qué.",
-    "settingLabel": "Los miembros pueden recomendar personas",
-    "settingHelper": "Ellos proponen, tú decides: no sale ninguna invitación sin tu visto bueno."
+    "settingFull": "Los miembros pueden recomendar personas (Ellos proponen, tú decides: no sale ninguna invitación sin tu visto bueno.)"
   },
   "removeGuest": {
     "pageTitle": "Quitar: {{name}}",
@@ -832,15 +825,12 @@
   "notifications": {
     "pageTitle": "Preferencias de email",
     "intro": "Elige qué emails quieres recibir de OIUEEI. Puedes cambiarlo en cualquier momento.",
-    "magicLabel": "Enlaces de inicio de sesión e invitaciones",
-    "magicHelper": "Necesario — sin estos no puedes iniciar sesión ni unirte a grupos.",
-    "activityLabel": "Actividad entre usuarios (recomendado)",
-    "activityHelper": "Solicitudes, reservas y confirmaciones, preguntas y respuestas, recordatorios y mensajes del propietario de un grupo.",
-    "newsLabel": "Noticias y anuncios (opcional)",
-    "newsHelper": "Un resumen de las novedades de cada grupo en el que estás. Puedes desactivar el de un grupo concreto desde la página de la colección, o desde el pie del propio correo.",
     "saved": "Preferencias guardadas.",
     "errorSaving": "Error al guardar.",
-    "invalidLink": "Este enlace no es válido o ha caducado. Inicia sesión para cambiar tus preferencias."
+    "invalidLink": "Este enlace no es válido o ha caducado. Inicia sesión para cambiar tus preferencias.",
+    "magicFull": "Enlaces de inicio de sesión e invitaciones: Necesario — sin estos no puedes iniciar sesión ni unirte a grupos.",
+    "activityFull": "Actividad entre usuarios (recomendado): Solicitudes, reservas y confirmaciones, preguntas y respuestas, recordatorios y mensajes del propietario de un grupo.",
+    "newsFull": "Noticias y anuncios (opcional): Un resumen de las novedades de cada grupo en el que estás. Puedes desactivar el de un grupo concreto desde la página de la colección, o desde el pie del propio correo."
   },
   "pause": {
     "sectionHeading": "Pausar",
@@ -1112,7 +1102,6 @@
     "conditionsTitle": "Tus condiciones",
     "conditionsIntro": "Lo que dejes vacío es lo que dice la red.",
     "save": "Guardar",
-    "saved": "Guardado.",
     "errorSaving": "No se ha podido guardar el punto de recogida.",
     "errorLoading": "No se ha podido cargar el punto de recogida.",
     "notANetwork": "Solo una red tiene puntos de recogida.",

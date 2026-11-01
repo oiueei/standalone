@@ -147,6 +147,12 @@ beforeEach(() => {
 });
 
 describe('the network’s filter by who lends', () => {
+  test('a card does not say who lends it: the filter above the grid does', async () => {
+    await openAt('/library/COL001', 'Drill');
+
+    expect(screen.queryByTestId('network-point-line')).toBeNull();
+  });
+
   test('one chip per dinamizador with something to show, by the name of their point', async () => {
     await openAt('/library/COL001', 'Drill');
     const names = within(lenderRow())

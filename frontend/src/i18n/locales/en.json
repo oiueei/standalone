@@ -83,10 +83,9 @@
     "error": "Something went wrong. Please try again."
   },
   "visibility": {
-    "publicLabel": "Public collection",
-    "publicHelper": "Anyone with the link can view it and join to take part. Turn off to keep it invite-only.",
     "publicTag": "Public",
-    "privateTag": "Private"
+    "privateTag": "Private",
+    "publicFull": "Public collection: Anyone with the link can view it and join to take part. Turn off to keep it invite-only."
   },
   "accountMenu": {
     "label": "Your account"
@@ -556,8 +555,6 @@
     "statusHelper": "Inactive collections are not visible to members.",
     "networkFixed": "This library is a network: several entities, each lending its own things from its own pickup point. A library is born a network or not, and it cannot change.",
     "modeLabel": "Mode",
-    "modeProprietary": "Proprietary",
-    "modeCommunity": "Community",
     "digestLabel": "Digest emails",
     "digestNone": "None",
     "digestWeekly": "Weekly (Mondays)",
@@ -574,12 +571,6 @@
     "titleLabel": "Title",
     "descriptionLabel": "Description",
     "modeLabel": "Mode",
-    "modeProprietary": "Proprietary",
-    "modeCommunity": "Community",
-    "modeProprietaryDesc": "Only the team running the group adds things — you, to start with.",
-    "modeCommunityDesc": "Every member can add their own things too.",
-    "modeNetwork": "Network",
-    "modeNetworkDesc": "Several entities share one library: each puts in its own things and lends them from its own pickup point. You run the network; they run what is theirs.",
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters per language.",
     "errorCreating": "Error creating collection.",
@@ -590,7 +581,10 @@
     "tagsLabel": "Tags",
     "tagsPlaceholder": "e.g. Vintage, Kitchen, Outdoor",
     "tagsHelper": "Optional labels to organise this collection's things",
-    "maxDescription": "Description is too long: 2000 characters per language."
+    "maxDescription": "Description is too long: 2000 characters per language.",
+    "modeProprietaryFull": "Proprietary: Only the team running the group adds things — you, to start with.",
+    "modeCommunityFull": "Community: Every member can add their own things too.",
+    "modeNetworkFull": "Network: Several entities share one library: each puts in its own things and lends them from its own pickup point. You run the network; they run what is theirs."
   },
   "myBookings": {
     "pageTitle": "My requests",
@@ -700,8 +694,7 @@
     "ownerReject": "Not this time",
     "ownerApproved": "Invitation sent.",
     "ownerDeclined": "Declined. We've let the member know, without saying why.",
-    "settingLabel": "Members can recommend people",
-    "settingHelper": "They suggest, you decide — no invitation goes out without your say-so."
+    "settingFull": "Members can recommend people: They suggest, you decide — no invitation goes out without your say-so."
   },
   "removeGuest": {
     "pageTitle": "Remove: {{name}}",
@@ -838,15 +831,12 @@
   "notifications": {
     "pageTitle": "Email preferences",
     "intro": "Choose which emails you'd like to receive from OIUEEI. You can change this at any time.",
-    "magicLabel": "Sign-in links and invitations",
-    "magicHelper": "Required — without these you cannot sign in or join groups.",
-    "activityLabel": "Activity between users (recommended)",
-    "activityHelper": "Booking requests and confirmations, questions and answers, reminders, and messages from a group's owner.",
-    "newsLabel": "News and announcements (optional)",
-    "newsHelper": "A summary of what's new in each group you're in. You can turn a single group's summary off from the collection page, or from the foot of the email itself.",
     "saved": "Preferences saved.",
     "errorSaving": "Error saving.",
-    "invalidLink": "This link is invalid or has expired. Please sign in to change your preferences."
+    "invalidLink": "This link is invalid or has expired. Please sign in to change your preferences.",
+    "magicFull": "Sign-in links and invitations: Required — without these you cannot sign in or join groups.",
+    "activityFull": "Activity between users (recommended): Booking requests and confirmations, questions and answers, reminders, and messages from a group's owner.",
+    "newsFull": "News and announcements (optional): A summary of what's new in each group you're in. You can turn a single group's summary off from the collection page, or from the foot of the email itself."
   },
   "pause": {
     "sectionHeading": "Pause",
@@ -1112,7 +1102,6 @@
     "conditionsTitle": "Your conditions",
     "conditionsIntro": "Whatever you leave empty is what the network says.",
     "save": "Save",
-    "saved": "Saved.",
     "errorSaving": "The pickup point could not be saved.",
     "errorLoading": "The pickup point could not be loaded.",
     "notANetwork": "Only a network has pickup points.",

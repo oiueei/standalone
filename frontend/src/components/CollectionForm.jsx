@@ -1,4 +1,4 @@
-import ToggleWithHelp from './ToggleWithHelp';
+import { ToggleButton } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { hasPriceVerbs } from '../utils/collectionKind';
 
@@ -41,10 +41,10 @@ export default function CollectionForm({
 
   return (
     <>
-      <ToggleWithHelp
+      <ToggleButton
         id={`${idPrefix}-visibility`}
-        label={t('visibility.publicLabel')}
-        help={t('visibility.publicHelper')}
+        variant="inline"
+        label={t('visibility.publicFull')}
         checked={visibility === 'PUBLIC'}
         onChange={(val) => setVisibility(val ? 'PRIVATE' : 'PUBLIC')}
         theme={toggleTheme}
@@ -53,17 +53,18 @@ export default function CollectionForm({
           one — this is whether they are willing to be asked at all, which a
           group with a waiting list or an admission process may not be. Sits
           with visibility because both answer "who can get in here". */}
-      <ToggleWithHelp
+      <ToggleButton
         id={`${idPrefix}-allow-proposals`}
-        label={t('recommend.settingLabel')}
-        help={t('recommend.settingHelper')}
+        variant="inline"
+        label={t('recommend.settingFull')}
         checked={allowProposals}
         onChange={(val) => setAllowProposals(!val)}
         theme={toggleTheme}
       />
       {showMembersPrice && (
-        <ToggleWithHelp
+        <ToggleButton
           id={`${idPrefix}-members-price`}
+          variant="inline"
           label={t(
             kind === 'LIBRARY'
               ? 'collectionForm.membersPriceLibrary'

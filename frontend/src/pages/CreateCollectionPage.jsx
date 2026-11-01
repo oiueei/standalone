@@ -112,18 +112,15 @@ function CreateCollectionForm({ kind }) {
 
   const ALL_MODE_OPTIONS = [
     {
-      label: t('createCollection.modeProprietary'),
-      description: t('createCollection.modeProprietaryDesc'),
+      label: t('createCollection.modeProprietaryFull'),
       value: 'PROPRIETARY',
     },
     {
-      label: t('createCollection.modeCommunity'),
-      description: t('createCollection.modeCommunityDesc'),
+      label: t('createCollection.modeCommunityFull'),
       value: 'COMMUNITY',
     },
     {
-      label: t('createCollection.modeNetwork'),
-      description: t('createCollection.modeNetworkDesc'),
+      label: t('createCollection.modeNetworkFull'),
       value: 'NETWORK',
     },
   ];

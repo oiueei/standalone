@@ -2,14 +2,69 @@ import { render, screen } from '@testing-library/react';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 
 /**
- * A code is six capitals and digits, and two sub-routes of a collection are six
+ * A code is six letters and digits, and two sub-routes of a collection are six
  * letters: `delete` and `import`. React Router ignores case unless a route says
  * otherwise, so `/library/ABC123/DELETE` — a person whose code is `DELETE` — opened
  * the page that deletes the collection. Every sub-route of a collection is
  * case-sensitive; only the whole App can say so, since it is the route table that
  * decides.
  */
+// A network whose dinamizadores carry codes written by hand, as the demo's do (lowercase).
+const thing = (code, owner, ownerName, headline) => ({
+  code,
+  type: 'LEND_THING',
+  owner,
+  owner_name: ownerName,
+  headline,
+  description: '',
+  status: 'ACTIVE',
+  fee: null,
+  availability: '',
+  location: '',
+  condition: '',
+  thumbnail_url: '',
+  gallery: [],
+  gallery_urls: [],
+  available_today: true,
+  next_available: null,
+  tags: [],
+  pending_questions: 0,
+  my_pending_booking: null,
+  pending_booking: null,
+  bookings: [],
+  created: '2026-09-01T10:00:00Z',
+  network_point: { display_name: ownerName, address: '', hours_note: '', contact: '' },
+});
+const NETWORK = {
+  code: 'NET001',
+  headline: 'Demo network',
+  description: '',
+  status: 'ACTIVE',
+  visibility: 'PRIVATE',
+  kind: 'LIBRARY',
+  mode: 'NETWORK',
+  owner: 'FOUN01',
+  owner_name: 'Lala',
+  is_curator: false,
+  is_member: true,
+  co_owners: [
+    { code: 'L3L3oo', name: 'Lele' },
+    { code: 'l0l0oh', name: 'Lolo' },
+  ],
+  tags: [],
+  invites: [],
+  is_paused: false,
+  allowed_thing_types: ['LEND_THING'],
+  things: [thing('THG001', 'L3L3oo', 'Lele', 'Drill'), thing('THG002', 'l0l0oh', 'Lolo', 'Rake')],
+};
+
 globalThis.fetch = vi.fn((url) => {
+  if (String(url).includes('/api/v1/collections/NET001/')) {
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(NETWORK) });
+  }
+  if (String(url).includes('/inbox/')) {
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve([]) });
+  }
   const collection = String(url).includes('/api/v1/collections/COL001/');
   return Promise.resolve({
     ok: collection,
@@ -61,7 +116,16 @@ describe('the sub-routes of a collection tell case apart', () => {
     }
   );
 
-  test.each(['Delete', 'Import', 'foo', 'JOIN', 'ABC12', 'ABC1234'])(
+  test('Delete and Import are codes too, of nobody: the collection, not a page', async () => {
+    await openApp('/library/COL001/Delete');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'The lending library' })
+    ).toBeVisible();
+    expect(screen.queryByRole('heading', { name: /Delete/ })).toBeNull();
+  });
+
+  test.each(['foo', 'JOIN', 'ABC12', 'ABC1234'])(
     '%s is not the shape of a code: the usual "not found"',
     async (segment) => {
       await openApp(`/library/COL001/${segment}`);
@@ -71,6 +135,14 @@ describe('the sub-routes of a collection tell case apart', () => {
       expect(screen.queryByRole('heading', { name: 'The lending library' })).toBeNull();
     }
   );
+
+  test('a code written by hand, with lowercase, filters the network by that dinamizador', async () => {
+    await openApp('/library/NET001/L3L3oo');
+
+    expect(await screen.findByRole('heading', { level: 3, name: 'Drill' })).toBeVisible();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Rake' })).toBeNull();
+    expect(screen.queryByText('Page not found')).toBeNull();
+  });
 
   test('the lowercase import is still the import page', async () => {
     await openApp('/library/COL001/import');

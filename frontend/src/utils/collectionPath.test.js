@@ -46,14 +46,14 @@ describe('a collection lives at /{kind}/{code}', () => {
 });
 
 describe('isCodeShaped', () => {
-  test.each(['ABC123', 'DELETE', '000000', 'USR001'])('%s has the shape of a code', (segment) => {
-    expect(isCodeShaped(segment)).toBe(true);
-  });
-
-  test.each(['Delete', 'abc123', 'ABC12', 'ABC1234', 'AB-123', 'join', '', undefined, null])(
-    '%s has not',
+  test.each(['ABC123', 'DELETE', '000000', 'USR001', 'L3L3oo', 'Delete', 'abc123'])(
+    '%s has the shape of a code',
     (segment) => {
-      expect(isCodeShaped(segment)).toBe(false);
+      expect(isCodeShaped(segment)).toBe(true);
     }
   );
+
+  test.each(['ABC12', 'ABC1234', 'AB-123', 'foo', '', undefined, null])('%s has not', (segment) => {
+    expect(isCodeShaped(segment)).toBe(false);
+  });
 });

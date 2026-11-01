@@ -30,8 +30,8 @@ import { apiFetch } from '../services/api';
  */
 
 const MODES = [
-  { value: 'PROPRIETARY', label: 'Just mine', description: 'Only you add things.' },
-  { value: 'COMMUNITY', label: 'Shared', description: 'Members add their own things.' },
+  { value: 'PROPRIETARY', label: 'Just mine: Only you add things.' },
+  { value: 'COMMUNITY', label: 'Shared: Members add their own things.' },
 ];
 
 async function renderField(overrides = {}) {
@@ -68,16 +68,14 @@ describe('the group is one question, not two loose radios', () => {
     radios.forEach((radio) => expect(group.contains(radio)).toBe(true));
   });
 
-  test('each option carries its own description, wired to its own radio', async () => {
+  test('each radio is named by its own label, title and explanation together', async () => {
     await renderField();
 
     MODES.forEach((mode) => {
+      // A screen reader reads this option's explanation as part of its name, and the
+      // radio sets no `aria-describedby` that could point at another option's text.
       const radio = screen.getByRole('radio', { name: mode.label });
-      const describedBy = radio.getAttribute('aria-describedby');
-      expect(describedBy).toBeTruthy();
-      // The description a screen reader reads for this option must be *this*
-      // option's — an id collision here reads the wrong explanation aloud.
-      expect(document.getElementById(describedBy)).toHaveTextContent(mode.description);
+      expect(radio).not.toHaveAttribute('aria-describedby');
     });
   });
 
@@ -94,15 +92,15 @@ describe('the props contract the two forms rely on', () => {
   test('the current value is the checked one', async () => {
     await renderField({ value: 'COMMUNITY' });
 
-    expect(screen.getByRole('radio', { name: 'Shared' })).toBeChecked();
-    expect(screen.getByRole('radio', { name: 'Just mine' })).not.toBeChecked();
+    expect(screen.getByRole('radio', { name: /^Shared:/ })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /^Just mine:/ })).not.toBeChecked();
   });
 
   test('picking an option reports its value, not an event', async () => {
     // The pages pass `handleModeChange`, which takes a mode string.
     const { onChange } = await renderField();
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Shared' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Shared:/ }));
 
     expect(onChange).toHaveBeenCalledWith('COMMUNITY');
   });
@@ -113,7 +111,7 @@ describe('the props contract the two forms rely on', () => {
     await renderField({ options: [MODES[0]], catalogue: MODES });
 
     expect(screen.getAllByRole('radio')).toHaveLength(1);
-    expect(screen.queryByRole('radio', { name: 'Shared' })).toBeNull();
+    expect(screen.queryByRole('radio', { name: /^Shared:/ })).toBeNull();
   });
 
   test('the ids follow the prefix, so two forms can render it on one page', async () => {

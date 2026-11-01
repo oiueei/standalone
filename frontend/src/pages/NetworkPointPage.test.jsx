@@ -58,6 +58,7 @@ const renderPage = () =>
     <MemoryRouter initialEntries={['/library/COL001/point']}>
       <Routes>
         <Route path="/library/:code/point" element={<NetworkPointPage />} />
+        <Route path="/library/:code" element={<div>THE COLLECTION</div>} />
       </Routes>
     </MemoryRouter>
   );
@@ -136,7 +137,9 @@ describe('NetworkPointPage', () => {
       request_info: '',
       email_note: '',
     });
-    expect(await screen.findByText('Saved.')).toBeInTheDocument();
+    // Saving ends the visit: the reader is back on the collection, with no notice left behind.
+    expect(await screen.findByText('THE COLLECTION')).toBeInTheDocument();
+    expect(screen.queryByText('Saved.')).toBeNull();
   });
 
   test('says what the server refused when saving', async () => {
@@ -145,6 +148,7 @@ describe('NetworkPointPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('That is not a date')).toBeInTheDocument();
+    expect(screen.queryByText('THE COLLECTION')).toBeNull();
   });
 
   test('a collection that is not a network has no pickup points', async () => {

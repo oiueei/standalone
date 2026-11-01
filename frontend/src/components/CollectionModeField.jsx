@@ -37,9 +37,8 @@ export default function CollectionModeField({
   const optionFields = options.map((opt) => {
     const id = `${idPrefix}-mode-${opt.value.toLowerCase()}`;
     return (
-      // The radio and its description travel as one child so HDS's grid gap
-      // falls between options, not between a radio and its own explanation —
-      // a description equidistant from two radios belongs to neither.
+      // The label already holds the title and its explanation, so the wrapper is
+      // only what SelectionGroup asks for (a child with an `id`, see above).
       <div key={id} id={`${id}-option`}>
         <RadioButton
           id={id}
@@ -48,11 +47,7 @@ export default function CollectionModeField({
           label={opt.label}
           checked={value === opt.value}
           onChange={() => onChange(opt.value)}
-          aria-describedby={`${id}-desc`}
         />
-        <p id={`${id}-desc`} className="mode-option-desc">
-          {opt.description}
-        </p>
       </div>
     );
   });

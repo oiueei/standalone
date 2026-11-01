@@ -187,7 +187,7 @@ describe('Create — the members-can-set-a-price switch', () => {
     const { container } = await renderCreate(kind);
     expect(sw(container)).toBeNull();
 
-    await press(screen.getByRole('radio', { name: 'Community' }));
+    await press(screen.getByRole('radio', { name: /^Community:/ }));
     await settle(apiFetch);
 
     expect(sw(container)).toHaveAttribute('aria-pressed', 'true');
@@ -217,7 +217,7 @@ describe('Create — what is sent, for each kind and mode', () => {
     const { container } = await renderCreate(kind);
     name(container);
     if (mode === 'COMMUNITY') {
-      fireEvent.click(screen.getByRole('radio', { name: 'Community' }));
+      fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
       if (!price) fireEvent.click(container.querySelector('#create-collection-members-price'));
     }
 
@@ -387,7 +387,7 @@ describe('Edit — the members-can-set-a-price switch shows what was saved', () 
     });
     await screen.findByDisplayValue('Loaded');
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Proprietary' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Proprietary:/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(patchBody()).toBeTruthy());

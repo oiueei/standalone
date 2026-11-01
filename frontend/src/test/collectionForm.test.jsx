@@ -130,17 +130,33 @@ describe('CreateCollectionPage', () => {
     expect(screen.queryByRole('button', { name: /Album mode/ })).toBeNull();
   });
 
-  // P1-5: the mode picker is a radio group with an inline description per option,
-  // not a Select hidden behind an info icon.
-  test('mode radios render with inline descriptions', async () => {
-    await renderCreate();
+  // The mode picker is a radio group whose labels carry the title and its explanation in
+  // one line, so the accessible name of each radio says both; no paragraph of its own.
+  test('mode radios carry title and explanation in their name', async () => {
+    const { container } = await renderCreate();
 
-    expect(screen.getByRole('radio', { name: 'Proprietary' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Community' })).toBeInTheDocument();
     expect(
-      screen.getByText('Only the team running the group adds things — you, to start with.')
+      screen.getByRole('radio', {
+        name: 'Proprietary: Only the team running the group adds things — you, to start with.',
+      })
     ).toBeInTheDocument();
-    expect(screen.getByText('Every member can add their own things too.')).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', {
+        name: 'Community: Every member can add their own things too.',
+      })
+    ).toBeInTheDocument();
+    expect(container.querySelector('[aria-describedby$="-desc"]')).toBeNull();
+  });
+
+  test('the visibility switch is named by its title and its explanation together', async () => {
+    const { container } = await renderCreate();
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Public collection: Anyone with the link can view it and join to take part. Turn off to keep it invite-only.',
+      })
+    ).toBeInTheDocument();
+    expect(container.querySelector('#create-collection-visibility-help')).toBeNull();
   });
 
   // The mode radio does not decide who can read the group — only the switch does.
@@ -155,20 +171,20 @@ describe('CreateCollectionPage', () => {
 
     expect(visibility()).toHaveAttribute('aria-pressed', 'false');
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Community' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
     expect(visibility()).toHaveAttribute('aria-pressed', 'false');
 
     fireEvent.click(visibility());
     expect(visibility()).toHaveAttribute('aria-pressed', 'true');
 
     // What the curator chose survives a change of mode (it used to go private)…
-    fireEvent.click(screen.getByRole('radio', { name: 'Proprietary' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Proprietary:/ }));
     expect(visibility()).toHaveAttribute('aria-pressed', 'true');
 
     // …and a switch they turned off stays off when Community is chosen again (it
     // used to come back on).
     fireEvent.click(visibility());
-    fireEvent.click(screen.getByRole('radio', { name: 'Community' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
     expect(visibility()).toHaveAttribute('aria-pressed', 'false');
   });
 
@@ -177,7 +193,7 @@ describe('CreateCollectionPage', () => {
     const { container } = await renderCreate();
     await fillTheRequiredFields(container, 'An open community');
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Community' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
     fireEvent.click(container.querySelector('#create-collection-visibility'));
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
@@ -189,7 +205,7 @@ describe('CreateCollectionPage', () => {
     const { container } = await renderCreate();
     await fillTheRequiredFields(container, 'A quiet community');
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Community' }));
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => expect(createBody()?.visibility).toBe('PRIVATE'));

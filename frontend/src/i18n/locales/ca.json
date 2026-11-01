@@ -77,10 +77,9 @@
     "error": "Alguna cosa ha anat malament. Torna-ho a provar."
   },
   "visibility": {
-    "publicLabel": "Col·lecció pública",
-    "publicHelper": "Qualsevol amb l'enllaç pot veure-la i unir-s'hi per participar. Desactiva-ho per mantenir-la només amb invitació.",
     "publicTag": "Pública",
-    "privateTag": "Privada"
+    "privateTag": "Privada",
+    "publicFull": "Col·lecció pública: Qualsevol amb l'enllaç pot veure-la i unir-s'hi per participar. Desactiva-ho per mantenir-la només amb invitació."
   },
   "accountMenu": {
     "label": "El teu compte"
@@ -550,8 +549,6 @@
     "statusHelper": "Les col·leccions inactives no són visibles per als membres.",
     "networkFixed": "Aquesta biblioteca és una xarxa: diverses entitats, cadascuna presta les seves coses des del seu punt de recollida. Una biblioteca neix xarxa o no, i no es pot canviar.",
     "modeLabel": "Mode",
-    "modeProprietary": "Pròpia",
-    "modeCommunity": "Comunitària",
     "digestLabel": "Correus resum",
     "digestNone": "Cap",
     "digestWeekly": "Setmanal (dilluns)",
@@ -568,12 +565,6 @@
     "titleLabel": "Títol",
     "descriptionLabel": "Descripció",
     "modeLabel": "Mode",
-    "modeProprietary": "Pròpia",
-    "modeCommunity": "Comunitària",
-    "modeProprietaryDesc": "Només qui dinamitza el grup hi afegeix coses; d'entrada, tu.",
-    "modeCommunityDesc": "Tots els membres també poden afegir les seves pròpies coses.",
-    "modeNetwork": "Xarxa",
-    "modeNetworkDesc": "Diverses entitats comparteixen una biblioteca: cadascuna posa les seves coses i les presta des del seu propi punt de recollida. Tu portes la xarxa; elles, el seu.",
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters per idioma.",
     "errorCreating": "Error en crear la col·lecció.",
@@ -584,7 +575,10 @@
     "tagsLabel": "Etiquetes",
     "tagsPlaceholder": "p. ex. Vintage, Cuina, Exterior",
     "tagsHelper": "Etiquetes opcionals per organitzar les coses d'aquesta col·lecció",
-    "maxDescription": "La descripció és massa llarga: 2000 caràcters per idioma."
+    "maxDescription": "La descripció és massa llarga: 2000 caràcters per idioma.",
+    "modeProprietaryFull": "Pròpia: Només qui dinamitza el grup hi afegeix coses; d'entrada, tu.",
+    "modeCommunityFull": "Comunitària: Tots els membres també poden afegir les seves pròpies coses.",
+    "modeNetworkFull": "Xarxa: Diverses entitats comparteixen una biblioteca: cadascuna posa les seves coses i les presta des del seu propi punt de recollida. Tu portes la xarxa; elles, el seu."
   },
   "myBookings": {
     "pageTitle": "Les meves sol·licituds",
@@ -694,8 +688,7 @@
     "ownerReject": "Ara no",
     "ownerApproved": "Invitació enviada.",
     "ownerDeclined": "Rebutjada. L'hi hem dit al membre, sense dir per què.",
-    "settingLabel": "Els membres poden recomanar persones",
-    "settingHelper": "Ells proposen, tu decideixes: no surt cap invitació sense el teu vistiplau."
+    "settingFull": "Els membres poden recomanar persones (Ells proposen, tu decideixes: no surt cap invitació sense el teu vistiplau.)"
   },
   "removeGuest": {
     "pageTitle": "Treure: {{name}}",
@@ -832,15 +825,12 @@
   "notifications": {
     "pageTitle": "Preferències d'email",
     "intro": "Tria quins emails vols rebre d'OIUEEI. Pots canviar-ho en qualsevol moment.",
-    "magicLabel": "Enllaços d'inici de sessió i invitacions",
-    "magicHelper": "Necessari — sense aquests no pots iniciar sessió ni unir-te a grups.",
-    "activityLabel": "Activitat entre usuaris (recomanat)",
-    "activityHelper": "Sol·licituds, reserves i confirmacions, preguntes i respostes, recordatoris i missatges del propietari d'un grup.",
-    "newsLabel": "Notícies i anuncis (opcional)",
-    "newsHelper": "Un resum de les novetats de cada grup on ets. Pots desactivar el d'un grup concret des de la pàgina de la col·lecció, o des del peu del mateix correu.",
     "saved": "Preferències desades.",
     "errorSaving": "Error en desar.",
-    "invalidLink": "Aquest enllaç no és vàlid o ha caducat. Inicia sessió per canviar les teves preferències."
+    "invalidLink": "Aquest enllaç no és vàlid o ha caducat. Inicia sessió per canviar les teves preferències.",
+    "magicFull": "Enllaços d'inici de sessió i invitacions: Necessari — sense aquests no pots iniciar sessió ni unir-te a grups.",
+    "activityFull": "Activitat entre usuaris (recomanat): Sol·licituds, reserves i confirmacions, preguntes i respostes, recordatoris i missatges del propietari d'un grup.",
+    "newsFull": "Notícies i anuncis (opcional): Un resum de les novetats de cada grup on ets. Pots desactivar el d'un grup concret des de la pàgina de la col·lecció, o des del peu del mateix correu."
   },
   "pause": {
     "sectionHeading": "Pausar",
@@ -1112,7 +1102,6 @@
     "conditionsTitle": "Les teves condicions",
     "conditionsIntro": "El que deixis buit és el que diu la xarxa.",
     "save": "Desar",
-    "saved": "Desat.",
     "errorSaving": "No s'ha pogut desar el punt de recollida.",
     "errorLoading": "No s'ha pogut carregar el punt de recollida.",
     "notANetwork": "Només una xarxa té punts de recollida.",

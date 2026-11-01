@@ -1071,17 +1071,6 @@ body :focus-visible {
   max-width: 100%;
 }
 
-/* The collection-mode group's per-option description (CollectionModeField),
-   indented under its radio so it reads as that option's explanation and not as
-   the next one's label. Was an inline style object in both the Create and the
-   Edit form; the legend's own five went away with HDS SelectionGroup, and so did
-   the per-option margin — the group's grid gap is HDS's job now. */
-.mode-option-desc {
-  margin: 0 0 0 var(--spacing-l);
-  font-size: var(--fontsize-body-s);
-  color: var(--color-black-70);
-}
-
 .summary-grid {
   display: grid;
   gap: var(--spacing-s);
@@ -1164,8 +1153,12 @@ body :focus-visible {
 }
 
 /* Icon-only action button whose label appears on hover/focus (TooltipButton).
-   The bubble deliberately keeps pointer events so WCAG 1.4.13 "hoverable" holds:
-   a pointer drifting up from the button onto the bubble must not dismiss it. */
+   The bubble takes the look of HDS's small Tooltip placed on top (Tooltip-module_*
+   in hds-react 6): coat-of-arms-light fill, an 8px coat-of-arms edge on the side
+   facing the button and an 8px arrow hanging from it. It keeps pointer events so
+   WCAG 1.4.13 "hoverable" holds: the transparent bridge in ::before covers the
+   10px gap to the button, so a pointer drifting up onto the bubble never leaves
+   the wrapper and does not dismiss it. */
 .tooltip-button {
   position: relative;
   display: inline-flex;
@@ -1173,15 +1166,39 @@ body :focus-visible {
 
 .tooltip-button-bubble {
   position: absolute;
-  bottom: calc(100% + 4px);
+  bottom: calc(100% + 10px);
   right: 0;
   z-index: 1000;
-  padding: 4px 8px;
-  border-radius: 2px;
-  background-color: var(--color-black-90);
-  color: var(--color-white);
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(21.875rem, 80vw);
+  padding: var(--spacing-3-xs) var(--spacing-2-xs);
+  border-bottom: 8px solid var(--color-coat-of-arms);
+  background-color: var(--color-coat-of-arms-light);
+  color: var(--color-black-90);
   font-size: var(--fontsize-body-s);
-  max-width: min(280px, 80vw);
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.tooltip-button-bubble::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+
+.tooltip-button-bubble::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + 8px);
+  /* centred on the button: half its width (the 44px minimum target) less the arrow's 8px */
+  right: calc(22px - 8px);
+  border: 8px solid transparent;
+  border-top-color: var(--color-coat-of-arms);
+  border-bottom-width: 0;
 }
 
 /* Rental pickup/return weekday chips (#7) — a compact [L M X J V S D] toggle row
@@ -1827,14 +1844,8 @@ figure[class*='Highlight-module_highlight'] {
   align-items: center;
 }
 
-/* Explanation under an HDS ToggleButton (`ToggleWithHelp`): HDS has no helper text for it. */
-.toggle-help {
-  margin: var(--spacing-3-xs) 0 0;
-  font-size: var(--fontsize-body-s);
-  color: var(--color-black-70);
-}
-/* Disabled+checked toggle: darker grey than HDS default (black-10) */
-.toggle-with-help button[aria-pressed='true'][disabled] {
+/* The always-on sign-in toggle (disabled, checked): darker grey than HDS default (black-10) */
+#notify-magic[aria-pressed='true'][disabled] {
   background-color: var(--color-black-90) !important;
   border-color: var(--color-black-90) !important;
 }
