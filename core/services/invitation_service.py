@@ -244,6 +244,16 @@ def deliver_invitation(collection, email, inviter_name, quota_user_code=None, pr
     if collection.is_owner(invited_user.code) or collection.is_invited(invited_user.code):
         return invited_user, True
 
+    # This is not a resend (a pending invitation blocks the address). The record is per
+    # founder, so joining another of the founder's groups through a link marks it
+    # ``ACCEPTED`` while this group's invitation is still waiting; inviting here again
+    # then finds nobody blocked, and without this the old pair would live on beside
+    # the new one.
+    RSVP.objects.filter(
+        user_code=invited_user,
+        target_code=collection.code,
+        action__in=[RSVP.Action.COLLECTION_INVITE, RSVP.Action.COLLECTION_REJECT],
+    ).delete()
     accept_rsvp = RSVP.objects.create(
         user_code=invited_user,
         user_email=email,
@@ -263,6 +273,8 @@ def deliver_invitation(collection, email, inviter_name, quota_user_code=None, pr
         target_code=collection.code,
     )
 
+    record_invitation(collection, email, inviter_code)
+
     send_collection_invite_email(
         inviter_name,
         collection.headline,
@@ -272,7 +284,6 @@ def deliver_invitation(collection, email, inviter_name, quota_user_code=None, pr
         collection=collection,
         proposer_name=proposer_name,
     )
-    record_invitation(collection, email, inviter_code)
     if quota_user_code:
         _consume_invite_quota(quota_user_code, 1)
     return invited_user, False

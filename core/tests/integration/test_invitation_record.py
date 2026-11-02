@@ -8,6 +8,7 @@ nothing behind (no account, no link, no email, no quota spent).
 
 import importlib
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 from django.apps import apps
@@ -20,7 +21,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import RSVP, Collection, InvitationProposal, InvitationRecord, User
 from core.models.invitation_record import address_hash
-from core.services.invitation_service import _invite_quota_left
+from core.services.invitation_service import _invite_quota_left, deliver_invitation
 
 INVITE_URL = "/api/v1/collections/{code}/invite/"
 BULK_URL = "/api/v1/collections/{code}/invite/bulk/"
@@ -226,6 +227,41 @@ class TestWhoIsNot:
 
         assert response.status_code == 200
         assert record_of(group).state == InvitationRecord.State.ACCEPTED
+
+
+class TestAnInvitationWaitingWhileTheFounderInvitesElsewhere:
+    def test_joining_another_group_then_being_invited_again_leaves_one_live_pair(
+        self, group, other_group
+    ):
+        """Pending in A, the person joins B (same founder) by link, which marks the
+        founder's record accepted; inviting them to A again must not stack a second pair."""
+        other_group.visibility = Collection.Visibility.PUBLIC
+        other_group.save()
+        invite(group)
+        client_for(User.objects.get(email=GUEST)).post(
+            f"/api/v1/collections/{other_group.code}/join/"
+        )
+        assert record_of(group).state == InvitationRecord.State.ACCEPTED
+
+        assert invite(group).status_code == 200
+
+        for action in (RSVP.Action.COLLECTION_INVITE, RSVP.Action.COLLECTION_REJECT):
+            assert (
+                RSVP.objects.filter(user_email=GUEST, target_code=group.code, action=action).count()
+                == 1
+            )
+        assert record_of(group).state == InvitationRecord.State.SENT
+
+    def test_the_record_is_written_before_the_email_leaves(self, group):
+        seen = []
+
+        def spy(*args, **kwargs):
+            seen.append(InvitationRecord.objects.filter(address_hash=address_hash(GUEST)).count())
+
+        with patch("core.services.invitation_service.send_collection_invite_email", spy):
+            deliver_invitation(group, GUEST, "Lala")
+
+        assert seen == [1]
 
 
 class TestBulk:
