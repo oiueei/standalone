@@ -626,7 +626,7 @@ class TestInvitationRecords:
     period is a constant, so it is not switched off by the settings that switch others off."""
 
     def _record(self, user, months, code):
-        other = User.objects.create(code=f"{code}U", email=f"{code.lower()}@your-domain.test")
+        other = User.objects.create(email=f"{code.lower()}@your-domain.test")
         return _aged(
             InvitationRecord,
             "sent_at",
