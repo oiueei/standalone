@@ -21,7 +21,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import RSVP, Collection, InvitationProposal, Thing, User
+from core.models import RSVP, Collection, InvitationProposal, InvitationRecord, Thing, User
 from core.models.booking import BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
@@ -37,15 +37,18 @@ from core.services.email_service import (
     send_magic_link_email,
 )
 from core.services.invitation_service import (
+    _ALREADY_ASKED_MESSAGE,
+    InvitationAlreadyAsked,
     ProposalAlreadyDecided,
     approve_proposal,
     proposal_approval_blocked,
     reject_proposal,
+    resolve_invitation,
 )
 from core.services.join_quota import consume_join_quota, join_quota_exhausted
 from core.services.team import managers_ready_collections
 from core.utils import doc_asset_url, get_client_ip, redact_email, safe_next_path
-from core.views._helpers import body_dict, refusal_body
+from core.views._helpers import approval_refusal_response, body_dict, refusal_body
 
 security_logger = logging.getLogger("security")
 
@@ -184,6 +187,10 @@ def _join_collection(collection, user, source=""):
     collection.invites.add(user)
     if already_member:
         return
+
+    # Whatever door they came through, an invitation sent to this address is
+    # answered now (a no-op when there never was one).
+    resolve_invitation(collection, user.email, InvitationRecord.State.ACCEPTED)
 
     # The member counter only moves on a genuine join, and this is the single
     # funnel every join path goes through (invite acceptance, share token,
@@ -708,6 +715,7 @@ class VerifyLinkView(APIView):
         if rsvp.target_code:
             try:
                 collection = Collection.objects.get(code=rsvp.target_code)
+                resolve_invitation(collection, user.email, InvitationRecord.State.DECLINED)
                 invitee_name = user.display_name
                 send_invite_rejected_email(
                     invitee_name,
@@ -897,19 +905,24 @@ class VerifyLinkView(APIView):
             blocked = proposal_approval_blocked(proposal)
             if blocked:
                 reason, code = blocked
-                # ``retryable`` is the difference between this refusal and every
-                # other one this view can give: the RSVP above is still alive, so
-                # the owner's link works tomorrow. Without it the SPA has no way
-                # to tell the two apart — a 400 here and a 400 for a suggestion
-                # that is genuinely gone look identical — and it showed both as
-                # "invalid or expired link", telling the owner to stop clicking
-                # a link that was still good.
-                return Response({**refusal_body(reason), "retryable": True}, status=code)
+                # ``retryable`` (added by ``approval_refusal_response``) is the
+                # difference between a refusal the owner may come back to and
+                # every other one this view can give: a 400 here and a 400 for a
+                # suggestion that is genuinely gone look identical, and the SPA
+                # showed both as "invalid or expired link". An address already
+                # invited is the exception: the link is not consumed but waiting
+                # changes nothing, so it carries no ``retryable``.
+                return approval_refusal_response(reason, code)
             decide, message = approve_proposal, "Invitation sent"
         else:
             decide, message = reject_proposal, "Suggestion declined"
         try:
             decide(proposal)
+        except InvitationAlreadyAsked:
+            # Another invitation got in between the check above and the send; the
+            # reservation of the decision went with the transaction, and the link
+            # is left alive like the other refusals of an approval.
+            return approval_refusal_response(_ALREADY_ASKED_MESSAGE, 400)
         except ProposalAlreadyDecided:
             # Another curator settled it between the check above and now.
             rsvp.delete()

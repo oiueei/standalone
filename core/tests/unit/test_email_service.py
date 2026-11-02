@@ -261,7 +261,7 @@ def test_the_invitation_source_note_is_translated_too():
             "http://localhost:3000/rsvp/reject",
         )
 
-    assert "no tornes a rebre res nostre" in mail.outbox[0].body
+    assert "no et podrà tornar a convidar per correu durant un any" in mail.outbox[0].body
 
 
 # The OIUEEI mark as the footer draws it (60x17) — the small size, wherever a

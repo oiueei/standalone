@@ -12,8 +12,9 @@ from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import Collection, User
+from core.models import RSVP, Collection, InAppNotification, User
 from core.services.email_service import send_broadcast_email
+from core.services.invitation_service import deliver_invitation
 
 
 @pytest.fixture
@@ -76,6 +77,30 @@ class TestCollectionBroadcast:
         email = mail.outbox[0]
         assert email.subject == "Hey! Broadcast Club"
         assert email.reply_to == ["lala@your-domain.test"]
+
+    def test_broadcast_skips_an_invitation_nobody_has_accepted(self, broadcast_setup):
+        """A pending invitation is not membership: the group's message reaches
+        the confirmed members and neither mails nor notifies the invited address."""
+        collection = broadcast_setup["collection"]
+        deliver_invitation(collection, "pending@your-domain.test", "Owner")
+        pending = User.objects.get(email="pending@your-domain.test")
+        assert RSVP.objects.filter(user_code=pending, target_code=collection.code).exists()
+        mail.outbox.clear()
+
+        resp = broadcast_setup["owner_client"].post(
+            URL.format(collection.code), {"message": "Bring snacks please"}, format="json"
+        )
+
+        assert resp.status_code == 200
+        assert resp.data["recipients"] == 2
+        recipients = {addr for m in mail.outbox for addr in m.to}
+        assert recipients == {"lala1@your-domain.test", "lele@your-domain.test"}
+        assert not InAppNotification.objects.filter(
+            user=pending, type=InAppNotification.Type.BROADCAST
+        ).exists()
+        assert InAppNotification.objects.filter(
+            user=broadcast_setup["invitee1"], type=InAppNotification.Type.BROADCAST
+        ).exists()
 
     def test_invitee_cannot_broadcast(self, broadcast_setup):
         """Only the owner can send broadcasts — and a denial sends nothing."""

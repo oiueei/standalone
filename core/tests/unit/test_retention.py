@@ -28,10 +28,12 @@ from core.models import (
     DailyActivity,
     Event,
     InAppNotification,
+    InvitationRecord,
     Report,
     Thing,
     User,
 )
+from core.models.invitation_record import INVITE_RECORD_MONTHS, address_hash
 
 pytestmark = pytest.mark.django_db
 
@@ -617,3 +619,57 @@ class TestTheWarningsAreSpreadOverRuns:
 
         assert mail.outbox == []
         assert "Inactive accounts warned (>24m): 5" in output
+
+
+class TestInvitationRecords:
+    """A record of an invitation is kept for the year the invitation email promises: the
+    period is a constant, so it is not switched off by the settings that switch others off."""
+
+    def _record(self, user, months, code):
+        other = User.objects.create(email=f"{code.lower()}@your-domain.test")
+        return _aged(
+            InvitationRecord,
+            "sent_at",
+            months,
+            code=code,
+            founder=user,
+            inviter=user,
+            address_hash=address_hash(other.email),
+        )
+
+    def test_a_record_older_than_a_year_goes_and_a_newer_one_stays(self, user):
+        old = self._record(user, INVITE_RECORD_MONTHS, "INVOLD")
+        recent = InvitationRecord.objects.create(
+            code="INVNEW",
+            founder=user,
+            inviter=user,
+            address_hash=address_hash("n@your-domain.test"),
+        )
+
+        _run(commit=True)
+
+        assert not InvitationRecord.objects.filter(pk=old.pk).exists()
+        assert InvitationRecord.objects.filter(pk=recent.pk).exists()
+
+    def test_a_record_just_inside_the_year_stays(self, user):
+        inside = InvitationRecord.objects.create(
+            code="INVIN1",
+            founder=user,
+            inviter=user,
+            address_hash=address_hash("i@your-domain.test"),
+        )
+        InvitationRecord.objects.filter(pk=inside.pk).update(
+            sent_at=months_ago(INVITE_RECORD_MONTHS) + timedelta(days=1)
+        )
+
+        _run(commit=True)
+
+        assert InvitationRecord.objects.filter(pk=inside.pk).exists()
+
+    def test_a_dry_run_counts_it_and_deletes_nothing(self, user):
+        old = self._record(user, INVITE_RECORD_MONTHS, "INVDRY")
+
+        output = _run()
+
+        assert "Invitation records deleted" in output
+        assert InvitationRecord.objects.filter(pk=old.pk).exists()

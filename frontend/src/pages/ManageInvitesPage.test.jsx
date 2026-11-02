@@ -155,15 +155,41 @@ describe('ManageInvitesPage (the guest list)', () => {
     expect(await screen.findByText('User is already a member')).toBeInTheDocument();
   });
 
-  test('resend fires the invite POST for that pending guest', async () => {
+  test('a pending guest can be withdrawn but not sent the invitation again', async () => {
     mockRoutes();
     renderPage();
+    await screen.findByText(/lili2@your-domain.test/);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Resend invitation to this guest' }));
+    const row = screen.getByText(/lili2@your-domain.test/).closest('tr');
+    expect(
+      within(row).getByRole('button', { name: 'Remove from this collection' })
+    ).toBeInTheDocument();
+    expect(within(row).getAllByRole('button')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: /resend/i })).not.toBeInTheDocument();
+    expect(globalThis.fetch.mock.calls.filter(([, o]) => o?.method === 'POST')).toEqual([]);
+  });
 
-    await screen.findByText('Invitation resent.');
-    const [, options] = globalThis.fetch.mock.calls.find(([u]) => u.endsWith('/invite/'));
-    expect(JSON.parse(options.body)).toEqual({ email: 'lili2@your-domain.test' });
+  test('inviting someone who already had an invitation says why, and how else they can join', async () => {
+    mockRoutes({
+      invite: {
+        status: 400,
+        body: {
+          error: 'This person has already been invited. They can join with the share link.',
+          code: 'invite_already_asked',
+        },
+      },
+    });
+    renderPage();
+    await screen.findByText(/Ana/);
+
+    fireEvent.change(screen.getByLabelText('Guest email'), {
+      target: { value: 'lili2@your-domain.test' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
+
+    expect(
+      await screen.findByText(/already had an invitation and can't get another by email/)
+    ).toBeInTheDocument();
   });
 
   // ── Members' recommendations ──────────────────────────────────────────────

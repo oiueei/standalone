@@ -8,13 +8,17 @@ quota — which is the point. Two code paths would drift, and the one used less
 often is the one that would rot.
 """
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models import Count, Q
 from django.utils import timezone
 
-from core.models import RSVP, InvitationProposal, User
+from core.models import RSVP, InvitationProposal, InvitationRecord, User
 from core.models.event import Event
+from core.models.invitation_record import address_hash
 from core.models.notification import InAppNotification
 from core.services.email_service import (
     send_collection_invite_email,
@@ -31,6 +35,101 @@ _INVITE_QUOTA_TTL = 60 * 60 * 24  # ~24h; the date is in the key, so it rolls ov
 _INVITE_QUOTA_MESSAGE = Refusal(
     "Daily invitation limit reached. Try again tomorrow.", "invite_quota_exhausted"
 )
+
+# ── One invitation per person ───────────────────────────────────────────────
+_ALREADY_ASKED_MESSAGE = Refusal(
+    "This person has already been invited. They can join with the share link.",
+    "invite_already_asked",
+)
+
+
+class InvitationAlreadyAsked(Exception):
+    """The address was already invited by email; nothing was created or sent."""
+
+
+def invitation_blocked(collection, email, inviter_code):
+    """Whether ``email`` may no longer be invited by email to ``collection``.
+
+    An address is blocked once it has been invited (``SENT``) and has not answered,
+    or has said no (``DECLINED``), by this collection's founder or by whoever is
+    inviting now. Not answering counts from the first send, so an invitation
+    cannot be sent twice. ``ACCEPTED`` blocks nothing: someone who joined one group
+    can be invited to another of the same founder.
+
+    Only the outgoing email is stopped. Joining by the share link or a public
+    collection never asks this.
+    """
+    return (
+        InvitationRecord.objects.filter(
+            address_hash=address_hash(email),
+            state__in=[InvitationRecord.State.SENT, InvitationRecord.State.DECLINED],
+        )
+        .filter(Q(founder_id=collection.owner_id) | Q(inviter_id=inviter_code))
+        .exists()
+    )
+
+
+def record_invitation(collection, email, inviter_code):
+    """Write that ``email`` was invited by ``collection``'s founder, on ``inviter_code``'s quota.
+
+    An address that had accepted an earlier invitation goes back to ``SENT``.
+    """
+    InvitationRecord.objects.update_or_create(
+        founder_id=collection.owner_id,
+        address_hash=address_hash(email),
+        defaults={
+            "inviter_id": inviter_code,
+            "state": InvitationRecord.State.SENT,
+            "sent_at": timezone.now(),
+            "resolved_at": None,
+        },
+    )
+
+
+def invitation_acceptance(days=30, settle_days=7):
+    """How the invitations each account sent were answered, for a deployment's report.
+
+    One row per ``inviter`` over the records sent between ``days`` and ``settle_days``
+    ago, both ends included: ``{"inviter": code, "sent", "accepted", "declined",
+    "unanswered"}``, most sent first. Anything sent in the last ``settle_days`` is left
+    out, or somebody who has just sent a batch would look like an account whose
+    invitations nobody accepts.
+
+    It only measures: nobody is stopped or blocked by what it says.
+    """
+    now = timezone.now()
+    State = InvitationRecord.State
+    rows = (
+        InvitationRecord.objects.filter(
+            sent_at__gte=now - timedelta(days=days),
+            sent_at__lte=now - timedelta(days=settle_days),
+        )
+        .values("inviter_id")
+        .annotate(
+            sent=Count("pk"),
+            accepted=Count("pk", filter=Q(state=State.ACCEPTED)),
+            declined=Count("pk", filter=Q(state=State.DECLINED)),
+            unanswered=Count("pk", filter=Q(state=State.SENT)),
+        )
+        .order_by("-sent", "inviter_id")
+    )
+    return [
+        {
+            "inviter": row["inviter_id"],
+            "sent": row["sent"],
+            "accepted": row["accepted"],
+            "declined": row["declined"],
+            "unanswered": row["unanswered"],
+        }
+        for row in rows
+    ]
+
+
+def resolve_invitation(collection, email, state):
+    """The invited person answered: mark the founder's record ``ACCEPTED`` or ``DECLINED``."""
+    InvitationRecord.objects.filter(
+        founder_id=collection.owner_id, address_hash=address_hash(email)
+    ).update(state=state, resolved_at=timezone.now())
 
 
 def _invite_quota_cap():
@@ -88,6 +187,12 @@ def proposal_approval_blocked(proposal):
     collection = proposal.collection
     if _invite_quota_left(collection.owner_id) == 0:
         return _INVITE_QUOTA_MESSAGE, 429
+    # The invitation is the owner's (their quota, their group), so it is the
+    # owner's record that decides. Somebody already inside is no invitation.
+    if not collection.invites.filter(email=proposal.email).exists() and invitation_blocked(
+        collection, proposal.email, collection.owner_id
+    ):
+        return _ALREADY_ASKED_MESSAGE, 400
     # Someone already in the group costs the counter nothing, so a full
     # collection must not refuse an approval that would add nobody.
     if (
@@ -112,9 +217,26 @@ def deliver_invitation(collection, email, inviter_name, quota_user_code=None, pr
     email leaves the owner's group under the deployment's sending domain, and the
     reputation being protected is theirs.
 
+    The invitation is recorded against ``quota_user_code`` (the group's owner when
+    none is given). An address that was already invited by this founder or by this
+    inviter raises ``InvitationAlreadyAsked`` before anything is created, so a
+    blocked address leaves no ``User``, no RSVP, no email and no quota spent.
+
     Returns ``(invited_user, already_invited)``.
     """
     email = email.lower()
+    inviter_code = quota_user_code or collection.owner_id
+    # Somebody inside is not an invitation: they get the usual "already invited"
+    # answer, whatever their record says.
+    inside = User.objects.filter(email=email).first()
+    if inside is not None and (
+        collection.is_owner(inside.code) or collection.is_invited(inside.code)
+    ):
+        return inside, True
+    if invitation_blocked(collection, email, inviter_code):
+        # No argument: an exception's message reaches logs and error reports, and
+        # the address must not.
+        raise InvitationAlreadyAsked
     invited_user, created = User.objects.get_or_create(email=email, defaults={"email": email})
     if created:
         Event.log(Event.Kind.USER_JOINED, actor=invited_user)
@@ -124,7 +246,11 @@ def deliver_invitation(collection, email, inviter_name, quota_user_code=None, pr
     if collection.is_owner(invited_user.code) or collection.is_invited(invited_user.code):
         return invited_user, True
 
-    # Resend-safe: a fresh pair replaces any pending one for this user+collection.
+    # This is not a resend (a pending invitation blocks the address). The record is per
+    # founder, so joining another of the founder's groups through a link marks it
+    # ``ACCEPTED`` while this group's invitation is still waiting; inviting here again
+    # then finds nobody blocked, and without this the old pair would live on beside
+    # the new one.
     RSVP.objects.filter(
         user_code=invited_user,
         target_code=collection.code,
@@ -148,6 +274,8 @@ def deliver_invitation(collection, email, inviter_name, quota_user_code=None, pr
         action=RSVP.Action.COLLECTION_REJECT,
         target_code=collection.code,
     )
+
+    record_invitation(collection, email, inviter_code)
 
     send_collection_invite_email(
         inviter_name,

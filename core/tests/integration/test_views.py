@@ -634,17 +634,19 @@ class TestCollectionViews:
         assert not any("revoked" in message.subject for message in mail.outbox)
 
     def test_withdrawing_a_pending_invitation_leaves_the_same_persons_other_invitations(
-        self, authenticated_client, user, collection
+        self, authenticated_client, user, user2, collection
     ):
         from core.models import RSVP, Collection
+        from core.services.invitation_service import deliver_invitation
 
         invitee, _, _ = self._invite_by_email(
             authenticated_client, collection, "pending3@your-domain.test"
         )
-        other = Collection.objects.create(code="OTHER1", owner=user, headline="Other")
-        _, other_accept, other_decline = self._invite_by_email(
-            authenticated_client, other, invitee.email
-        )
+        # Another founder's group, invited by somebody else: not blocked by this one.
+        other = Collection.objects.create(code="OTHER1", owner=user2, headline="Other")
+        deliver_invitation(other, invitee.email, "Lele", quota_user_code=user2.code)
+        pair = RSVP.objects.filter(user_code=invitee, target_code=other.code)
+        assert pair.count() == 2
 
         authenticated_client.delete(
             f"/api/v1/collections/{collection.code}/invite/",
@@ -652,7 +654,7 @@ class TestCollectionViews:
             format="json",
         )
 
-        assert RSVP.objects.filter(pk__in=[other_accept.pk, other_decline.pk]).count() == 2
+        assert pair.count() == 2
 
     def test_leave_collection(self, user, user2, collection):
         """An invited member can remove themselves from a collection."""

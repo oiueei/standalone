@@ -110,17 +110,18 @@ class TestDeliveringAnInvitation:
         assert "Lala" in _text(sent)
         assert sent.subject == T("invite_subject", lang="es").format(collection="The street")
 
-    def test_a_resend_replaces_only_that_collections_pending_pair(self, group, owner):
+    def test_a_pending_invitation_blocks_the_same_founders_other_groups_and_keeps_its_pair(
+        self, group, owner
+    ):
         other = Collection.objects.create(code="DGRP02", owner=owner, headline="Elsewhere")
         user, _ = svc.deliver_invitation(other, "lili@your-domain.test", "Lala")
-        elsewhere = set(RSVP.objects.filter(user_code=user).values_list("pk", flat=True))
+        pair = set(RSVP.objects.filter(user_code=user).values_list("pk", flat=True))
 
-        svc.deliver_invitation(group, "lili@your-domain.test", "Lala")
-        svc.deliver_invitation(group, "lili@your-domain.test", "Lala")
+        with pytest.raises(svc.InvitationAlreadyAsked):
+            svc.deliver_invitation(group, "lili@your-domain.test", "Lala")
 
-        assert elsewhere <= set(RSVP.objects.filter(user_code=user).values_list("pk", flat=True))
-        here = RSVP.objects.filter(user_code=user, target_code=group.code)
-        assert here.count() == 2
+        assert set(RSVP.objects.filter(user_code=user).values_list("pk", flat=True)) == pair
+        assert not RSVP.objects.filter(user_code=user, target_code=group.code).exists()
 
 
 class TestCreatingAProposal:

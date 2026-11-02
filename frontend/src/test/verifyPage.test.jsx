@@ -222,6 +222,68 @@ describe('a refusal the link survives', () => {
 });
 
 /**
+ * An approval turned down because the suggested person was already invited by email.
+ * Unlike the daily cap or a full group it is not "not now": the block lasts a year, the
+ * suggestion stays pending for a curator to decline, and the page must neither say the
+ * link "still works, try again later" nor talk about asking whoever invited you.
+ */
+describe('an approval refused because the person was already invited', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+  afterEach(async () => {
+    const { default: i18n } = await import('../i18n');
+    await switchLanguage(i18n, 'en');
+    localStorage.removeItem('i18nextLng');
+  });
+
+  function mockRefusal() {
+    globalThis.fetch = vi.fn((url, opts = {}) =>
+      opts.method === 'POST'
+        ? Promise.resolve(
+            mockResponse(
+              {
+                error: 'This person has already been invited. They can join with the share link.',
+                code: 'invite_already_asked',
+              },
+              false,
+              400
+            )
+          )
+        : Promise.resolve(mockResponse({ requires_confirmation: true, action: 'PROPOSAL_APPROVE' }))
+    );
+  }
+
+  test.each([
+    [
+      'en',
+      "This person has already had an invitation and can't get another by email. They can join with the share link.",
+    ],
+    [
+      'es',
+      'Esta persona ya recibió una invitación y no se le puede enviar otra por correo. Puede unirse con el enlace para compartir.',
+    ],
+    [
+      'ca',
+      "Aquesta persona ja ha rebut una invitació i no se n'hi pot enviar cap altra per correu. S'hi pot unir amb l'enllaç per compartir.",
+    ],
+  ])('says it in %s, with no help line under it', async (language, sentence) => {
+    const { default: i18n } = await import('../i18n');
+    await switchLanguage(i18n, language);
+    mockRefusal();
+
+    renderVerify();
+
+    expect(await screen.findByText(sentence)).toBeInTheDocument();
+    expect(screen.queryByText(/This person has already been invited/)).toBeNull();
+    for (const help of [i18n.t('verify.refusalHelp'), i18n.t('verify.expiredHelp')]) {
+      expect(screen.queryByText(help)).toBeNull();
+    }
+    expect(screen.queryByText(/this link still works/i)).toBeNull();
+  });
+});
+
+/**
  * The account's saved language is applied on sign-in, the way its theme and koro
  * already are. The one effect that applies it (`App.jsx`) runs
  * once, when the app mounts — and opening a magic link mounts the app *before*

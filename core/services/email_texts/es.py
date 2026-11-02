@@ -70,7 +70,7 @@ TEXTS = {
     "invite_source_note": (
         "Si has llegado aquí por una invitación, tu correo nos lo dio quien te "
         "invitó, y solo se usa para enviarte esta invitación. Si la rechazas o "
-        "no haces nada, no vuelves a recibir nada nuestro."
+        "no haces nada, esa persona no podrá volver a invitarte por correo durante un año."
     ),
     # Collection access revoked
     "revoke_subject": "Tu acceso ha sido revocado",

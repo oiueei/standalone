@@ -75,7 +75,8 @@ TEXTS = {
     "invite_source_note": (
         "Si has arribat aquí per una invitació, el teu correu ens el va donar qui "
         "et va convidar, i només es fa servir per enviar-te aquesta invitació. Si "
-        "la rebutges o no fas res, no tornes a rebre res nostre."
+        "la rebutges o no fas res, aquesta persona no et podrà tornar a convidar per correu "
+        "durant un any."
     ),
     # Collection access revoked
     "revoke_subject": "S'ha revocat el teu accés",

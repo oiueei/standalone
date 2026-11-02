@@ -714,6 +714,32 @@ nothing about — so **the member proposes and the owner decides**.
 
 ---
 
+## InvitationRecord
+
+That an address was invited by email to a founder's group, and what became of it. It makes the invitation email's promise true — whoever invited you cannot do it again by email for a year, whether you declined or did nothing — and it is what `invitation_acceptance()` measures.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | CharField(6) | Auto | Primary key |
+| `founder` | ForeignKey(User) | **Yes** | The owner of the collection the invitation was for. CASCADE, reverse `invitation_records_as_founder` |
+| `inviter` | ForeignKey(User) | **Yes** | The account the daily quota was spent on (a co-curator who invited, or the founder — also for an approved recommendation). CASCADE, reverse `invitation_records_as_inviter` |
+| `address_hash` | CharField(64) | **Yes** | `address_hash(email)` in `core/models/invitation_record.py`: `salted_hmac("core.invitation_record", email.lower(), algorithm="sha256")`. **Never the address**: the row outlives the invited person's `User` (the 60-day purge of unanswered guests). Rotating `SECRET_KEY` makes every record forget its address, and with it the blocks; accepted |
+| `state` | CharField(8) | No | `SENT` (default), `ACCEPTED`, `DECLINED` |
+| `sent_at` / `resolved_at` | DateTimeField | Auto / No | When it went out (reset by a new invitation after an `ACCEPTED`), and when it was answered |
+
+`UniqueConstraint(founder, address_hash)`; index on `(inviter, sent_at)`.
+
+### Business Rules
+
+1. **Blocked** when a row with the address's hash is `SENT` or `DECLINED` and its `founder` is the collection's owner **or** its `inviter` is whoever invites now (`invitation_service.invitation_blocked`). Not answering counts from the first send. `ACCEPTED` blocks nothing.
+2. **Written** by `deliver_invitation` and the bulk invite when an invitation goes out (`SENT`, and an `ACCEPTED` row goes back to `SENT`); moved to `ACCEPTED` by `_join_collection` on a genuine join through any door and to `DECLINED` by the decline link.
+3. **Only the outgoing email is blocked.** Joining by the share link or a public collection never reads it.
+4. **Kept `INVITE_RECORD_MONTHS` (12)** from `sent_at`, a constant that `purge_expired_data` enforces. Migration 0170 seeds a `SENT` row for every invitation pending at the time.
+
+---
+
 ## CalendarExportMark (leaving the schema)
 
 The model and its table are gone: migration `0159_forget_calendar_export_marks` took the model out of the state and emptied the table, and `0162_drop_calendar_export_marks` dropped it a release later.
