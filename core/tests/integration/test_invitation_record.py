@@ -369,3 +369,32 @@ class TestTheDataMigration:
         assert record.state == InvitationRecord.State.SENT
         assert record.sent_at == sent
         assert_refused(invite(group))
+
+    def test_a_member_who_joined_by_link_with_the_invitation_still_alive_is_not_recorded(
+        self, group, other_group
+    ):
+        """Joining by link leaves the invitation's RSVP behind; recorded as waiting, that
+        person could not be invited by this founder to another group."""
+        migration = importlib.import_module("core.migrations.0170_invitation_records")
+        member = User.objects.create(email="member@your-domain.test")
+        group.invites.add(member)
+        RSVP.objects.create(
+            user_code=member,
+            user_email=member.email,
+            action=RSVP.Action.COLLECTION_INVITE,
+            target_code=group.code,
+        )
+        waiting = User.objects.create(email=GUEST)
+        RSVP.objects.create(
+            user_code=waiting,
+            user_email=GUEST,
+            action=RSVP.Action.COLLECTION_INVITE,
+            target_code=group.code,
+        )
+
+        migration.record_live_invitations(apps, None)
+
+        assert list(InvitationRecord.objects.values_list("address_hash", flat=True)) == [
+            address_hash(GUEST)
+        ]
+        assert invite(other_group, member.email).status_code == 200

@@ -19,10 +19,14 @@ def record_live_invitations(apps, schema_editor):
     InvitationRecord = apps.get_model("core", "InvitationRecord")
 
     founders = dict(Collection.objects.values_list("code", "owner_id"))
+    # Joining through a link leaves the invitation's RSVP alive, so somebody already in
+    # the group can still have one. They accepted: recording them as waiting would stop
+    # that founder inviting them to another group.
+    members = set(Collection.invites.through.objects.values_list("collection_id", "user_id"))
     records = {}
     for rsvp in RSVP.objects.filter(action="COLLECTION_INVITE").iterator():
         founder = founders.get(rsvp.target_code)
-        if founder is None:
+        if founder is None or (rsvp.target_code, rsvp.user_code_id) in members:
             continue
         key = (founder, address_hash(rsvp.user_email))
         if key not in records or rsvp.created < records[key].sent_at:
