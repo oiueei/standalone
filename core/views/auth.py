@@ -37,6 +37,8 @@ from core.services.email_service import (
     send_magic_link_email,
 )
 from core.services.invitation_service import (
+    _ALREADY_ASKED_MESSAGE,
+    InvitationAlreadyAsked,
     ProposalAlreadyDecided,
     approve_proposal,
     proposal_approval_blocked,
@@ -916,6 +918,11 @@ class VerifyLinkView(APIView):
             decide, message = reject_proposal, "Suggestion declined"
         try:
             decide(proposal)
+        except InvitationAlreadyAsked:
+            # Another invitation got in between the check above and the send; the
+            # reservation of the decision went with the transaction, and the link
+            # is left alive like the other refusals of an approval.
+            return approval_refusal_response(_ALREADY_ASKED_MESSAGE, 400)
         except ProposalAlreadyDecided:
             # Another curator settled it between the check above and now.
             rsvp.delete()

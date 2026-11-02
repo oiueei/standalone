@@ -21,7 +21,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import RSVP, Collection, InvitationProposal, InvitationRecord, User
 from core.models.invitation_record import address_hash
-from core.services.invitation_service import _invite_quota_left, deliver_invitation
+from core.models.notification import InAppNotification
+from core.services.invitation_service import (
+    InvitationAlreadyAsked,
+    _invite_quota_left,
+    deliver_invitation,
+)
 
 INVITE_URL = "/api/v1/collections/{code}/invite/"
 BULK_URL = "/api/v1/collections/{code}/invite/bulk/"
@@ -367,6 +372,44 @@ class TestRecommendations:
         record = record_of(group)
         assert record.inviter == group.owner
         assert record.state == InvitationRecord.State.SENT
+
+
+class TestARaceBetweenTheCheckAndTheSend:
+    @pytest.mark.parametrize("approve", [_approve_in_app, _approve_by_email_link])
+    def test_an_invitation_that_gets_in_between_is_the_same_refusal_not_a_500(self, group, approve):
+        member = User.objects.create(code="MEMB01", email="lele@your-domain.test", name="Lele")
+        group.invites.add(member)
+        client_for(member).post(
+            f"/api/v1/collections/{group.code}/invite/propose/", {"email": GUEST}, format="json"
+        )
+        proposal = InvitationProposal.objects.get(collection=group, email=GUEST)
+        mail.outbox.clear()
+
+        # Free when the approval is checked, taken by the time it is delivered.
+        with patch(
+            "core.services.invitation_service.invitation_blocked", side_effect=[False, True]
+        ):
+            response = approve(group, proposal)
+
+        assert response.status_code == 400
+        assert response.data["code"] == "invite_already_asked"
+        assert "retryable" not in response.data
+        proposal.refresh_from_db()
+        assert proposal.status == InvitationProposal.Status.PENDING
+        assert proposal.resolved is None
+        assert mail.outbox == []
+        assert not InAppNotification.objects.filter(
+            user=member, type=InAppNotification.Type.INVITE_PROPOSAL_APPROVED
+        ).exists()
+
+    def test_the_exception_carries_no_address(self, group):
+        invite(group)
+
+        with pytest.raises(InvitationAlreadyAsked) as raised:
+            deliver_invitation(group, GUEST, "Lala")
+
+        assert GUEST not in repr(raised.value)
+        assert raised.value.args == ()
 
 
 class TestTheDataMigration:

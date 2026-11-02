@@ -234,7 +234,9 @@ def deliver_invitation(collection, email, inviter_name, quota_user_code=None, pr
     ):
         return inside, True
     if invitation_blocked(collection, email, inviter_code):
-        raise InvitationAlreadyAsked(email)
+        # No argument: an exception's message reaches logs and error reports, and
+        # the address must not.
+        raise InvitationAlreadyAsked
     invited_user, created = User.objects.get_or_create(email=email, defaults={"email": email})
     if created:
         Event.log(Event.Kind.USER_JOINED, actor=invited_user)

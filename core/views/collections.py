@@ -1003,6 +1003,10 @@ class CollectionProposalActionView(APIView):
                 approve_proposal(proposal)
             except ProposalAlreadyDecided:
                 return self._not_pending()
+            except InvitationAlreadyAsked:
+                # Another invitation got in between the check above and the send.
+                # The decision's reservation was undone with the transaction.
+                return approval_refusal_response(_ALREADY_ASKED_MESSAGE, 400)
             return Response({"message": "Invitation sent"}, status=status.HTTP_200_OK)
 
         try:
