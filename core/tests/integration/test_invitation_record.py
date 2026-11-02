@@ -292,9 +292,31 @@ class TestRecommendations:
 
         assert response.status_code == 400
         assert response.data["code"] == "invite_already_asked"
+        # Not "come back later": the block lasts a year, so the page must not say so.
+        assert "retryable" not in response.data
         proposal.refresh_from_db()
         assert proposal.status == InvitationProposal.Status.PENDING
         assert mail.outbox == []
+
+    @pytest.mark.parametrize("approve", [_approve_in_app, _approve_by_email_link])
+    def test_a_refused_approval_leaves_the_link_alive_to_be_declined(self, group, approve):
+        member = User.objects.create(code="MEMB01", email="lele@your-domain.test", name="Lele")
+        group.invites.add(member)
+        invite(group)
+        client_for(member).post(
+            f"/api/v1/collections/{group.code}/invite/propose/", {"email": GUEST}, format="json"
+        )
+        proposal = InvitationProposal.objects.get(collection=group, email=GUEST)
+
+        approve(group, proposal)
+
+        assert RSVP.objects.filter(
+            target_code=proposal.code, action=RSVP.Action.PROPOSAL_REJECT
+        ).exists()
+        assert (
+            client_for(group.owner).post(f"/api/v1/proposals/{proposal.code}/reject/").status_code
+            == 200
+        )
 
     def test_an_approved_recommendation_is_recorded_on_the_owners_account(self, group):
         member = User.objects.create(code="MEMB01", email="lele@your-domain.test", name="Lele")

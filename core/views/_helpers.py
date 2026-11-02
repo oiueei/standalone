@@ -42,6 +42,26 @@ def refusal_body(message, *, code=None, key="error", **params):
     return body
 
 
+# A refusal of an approval that is final, however long the owner waits: the suggestion stays
+# pending (a curator closes it by declining) and the link is not consumed, but trying again
+# changes nothing. Everything else that blocks an approval (the daily quota, the member
+# ceiling) is "not now".
+_FINAL_APPROVAL_REFUSALS = {"invite_already_asked"}
+
+
+def approval_refusal_response(reason, http_status):
+    """The answer to an approval that ``proposal_approval_blocked`` turned down.
+
+    The one place that says whether it is worth coming back: ``retryable: true`` for a
+    daily quota or a full group, nothing for an address already invited, which stays
+    blocked for a year. Shared by the in-app approval and the emailed link.
+    """
+    body = refusal_body(reason)
+    if getattr(reason, "code", None) not in _FINAL_APPROVAL_REFUSALS:
+        body["retryable"] = True
+    return Response(body, status=http_status)
+
+
 def viewer_code(request):
     """The requesting user's code, or ``None`` for an anonymous visitor.
 

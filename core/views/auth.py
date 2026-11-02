@@ -46,7 +46,7 @@ from core.services.invitation_service import (
 from core.services.join_quota import consume_join_quota, join_quota_exhausted
 from core.services.team import managers_ready_collections
 from core.utils import doc_asset_url, get_client_ip, redact_email, safe_next_path
-from core.views._helpers import body_dict, refusal_body
+from core.views._helpers import approval_refusal_response, body_dict, refusal_body
 
 security_logger = logging.getLogger("security")
 
@@ -903,14 +903,14 @@ class VerifyLinkView(APIView):
             blocked = proposal_approval_blocked(proposal)
             if blocked:
                 reason, code = blocked
-                # ``retryable`` is the difference between this refusal and every
-                # other one this view can give: the RSVP above is still alive, so
-                # the owner's link works tomorrow. Without it the SPA has no way
-                # to tell the two apart — a 400 here and a 400 for a suggestion
-                # that is genuinely gone look identical — and it showed both as
-                # "invalid or expired link", telling the owner to stop clicking
-                # a link that was still good.
-                return Response({**refusal_body(reason), "retryable": True}, status=code)
+                # ``retryable`` (added by ``approval_refusal_response``) is the
+                # difference between a refusal the owner may come back to and
+                # every other one this view can give: a 400 here and a 400 for a
+                # suggestion that is genuinely gone look identical, and the SPA
+                # showed both as "invalid or expired link". An address already
+                # invited is the exception: the link is not consumed but waiting
+                # changes nothing, so it carries no ``retryable``.
+                return approval_refusal_response(reason, code)
             decide, message = approve_proposal, "Invitation sent"
         else:
             decide, message = reject_proposal, "Suggestion declined"

@@ -83,6 +83,7 @@ from core.services.team import drop_team_notices_of
 from core.utils import get_client_ip, redact_email
 from core.validators import SafeHeadlineField
 from core.views._helpers import (
+    approval_refusal_response,
     body_dict,
     refusal_body,
     require_collection_curator,
@@ -995,8 +996,9 @@ class CollectionProposalActionView(APIView):
                 reason, code = blocked
                 # Same refusal, same shape as the emailed link's (see
                 # ``VerifyLinkView._handle_proposal_action``): the suggestion
-                # stays pending and the owner may answer later.
-                return Response({**refusal_body(reason), "retryable": True}, status=code)
+                # stays pending; whether the owner may answer later is decided
+                # in ``approval_refusal_response``.
+                return approval_refusal_response(reason, code)
             try:
                 approve_proposal(proposal)
             except ProposalAlreadyDecided:

@@ -21,10 +21,12 @@ export default function VerifyPage() {
   // (`retryable`): the link still works, so the error screen owes a different
   // way out than "ask whoever invited you for a new one".
   const [linkAlive, setLinkAlive] = useState(false);
-  // Set when the refusal is the server saying this reader no longer runs the thing
-  // the link decides (`no_longer_manages`): the link is not expired and nobody
-  // invited them, so the invitation-flavoured help line has nothing to say.
-  const [noLongerManages, setNoLongerManages] = useState(false);
+  // Set when the refusal on screen is a reason in its own right and the help line
+  // under it has nothing to add: this reader no longer runs the thing the link
+  // decides (`no_longer_manages`), or the person suggested has already been invited
+  // (`invite_already_asked`). Neither is an expired link, and neither will be
+  // different tomorrow, so neither "ask whoever invited you" nor "try again later" fits.
+  const [reasonOnly, setReasonOnly] = useState(false);
   const [success, setSuccess] = useState('');
   const [title, setTitle] = useState('');
   // ACCOUNT_DELETE preview data — unlike a booking decision, account deletion
@@ -95,8 +97,15 @@ export default function VerifyPage() {
               // A co-curator demoted after the email: the server was right to
               // refuse, and "invalid or expired — ask whoever invited you" would
               // send them looking for an invitation that is not the problem.
-              setNoLongerManages(true);
+              setReasonOnly(true);
               setError(errorKey('verify.noLongerManages'));
+            } else if (done.code === 'invite_already_asked') {
+              // The suggested person was already invited by email. The suggestion
+              // stays pending (a curator closes it by declining it), but this is
+              // not "not now": the block lasts a year, so there is nothing to
+              // come back to. Said in the reader's language, from the code.
+              setReasonOnly(true);
+              setError(errorKey('requestErrors.invite_already_asked'));
             } else if (done.retryable) {
               // "Not now", not "never". An approval the deployment's daily
               // invitation cap or the group's member ceiling refuses leaves the
@@ -253,7 +262,7 @@ export default function VerifyPage() {
         <Notification label={t('common.error')} type="error">
           {translateError(t, error)}
         </Notification>
-        {!noLongerManages && (
+        {!reasonOnly && (
           <p className="section-mt">{t(linkAlive ? 'verify.refusalHelp' : 'verify.expiredHelp')}</p>
         )}
       </PageLayout>
