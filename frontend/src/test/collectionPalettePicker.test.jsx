@@ -68,20 +68,6 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-async function openCreate() {
-  setApi();
-  render(
-    <MemoryRouter initialEntries={['/library/new']}>
-      <Routes>
-        <Route path="/:kind/new" element={<CreateCollectionPage />} />
-      </Routes>
-    </MemoryRouter>
-  );
-  await screen.findByRole('button', { name: 'More options' });
-  await settle(apiFetch);
-  fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-}
-
 async function openEdit() {
   setApi();
   render(
@@ -96,37 +82,26 @@ async function openEdit() {
   fireEvent.click(screen.getByRole('button', { name: 'More options' }));
 }
 
-describe('Create — the palette picker', () => {
-  test('lists the palettes the API lists, and nothing else', async () => {
-    await openCreate();
-
-    const group = await screen.findByRole('group', { name: en.createCollection.theeemeLabel });
-    expect(
-      within(group)
-        .getAllByRole('button')
-        .map((b) => b.getAttribute('aria-label'))
-    ).toEqual(['Bussi', 'Metro']);
-    expect(document.body.textContent).not.toMatch(/braaanding|OIUEEI palette/i);
-  });
-
-  test('none is marked, and it says one is drawn at random if none is picked', async () => {
-    await openCreate();
-
-    const group = await screen.findByRole('group', { name: en.createCollection.theeemeLabel });
-    for (const button of within(group).getAllByRole('button')) {
-      expect(button).toHaveAttribute('aria-pressed', 'false');
-    }
-    expect(screen.getByText(en.createCollection.theeemeRandom)).toBeInTheDocument();
-  });
-
-  test('the basic wave is the marked koro', async () => {
-    await openCreate();
-
-    const group = await screen.findByRole('group', { name: en.createCollection.koroLabel });
-    expect(within(group).getByRole('button', { name: 'Basic' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
+describe('Create — no palette picker', () => {
+  test('the palette and the wave are not asked at creation: the server draws one', async () => {
+    setApi();
+    render(
+      <MemoryRouter initialEntries={['/library/new']}>
+        <Routes>
+          <Route path="/:kind/new" element={<CreateCollectionPage />} />
+        </Routes>
+      </MemoryRouter>
     );
+    await screen.findByRole('button', { name: 'Create library' });
+    await settle(apiFetch);
+
+    expect(
+      screen.queryByRole('group', { name: en.createCollection.theeemeLabel })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('group', { name: en.createCollection.koroLabel })
+    ).not.toBeInTheDocument();
+    expect(apiFetch.mock.calls.some(([url]) => url === '/api/v1/theeemes/')).toBe(false);
   });
 });
 
@@ -148,8 +123,6 @@ describe('Edit — the palette picker', () => {
       'aria-pressed',
       'true'
     );
-    // It is the saved palette, so there is nothing to say about a random draw.
-    expect(screen.queryByText(en.createCollection.theeemeRandom)).not.toBeInTheDocument();
   });
 
   test('picking another moves the mark', async () => {

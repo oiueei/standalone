@@ -95,16 +95,8 @@ const name = (container, value = 'The street') =>
   fireEvent.change(container.querySelector('#create-collection-headline'), {
     target: { value },
   });
-const openMore = async () => {
-  fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-  await waitFor(() =>
-    expect(screen.getByRole('button', { name: 'More options' })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    )
-  );
-};
-const create = () => fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+const create = (kind) =>
+  fireEvent.click(screen.getByRole('button', { name: `Create ${kind.toLowerCase()}` }));
 
 beforeEach(() => {
   dropHdsStyles();
@@ -146,34 +138,27 @@ describe('Create — the page is the kind’s', () => {
 });
 
 describe('Create — which sections each kind shows', () => {
-  const sections = (container) => ({
-    rental: !!container.querySelector('#create-collection-deposit-policy'),
-    reservation: !!container.querySelector('#create-collection-reservation-horizon-days'),
-    closedDates: !!container.querySelector('#create-collection-closed-dates'),
-    requestInfo: !!container.querySelector('#create-collection-request-info'),
-    // What every kind has.
-    tags: !!container.querySelector('#create-collection-thumbnail'),
-    emailNote: !!container.querySelector('#create-collection-email-note'),
-    homePage: !!container.querySelector('#create-collection-home-page'),
-    digest: !!container.querySelector('#create-collection-digest'),
-    welcomeDoc: !!container.querySelector('#create-collection-welcome-doc'),
-  });
+  // The short form is the same for every kind: what a kind has of its own (rental rules,
+  // reservation rules, notes) is on the settings pages, not here.
+  const SETTINGS_FIELDS = [
+    'deposit-policy',
+    'reservation-horizon-days',
+    'closed-dates',
+    'request-info',
+    'thumbnail',
+    'email-note',
+    'home-page',
+    'digest',
+    'welcome-doc',
+  ];
 
-  test.each([
-    ['STALL', { rental: false, reservation: false, closedDates: false, requestInfo: false }],
-    ['LIBRARY', { rental: true, reservation: false, closedDates: true, requestInfo: true }],
-    ['SHED', { rental: false, reservation: true, closedDates: true, requestInfo: true }],
-  ])('%s', async (kind, expected) => {
+  test.each(['STALL', 'LIBRARY', 'SHED'])('a %s asks for none of them', async (kind) => {
     const { container } = await renderCreate(kind);
 
-    expect(sections(container)).toEqual({
-      ...expected,
-      tags: true,
-      emailNote: true,
-      homePage: true,
-      digest: true,
-      welcomeDoc: true,
-    });
+    for (const field of SETTINGS_FIELDS) {
+      expect(container.querySelector(`#create-collection-${field}`), field).toBeNull();
+    }
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull();
   });
 });
 
@@ -221,71 +206,38 @@ describe('Create — what is sent, for each kind and mode', () => {
       if (!price) fireEvent.click(container.querySelector('#create-collection-members-price'));
     }
 
-    create();
+    create(kind);
 
     await waitFor(() => expect(createBody()).toBeTruthy());
     expect(createBody()).toMatchObject({ kind, mode, allowed_thing_types: verbs });
   });
 
-  test('a stall sends none of what a stall has no use for', async () => {
-    const { container } = await renderCreate('STALL');
-    name(container);
+  test.each(['STALL', 'LIBRARY', 'SHED'])(
+    'a %s sends none of the rules a settings page owns',
+    async (kind) => {
+      const { container } = await renderCreate(kind);
+      name(container);
 
-    create();
+      create(kind);
 
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    for (const key of [
-      'rental_durations',
-      'rental_weekdays',
-      'closed_dates',
-      'request_info',
-      'deposit_policy',
-      'reservation_unit',
-    ]) {
-      expect(createBody()).not.toHaveProperty(key);
+      await waitFor(() => expect(createBody()).toBeTruthy());
+      for (const key of [
+        'rental_durations',
+        'rental_weekdays',
+        'closed_dates',
+        'request_info',
+        'deposit_policy',
+        'reservation_unit',
+        'reservation_max_days',
+        'digest_frequency',
+        'allow_member_proposals',
+        'koro',
+        'tags',
+      ]) {
+        expect(createBody(), key).not.toHaveProperty(key);
+      }
     }
-  });
-
-  test('a library sends its rental rules, its closed days and its request note', async () => {
-    const { container } = await renderCreate('LIBRARY');
-    name(container);
-
-    create();
-
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    expect(createBody()).toMatchObject({
-      rental_durations: [],
-      rental_weekdays: [],
-      closed_dates: '',
-      request_info: '',
-    });
-    expect(createBody()).not.toHaveProperty('reservation_unit');
-  });
-
-  test('a shed sends its reservation rules and no rental length', async () => {
-    const { container } = await renderCreate('SHED');
-    name(container);
-
-    create();
-
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    expect(createBody()).toMatchObject({ reservation_unit: 'DAY', closed_dates: '' });
-    expect(createBody()).not.toHaveProperty('rental_durations');
-  });
-
-  test('a library’s deposit policy reaches the request', async () => {
-    const { container } = await renderCreate('LIBRARY');
-    name(container);
-    await openMore();
-    fireEvent.change(container.querySelector('#create-collection-deposit-policy'), {
-      target: { value: '50 € back when the drill comes home.' },
-    });
-
-    create();
-
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    expect(createBody().deposit_policy).toBe('50 € back when the drill comes home.');
-  });
+  );
 });
 
 describe('Edit — the kind is a fact, not a control', () => {

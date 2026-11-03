@@ -108,7 +108,7 @@ describe('Creating a network', () => {
     });
     fireEvent.click(screen.getByRole('radio', { name: /^Network:/ }));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create library' }));
 
     await waitFor(() => {
       const post = apiFetch.mock.calls.find(

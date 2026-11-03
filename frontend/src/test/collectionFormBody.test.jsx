@@ -22,12 +22,11 @@ import { settle } from './settle';
 import en from '../i18n/locales/en.json';
 
 /**
- * The whole body Create POSTs and Edit PATCHes, field by field, with every field of
- * the "More options" block changed from the screen (or loaded, for what Edit loads).
- * The expected bodies are written by hand from what was typed and loaded — not copied
- * from what the pages send — so a field that stops reaching the server, or reaches it
- * under another name, fails here. They exist for the day the block both pages share
- * moves into one component: the two requests must not change by a byte.
+ * The whole body Create POSTs (the short form) and Edit PATCHes, field by field, with every
+ * field of the "More options" block changed from the screen (or loaded, for what Edit
+ * loads). The expected bodies are written by hand from what was typed and loaded — not
+ * copied from what the pages send — so a field that stops reaching the server, or reaches
+ * it under another name, fails here.
  */
 
 const ok = (data) => ({ ok: true, status: 200, json: () => Promise.resolve(data) });
@@ -82,25 +81,6 @@ async function pickOption(comboName, optionName) {
   fireEvent.click(await screen.findByRole('option', { name: optionName }));
 }
 
-/** Everything the block holds, edited from the screen. `p` is the id prefix. */
-async function fillAdvanced(container, p) {
-  fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-  const tagInput = await screen.findByPlaceholderText(en.createCollection.tagsPlaceholder);
-  fireEvent.change(tagInput, { target: { value: 'Kitchen' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Monday' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Wednesday' }));
-  type(container, `#${p}-deposit-policy`, 'Back when it comes home');
-  type(container, `#${p}-closed-dates`, '25/12/2099, 01/01/2100');
-  type(container, `#${p}-request-info`, 'Ask in the evening');
-  type(container, `#${p}-email-note`, 'The key is in the box');
-  type(container, `#${p}-home-page`, 'https://group.example/');
-  await pickOption(/Digest emails/, en.editCollection.digestMonthly);
-  // The palette and the wave of the group's pages.
-  fireEvent.click(await screen.findByRole('button', { name: 'Metro' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Wave' }));
-}
-
 const patchBody = () => {
   const call = apiFetch.mock.calls.find(([, o]) => o?.method === 'PATCH');
   return call && JSON.parse(call[1].body);
@@ -112,11 +92,11 @@ const postBody = () => {
   return call && JSON.parse(call[1].body);
 };
 
-describe('Create — the body of a library with every optional field filled in', () => {
-  test('is exactly what was typed', async () => {
+describe('Create — the body of the short form', () => {
+  async function renderCreate(prefix) {
     setApi();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/library/new']}>
+    const view = render(
+      <MemoryRouter initialEntries={[`/${prefix}/new`]}>
         <Routes>
           <Route path="/:kind/new" element={<CreateCollectionPage />} />
           <Route path="*" element={<div data-testid="navigated" />} />
@@ -124,60 +104,39 @@ describe('Create — the body of a library with every optional field filled in',
       </MemoryRouter>
     );
     await waitFor(() =>
-      expect(container.querySelector('#create-collection-headline')).toBeInTheDocument()
+      expect(view.container.querySelector('#create-collection-headline')).toBeInTheDocument()
     );
     await settle(apiFetch);
+    return view;
+  }
+
+  test('a library is exactly what was typed and chosen, and nothing of the settings pages', async () => {
+    const { container } = await renderCreate('library');
     type(container, '#create-collection-headline', 'Tool shed');
     type(container, '#create-collection-description', 'Tools for the street');
-    await fillAdvanced(container, 'create-collection');
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+    fireEvent.click(container.querySelector('#create-collection-members-price'));
+    fireEvent.click(container.querySelector('#create-collection-visibility'));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create library' }));
 
     await waitFor(() => expect(postBody()).toBeTruthy());
     expect(postBody()).toEqual({
       kind: 'LIBRARY',
       headline: 'Tool shed',
       description: 'Tools for the street',
-      mode: 'PROPRIETARY',
-      visibility: 'PRIVATE',
-      allow_member_proposals: false,
-      allowed_thing_types: ['LEND_THING', 'RENT_THING'],
-      home_page: 'https://group.example/',
-      email_note: 'The key is in the box',
-      tags: ['Kitchen'],
-      thumbnail: '',
+      mode: 'COMMUNITY',
+      visibility: 'PUBLIC',
+      allowed_thing_types: ['LEND_THING'],
       language: 'en',
-      digest_frequency: 'MONTHLY',
-      theeeme: 'JMPA01',
-      koro: 'wave',
-      welcome_doc: '',
-      closed_dates: '25/12/2099, 01/01/2100',
-      request_info: 'Ask in the evening',
-      rental_weekdays: [0, 2],
-      rental_durations: [],
-      deposit_policy: 'Back when it comes home',
     });
   });
 
-  test('a stall has none of the library’s fields in its body', async () => {
-    setApi();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/stall/new']}>
-        <Routes>
-          <Route path="/:kind/new" element={<CreateCollectionPage />} />
-          <Route path="*" element={<div data-testid="navigated" />} />
-        </Routes>
-      </MemoryRouter>
-    );
-    await waitFor(() =>
-      expect(container.querySelector('#create-collection-headline')).toBeInTheDocument()
-    );
-    await settle(apiFetch);
+  test('a stall left as it opens sends the private proprietary default', async () => {
+    const { container } = await renderCreate('stall');
     type(container, '#create-collection-headline', 'Free stall');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    type(container, '#create-collection-email-note', 'Come by');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create stall' }));
 
     await waitFor(() => expect(postBody()).toBeTruthy());
     expect(postBody()).toEqual({
@@ -185,17 +144,8 @@ describe('Create — the body of a library with every optional field filled in',
       headline: 'Free stall',
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
-      allow_member_proposals: false,
       allowed_thing_types: ['GIFT_THING', 'SELL_THING'],
-      home_page: '',
-      email_note: 'Come by',
-      tags: [],
-      thumbnail: '',
       language: 'en',
-      digest_frequency: 'MONTHLY',
-      // No palette picked: none is sent and the server draws one. The koro is the basic wave.
-      koro: 'basic',
-      welcome_doc: '',
     });
   });
 });

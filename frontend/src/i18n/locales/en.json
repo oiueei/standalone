@@ -588,14 +588,14 @@
     "advancedTitle": "More options",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
-    "theeemeRandom": "If you pick none, one is chosen at random for you.",
     "tagsLabel": "Tags",
     "tagsPlaceholder": "e.g. Vintage, Kitchen, Outdoor",
     "tagsHelper": "Optional labels to organise this collection's things",
     "maxDescription": "Description is too long: 2000 characters per language.",
     "modeProprietaryFull": "Proprietary: Only the team running the group adds things — you, to start with.",
     "modeCommunityFull": "Community: Every member can add their own things too.",
-    "modeNetworkFull": "Network: Several entities share one library: each puts in its own things and lends them from its own pickup point. You run the network; they run what is theirs."
+    "modeNetworkFull": "Network: Several entities share one library: each puts in its own things and lends them from its own pickup point. You run the network; they run what is theirs.",
+    "visibilityHeading": "Visibility"
   },
   "myBookings": {
     "pageTitle": "My requests",
@@ -973,7 +973,9 @@
     "tagsNotice": "Write the tags in one language only if you prefer. But if your collection reads in two or more languages, you can write each tag in all of them.",
     "emailNoteNotice": "The email note can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
     "requestInfoNotice": "The request-page note can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
-    "policyNotice": "The deposit policy can hold one text per language too: es (Spanish), ca (Catalan), en (English)."
+    "policyNotice": "The deposit policy can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
+    "textNotice": "Write in one language only if you prefer. But if your collection reads in two languages, write the title or the description as a small map — copy this and change the words.",
+    "textNoticeAfter": "Everyone then reads it in their own language, in the app and in their emails. Languages: es (Spanish), ca (Catalan), en (English)."
   },
   "deleteAccount": {
     "pageTitle": "Delete your account",
@@ -1287,8 +1289,8 @@
     }
   },
   "collectionForm": {
-    "membersPriceStall": "Members can sell (set a price)",
-    "membersPriceLibrary": "Members can rent out (set a price)"
+    "membersPriceStall": "Members can sell: Each member can set a price on their own things. Turn off so they can only give them away.",
+    "membersPriceLibrary": "Members can rent out: Each member can set a price on what they lend. Turn off so they can only lend it for free."
   },
   "thingPause": {
     "toggleLabel": "Pause bookings: between these two dates nobody can request or book it; bookings already made are not cancelled.",

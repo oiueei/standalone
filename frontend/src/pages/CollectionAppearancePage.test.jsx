@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 
@@ -113,6 +113,36 @@ describe('CollectionAppearancePage', () => {
         'Bitmap image files only (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP and TIFF), max 10 MB.'
       )
     ).toBeInTheDocument();
+  });
+
+  test('lists the palettes the API lists, and nothing else', async () => {
+    mockApi();
+    renderPage();
+
+    const group = await screen.findByRole('group', { name: 'Theeeme' });
+    expect(
+      within(group)
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('aria-label'))
+    ).toEqual(['Pine', 'Sky']);
+    expect(document.body.textContent).not.toMatch(/braaanding|OIUEEI palette/i);
+    // It is the saved palette, so there is nothing to say about a random draw.
+    expect(screen.queryByText(/chosen at random/)).toBeNull();
+  });
+
+  test('marks the wave the collection has', async () => {
+    mockApi();
+    renderPage();
+
+    const group = await screen.findByRole('group', { name: 'Koro' });
+    expect(within(group).getByRole('button', { name: 'Wave' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(within(group).getByRole('button', { name: 'Basic' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
   });
 
   test('explains the tags in languages in a notice above the field', async () => {

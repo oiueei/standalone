@@ -2457,3 +2457,12 @@ caption:has(.sr-only:only-child) {
   color: var(--color-black-60);
   font-size: var(--fontsize-body-m);
 }
+
+/* A heading that opens a group of fields in the collection forms ("Visibility"), at the size
+   of the legend of the mode group above it. */
+.form-section-heading {
+  margin: 0;
+  font-size: var(--fontsize-heading-m);
+  line-height: var(--lineheight-m);
+  font-weight: 700;
+}

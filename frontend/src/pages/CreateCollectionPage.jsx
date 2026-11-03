@@ -5,11 +5,10 @@ import { TextInput, TextArea, Button } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
-import CollectionAdvancedFields from '../components/CollectionAdvancedFields';
 import CollectionModeField from '../components/CollectionModeField';
 import useCapabilities, { useCapabilitiesSettled, isOfferable } from '../hooks/useCapabilities';
 import LoadingSpinner from '../components/LoadingSpinner';
-import LocalizedInfo from '../components/LocalizedInfo';
+import FieldNotice from '../components/FieldNotice';
 import { localizedCounter, localizedHelper } from '../utils/localized';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
@@ -17,13 +16,20 @@ import ApprovalNotice from '../components/ApprovalNotice';
 import { collectionPath, kindOfPrefix } from '../utils/collectionPath';
 import { allowedVerbsFor } from '../utils/collectionKind';
 import useDocumentTitle from '../hooks/useDocumentTitle';
-import { hasOpeningHours } from '../utils/rental';
+
+// A code sample the owner copies: the keys are the language codes the server accepts, so it
+// reads the same in whatever language the form is in.
+const TEXT_EXAMPLE = '{"es": "Las cosas de mamá", "ca": "Les coses de mama"}';
 
 /**
  * `/stall/new`, `/library/new` and `/shed/new`: the form for the kind named by the
  * address, which is chosen at `/new` and never changes afterwards. An account the
  * deployment's policy does not give that kind to sees the same "needs approval"
  * line as the chooser, and no form: filling one in would end in a refusal.
+ *
+ * The form is short on purpose: title, description, mode (with the members' price switch
+ * for a community), visibility. Everything else is the model's default and has its own
+ * settings page once the collection exists.
  */
 export default function CreateCollectionPage() {
   const { t } = useTranslation();
@@ -65,50 +71,12 @@ function CreateCollectionForm({ kind }) {
   const [description, setDescription] = useState('');
   const [mode, setMode] = useState('PROPRIETARY');
   const [visibility, setVisibility] = useState('PRIVATE');
-  const [allowProposals, setAllowProposals] = useState(false);
   // Whether the members of a COMMUNITY stall or library may set a price: on, both of
   // the kind's verbs; off, only the free one.
   const [membersPrice, setMembersPrice] = useState(true);
-  const [rentalDurations, setRentalDurations] = useState([]);
-  const [rentalWeekdays, setRentalWeekdays] = useState([]);
-  const [reservationUnit, setReservationUnit] = useState('DAY');
-  const [reservationMaxDays, setReservationMaxDays] = useState(1);
-  const [reservationHorizonDays, setReservationHorizonDays] = useState(90);
-  const [reservationMaxActivePerMember, setReservationMaxActivePerMember] = useState(10);
-  const [reservationAsksPhone, setReservationAsksPhone] = useState(false);
-  const [reservationMinMinutes, setReservationMinMinutes] = useState(60);
-  const [reservationMaxMinutes, setReservationMaxMinutes] = useState(180);
-  const [openingHours, setOpeningHours] = useState({});
-  // False while the opening-hours JSON on screen doesn't parse — Create refuses
-  // then, rather than sending the last good value and navigating away.
-  const [openingHoursValid, setOpeningHoursValid] = useState(true);
-  const [closedDates, setClosedDates] = useState('');
-  const [homePage, setHomePage] = useState('');
-  const [depositPolicy, setDepositPolicy] = useState('');
-  // Shown on the request page for every verb that reaches it (LEND/RENT/
-  // RESERVE — GIFT/SELL complete from the card and never do), not only
-  // reservations — general to the collection, so it lives outside
-  // RentalRulesFields / ReservationRulesFields, alongside closed_dates/home_page.
-  const [requestInfo, setRequestInfo] = useState('');
-  // The owner's note in the emails a requester receives about their request
-  // — "received" + "accepted" for every verb, plus RESERVE's auto-confirm —
-  // same shape and same placement in the form as requestInfo, one field
-  // below it.
-  const [emailNote, setEmailNote] = useState('');
-  const [tags, setTags] = useState([]);
-  const [thumbnail, setThumbnail] = useState('');
-  // The group's email language. Defaults to whatever the owner is reading the app
-  // in; each member's own preference still wins over it.
-  const [language, setLanguage] = useState(i18n.resolvedLanguage || i18n.language);
-  // Mirrors the model default (MONTHLY). A new collection mails its members on the
-  // owner's behalf, so the owner has to be able to see and change it at the moment
-  // they create the group.
-  const [digestFrequency, setDigestFrequency] = useState('MONTHLY');
-  // The palette of the group's pages. None picked by default: the server draws one of the
-  // twelve at random, and the selector says so. The koro starts as the basic wave.
-  const [theeeme, setTheeeme] = useState('');
-  const [koro, setKoro] = useState('basic');
-  const [welcomeDoc, setWelcomeDoc] = useState('');
+  // The group's emails speak the owner's own interface language; each member's own
+  // preference still wins over it, and the Notifications page changes it.
+  const language = i18n.resolvedLanguage || i18n.language;
   const [errors, setErrors] = useState({});
 
   const ALL_MODE_OPTIONS = [
@@ -132,10 +100,6 @@ function CreateCollectionForm({ kind }) {
   // A shed is always PROPRIETARY — an operator runs the premises — so it has no
   // mode to choose; a stall and a library choose, and the deployment may narrow it.
   const isReservations = kind === 'SHED';
-  // What a kind shows: a reservation is made on the request page, a loan or rental
-  // too, but a gift or a sale completes from the card and never reaches it, so the
-  // note for that page, the closed days and the rental rules are for the other two.
-  const hasRequestPage = kind !== 'STALL';
   // A network is a way for a library to be run: no other kind offers it.
   const KIND_MODE_OPTIONS = ALL_MODE_OPTIONS.filter(
     (opt) => opt.value !== 'NETWORK' || kind === 'LIBRARY'
@@ -171,61 +135,21 @@ function CreateCollectionForm({ kind }) {
 
   const handleSubmit = async () => {
     if (!validate()) return;
-    // A toast, not an inline error: the field sits inside the "More options"
-    // accordion, which may be collapsed by now, and a refusal whose reason is
-    // out of sight would be the silent failure this guards against.
-    if (isReservations && reservationUnit === 'HOUR' && !openingHoursValid) {
-      setToast({ type: 'error', message: t('openingHours.invalidOnSave') });
-      return;
-    }
-    // An hourly space with no time range can never be booked; the server refuses
-    // it too (`opening_hours_required`).
-    if (isReservations && reservationUnit === 'HOUR' && !hasOpeningHours(openingHours)) {
-      setToast({ type: 'error', message: t('openingHours.requiredOnSave') });
-      return;
-    }
     setSubmitting(true);
     setToast(null);
 
+    // Only what the person chose here. Everything else (the palette, the summary
+    // frequency, the rules of a loan or a reservation…) is the model's default, and
+    // the settings pages change it afterwards.
     const body = {
       kind,
       headline: headline.trim(),
       mode: isReservations ? 'PROPRIETARY' : mode,
       visibility,
-      allow_member_proposals: allowProposals,
       allowed_thing_types: allowedVerbsFor(kind, mode, membersPrice),
-      home_page: homePage.trim(),
-      email_note: emailNote.trim(),
-      tags,
-      thumbnail: thumbnail || '',
       language,
-      digest_frequency: digestFrequency,
-      koro,
-      welcome_doc: welcomeDoc || '',
     };
-    if (theeeme) body.theeeme = theeeme;
     if (description.trim()) body.description = description.trim();
-    if (hasRequestPage) {
-      body.closed_dates = closedDates;
-      body.request_info = requestInfo.trim();
-      body.rental_weekdays = rentalWeekdays;
-    }
-    if (isReservations) {
-      body.reservation_horizon_days = reservationHorizonDays;
-      body.reservation_max_active_per_member = reservationMaxActivePerMember;
-      body.reservation_asks_phone = reservationAsksPhone;
-      body.reservation_unit = reservationUnit;
-      if (reservationUnit === 'HOUR') {
-        body.reservation_min_minutes = reservationMinMinutes;
-        body.reservation_max_minutes = reservationMaxMinutes;
-        body.opening_hours = openingHours;
-      } else {
-        body.reservation_max_days = reservationMaxDays;
-      }
-    } else if (hasRequestPage) {
-      body.rental_durations = rentalDurations;
-      if (depositPolicy.trim()) body.deposit_policy = depositPolicy.trim();
-    }
     try {
       const res = await apiFetch('/api/v1/collections/', {
         method: 'POST',
@@ -251,6 +175,14 @@ function CreateCollectionForm({ kind }) {
     <PageLayout backTo={backPath} backLabel={backLabel}>
       <h1 className="page-title-xl">{t(`kinds.${kind}.create`)}</h1>
       <div className="form-grid">
+        <FieldNotice
+          id="create-collection-text-notice"
+          label={t('createCollection.titleLabel')}
+          example={TEXT_EXAMPLE}
+          after={t('localized.textNoticeAfter')}
+        >
+          {t('localized.textNotice')}
+        </FieldNotice>
         <TextInput
           id="create-collection-headline"
           label={t('createCollection.titleLabel')}
@@ -270,7 +202,6 @@ function CreateCollectionForm({ kind }) {
           errorText={errors.description}
           helperText={localizedHelper(description, 2000, t)}
         />
-        <LocalizedInfo id="create-collection-localized-info" />
         {!isReservations && (
           <CollectionModeField
             idPrefix="create-collection"
@@ -287,73 +218,14 @@ function CreateCollectionForm({ kind }) {
           mode={mode}
           visibility={visibility}
           setVisibility={setVisibility}
-          allowProposals={allowProposals}
-          setAllowProposals={setAllowProposals}
           membersPrice={membersPrice}
           setMembersPrice={setMembersPrice}
           theeemeColor01={theeemeColors.color_01}
         />
       </div>
-      <CollectionAdvancedFields
-        idPrefix="create-collection"
-        colors={theeemeColors}
-        isReservations={isReservations}
-        hasRequestPage={hasRequestPage}
-        tags={tags}
-        setTags={setTags}
-        reservationRules={{
-          reservationUnit,
-          setReservationUnit,
-          reservationMaxDays,
-          setReservationMaxDays,
-          reservationHorizonDays,
-          setReservationHorizonDays,
-          reservationMaxActivePerMember,
-          setReservationMaxActivePerMember,
-          reservationAsksPhone,
-          setReservationAsksPhone,
-          reservationMinMinutes,
-          setReservationMinMinutes,
-          reservationMaxMinutes,
-          setReservationMaxMinutes,
-          openingHours,
-          setOpeningHours,
-          setOpeningHoursValid,
-          rentalWeekdays,
-          setRentalWeekdays,
-        }}
-        rentalRules={{
-          rentalDurations,
-          setRentalDurations,
-          rentalWeekdays,
-          setRentalWeekdays,
-          depositPolicy,
-          setDepositPolicy,
-        }}
-        closedDates={closedDates}
-        setClosedDates={setClosedDates}
-        requestInfo={requestInfo}
-        setRequestInfo={setRequestInfo}
-        emailNote={emailNote}
-        setEmailNote={setEmailNote}
-        homePage={homePage}
-        setHomePage={setHomePage}
-        digestFrequency={digestFrequency}
-        setDigestFrequency={setDigestFrequency}
-        language={language}
-        setLanguage={setLanguage}
-        theeeme={theeeme}
-        setTheeeme={setTheeeme}
-        theeemeHint={t('createCollection.theeemeRandom')}
-        koro={koro}
-        setKoro={setKoro}
-        thumbnail={thumbnail}
-        setThumbnail={setThumbnail}
-        setWelcomeDoc={setWelcomeDoc}
-      />
       <div className="form-actions">
         <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>
-          {submitting ? t('common.creating') : t('common.create')}
+          {submitting ? t('common.creating') : t(`kinds.${kind}.create`)}
         </Button>
       </div>
       <Toast toast={toast} onClose={() => setToast(null)} />

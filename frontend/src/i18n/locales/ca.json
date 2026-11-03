@@ -582,14 +582,14 @@
     "advancedTitle": "Més opcions",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
-    "theeemeRandom": "Si no en tries cap, se n'escollirà un a l'atzar.",
     "tagsLabel": "Etiquetes",
     "tagsPlaceholder": "p. ex. Vintage, Cuina, Exterior",
     "tagsHelper": "Etiquetes opcionals per organitzar les coses d'aquesta col·lecció",
     "maxDescription": "La descripció és massa llarga: 2000 caràcters per idioma.",
     "modeProprietaryFull": "Pròpia: Només qui dinamitza el grup hi afegeix coses; d'entrada, tu.",
     "modeCommunityFull": "Comunitària: Tots els membres també poden afegir les seves pròpies coses.",
-    "modeNetworkFull": "Xarxa: Diverses entitats comparteixen una biblioteca: cadascuna posa les seves coses i les presta des del seu propi punt de recollida. Tu portes la xarxa; elles, el seu."
+    "modeNetworkFull": "Xarxa: Diverses entitats comparteixen una biblioteca: cadascuna posa les seves coses i les presta des del seu propi punt de recollida. Tu portes la xarxa; elles, el seu.",
+    "visibilityHeading": "Visibilitat"
   },
   "myBookings": {
     "pageTitle": "Les meves sol·licituds",
@@ -973,7 +973,9 @@
     "tagsNotice": "Escriu les etiquetes en un sol idioma si ho prefereixes. Però si la teva col·lecció es llegeix en dos o més idiomes, pots escriure cada etiqueta en tots.",
     "emailNoteNotice": "L'avís del correu també admet un text per idioma: es (castellà), ca (català), en (anglès).",
     "requestInfoNotice": "L'avís de la pàgina de sol·licitud també admet un text per idioma: es (castellà), ca (català), en (anglès).",
-    "policyNotice": "La política de fiances també admet un text per idioma: es (castellà), ca (català), en (anglès)."
+    "policyNotice": "La política de fiances també admet un text per idioma: es (castellà), ca (català), en (anglès).",
+    "textNotice": "Escriu en un sol idioma si ho prefereixes. Però si la teva col·lecció es llegeix en dos idiomes, escriu el títol o la descripció com un petit mapa: copia això i canvia les paraules.",
+    "textNoticeAfter": "Cadascú ho llegirà en el seu idioma, al web i als seus correus. Idiomes: es (castellà), ca (català), en (anglès)."
   },
   "deleteAccount": {
     "pageTitle": "Esborrar el teu compte",
@@ -1287,8 +1289,8 @@
     }
   },
   "collectionForm": {
-    "membersPriceStall": "Els membres poden vendre (posar preu)",
-    "membersPriceLibrary": "Els membres poden llogar (posar preu)"
+    "membersPriceStall": "Els membres poden vendre: Cada membre pot posar preu a les seves coses. Desactiva-ho perquè només les puguin regalar.",
+    "membersPriceLibrary": "Els membres poden llogar: Cada membre pot posar preu al que presta. Desactiva-ho perquè només puguin prestar de franc."
   },
   "thingPause": {
     "toggleLabel": "Pausar les reserves: entre aquestes dues dates ningú no la pot demanar ni reservar; les reserves ja fetes no s'anul·len.",

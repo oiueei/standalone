@@ -582,14 +582,14 @@
     "advancedTitle": "Más opciones",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
-    "theeemeRandom": "Si no eliges ninguno, se elegirá uno al azar.",
     "tagsLabel": "Etiquetas",
     "tagsPlaceholder": "p. ej. Vintage, Cocina, Exterior",
     "tagsHelper": "Etiquetas opcionales para organizar las cosas de esta colección",
     "maxDescription": "La descripción es demasiado larga: 2000 caracteres por idioma.",
     "modeProprietaryFull": "Propia: Solo quien dinamiza el grupo añade cosas; de entrada, tú.",
     "modeCommunityFull": "Comunitaria: Todos los miembros también pueden añadir sus propias cosas.",
-    "modeNetworkFull": "Red: Varias entidades comparten una biblioteca: cada una pone sus cosas y las presta desde su propio punto de recogida. Tú llevas la red; ellas, lo suyo."
+    "modeNetworkFull": "Red: Varias entidades comparten una biblioteca: cada una pone sus cosas y las presta desde su propio punto de recogida. Tú llevas la red; ellas, lo suyo.",
+    "visibilityHeading": "Visibilidad"
   },
   "myBookings": {
     "pageTitle": "Mis solicitudes",
@@ -973,7 +973,9 @@
     "tagsNotice": "Escribe las etiquetas en un solo idioma si lo prefieres. Pero si tu colección se lee en dos o más idiomas, puedes escribir cada etiqueta en todos ellos.",
     "emailNoteNotice": "El aviso del correo también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
     "requestInfoNotice": "El aviso de la página de solicitud también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
-    "policyNotice": "La política de fianzas también admite un texto por idioma: es (español), ca (catalán), en (inglés)."
+    "policyNotice": "La política de fianzas también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
+    "textNotice": "Escribe en un solo idioma si lo prefieres. Pero si tu colección se lee en dos idiomas, escribe el título o la descripción como un pequeño mapa: copia esto y cambia las palabras.",
+    "textNoticeAfter": "Cada persona lo leerá en su idioma, en la web y en sus correos. Idiomas: es (español), ca (catalán), en (inglés)."
   },
   "deleteAccount": {
     "pageTitle": "Borrar tu cuenta",
@@ -1287,8 +1289,8 @@
     }
   },
   "collectionForm": {
-    "membersPriceStall": "Los miembros pueden vender (poner precio)",
-    "membersPriceLibrary": "Los miembros pueden alquilar (poner precio)"
+    "membersPriceStall": "Los miembros pueden vender: Cada miembro puede ponerles precio a sus propias cosas. Desactívalo para que solo puedan regalarlas.",
+    "membersPriceLibrary": "Los miembros pueden alquilar: Cada miembro puede ponerle precio a lo que presta. Desactívalo para que solo puedan prestar gratis."
   },
   "thingPause": {
     "toggleLabel": "Pausar reservas: entre esas dos fechas nadie puede pedirla ni reservarla; las reservas ya hechas no se anulan.",

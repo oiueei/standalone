@@ -414,8 +414,6 @@ export default function EditCollectionPage() {
           mode={mode}
           visibility={visibility}
           setVisibility={setVisibility}
-          allowProposals={allowProposals}
-          setAllowProposals={setAllowProposals}
           membersPrice={membersPrice}
           setMembersPrice={setMembersPrice}
           theeemeColor01={tc.color_01}
