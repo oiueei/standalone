@@ -169,7 +169,7 @@ class TestOneEventPerReservation:
 
         assert count == 1
         (event,) = _events(ics_bytes)
-        assert event["SUMMARY"] == "Préstamo: Taladre → Júlia"  # es default
+        assert event["SUMMARY"] == "Taladre → Júlia"  # es default, no kind in front
         assert event["DTSTART;VALUE=DATE"] == "20260914"
         # iCalendar's all-day DTEND is exclusive — OIUEEI's end_date already
         # is the day the thing is free again, so the 17th stays open.
@@ -248,8 +248,8 @@ class TestOneEventPerReservation:
 
         events = {e["SUMMARY"]: e["DESCRIPTION"] for e in _events(build_calendar_export(group)[0])}
 
-        assert "Fianza: 25.00" in events["Alquiler: Taladre → Júlia"]
-        assert "Proyecto: Ensayo de teatro" in events["Reserva: Sala — Júlia"]
+        assert "Fianza: 25.00" in events["Taladre → Júlia"]
+        assert "Proyecto: Ensayo de teatro" in events["Sala — Júlia"]
 
     def test_the_calendar_names_the_collection(self, group, owner, member):
         thing = _thing(owner)
@@ -504,7 +504,7 @@ class TestRfc5545Shape:
 
         (event,) = _events(build_calendar_export(group)[0])
 
-        assert event["SUMMARY"] == r"Reserva: Sala\, principal\; 1ª — Júlia"
+        assert event["SUMMARY"] == r"Sala\, principal\; 1ª — Júlia"
         assert event["LOCATION"] == r"Carrer Nou\, 3\; baixos"
         # A newline becomes literal \n in the TEXT value; commas/semicolons in
         # the note are escaped too, and the backslash itself is doubled.
@@ -678,7 +678,7 @@ class TestLanguage:
 
         (event,) = _events(build_calendar_export(group)[0])
 
-        assert event["SUMMARY"].startswith("Préstec:")  # ca, not es "Préstamo:"
+        assert event["DESCRIPTION"].startswith("Préstec")  # ca, not es "Préstamo"
 
     def test_the_downloading_curator_language_wins_over_the_group(self, group, owner, member):
         group.language = "ca"
@@ -691,7 +691,7 @@ class TestLanguage:
 
         (event,) = _events(build_calendar_export(group, user=owner)[0])
 
-        assert event["SUMMARY"].startswith("Loan:")
+        assert event["DESCRIPTION"].startswith("Loan")
 
     def test_a_localized_headline_map_resolves_to_that_language(self, group, owner, member):
         group.language = "ca"
@@ -717,7 +717,7 @@ class TestLanguage:
 
         (event,) = _events(build_calendar_export(group)[0])
 
-        assert event["SUMMARY"].startswith("Loan:")
+        assert event["DESCRIPTION"].startswith("Loan")
 
 
 class TestMemberIdentity:
@@ -736,6 +736,63 @@ class TestMemberIdentity:
         assert member.email not in event["SUMMARY"]
 
 
+class TestTheKindOfReservationLeadsTheDescription:
+    """The title is the thing and the person; what kind of reservation it is moves to
+    the first words of the description, where a library holding both loans and
+    rentals can still tell them apart."""
+
+    @pytest.mark.parametrize(
+        "thing_type,kind,title",
+        [
+            ("LEND_THING", "Préstamo", "Taladre → Júlia"),
+            ("RENT_THING", "Alquiler", "Taladre → Júlia"),
+            ("RESERVE_THING", "Reserva", "Taladre — Júlia"),
+        ],
+    )
+    def test_the_kind_is_the_first_thing_in_the_description_and_not_in_the_title(
+        self, group, owner, member, thing_type, kind, title
+    ):
+        thing = _thing(owner)
+        group.things.add(thing)
+        _booking(thing, member, owner, thing_type=thing_type)
+
+        (event,) = _events(build_calendar_export(group)[0])
+
+        assert event["SUMMARY"] == title
+        assert event["DESCRIPTION"].split(" — ")[0] == kind
+
+    def test_a_loan_and_a_rental_of_one_thing_differ_by_their_description(
+        self, group, owner, member
+    ):
+        thing = _thing(owner)
+        group.things.add(thing)
+        _booking(thing, member, owner, code="BKG020", thing_type="LEND_THING")
+        _booking(
+            thing,
+            member,
+            owner,
+            code="BKG021",
+            thing_type="RENT_THING",
+            start=datetime.date(2026, 10, 14),
+        )
+
+        events = {e["UID"]: e for e in _events(build_calendar_export(group)[0])}
+
+        assert events["BKG020@oiueei"]["SUMMARY"] == events["BKG021@oiueei"]["SUMMARY"]
+        assert events["BKG020@oiueei"]["DESCRIPTION"].startswith("Préstamo")
+        assert events["BKG021@oiueei"]["DESCRIPTION"].startswith("Alquiler")
+
+    def test_the_uid_and_the_sequence_do_not_move(self, group, owner, member):
+        thing = _thing(owner)
+        group.things.add(thing)
+        _booking(thing, member, owner)
+
+        (event,) = _events(build_calendar_export(group)[0])
+
+        assert event["UID"] == "BKG001@oiueei"
+        assert event["SEQUENCE"] == "0"
+
+
 class TestCatalogueParity:
     def test_every_language_carries_the_same_keys(self):
         reference = set(CALENDAR_TEXTS["en"])
@@ -748,6 +805,20 @@ class TestCatalogueParity:
         for lang, texts in CALENDAR_TEXTS.items():
             for thing_type in DATE_BASED_TYPES:
                 assert texts[f"subject_{thing_type}"], (lang, thing_type)
+
+    def test_there_is_a_kind_for_every_date_based_type(self):
+        from core.models.booking import DATE_BASED_TYPES
+
+        for lang, texts in CALENDAR_TEXTS.items():
+            for thing_type in DATE_BASED_TYPES:
+                assert texts[f"kind_{thing_type}"], (lang, thing_type)
+
+    def test_no_title_carries_the_kind_any_more(self):
+        for lang, texts in CALENDAR_TEXTS.items():
+            for key, value in texts.items():
+                if key.startswith("subject_"):
+                    kind = texts["kind_" + key.removeprefix("subject_")]
+                    assert kind not in value, (lang, key)
 
 
 def test_the_filename_is_an_ics():
