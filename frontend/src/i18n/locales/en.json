@@ -365,6 +365,10 @@
     "priceLabel": "Price.",
     "depositLabel": "Deposit.",
     "depositRefundableNote": "(refundable)",
+    "unitsCount_one": "{{count}} unit",
+    "unitsCount_other": "{{count}} units",
+    "pausedRange": "No bookings from {{from}} to {{until}}",
+    "pausedDay": "No bookings on {{date}}",
     "availabilityLabel": "Availability.",
     "locationLabel": "Location.",
     "conditionLabel": "Condition.",
@@ -1062,6 +1066,9 @@
     "horizonHelper": "From 1 to 365. Default 90 — three months.",
     "maxActiveLabel": "Maximum active reservations per member",
     "maxActiveHelper": "From 1 to 50. Default 10 — how many of a member's own reservations in this collection may be active at once.",
+    "asksPhoneFull": "Ask for a contact phone when booking: optional for whoever books, in case something unexpected happens. Only those who manage the bookings see it, and it is deleted the day after each booking.",
+    "phoneLabel": "Could you leave us a contact phone number? It's in case something unexpected happens with what you've booked or with the booking. We'll delete it the day after the booking.",
+    "phoneInvalid": "Enter a phone number: digits, spaces and + ( ) . -, at least 6 digits.",
     "unitLabel": "How is it booked?",
     "unitDay": "By day",
     "unitHour": "By hour",
@@ -1221,6 +1228,8 @@
     "reservation_inactive": "This reservation is no longer active.",
     "reservation_max_active_one": "You already have 1 active reservation here — the most this collection allows.",
     "reservation_max_active_other": "You already have {{count}} active reservations here — the most this collection allows.",
+    "reservation_one_per_person": "You already have a booking of this at that time.",
+    "thing_paused": "This thing is paused on those dates.",
     "reservation_needs_days": "This is booked by the day — pick how many days.",
     "reservation_needs_times": "This is booked by the hour — pick a start time.",
     "reservation_not_open_that_day": "It isn't open that day.",
@@ -1269,10 +1278,20 @@
     "membersPriceStall": "Members can sell (set a price)",
     "membersPriceLibrary": "Members can rent out (set a price)"
   },
+  "thingPause": {
+    "toggleLabel": "Pause bookings: between these two dates nobody can request or book it; bookings already made are not cancelled.",
+    "fromLabel": "From",
+    "untilLabel": "Until",
+    "bookingsInRange_one": "There is {{count}} booking on those dates: it is not cancelled. You can cancel it from your bookings.",
+    "bookingsInRange_other": "There are {{count}} bookings on those dates: they are not cancelled. You can cancel them from your bookings.",
+    "malformedDate": "Enter a date as DD/MM/YYYY."
+  },
   "thingForm": {
     "priceStall": "Price (optional)",
     "priceStallHelp": "No price, it's a gift.",
     "priceLibrary": "Rental price (optional)",
-    "priceLibraryHelp": "No price, it's lent for free."
+    "priceLibraryHelp": "No price, it's lent for free.",
+    "unitsLabel": "How many identical ones are there?",
+    "unitsHelp": "If you have several identical ones, they can be booked at the same time up to this number. Each person books one."
   }
 }

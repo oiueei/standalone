@@ -6,6 +6,8 @@ import {
   IconCalendar,
   IconLocation,
   IconShield,
+  IconLayers,
+  IconCrossCircle,
 } from 'hds-react';
 import { formatDate } from '../utils/rental';
 import { hasAmount } from '../constants/things';
@@ -75,6 +77,28 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
           <IconCalendar size="m" aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
           <span>{t('availability.' + thing.availability)}</span>
+        </div>
+      )}
+      {/* How many identical ones a space has, only when there are several. */}
+      {thing.units > 1 && (
+        <div className="thing-card-info-row">
+          <IconLayers size="m" aria-hidden="true" />
+          <span>{t('thingPage.unitsCount', { count: thing.units })}</span>
+        </div>
+      )}
+      {/* A pause in force (the server sends no days once it has passed): one day or a
+          stretch, in the format the page uses for every date. */}
+      {thing.paused_from && thing.paused_until && (
+        <div className="thing-card-info-row">
+          <IconCrossCircle size="m" aria-hidden="true" />
+          <span>
+            {thing.paused_from === thing.paused_until
+              ? t('thingPage.pausedDay', { date: formatDate(thing.paused_from) })
+              : t('thingPage.pausedRange', {
+                  from: formatDate(thing.paused_from),
+                  until: formatDate(thing.paused_until),
+                })}
+          </span>
         </div>
       )}
       {thing.location && (

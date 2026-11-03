@@ -359,6 +359,10 @@
     "priceLabel": "Precio.",
     "depositLabel": "Fianza.",
     "depositRefundableNote": "(se devuelve)",
+    "unitsCount_one": "{{count}} unidad",
+    "unitsCount_other": "{{count}} unidades",
+    "pausedRange": "Sin reservas del {{from}} al {{until}}",
+    "pausedDay": "Sin reservas el {{date}}",
     "availabilityLabel": "Disponibilidad.",
     "locationLabel": "Ubicación.",
     "conditionLabel": "Estado.",
@@ -1062,6 +1066,9 @@
     "horizonHelper": "De 1 a 365. Por defecto 90 — tres meses.",
     "maxActiveLabel": "Máximo de reservas activas por miembro",
     "maxActiveHelper": "De 1 a 50. Por defecto 10 — cuántas reservas propias de un miembro en esta colección pueden estar activas a la vez.",
+    "asksPhoneFull": "Pedir un teléfono de contacto al reservar: opcional para quien reserva, por si pasa algo inesperado. Solo lo ve quien gestiona las reservas y se borra el día después de cada reserva.",
+    "phoneLabel": "¿Puedes dejarnos un teléfono de contacto? Es por si pasa algo inesperado con lo que has reservado o con la reserva. Lo borraremos el día después de la reserva.",
+    "phoneInvalid": "Escribe un teléfono: cifras, espacios y + ( ) . -, con al menos 6 cifras.",
     "unitLabel": "¿Cómo se reserva?",
     "unitDay": "Por días",
     "unitHour": "Por horas",
@@ -1221,6 +1228,8 @@
     "reservation_inactive": "Esta reserva ya no está activa.",
     "reservation_max_active_one": "Ya tienes 1 reserva activa aquí: es el máximo que permite esta colección.",
     "reservation_max_active_other": "Ya tienes {{count}} reservas activas aquí: es el máximo que permite esta colección.",
+    "reservation_one_per_person": "Ya tienes una reserva de esto a esa hora.",
+    "thing_paused": "Esta cosa está en pausa en esas fechas.",
     "reservation_needs_days": "Esto se reserva por días: elige cuántos.",
     "reservation_needs_times": "Esto se reserva por horas: elige una hora de inicio.",
     "reservation_not_open_that_day": "Ese día no abre.",
@@ -1269,10 +1278,20 @@
     "membersPriceStall": "Los miembros pueden vender (poner precio)",
     "membersPriceLibrary": "Los miembros pueden alquilar (poner precio)"
   },
+  "thingPause": {
+    "toggleLabel": "Pausar reservas: entre esas dos fechas nadie puede pedirla ni reservarla; las reservas ya hechas no se anulan.",
+    "fromLabel": "Desde",
+    "untilLabel": "Hasta",
+    "bookingsInRange_one": "Hay {{count}} reserva en esas fechas: no se anula. Puedes cancelarla desde tus reservas.",
+    "bookingsInRange_other": "Hay {{count}} reservas en esas fechas: no se anulan. Puedes cancelarlas desde tus reservas.",
+    "malformedDate": "Escribe una fecha como DD/MM/AAAA."
+  },
   "thingForm": {
     "priceStall": "Precio (opcional)",
     "priceStallHelp": "Sin precio, es un regalo.",
     "priceLibrary": "Precio del alquiler (opcional)",
-    "priceLibraryHelp": "Sin precio, se presta gratis."
+    "priceLibraryHelp": "Sin precio, se presta gratis.",
+    "unitsLabel": "¿Cuántas iguales hay?",
+    "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una."
   }
 }

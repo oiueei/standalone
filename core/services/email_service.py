@@ -2647,6 +2647,11 @@ def send_reservation_notice_email(owner_email, requester, thing, booking, collec
     if booking.project_note:
         plain += "\n\n" + T("reservation_note_label") + ": " + booking.project_note
         blocks.append(_field(T("reservation_note_label"), booking.project_note))
+    if booking.contact_phone:
+        # Only that there is one. The number itself lives in the app until the day
+        # after the booking and is then deleted; an email copy would outlive that.
+        plain += "\n\n" + T("reservation_notice_phone")
+        blocks.append(_para(T("reservation_notice_phone")))
     blocks, plain = _with_demo_note(collection, T, blocks, plain)
     html = _render_email(blocks, lang=lang, header=header)
     _send(

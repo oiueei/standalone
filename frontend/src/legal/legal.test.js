@@ -105,3 +105,25 @@ describe('legal content parity', () => {
     expect(found[0]).toMatch(no);
   });
 });
+
+describe('the contact phone a group may ask for when booking', () => {
+  // The request page promises the number is optional, seen only by whoever manages the
+  // booking and deleted the day after; the privacy text has to say the same, in the
+  // paragraph about who sees what inside a group, right after its first sentence.
+  const SENTENCE = {
+    es: 'Si el grupo lo pide al reservar, puedes dejar también un teléfono de contacto: es opcional, solo lo ve quien gestiona esa reserva y se borra el día después de la reserva.',
+    ca: "Si el grup ho demana en reservar, també pots deixar un telèfon de contacte: és opcional, només el veu qui gestiona aquesta reserva i s'esborra l'endemà de la reserva.",
+    en: 'If the group asks for it when you book, you can also leave a contact phone number: it is optional, only those who manage that booking see it, and it is deleted the day after the booking.',
+  };
+  const FIRST_SENTENCE_END = {
+    es: 'para que puedan responderte. ',
+    ca: 'perquè et puguin respondre. ',
+    en: 'so they can answer you. ',
+  };
+
+  test.each(CODES)('%s says it, once, right after the first sentence of the paragraph', (lang) => {
+    const text = LANGS[lang];
+    expect(text.split(SENTENCE[lang])).toHaveLength(2);
+    expect(text).toContain(FIRST_SENTENCE_END[lang] + SENTENCE[lang]);
+  });
+});

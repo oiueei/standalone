@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification, TextArea } from 'hds-react';
+import { Button, Notification, TextArea, TextInput } from 'hds-react';
 import { DATE_TYPES, hasAmount } from '../constants/things';
 import {
   isPickupDisabled,
@@ -67,6 +67,9 @@ export default function RequestThingPage() {
   const [endDate, setEndDate] = useState('');
   const [duration, setDuration] = useState('');
   const [projectNote, setProjectNote] = useState('');
+  // The optional contact phone: only on a reservation whose collection asks for it.
+  const [contactPhone, setContactPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -120,7 +123,9 @@ export default function RequestThingPage() {
 
   useEffect(() => {
     if (!userCode || !thing || !DATE_TYPES.includes(thing.type)) return;
-    apiFetch(`/api/v1/things/${thingCode}/calendar/`)
+    // `for=request`: a curator who books is shown what a member is — the stretches in
+    // which every unit is taken — not the bookings with names.
+    apiFetch(`/api/v1/things/${thingCode}/calendar/?for=request`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setBlockedPeriods(data))
       .catch(() => {});
@@ -194,6 +199,11 @@ export default function RequestThingPage() {
   // fallback used to replay whatever body the earlier failed attempt had
   // captured, which could book a date the reader had since changed on screen.
   const buildReservationBody = () => {
+    // Sent only when the field is on screen and holds something.
+    const phone =
+      thing?.collection_reservation_asks_phone && contactPhone.trim()
+        ? { contact_phone: contactPhone.trim() }
+        : {};
     const isDateBased = thing && DATE_TYPES.includes(thing.type);
     let body = null;
     if (isReservation && hourly.isHourly) {
@@ -206,6 +216,7 @@ export default function RequestThingPage() {
         start_time: slot.start,
         end_time: slot.end,
         project_note: projectNote.trim(),
+        ...phone,
       };
     } else if (isReservation) {
       // Pickup date + a length of 1..reservation_max_days; the backend derives
@@ -216,6 +227,7 @@ export default function RequestThingPage() {
         start_date: startIso,
         duration_days: Number(chosenDuration),
         project_note: projectNote.trim(),
+        ...phone,
       };
     } else if (isDateBased) {
       if (isConstrainedRental) {
@@ -247,6 +259,11 @@ export default function RequestThingPage() {
       // A rule refusal comes coded and is said in the reader's language
       // (apiErrorMessage); anything else is the server's own text.
       const data = await res.json();
+      if (data?.contact_phone) {
+        // A field error belongs on the field, not in a toast.
+        setPhoneError(t('reservation.phoneInvalid'));
+        return;
+      }
       setToast({ type: 'error', message: apiErrorMessage(data) || t('thingPage.invalidRequest') });
     } else if (res.status === 403) {
       const data = await res.json();
@@ -397,14 +414,32 @@ export default function RequestThingPage() {
   // The optional project note — the same field in the DAY and HOUR flows, one
   // or the other on screen, never both (their ids stay distinct anyway).
   const projectNoteField = (id) => (
-    <TextArea
-      id={id}
-      label={t('reservation.projectNoteLabel')}
-      helperText={t('reservation.projectNoteHelper', { remaining: 512 - projectNote.length })}
-      maxLength={512}
-      value={projectNote}
-      onChange={(e) => setProjectNote(e.target.value)}
-    />
+    <>
+      <TextArea
+        id={id}
+        label={t('reservation.projectNoteLabel')}
+        helperText={t('reservation.projectNoteHelper', { remaining: 512 - projectNote.length })}
+        maxLength={512}
+        value={projectNote}
+        onChange={(e) => setProjectNote(e.target.value)}
+      />
+      {thing?.collection_reservation_asks_phone && (
+        <TextInput
+          id={`${id}-phone`}
+          type="tel"
+          autoComplete="tel"
+          maxLength={32}
+          label={t('reservation.phoneLabel')}
+          value={contactPhone}
+          onChange={(e) => {
+            setContactPhone(e.target.value);
+            setPhoneError('');
+          }}
+          invalid={!!phoneError}
+          errorText={phoneError || undefined}
+        />
+      )}
+    </>
   );
 
   if (error) {

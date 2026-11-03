@@ -920,6 +920,8 @@ THINGS = [
         "collections": ["1u1uRe"],
         "thumbnail": "1u1uC1",
         "fee": "3.00",
+        # Three identical workbenches, so up to three can be booked at once.
+        "units": 3,
         "location": "Taller de Lulu, banc gran",
     },
     {

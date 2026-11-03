@@ -1152,3 +1152,62 @@ describe('OwnerBookingsPage — reminding a late return', () => {
     });
   });
 });
+
+describe('OwnerBookingsPage — the contact phone under the address', () => {
+  const asked = (over = {}) =>
+    booking({
+      requester_email: 'lele@your-domain.test',
+      thing_type: 'RESERVE_THING',
+      status: 'ACCEPTED',
+      contact_phone: '+34 (600) 123-456',
+      ...over,
+    });
+
+  test('the link dials only the digits and the plus, and shows the number as it was typed', async () => {
+    mockApi([{ results: [asked()], next: null }]);
+    renderPage();
+
+    const link = await screen.findByRole('link', { name: '+34 (600) 123-456' });
+    expect(link).toHaveAttribute('href', 'tel:+34600123456');
+    // Its own line, right under the address.
+    expect(link.closest('p').previousElementSibling).toHaveTextContent('lele@your-domain.test');
+  });
+
+  test('on a phone the card carries it too', async () => {
+    const media = mockMatchMedia({ [PHONE]: true });
+    try {
+      mockApi([{ results: [asked({ status: 'PENDING' })], next: null }]);
+      renderPage();
+
+      const list = await screen.findByRole('list', { name: 'Requests waiting for your answer' });
+      const [card] = within(list).getAllByRole('listitem');
+      expect(within(card).getByRole('link', { name: '+34 (600) 123-456' })).toHaveAttribute(
+        'href',
+        'tel:+34600123456'
+      );
+    } finally {
+      media.restore();
+    }
+  });
+
+  test.each([
+    ['empty', ''],
+    ['absent', undefined],
+    ['null', null],
+  ])('with the number %s there is no tel link', async (_, value) => {
+    mockApi([{ results: [asked({ contact_phone: value })], next: null }]);
+    renderPage();
+
+    expect(await screen.findByText('Asked by Lele')).toBeInTheDocument();
+    expect(document.querySelector('a[href^="tel:"]')).toBeNull();
+    expect(screen.getByRole('link', { name: 'lele@your-domain.test' })).toBeInTheDocument();
+  });
+
+  test('axe finds nothing wrong with a row that carries it', async () => {
+    mockApi([{ results: [asked()], next: null }]);
+    const { container } = renderPage();
+    await screen.findByRole('link', { name: '+34 (600) 123-456' });
+
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});

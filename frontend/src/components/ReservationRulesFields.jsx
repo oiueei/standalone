@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { NumberInput, Notification } from 'hds-react';
+import { NumberInput, Notification, ToggleButton } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import WeekdayChips from './WeekdayChips';
 import OpeningHoursField from './OpeningHoursField';
@@ -79,6 +79,8 @@ export default function ReservationRulesFields({
   setReservationHorizonDays,
   reservationMaxActivePerMember = 10,
   setReservationMaxActivePerMember,
+  reservationAsksPhone = false,
+  setReservationAsksPhone = () => {},
   reservationMinMinutes = 60,
   setReservationMinMinutes,
   reservationMaxMinutes = 180,
@@ -137,6 +139,18 @@ export default function ReservationRulesFields({
         fallback={10}
         value={reservationMaxActivePerMember}
         onChange={setReservationMaxActivePerMember}
+      />
+      {/* Whether the request page offers an optional contact phone. Title and
+          explanation are one label, as in the other inline switches. */}
+      <ToggleButton
+        id={`${idPrefix}-reservation-asks-phone`}
+        variant="inline"
+        label={t('reservation.asksPhoneFull')}
+        checked={reservationAsksPhone}
+        onChange={(val) => setReservationAsksPhone(!val)}
+        theme={
+          theeemeColor01 ? { '--toggle-button-color': `var(--color-${theeemeColor01})` } : undefined
+        }
       />
       {reservationUnit === 'HOUR' ? (
         <>

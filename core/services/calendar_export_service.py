@@ -80,9 +80,12 @@ _LINE_OCTETS = 75
 # already outside ``email_texts``.
 CALENDAR_TEXTS = {
     "en": {
-        "subject_LEND_THING": "Loan: {thing} → {person}",
-        "subject_RENT_THING": "Rental: {thing} → {person}",
-        "subject_RESERVE_THING": "Reservation: {thing} — {person}",
+        "subject_LEND_THING": "{thing} → {person}",
+        "kind_LEND_THING": "Loan",
+        "subject_RENT_THING": "{thing} → {person}",
+        "kind_RENT_THING": "Rental",
+        "subject_RESERVE_THING": "{thing} — {person}",
+        "kind_RESERVE_THING": "Reservation",
         "a_member": "a member",
         "return_by": "Return by {date}",
         "deposit": "Deposit: {amount}",
@@ -90,9 +93,12 @@ CALENDAR_TEXTS = {
         "provenance": "OIUEEI · {collection}",
     },
     "es": {
-        "subject_LEND_THING": "Préstamo: {thing} → {person}",
-        "subject_RENT_THING": "Alquiler: {thing} → {person}",
-        "subject_RESERVE_THING": "Reserva: {thing} — {person}",
+        "subject_LEND_THING": "{thing} → {person}",
+        "kind_LEND_THING": "Préstamo",
+        "subject_RENT_THING": "{thing} → {person}",
+        "kind_RENT_THING": "Alquiler",
+        "subject_RESERVE_THING": "{thing} — {person}",
+        "kind_RESERVE_THING": "Reserva",
         "a_member": "un miembro",
         "return_by": "Devolución el {date}",
         "deposit": "Fianza: {amount}",
@@ -100,9 +106,12 @@ CALENDAR_TEXTS = {
         "provenance": "OIUEEI · {collection}",
     },
     "ca": {
-        "subject_LEND_THING": "Préstec: {thing} → {person}",
-        "subject_RENT_THING": "Lloguer: {thing} → {person}",
-        "subject_RESERVE_THING": "Reserva: {thing} — {person}",
+        "subject_LEND_THING": "{thing} → {person}",
+        "kind_LEND_THING": "Préstec",
+        "subject_RENT_THING": "{thing} → {person}",
+        "kind_RENT_THING": "Lloguer",
+        "subject_RESERVE_THING": "{thing} — {person}",
+        "kind_RESERVE_THING": "Reserva",
         "a_member": "un membre",
         "return_by": "Devolució el {date}",
         "deposit": "Dipòsit: {amount}",
@@ -226,7 +235,10 @@ def _event_lines(booking, texts, lang, collection_headline, now):
     person = (booking.requester_code.name or "").strip() or texts["a_member"]
     summary = texts[f"subject_{booking.thing_type}"].format(thing=headline, person=person)
 
-    description = []
+    # The kind of reservation leads the description: the title no longer carries it,
+    # and in a library that holds both loans and rentals the title alone cannot say
+    # which one an event is.
+    description = [texts[f"kind_{booking.thing_type}"]]
     if booking.thing_type in (Thing.Type.LEND_THING, Thing.Type.RENT_THING):
         description.append(texts["return_by"].format(date=_ddmy(booking.end_date)))
         if booking.deposit_amount:

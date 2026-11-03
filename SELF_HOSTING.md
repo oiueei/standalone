@@ -301,6 +301,16 @@ no code**: six hexadecimal colours (`#RRGGBB`) and a Koros wave.
 
 ---
 
+## 7. The daily `purge_expired_data --commit` — a promise the app makes
+
+A shed can ask, when someone books, for an optional contact phone, and the request page's label promises it
+is **deleted the day after the booking**. The app stops serving it that day by itself, but the deletion is
+done by `purge_expired_data`, whose period for this is fixed (no `RETENTION_*` setting, nothing to switch
+off). A deployment must therefore run `python manage.py purge_expired_data --commit` **every day** (the
+daily chain in [HEROKU.md](HEROKU.md) does); left in dry-run, the label would not be true.
+
+---
+
 ## What upstream deliberately does not have
 
 - **No open sign-up.** `POST /auth/join/` creates nothing without a valid share

@@ -63,11 +63,18 @@ def space(request):
         reservation_max_minutes=720,
         opening_hours={"0": case["blocks"]},
     )
+    monday = _next_monday()
+    # `pause` is [from, until] in days from that Monday, both included.
+    pause = case.get("pause")
     thing = Thing.objects.create(
-        code="GRDTHG", type=Thing.Type.RESERVE_THING, owner=owner, headline="Sala"
+        code="GRDTHG",
+        type=Thing.Type.RESERVE_THING,
+        owner=owner,
+        headline="Sala",
+        paused_from=monday + timedelta(days=pause[0]) if pause else None,
+        paused_until=monday + timedelta(days=pause[1]) if pause else None,
     )
     collection.things.add(thing)
-    monday = _next_monday()
     for booked in case["bookings"]:
         BookingPeriod.objects.create(
             thing_code=thing,
@@ -100,8 +107,16 @@ def test_the_server_accepts_exactly_the_starts_the_page_offers(space):
         ends = time((start + case["duration"]) // 60, (start + case["duration"]) % 60)
         if collection.reservation_hour_violation(monday, begins, ends, now=now):
             continue
+        # The request refuses the pause before it counts bookings.
+        if thing.pause_overlaps(monday, monday + timedelta(days=1)):
+            continue
         if BookingPeriod.has_overlap(
-            thing.code, monday, monday + timedelta(days=1), start_time=begins, end_time=ends
+            thing.code,
+            monday,
+            monday + timedelta(days=1),
+            start_time=begins,
+            end_time=ends,
+            units=case.get("units", 1),
         ):
             continue
         accepted.append(begins.strftime("%H:%M"))
@@ -111,9 +126,38 @@ def test_the_server_accepts_exactly_the_starts_the_page_offers(space):
 @pytest.mark.parametrize("space", CASES, ids=[c["name"] for c in CASES], indirect=True)
 def test_the_server_finds_a_free_slot_exactly_when_the_picker_offers_the_day(space):
     case, collection, thing, monday, now = space
-    blocked = list(BookingPeriod.objects.filter(thing_code=thing))
+    # As `Thing.availability_window` does: with several units a day is taken only
+    # where they are all on.
+    thing.units = case.get("units", 1)
+    blocked = thing.served_periods(list(BookingPeriod.objects.filter(thing_code=thing)))
     earliest = now.hour * 60 + now.minute if now.date() == monday else 0
     assert (
         _day_has_a_free_hour(monday, collection, blocked, earliest=earliest)
         is case["day_has_a_free_slot"]
+    )
+
+
+def _shape(row):
+    """A row as the JSON file writes it: None for a whole day, [start, end] otherwise."""
+    if row.start_time is None:
+        return None
+    return [row.start_time.strftime("%H:%M"), row.end_time.strftime("%H:%M")]
+
+
+def _ordered(rows):
+    return sorted(rows, key=lambda r: ("", "") if r is None else tuple(r))
+
+
+@pytest.mark.parametrize("space", CASES, ids=[c["name"] for c in CASES], indirect=True)
+def test_the_server_serves_exactly_the_taken_periods_the_page_is_fed(space):
+    """The stretches the server works out as full are the ones the file hands the
+    page as `served_periods` (the bookings themselves, with one unit)."""
+    case, collection, thing, monday, now = space
+    rows = list(BookingPeriod.objects.filter(thing_code=thing))
+
+    thing.units = case.get("units", 1)
+    served = thing.served_periods(rows)
+
+    assert _ordered(_shape(r) for r in served) == _ordered(
+        case.get("served_periods", case["bookings"])
     )

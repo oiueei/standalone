@@ -40,6 +40,7 @@ from django.utils import timezone
 
 from core.models import (
     RSVP,
+    BookingPeriod,
     Collection,
     DailyActivity,
     Event,
@@ -123,6 +124,7 @@ class Command(BaseCommand):
             self._notifications,
             self._reports,
             self._invitation_records,
+            self._reservation_phones,
         ]
         results = []
         for step in steps:
@@ -377,3 +379,20 @@ class Command(BaseCommand):
         if commit and count:
             rows.delete()
         return (f"Invitation records deleted (>{INVITE_RECORD_MONTHS}m)", count)
+
+    def _reservation_phones(self, now, commit):
+        """Empties the contact phone of every reservation whose last day has passed.
+
+        Neither a ``RETENTION_*`` setting nor switchable off: the label on the request
+        page promises the number is deleted the day after the booking, so there is no
+        period for an operator to choose. Cancelled reservations are emptied too.
+        ``end_date`` is the day the space is free again (for an hourly booking, the
+        day after the booking), so ``end_date <= today`` is "the day after".
+        """
+        rows = BookingPeriod.objects.filter(end_date__lte=timezone.localdate(now)).exclude(
+            contact_phone=""
+        )
+        count = rows.count()
+        if commit and count:
+            rows.update(contact_phone="")
+        return ("Reservation contact phones emptied (the day after the booking)", count)

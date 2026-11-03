@@ -1,5 +1,5 @@
 {
-  "_about": "Shared by core/tests/unit/test_hourly_grid_parity.py and frontend/src/utils/hourlyGridParity.test.js. The request page (utils/rental.js: freeStartTimes, isHourlyPickupDisabled) and the server (Collection.reservation_hour_violation, has_overlap, _day_has_a_free_hour) each decide which hourly starts exist; each case's expectations are worked out by hand in its note, and both suites must agree with them. A Monday throughout (weekday key \"0\"). now_minutes is the clock on that same day, or null for a day that is not today.",
+  "_about": "Shared by core/tests/unit/test_hourly_grid_parity.py and frontend/src/utils/hourlyGridParity.test.js. The request page (utils/rental.js: freeStartTimes, isHourlyPickupDisabled) and the server (Collection.reservation_hour_violation, has_overlap, _day_has_a_free_hour) each decide which hourly starts exist; each case's expectations are worked out by hand in its note, and both suites must agree with them. A Monday throughout (weekday key \"0\"). now_minutes is the clock on that same day, or null for a day that is not today. A case may carry units (how many identical ones the space has; absent = 1) and served_periods: what the server serves the browser as taken, which BookingPeriod.saturated_periods works out from bookings — null is a whole day, [start, end] an hourly stretch. Absent, it is the bookings themselves (one unit). The page is fed served_periods, the server is asked for starts with units. A case may also carry pause, [from, until] in days counted from that Monday (0 is the Monday itself), both included: the thing is paused then, which is served as one more whole-day stretch (null) in served_periods and which no start can overlap.",
   "cases": [
     {
       "name": "two blocks, a two-hour slot, nothing booked",
@@ -111,6 +111,190 @@
       "min_minutes": 60,
       "duration": 60,
       "bookings": [null],
+      "now_minutes": null,
+      "starts": [],
+      "day_has_a_free_slot": false
+    },
+    {
+      "name": "units 2: two bookings that overlap by half",
+      "note": "Booked 10-12 and 11-13: two at once only from 11:00 to 12:00, so that hour is full. 10:00 ends as the full hour begins and 12:00 begins as it ends — touching is no overlap.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "12:00"],
+        ["11:00", "13:00"]
+      ],
+      "units": 2,
+      "served_periods": [["11:00", "12:00"]],
+      "now_minutes": null,
+      "starts": ["10:00", "12:00", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 3: three in a staircase are never three at once",
+      "note": "Booked 10-12, 11-13 and 12-14: at most two at any moment, so with three units nothing is full and every hour starts.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "12:00"],
+        ["11:00", "13:00"],
+        ["12:00", "14:00"]
+      ],
+      "units": 3,
+      "served_periods": [],
+      "now_minutes": null,
+      "starts": ["10:00", "11:00", "12:00", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 2: the same staircase fills the middle",
+      "note": "The staircase again, with two units: two are on from 11:00 to 12:00 and again from 12:00 to 13:00. The two stretches run into each other, so 11:00-13:00 is full.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "12:00"],
+        ["11:00", "13:00"],
+        ["12:00", "14:00"]
+      ],
+      "units": 2,
+      "served_periods": [["11:00", "13:00"]],
+      "now_minutes": null,
+      "starts": ["10:00", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 2: bookings that only touch are never together",
+      "note": "Booked 10-11 and 11-12: never two at once, nothing is full.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "11:00"],
+        ["11:00", "12:00"]
+      ],
+      "units": 2,
+      "served_periods": [],
+      "now_minutes": null,
+      "starts": ["10:00", "11:00", "12:00", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 2: a whole-day booking plus an hourly one",
+      "note": "The whole-day booking counts at every hour, so one more booked 11-12 makes two at once there: 11:00-12:00 is full.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [null, ["11:00", "12:00"]],
+      "units": 2,
+      "served_periods": [["11:00", "12:00"]],
+      "now_minutes": null,
+      "starts": ["10:00", "12:00", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 3: a whole-day booking plus two that overlap",
+      "note": "One whole-day booking leaves a threshold of two: the 10-12 and 11-13 bookings are both on from 11:00 to 12:00.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [null, ["10:00", "12:00"], ["11:00", "13:00"]],
+      "units": 3,
+      "served_periods": [["11:00", "12:00"]],
+      "now_minutes": null,
+      "starts": ["10:00", "12:00", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 2: two whole-day bookings fill the day",
+      "note": "Two whole-day bookings are two at once all day.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [null, null],
+      "units": 2,
+      "served_periods": [null],
+      "now_minutes": null,
+      "starts": [],
+      "day_has_a_free_slot": false
+    },
+    {
+      "name": "units 4: three at once still leave room",
+      "note": "Three bookings 10-14 are three at once, one short of four units: nothing is full.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "14:00"],
+        ["10:00", "14:00"],
+        ["10:00", "14:00"]
+      ],
+      "units": 4,
+      "served_periods": [],
+      "now_minutes": null,
+      "starts": ["10:00", "11:00", "12:00", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 2: a full band in the middle of the morning",
+      "note": "Booked 10:30-12:30 and 11:00-12:00: two at once only from 11:00 to 12:00. On the half-hour grid 10:00 (until 11:00) fits, 10:30, 11:00 and 11:30 run into the full hour, and 12:00, 12:30 and 13:00 are clear.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 30,
+      "duration": 60,
+      "bookings": [
+        ["10:30", "12:30"],
+        ["11:00", "12:00"]
+      ],
+      "units": 2,
+      "served_periods": [["11:00", "12:00"]],
+      "now_minutes": null,
+      "starts": ["10:00", "12:00", "12:30", "13:00"],
+      "day_has_a_free_slot": true
+    },
+    {
+      "name": "units 2: two bookings across the whole block leave no slot",
+      "note": "Booked 10-14 twice: the whole block is full and no hour starts.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "14:00"],
+        ["10:00", "14:00"]
+      ],
+      "units": 2,
+      "served_periods": [["10:00", "14:00"]],
+      "now_minutes": null,
+      "starts": [],
+      "day_has_a_free_slot": false
+    },
+    {
+      "name": "a one-day pause takes the whole day",
+      "note": "Nothing is booked, but the thing is paused on this Monday: the day is served as one whole-day stretch and no hour starts.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [],
+      "pause": [0, 0],
+      "served_periods": [null],
+      "now_minutes": null,
+      "starts": [],
+      "day_has_a_free_slot": false
+    },
+    {
+      "name": "units 2: a pause on top of a full hour",
+      "note": "Booked 10-12 and 11-13 with two units (11:00-12:00 is full) and the thing paused on this Monday and the next day: the server serves both the full hour and the whole-day pause, and no hour starts.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "12:00"],
+        ["11:00", "13:00"]
+      ],
+      "units": 2,
+      "pause": [0, 1],
+      "served_periods": [null, ["11:00", "12:00"]],
       "now_minutes": null,
       "starts": [],
       "day_has_a_free_slot": false

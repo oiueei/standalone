@@ -359,6 +359,10 @@
     "priceLabel": "Preu.",
     "depositLabel": "Fiança.",
     "depositRefundableNote": "(es retorna)",
+    "unitsCount_one": "{{count}} unitat",
+    "unitsCount_other": "{{count}} unitats",
+    "pausedRange": "Sense reserves del {{from}} al {{until}}",
+    "pausedDay": "Sense reserves el {{date}}",
     "availabilityLabel": "Disponibilitat.",
     "locationLabel": "Ubicació.",
     "conditionLabel": "Estat.",
@@ -1062,6 +1066,9 @@
     "horizonHelper": "D'1 a 365. Per defecte 90 — tres mesos.",
     "maxActiveLabel": "Màxim de reserves actives per membre",
     "maxActiveHelper": "D'1 a 50. Per defecte 10 — quantes reserves pròpies d'un membre en aquesta col·lecció poden estar actives alhora.",
+    "asksPhoneFull": "Demanar un telèfon de contacte en reservar: opcional per a qui reserva, per si passa alguna cosa inesperada. Només el veu qui gestiona les reserves i s'esborra l'endemà de cada reserva.",
+    "phoneLabel": "Ens pots deixar un telèfon de contacte? És per si passa alguna cosa inesperada amb el que has reservat o amb la reserva. L'esborrarem l'endemà de la reserva.",
+    "phoneInvalid": "Escriu un telèfon: xifres, espais i + ( ) . -, amb almenys 6 xifres.",
     "unitLabel": "Com es reserva?",
     "unitDay": "Per dies",
     "unitHour": "Per hores",
@@ -1221,6 +1228,8 @@
     "reservation_inactive": "Aquesta reserva ja no està activa.",
     "reservation_max_active_one": "Ja tens 1 reserva activa aquí: és el màxim que permet aquesta col·lecció.",
     "reservation_max_active_other": "Ja tens {{count}} reserves actives aquí: és el màxim que permet aquesta col·lecció.",
+    "reservation_one_per_person": "Ja tens una reserva d'això a aquesta hora.",
+    "thing_paused": "Aquesta cosa està en pausa en aquestes dates.",
     "reservation_needs_days": "Això es reserva per dies: tria quants.",
     "reservation_needs_times": "Això es reserva per hores: tria una hora d'inici.",
     "reservation_not_open_that_day": "Aquell dia no obre.",
@@ -1269,10 +1278,20 @@
     "membersPriceStall": "Els membres poden vendre (posar preu)",
     "membersPriceLibrary": "Els membres poden llogar (posar preu)"
   },
+  "thingPause": {
+    "toggleLabel": "Pausar les reserves: entre aquestes dues dates ningú no la pot demanar ni reservar; les reserves ja fetes no s'anul·len.",
+    "fromLabel": "Des de",
+    "untilLabel": "Fins a",
+    "bookingsInRange_one": "Hi ha {{count}} reserva en aquestes dates: no s'anul·la. La pots cancel·lar des de les teves reserves.",
+    "bookingsInRange_other": "Hi ha {{count}} reserves en aquestes dates: no s'anul·len. Les pots cancel·lar des de les teves reserves.",
+    "malformedDate": "Escriu una data com DD/MM/AAAA."
+  },
   "thingForm": {
     "priceStall": "Preu (opcional)",
     "priceStallHelp": "Sense preu, és un regal.",
     "priceLibrary": "Preu del lloguer (opcional)",
-    "priceLibraryHelp": "Sense preu, es presta de franc."
+    "priceLibraryHelp": "Sense preu, es presta de franc.",
+    "unitsLabel": "Quantes n'hi ha d'iguals?",
+    "unitsHelp": "Si en tens diverses d'iguals, es poden reservar alhora fins a aquest nombre. Cada persona en reserva una."
   }
 }

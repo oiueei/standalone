@@ -3,6 +3,16 @@
  * Display labels are handled by i18n — use t('types.GIFT_THING') etc.
  */
 
+/**
+ * How many identical ones a shed's space has, as it goes to the server: a whole number
+ * from 1 to 20, whatever is left in the field (empty, a decimal, out of range) —
+ * `Thing.units`.
+ */
+export const clampUnits = (value) => {
+  const n = Math.round(Number(value));
+  return Number.isFinite(n) && n >= 1 ? Math.min(20, n) : 1;
+};
+
 // Types booked by date. RESERVE is date-based too (pickup date + duration), so
 // its reserve button navigates to RequestThingPage like LEND/RENT.
 export const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'RESERVE_THING'];

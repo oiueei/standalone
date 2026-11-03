@@ -6,6 +6,7 @@ import {
   DATE_TYPES,
   DETAIL_TYPES,
   KIND_THING_TYPES,
+  clampUnits,
   deriveThingType,
   kindOfThingType,
 } from '../constants/things';
@@ -13,6 +14,7 @@ import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingForm from '../components/ThingForm';
+import PauseFields from '../components/PauseFields';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 import useCollectionTheeeme from '../hooks/useCollectionTheeeme';
@@ -20,6 +22,7 @@ import useCapabilities, { isOfferable } from '../hooks/useCapabilities';
 import useCollectionLanguage from '../hooks/useCollectionLanguage';
 import { useLocalized, localizedCounter } from '../utils/localized';
 import { collectionPath, collectionThingPath } from '../utils/collectionPath';
+import { displayToIso, isoToDisplay } from '../utils/rental';
 import { membersPriceFromVerbs } from '../utils/collectionKind';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 
@@ -54,6 +57,15 @@ export default function EditThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [isEndless, setIsEndless] = useState(false);
+  const [units, setUnits] = useState(1);
+  // The pause: on or off, its two days as the date inputs hold them (DD/MM/YYYY), what
+  // the server said about each, and the bookings the manager already receives, which
+  // the warning before saving counts.
+  const [pauseOn, setPauseOn] = useState(false);
+  const [pauseFrom, setPauseFrom] = useState('');
+  const [pauseUntil, setPauseUntil] = useState('');
+  const [pauseErrors, setPauseErrors] = useState({});
+  const [bookings, setBookings] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [tags, setTags] = useState([]);
   const [collectionTags, setCollectionTags] = useState([]);
@@ -96,6 +108,14 @@ export default function EditThingPage() {
           if (data.tags) setTags(data.tags);
           if (data.collection_tags) setCollectionTags(data.collection_tags);
           if (data.is_endless) setIsEndless(true);
+          setUnits(data.units || 1);
+          // A pause in force comes back with its days; one that has passed comes back empty.
+          if (data.paused_from && data.paused_until) {
+            setPauseOn(true);
+            setPauseFrom(isoToDisplay(data.paused_from));
+            setPauseUntil(isoToDisplay(data.paused_until));
+          }
+          setBookings(data.bookings || []);
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
           setThingCollectionKind(data.collection_kind || '');
@@ -134,6 +154,8 @@ export default function EditThingPage() {
   const kind = isStray
     ? kindOfThingType(savedType)
     : thingCollectionKind || kindOfThingType(savedType) || 'STALL';
+  // Only a thing with a calendar (a loan, a rental, a reservation space) can be paused.
+  const hasCalendar = DATE_TYPES.includes(savedType);
   // The verb the price makes now (a stray's does not follow it).
   const type = isStray ? savedType : deriveThingType(kind, fee);
   // A community stall or library whose members may not set a price lists only its free
@@ -165,6 +187,7 @@ export default function EditThingPage() {
     if (!validate()) return;
     setSubmitting(true);
     setToast(null);
+    setPauseErrors({});
 
     // No `type`: the server puts the verb, and puts it back in step when the price
     // changes. Sending the one it already has would be harmless; sending a derived
@@ -193,6 +216,14 @@ export default function EditThingPage() {
     if (kind === 'STALL') {
       body.is_endless = isEndless;
     }
+    // Only a shed's space has several identical ones.
+    if (kind === 'SHED') body.units = clampUnits(units);
+    // Only a thing with a calendar can be paused. Off sends both days empty: that is
+    // what takes a pause off.
+    if (hasCalendar) {
+      body.paused_from = pauseOn ? displayToIso(pauseFrom) || null : null;
+      body.paused_until = pauseOn ? displayToIso(pauseUntil) || null : null;
+    }
 
     try {
       const res = await apiFetch(`/api/v1/things/${thingCode}/`, {
@@ -204,8 +235,18 @@ export default function EditThingPage() {
       } else if (res.status === 429) {
         setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
-        const detail = await extractApiError(res);
-        setToast({ type: 'error', message: detail || t('editThing.errorSaving') });
+        // What the server says about a day of the pause belongs on that day's field.
+        const fields = await res
+          .clone?.()
+          ?.json?.()
+          .catch(() => null);
+        const first = (value) => (Array.isArray(value) ? value[0] : value);
+        if (fields && (fields.paused_from || fields.paused_until)) {
+          setPauseErrors({ from: first(fields.paused_from), until: first(fields.paused_until) });
+        } else {
+          const detail = await extractApiError(res);
+          setToast({ type: 'error', message: detail || t('editThing.errorSaving') });
+        }
       }
     } catch {
       setToast({ type: 'error', message: t('common.connectionError') });
@@ -233,6 +274,8 @@ export default function EditThingPage() {
           approvalCatalogue={notOffered ? [{ label: t('types.' + type), value: type }] : []}
           isEndless={isEndless}
           setIsEndless={setIsEndless}
+          units={units}
+          setUnits={setUnits}
           headline={headline}
           setHeadline={setHeadline}
           description={description}
@@ -260,6 +303,20 @@ export default function EditThingPage() {
           gallery={gallery}
           setGallery={setGallery}
         />
+        {hasCalendar && (
+          <PauseFields
+            idPrefix="edit-thing"
+            theeemeColor01={tc.color_01}
+            enabled={pauseOn}
+            setEnabled={setPauseOn}
+            from={pauseFrom}
+            setFrom={setPauseFrom}
+            until={pauseUntil}
+            setUntil={setPauseUntil}
+            errors={pauseErrors}
+            bookings={bookings}
+          />
+        )}
       </div>
       <div className="form-actions">
         <Button

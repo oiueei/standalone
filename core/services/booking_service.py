@@ -683,6 +683,13 @@ def require_a_seat(thing, requester):
     )
 
 
+def _thing_paused():
+    """The refusal of a request that overlaps the thing's pause."""
+    return BookingRequestError(
+        "This thing is paused on those dates.", status_code=409, code="thing_paused"
+    )
+
+
 def request_date_based_booking(
     thing,
     requester,
@@ -703,7 +710,10 @@ def request_date_based_booking(
             raise BookingRequestError(violation)
 
     with transaction.atomic():
-        Thing.objects.select_for_update().get(code=thing.code)
+        locked = Thing.objects.select_for_update().get(code=thing.code)
+
+        if locked.pause_overlaps(start_date, end_date):
+            raise _thing_paused()
 
         if BookingPeriod.has_overlap(thing.code, start_date, end_date):
             raise BookingRequestError(
@@ -880,6 +890,7 @@ def request_reservation(
     *,
     start_time=None,
     end_time=None,
+    contact_phone="",
 ):
     """RESERVE_THING — create an auto-confirmed on-site reservation.
 
@@ -933,15 +944,36 @@ def request_reservation(
         end_time = None
 
     with transaction.atomic():
-        Thing.objects.select_for_update().get(code=thing.code)
+        locked = Thing.objects.select_for_update().get(code=thing.code)
+        if locked.pause_overlaps(start_date, end_date):
+            raise _thing_paused()
         if rc.active_reservation_count(requester.code) >= rc.reservation_max_active_per_member:
             raise BookingRequestError(
                 "You've reached the maximum number of active reservations for this space.",
                 code="reservation_max_active",
                 params={"max": rc.reservation_max_active_per_member},
             )
+        if locked.units > 1 and BookingPeriod.has_overlap(
+            thing.code,
+            start_date,
+            end_date,
+            start_time=start_time,
+            end_time=end_time,
+            requester_code=requester.code,
+        ):
+            # A person takes one unit at a time: otherwise one of them could hold all.
+            raise BookingRequestError(
+                "You already have a booking of this at that time.",
+                status_code=409,
+                code="reservation_one_per_person",
+            )
         if BookingPeriod.has_overlap(
-            thing.code, start_date, end_date, start_time=start_time, end_time=end_time
+            thing.code,
+            start_date,
+            end_date,
+            start_time=start_time,
+            end_time=end_time,
+            units=locked.units,
         ):
             clash_message = (
                 "That time is already taken." if start_time else "Those dates are already taken."
@@ -962,6 +994,9 @@ def request_reservation(
             start_time=start_time,
             end_time=end_time,
             project_note=project_note or "",
+            # Kept only when the group asked for it: a number nobody was told would
+            # be stored is not stored.
+            contact_phone=(contact_phone or "") if rc.reservation_asks_phone else "",
             status=BookingPeriod.Status.ACCEPTED,
         )
 

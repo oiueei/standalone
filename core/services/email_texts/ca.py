@@ -343,6 +343,10 @@ TEXTS = {
     "reservation_notice_subject": "{requester} ha reservat '{thing}'",
     "reservation_notice_plain": "{requester} ha reservat '{thing}' {when}.",
     "reservation_notice_intro": "{requester} ha reservat:",
+    "reservation_notice_phone": (
+        "Ha deixat un telèfon de contacte: el tens a la pàgina de reserves, "
+        "fins l'endemà de la reserva."
+    ),
     "reservation_note_label": "El seu missatge",
     "reservation_cancelled_subject": "Reserva cancel·lada: '{thing}'",
     "reservation_cancelled_to_guest_plain": (

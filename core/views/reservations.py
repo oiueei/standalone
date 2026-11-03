@@ -160,6 +160,7 @@ class ThingRequestView(APIView):
             collection_code,
             start_time=serializer.validated_data.get("start_time"),
             end_time=serializer.validated_data.get("end_time"),
+            contact_phone=serializer.validated_data.get("contact_phone", ""),
         )
         return Response(
             {

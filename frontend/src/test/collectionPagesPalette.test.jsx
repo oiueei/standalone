@@ -168,7 +168,7 @@ function answer(url, { thing = THING, collection = COLLECTION } = {}) {
   if (path === '/api/v1/things/THG001/') return ok(thing);
   if (path === '/api/v1/things/THG001/faq/') return ok({ results: [], next: null });
   if (path === '/api/v1/things/THG001/transfers/') return ok({ total_transfers: 0, transfers: [] });
-  if (path === '/api/v1/things/THG001/calendar/') return ok([]);
+  if (path.startsWith('/api/v1/things/THG001/calendar/')) return ok([]);
   if (path === '/api/v1/share/TOK/preview/') return ok(PREVIEW);
   if (path === '/api/v1/auth/me/') return ok({ capabilities: {} });
   return ok({});

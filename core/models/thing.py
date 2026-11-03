@@ -2,6 +2,8 @@
 Thing model for OIUEEI.
 """
 
+from datetime import time, timedelta
+
 from django.db import models
 from django.utils import timezone
 
@@ -117,6 +119,18 @@ class Thing(models.Model):
         ),
     )
     is_endless = models.BooleanField(default=False)
+    # RESERVE_THING only: how many identical ones the space has, so that many
+    # reservations can overlap (``BookingPeriod.saturated_periods``). 1 = the
+    # ordinary single thing, and every other type stays at 1. The database default
+    # is for the previous release's dynos, which insert without naming the column.
+    units = models.PositiveSmallIntegerField(default=1, db_default=1)
+    # A thing with a calendar (loan, rental, reservation) can be paused: from
+    # ``paused_from`` to ``paused_until``, both days included, nobody can request
+    # or book it. Both set or both empty; at most one period per thing; it ends on
+    # its own once ``paused_until`` has passed. Bookings already made are not
+    # touched. ``pause_period`` is the one reading of it.
+    paused_from = models.DateField(null=True, blank=True)
+    paused_until = models.DateField(null=True, blank=True)
     deal = models.ManyToManyField(
         "User",
         blank=True,
@@ -249,6 +263,47 @@ class Thing(models.Model):
         except User.DoesNotExist:
             pass
 
+    def pause_period(self, today=None):
+        """The pause as a blocked stretch, ``[paused_from, paused_until + 1)``, shaped
+        like the rows the calendar readers take (``SaturatedPeriod``), or ``None`` when
+        there is no pause or it is over.
+
+        The one reading of the pause: the calendar serves it, the availability reads
+        it and a request is refused against it. It is full whatever ``units`` says,
+        and unlike a closure day (which only stops a pickup or a return that day) it
+        stops anything that overlaps it, even a booking that starts before and ends
+        after.
+        """
+        if self.paused_from is None or self.paused_until is None:
+            return None
+        if self.paused_until < (today or timezone.localdate()):
+            return None
+        from core.models.booking import SaturatedPeriod
+
+        return SaturatedPeriod(self.paused_from, self.paused_until + timedelta(days=1))
+
+    def pause_overlaps(self, start_date, end_date):
+        """Whether ``[start_date, end_date)`` shares a day with the pause: the strict
+        rule of ``BookingPeriod.has_overlap``, so touching at an end does not count
+        (a loan that is back on the first day of the pause is fine)."""
+        pause = self.pause_period()
+        return pause is not None and start_date < pause.end_date and pause.start_date < end_date
+
+    def served_periods(self, periods):
+        """What is taken, as the browser is told and the availability is worked out:
+        the stretches in which every unit is booked (``saturated_periods``) plus the
+        pause. With one unit and no pause, ``periods`` unchanged."""
+        from core.models.booking import saturated_periods
+
+        served = saturated_periods(periods, self.units)
+        pause = self.pause_period()
+        if pause is None:
+            return served
+        return sorted(
+            [*served, pause],
+            key=lambda p: (p.start_date, p.start_time is not None, p.start_time or time.min),
+        )
+
     def availability_window(self, horizon_days=90, collection=None):
         """Live availability for date-based things (LEND/RENT/RESERVE) from the calendar.
 
@@ -293,6 +348,9 @@ class Thing(models.Model):
         # reused as "days open", durations don't apply, and the walk stops at
         # that collection's own "how far ahead" horizon rather than the default.
         if self.type == Thing.Type.RESERVE_THING:
+            # With several units the thing is unavailable only where they are all on,
+            # and never during a pause.
+            blocked = self.served_periods(blocked)
             rc = collection or resolve_reservations_collection(self)
             if rc and rc.is_hourly_reservations():
                 available_today, next_available = compute_hourly_availability(blocked, rc)
@@ -311,6 +369,7 @@ class Thing(models.Model):
 
         if collection is None:
             collection = resolve_rental_collection(self)
+        blocked = self.served_periods(blocked)
 
         rules = collection.rental_rules_for(self.owner_id) if collection else None
         available_today, next_available = compute_availability(
