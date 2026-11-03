@@ -22,6 +22,7 @@ import useTheeeme from '../hooks/useTheeeme';
 import { useLocalized } from '../utils/localized';
 import { formatDate, formatBookingWhen } from '../utils/rental';
 import { markMixedVerbs } from '../utils/bookingRows';
+import { phoneHref } from '../utils/phone';
 import ButtonLink from '../components/ButtonLink';
 import CancelReservationDialog from '../components/CancelReservationDialog';
 import ResponsiveTable from '../components/ResponsiveTable';
@@ -244,6 +245,7 @@ export default function OwnerBookingsPage() {
     _collectionHeadline: L(b.collection_headline),
     _requesterName: b.requester_name,
     _requesterEmail: b.requester_email,
+    _contactPhone: b.contact_phone,
     _startDate: b.start_date,
     _endDate: b.end_date,
     _when: formatBookingWhen(b),
@@ -330,6 +332,14 @@ export default function OwnerBookingsPage() {
           {row._requesterEmail && (
             <p>
               <a href={`mailto:${row._requesterEmail}`}>{row._requesterEmail}</a>
+            </p>
+          )}
+          {/* The optional contact phone, only while the server still serves it (it
+              comes empty from the day after the booking). The link dials the digits
+              and the +; the text is shown as it was typed. */}
+          {row._contactPhone && (
+            <p>
+              <a href={`tel:${phoneHref(row._contactPhone)}`}>{row._contactPhone}</a>
             </p>
           )}
           <p>

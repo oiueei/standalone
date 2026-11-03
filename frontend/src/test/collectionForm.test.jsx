@@ -980,3 +980,143 @@ describe('the help line of the selects reaches the page and the control’s acce
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════
+describe('the switch that asks for a contact phone when booking', () => {
+  const SHED = {
+    code: 'COL001',
+    headline: 'Tool shed',
+    description: 'Tools',
+    status: 'ACTIVE',
+    mode: 'PROPRIETARY',
+    visibility: 'PRIVATE',
+    kind: 'SHED',
+    allowed_thing_types: ['RESERVE_THING'],
+    reservation_unit: 'DAY',
+    reservation_max_days: 2,
+    reservation_horizon_days: 30,
+    reservation_max_active_per_member: 4,
+  };
+  const SWITCH = en.reservation.asksPhoneFull;
+  const createBody = () => {
+    const post = apiFetch.mock.calls.find(
+      ([u, o]) => u === '/api/v1/collections/' && o?.method === 'POST'
+    );
+    return post && JSON.parse(post[1].body);
+  };
+  const patchBody = () => {
+    const call = apiFetch.mock.calls.find(([, o]) => o?.method === 'PATCH');
+    return call && JSON.parse(call[1].body);
+  };
+
+  test('a new shed offers it, off, with title and explanation as one label', async () => {
+    const { container } = await renderCreate('shed');
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+
+    const toggle = await screen.findByLabelText(SWITCH);
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(container.querySelector('#create-collection-reservation-asks-phone')).toBe(toggle);
+  });
+
+  test('a stall and a library do not have it', async () => {
+    for (const kind of ['stall', 'library']) {
+      const { container, unmount } = await renderCreate(kind);
+      fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+      await screen.findByRole('button', { name: 'Add' });
+      expect(screen.queryByLabelText(SWITCH)).toBeNull();
+      expect(container.querySelector('[id$="reservation-asks-phone"]')).toBeNull();
+      unmount();
+    }
+  });
+
+  test('turned on at creation, it is in the POST', async () => {
+    const { container } = await renderCreate('shed');
+    fireEvent.change(container.querySelector('#create-collection-headline'), {
+      target: { value: 'Ateneu spaces' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+    fireEvent.click(await screen.findByLabelText(SWITCH));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(createBody()).toBeTruthy());
+    expect(createBody().reservation_asks_phone).toBe(true);
+  });
+
+  test('left alone at creation, the POST says false', async () => {
+    const { container } = await renderCreate('shed');
+    fireEvent.change(container.querySelector('#create-collection-headline'), {
+      target: { value: 'Ateneu spaces' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(createBody()).toBeTruthy());
+    expect(createBody().reservation_asks_phone).toBe(false);
+  });
+
+  test('a library’s POST has no such key', async () => {
+    const { container } = await renderCreate('library');
+    fireEvent.change(container.querySelector('#create-collection-headline'), {
+      target: { value: 'Tools' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(createBody()).toBeTruthy());
+    expect(createBody()).not.toHaveProperty('reservation_asks_phone');
+  });
+
+  test('editing a shed that asks shows it on, and turning it off reaches the PATCH', async () => {
+    await renderEdit({ ...SHED, reservation_asks_phone: true });
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+    const toggle = await screen.findByLabelText(SWITCH);
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(toggle);
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(patchBody()).toBeTruthy());
+    expect(patchBody().reservation_asks_phone).toBe(false);
+  });
+
+  test('editing a shed that does not ask, turning it on reaches the PATCH', async () => {
+    await renderEdit({ ...SHED, reservation_asks_phone: false });
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+    const toggle = await screen.findByLabelText(SWITCH);
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(toggle);
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(patchBody()).toBeTruthy());
+    expect(patchBody().reservation_asks_phone).toBe(true);
+  });
+
+  test('a shed saved without touching it keeps it as loaded', async () => {
+    await renderEdit({ ...SHED, reservation_asks_phone: true });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(patchBody()).toBeTruthy());
+    expect(patchBody().reservation_asks_phone).toBe(true);
+  });
+
+  test('editing a library sends no such key', async () => {
+    await renderEdit({
+      code: 'COL001',
+      headline: 'Tools',
+      description: '',
+      status: 'ACTIVE',
+      mode: 'PROPRIETARY',
+      visibility: 'PRIVATE',
+      kind: 'LIBRARY',
+      allowed_thing_types: ['LEND_THING', 'RENT_THING'],
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(patchBody()).toBeTruthy());
+    expect(patchBody()).not.toHaveProperty('reservation_asks_phone');
+  });
+});

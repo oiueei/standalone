@@ -64,6 +64,7 @@ export default function EditCollectionPage() {
   const [reservationMaxDays, setReservationMaxDays] = useState(1);
   const [reservationHorizonDays, setReservationHorizonDays] = useState(90);
   const [reservationMaxActivePerMember, setReservationMaxActivePerMember] = useState(10);
+  const [reservationAsksPhone, setReservationAsksPhone] = useState(false);
   const [reservationMinMinutes, setReservationMinMinutes] = useState(60);
   const [reservationMaxMinutes, setReservationMaxMinutes] = useState(180);
   const [openingHours, setOpeningHours] = useState({});
@@ -190,6 +191,7 @@ export default function EditCollectionPage() {
           setReservationMaxDays(data.reservation_max_days || 1);
           setReservationHorizonDays(data.reservation_horizon_days || 90);
           setReservationMaxActivePerMember(data.reservation_max_active_per_member || 10);
+          setReservationAsksPhone(!!data.reservation_asks_phone);
           setReservationMinMinutes(data.reservation_min_minutes || 60);
           setReservationMaxMinutes(data.reservation_max_minutes || 180);
           setOpeningHours(data.opening_hours || {});
@@ -288,6 +290,7 @@ export default function EditCollectionPage() {
     if (isReservations) {
       body.reservation_horizon_days = reservationHorizonDays;
       body.reservation_max_active_per_member = reservationMaxActivePerMember;
+      body.reservation_asks_phone = reservationAsksPhone;
       body.reservation_unit = reservationUnit;
       if (reservationUnit === 'HOUR') {
         body.reservation_min_minutes = reservationMinMinutes;
@@ -434,6 +437,8 @@ export default function EditCollectionPage() {
           setReservationHorizonDays,
           reservationMaxActivePerMember,
           setReservationMaxActivePerMember,
+          reservationAsksPhone,
+          setReservationAsksPhone,
           reservationMinMinutes,
           setReservationMinMinutes,
           reservationMaxMinutes,

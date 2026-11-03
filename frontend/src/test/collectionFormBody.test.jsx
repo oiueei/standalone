@@ -372,6 +372,7 @@ describe('Edit — the body of a shed booked by the day', () => {
       deposit_policy: '',
       reservation_horizon_days: 30,
       reservation_max_active_per_member: 4,
+      reservation_asks_phone: false,
       reservation_unit: 'DAY',
       reservation_max_days: 3,
     });

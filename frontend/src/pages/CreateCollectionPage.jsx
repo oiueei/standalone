@@ -75,6 +75,7 @@ function CreateCollectionForm({ kind }) {
   const [reservationMaxDays, setReservationMaxDays] = useState(1);
   const [reservationHorizonDays, setReservationHorizonDays] = useState(90);
   const [reservationMaxActivePerMember, setReservationMaxActivePerMember] = useState(10);
+  const [reservationAsksPhone, setReservationAsksPhone] = useState(false);
   const [reservationMinMinutes, setReservationMinMinutes] = useState(60);
   const [reservationMaxMinutes, setReservationMaxMinutes] = useState(180);
   const [openingHours, setOpeningHours] = useState({});
@@ -212,6 +213,7 @@ function CreateCollectionForm({ kind }) {
     if (isReservations) {
       body.reservation_horizon_days = reservationHorizonDays;
       body.reservation_max_active_per_member = reservationMaxActivePerMember;
+      body.reservation_asks_phone = reservationAsksPhone;
       body.reservation_unit = reservationUnit;
       if (reservationUnit === 'HOUR') {
         body.reservation_min_minutes = reservationMinMinutes;
@@ -308,6 +310,8 @@ function CreateCollectionForm({ kind }) {
           setReservationHorizonDays,
           reservationMaxActivePerMember,
           setReservationMaxActivePerMember,
+          reservationAsksPhone,
+          setReservationAsksPhone,
           reservationMinMinutes,
           setReservationMinMinutes,
           reservationMaxMinutes,
