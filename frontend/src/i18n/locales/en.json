@@ -367,6 +367,8 @@
     "depositRefundableNote": "(refundable)",
     "unitsCount_one": "{{count}} unit",
     "unitsCount_other": "{{count}} units",
+    "pausedRange": "No bookings from {{from}} to {{until}}",
+    "pausedDay": "No bookings on {{date}}",
     "availabilityLabel": "Availability.",
     "locationLabel": "Location.",
     "conditionLabel": "Condition.",
@@ -1275,6 +1277,14 @@
   "collectionForm": {
     "membersPriceStall": "Members can sell (set a price)",
     "membersPriceLibrary": "Members can rent out (set a price)"
+  },
+  "thingPause": {
+    "toggleLabel": "Pause bookings: between these two dates nobody can request or book it; bookings already made are not cancelled.",
+    "fromLabel": "From",
+    "untilLabel": "Until",
+    "bookingsInRange_one": "There is {{count}} booking on those dates: it is not cancelled. You can cancel it from your bookings.",
+    "bookingsInRange_other": "There are {{count}} bookings on those dates: they are not cancelled. You can cancel them from your bookings.",
+    "malformedDate": "Enter a date as DD/MM/YYYY."
   },
   "thingForm": {
     "priceStall": "Price (optional)",

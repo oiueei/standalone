@@ -361,6 +361,8 @@
     "depositRefundableNote": "(se devuelve)",
     "unitsCount_one": "{{count}} unidad",
     "unitsCount_other": "{{count}} unidades",
+    "pausedRange": "Sin reservas del {{from}} al {{until}}",
+    "pausedDay": "Sin reservas el {{date}}",
     "availabilityLabel": "Disponibilidad.",
     "locationLabel": "Ubicación.",
     "conditionLabel": "Estado.",
@@ -1275,6 +1277,14 @@
   "collectionForm": {
     "membersPriceStall": "Los miembros pueden vender (poner precio)",
     "membersPriceLibrary": "Los miembros pueden alquilar (poner precio)"
+  },
+  "thingPause": {
+    "toggleLabel": "Pausar reservas: entre esas dos fechas nadie puede pedirla ni reservarla; las reservas ya hechas no se anulan.",
+    "fromLabel": "Desde",
+    "untilLabel": "Hasta",
+    "bookingsInRange_one": "Hay {{count}} reserva en esas fechas: no se anula. Puedes cancelarla desde tus reservas.",
+    "bookingsInRange_other": "Hay {{count}} reservas en esas fechas: no se anulan. Puedes cancelarlas desde tus reservas.",
+    "malformedDate": "Escribe una fecha como DD/MM/AAAA."
   },
   "thingForm": {
     "priceStall": "Precio (opcional)",

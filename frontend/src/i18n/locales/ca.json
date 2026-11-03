@@ -361,6 +361,8 @@
     "depositRefundableNote": "(es retorna)",
     "unitsCount_one": "{{count}} unitat",
     "unitsCount_other": "{{count}} unitats",
+    "pausedRange": "Sense reserves del {{from}} al {{until}}",
+    "pausedDay": "Sense reserves el {{date}}",
     "availabilityLabel": "Disponibilitat.",
     "locationLabel": "Ubicació.",
     "conditionLabel": "Estat.",
@@ -1275,6 +1277,14 @@
   "collectionForm": {
     "membersPriceStall": "Els membres poden vendre (posar preu)",
     "membersPriceLibrary": "Els membres poden llogar (posar preu)"
+  },
+  "thingPause": {
+    "toggleLabel": "Pausar les reserves: entre aquestes dues dates ningú no la pot demanar ni reservar; les reserves ja fetes no s'anul·len.",
+    "fromLabel": "Des de",
+    "untilLabel": "Fins a",
+    "bookingsInRange_one": "Hi ha {{count}} reserva en aquestes dates: no s'anul·la. La pots cancel·lar des de les teves reserves.",
+    "bookingsInRange_other": "Hi ha {{count}} reserves en aquestes dates: no s'anul·len. Les pots cancel·lar des de les teves reserves.",
+    "malformedDate": "Escriu una data com DD/MM/AAAA."
   },
   "thingForm": {
     "priceStall": "Preu (opcional)",
