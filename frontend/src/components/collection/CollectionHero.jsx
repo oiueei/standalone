@@ -6,6 +6,7 @@ import { apiFetch } from '../../services/api';
 import AccountMenu from '../AccountMenu';
 import BackLink from '../BackLink';
 import ButtonLink from '../ButtonLink';
+import CollectionSettingsMenu from '../CollectionSettingsMenu';
 import CollectionMenu, {
   CollectionDigestStatus,
   CollectionDownloadsStatus,
@@ -165,6 +166,9 @@ export default function CollectionHero({
               requestsInCollectionMenu={isCurator || isMember}
               offerSignIn={!showsSignedOutDoors}
             />
+            {/* The settings pages (appearance…), curators only, between the
+                  account menu and the collection's own options. */}
+            {isCurator && <CollectionSettingsMenu code={code} kind={collection.kind} />}
             {/* The group's own options, between the account menu
                   and the share one: a curator's, and a
                   member's, with what is theirs. Nothing for a reader who is

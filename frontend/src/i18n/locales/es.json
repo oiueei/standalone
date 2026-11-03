@@ -170,7 +170,9 @@
     "contact": "Contacto — OIUEEI",
     "ownerBookings": "Solicitudes para mí — OIUEEI",
     "dataExport": "Exportar datos — OIUEEI",
-    "reserveThing": "Reservar: {{headline}} — OIUEEI"
+    "reserveThing": "Reservar: {{headline}} — OIUEEI",
+    "collectionAppearance": "Apariencia de {{headline}} — OIUEEI",
+    "collectionAppearanceDefault": "Apariencia — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -963,7 +965,8 @@
     "emailNoteHint": "El aviso del correo también admite un texto por idioma.",
     "emailNoteInfoBody": "Funciona igual: escríbelo como un pequeño mapa y cada miembro leerá el suyo en el correo.",
     "infoFallback": "Idiomas: es (español), ca (catalán), en (inglés). Puedes escribir en uno solo si lo prefieres: todo lo que no sea un mapa se muestra tal cual lo escribiste.",
-    "readAsPlain": "Se lee como texto normal: para escribir uno por idioma, revisa las comillas y los códigos es, ca, en."
+    "readAsPlain": "Se lee como texto normal: para escribir uno por idioma, revisa las comillas y los códigos es, ca, en.",
+    "tagsNotice": "Escribe las etiquetas en un solo idioma si lo prefieres. Pero si tu colección se lee en dos o más idiomas, puedes escribir cada etiqueta en todos ellos."
   },
   "deleteAccount": {
     "pageTitle": "Borrar tu cuenta",
@@ -1131,7 +1134,7 @@
   },
   "homePage": {
     "label": "Página web",
-    "helper": "Una dirección web opcional para esta colección (máx. 128 caracteres)."
+    "helper": "Hace que «Inicio» lleve a vuestra web en lugar de la página de inicio de OIUEEI."
   },
   "newVersion": {
     "body": "Hay una versión nueva de OIUEEI.",
@@ -1293,5 +1296,11 @@
     "priceLibraryHelp": "Sin precio, se presta gratis.",
     "unitsLabel": "¿Cuántas iguales hay?",
     "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una."
+  },
+  "collectionSettings": {
+    "menu": "Ajustes",
+    "appearance": "Apariencia",
+    "logoLabel": "Logo o imagen de cabecera",
+    "logoHelper": "Solo imágenes de mapa de bits (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP y TIFF), máx. 10 MB."
   }
 }

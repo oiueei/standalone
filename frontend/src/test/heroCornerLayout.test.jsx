@@ -31,6 +31,7 @@ vi.mock('../services/api', async (importOriginal) => ({
 import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionPage from '../pages/CollectionPage';
+import CollectionSettingsMenu from '../components/CollectionSettingsMenu';
 import { press } from './settle';
 
 // ── App.css, as rules ──────────────────────────────────────────────────
@@ -197,19 +198,19 @@ describe('the back link keeps out from under the corner icons', () => {
       </MemoryRouter>
     );
     await screen.findByRole('button', { name: /share collection/i }); // a curator's hero is loaded
-    // A curator gets every control a hero can hold: account, collection, share.
-    // The contact icon that was a fourth left for the footer on 2026-10-04.
+    // A curator gets every control a hero can hold: account, settings, collection, share.
     const controls = container.querySelector('.hero-corners').children.length;
-    expect(controls).toBe(3);
+    expect(controls).toBe(4);
 
     const [declaredWidth] = declarations('.form-hero-content', '--hero-corners-width');
     const [, count, size, gaps] =
       /^calc\((\d+) \* (\d+)px \+ (\d+) \* var\(--spacing-2-xs\)\)$/.exec(declaredWidth) ?? [];
-    // Three controls, each as wide as the CSS says an icon control is, and the gaps
+    // Four controls, each as wide as the CSS says an icon control is, and the gaps
     // between them (one fewer) at the row's own `gap`.
     expect(Number(count)).toBe(controls);
     for (const selector of [
       '.account-menu-trigger',
+      '.collection-settings-menu-trigger',
       '.collection-menu-trigger',
       '.share-menu-trigger',
     ]) {
@@ -221,7 +222,7 @@ describe('the back link keeps out from under the corner icons', () => {
 });
 
 describe('the collection menu panel anchors to the corner row like the account menu', () => {
-  test('the corner row reads account · collection · share, left to right', async () => {
+  test('the corner row reads account · settings · collection · share, left to right', async () => {
     apiFetch.mockImplementation(() =>
       Promise.resolve({ ok: true, status: 200, json: async () => CURATED })
     );
@@ -236,7 +237,12 @@ describe('the collection menu panel anchors to the corner row like the account m
 
     // DOM order is visual order in a flex row: each control is the child that is,
     // or holds, its own marker.
-    const markers = ['.account-menu', '.collection-menu', '.share-menu'];
+    const markers = [
+      '.account-menu',
+      '.collection-settings-menu',
+      '.collection-menu',
+      '.share-menu',
+    ];
     const order = [...container.querySelector('.hero-corners').children].map((child) =>
       markers.find((marker) => child.matches(marker) || child.querySelector(marker))
     );
@@ -284,6 +290,97 @@ describe('the collection menu panel anchors to the corner row like the account m
     expect(declarations('.collection-menu-panel', 'max-width')).toEqual([
       'calc(100vw - 2 * var(--spacing-s))',
     ]);
+  });
+});
+
+describe('the settings menu panel anchors to the corner row like the others', () => {
+  test('.collection-settings-menu establishes no containing block of its own', () => {
+    for (const property of [
+      'position',
+      'transform',
+      'filter',
+      'perspective',
+      'contain',
+      'will-change',
+    ]) {
+      expect(declarations('.collection-settings-menu', property), property).toEqual([]);
+    }
+  });
+
+  test("the panel is pinned to the row's right edge, never wider than the screen", () => {
+    expect(declarations('.collection-settings-menu-panel', 'position')).toEqual(['absolute']);
+    expect(declarations('.collection-settings-menu-panel', 'right')).toEqual(['0']);
+    expect(declarations('.collection-settings-menu-panel', 'max-width')).toEqual([
+      'calc(100vw - 2 * var(--spacing-s))',
+    ]);
+  });
+
+  test('the panel sits in .collection-settings-menu, directly in .hero-corners', async () => {
+    apiFetch.mockImplementation(() =>
+      Promise.resolve({ ok: true, status: 200, json: async () => CURATED })
+    );
+    const { container } = render(
+      <MemoryRouter initialEntries={['/collections/COL001']}>
+        <Routes>
+          <Route path="/collections/:code" element={<CollectionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    await press(await screen.findByRole('button', { name: 'Settings' }));
+
+    const panel = container.querySelector('.collection-settings-menu-panel');
+    expect(panel).not.toBeNull();
+    expect(panel.parentElement).toHaveClass('collection-settings-menu');
+    expect(panel.parentElement.parentElement).toHaveClass('hero-corners');
+  });
+});
+
+describe('who gets the settings menu', () => {
+  const renderAs = async (collection) => {
+    apiFetch.mockImplementation(() =>
+      Promise.resolve({ ok: true, status: 200, json: async () => collection })
+    );
+    render(
+      <MemoryRouter initialEntries={['/collections/COL001']}>
+        <Routes>
+          <Route path="/collections/:code" element={<CollectionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    await screen.findByRole('button', { name: /collection options/i });
+  };
+
+  test('a curator has it', async () => {
+    await renderAs(CURATED);
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  test('a co-curator has it too: is_curator is the server’s word for both', async () => {
+    await renderAs({ ...CURATED, owner: 'OTHER1', co_owners: [{ code: 'ABC123', name: 'Me' }] });
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  test('a member who does not run the group has no settings', async () => {
+    await renderAs({ ...CURATED, owner: 'OTHER1', is_curator: false, is_member: true });
+    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
+    // …while their own collection menu is still there.
+    expect(screen.getByRole('button', { name: /collection options/i })).toBeInTheDocument();
+  });
+
+  test('a stall, a library and a shed all offer Appearance', async () => {
+    for (const kind of ['STALL', 'LIBRARY', 'SHED']) {
+      const { unmount } = render(
+        <MemoryRouter>
+          <CollectionSettingsMenu code="COL001" kind={kind} />
+        </MemoryRouter>
+      );
+      await press(screen.getByRole('button', { name: 'Settings' }));
+      expect(screen.getByRole('link', { name: 'Appearance' })).toHaveAttribute(
+        'href',
+        `/${kind.toLowerCase()}/COL001/settings/appearance`
+      );
+      unmount();
+    }
   });
 });
 
@@ -405,7 +502,7 @@ describe('no hero carries the contact icon', () => {
     );
     await screen.findByRole('button', { name: /share collection/i });
 
-    expect(container.querySelector('.hero-corners').children).toHaveLength(3);
+    expect(container.querySelector('.hero-corners').children).toHaveLength(4);
     expect(contactLinks(container.querySelector('.form-hero'))).toHaveLength(0);
   });
 

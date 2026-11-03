@@ -82,14 +82,14 @@ body {
 .form-hero-content {
   /* How much of the content column's right edge the icon corner (.hero-corners)
      can take: the widest it gets is a curator's hero on CollectionPage — account
-     menu, collection menu, share menu — which is 3 controls of 44px
-     (.account-menu-trigger, .collection-menu-trigger and .share-menu-trigger all
-     declare that) and the 2 gaps between them (.hero-corners' `gap`). It was 4
-     and 3 until the contact icon went to the footer (2026-10-04). A hero with
+     menu, settings menu, collection menu, share menu — which is 4 controls of 44px
+     (.account-menu-trigger, .collection-settings-menu-trigger,
+     .collection-menu-trigger and .share-menu-trigger all declare that) and the 3
+     gaps between them (.hero-corners' `gap`). A hero with
      fewer icons reserves the same width: the back link cannot know which ones its
      page will render. Pinned in test/heroCornerLayout.test.jsx, which recomputes
      it from the DOM and these rules. */
-  --hero-corners-width: calc(3 * 44px + 2 * var(--spacing-2-xs));
+  --hero-corners-width: calc(4 * 44px + 3 * var(--spacing-2-xs));
   /* The first 80px are the navigation band: the back link and the corner icons
      sit centred in it. Under it the content runs one rhythm (see below), and
      24px close it against the koro. */
@@ -104,7 +104,7 @@ body {
   /* "← {collection name}" is the first thing in the hero and sits on the same
      band as the corner icons, which are absolutely positioned and reserve
      nothing: a long name ran underneath them. Capped so the text wraps before
-     the icons instead (a 320px screen leaves the link 288 - 148 - 8 = 132px). */
+     the icons instead (a 320px screen leaves the link 288 - 200 - 8 = 80px). */
   max-width: calc(100% - var(--hero-corners-width) - var(--spacing-xs));
   /* Its 24px line sits at y=28..52 of the band (centred in 80px): the band is
      the hero's top padding, so the link climbs back into it and gives the rest
@@ -261,6 +261,7 @@ body {
 
 .account-menu-trigger,
 .collection-menu-trigger,
+.collection-settings-menu-trigger,
 .share-menu-trigger {
   width: 44px;
   height: 44px;
@@ -282,6 +283,7 @@ a.account-menu-trigger {
 
 .account-menu-panel,
 .collection-menu-panel,
+.collection-settings-menu-panel,
 .share-menu-panel {
   position: absolute;
   top: calc(100% + var(--spacing-2-xs));
@@ -305,7 +307,8 @@ a.account-menu-trigger {
 /* Each entry is a 44px tap target (DESIGN §4): the padding alone left them
    about 40px tall. Flex centres the text in that height. */
 .account-menu-panel a,
-.collection-menu-panel a {
+.collection-menu-panel a,
+.collection-settings-menu-panel a {
   display: flex;
   align-items: center;
   min-height: 44px;
@@ -352,7 +355,8 @@ a.account-menu-trigger {
    `:focus-visible` occurrence in this file — a second one earlier would
    shadow it there without changing anything visible. */
 .account-menu-panel a:hover,
-.collection-menu-panel a:hover {
+.collection-menu-panel a:hover,
+.collection-settings-menu-panel a:hover {
   background-color: var(--color-black-5);
 }
 
