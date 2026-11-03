@@ -202,21 +202,37 @@ describe('the back link keeps out from under the corner icons', () => {
     const controls = container.querySelector('.hero-corners').children.length;
     expect(controls).toBe(4);
 
-    const [declaredWidth] = declarations('.form-hero-content', '--hero-corners-width');
-    const [, count, size, gaps] =
-      /^calc\((\d+) \* (\d+)px \+ (\d+) \* var\(--spacing-2-xs\)\)$/.exec(declaredWidth) ?? [];
+    // The collection's own hero is the one that carries the settings class, and it
+    // reserves exactly the controls it paints.
+    expect(container.querySelector('.form-hero-content')).toHaveClass(
+      'form-hero-content--settings'
+    );
+    const widthOf = (selector) => {
+      const [declared] = declarations(selector, '--hero-corners-width');
+      const [, count, size, gaps] =
+        /^calc\((\d+) \* (\d+)px \+ (\d+) \* var\(--spacing-2-xs\)\)$/.exec(declared) ?? [];
+      return { count: Number(count), size, gaps: Number(gaps) };
+    };
+    const own = widthOf('.form-hero-content.form-hero-content--settings');
     // Four controls, each as wide as the CSS says an icon control is, and the gaps
     // between them (one fewer) at the row's own `gap`.
-    expect(Number(count)).toBe(controls);
+    expect(own.count).toBe(controls);
+    expect(own.gaps).toBe(controls - 1);
     for (const selector of [
       '.account-menu-trigger',
       '.collection-settings-menu-trigger',
       '.collection-menu-trigger',
       '.share-menu-trigger',
     ]) {
-      expect(declarations(selector, 'width'), selector).toEqual([`${size}px`]);
+      expect(declarations(selector, 'width'), selector).toEqual([`${own.size}px`]);
     }
-    expect(Number(gaps)).toBe(controls - 1);
+
+    // Every other hero reserves the three controls a page without a settings menu can
+    // hold (account, collection, share): the settings icon is not one of them.
+    const rest = widthOf('.form-hero-content');
+    expect(rest.count).toBe(controls - 1);
+    expect(rest.gaps).toBe(controls - 2);
+    expect(rest.size).toBe(own.size);
     expect(declarations('.hero-corners', 'gap')).toEqual(['var(--spacing-2-xs)']);
   });
 });
@@ -356,6 +372,29 @@ describe('who gets the settings menu', () => {
   });
 
   test('a co-curator has it too: is_curator is the server’s word for both', async () => {
+    await renderAs({ ...CURATED, owner: 'OTHER1', co_owners: [{ code: 'ABC123', name: 'Me' }] });
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  // No `kind`: with one the page redirects to its kind's address, which these routes
+  // do not mount, and the hero would vanish mid-test.
+  const NETWORK = { ...CURATED, mode: 'NETWORK' };
+
+  test('in a network a dinamizador has no settings: they are the founder’s, as "Edit collection"', async () => {
+    await renderAs({ ...NETWORK, owner: 'OTHER1', co_owners: [{ code: 'ABC123', name: 'Me' }] });
+
+    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
+    // They still run the group: the other curator menu is there.
+    expect(screen.getByRole('button', { name: /collection options/i })).toBeInTheDocument();
+  });
+
+  test('in a network the founder has the settings', async () => {
+    await renderAs(NETWORK); // the viewer (ABC123) is the founder
+
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  test('outside a network a co-curator keeps the settings', async () => {
     await renderAs({ ...CURATED, owner: 'OTHER1', co_owners: [{ code: 'ABC123', name: 'Me' }] });
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
   });
