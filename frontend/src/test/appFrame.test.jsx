@@ -57,6 +57,16 @@ function navigateTo(path) {
   });
 }
 
+/** Navigate to the contact page and wait until it has finished mounting: the pages are
+ *  lazy chunks, and one that finishes loading after the test has ended is reported as
+ *  an update outside `act`. Its heading is the page's own, and `settle` lets the
+ *  request it makes on arrival land too. */
+async function navigateToContact() {
+  navigateTo('/contact');
+  await screen.findByRole('heading', { level: 1, name: 'Contact us' });
+  await settle(globalThis.fetch);
+}
+
 describe('the skip link', () => {
   test('is in the document, before main, pointing at it', async () => {
     const { default: App } = await import('../App');
@@ -93,7 +103,7 @@ describe('navigating to another page', () => {
     const main = container.querySelector('#main');
     await waitFor(() => expect(main).not.toBeNull());
 
-    navigateTo('/contact');
+    await navigateToContact();
 
     // Both halves matter to a keyboard or screen-reader user: focus lands on the
     // new page's content rather than wherever the previous page left it, and the
@@ -110,7 +120,7 @@ describe('navigating to another page', () => {
     await waitFor(() => expect(main).not.toBeNull());
     const focus = vi.spyOn(main, 'focus');
 
-    navigateTo('/contact');
+    await navigateToContact();
 
     await waitFor(() => expect(focus).toHaveBeenCalledWith({ preventScroll: true }));
     // `html` smooths scrolling for the footer's anchor; a page change must jump.
@@ -125,7 +135,7 @@ describe('navigating to another page', () => {
 
     await waitFor(() => expect(document.title).toMatch(/legal|OIUEEI/i));
 
-    navigateTo('/contact');
+    await navigateToContact();
 
     await waitFor(() => expect(document.title).toMatch(/contact|contacto|contacte/i));
   });
