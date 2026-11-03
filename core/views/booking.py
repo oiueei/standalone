@@ -18,7 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models.booking import BookingPeriod
+from core.models.booking import BookingPeriod, saturated_periods
 from core.models.collection import Collection
 from core.models.rsvp import RSVP
 from core.models.thing import Thing
@@ -61,14 +61,22 @@ class ThingCalendarView(APIView):
 
         # Owner (and a PROPRIETARY collection's co-curator, who runs its
         # bookings) sees full details; guests see only dates and status.
-        if thing.can_manage(viewer_code(request)):
+        managed = thing.can_manage(viewer_code(request))
+        if managed and request.query_params.get("for") != "request":
             # The owner serializer reads requester_code.name per period — pull it
             # in up front so the calendar stays a fixed number of queries
             # regardless of how many bookings it lists.
             blocked_periods = blocked_periods.select_related("requester_code")
             serializer = BookingPeriodOwnerCalendarSerializer(blocked_periods, many=True)
         else:
-            serializer = BookingPeriodCalendarSerializer(blocked_periods, many=True)
+            # With several units a thing is taken only where they are all on: that is
+            # what anyone asking to book is served (``saturated_periods``, the rule
+            # the request itself is judged by) — a manager too, when they ask for
+            # ``?for=request``, so booking looks the same to them as to a member.
+            # With one unit it is every booking, as before.
+            serializer = BookingPeriodCalendarSerializer(
+                saturated_periods(list(blocked_periods), thing.units), many=True
+            )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

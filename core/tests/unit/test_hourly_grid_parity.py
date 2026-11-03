@@ -25,6 +25,7 @@ import pytest
 from django.utils import timezone
 
 from core.models import BookingPeriod, Collection, Thing, User
+from core.models.booking import saturated_periods
 from core.services.booking_service import _day_has_a_free_hour
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -101,7 +102,12 @@ def test_the_server_accepts_exactly_the_starts_the_page_offers(space):
         if collection.reservation_hour_violation(monday, begins, ends, now=now):
             continue
         if BookingPeriod.has_overlap(
-            thing.code, monday, monday + timedelta(days=1), start_time=begins, end_time=ends
+            thing.code,
+            monday,
+            monday + timedelta(days=1),
+            start_time=begins,
+            end_time=ends,
+            units=case.get("units", 1),
         ):
             continue
         accepted.append(begins.strftime("%H:%M"))
@@ -111,9 +117,38 @@ def test_the_server_accepts_exactly_the_starts_the_page_offers(space):
 @pytest.mark.parametrize("space", CASES, ids=[c["name"] for c in CASES], indirect=True)
 def test_the_server_finds_a_free_slot_exactly_when_the_picker_offers_the_day(space):
     case, collection, thing, monday, now = space
-    blocked = list(BookingPeriod.objects.filter(thing_code=thing))
+    # As `Thing.availability_window` does: with several units a day is taken only
+    # where they are all on.
+    blocked = saturated_periods(
+        list(BookingPeriod.objects.filter(thing_code=thing)), case.get("units", 1)
+    )
     earliest = now.hour * 60 + now.minute if now.date() == monday else 0
     assert (
         _day_has_a_free_hour(monday, collection, blocked, earliest=earliest)
         is case["day_has_a_free_slot"]
+    )
+
+
+def _shape(row):
+    """A row as the JSON file writes it: None for a whole day, [start, end] otherwise."""
+    if row.start_time is None:
+        return None
+    return [row.start_time.strftime("%H:%M"), row.end_time.strftime("%H:%M")]
+
+
+def _ordered(rows):
+    return sorted(rows, key=lambda r: ("", "") if r is None else tuple(r))
+
+
+@pytest.mark.parametrize("space", CASES, ids=[c["name"] for c in CASES], indirect=True)
+def test_the_server_serves_exactly_the_taken_periods_the_page_is_fed(space):
+    """The stretches the server works out as full are the ones the file hands the
+    page as `served_periods` (the bookings themselves, with one unit)."""
+    case, collection, thing, monday, now = space
+    rows = list(BookingPeriod.objects.filter(thing_code=thing))
+
+    served = saturated_periods(rows, case.get("units", 1))
+
+    assert _ordered(_shape(r) for r in served) == _ordered(
+        case.get("served_periods", case["bookings"])
     )

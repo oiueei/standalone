@@ -63,6 +63,7 @@ class CollectionThingSummarySerializer(ThingComputedFieldsMixin, serializers.Mod
             "can_manage",
             "network_point",
             "transfer_count",
+            "units",
             "deal",
             "created",
         ]

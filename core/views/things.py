@@ -27,7 +27,11 @@ from core.serializers import (
     ThingSerializer,
     ThingUpdateSerializer,
 )
-from core.serializers.thing import optimise_thing_queryset, validate_deposit_for_type
+from core.serializers.thing import (
+    optimise_thing_queryset,
+    validate_deposit_for_type,
+    validate_units_for_type,
+)
 from core.services.creator_policy import (
     capabilities_for,
     community_contribution_types,
@@ -172,6 +176,7 @@ class ThingViewSet(ModelViewSet):
         else:
             thing_type = serializer.validated_data.get("type", Thing.Type.GIFT_THING)
         validate_deposit_for_type(thing_type, serializer.validated_data.get("deposit"))
+        validate_units_for_type(thing_type, serializer.validated_data.get("units"))
 
         # Whether this deployment offers the verb at all. The one exception is a
         # member contributing an owner-allow-listed type to a COMMUNITY group
@@ -262,6 +267,9 @@ class ThingViewSet(ModelViewSet):
                 raise ValidationError({"type": mismatch})
             validated["type"] = derived
         new_type = validated.get("type", thing.type)
+        if new_type != Thing.Type.RESERVE_THING:
+            # A thing that is not a reservation has one unit, whatever it had before.
+            validated["units"] = 1
         if new_type != thing.type:
             # Only on a change: a thing already offered under a verb the policy
             # has since stopped handing out stays editable by its owner. The

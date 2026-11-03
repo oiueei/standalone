@@ -372,6 +372,60 @@ class TestTwoRequestsForOneSlotAreSerialised:
             == 1
         )
 
+    def test_two_requests_for_the_last_unit_let_exactly_one_in(self, monkeypatch, user, user2):
+        """A space with two identical units and one already taken: the last unit is
+        asked for by two members at once. Both read "one booking, one free" before
+        either commits unless the Thing lock serialises them; the loser must get the
+        409 and the space must end with exactly two bookings, never three."""
+        other = User.objects.create(code="RCEUSR", email="lolo@your-domain.test")
+        holder = User.objects.create(code="RCEUS3", email="lulu@your-domain.test")
+        coll, thing = self._reservations_collection(user, user2, other, holder)
+        Thing.objects.filter(pk=thing.pk).update(units=2)
+        thing.refresh_from_db()
+        day = date.today() + timedelta(days=2)
+        BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=holder,
+            requester_email=holder.email,
+            owner_code=user,
+            start_date=day,
+            end_date=day + timedelta(days=1),
+            status=BookingPeriod.Status.ACCEPTED,
+        )
+        original = BookingPeriod.has_overlap
+
+        def first(guard):
+            # With several units the first call is the one-person-at-a-time check,
+            # inside the Thing lock and before the units are counted.
+            monkeypatch.setattr(BookingPeriod, "has_overlap", _one_shot(original, guard))
+            try:
+                return request_reservation(
+                    thing, user2, user.email, day, 1, collection_code=coll.code
+                )
+            finally:
+                monkeypatch.setattr(BookingPeriod, "has_overlap", original)
+
+        def second():
+            try:
+                return request_reservation(
+                    thing, other, user.email, day, 1, collection_code=coll.code
+                )
+            except BookingRequestError as exc:
+                return ("refused", exc.status_code)
+
+        first_result, second_result, was_blocked = _run_both(first, second)
+
+        assert was_blocked, "the second request read straight past the Thing lock"
+        assert isinstance(first_result, BookingPeriod)
+        assert second_result == ("refused", 409), second_result
+        assert (
+            BookingPeriod.objects.filter(
+                thing_code=thing, status=BookingPeriod.Status.ACCEPTED
+            ).count()
+            == 2
+        )
+
     def test_a_gift_cannot_be_claimed_twice_at_once(self, monkeypatch, user, user2):
         """Two members claiming the same single-use GIFT: one booking, the thing
         TAKEN once. Unlocked, both read status ACTIVE and both create."""

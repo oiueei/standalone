@@ -904,6 +904,8 @@ Lists the twelve palettes a curator can pick for a collection (`theeeme` in the 
 | **Endpoint** | `GET /api/v1/things/{thing_code}/calendar/` |
 | **Permission** | `AllowAny` + `get_viewable_thing()` (public read on a viewable thing) |
 
+**With several units (`Thing.units`, RESERVE only)** a thing is taken only where all of them are on, so whoever does not manage it is served `saturated_periods(bookings, units)` — the full stretches, without names — instead of the bookings (with one unit it is the bookings, as before). A manager is served the real bookings with names, **unless they ask `?for=request`**: then they are served what a member would be (the request page asks for it, so a curator who books sees the same calendar), through the same serializer without names. `ThingSerializer.bookings` (the owner's list) keeps the real bookings.
+
 Returns blocked periods for a thing's calendar — PENDING/ACCEPTED bookings not already over (`BookingPeriod.blocking_filter`: undated, or ending yesterday or later); a thing's past is not served, to anyone. A **manager** — the owner, or a curator of a PROPRIETARY collection it sits in (`Thing.can_manage`, 2026-09) — sees full details (`BookingPeriodOwnerCalendarSerializer`); guests see only dates and status (`BookingPeriodCalendarSerializer`).
 
 ### MyBookingsView

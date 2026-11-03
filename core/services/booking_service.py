@@ -934,15 +934,34 @@ def request_reservation(
         end_time = None
 
     with transaction.atomic():
-        Thing.objects.select_for_update().get(code=thing.code)
+        locked = Thing.objects.select_for_update().get(code=thing.code)
         if rc.active_reservation_count(requester.code) >= rc.reservation_max_active_per_member:
             raise BookingRequestError(
                 "You've reached the maximum number of active reservations for this space.",
                 code="reservation_max_active",
                 params={"max": rc.reservation_max_active_per_member},
             )
+        if locked.units > 1 and BookingPeriod.has_overlap(
+            thing.code,
+            start_date,
+            end_date,
+            start_time=start_time,
+            end_time=end_time,
+            requester_code=requester.code,
+        ):
+            # A person takes one unit at a time: otherwise one of them could hold all.
+            raise BookingRequestError(
+                "You already have a booking of this at that time.",
+                status_code=409,
+                code="reservation_one_per_person",
+            )
         if BookingPeriod.has_overlap(
-            thing.code, start_date, end_date, start_time=start_time, end_time=end_time
+            thing.code,
+            start_date,
+            end_date,
+            start_time=start_time,
+            end_time=end_time,
+            units=locked.units,
         ):
             clash_message = (
                 "That time is already taken." if start_time else "Those dates are already taken."

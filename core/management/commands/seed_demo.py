@@ -343,6 +343,7 @@ class Command(BaseCommand):
                 "gallery": [_seed_image(g) for g in data.get("gallery", [])],
                 "tags": data.get("tags", []),
                 "is_endless": data.get("is_endless", False),
+                "units": data.get("units", 1),
             }
             thing, _ = Thing.objects.update_or_create(code=data["code"], defaults=defaults)
             for col_code in data.get("collections", []):

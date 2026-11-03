@@ -39,6 +39,9 @@ const clock = (minutes) =>
 
 describe.each(grid.cases)('the hourly grid: $name', (c) => {
   const openingHours = { 0: c.blocks };
+  // What the server serves the page as taken: with several units, only where they
+  // are all on (`served_periods`); with one, the bookings themselves.
+  const served = c.served_periods ?? c.bookings;
   const day = parseLocalDate(MONDAY);
   const now = clock(c.now_minutes);
 
@@ -46,7 +49,7 @@ describe.each(grid.cases)('the hourly grid: $name', (c) => {
     const starts = freeStartTimes(
       dayBlocks(openingHours, day),
       c.duration,
-      dayBookings(blockedPeriods(c.bookings), MONDAY),
+      dayBookings(blockedPeriods(served), MONDAY),
       c.min_minutes,
       earliestStartMinutes(MONDAY, now)
     );
@@ -57,7 +60,7 @@ describe.each(grid.cases)('the hourly grid: $name', (c) => {
     const disabled = isHourlyPickupDisabled(day, {
       openingHours,
       closedDates: [],
-      blockedPeriods: blockedPeriods(c.bookings),
+      blockedPeriods: blockedPeriods(served),
       minMinutes: c.min_minutes,
       now,
     });

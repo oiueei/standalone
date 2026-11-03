@@ -117,6 +117,11 @@ class Thing(models.Model):
         ),
     )
     is_endless = models.BooleanField(default=False)
+    # RESERVE_THING only: how many identical ones the space has, so that many
+    # reservations can overlap (``BookingPeriod.saturated_periods``). 1 = the
+    # ordinary single thing, and every other type stays at 1. The database default
+    # is for the previous release's dynos, which insert without naming the column.
+    units = models.PositiveSmallIntegerField(default=1, db_default=1)
     deal = models.ManyToManyField(
         "User",
         blank=True,
@@ -271,7 +276,7 @@ class Thing(models.Model):
         if hasattr(self, "_availability_window_cache"):
             return self._availability_window_cache
 
-        from core.models.booking import DATE_BASED_TYPES, BookingPeriod
+        from core.models.booking import DATE_BASED_TYPES, BookingPeriod, saturated_periods
 
         if self.type not in DATE_BASED_TYPES:
             self._availability_window_cache = None
@@ -293,6 +298,8 @@ class Thing(models.Model):
         # reused as "days open", durations don't apply, and the walk stops at
         # that collection's own "how far ahead" horizon rather than the default.
         if self.type == Thing.Type.RESERVE_THING:
+            # With several units the thing is unavailable only where they are all on.
+            blocked = saturated_periods(blocked, self.units)
             rc = collection or resolve_reservations_collection(self)
             if rc and rc.is_hourly_reservations():
                 available_today, next_available = compute_hourly_availability(blocked, rc)

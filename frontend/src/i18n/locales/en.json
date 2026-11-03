@@ -1224,6 +1224,7 @@
     "reservation_inactive": "This reservation is no longer active.",
     "reservation_max_active_one": "You already have 1 active reservation here — the most this collection allows.",
     "reservation_max_active_other": "You already have {{count}} active reservations here — the most this collection allows.",
+    "reservation_one_per_person": "You already have a booking of this at that time.",
     "reservation_needs_days": "This is booked by the day — pick how many days.",
     "reservation_needs_times": "This is booked by the hour — pick a start time.",
     "reservation_not_open_that_day": "It isn't open that day.",

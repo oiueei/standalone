@@ -48,6 +48,16 @@ def validate_deposit_for_type(thing_type, deposit):
         )
 
 
+def validate_units_for_type(thing_type, units):
+    """Several identical units mean something only for a space that is booked: on any
+    other type the number stays 1. Like the deposit, judged on the row that results,
+    and from every door (the JSON API, the edit form)."""
+    if units is not None and units != 1 and thing_type != Thing.Type.RESERVE_THING:
+        raise serializers.ValidationError(
+            {"units": "Only a space that is booked can have several identical units."}
+        )
+
+
 def optimise_thing_queryset(queryset, *, with_collections=False):
     """Attach the select/prefetch chain every list-of-things view needs so
     ThingComputedFieldsMixin's getters below stay prefetch-aware and N+1-free.
@@ -446,6 +456,7 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
             "closed_dates",
             "transfer_count",
             "is_endless",
+            "units",
         ]
         read_only_fields = [
             "code",
@@ -863,6 +874,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
     deposit = serializers.DecimalField(
         max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
     )
+    units = serializers.IntegerField(min_value=1, max_value=20, required=False)
 
     class Meta:
         model = Thing
@@ -879,6 +891,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
             "location",
             "condition",
             "is_endless",
+            "units",
         ]
 
     def validate(self, attrs):
@@ -886,6 +899,7 @@ class ThingCreateSerializer(serializers.ModelSerializer):
         # the price, and runs this same check on the result.
         if "type" in attrs:
             validate_deposit_for_type(attrs["type"], attrs.get("deposit"))
+            validate_units_for_type(attrs["type"], attrs.get("units"))
         return attrs
 
 
@@ -920,6 +934,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
     deposit = serializers.DecimalField(
         max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
     )
+    units = serializers.IntegerField(min_value=1, max_value=20, required=False)
 
     class Meta:
         model = Thing
@@ -937,6 +952,7 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "location",
             "condition",
             "is_endless",
+            "units",
         ]
         read_only_fields = ["status"]
 
@@ -949,6 +965,12 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             attrs.get("type", stored.type if stored else None),
             attrs.get("deposit", stored.deposit if stored else None),
         )
+        # A thing that stops being a reservation goes back to one unit (the view
+        # sets it); only a number named in this very request is judged here.
+        if "units" in attrs:
+            validate_units_for_type(
+                attrs.get("type", stored.type if stored else None), attrs["units"]
+            )
         return attrs
 
     def validate_tags(self, value):
