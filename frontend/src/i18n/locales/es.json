@@ -174,7 +174,9 @@
     "collectionAppearance": "Apariencia de {{headline}} — OIUEEI",
     "collectionAppearanceDefault": "Apariencia — OIUEEI",
     "collectionNotifications": "Notificaciones de {{headline}} — OIUEEI",
-    "collectionNotificationsDefault": "Notificaciones — OIUEEI"
+    "collectionNotificationsDefault": "Notificaciones — OIUEEI",
+    "collectionAvailability": "Disponibilidad de {{headline}} — OIUEEI",
+    "collectionAvailabilityDefault": "Disponibilidad — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -930,7 +932,7 @@
     "weekdaysLabel": "Días de recogida y devolución",
     "weekdaysHelper": "Recogida y devolución deben caer en estos días. Vacío = cualquier día.",
     "depositPolicyLabel": "Política de fianzas (opcional)",
-    "depositPolicyHelper": "Cómo funcionan las fianzas en esta colección — el importe se pone en cada cosa, esto explica la condición para devolverla. Déjalo vacío si la colección no usa fianzas.",
+    "depositPolicyHelper": "Cómo funcionan las fianzas en esta colección — el importe se pone en cada cosa, esto explica la condición para devolverla.",
     "d1": "1 día",
     "d2": "2 días",
     "d3": "3 días",
@@ -969,7 +971,9 @@
     "infoFallback": "Idiomas: es (español), ca (catalán), en (inglés). Puedes escribir en uno solo si lo prefieres: todo lo que no sea un mapa se muestra tal cual lo escribiste.",
     "readAsPlain": "Se lee como texto normal: para escribir uno por idioma, revisa las comillas y los códigos es, ca, en.",
     "tagsNotice": "Escribe las etiquetas en un solo idioma si lo prefieres. Pero si tu colección se lee en dos o más idiomas, puedes escribir cada etiqueta en todos ellos.",
-    "emailNoteNotice": "El aviso del correo también admite un texto por idioma: es (español), ca (catalán), en (inglés)."
+    "emailNoteNotice": "El aviso del correo también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
+    "requestInfoNotice": "El aviso de la página de solicitud también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
+    "policyNotice": "La política de fianzas también admite un texto por idioma: es (español), ca (catalán), en (inglés)."
   },
   "deleteAccount": {
     "pageTitle": "Borrar tu cuenta",
@@ -1072,7 +1076,7 @@
     "horizonHelper": "De 1 a 365. Por defecto 90 — tres meses.",
     "maxActiveLabel": "Máximo de reservas activas por miembro",
     "maxActiveHelper": "De 1 a 50. Por defecto 10 — cuántas reservas propias de un miembro en esta colección pueden estar activas a la vez.",
-    "asksPhoneFull": "Pedir un teléfono de contacto al reservar: opcional para quien reserva, por si pasa algo inesperado. Solo lo ve quien gestiona las reservas y se borra el día después de cada reserva.",
+    "asksPhoneFull": "Pedir un teléfono de contacto al reservar (opcional)",
     "phoneLabel": "¿Puedes dejarnos un teléfono de contacto? Es por si pasa algo inesperado con lo que has reservado o con la reserva. Lo borraremos el día después de la reserva.",
     "phoneInvalid": "Escribe un teléfono: cifras, espacios y + ( ) . -, con al menos 6 cifras.",
     "unitLabel": "¿Cómo se reserva?",
@@ -1129,11 +1133,13 @@
     "label": "Horario semanal",
     "helper": "En JSON: una clave por día de la semana (\"0\" lunes … \"6\" domingo), cada una con una lista de tramos [\"HH:MM\",\"HH:MM\"] — p. ej. {\"0\": [[\"10:00\",\"14:00\"],[\"16:00\",\"20:00\"]]}. Deja un día fuera, o ponle una lista vacía, para que quede cerrado.",
     "invalidJson": "Eso no es JSON válido — revisa las llaves y las comillas.",
-    "invalidOnSave": "No se ha guardado nada: el horario semanal (en «Más opciones») no es JSON válido. Corrígelo y vuelve a guardar.",
-    "requiredOnSave": "Para reservar por horas, pon al menos un tramo en «Horario semanal» (en «Más opciones»).",
+    "invalidOnSave": "No se ha guardado nada: el horario semanal no es JSON válido. Corrígelo y vuelve a guardar.",
+    "requiredOnSave": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
     "noneOpen": "Sin horario, nadie puede reservar: añade al menos un tramo.",
     "previewLabel": "Se lee así:",
-    "closed": "cerrado"
+    "closed": "cerrado",
+    "noticeBefore": "En JSON: una clave por día de la semana (\"0\" lunes … \"6\" domingo), cada una con una lista de tramos [\"HH:MM\",\"HH:MM\"] — p. ej.",
+    "noticeAfter": "Deja un día fuera, o ponle una lista vacía, para que quede cerrado."
   },
   "homePage": {
     "label": "Página web",
@@ -1145,7 +1151,7 @@
   },
   "requestInfo": {
     "label": "Nota que se ve antes de pedir (opcional)",
-    "helper": "Se muestra arriba de la página de solicitud — la ve quien pide un préstamo, un alquiler o una reserva; un regalo o una venta nunca llegan a esa página, se completan directamente desde la tarjeta. P. ej. «trae el DNI», «la recogida es solo los martes». Admite Markdown.",
+    "helper": "Se muestra arriba de la página de solicitud — la ve quien pide un préstamo, un alquiler o una reserva.",
     "maxLength": "Máximo 512 caracteres por idioma."
   },
   "emailNote": {
@@ -1305,6 +1311,7 @@
     "appearance": "Apariencia",
     "logoLabel": "Logo o imagen de cabecera",
     "logoHelper": "Solo imágenes de mapa de bits (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP y TIFF), máx. 10 MB.",
-    "notifications": "Notificaciones"
+    "notifications": "Notificaciones",
+    "availability": "Disponibilidad"
   }
 }

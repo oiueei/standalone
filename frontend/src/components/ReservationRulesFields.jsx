@@ -26,7 +26,7 @@ import { hasOpeningHours } from '../utils/rental';
  * the fallback for an empty one. The parent still only hears a number that
  * differs from the one it holds.
  */
-function BoundedDayInput({ id, label, helperText, min, max, fallback, value, onChange }) {
+export function BoundedDayInput({ id, label, helperText, min, max, fallback, value, onChange }) {
   const [draft, setDraft] = useState(String(value));
   // Re-sync when the value arrives from outside — e.g. the Edit form finishing
   // its load. Our own commits set `draft` first, so this is then a no-op.

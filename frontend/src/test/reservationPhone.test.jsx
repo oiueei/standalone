@@ -110,14 +110,12 @@ describe('the words of the phone field and of the switch', () => {
 
   test('the collection switch is fixed in the three languages', () => {
     expect(es.reservation.asksPhoneFull).toBe(
-      'Pedir un teléfono de contacto al reservar: opcional para quien reserva, por si pasa algo inesperado. Solo lo ve quien gestiona las reservas y se borra el día después de cada reserva.'
+      'Pedir un teléfono de contacto al reservar (opcional)'
     );
     expect(ca.reservation.asksPhoneFull).toBe(
-      "Demanar un telèfon de contacte en reservar: opcional per a qui reserva, per si passa alguna cosa inesperada. Només el veu qui gestiona les reserves i s'esborra l'endemà de cada reserva."
+      'Demanar un telèfon de contacte en reservar (opcional)'
     );
-    expect(en.reservation.asksPhoneFull).toBe(
-      'Ask for a contact phone when booking: optional for whoever books, in case something unexpected happens. Only those who manage the bookings see it, and it is deleted the day after each booking.'
-    );
+    expect(en.reservation.asksPhoneFull).toBe('Ask for a contact phone when booking (optional)');
   });
 });
 

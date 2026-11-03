@@ -56,6 +56,16 @@ describe('the appearance route', () => {
     expect(screen.queryByText('Page not found')).toBeNull();
   });
 
+  test('the availability page is a route too', async () => {
+    localStorage.setItem('userCode', 'USR001');
+    window.history.pushState({}, '', '/library/COL001/settings/availability');
+    const { default: App } = await import('../App');
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Availability' })).toBeVisible();
+    expect(screen.queryByText('Page not found')).toBeNull();
+  });
+
   test('a reader with no session is sent to sign in, and brought back to it', async () => {
     window.history.pushState({}, '', '/library/COL001/settings/appearance');
     const { default: App } = await import('../App');

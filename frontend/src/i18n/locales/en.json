@@ -180,7 +180,9 @@
     "collectionAppearance": "Appearance of {{headline}} — OIUEEI",
     "collectionAppearanceDefault": "Appearance — OIUEEI",
     "collectionNotifications": "Notifications of {{headline}} — OIUEEI",
-    "collectionNotificationsDefault": "Notifications — OIUEEI"
+    "collectionNotificationsDefault": "Notifications — OIUEEI",
+    "collectionAvailability": "Availability of {{headline}} — OIUEEI",
+    "collectionAvailabilityDefault": "Availability — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -930,7 +932,7 @@
     "weekdaysLabel": "Pickup / return days",
     "weekdaysHelper": "Both pickup and return must fall on these days. Empty = any day.",
     "depositPolicyLabel": "Deposit policy (optional)",
-    "depositPolicyHelper": "How deposits work in this collection — the amount is set per thing, this explains the condition for getting it back. Leave empty if this collection doesn't use deposits.",
+    "depositPolicyHelper": "How deposits work in this collection — the amount is set per thing, this explains the condition for getting it back.",
     "d1": "1 day",
     "d2": "2 days",
     "d3": "3 days",
@@ -969,7 +971,9 @@
     "infoFallback": "Languages: es (Spanish), ca (Catalan), en (English). Write in one only if you prefer — anything that isn't a map is shown exactly as you typed it.",
     "readAsPlain": "Read as plain text — to write one per language, check the quotes and the codes es, ca, en.",
     "tagsNotice": "Write the tags in one language only if you prefer. But if your collection reads in two or more languages, you can write each tag in all of them.",
-    "emailNoteNotice": "The email note can hold one text per language too: es (Spanish), ca (Catalan), en (English)."
+    "emailNoteNotice": "The email note can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
+    "requestInfoNotice": "The request-page note can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
+    "policyNotice": "The deposit policy can hold one text per language too: es (Spanish), ca (Catalan), en (English)."
   },
   "deleteAccount": {
     "pageTitle": "Delete your account",
@@ -1072,7 +1076,7 @@
     "horizonHelper": "From 1 to 365. Default 90 — three months.",
     "maxActiveLabel": "Maximum active reservations per member",
     "maxActiveHelper": "From 1 to 50. Default 10 — how many of a member's own reservations in this collection may be active at once.",
-    "asksPhoneFull": "Ask for a contact phone when booking: optional for whoever books, in case something unexpected happens. Only those who manage the bookings see it, and it is deleted the day after each booking.",
+    "asksPhoneFull": "Ask for a contact phone when booking (optional)",
     "phoneLabel": "Could you leave us a contact phone number? It's in case something unexpected happens with what you've booked or with the booking. We'll delete it the day after the booking.",
     "phoneInvalid": "Enter a phone number: digits, spaces and + ( ) . -, at least 6 digits.",
     "unitLabel": "How is it booked?",
@@ -1129,11 +1133,13 @@
     "label": "Weekly opening hours",
     "helper": "As JSON: one key per weekday (\"0\" Monday … \"6\" Sunday), each a list of [\"HH:MM\",\"HH:MM\"] ranges — e.g. {\"0\": [[\"10:00\",\"14:00\"],[\"16:00\",\"20:00\"]]}. Leave a day out, or give it an empty list, to keep it closed.",
     "invalidJson": "That's not valid JSON — check the brackets and quotes.",
-    "invalidOnSave": "Nothing was saved: the weekly opening hours (under “More options”) aren't valid JSON. Fix them and save again.",
-    "requiredOnSave": "To book by the hour, add at least one time range to “Weekly opening hours” (under “More options”).",
+    "invalidOnSave": "Nothing was saved: the weekly opening hours aren't valid JSON. Fix them and save again.",
+    "requiredOnSave": "To book by the hour, add at least one time range to “Weekly opening hours”.",
     "noneOpen": "With no opening hours, nobody can book: add at least one time range.",
     "previewLabel": "Reads as:",
-    "closed": "closed"
+    "closed": "closed",
+    "noticeBefore": "As JSON: one key per weekday (\"0\" Monday … \"6\" Sunday), each a list of [\"HH:MM\",\"HH:MM\"] ranges — e.g.",
+    "noticeAfter": "Leave a day out, or give it an empty list, to keep it closed."
   },
   "homePage": {
     "label": "Home page",
@@ -1145,7 +1151,7 @@
   },
   "requestInfo": {
     "label": "Note shown before someone asks (optional)",
-    "helper": "Shown at the top of the request page — seen by anyone requesting a loan, a rental or a reservation; a gift or sale never reaches that page, since those complete straight from the card. E.g. \"bring ID\", \"pickup is Tuesdays only\". Markdown supported.",
+    "helper": "Shown at the top of the request page — seen by anyone requesting a loan, a rental or a reservation.",
     "maxLength": "Maximum 512 characters per language."
   },
   "emailNote": {
@@ -1305,6 +1311,7 @@
     "appearance": "Appearance",
     "logoLabel": "Logo or header image",
     "logoHelper": "Bitmap image files only (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP and TIFF), max 10 MB.",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "availability": "Availability"
   }
 }

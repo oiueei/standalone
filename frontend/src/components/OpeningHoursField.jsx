@@ -69,11 +69,15 @@ import { errorKey, translateError } from '../utils/errorKey';
  */
 const noop = () => {};
 
+// `showHelper={false}`: a page that explains the format in a notice of its own above
+// the field leaves out the helper line under it.
+
 export default function OpeningHoursField({
   id,
   value = {},
   onChange = noop,
   onValidityChange = noop,
+  showHelper = true,
 }) {
   const { t, i18n } = useTranslation();
   const [draft, setDraft] = useState(() => JSON.stringify(value));
@@ -124,7 +128,7 @@ export default function OpeningHoursField({
       <TextArea
         id={id}
         label={t('openingHours.label')}
-        helperText={t('openingHours.helper')}
+        helperText={showHelper ? t('openingHours.helper') : undefined}
         required
         value={draft}
         onChange={(e) => setDraft(e.target.value)}

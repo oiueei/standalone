@@ -51,6 +51,12 @@ export default function CollectionSettingsMenu({ code, kind }) {
           <Link to={`${base}/settings/notifications`} onClick={close}>
             {t('collectionSettings.notifications')}
           </Link>
+          {/* A stall has no request page, so nothing to say about when it can be asked for. */}
+          {(kind === 'LIBRARY' || kind === 'SHED') && (
+            <Link to={`${base}/settings/availability`} onClick={close}>
+              {t('collectionSettings.availability')}
+            </Link>
+          )}
         </div>
       )}
     </span>

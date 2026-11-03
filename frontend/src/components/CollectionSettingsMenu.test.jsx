@@ -39,13 +39,24 @@ describe('CollectionSettingsMenu', () => {
     );
   });
 
-  test('offers the pages that exist: Appearance and Notifications, no Availability yet', () => {
+  test('offers Appearance and Notifications to a stall, and no Availability: it has no request page', () => {
     renderMenu();
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
     expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
       '/stall/COL001/settings/appearance',
       '/stall/COL001/settings/notifications',
+    ]);
+  });
+
+  test.each(['LIBRARY', 'SHED'])('a %s also has Availability, last', (kind) => {
+    renderMenu(kind);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+    expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
+      `/${kind.toLowerCase()}/COL001/settings/appearance`,
+      `/${kind.toLowerCase()}/COL001/settings/notifications`,
+      `/${kind.toLowerCase()}/COL001/settings/availability`,
     ]);
   });
 
