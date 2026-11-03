@@ -22,6 +22,9 @@ import { apiFetch } from '../services/api';
 import CollectionAvailabilityPage from './CollectionAvailabilityPage';
 import { dropHdsStyles } from '../test/dropHdsStyles';
 import { settle } from '../test/settle';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
 
 // What other pages own: the PATCH of this page must leave all of it alone.
 const OTHERS = {
@@ -290,7 +293,7 @@ describe('CollectionAvailabilityPage — a shed by hour', () => {
     mockApi({ collection: SHED_HOURS });
     renderPage('shed');
     await loaded();
-    const field = screen.getByLabelText(/Weekly opening hours/);
+    const field = screen.getByRole('textbox', { name: /Weekly opening hours/ });
     fireEvent.change(field, { target: { value: '{"0": [[' } });
     fireEvent.blur(field);
 
@@ -309,7 +312,7 @@ describe('CollectionAvailabilityPage — a shed by hour', () => {
     renderPage('shed');
     await loaded();
     fireEvent.click(screen.getByRole('radio', { name: /By hour/ }));
-    const field = await screen.findByLabelText(/Weekly opening hours/);
+    const field = await screen.findByRole('textbox', { name: /Weekly opening hours/ });
     fireEvent.change(field, { target: { value: JSON.stringify(HOURS) } });
     fireEvent.blur(field);
 
@@ -353,5 +356,306 @@ describe('CollectionAvailabilityPage — the rest', () => {
 
     expect(await screen.findByText(/Bad date, said the server/)).toBeVisible();
     expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe('CollectionAvailabilityPage — the fields of a library', () => {
+  const chip = (name) => screen.getByRole('button', { name });
+
+  test('the request-page note shows what is stored and an edit reaches the PATCH, trimmed', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+    const note = screen.getByRole('textbox', { name: /note shown before someone asks/i });
+    expect(note).toHaveValue('Bring ID.');
+
+    fireEvent.change(note, { target: { value: '  Pickup is Tuesdays only.  ' } });
+    await save();
+
+    expect(patchBody().request_info).toBe('Pickup is Tuesdays only.');
+  });
+
+  test('the note’s counter is the 512-per-language one, and past it the error shows at once', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+    const note = screen.getByRole('textbox', { name: /note shown before someone asks/i });
+
+    fireEvent.change(note, { target: { value: 'Bring ID.' } });
+    expect(screen.getByText('9/512')).toBeInTheDocument();
+
+    fireEvent.change(note, { target: { value: 'x'.repeat(513) } });
+    expect(screen.getByText('Maximum 512 characters per language.')).toBeInTheDocument();
+    // …announced through the field, not only painted.
+    expect(note.getAttribute('aria-describedby')).toContain('availability-request-info-error');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(patchBody()).toBeNull();
+  });
+
+  test('the deposit policy starts empty, shows what is stored and sends what is typed', async () => {
+    mockApi({ collection: { ...LIBRARY, deposit_policy: '' } });
+    renderPage();
+    await loaded();
+    const policy = screen.getByRole('textbox', { name: /deposit policy/i });
+    expect(policy).toHaveValue('');
+
+    fireEvent.change(policy, { target: { value: '50 €, back when the drill comes home' } });
+    await save();
+
+    expect(patchBody().deposit_policy).toBe('50 €, back when the drill comes home');
+  });
+
+  test('the weekday chips use Python numbering and stay sorted', async () => {
+    mockApi({ collection: { ...LIBRARY, rental_weekdays: [4] } });
+    renderPage();
+    await loaded();
+    expect(chip('Friday')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip('Tuesday')).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(chip('Monday'));
+    fireEvent.click(chip('Sunday'));
+    await save();
+
+    expect(patchBody().rental_weekdays).toEqual([0, 4, 6]);
+  });
+
+  test('a chip pressed again takes its day out', async () => {
+    mockApi({ collection: { ...LIBRARY, rental_weekdays: [0, 2, 4] } });
+    renderPage();
+    await loaded();
+
+    fireEvent.click(chip('Wednesday'));
+    await save();
+
+    expect(patchBody().rental_weekdays).toEqual([0, 4]);
+  });
+
+  test('the lengths are offered labelled, the stored ones are selected, and a pick is a number', async () => {
+    mockApi({ collection: { ...LIBRARY, rental_durations: [7] } });
+    renderPage();
+    await loaded();
+    const lengths = screen.getByRole('combobox', { name: /length|duration/i });
+
+    fireEvent.click(lengths);
+    expect(screen.getByRole('option', { name: '1 week', selected: true })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('option', { name: '1 day' }));
+    await save();
+
+    expect(patchBody().rental_durations).toEqual([1, 7]);
+    expect(patchBody().rental_durations.every((d) => typeof d === 'number')).toBe(true);
+  });
+});
+
+describe('CollectionAvailabilityPage — the fields of a shed', () => {
+  const horizon = () =>
+    screen.getByRole('spinbutton', { name: 'How far ahead members can book (days)' });
+  const maxDays = () => screen.getByRole('spinbutton', { name: 'Longest reservation (days)' });
+
+  test('how it is booked: two radios, the stored one checked', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+    expect(screen.getByRole('radio', { name: 'By day' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'By hour' })).not.toBeChecked();
+  });
+
+  test('by day: the day fields and the open weekdays, not the hour ones', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+
+    expect(maxDays()).toHaveValue(3);
+    expect(screen.getByRole('group', { name: 'Days open for reservations' })).toBeInTheDocument();
+    expect(screen.queryByRole('spinbutton', { name: 'Shortest reservation (minutes)' })).toBeNull();
+    expect(screen.queryByText('Weekly opening hours')).toBeNull();
+    expect(horizon()).toHaveValue(60);
+    expect(
+      screen.getByRole('spinbutton', { name: 'Maximum active reservations per member' })
+    ).toHaveValue(4);
+  });
+
+  test('by hour: the minute fields with their stored values, not the day ones', async () => {
+    mockApi({ collection: SHED_HOURS });
+    renderPage('shed');
+    await loaded();
+
+    expect(screen.getByRole('radio', { name: 'By hour' })).toBeChecked();
+    expect(screen.getByRole('spinbutton', { name: 'Shortest reservation (minutes)' })).toHaveValue(
+      30
+    );
+    expect(screen.getByRole('spinbutton', { name: 'Longest reservation (minutes)' })).toHaveValue(
+      240
+    );
+    expect(screen.getByRole('textbox', { name: /Weekly opening hours/ })).toBeInTheDocument();
+    expect(screen.queryByRole('spinbutton', { name: 'Longest reservation (days)' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Days open for reservations' })).toBeNull();
+    // …and the two limits that belong to either unit are still there.
+    expect(horizon()).toBeInTheDocument();
+  });
+
+  test('a day chosen on the weekday row is stored as its Python number', async () => {
+    mockApi({ collection: { ...SHED_DAYS, rental_weekdays: [] } });
+    renderPage('shed');
+    await loaded();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Wednesday' }));
+    await save();
+
+    expect(patchBody().rental_weekdays).toEqual([2]);
+  });
+
+  test('a number typed into a day field is saved even if the field never lost focus', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+
+    fireEvent.change(horizon(), { target: { value: '30' } });
+    fireEvent.change(maxDays(), { target: { value: '5' } });
+    await save();
+
+    expect(patchBody()).toMatchObject({ reservation_horizon_days: 30, reservation_max_days: 5 });
+  });
+
+  test('the phone switch turned off reaches the PATCH, and on again too', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+    const phone = () => screen.getByLabelText(/Ask for a contact phone/);
+
+    fireEvent.click(phone());
+    expect(phone()).toHaveAttribute('aria-pressed', 'false');
+    await save();
+    expect(patchBody().reservation_asks_phone).toBe(false);
+  });
+
+  test('a shed that does not ask for a phone, turning it on reaches the PATCH', async () => {
+    mockApi({ collection: { ...SHED_DAYS, reservation_asks_phone: false } });
+    renderPage('shed');
+    await loaded();
+
+    fireEvent.click(screen.getByLabelText(/Ask for a contact phone/));
+    await save();
+
+    expect(patchBody().reservation_asks_phone).toBe(true);
+  });
+
+  test('has no accessibility violations, by day and by hour', async () => {
+    mockApi({ collection: SHED_DAYS });
+    const day = renderPage('shed');
+    await loaded();
+    expect(await axe(day.container)).toHaveNoViolations();
+    day.unmount();
+
+    mockApi({ collection: SHED_HOURS });
+    const hour = renderPage('shed');
+    await loaded();
+    expect(await axe(hour.container)).toHaveNoViolations();
+  });
+});
+
+describe('CollectionAvailabilityPage — an hourly space with no opening hours', () => {
+  const NONE_OPEN = 'With no opening hours, nobody can book: add at least one time range.';
+
+  test('every day given an empty list is the same as none: it warns, and does not save', async () => {
+    mockApi({
+      collection: {
+        ...SHED_HOURS,
+        opening_hours: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] },
+      },
+    });
+    renderPage('shed');
+    await loaded();
+    expect(screen.getByText(NONE_OPEN)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(
+      await screen.findByText(/To book by the hour, add at least one time range/)
+    ).toBeVisible();
+    expect(patchBody()).toBeNull();
+  });
+
+  test('a week of days with no ranges typed in is no schedule either', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+    fireEvent.click(screen.getByRole('radio', { name: /By hour/ }));
+    const hours = await screen.findByRole('textbox', { name: /Weekly opening hours/ });
+    fireEvent.change(hours, { target: { value: '{"0": [], "3": []}' } });
+    fireEvent.blur(hours);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(
+      await screen.findByText(/To book by the hour, add at least one time range/)
+    ).toBeVisible();
+    expect(patchBody()).toBeNull();
+  });
+
+  test('one range on one day is enough: no warning', async () => {
+    mockApi({ collection: SHED_HOURS });
+    renderPage('shed');
+    await loaded();
+
+    expect(screen.queryByText(NONE_OPEN)).toBeNull();
+  });
+
+  test('a space booked by the day has no opening hours to miss', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+
+    expect(screen.queryByText(NONE_OPEN)).toBeNull();
+  });
+
+  test('while the JSON cannot be read, the field’s own error speaks and the warning does not', async () => {
+    mockApi({ collection: { ...SHED_HOURS, opening_hours: {} } });
+    renderPage('shed');
+    await loaded();
+    const field = screen.getByRole('textbox', { name: /Weekly opening hours/ });
+
+    fireEvent.change(field, { target: { value: '{"0": [' } });
+    fireEvent.blur(field);
+
+    expect(screen.getByText(/isn.t valid JSON|valid JSON/i)).toBeInTheDocument();
+    expect(screen.queryByText(NONE_OPEN)).toBeNull();
+  });
+
+  test('fixing the draft lets the corrected schedule through', async () => {
+    mockApi({ collection: SHED_HOURS });
+    renderPage('shed');
+    await loaded();
+    const field = screen.getByRole('textbox', { name: /Weekly opening hours/ });
+    fireEvent.change(field, { target: { value: '{"0": [["10:00","14:00"]],}' } });
+    fireEvent.blur(field);
+    fireEvent.change(field, { target: { value: '{"0": [["09:00","13:00"]]}' } });
+    fireEvent.blur(field);
+
+    await save();
+
+    expect(patchBody().opening_hours).toEqual({ 0: [['09:00', '13:00']] });
+  });
+
+  test('leaving "By hour" and coming back drops the refusal with the broken draft', async () => {
+    // Switching to day unmounts the field, and coming back remounts it showing the last good
+    // schedule with no error: a refusal that outlived the draft would block a save with
+    // nothing on screen to fix.
+    mockApi({ collection: SHED_HOURS });
+    renderPage('shed');
+    await loaded();
+    const field = screen.getByRole('textbox', { name: /Weekly opening hours/ });
+    fireEvent.change(field, { target: { value: 'not json' } });
+    fireEvent.blur(field);
+    fireEvent.click(screen.getByRole('radio', { name: 'By day' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'By hour' }));
+    expect(screen.getByRole('textbox', { name: /Weekly opening hours/ })).toHaveValue(
+      JSON.stringify(HOURS)
+    );
+
+    await save();
+
+    expect(patchBody().opening_hours).toEqual(HOURS);
   });
 });

@@ -200,6 +200,59 @@ describe('CollectionAppearancePage', () => {
     expect(patchBody()).toMatchObject({ theeeme: 'T1', koro: 'calm' });
   });
 
+  test('an edited home page reaches the PATCH, trimmed', async () => {
+    mockApi();
+    renderPage();
+    const web = await screen.findByDisplayValue('https://example.test');
+    await settle(apiFetch);
+
+    fireEvent.change(web, { target: { value: '  https://ateneu.example/  ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    expect(patchBody().home_page).toBe('https://ateneu.example/');
+  });
+
+  test('picking another palette moves the mark', async () => {
+    mockApi();
+    renderPage();
+    const group = await screen.findByRole('group', { name: 'Theeeme' });
+    await waitFor(() =>
+      expect(within(group).getByRole('button', { name: 'Sky' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    );
+
+    fireEvent.click(within(group).getByRole('button', { name: 'Pine' }));
+
+    await waitFor(() =>
+      expect(within(group).getByRole('button', { name: 'Pine' })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    );
+    expect(within(group).getByRole('button', { name: 'Sky' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+  });
+
+  test('a list of palettes that cannot be read leaves the page working, with no picker', async () => {
+    apiFetch.mockImplementation((url) =>
+      String(url).includes('/theeemes/')
+        ? Promise.reject(new Error('offline'))
+        : Promise.resolve({ ok: true, status: 200, json: async () => COLLECTION })
+    );
+    renderPage();
+    await screen.findByDisplayValue('https://example.test');
+    await settle(apiFetch);
+
+    expect(screen.queryByRole('group', { name: 'Theeeme' })).not.toBeInTheDocument();
+    // The wave still is.
+    expect(screen.getByRole('group', { name: 'Koro' })).toBeInTheDocument();
+  });
+
   test('cannot be saved before the collection has loaded', async () => {
     mockApi();
     // The collection read fails: the form shows, but a save would send blanks.

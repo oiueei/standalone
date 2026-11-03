@@ -13,9 +13,6 @@ import { hasPriceVerbs } from '../utils/collectionKind';
  * verbs when members may set a price (the default) and only the free one when
  * they may not; the page turns that switch into `allowed_thing_types`.
  *
- * The rental-rules fields that used to trail this cluster now live in
- * `RentalRulesFields` (rendered by the pages inside the accordion).
- *
  * Controlled: every value + setter is owned by the page; this component only
  * renders the cluster. `idPrefix` is `create-collection`
  * or `edit-collection`; `theeemeColor01` is the theeeme `color_01` token name.

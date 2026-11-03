@@ -196,7 +196,7 @@ async function renderEdit(collection) {
 }
 
 describe('Edit — the body of a library', () => {
-  test('saved untouched, it sends back what it loaded', async () => {
+  test('saved untouched, it sends back the six fields of the page as loaded', async () => {
     await renderEdit(LIBRARY);
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -208,81 +208,56 @@ describe('Edit — the body of a library', () => {
       status: 'ACTIVE',
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
-      allow_member_proposals: true,
-      digest_frequency: 'WEEKLY',
       allowed_thing_types: ['LEND_THING', 'RENT_THING'],
-      home_page: 'https://old.example/',
-      email_note: 'Old email note',
-      tags: ['Old tag'],
-      thumbnail: 'oiueei/collections/thumb',
-      language: 'en',
-      theeeme: 'BUU331',
-      koro: 'calm',
-      welcome_doc: 'oiueei/documents/doc',
-      closed_dates: '25/12/2099',
-      request_info: 'Old request note',
-      rental_weekdays: [1],
-      rental_durations: [7],
-      deposit_policy: 'Old policy',
     });
   });
 
-  test('every field of the optional block, edited, reaches the PATCH', async () => {
+  test('what the page owns, edited, reaches the PATCH', async () => {
     const { container } = await renderEdit(LIBRARY);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const tagInput = await screen.findByPlaceholderText(en.createCollection.tagsPlaceholder);
-    fireEvent.change(tagInput, { target: { value: 'Kitchen' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Monday' }));
-    type(container, '#edit-collection-deposit-policy', 'New policy');
-    type(container, '#edit-collection-closed-dates', '01/01/2100');
-    type(container, '#edit-collection-request-info', 'New request note');
-    type(container, '#edit-collection-email-note', 'New email note');
-    type(container, '#edit-collection-home-page', 'https://new.example/');
-    await pickOption(/Digest emails/, en.editCollection.digestNone);
-    await pickOption(/Language of the group messages/, 'Español');
-    fireEvent.click(await screen.findByRole('button', { name: 'Metro' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Wave' }));
+    type(container, '#edit-collection-headline', '  Tool library  ');
+    type(container, '#edit-collection-description', '  Tools for the street  ');
+    await pickOption(/^Status/, en.editCollection.statusInactive);
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+    fireEvent.click(container.querySelector('#edit-collection-members-price'));
+    fireEvent.click(container.querySelector('#edit-collection-visibility'));
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(patchBody()).toBeTruthy());
     expect(patchBody()).toEqual({
-      headline: 'Tool shed',
-      description: 'Tools',
-      status: 'ACTIVE',
-      mode: 'PROPRIETARY',
-      visibility: 'PRIVATE',
-      allow_member_proposals: true,
-      digest_frequency: 'NONE',
-      allowed_thing_types: ['LEND_THING', 'RENT_THING'],
-      home_page: 'https://new.example/',
-      email_note: 'New email note',
-      tags: ['Old tag', 'Kitchen'],
-      thumbnail: 'oiueei/collections/thumb',
-      language: 'es',
-      theeeme: 'JMPA01',
-      koro: 'wave',
-      welcome_doc: 'oiueei/documents/doc',
-      closed_dates: '01/01/2100',
-      request_info: 'New request note',
-      rental_weekdays: [0, 1],
-      rental_durations: [7],
-      deposit_policy: 'New policy',
+      headline: 'Tool library',
+      description: 'Tools for the street',
+      status: 'INACTIVE',
+      mode: 'COMMUNITY',
+      visibility: 'PUBLIC',
+      allowed_thing_types: ['LEND_THING'],
     });
   });
 
-  test('the loaded photo and welcome document are shown, and the email-note test is there', async () => {
-    await renderEdit(LIBRARY);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+  test('none of the fields that have a settings page of their own is on the page', async () => {
+    const { container } = await renderEdit(LIBRARY);
 
-    expect(await screen.findByRole('link', { name: /view/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /send me a test email/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull();
+    for (const field of [
+      'thumbnail',
+      'welcome-doc',
+      'digest',
+      'language',
+      'home-page',
+      'email-note',
+      'request-info',
+      'closed-dates',
+      'deposit-policy',
+      'allow-proposals',
+    ]) {
+      expect(container.querySelector(`[id="edit-collection-${field}"]`), field).toBeNull();
+    }
+    expect(screen.queryByRole('button', { name: /send me a test email/i })).toBeNull();
   });
 });
 
 describe('Edit — the body of a shed booked by the day', () => {
-  test('keeps the reservation fields and sends no rental ones as rules', async () => {
+  test('keeps its one verb and sends no reservation rule', async () => {
     await renderEdit({
       ...LIBRARY,
       kind: 'SHED',
@@ -304,27 +279,7 @@ describe('Edit — the body of a shed booked by the day', () => {
       status: 'ACTIVE',
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
-      allow_member_proposals: true,
-      digest_frequency: 'WEEKLY',
       allowed_thing_types: ['RESERVE_THING'],
-      home_page: 'https://old.example/',
-      email_note: 'Old email note',
-      tags: ['Old tag'],
-      thumbnail: 'oiueei/collections/thumb',
-      language: 'en',
-      theeeme: 'BUU331',
-      koro: 'calm',
-      welcome_doc: 'oiueei/documents/doc',
-      closed_dates: '25/12/2099',
-      request_info: 'Old request note',
-      rental_weekdays: [1],
-      rental_durations: [],
-      deposit_policy: '',
-      reservation_horizon_days: 30,
-      reservation_max_active_per_member: 4,
-      reservation_asks_phone: false,
-      reservation_unit: 'DAY',
-      reservation_max_days: 3,
     });
   });
 });

@@ -23,6 +23,9 @@ import useCollectionLanguage from '../hooks/useCollectionLanguage';
 import CollectionNotificationsPage from './CollectionNotificationsPage';
 import { dropHdsStyles } from '../test/dropHdsStyles';
 import { press, settle } from '../test/settle';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
 
 const COLLECTION = {
   code: 'COL001',
@@ -240,6 +243,49 @@ describe('CollectionNotificationsPage', () => {
     expect(post[0]).toBe('/api/v1/collections/COL001/email-note/test/');
     expect(JSON.parse(post[1].body)).toEqual({ email_note: 'A draft nobody has saved.' });
     expect(patchBody()).toBeNull();
+  });
+
+  test('the note’s counter is the 512-per-language one, and past it the error shows at once', async () => {
+    mockApi();
+    renderPage();
+    const note = await screen.findByDisplayValue('We confirm within 48h.');
+    await settle(apiFetch);
+
+    fireEvent.change(note, { target: { value: 'Floor 2.' } });
+    expect(screen.getByText('8/512')).toBeInTheDocument();
+
+    fireEvent.change(note, { target: { value: 'x'.repeat(513) } });
+    expect(screen.getByText('Maximum 512 characters per language.')).toBeInTheDocument();
+    expect(note.getAttribute('aria-describedby')).toContain('notifications-email-note-error');
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(patchBody()).toBeNull();
+  });
+
+  test('the help line of the summary and of the language reach the control’s accessible name', async () => {
+    mockApi();
+    renderPage();
+    await screen.findByDisplayValue('We confirm within 48h.');
+    const DIGEST =
+      'Automatically email members and whoever runs the group a summary of new things.';
+    const LANGUAGE =
+      "The language the group's emails are written in. Any member who has set their own language reads them in theirs.";
+
+    expect(screen.getByText(DIGEST)).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Digest emails/ })).toHaveAccessibleName(
+      expect.stringContaining(DIGEST)
+    );
+    expect(screen.getByText(LANGUAGE)).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: /Language of the group messages/ })
+    ).toHaveAccessibleName(expect.stringContaining(LANGUAGE));
+  });
+
+  test('has no accessibility violations', async () => {
+    mockApi();
+    const { container } = renderPage();
+    await screen.findByDisplayValue('We confirm within 48h.');
+
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   test('cannot be saved before the collection has loaded', async () => {

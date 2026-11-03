@@ -341,11 +341,10 @@ describe('EditCollectionPage — load + pause + submit', () => {
     expect(await screen.findByDisplayValue('Loaded Name')).toBeInTheDocument();
   });
 
-  // The recommend switch is no longer on this form (it lives on the Notifications page),
-  // but saving here still sends the value the collection has: dropping it from the body
-  // would let the server read an absent key as a change.
+  // The recommend switch lives on the Notifications page, and so does every other setting:
+  // saving this form sends none of them, so it can never reset one.
   test.each([true, false])(
-    'saving without touching anything keeps allow_member_proposals as loaded (%s)',
+    'saving sends no allow_member_proposals, whatever the collection has (%s)',
     async (saved) => {
       const { container } = await renderEdit({
         headline: 'Comm',
@@ -360,7 +359,7 @@ describe('EditCollectionPage — load + pause + submit', () => {
 
       await waitFor(() => expect(screen.getByTestId('navigated')).toBeInTheDocument());
       const patch = apiFetch.mock.calls.find(([, o]) => o?.method === 'PATCH');
-      expect(JSON.parse(patch[1].body).allow_member_proposals).toBe(saved);
+      expect(JSON.parse(patch[1].body)).not.toHaveProperty('allow_member_proposals');
     }
   );
 
@@ -393,26 +392,6 @@ describe('EditCollectionPage — load + pause + submit', () => {
     expect(screen.getByRole('button', { name: 'Resume collection' })).toBeInTheDocument();
   });
 
-  // On Edit: digest, language, thumbnail and the welcome doc fold into the
-  // same "More options" accordion; status, mode and the identity cluster stay
-  // visible. The digest select lives on BOTH forms now (see the Create suite
-  // above) — it is folded here, not exclusive to here.
-  test('the digest select is hidden until "More options" is opened', async () => {
-    const { container } = await renderEdit({
-      headline: 'Comm',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['GIFT_THING'],
-    });
-
-    await screen.findByDisplayValue('Comm');
-    const digest = () => container.querySelector('#edit-collection-digest');
-    expect(digest()).not.toBeVisible();
-
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-
-    await waitFor(() => expect(digest()).toBeVisible());
-  });
-
   test('PATCHes /api/v1/collections/{code}/ with the edited fields', async () => {
     const { container } = await renderEdit({
       headline: 'Old Name',
@@ -439,33 +418,6 @@ describe('EditCollectionPage — load + pause + submit', () => {
     });
   });
 
-  test('loads the stored home page and PATCHes an edited one back', async () => {
-    const { container } = await renderEdit({
-      headline: 'Ateneu',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['GIFT_THING'],
-      home_page: 'https://old.example/',
-    });
-
-    await screen.findByDisplayValue('Ateneu');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const homePage = () => container.querySelector('#edit-collection-home-page');
-    await waitFor(() => expect(homePage()).toHaveValue('https://old.example/'));
-
-    fireEvent.change(homePage(), { target: { value: 'https://new.example/' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => {
-      const call = apiFetch.mock.calls.find(
-        (c) =>
-          c[0] === '/api/v1/collections/COL001/' &&
-          c[1]?.method === 'PATCH' &&
-          JSON.parse(c[1].body).home_page === 'https://new.example/'
-      );
-      expect(call).toBeTruthy();
-    });
-  });
-
   /**
    * "Con cuánta antelación pueden reservar (días)" would not stay saved.
    * The number field only told the page about a new value when it
@@ -477,60 +429,6 @@ describe('EditCollectionPage — load + pause + submit', () => {
    *
    * `fireEvent` moves no focus, so change → click here IS that path.
    */
-  test('a number typed into a day field is saved even if the field never lost focus', async () => {
-    const { container } = await renderEdit({
-      headline: 'Ateneu spaces',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['RESERVE_THING'],
-      reservation_max_days: 3,
-      reservation_horizon_days: 120,
-      reservation_max_active_per_member: 10,
-    });
-
-    await screen.findByDisplayValue('Ateneu spaces');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const horizon = () => container.querySelector('#edit-collection-reservation-horizon-days');
-    await waitFor(() => expect(horizon()).toHaveValue(120));
-
-    fireEvent.change(horizon(), { target: { value: '30' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => {
-      const call = apiFetch.mock.calls.find(
-        (c) => c[0] === '/api/v1/collections/COL001/' && c[1]?.method === 'PATCH'
-      );
-      expect(call).toBeTruthy();
-      expect(JSON.parse(call[1].body).reservation_horizon_days).toBe(30);
-    });
-  });
-
-  // The smoke suite axe-sweeps every route, but its EditCollectionPage fixture
-  // is a GIFT collection, so the reservations branch of "More options"
-  // (ReservationRulesFields — two NumberInputs wrapped in role="group", the
-  // WeekdayChips row) never reaches axe there. Sweep it here, opened.
-  test('the reservations rules branch, opened, has no accessibility violations', async () => {
-    const { container } = await renderEdit({
-      headline: 'Ateneu spaces',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['RESERVE_THING'],
-      reservation_max_days: 3,
-      reservation_horizon_days: 120,
-      rental_weekdays: [0, 2, 4],
-    });
-
-    await screen.findByDisplayValue('Ateneu spaces');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    await waitFor(() =>
-      expect(screen.getByRole('spinbutton', { name: 'Longest reservation (days)' })).toBeVisible()
-    );
-    // The reservations branch, not the rental one — otherwise the sweep proves
-    // nothing about ReservationRulesFields.
-    expect(screen.getByRole('group', { name: 'Days open for reservations' })).toBeInTheDocument();
-
-    await settle(apiFetch);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
   test('a rejected closure date shows the backend’s reason, not a generic error', async () => {
     // The backend 400s a >2-years-out closure date rather than dropping it
     // silently; the owner has to be told which token and why.
@@ -928,35 +826,34 @@ describe('collection texts that open like a language map and are not one', () =>
  * line is in the DOM *and* in its select's accessible name.
  */
 describe('the help line of the selects reaches the page and the control’s accessible name', () => {
-  const DIGEST = 'Automatically email members and whoever runs the group a summary of new things.';
-  const LANGUAGE =
-    "The language the group's emails are written in. Any member who has set their own language reads them in theirs.";
   const STATUS = en.editCollection.statusHelper;
 
   const field = (name) => screen.getByRole('combobox', { name });
 
-  test('Edit: the status, the summary and the language of the group messages', async () => {
+  test('Edit: the status', async () => {
     await renderEdit({
       headline: 'Loaded Name',
       mode: 'PROPRIETARY',
       allowed_thing_types: ['GIFT_THING'],
     });
     await screen.findByDisplayValue('Loaded Name');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
 
     expect(await screen.findByText(STATUS)).toBeInTheDocument();
     expect(field(/^Status/)).toHaveAccessibleName(expect.stringContaining(STATUS));
-    expect(screen.getByText(DIGEST)).toBeInTheDocument();
-    expect(field(/Digest emails/)).toHaveAccessibleName(expect.stringContaining(DIGEST));
-    expect(field(/Language of the group messages/)).toHaveAccessibleName(
-      expect.stringContaining(LANGUAGE)
-    );
   });
 
   test('the forms have no accessibility violations', async () => {
-    const { container } = await renderCreate();
+    const create = await renderCreate();
+    expect(await axe(create.container)).toHaveNoViolations();
+    create.unmount();
 
-    expect(await axe(container)).toHaveNoViolations();
+    const edit = await renderEdit({
+      headline: 'Loaded Name',
+      mode: 'COMMUNITY',
+      allowed_thing_types: ['GIFT_THING'],
+    });
+    await screen.findByDisplayValue('Loaded Name');
+    expect(await axe(edit.container)).toHaveNoViolations();
   });
 });
 
@@ -982,39 +879,13 @@ describe('the switch that asks for a contact phone when booking', () => {
     return call && JSON.parse(call[1].body);
   };
 
-  test('editing a shed that asks shows it on, and turning it off reaches the PATCH', async () => {
-    await renderEdit({ ...SHED, reservation_asks_phone: true });
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const toggle = await screen.findByLabelText(SWITCH);
-    expect(toggle).toHaveAttribute('aria-pressed', 'true');
-
-    fireEvent.click(toggle);
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => expect(patchBody()).toBeTruthy());
-    expect(patchBody().reservation_asks_phone).toBe(false);
-  });
-
-  test('editing a shed that does not ask, turning it on reaches the PATCH', async () => {
-    await renderEdit({ ...SHED, reservation_asks_phone: false });
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const toggle = await screen.findByLabelText(SWITCH);
-    expect(toggle).toHaveAttribute('aria-pressed', 'false');
-
-    fireEvent.click(toggle);
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => expect(patchBody()).toBeTruthy());
-    expect(patchBody().reservation_asks_phone).toBe(true);
-  });
-
-  test('a shed saved without touching it keeps it as loaded', async () => {
+  test('editing a shed sends no such key either', async () => {
     await renderEdit({ ...SHED, reservation_asks_phone: true });
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(patchBody()).toBeTruthy());
-    expect(patchBody().reservation_asks_phone).toBe(true);
+    expect(patchBody()).not.toHaveProperty('reservation_asks_phone');
   });
 
   test('editing a library sends no such key', async () => {

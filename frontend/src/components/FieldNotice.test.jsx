@@ -72,6 +72,22 @@ describe('FieldNotice', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  test('each notice is a landmark named after its field, so two on a page are told apart and none answers to the field’s own label', () => {
+    render(
+      <>
+        <FieldNotice id="a" label="First field">
+          One.
+        </FieldNotice>
+        <FieldNotice id="b" label="Second field">
+          Two.
+        </FieldNotice>
+      </>
+    );
+
+    expect(screen.getByRole('region', { name: 'Notice: First field' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Notice: Second field' })).toBeInTheDocument();
+  });
+
   test('has no accessibility violations', async () => {
     const { container } = renderNotice();
     expect(await axe(container)).toHaveNoViolations();

@@ -585,7 +585,6 @@
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters per language.",
     "errorCreating": "Error creating collection.",
-    "advancedTitle": "More options",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
     "tagsLabel": "Tags",
@@ -958,10 +957,8 @@
   },
   "localized": {
     "hint": "Bilingual collection? You can write one text per language.",
-    "tagsHint": "Tags can hold one label per language too.",
     "infoTitle": "One text per language",
     "infoBody": "If your collection reads in two languages, write the title or the description as a small map — copy this and change the words. Everyone then reads it in their own language, in the app and in their emails.",
-    "tagsInfoBody": "A tag label works the same way — write it as a map and each member sees their own.",
     "policyHint": "The deposit policy can hold one text per language too.",
     "policyInfoBody": "It works the same way — write it as a small map and each member reads their own.",
     "requestInfoHint": "The request-page note can hold one text per language too.",
@@ -1133,7 +1130,6 @@
   },
   "openingHours": {
     "label": "Weekly opening hours",
-    "helper": "As JSON: one key per weekday (\"0\" Monday … \"6\" Sunday), each a list of [\"HH:MM\",\"HH:MM\"] ranges — e.g. {\"0\": [[\"10:00\",\"14:00\"],[\"16:00\",\"20:00\"]]}. Leave a day out, or give it an empty list, to keep it closed.",
     "invalidJson": "That's not valid JSON — check the brackets and quotes.",
     "invalidOnSave": "Nothing was saved: the weekly opening hours aren't valid JSON. Fix them and save again.",
     "requiredOnSave": "To book by the hour, add at least one time range to “Weekly opening hours”.",

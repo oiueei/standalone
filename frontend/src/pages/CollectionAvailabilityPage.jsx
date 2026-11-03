@@ -9,7 +9,7 @@ import ClosedDatesField from '../components/ClosedDatesField';
 import WeekdayChips from '../components/WeekdayChips';
 import OpeningHoursField from '../components/OpeningHoursField';
 import RadioOptionGroup from '../components/RadioOptionGroup';
-import { BoundedDayInput } from '../components/ReservationRulesFields';
+import BoundedDayInput from '../components/BoundedDayInput';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import NotFoundPage from './NotFoundPage';
@@ -351,7 +351,6 @@ export default function CollectionAvailabilityPage() {
                     value={openingHours}
                     onChange={setOpeningHours}
                     onValidityChange={reportHoursValidity}
-                    showHelper={false}
                   />
                   {/* An hourly space with no opening hours is closed every day; it does
                       not block the save on its own (someone may be about to write them). */}

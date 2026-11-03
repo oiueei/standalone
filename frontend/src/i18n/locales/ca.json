@@ -579,7 +579,6 @@
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters per idioma.",
     "errorCreating": "Error en crear la col·lecció.",
-    "advancedTitle": "Més opcions",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
     "tagsLabel": "Etiquetes",
@@ -958,10 +957,8 @@
   },
   "localized": {
     "hint": "Col·lecció bilingüe? Pots escriure un text per idioma.",
-    "tagsHint": "Les etiquetes també admeten una paraula per idioma.",
     "infoTitle": "Un text per idioma",
     "infoBody": "Si la teva col·lecció es llegeix en dos idiomes, escriu el títol o la descripció com un petit mapa: copia això i canvia les paraules. Cadascú ho llegirà en el seu idioma, al web i als seus correus.",
-    "tagsInfoBody": "Una etiqueta funciona igual: escriu-la com un mapa i cada membre veurà la seva.",
     "policyHint": "La política de fiances també admet un text per idioma.",
     "policyInfoBody": "Funciona igual: escriu-la com un petit mapa i cada membre llegirà la seva.",
     "requestInfoHint": "L'avís de la pàgina de sol·licitud també admet un text per idioma.",
@@ -1133,7 +1130,6 @@
   },
   "openingHours": {
     "label": "Horari setmanal",
-    "helper": "En JSON: una clau per dia de la setmana (\"0\" dilluns … \"6\" diumenge), cadascuna amb una llista de trams [\"HH:MM\",\"HH:MM\"] — p. ex. {\"0\": [[\"10:00\",\"14:00\"],[\"16:00\",\"20:00\"]]}. Deixa un dia fora, o posa-hi una llista buida, perquè quedi tancat.",
     "invalidJson": "Això no és JSON vàlid — revisa les claus i les cometes.",
     "invalidOnSave": "No s'ha desat res: l'horari setmanal no és JSON vàlid. Corregeix-lo i torna a desar.",
     "requiredOnSave": "Per reservar per hores, posa almenys una franja a «Horari setmanal».",

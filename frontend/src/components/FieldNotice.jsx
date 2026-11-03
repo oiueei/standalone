@@ -24,6 +24,10 @@ export default function FieldNotice({ id, label, children, example, after }) {
       type="info"
       size="small"
       label={label}
+      // HDS names its landmark "Notification" by default; two notices on one page would
+      // be two landmarks with the same name (axe: landmark-unique). The field's own name
+      // follows "Notice:", so the landmark never answers to the label of its field.
+      notificationAriaLabel={`${t('common.notice')}: ${label}`}
       dismissible
       closeButtonLabelText={t('common.close')}
       onClose={() => setClosed(true)}
