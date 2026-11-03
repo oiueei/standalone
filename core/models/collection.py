@@ -207,6 +207,12 @@ class Collection(models.Model):
     # a courtesy cap against one member sitting on the whole calendar, not a
     # security invariant (see active_reservation_count). 1-50, default 10.
     reservation_max_active_per_member = models.PositiveSmallIntegerField(default=10)
+    # SHED only. Whether the request page offers an optional contact phone, for a
+    # same-day problem with what was booked that an email would reach too late.
+    # Inert on every other kind. Carries a database default as well as the Python
+    # one: the previous release's dynos keep inserting rows without naming the
+    # column while the release phase runs.
+    reservation_asks_phone = models.BooleanField(default=False, db_default=False)
     # RESERVE_THING collections only. DAY (default) is the original shape above:
     # a reservation occupies one or more whole days. HOUR books a single day in
     # slots within that day's opening_hours. Never both at once — a

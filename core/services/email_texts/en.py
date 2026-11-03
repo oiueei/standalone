@@ -331,6 +331,10 @@ TEXTS = {
     "reservation_notice_subject": "{requester} reserved '{thing}'",
     "reservation_notice_plain": "{requester} reserved '{thing}' {when}.",
     "reservation_notice_intro": "{requester} has reserved:",
+    "reservation_notice_phone": (
+        "They left a contact phone number: you'll find it on the bookings page "
+        "until the day after the booking."
+    ),
     "reservation_note_label": "Their note",
     "reservation_cancelled_subject": "Reservation cancelled: '{thing}'",
     "reservation_cancelled_to_guest_plain": (

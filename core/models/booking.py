@@ -86,6 +86,14 @@ class BookingPeriod(models.Model):
     # owner in the reservation-notice email and on their bookings page; blank for
     # every other type, and blank when the requester left it empty.
     project_note = models.CharField(max_length=512, blank=True, default="")
+    # RESERVE_THING only, and only when the collection asks for it
+    # (``Collection.reservation_asks_phone``): an optional phone number for a
+    # same-day problem. Served to whoever manages the reservation, blank from the
+    # day after it (``BookingPeriodSerializer``) and emptied for good by
+    # ``purge_expired_data``. Never in an email or the calendar export. The
+    # database default is for the previous release's dynos, which insert without
+    # naming the column.
+    contact_phone = models.CharField(max_length=32, blank=True, default="", db_default="")
     requester_code = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,

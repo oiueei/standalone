@@ -2,8 +2,10 @@
 Booking serializers for OIUEEI.
 """
 
+import re
 from datetime import date, timedelta
 
+from django.utils import timezone
 from rest_framework import serializers
 
 from core.models.booking import BookingPeriod
@@ -12,6 +14,11 @@ from core.validators import SafeTextField
 # Bookings/orders can't be placed more than ~3 months ahead — matches the
 # frontend's today+90 cap and the availability horizon.
 MAX_BOOKING_HORIZON_DAYS = 90
+
+# A contact phone: digits and the punctuation people type around them, at least six
+# digits, at most the column's 32 characters.
+CONTACT_PHONE_PATTERN = re.compile(r"^[0-9 +().-]{6,32}$")
+CONTACT_PHONE_MIN_DIGITS = 6
 
 
 class BookingPeriodSerializer(serializers.ModelSerializer):
@@ -43,6 +50,10 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
     # Whether this reader may accept the request, or only reject it: the founder
     # of a network sees every entity's requests but decides none of them.
     can_decide = serializers.SerializerMethodField()
+    # Served to whoever manages the reservation, like ``requester_email``, and only
+    # until the reservation's last day has passed: the label on the request page
+    # promises it is gone the day after, and the deletion runs later than that.
+    contact_phone = serializers.SerializerMethodField()
 
     class Meta:
         model = BookingPeriod
@@ -66,10 +77,18 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "end_time",
             "status",
             "project_note",
+            "contact_phone",
             "can_remind_return",
             "can_decide",
             "return_reminded_at",
         ]
+
+    def get_contact_phone(self, obj):
+        if not obj.contact_phone:
+            return ""
+        if obj.end_date is not None and obj.end_date <= timezone.localdate():
+            return ""
+        return obj.contact_phone
 
     def get_can_decide(self, obj):
         request = self.context.get("request")
@@ -188,6 +207,20 @@ class ReservationRequestSerializer(serializers.Serializer):
     start_time = serializers.TimeField(required=False)
     end_time = serializers.TimeField(required=False)
     project_note = SafeTextField(max_length=512, required=False, allow_blank=True)
+    # Optional, always: whether the collection asks for it is the service's call, and
+    # a number sent to a collection that does not ask is dropped there, not refused.
+    contact_phone = serializers.CharField(required=False, allow_blank=True, trim_whitespace=True)
+
+    def validate_contact_phone(self, value):
+        value = value.strip()
+        if not value:
+            return ""
+        digits = sum(ch.isdigit() for ch in value)
+        if not CONTACT_PHONE_PATTERN.match(value) or digits < CONTACT_PHONE_MIN_DIGITS:
+            raise serializers.ValidationError(
+                "Enter a phone number: digits, spaces and + ( ) . -, at least 6 digits."
+            )
+        return value
 
     def validate_start_date(self, value):
         if value < date.today():

@@ -24,6 +24,7 @@ from django.utils import timezone
 from core.management.commands.purge_expired_data import months_ago
 from core.models import (
     RSVP,
+    BookingPeriod,
     Collection,
     DailyActivity,
     Event,
@@ -673,3 +674,94 @@ class TestInvitationRecords:
 
         assert "Invitation records deleted" in output
         assert InvitationRecord.objects.filter(pk=old.pk).exists()
+
+
+class TestReservationPhones:
+    """The request page promises the number is deleted the day after the booking, so the
+    period is fixed (no ``RETENTION_*``) and the sweep empties it whether or not the
+    reservation stood."""
+
+    def _booking(self, user, user2, code, *, end_offset, status=None):
+        thing = Thing.objects.create(
+            code=f"T{code}"[:6], type=Thing.Type.RESERVE_THING, owner=user, headline="Lathe"
+        )
+        today = timezone.localdate()
+        return BookingPeriod.objects.create(
+            code=code,
+            thing_code=thing,
+            thing_type=Thing.Type.RESERVE_THING,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=today + timedelta(days=end_offset - 1),
+            end_date=today + timedelta(days=end_offset),
+            contact_phone="600123456",
+            status=status or BookingPeriod.Status.ACCEPTED,
+        )
+
+    def test_the_phone_of_yesterdays_reservation_is_emptied(self, user, user2):
+        # Yesterday's one-day booking ends today: the day after it is today.
+        old = self._booking(user, user2, "PHOLD1", end_offset=0)
+
+        _run(commit=True)
+
+        old.refresh_from_db()
+        assert old.contact_phone == ""
+
+    def test_the_phone_of_todays_reservation_stays(self, user, user2):
+        today = self._booking(user, user2, "PHNOW1", end_offset=1)
+
+        _run(commit=True)
+
+        today.refresh_from_db()
+        assert today.contact_phone == "600123456"
+
+    def test_a_cancelled_reservation_that_is_over_is_emptied_too(self, user, user2):
+        cancelled = self._booking(
+            user, user2, "PHCAN1", end_offset=-3, status=BookingPeriod.Status.CANCELLED
+        )
+
+        _run(commit=True)
+
+        cancelled.refresh_from_db()
+        assert cancelled.contact_phone == ""
+
+    def test_nothing_but_the_phone_is_touched(self, user, user2):
+        old = self._booking(user, user2, "PHOLD2", end_offset=-1)
+        before = BookingPeriod.objects.values().get(pk=old.pk)
+
+        _run(commit=True)
+
+        after = BookingPeriod.objects.values().get(pk=old.pk)
+        assert {k: v for k, v in after.items() if k != "contact_phone"} == {
+            k: v for k, v in before.items() if k != "contact_phone"
+        }
+
+    def test_a_dry_run_counts_it_and_empties_nothing(self, user, user2):
+        old = self._booking(user, user2, "PHDRY1", end_offset=-1)
+
+        output = _run()
+
+        assert "Reservation contact phones emptied" in output
+        assert "phones emptied (the day after the booking): 1" in output
+        old.refresh_from_db()
+        assert old.contact_phone == "600123456"
+
+    def test_running_it_again_finds_nothing_more(self, user, user2):
+        self._booking(user, user2, "PHOLD3", end_offset=-1)
+        _run(commit=True)
+
+        output = _run(commit=True)
+
+        assert "phones emptied (the day after the booking): 0" in output
+
+    def test_an_operator_cannot_switch_it_off(self, user, user2, settings):
+        for name in dir(settings):
+            if name.startswith("RETENTION_"):
+                setattr(settings, name, 0)
+        old = self._booking(user, user2, "PHOLD4", end_offset=-1)
+
+        _run(commit=True)
+
+        old.refresh_from_db()
+        assert old.contact_phone == ""

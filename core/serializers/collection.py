@@ -154,6 +154,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "reservation_max_days",
             "reservation_horizon_days",
             "reservation_max_active_per_member",
+            "reservation_asks_phone",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -433,6 +434,9 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     reservation_max_active_per_member = serializers.IntegerField(
         min_value=1, max_value=50, required=False
     )
+    # Sheds only: whether the request page asks for an optional contact phone.
+    # A True on any other kind is refused (``_validate_phone_switch``).
+    reservation_asks_phone = serializers.BooleanField(required=False)
     # RESERVE_THING collections only: DAY (default) or HOUR — never both. See
     # Collection.ReservationUnit.
     reservation_unit = serializers.ChoiceField(
@@ -503,6 +507,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "reservation_max_days",
             "reservation_horizon_days",
             "reservation_max_active_per_member",
+            "reservation_asks_phone",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -553,6 +558,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         kind = attrs.get("kind") or (_kind_of_verbs(listed) if listed else Collection.Kind.STALL)
         attrs["kind"] = kind
         attrs["allowed_thing_types"] = normalize_allowed_thing_types(kind, mode, listed)
+        _validate_phone_switch(kind, attrs.get("reservation_asks_phone", False))
         _validate_reservation_minutes(
             attrs.get("reservation_min_minutes", 60), attrs.get("reservation_max_minutes", 180)
         )
@@ -561,6 +567,15 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             attrs.get("opening_hours", {}),
         )
         return attrs
+
+
+def _validate_phone_switch(kind, asks_phone):
+    """The contact-phone switch means something in a shed only: turning it on anywhere
+    else would promise a field no request page of that kind will ever show."""
+    if asks_phone and kind != Collection.Kind.SHED:
+        raise serializers.ValidationError(
+            {"reservation_asks_phone": "Only a shed can ask for a contact phone."}
+        )
 
 
 def _validate_hourly_opening_hours(unit, opening_hours):
@@ -817,6 +832,9 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     reservation_max_active_per_member = serializers.IntegerField(
         min_value=1, max_value=50, required=False
     )
+    # Sheds only: whether the request page asks for an optional contact phone.
+    # A True on any other kind is refused (``_validate_phone_switch``).
+    reservation_asks_phone = serializers.BooleanField(required=False)
     reservation_unit = serializers.ChoiceField(
         choices=Collection.ReservationUnit.choices, required=False
     )
@@ -878,6 +896,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "reservation_max_days",
             "reservation_horizon_days",
             "reservation_max_active_per_member",
+            "reservation_asks_phone",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -934,6 +953,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             )
         kind = instance.kind if instance else Collection.Kind.STALL
         allowed_thing_types = normalize_allowed_thing_types(kind, mode, allowed_thing_types)
+        _validate_phone_switch(kind, attrs.get("reservation_asks_phone", False))
         # Switching to PROPRIETARY widens a free-only list, so write it back whenever
         # the list or the mode is part of the edit.
         if "allowed_thing_types" in attrs or "mode" in attrs:

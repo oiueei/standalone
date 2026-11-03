@@ -880,6 +880,7 @@ def request_reservation(
     *,
     start_time=None,
     end_time=None,
+    contact_phone="",
 ):
     """RESERVE_THING — create an auto-confirmed on-site reservation.
 
@@ -962,6 +963,9 @@ def request_reservation(
             start_time=start_time,
             end_time=end_time,
             project_note=project_note or "",
+            # Kept only when the group asked for it: a number nobody was told would
+            # be stored is not stored.
+            contact_phone=(contact_phone or "") if rc.reservation_asks_phone else "",
             status=BookingPeriod.Status.ACCEPTED,
         )
 

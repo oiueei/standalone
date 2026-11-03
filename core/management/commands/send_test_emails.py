@@ -521,9 +521,10 @@ def _(w):
 
 @sample("reservation_notice_to_owner", "send_reservation_notice_email")
 def _(w):
-    es.send_reservation_notice_email(
-        w.to, w.member, w.reserve, w.booking(w.reserve, w.member, accepted=True), collection=w.rooms
-    )
+    booking = w.booking(w.reserve, w.member, accepted=True)
+    # The sample shows the line that says a number was left, never the number.
+    booking.contact_phone = "600 000 000"
+    es.send_reservation_notice_email(w.to, w.member, w.reserve, booking, collection=w.rooms)
 
 
 @sample("reservation_cancelled_by_owner", "send_reservation_cancelled_email")
