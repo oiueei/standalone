@@ -39,11 +39,14 @@ describe('CollectionSettingsMenu', () => {
     );
   });
 
-  test('offers only the pages that exist: no Notifications, no Availability yet', () => {
+  test('offers the pages that exist: Appearance and Notifications, no Availability yet', () => {
     renderMenu();
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
-    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
+      '/stall/COL001/settings/appearance',
+      '/stall/COL001/settings/notifications',
+    ]);
   });
 
   test('Escape closes it and returns the focus to the trigger', () => {

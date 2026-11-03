@@ -178,7 +178,9 @@
     "dataExport": "Data export — OIUEEI",
     "reserveThing": "Reserve: {{headline}} — OIUEEI",
     "collectionAppearance": "Appearance of {{headline}} — OIUEEI",
-    "collectionAppearanceDefault": "Appearance — OIUEEI"
+    "collectionAppearanceDefault": "Appearance — OIUEEI",
+    "collectionNotifications": "Notifications of {{headline}} — OIUEEI",
+    "collectionNotificationsDefault": "Notifications — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -966,7 +968,8 @@
     "emailNoteInfoBody": "It works the same way — write it as a small map and each member reads their own in the email.",
     "infoFallback": "Languages: es (Spanish), ca (Catalan), en (English). Write in one only if you prefer — anything that isn't a map is shown exactly as you typed it.",
     "readAsPlain": "Read as plain text — to write one per language, check the quotes and the codes es, ca, en.",
-    "tagsNotice": "Write the tags in one language only if you prefer. But if your collection reads in two or more languages, you can write each tag in all of them."
+    "tagsNotice": "Write the tags in one language only if you prefer. But if your collection reads in two or more languages, you can write each tag in all of them.",
+    "emailNoteNotice": "The email note can hold one text per language too: es (Spanish), ca (Catalan), en (English)."
   },
   "deleteAccount": {
     "pageTitle": "Delete your account",
@@ -1301,6 +1304,7 @@
     "menu": "Settings",
     "appearance": "Appearance",
     "logoLabel": "Logo or header image",
-    "logoHelper": "Bitmap image files only (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP and TIFF), max 10 MB."
+    "logoHelper": "Bitmap image files only (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP and TIFF), max 10 MB.",
+    "notifications": "Notifications"
   }
 }

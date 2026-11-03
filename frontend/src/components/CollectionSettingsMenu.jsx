@@ -48,6 +48,9 @@ export default function CollectionSettingsMenu({ code, kind }) {
           <Link to={`${base}/settings/appearance`} onClick={close}>
             {t('collectionSettings.appearance')}
           </Link>
+          <Link to={`${base}/settings/notifications`} onClick={close}>
+            {t('collectionSettings.notifications')}
+          </Link>
         </div>
       )}
     </span>
