@@ -1,5 +1,5 @@
 {
-  "_about": "Shared by core/tests/unit/test_hourly_grid_parity.py and frontend/src/utils/hourlyGridParity.test.js. The request page (utils/rental.js: freeStartTimes, isHourlyPickupDisabled) and the server (Collection.reservation_hour_violation, has_overlap, _day_has_a_free_hour) each decide which hourly starts exist; each case's expectations are worked out by hand in its note, and both suites must agree with them. A Monday throughout (weekday key \"0\"). now_minutes is the clock on that same day, or null for a day that is not today. A case may carry units (how many identical ones the space has; absent = 1) and served_periods: what the server serves the browser as taken, which BookingPeriod.saturated_periods works out from bookings — null is a whole day, [start, end] an hourly stretch. Absent, it is the bookings themselves (one unit). The page is fed served_periods, the server is asked for starts with units.",
+  "_about": "Shared by core/tests/unit/test_hourly_grid_parity.py and frontend/src/utils/hourlyGridParity.test.js. The request page (utils/rental.js: freeStartTimes, isHourlyPickupDisabled) and the server (Collection.reservation_hour_violation, has_overlap, _day_has_a_free_hour) each decide which hourly starts exist; each case's expectations are worked out by hand in its note, and both suites must agree with them. A Monday throughout (weekday key \"0\"). now_minutes is the clock on that same day, or null for a day that is not today. A case may carry units (how many identical ones the space has; absent = 1) and served_periods: what the server serves the browser as taken, which BookingPeriod.saturated_periods works out from bookings — null is a whole day, [start, end] an hourly stretch. Absent, it is the bookings themselves (one unit). The page is fed served_periods, the server is asked for starts with units. A case may also carry pause, [from, until] in days counted from that Monday (0 is the Monday itself), both included: the thing is paused then, which is served as one more whole-day stretch (null) in served_periods and which no start can overlap.",
   "cases": [
     {
       "name": "two blocks, a two-hour slot, nothing booked",
@@ -265,6 +265,36 @@
       ],
       "units": 2,
       "served_periods": [["10:00", "14:00"]],
+      "now_minutes": null,
+      "starts": [],
+      "day_has_a_free_slot": false
+    },
+    {
+      "name": "a one-day pause takes the whole day",
+      "note": "Nothing is booked, but the thing is paused on this Monday: the day is served as one whole-day stretch and no hour starts.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [],
+      "pause": [0, 0],
+      "served_periods": [null],
+      "now_minutes": null,
+      "starts": [],
+      "day_has_a_free_slot": false
+    },
+    {
+      "name": "units 2: a pause on top of a full hour",
+      "note": "Booked 10-12 and 11-13 with two units (11:00-12:00 is full) and the thing paused on this Monday and the next day: the server serves both the full hour and the whole-day pause, and no hour starts.",
+      "blocks": [["10:00", "14:00"]],
+      "min_minutes": 60,
+      "duration": 60,
+      "bookings": [
+        ["10:00", "12:00"],
+        ["11:00", "13:00"]
+      ],
+      "units": 2,
+      "pause": [0, 1],
+      "served_periods": [null, ["11:00", "12:00"]],
       "now_minutes": null,
       "starts": [],
       "day_has_a_free_slot": false

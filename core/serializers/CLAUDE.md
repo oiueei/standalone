@@ -54,6 +54,10 @@ In a collection the **server puts `Thing.type`**: `derive_thing_type(kind, fee)`
 
 `Thing.units` (1–20) is read on `ThingSerializer` and the collection's thing summary, and accepted by `ThingCreateSerializer` and `ThingUpdateSerializer`. Like the deposit it is judged on the resulting row, from every door: `validate_units_for_type` refuses a number other than 1 on any verb but RESERVE_THING (the view runs it again on the verb it derives), and an edit that leaves a thing as anything but a reservation puts it back at 1. The CSV import does not take it.
 
+### The pause: `paused_from` / `paused_until`
+
+Read on `ThingSerializer` and the collection's thing summary, to anyone who sees the thing, and **`null` once the pause has passed** (`Thing.pause_period`). Written only by `ThingUpdateSerializer` (a thing is not created paused), by whoever may edit the thing (`IsThingManager`); `validate_pause` judges the row that results, and only when the request touches either day: both days or neither, the first not after the last, the last not in the past, at most 365 days (both ends included), and only on a thing with a calendar (`DATE_BASED_TYPES`). Both empty is always allowed, whatever the type.
+
 ### Asset URLs
 
 Read serializers expose `thumbnail_url` as a `SerializerMethodField` that calls `core.utils.asset_url()` to convert stored image keys into full object-storage URLs. The raw ID is also exposed (e.g. `thumbnail`) for edit forms.

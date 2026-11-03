@@ -18,7 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models.booking import BookingPeriod, saturated_periods
+from core.models.booking import BookingPeriod
 from core.models.collection import Collection
 from core.models.rsvp import RSVP
 from core.models.thing import Thing
@@ -69,13 +69,14 @@ class ThingCalendarView(APIView):
             blocked_periods = blocked_periods.select_related("requester_code")
             serializer = BookingPeriodOwnerCalendarSerializer(blocked_periods, many=True)
         else:
-            # With several units a thing is taken only where they are all on: that is
-            # what anyone asking to book is served (``saturated_periods``, the rule
-            # the request itself is judged by) — a manager too, when they ask for
-            # ``?for=request``, so booking looks the same to them as to a member.
-            # With one unit it is every booking, as before.
+            # What is taken, for anyone asking to book: with several units only
+            # where they are all on (``saturated_periods``), plus the thing's pause
+            # (``Thing.pause_period``), the rules the request itself is judged by — a
+            # manager too, when they ask for ``?for=request``, so booking looks the
+            # same to them as to a member. With one unit and no pause it is every
+            # booking, as before.
             serializer = BookingPeriodCalendarSerializer(
-                saturated_periods(list(blocked_periods), thing.units), many=True
+                thing.served_periods(list(blocked_periods)), many=True
             )
 
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -51,6 +51,8 @@ class CollectionThingSummarySerializer(ThingComputedFieldsMixin, serializers.Mod
             "availability",
             "available_today",
             "next_available",
+            "paused_from",
+            "paused_until",
             "location",
             "condition",
             "thumbnail_url",

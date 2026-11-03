@@ -683,6 +683,13 @@ def require_a_seat(thing, requester):
     )
 
 
+def _thing_paused():
+    """The refusal of a request that overlaps the thing's pause."""
+    return BookingRequestError(
+        "This thing is paused on those dates.", status_code=409, code="thing_paused"
+    )
+
+
 def request_date_based_booking(
     thing,
     requester,
@@ -703,7 +710,10 @@ def request_date_based_booking(
             raise BookingRequestError(violation)
 
     with transaction.atomic():
-        Thing.objects.select_for_update().get(code=thing.code)
+        locked = Thing.objects.select_for_update().get(code=thing.code)
+
+        if locked.pause_overlaps(start_date, end_date):
+            raise _thing_paused()
 
         if BookingPeriod.has_overlap(thing.code, start_date, end_date):
             raise BookingRequestError(
@@ -935,6 +945,8 @@ def request_reservation(
 
     with transaction.atomic():
         locked = Thing.objects.select_for_update().get(code=thing.code)
+        if locked.pause_overlaps(start_date, end_date):
+            raise _thing_paused()
         if rc.active_reservation_count(requester.code) >= rc.reservation_max_active_per_member:
             raise BookingRequestError(
                 "You've reached the maximum number of active reservations for this space.",

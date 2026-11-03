@@ -25,7 +25,6 @@ import pytest
 from django.utils import timezone
 
 from core.models import BookingPeriod, Collection, Thing, User
-from core.models.booking import saturated_periods
 from core.services.booking_service import _day_has_a_free_hour
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -64,11 +63,18 @@ def space(request):
         reservation_max_minutes=720,
         opening_hours={"0": case["blocks"]},
     )
+    monday = _next_monday()
+    # `pause` is [from, until] in days from that Monday, both included.
+    pause = case.get("pause")
     thing = Thing.objects.create(
-        code="GRDTHG", type=Thing.Type.RESERVE_THING, owner=owner, headline="Sala"
+        code="GRDTHG",
+        type=Thing.Type.RESERVE_THING,
+        owner=owner,
+        headline="Sala",
+        paused_from=monday + timedelta(days=pause[0]) if pause else None,
+        paused_until=monday + timedelta(days=pause[1]) if pause else None,
     )
     collection.things.add(thing)
-    monday = _next_monday()
     for booked in case["bookings"]:
         BookingPeriod.objects.create(
             thing_code=thing,
@@ -101,6 +107,9 @@ def test_the_server_accepts_exactly_the_starts_the_page_offers(space):
         ends = time((start + case["duration"]) // 60, (start + case["duration"]) % 60)
         if collection.reservation_hour_violation(monday, begins, ends, now=now):
             continue
+        # The request refuses the pause before it counts bookings.
+        if thing.pause_overlaps(monday, monday + timedelta(days=1)):
+            continue
         if BookingPeriod.has_overlap(
             thing.code,
             monday,
@@ -119,9 +128,8 @@ def test_the_server_finds_a_free_slot_exactly_when_the_picker_offers_the_day(spa
     case, collection, thing, monday, now = space
     # As `Thing.availability_window` does: with several units a day is taken only
     # where they are all on.
-    blocked = saturated_periods(
-        list(BookingPeriod.objects.filter(thing_code=thing)), case.get("units", 1)
-    )
+    thing.units = case.get("units", 1)
+    blocked = thing.served_periods(list(BookingPeriod.objects.filter(thing_code=thing)))
     earliest = now.hour * 60 + now.minute if now.date() == monday else 0
     assert (
         _day_has_a_free_hour(monday, collection, blocked, earliest=earliest)
@@ -147,7 +155,8 @@ def test_the_server_serves_exactly_the_taken_periods_the_page_is_fed(space):
     case, collection, thing, monday, now = space
     rows = list(BookingPeriod.objects.filter(thing_code=thing))
 
-    served = saturated_periods(rows, case.get("units", 1))
+    thing.units = case.get("units", 1)
+    served = thing.served_periods(rows)
 
     assert _ordered(_shape(r) for r in served) == _ordered(
         case.get("served_periods", case["bookings"])

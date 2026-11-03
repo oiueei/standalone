@@ -3,6 +3,7 @@ Thing serializers for OIUEEI.
 """
 
 from django.db.models import Count, Prefetch
+from django.utils import timezone
 from rest_framework import serializers
 
 from core.models import Collection, Thing
@@ -56,6 +57,36 @@ def validate_units_for_type(thing_type, units):
         raise serializers.ValidationError(
             {"units": "Only a space that is booked can have several identical units."}
         )
+
+
+MAX_PAUSE_DAYS = 365
+
+
+def validate_pause(thing_type, paused_from, paused_until, *, today=None):
+    """The pause a thing is being given, judged on the row that results.
+
+    Both days or neither; the first no later than the last, the last not already
+    past, at most a year (both ends included); and only on a thing with a calendar.
+    Taking it off, with both empty, is always allowed.
+    """
+    if paused_from is None and paused_until is None:
+        return
+    errors = {}
+    if paused_from is None or paused_until is None:
+        errors["paused_until" if paused_until is None else "paused_from"] = (
+            "A pause needs both days, or none."
+        )
+    else:
+        if paused_from > paused_until:
+            errors["paused_until"] = "The pause cannot end before it starts."
+        elif (paused_until - paused_from).days + 1 > MAX_PAUSE_DAYS:
+            errors["paused_until"] = f"A pause can last at most {MAX_PAUSE_DAYS} days."
+        if paused_until < (today or timezone.localdate()):
+            errors["paused_until"] = "The pause cannot end in the past."
+    if thing_type not in DATE_BASED_TYPES:
+        errors["paused_from"] = "Only a loan, a rental or a reservation can be paused."
+    if errors:
+        raise serializers.ValidationError(errors)
 
 
 def optimise_thing_queryset(queryset, *, with_collections=False):
@@ -124,6 +155,8 @@ class ThingComputedFieldsMixin(serializers.Serializer):
     transfer_count = serializers.SerializerMethodField()
     available_today = serializers.SerializerMethodField()
     next_available = serializers.SerializerMethodField()
+    paused_from = serializers.SerializerMethodField()
+    paused_until = serializers.SerializerMethodField()
     can_manage = serializers.SerializerMethodField()
     network_point = serializers.SerializerMethodField()
 
@@ -356,6 +389,16 @@ class ThingComputedFieldsMixin(serializers.Serializer):
             collection = self._reading_collection(obj)
         return obj.availability_window(collection=collection)
 
+    def get_paused_from(self, obj):
+        """The first day of the pause, ``None`` when there is none or it is over
+        (``Thing.pause_period``): a pause that has passed is not shown."""
+        pause = obj.pause_period()
+        return pause.start_date.isoformat() if pause else None
+
+    def get_paused_until(self, obj):
+        pause = obj.pause_period()
+        return obj.paused_until.isoformat() if pause else None
+
     def get_available_today(self, obj):
         window = self._availability_window(obj)
         return window["available_today"] if window else None
@@ -423,6 +466,8 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
             "condition",
             "available_today",
             "next_available",
+            "paused_from",
+            "paused_until",
             "deal",
             "pending_booking",
             "bookings",
@@ -935,6 +980,8 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
         max_digits=10, decimal_places=2, min_value=0, required=False, allow_null=True
     )
     units = serializers.IntegerField(min_value=1, max_value=20, required=False)
+    paused_from = serializers.DateField(required=False, allow_null=True)
+    paused_until = serializers.DateField(required=False, allow_null=True)
 
     class Meta:
         model = Thing
@@ -953,6 +1000,8 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
             "condition",
             "is_endless",
             "units",
+            "paused_from",
+            "paused_until",
         ]
         read_only_fields = ["status"]
 
@@ -967,6 +1016,14 @@ class ThingUpdateSerializer(serializers.ModelSerializer):
         )
         # A thing that stops being a reservation goes back to one unit (the view
         # sets it); only a number named in this very request is judged here.
+        # A pause is judged only when this request touches it: a stored one that has
+        # since ended must not stop an unrelated edit.
+        if "paused_from" in attrs or "paused_until" in attrs:
+            validate_pause(
+                attrs.get("type", stored.type if stored else None),
+                attrs.get("paused_from", stored.paused_from if stored else None),
+                attrs.get("paused_until", stored.paused_until if stored else None),
+            )
         if "units" in attrs:
             validate_units_for_type(
                 attrs.get("type", stored.type if stored else None), attrs["units"]
