@@ -45,7 +45,7 @@ function mockRoutes({ thing, ownThings = [], request = { ok: true, status: 201 }
   globalThis.fetch = vi.fn((url, options = {}) => {
     const respond = (status, body) =>
       Promise.resolve({ ok: status < 400, status, json: async () => body });
-    if (url.endsWith('/calendar/')) return respond(200, []);
+    if (url.includes('/calendar/')) return respond(200, []);
     if (url.endsWith('/request/'))
       return respond(
         request.status,

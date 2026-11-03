@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification } from 'hds-react';
-import { DETAIL_TYPES, deriveThingType } from '../constants/things';
+import { DETAIL_TYPES, clampUnits, deriveThingType } from '../constants/things';
 import { membersPriceFromVerbs } from '../utils/collectionKind';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
@@ -42,6 +42,7 @@ export default function AddThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [isEndless, setIsEndless] = useState(false);
+  const [units, setUnits] = useState(1);
   const [gallery, setGallery] = useState([]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -154,6 +155,8 @@ export default function AddThingPage() {
     if (kind === 'STALL' && isEndless) {
       body.is_endless = true;
     }
+    // Only a shed's space has several identical ones.
+    if (kind === 'SHED') body.units = clampUnits(units);
     try {
       const res = await apiFetch('/api/v1/things/', {
         method: 'POST',
@@ -200,6 +203,8 @@ export default function AddThingPage() {
           approvalCatalogue={notOffered ? [{ label: t('types.' + type), value: type }] : []}
           isEndless={isEndless}
           setIsEndless={setIsEndless}
+          units={units}
+          setUnits={setUnits}
           headline={headline}
           setHeadline={setHeadline}
           description={description}

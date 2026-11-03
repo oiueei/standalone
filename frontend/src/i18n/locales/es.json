@@ -359,6 +359,8 @@
     "priceLabel": "Precio.",
     "depositLabel": "Fianza.",
     "depositRefundableNote": "(se devuelve)",
+    "unitsCount_one": "{{count}} unidad",
+    "unitsCount_other": "{{count}} unidades",
     "availabilityLabel": "Disponibilidad.",
     "locationLabel": "Ubicación.",
     "conditionLabel": "Estado.",
@@ -1277,6 +1279,8 @@
     "priceStall": "Precio (opcional)",
     "priceStallHelp": "Sin precio, es un regalo.",
     "priceLibrary": "Precio del alquiler (opcional)",
-    "priceLibraryHelp": "Sin precio, se presta gratis."
+    "priceLibraryHelp": "Sin precio, se presta gratis.",
+    "unitsLabel": "¿Cuántas iguales hay?",
+    "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una."
   }
 }

@@ -6,6 +6,7 @@ import {
   DATE_TYPES,
   DETAIL_TYPES,
   KIND_THING_TYPES,
+  clampUnits,
   deriveThingType,
   kindOfThingType,
 } from '../constants/things';
@@ -54,6 +55,7 @@ export default function EditThingPage() {
   const [location, setLocation] = useState('');
   const [condition, setCondition] = useState('');
   const [isEndless, setIsEndless] = useState(false);
+  const [units, setUnits] = useState(1);
   const [gallery, setGallery] = useState([]);
   const [tags, setTags] = useState([]);
   const [collectionTags, setCollectionTags] = useState([]);
@@ -96,6 +98,7 @@ export default function EditThingPage() {
           if (data.tags) setTags(data.tags);
           if (data.collection_tags) setCollectionTags(data.collection_tags);
           if (data.is_endless) setIsEndless(true);
+          setUnits(data.units || 1);
           if (!code && data.collection_code) setThingCollectionCode(data.collection_code);
           if (data.collection_headline) setThingCollectionHeadline(data.collection_headline);
           setThingCollectionKind(data.collection_kind || '');
@@ -193,6 +196,8 @@ export default function EditThingPage() {
     if (kind === 'STALL') {
       body.is_endless = isEndless;
     }
+    // Only a shed's space has several identical ones.
+    if (kind === 'SHED') body.units = clampUnits(units);
 
     try {
       const res = await apiFetch(`/api/v1/things/${thingCode}/`, {
@@ -233,6 +238,8 @@ export default function EditThingPage() {
           approvalCatalogue={notOffered ? [{ label: t('types.' + type), value: type }] : []}
           isEndless={isEndless}
           setIsEndless={setIsEndless}
+          units={units}
+          setUnits={setUnits}
           headline={headline}
           setHeadline={setHeadline}
           description={description}

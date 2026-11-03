@@ -123,7 +123,9 @@ export default function RequestThingPage() {
 
   useEffect(() => {
     if (!userCode || !thing || !DATE_TYPES.includes(thing.type)) return;
-    apiFetch(`/api/v1/things/${thingCode}/calendar/`)
+    // `for=request`: a curator who books is shown what a member is — the stretches in
+    // which every unit is taken — not the bookings with names.
+    apiFetch(`/api/v1/things/${thingCode}/calendar/?for=request`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setBlockedPeriods(data))
       .catch(() => {});

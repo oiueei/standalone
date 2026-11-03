@@ -365,6 +365,8 @@
     "priceLabel": "Price.",
     "depositLabel": "Deposit.",
     "depositRefundableNote": "(refundable)",
+    "unitsCount_one": "{{count}} unit",
+    "unitsCount_other": "{{count}} units",
     "availabilityLabel": "Availability.",
     "locationLabel": "Location.",
     "conditionLabel": "Condition.",
@@ -1277,6 +1279,8 @@
     "priceStall": "Price (optional)",
     "priceStallHelp": "No price, it's a gift.",
     "priceLibrary": "Rental price (optional)",
-    "priceLibraryHelp": "No price, it's lent for free."
+    "priceLibraryHelp": "No price, it's lent for free.",
+    "unitsLabel": "How many identical ones are there?",
+    "unitsHelp": "If you have several identical ones, they can be booked at the same time up to this number. Each person books one."
   }
 }

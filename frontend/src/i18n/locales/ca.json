@@ -359,6 +359,8 @@
     "priceLabel": "Preu.",
     "depositLabel": "Fiança.",
     "depositRefundableNote": "(es retorna)",
+    "unitsCount_one": "{{count}} unitat",
+    "unitsCount_other": "{{count}} unitats",
     "availabilityLabel": "Disponibilitat.",
     "locationLabel": "Ubicació.",
     "conditionLabel": "Estat.",
@@ -1277,6 +1279,8 @@
     "priceStall": "Preu (opcional)",
     "priceStallHelp": "Sense preu, és un regal.",
     "priceLibrary": "Preu del lloguer (opcional)",
-    "priceLibraryHelp": "Sense preu, es presta de franc."
+    "priceLibraryHelp": "Sense preu, es presta de franc.",
+    "unitsLabel": "Quantes n'hi ha d'iguals?",
+    "unitsHelp": "Si en tens diverses d'iguals, es poden reservar alhora fins a aquest nombre. Cada persona en reserva una."
   }
 }
