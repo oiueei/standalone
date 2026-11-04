@@ -173,7 +173,7 @@ export default function NetworkPointPage() {
           <ImageUpload
             id="network-point-logo"
             label={t('networkPoint.logoLabel')}
-            helperText={t('networkPoint.logoHelper')}
+            helperText={`${t('networkPoint.logoHelper')} ${t('collectionSettings.logoHelper')}`}
             onChange={setLogo}
             currentUrl={logoUrl}
             folder="oiueei/collections"
