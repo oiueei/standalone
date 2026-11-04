@@ -119,6 +119,59 @@ describe('the words of the phone field and of the switch', () => {
   });
 });
 
+const HOURLY_SHED_THING = {
+  ...SHED_THING,
+  reservation_unit: 'HOUR',
+  reservation_horizon_days: 90,
+  reservation_min_minutes: 60,
+  reservation_max_minutes: 180,
+  opening_hours: { 0: [['10:00', '14:00']] },
+};
+
+describe('RequestThingPage — the phone comes before the project note', () => {
+  const NOTE = en.reservation.projectNoteLabel;
+  const precedes = (a, b) =>
+    Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  test.each([
+    ['by the day', SHED_THING],
+    ['by the hour', HOURLY_SHED_THING],
+  ])('%s: the phone field is above the note', async (_unit, thing) => {
+    setApi(thing);
+    renderPage();
+    await screen.findByText(/Reserve Lathe/);
+
+    const phone = screen.getByLabelText(LABEL.en);
+    const note = screen.getByLabelText(NOTE);
+
+    expect(precedes(phone, note)).toBe(true);
+    expect(precedes(note, phone)).toBe(false);
+  });
+
+  test.each([
+    ['by the day', SHED_THING, '#reservation-project-note-phone'],
+    ['by the hour', HOURLY_SHED_THING, '#reservation-project-note-hourly-phone'],
+  ])('%s: the phone keeps its id, derived from the note’s', async (_unit, thing, selector) => {
+    setApi(thing);
+    const { container } = renderPage();
+    await screen.findByText(/Reserve Lathe/);
+
+    expect(container.querySelector(selector)).toBe(screen.getByLabelText(LABEL.en));
+  });
+
+  test.each([
+    ['by the day', SHED_THING],
+    ['by the hour', HOURLY_SHED_THING],
+  ])('%s: with no phone asked, the note is there alone', async (_unit, thing) => {
+    setApi({ ...thing, collection_reservation_asks_phone: false });
+    renderPage();
+    await screen.findByText(/Reserve Lathe/);
+
+    expect(screen.getByLabelText(NOTE)).toBeInTheDocument();
+    expect(screen.queryByLabelText(LABEL.en)).toBeNull();
+  });
+});
+
 describe('RequestThingPage — the optional contact phone', () => {
   test('it is a telephone field, optional, when the collection asks', async () => {
     setApi(SHED_THING);

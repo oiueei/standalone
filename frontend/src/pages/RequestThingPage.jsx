@@ -411,18 +411,12 @@ export default function RequestThingPage() {
     setStartDate('');
   };
 
-  // The optional project note — the same field in the DAY and HOUR flows, one
-  // or the other on screen, never both (their ids stay distinct anyway).
+  // The optional contact phone (when the shed asks) and the optional project note — the
+  // same fields in the DAY and HOUR flows, one or the other on screen, never both (their
+  // ids stay distinct anyway). The phone comes first: it is asked for a reason the label
+  // gives, and the note is the free text that closes the form.
   const projectNoteField = (id) => (
     <>
-      <TextArea
-        id={id}
-        label={t('reservation.projectNoteLabel')}
-        helperText={t('reservation.projectNoteHelper', { remaining: 512 - projectNote.length })}
-        maxLength={512}
-        value={projectNote}
-        onChange={(e) => setProjectNote(e.target.value)}
-      />
       {thing?.collection_reservation_asks_phone && (
         <TextInput
           id={`${id}-phone`}
@@ -439,6 +433,14 @@ export default function RequestThingPage() {
           errorText={phoneError || undefined}
         />
       )}
+      <TextArea
+        id={id}
+        label={t('reservation.projectNoteLabel')}
+        helperText={t('reservation.projectNoteHelper', { remaining: 512 - projectNote.length })}
+        maxLength={512}
+        value={projectNote}
+        onChange={(e) => setProjectNote(e.target.value)}
+      />
     </>
   );
 
