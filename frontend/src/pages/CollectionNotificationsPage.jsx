@@ -45,6 +45,9 @@ export default function CollectionNotificationsPage() {
   const [welcomeDocUrl, setWelcomeDocUrl] = useState('');
   const [digestFrequency, setDigestFrequency] = useState('');
   const [language, setLanguage] = useState('');
+  // Whether the owner picked a language in the `Select`. Until then the stored one (blank
+  // or not) travels back untouched.
+  const [languageChosen, setLanguageChosen] = useState(false);
   const [emailNote, setEmailNote] = useState('');
   // The page wears the palette the collection has saved.
   const [savedPalette, setSavedPalette] = useState(null);
@@ -76,7 +79,7 @@ export default function CollectionNotificationsPage() {
           setWelcomeDocUrl(data.welcome_doc_url || '');
           setDigestFrequency(data.digest_frequency);
           // Blank = inherit the deployment default; the Select shows the interface's
-          // language and saving records it.
+          // language, and only choosing one records it.
           setLanguage(data.language || i18n.resolvedLanguage || i18n.language);
           setSavedLanguage(data.language || '');
           setEmailNote(data.email_note || '');
@@ -109,9 +112,10 @@ export default function CollectionNotificationsPage() {
       allow_member_proposals: allowProposals,
       welcome_doc: welcomeDoc,
       digest_frequency: digestFrequency,
-      language,
       email_note: emailNote.trim(),
     };
+    // The stored language (blank included) goes back unless the owner picked another.
+    body.language = languageChosen ? language : savedLanguage;
     try {
       const res = await apiFetch(`/api/v1/collections/${code}/`, {
         method: 'PATCH',
@@ -187,7 +191,10 @@ export default function CollectionNotificationsPage() {
           options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
           value={language}
           onChange={(selected) => {
-            if (selected.length > 0) setLanguage(selected[0].value);
+            if (selected.length > 0) {
+              setLanguage(selected[0].value);
+              setLanguageChosen(true);
+            }
           }}
         />
         <div>

@@ -188,13 +188,13 @@ describe('CollectionNotificationsPage', () => {
     expect(patchBody().digest_frequency).toBe('MONTHLY');
   });
 
-  test('a collection with no language shows the interface’s and saving records it', async () => {
+  test('a collection with no language shows the interface’s, and saving without choosing keeps it blank', async () => {
     mockApi({ collection: { ...COLLECTION, language: '' } });
     renderPage();
     await save();
 
     await waitFor(() => expect(navigate).toHaveBeenCalled());
-    expect(patchBody().language).toBe('en');
+    expect(patchBody().language).toBe('');
     // …while the page itself followed no language but the stored one: none.
     expect(useCollectionLanguage).toHaveBeenLastCalledWith('', [
       'Kitchen Collection',
@@ -215,6 +215,22 @@ describe('CollectionNotificationsPage', () => {
 
     await waitFor(() => expect(combobox).toHaveTextContent('Español'));
     expect(useCollectionLanguage).toHaveBeenLastCalledWith('ca', texts);
+  });
+
+  test('choosing a language on a collection with none records the choice', async () => {
+    mockApi({ collection: { ...COLLECTION, language: '' } });
+    renderPage();
+    await screen.findByDisplayValue('We confirm within 48h.');
+    await settle(apiFetch);
+
+    const combobox = screen.getByRole('combobox', { name: /Language of the group messages/ });
+    fireEvent.click(combobox);
+    fireEvent.click(await screen.findByRole('option', { name: 'Español' }));
+    await waitFor(() => expect(combobox).toHaveTextContent('Español'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    expect(patchBody().language).toBe('es');
   });
 
   test('an edited note reaches the PATCH trimmed', async () => {
