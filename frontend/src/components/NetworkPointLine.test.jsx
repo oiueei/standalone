@@ -119,4 +119,31 @@ describe('NetworkPointLine', () => {
       'var(--spacing-2-xs) 0 var(--spacing-m)',
     ]);
   });
+
+  test('with a logo the image is the last thing in the box and the pin stays first', () => {
+    render(<NetworkPointLine point={{ ...POINT, logo_url: 'https://cdn/fusteria.png' }} />);
+
+    const box = screen.getByTestId('network-point-line');
+    const img = box.querySelector('img');
+    expect(img).toHaveAttribute('src', 'https://cdn/fusteria.png');
+    expect(img).toHaveAttribute('alt', '');
+    expect(img.className).toBe('network-point-logo');
+    expect(box.lastElementChild).toBe(img);
+    expect(box.firstElementChild.tagName.toLowerCase()).toBe('svg');
+  });
+
+  test('without a logo there is no image', () => {
+    render(<NetworkPointLine point={{ ...POINT, logo_url: null }} />);
+
+    expect(screen.getByTestId('network-point-line').querySelector('img')).toBeNull();
+  });
+
+  test('the logo is 48px tall and is never cropped', () => {
+    expect(declarations('.network-point-logo', 'height')).toEqual(['48px']);
+    expect(declarations('.network-point-logo', 'width')).toEqual(['auto']);
+    expect(declarations('.network-point-logo', 'max-width')).toEqual(['96px']);
+    expect(declarations('.network-point-logo', 'object-fit')).toEqual(['contain']);
+    expect(declarations('.network-point-logo', 'margin-left')).toEqual(['auto']);
+    expect(declarations('.network-point-logo', 'flex')).toEqual(['0 0 auto']);
+  });
 });
