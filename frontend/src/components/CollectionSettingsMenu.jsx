@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { IconCogwheel } from 'hds-react';
+import { IconPenLine } from 'hds-react';
 import useDismissable from '../hooks/useDismissable';
 import { useCollectionBase } from '../hooks/useCollectionBase';
 import { collectionPath } from '../utils/collectionPath';
@@ -41,7 +41,7 @@ export default function CollectionSettingsMenu({ code, kind }) {
         aria-controls={open ? PANEL_ID : undefined}
         onClick={() => setOpen((v) => !v)}
       >
-        <IconCogwheel aria-hidden="true" />
+        <IconPenLine aria-hidden="true" />
       </button>
       {open && (
         <div id={PANEL_ID} className="collection-settings-menu-panel">

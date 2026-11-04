@@ -14,9 +14,11 @@ const renderMenu = (kind = 'STALL') =>
   );
 
 describe('CollectionSettingsMenu', () => {
-  test('is a closed cogwheel button named Settings', () => {
+  test('is a closed pencil button named Settings', () => {
     renderMenu();
     const trigger = screen.getByRole('button', { name: 'Settings' });
+    // The icon is a pencil, drawn by HDS under that name.
+    expect(trigger.querySelector('svg')).toHaveAttribute('aria-label', 'pen-line');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(trigger).not.toHaveAttribute('aria-controls');
     expect(screen.queryByRole('link')).toBeNull();
