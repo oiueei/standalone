@@ -23,8 +23,7 @@ import en from '../i18n/locales/en.json';
 
 /**
  * The whole body Create POSTs (the short form) and Edit PATCHes, field by field, with every
- * field of the "More options" block changed from the screen (or loaded, for what Edit
- * loads). The expected bodies are written by hand from what was typed and loaded — not
+ * field the page owns changed from the screen (or loaded, for what Edit loads). The expected bodies are written by hand from what was typed and loaded — not
  * copied from what the pages send — so a field that stops reaching the server, or reaches
  * it under another name, fails here.
  */

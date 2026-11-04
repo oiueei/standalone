@@ -854,14 +854,15 @@ describe('CollectionPage — an hourly shed nobody can book yet', () => {
     await settle(apiFetch);
   }
 
-  test('the curator is told, and is given the way to Edit collection', async () => {
+  test('the curator is told, and is given the way to Availability, where the hours are', async () => {
     await renderAs(SHED);
 
     expect(screen.getByText(en.collectionPage.noOpeningHoursLabel)).toBeInTheDocument();
     expect(screen.getByText(NOTICE)).toBeInTheDocument();
-    const links = screen.getAllByRole('link', { name: en.collectionPage.editCollection });
-    expect(links.some((a) => a.getAttribute('href') === '/shed/COL001/edit')).toBe(true);
-    expect(links).toHaveLength(2); // the hero's, and the notice's
+    expect(NOTICE).not.toMatch(/More options|Edit collection/);
+    const links = screen.getAllByRole('link', { name: en.collectionSettings.availability });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute('href', '/shed/COL001/settings/availability');
   });
 
   test('a week of empty days is the same as none', async () => {

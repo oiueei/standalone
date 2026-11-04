@@ -28,9 +28,9 @@ import { settle } from '../test/settle';
 import en from '../i18n/locales/en.json';
 
 // `collectionForm.test.jsx` covers the shape of this form (which fields are
-// visible, which fold into "More options", the pause section). These cover what
+// visible, the pause section). These cover what
 // hangs off the save: a save the backend refuses because narrowing the type
-// list would orphan things, the notes, the hour rules. The downloads (calendar,
+// list would orphan things. The downloads (calendar,
 // stats, the whole collection) live in the collection menu now
 // (`collectionMenu.test.jsx`); this page offers none.
 

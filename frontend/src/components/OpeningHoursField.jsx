@@ -60,11 +60,10 @@ import { errorKey, translateError } from '../utils/errorKey';
  * alone, since the error also clears on a re-sync (during render, where a
  * parent's setter can't be called). The cleanup reports `true` on unmount: an
  * unmounted field has no draft on screen to refuse, and when it mounts again it
- * shows the last good value, which is what the parent holds. Collapsing the
- * "More options" accordion is **not** an unmount — HDS hides a closed
- * Accordion's content with `display: none` and keeps it mounted — so the
- * refusal outlives the owner folding the section away, which is the point
- * (`EditCollectionPage.test.jsx` pins that). Pass a stable function (a state
+ * shows the last good value, which is what the parent holds. Nothing on the
+ * Availability page folds this field away, so the only unmount is the owner
+ * leaving "By hour" (and the refusal goes with the draft it was about; pinned in
+ * `CollectionAvailabilityPage.test.jsx`). Pass a stable function (a state
  * setter): the effect re-runs whenever its identity changes.
  */
 const noop = () => {};

@@ -354,7 +354,7 @@
     "visitorJoinError": "We couldn't add you to the group. Please try again.",
     "welcomeDoc": "The group's welcome document (PDF)",
     "noOpeningHoursLabel": "Nobody can book yet",
-    "noOpeningHoursBody": "This shed is booked by the hour and has no opening hours. Add them in Edit collection, under \"More options\"."
+    "noOpeningHoursBody": "This shed is booked by the hour and has no opening hours. Add them in Availability, in the settings menu."
   },
   "digestMute": {
     "pageTitle": "Email summaries — OIUEEI",

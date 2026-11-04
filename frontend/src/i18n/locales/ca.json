@@ -348,7 +348,7 @@
     "visitorJoinError": "No hem pogut afegir-te al grup. Torna-ho a provar.",
     "welcomeDoc": "Document de benvinguda del grup (PDF)",
     "noOpeningHoursLabel": "Encara no es pot reservar",
-    "noOpeningHoursBody": "Aquest taller es reserva per hores i no té horari. Afegeix-lo a Editar col·lecció, a «Més opcions»."
+    "noOpeningHoursBody": "Aquest taller es reserva per hores i no té horari. Afegeix-lo a Disponibilitat, al menú de configuració."
   },
   "digestMute": {
     "pageTitle": "Resums per correu — OIUEEI",

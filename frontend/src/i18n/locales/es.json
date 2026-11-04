@@ -348,7 +348,7 @@
     "visitorJoinError": "No hemos podido unirte al grupo. Vuelve a intentarlo.",
     "welcomeDoc": "Documento de bienvenida del grupo (PDF)",
     "noOpeningHoursLabel": "Aún no se puede reservar",
-    "noOpeningHoursBody": "Este taller se reserva por horas y no tiene horario. Añádelo en Editar colección, en «Más opciones»."
+    "noOpeningHoursBody": "Este taller se reserva por horas y no tiene horario. Añádelo en Disponibilidad, en el menú de ajustes."
   },
   "digestMute": {
     "pageTitle": "Resúmenes por correo — OIUEEI",
