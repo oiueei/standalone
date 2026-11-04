@@ -188,9 +188,14 @@ describe('CollectionNotificationsPage', () => {
     expect(patchBody().digest_frequency).toBe('MONTHLY');
   });
 
-  test('a collection with no language shows the interface’s, and saving without choosing keeps it blank', async () => {
+  test('a collection with no language shows "Automatic", and saving without choosing keeps it blank', async () => {
     mockApi({ collection: { ...COLLECTION, language: '' } });
     renderPage();
+    await screen.findByDisplayValue('We confirm within 48h.');
+    await settle(apiFetch);
+    expect(
+      screen.getByRole('combobox', { name: /Language of the group messages/ })
+    ).toHaveTextContent('Automatic');
     await save();
 
     await waitFor(() => expect(navigate).toHaveBeenCalled());
@@ -231,6 +236,22 @@ describe('CollectionNotificationsPage', () => {
 
     await waitFor(() => expect(navigate).toHaveBeenCalled());
     expect(patchBody().language).toBe('es');
+  });
+
+  test('choosing Automatic on a collection with a language takes it back to blank', async () => {
+    mockApi();
+    renderPage();
+    await screen.findByDisplayValue('We confirm within 48h.');
+    await settle(apiFetch);
+
+    const combobox = screen.getByRole('combobox', { name: /Language of the group messages/ });
+    fireEvent.click(combobox);
+    fireEvent.click(await screen.findByRole('option', { name: 'Automatic' }));
+    await waitFor(() => expect(combobox).toHaveTextContent('Automatic'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(navigate).toHaveBeenCalled());
+    expect(patchBody().language).toBe('');
   });
 
   test('an edited note reaches the PATCH trimmed', async () => {

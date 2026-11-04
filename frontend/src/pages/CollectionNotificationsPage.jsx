@@ -45,9 +45,6 @@ export default function CollectionNotificationsPage() {
   const [welcomeDocUrl, setWelcomeDocUrl] = useState('');
   const [digestFrequency, setDigestFrequency] = useState('');
   const [language, setLanguage] = useState('');
-  // Whether the owner picked a language in the `Select`. Until then the stored one (blank
-  // or not) travels back untouched.
-  const [languageChosen, setLanguageChosen] = useState(false);
   const [emailNote, setEmailNote] = useState('');
   // The page wears the palette the collection has saved.
   const [savedPalette, setSavedPalette] = useState(null);
@@ -78,9 +75,8 @@ export default function CollectionNotificationsPage() {
           setWelcomeDoc(data.welcome_doc || '');
           setWelcomeDocUrl(data.welcome_doc_url || '');
           setDigestFrequency(data.digest_frequency);
-          // Blank = inherit the deployment default; the Select shows the interface's
-          // language, and only choosing one records it.
-          setLanguage(data.language || i18n.resolvedLanguage || i18n.language);
+          // Blank = inherit the deployment default; the Select's "Automatic" option says so.
+          setLanguage(data.language || '');
           setSavedLanguage(data.language || '');
           setEmailNote(data.email_note || '');
           setSavedPalette({ colors: data.theeeme_colors, koro: data.koro });
@@ -96,10 +92,8 @@ export default function CollectionNotificationsPage() {
       }
     };
     load();
-    // Mount-once, like EditCollectionPage's load: `i18n` is read once, for the draft
-    // language's starting value, and `useCollectionLanguage` changes the language as
-    // this very response lands.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Mount-once, like EditCollectionPage's load: `useCollectionLanguage` changes the
+    // language as this very response lands.
   }, [code]);
 
   const emailNoteCount = localizedCounter(emailNote, 512);
@@ -112,10 +106,10 @@ export default function CollectionNotificationsPage() {
       allow_member_proposals: allowProposals,
       welcome_doc: welcomeDoc,
       digest_frequency: digestFrequency,
+      language,
       email_note: emailNote.trim(),
     };
-    // The stored language (blank included) goes back unless the owner picked another.
-    body.language = languageChosen ? language : savedLanguage;
+
     try {
       const res = await apiFetch(`/api/v1/collections/${code}/`, {
         method: 'PATCH',
@@ -188,13 +182,13 @@ export default function CollectionNotificationsPage() {
             assistive: t('collectionLanguage.helper'),
             language: hdsLang(i18n.language),
           }}
-          options={SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code }))}
+          options={[
+            { label: t('editProfile.languageAutomatic'), value: '' },
+            ...SUPPORTED_LANGUAGES.map((l) => ({ label: l.name, value: l.code })),
+          ]}
           value={language}
           onChange={(selected) => {
-            if (selected.length > 0) {
-              setLanguage(selected[0].value);
-              setLanguageChosen(true);
-            }
+            if (selected.length > 0) setLanguage(selected[0].value);
           }}
         />
         <div>
