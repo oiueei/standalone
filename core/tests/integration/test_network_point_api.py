@@ -188,3 +188,57 @@ def test_a_collection_that_is_not_a_network_carries_no_points(world):
     res = client_for().get(f"/api/v1/collections/{proprietary.code}/")
 
     assert res.data["points"] == []
+
+
+def test_a_dinamizador_saves_and_removes_the_logo_of_their_entity(world):
+    key = "oiueei/collections/fusteria"
+
+    saved = client_for(world["lele"]).put(url(world), {"logo": key}, format="json")
+
+    assert saved.status_code == status.HTTP_200_OK
+    assert NetworkPoint.objects.get().logo == key
+    assert saved.data["logo"] == key
+    assert saved.data["logo_url"].endswith(key)
+
+    removed = client_for(world["lele"]).put(url(world), {"logo": ""}, format="json")
+
+    assert removed.status_code == status.HTTP_200_OK
+    assert NetworkPoint.objects.get().logo == ""
+    assert removed.data["logo_url"] is None
+
+
+def test_a_point_with_no_logo_has_no_logo_url(world):
+    res = client_for(world["lele"]).get(url(world))
+
+    assert res.data["logo"] == ""
+    assert res.data["logo_url"] is None
+
+
+def test_a_logo_from_another_folder_is_refused(world):
+    res = client_for(world["lele"]).put(
+        url(world), {"logo": "oiueei/documents/someone-elses-rules"}, format="json"
+    )
+
+    assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert "logo" in res.data
+    assert not NetworkPoint.objects.exists()
+
+
+def test_a_plain_member_cannot_set_the_logo(world):
+    res = client_for(world["lolo"]).put(
+        url(world), {"logo": "oiueei/collections/fusteria"}, format="json"
+    )
+
+    assert res.status_code == status.HTTP_403_FORBIDDEN
+    assert not NetworkPoint.objects.exists()
+
+
+def test_the_logo_travels_with_the_collection_to_everyone(world):
+    NetworkPoint.objects.create(
+        collection=world["network"], user=world["lele"], logo="oiueei/collections/fusteria"
+    )
+
+    res = client_for().get(f"/api/v1/collections/{world['network'].code}/")
+
+    [point] = res.data["points"]
+    assert point["logo_url"].endswith("oiueei/collections/fusteria")

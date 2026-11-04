@@ -16,7 +16,7 @@ from unittest.mock import patch
 import pytest
 from django.db import transaction
 
-from core.models import Collection, Thing, User
+from core.models import Collection, NetworkPoint, Thing, User
 from core.services import asset_cleanup
 
 
@@ -52,6 +52,51 @@ class TestAssetCleanup:
                 coll.delete()
 
         assert [c.args[0] for c in destroy.call_args_list] == ["oiueei/collections/c1"]
+
+    def test_a_point_delete_destroys_its_logo(self, django_capture_on_commit_callbacks):
+        owner = User.objects.create(email="lele2@your-domain.test")
+        coll = Collection.objects.create(owner=owner, headline="C", mode="NETWORK")
+        point = NetworkPoint.objects.create(
+            collection=coll, user=owner, logo="oiueei/collections/logo1"
+        )
+        with patch("core.services.storage.delete") as destroy:
+            with django_capture_on_commit_callbacks(execute=True):
+                point.delete()
+
+        assert [c.args[0] for c in destroy.call_args_list] == ["oiueei/collections/logo1"]
+
+    def test_a_point_that_goes_with_its_dinamizador_takes_its_logo(
+        self, django_capture_on_commit_callbacks
+    ):
+        owner = User.objects.create(email="lala3@your-domain.test")
+        member = User.objects.create(email="lili3@your-domain.test")
+        coll = Collection.objects.create(owner=owner, headline="C", mode="NETWORK")
+        NetworkPoint.objects.create(collection=coll, user=member, logo="oiueei/collections/logo2")
+        with patch("core.services.storage.delete") as destroy:
+            with django_capture_on_commit_callbacks(execute=True):
+                coll.points.filter(user=member).delete()
+
+        assert [c.args[0] for c in destroy.call_args_list] == ["oiueei/collections/logo2"]
+
+    def test_replacing_a_logo_destroys_the_old_one_only(self, django_capture_on_commit_callbacks):
+        owner = User.objects.create(email="lolo3@your-domain.test")
+        coll = Collection.objects.create(owner=owner, headline="C", mode="NETWORK")
+        NetworkPoint.objects.create(collection=coll, user=owner, logo="oiueei/collections/old")
+        point = NetworkPoint.objects.get(user=owner)
+        point.logo = "oiueei/collections/new"
+        with patch("core.services.storage.delete") as destroy:
+            with django_capture_on_commit_callbacks(execute=True):
+                point.save()
+
+        assert [c.args[0] for c in destroy.call_args_list] == ["oiueei/collections/old"]
+
+    def test_the_orphan_sweep_keeps_a_logo_a_point_holds(self, db):
+        owner = User.objects.create(email="lulu3@your-domain.test")
+        coll = Collection.objects.create(owner=owner, headline="C", mode="NETWORK")
+        NetworkPoint.objects.create(collection=coll, user=owner, logo="oiueei/collections/kept")
+
+        assert "oiueei/collections/kept" in asset_cleanup.referenced_keys()
+        assert asset_cleanup.is_referenced("oiueei/collections/kept")
 
     def test_user_delete_cascades_to_collection_and_thing_assets(
         self, django_capture_on_commit_callbacks

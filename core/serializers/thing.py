@@ -176,12 +176,14 @@ class ThingComputedFieldsMixin(serializers.Serializer):
                 "address": "",
                 "hours_note": "",
                 "contact": "",
+                "logo_url": None,
             }
         return {
             "display_name": point.display_name,
             "address": point.address,
             "hours_note": point.hours_note,
             "contact": point.contact,
+            "logo_url": asset_url(point.logo) if point.logo else None,
         }
 
     def to_representation(self, instance):

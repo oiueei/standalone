@@ -34,6 +34,10 @@ class NetworkPoint(models.Model):
     hours_note = models.CharField(max_length=128, blank=True, default="")
     # A web or a phone of the entity; shown as typed, escaped, never made a link.
     contact = models.CharField(max_length=64, blank=True, default="")
+    # The entity's logo: a storage key in the collections' folder, like
+    # ``Collection.thumbnail`` (same width). ``db_default`` because the previous
+    # release's dynos insert without naming the column while the release phase runs.
+    logo = models.CharField(max_length=255, blank=True, default="", db_default="")
     # One set for pickup and return, like ``Collection.rental_weekdays`` (0=Mon…6=Sun).
     # Empty = the collection's days.
     weekdays = models.JSONField(default=list, blank=True)

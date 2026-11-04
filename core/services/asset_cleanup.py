@@ -1,6 +1,6 @@
 """Delete a record's stored assets when the record is deleted, or when a save drops one.
 
-Wired as ``post_delete`` signal handlers on Thing, Collection and User (see
+Wired as ``post_delete`` signal handlers on Thing, Collection, User and NetworkPoint (see
 ``core.apps.CoreConfig.ready``) so it covers direct deletes, the collection
 view's orphan-thing sweep, and user-account cascades alike — anywhere a row
 actually disappears. The destroy runs on ``transaction.on_commit`` (a
@@ -49,7 +49,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_init, post_save
 from django.dispatch import receiver
 
-from core.models import Collection, Thing, User
+from core.models import Collection, NetworkPoint, Thing, User
 from core.services import storage
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,8 @@ ASSET_FIELDS = {
     # needed one under Cloudinary, which filed it under resource_type=image.
     Collection: ("thumbnail", "welcome_doc"),
     User: ("photo",),
+    # The entity's logo, held by a dinamizador's pickup point.
+    NetworkPoint: ("logo",),
 }
 # The one column that holds an ordered list of keys rather than a single key.
 _LIST_FIELDS = frozenset({"gallery"})
@@ -91,7 +93,7 @@ def _keys(field, value):
 
 
 def _assets(instance):
-    """Yield the storage key of each asset ``instance`` (Thing/Collection/User) holds."""
+    """Yield the storage key of each asset ``instance`` (a row of ``ASSET_FIELDS``) holds."""
     for model, fields in ASSET_FIELDS.items():
         if isinstance(instance, model):
             for field in fields:
@@ -154,6 +156,7 @@ def _destroy(key):
 @receiver(post_delete, sender=Thing)
 @receiver(post_delete, sender=Collection)
 @receiver(post_delete, sender=User)
+@receiver(post_delete, sender=NetworkPoint)
 def _cleanup_assets_on_delete(sender, instance, **kwargs):
     if _suspended:
         return
@@ -165,6 +168,7 @@ def _cleanup_assets_on_delete(sender, instance, **kwargs):
 @receiver(post_init, sender=Thing)
 @receiver(post_init, sender=Collection)
 @receiver(post_init, sender=User)
+@receiver(post_init, sender=NetworkPoint)
 def _remember_stored_assets(sender, instance, **kwargs):
     instance._stored_assets = _loaded(instance)
 
@@ -172,6 +176,7 @@ def _remember_stored_assets(sender, instance, **kwargs):
 @receiver(post_save, sender=Thing)
 @receiver(post_save, sender=Collection)
 @receiver(post_save, sender=User)
+@receiver(post_save, sender=NetworkPoint)
 def _cleanup_assets_a_save_dropped(sender, instance, created, update_fields, **kwargs):
     before = getattr(instance, "_stored_assets", {})
     saved = _loaded(instance)
