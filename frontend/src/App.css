@@ -825,6 +825,37 @@ div[class*='Linkbox-module_linkbox'] {
   min-height: 24px;
 }
 
+/* Who lends a thing of a network and where and when it is collected: a box, not a
+   row, because it is what decides whether a person can go and collect it. Each
+   detail is its own line. */
+.network-point {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-s);
+  margin: var(--spacing-2-xs) 0 var(--spacing-m);
+  background: var(--color-black-5);
+  border: 8px solid var(--color-black-20);
+  font-size: var(--fontsize-body-m);
+  line-height: 24px;
+}
+
+.network-point-icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.network-point-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.network-point-text > strong,
+.network-point-detail {
+  display: block;
+}
+
 .thing-card-info-label {
   font-weight: 700;
 }

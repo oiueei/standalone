@@ -16,11 +16,11 @@ const POINT = {
 };
 
 describe('NetworkPointLine', () => {
-  test('says who lends it, where and when, on one line', () => {
+  test('says who lends it, where and when, one detail to a line', () => {
     render(<NetworkPointLine point={POINT} />);
 
     expect(screen.getByTestId('network-point-line')).toHaveTextContent(
-      'Lent by Cooperativa La Fusteria · Carrer Major 4 · martes y jueves de 18 a 20'
+      'Lent by Cooperativa La Fusteria Carrer Major 4 martes y jueves de 18 a 20'
     );
   });
 
@@ -33,9 +33,7 @@ describe('NetworkPointLine', () => {
   test('a dinamizador with no name at all is a member', () => {
     render(<NetworkPointLine point={{ display_name: '', address: 'Calle 1', hours_note: '' }} />);
 
-    expect(screen.getByTestId('network-point-line')).toHaveTextContent(
-      'Lent by A member · Calle 1'
-    );
+    expect(screen.getByTestId('network-point-line')).toHaveTextContent('Lent by A member Calle 1');
   });
 
   test('shows the words as text, never as markup', () => {

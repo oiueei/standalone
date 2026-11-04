@@ -505,7 +505,7 @@ export default function RequestThingPage() {
         />
       ) : (
         <>
-          <NetworkPointLine point={thing.network_point} className="" />
+          <NetworkPointLine point={thing.network_point} />
           {hasAmount(thing.fee) && (
             <p>
               <strong>{t('request.priceLabel')}</strong>{' '}
