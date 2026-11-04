@@ -176,7 +176,13 @@
     "contact": "Contact — OIUEEI",
     "ownerBookings": "Requests to me — OIUEEI",
     "dataExport": "Data export — OIUEEI",
-    "reserveThing": "Reserve: {{headline}} — OIUEEI"
+    "reserveThing": "Reserve: {{headline}} — OIUEEI",
+    "collectionAppearance": "Appearance of {{headline}} — OIUEEI",
+    "collectionAppearanceDefault": "Appearance — OIUEEI",
+    "collectionNotifications": "Notifications of {{headline}} — OIUEEI",
+    "collectionNotificationsDefault": "Notifications — OIUEEI",
+    "collectionAvailability": "Availability of {{headline}} — OIUEEI",
+    "collectionAvailabilityDefault": "Availability — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -348,7 +354,7 @@
     "visitorJoinError": "We couldn't add you to the group. Please try again.",
     "welcomeDoc": "The group's welcome document (PDF)",
     "noOpeningHoursLabel": "Nobody can book yet",
-    "noOpeningHoursBody": "This shed is booked by the hour and has no opening hours. Add them in Edit collection, under \"More options\"."
+    "noOpeningHoursBody": "This shed is booked by the hour and has no opening hours. Add them in Availability, in the settings menu."
   },
   "digestMute": {
     "pageTitle": "Email summaries — OIUEEI",
@@ -579,17 +585,16 @@
     "titleRequired": "Title is required.",
     "maxHeadline": "Maximum 64 characters per language.",
     "errorCreating": "Error creating collection.",
-    "advancedTitle": "More options",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
-    "theeemeRandom": "If you pick none, one is chosen at random for you.",
     "tagsLabel": "Tags",
     "tagsPlaceholder": "e.g. Vintage, Kitchen, Outdoor",
     "tagsHelper": "Optional labels to organise this collection's things",
     "maxDescription": "Description is too long: 2000 characters per language.",
     "modeProprietaryFull": "Proprietary: Only the team running the group adds things — you, to start with.",
     "modeCommunityFull": "Community: Every member can add their own things too.",
-    "modeNetworkFull": "Network: Several entities share one library: each puts in its own things and lends them from its own pickup point. You run the network; they run what is theirs."
+    "modeNetworkFull": "Network: Several entities share one library: each puts in its own things and lends them from its own pickup point. You run the network; they run what is theirs.",
+    "visibilityHeading": "Visibility"
   },
   "myBookings": {
     "pageTitle": "My requests",
@@ -926,7 +931,7 @@
     "weekdaysLabel": "Pickup / return days",
     "weekdaysHelper": "Both pickup and return must fall on these days. Empty = any day.",
     "depositPolicyLabel": "Deposit policy (optional)",
-    "depositPolicyHelper": "How deposits work in this collection — the amount is set per thing, this explains the condition for getting it back. Leave empty if this collection doesn't use deposits.",
+    "depositPolicyHelper": "How deposits work in this collection — the amount is set per thing, this explains the condition for getting it back.",
     "d1": "1 day",
     "d2": "2 days",
     "d3": "3 days",
@@ -952,10 +957,8 @@
   },
   "localized": {
     "hint": "Bilingual collection? You can write one text per language.",
-    "tagsHint": "Tags can hold one label per language too.",
     "infoTitle": "One text per language",
     "infoBody": "If your collection reads in two languages, write the title or the description as a small map — copy this and change the words. Everyone then reads it in their own language, in the app and in their emails.",
-    "tagsInfoBody": "A tag label works the same way — write it as a map and each member sees their own.",
     "policyHint": "The deposit policy can hold one text per language too.",
     "policyInfoBody": "It works the same way — write it as a small map and each member reads their own.",
     "requestInfoHint": "The request-page note can hold one text per language too.",
@@ -963,7 +966,13 @@
     "emailNoteHint": "The email note can hold one text per language too.",
     "emailNoteInfoBody": "It works the same way — write it as a small map and each member reads their own in the email.",
     "infoFallback": "Languages: es (Spanish), ca (Catalan), en (English). Write in one only if you prefer — anything that isn't a map is shown exactly as you typed it.",
-    "readAsPlain": "Read as plain text — to write one per language, check the quotes and the codes es, ca, en."
+    "readAsPlain": "Read as plain text — to write one per language, check the quotes and the codes es, ca, en.",
+    "tagsNotice": "Write the tags in one language only if you prefer. But if your collection reads in two or more languages, you can write each tag in all of them.",
+    "emailNoteNotice": "The email note can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
+    "requestInfoNotice": "The request-page note can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
+    "policyNotice": "The deposit policy can hold one text per language too: es (Spanish), ca (Catalan), en (English).",
+    "textNotice": "Write in one language only if you prefer. But if your collection reads in two languages, write the title or the description as a small map — copy this and change the words.",
+    "textNoticeAfter": "Everyone then reads it in their own language, in the app and in their emails. Languages: es (Spanish), ca (Catalan), en (English)."
   },
   "deleteAccount": {
     "pageTitle": "Delete your account",
@@ -1066,7 +1075,7 @@
     "horizonHelper": "From 1 to 365. Default 90 — three months.",
     "maxActiveLabel": "Maximum active reservations per member",
     "maxActiveHelper": "From 1 to 50. Default 10 — how many of a member's own reservations in this collection may be active at once.",
-    "asksPhoneFull": "Ask for a contact phone when booking: optional for whoever books, in case something unexpected happens. Only those who manage the bookings see it, and it is deleted the day after each booking.",
+    "asksPhoneFull": "Ask for a contact phone when booking (optional)",
     "phoneLabel": "Could you leave us a contact phone number? It's in case something unexpected happens with what you've booked or with the booking. We'll delete it the day after the booking.",
     "phoneInvalid": "Enter a phone number: digits, spaces and + ( ) . -, at least 6 digits.",
     "unitLabel": "How is it booked?",
@@ -1121,17 +1130,18 @@
   },
   "openingHours": {
     "label": "Weekly opening hours",
-    "helper": "As JSON: one key per weekday (\"0\" Monday … \"6\" Sunday), each a list of [\"HH:MM\",\"HH:MM\"] ranges — e.g. {\"0\": [[\"10:00\",\"14:00\"],[\"16:00\",\"20:00\"]]}. Leave a day out, or give it an empty list, to keep it closed.",
     "invalidJson": "That's not valid JSON — check the brackets and quotes.",
-    "invalidOnSave": "Nothing was saved: the weekly opening hours (under “More options”) aren't valid JSON. Fix them and save again.",
-    "requiredOnSave": "To book by the hour, add at least one time range to “Weekly opening hours” (under “More options”).",
+    "invalidOnSave": "Nothing was saved: the weekly opening hours aren't valid JSON. Fix them and save again.",
+    "requiredOnSave": "To book by the hour, add at least one time range to “Weekly opening hours”.",
     "noneOpen": "With no opening hours, nobody can book: add at least one time range.",
     "previewLabel": "Reads as:",
-    "closed": "closed"
+    "closed": "closed",
+    "noticeBefore": "As JSON: one key per weekday (\"0\" Monday … \"6\" Sunday), each a list of [\"HH:MM\",\"HH:MM\"] ranges — e.g.",
+    "noticeAfter": "Leave a day out, or give it an empty list, to keep it closed."
   },
   "homePage": {
     "label": "Home page",
-    "helper": "An optional web address for this collection (max 128 characters)."
+    "helper": "Makes “Home” lead to your website instead of the OIUEEI home page."
   },
   "newVersion": {
     "body": "There's a new version of OIUEEI.",
@@ -1139,7 +1149,7 @@
   },
   "requestInfo": {
     "label": "Note shown before someone asks (optional)",
-    "helper": "Shown at the top of the request page — seen by anyone requesting a loan, a rental or a reservation; a gift or sale never reaches that page, since those complete straight from the card. E.g. \"bring ID\", \"pickup is Tuesdays only\". Markdown supported.",
+    "helper": "Shown at the top of the request page — seen by anyone requesting a loan, a rental or a reservation.",
     "maxLength": "Maximum 512 characters per language."
   },
   "emailNote": {
@@ -1275,8 +1285,8 @@
     }
   },
   "collectionForm": {
-    "membersPriceStall": "Members can sell (set a price)",
-    "membersPriceLibrary": "Members can rent out (set a price)"
+    "membersPriceStall": "Members can sell: Each member can set a price on their own things. Turn off so they can only give them away.",
+    "membersPriceLibrary": "Members can rent out: Each member can set a price on what they lend. Turn off so they can only lend it for free."
   },
   "thingPause": {
     "toggleLabel": "Pause bookings: between these two dates nobody can request or book it; bookings already made are not cancelled.",
@@ -1293,5 +1303,13 @@
     "priceLibraryHelp": "No price, it's lent for free.",
     "unitsLabel": "How many identical ones are there?",
     "unitsHelp": "If you have several identical ones, they can be booked at the same time up to this number. Each person books one."
+  },
+  "collectionSettings": {
+    "menu": "Settings",
+    "appearance": "Appearance",
+    "logoLabel": "Logo or header image",
+    "logoHelper": "Bitmap image files only (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP and TIFF), max 10 MB.",
+    "notifications": "Notifications",
+    "availability": "Availability"
   }
 }

@@ -170,7 +170,13 @@
     "contact": "Contacto — OIUEEI",
     "ownerBookings": "Solicitudes para mí — OIUEEI",
     "dataExport": "Exportar datos — OIUEEI",
-    "reserveThing": "Reservar: {{headline}} — OIUEEI"
+    "reserveThing": "Reservar: {{headline}} — OIUEEI",
+    "collectionAppearance": "Apariencia de {{headline}} — OIUEEI",
+    "collectionAppearanceDefault": "Apariencia — OIUEEI",
+    "collectionNotifications": "Notificaciones de {{headline}} — OIUEEI",
+    "collectionNotificationsDefault": "Notificaciones — OIUEEI",
+    "collectionAvailability": "Disponibilidad de {{headline}} — OIUEEI",
+    "collectionAvailabilityDefault": "Disponibilidad — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -342,7 +348,7 @@
     "visitorJoinError": "No hemos podido unirte al grupo. Vuelve a intentarlo.",
     "welcomeDoc": "Documento de bienvenida del grupo (PDF)",
     "noOpeningHoursLabel": "Aún no se puede reservar",
-    "noOpeningHoursBody": "Este taller se reserva por horas y no tiene horario. Añádelo en Editar colección, en «Más opciones»."
+    "noOpeningHoursBody": "Este taller se reserva por horas y no tiene horario. Añádelo en Disponibilidad, en el menú de ajustes."
   },
   "digestMute": {
     "pageTitle": "Resúmenes por correo — OIUEEI",
@@ -573,17 +579,16 @@
     "titleRequired": "El título es obligatorio.",
     "maxHeadline": "Máximo 64 caracteres por idioma.",
     "errorCreating": "Error al crear la colección.",
-    "advancedTitle": "Más opciones",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
-    "theeemeRandom": "Si no eliges ninguno, se elegirá uno al azar.",
     "tagsLabel": "Etiquetas",
     "tagsPlaceholder": "p. ej. Vintage, Cocina, Exterior",
     "tagsHelper": "Etiquetas opcionales para organizar las cosas de esta colección",
     "maxDescription": "La descripción es demasiado larga: 2000 caracteres por idioma.",
     "modeProprietaryFull": "Propia: Solo quien dinamiza el grupo añade cosas; de entrada, tú.",
     "modeCommunityFull": "Comunitaria: Todos los miembros también pueden añadir sus propias cosas.",
-    "modeNetworkFull": "Red: Varias entidades comparten una biblioteca: cada una pone sus cosas y las presta desde su propio punto de recogida. Tú llevas la red; ellas, lo suyo."
+    "modeNetworkFull": "Red: Varias entidades comparten una biblioteca: cada una pone sus cosas y las presta desde su propio punto de recogida. Tú llevas la red; ellas, lo suyo.",
+    "visibilityHeading": "Visibilidad"
   },
   "myBookings": {
     "pageTitle": "Mis solicitudes",
@@ -926,7 +931,7 @@
     "weekdaysLabel": "Días de recogida y devolución",
     "weekdaysHelper": "Recogida y devolución deben caer en estos días. Vacío = cualquier día.",
     "depositPolicyLabel": "Política de fianzas (opcional)",
-    "depositPolicyHelper": "Cómo funcionan las fianzas en esta colección — el importe se pone en cada cosa, esto explica la condición para devolverla. Déjalo vacío si la colección no usa fianzas.",
+    "depositPolicyHelper": "Cómo funcionan las fianzas en esta colección — el importe se pone en cada cosa, esto explica la condición para devolverla.",
     "d1": "1 día",
     "d2": "2 días",
     "d3": "3 días",
@@ -952,10 +957,8 @@
   },
   "localized": {
     "hint": "¿Colección bilingüe? Puedes escribir un texto por idioma.",
-    "tagsHint": "Las etiquetas también admiten una palabra por idioma.",
     "infoTitle": "Un texto por idioma",
     "infoBody": "Si tu colección se lee en dos idiomas, escribe el título o la descripción como un pequeño mapa: copia esto y cambia las palabras. Cada persona lo leerá en su idioma, en la web y en sus correos.",
-    "tagsInfoBody": "Una etiqueta funciona igual: escríbela como un mapa y cada miembro verá la suya.",
     "policyHint": "La política de fianzas también admite un texto por idioma.",
     "policyInfoBody": "Funciona igual: escríbela como un pequeño mapa y cada miembro leerá la suya.",
     "requestInfoHint": "El aviso de la página de solicitud también admite un texto por idioma.",
@@ -963,7 +966,13 @@
     "emailNoteHint": "El aviso del correo también admite un texto por idioma.",
     "emailNoteInfoBody": "Funciona igual: escríbelo como un pequeño mapa y cada miembro leerá el suyo en el correo.",
     "infoFallback": "Idiomas: es (español), ca (catalán), en (inglés). Puedes escribir en uno solo si lo prefieres: todo lo que no sea un mapa se muestra tal cual lo escribiste.",
-    "readAsPlain": "Se lee como texto normal: para escribir uno por idioma, revisa las comillas y los códigos es, ca, en."
+    "readAsPlain": "Se lee como texto normal: para escribir uno por idioma, revisa las comillas y los códigos es, ca, en.",
+    "tagsNotice": "Escribe las etiquetas en un solo idioma si lo prefieres. Pero si tu colección se lee en dos o más idiomas, puedes escribir cada etiqueta en todos ellos.",
+    "emailNoteNotice": "El aviso del correo también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
+    "requestInfoNotice": "El aviso de la página de solicitud también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
+    "policyNotice": "La política de fianzas también admite un texto por idioma: es (español), ca (catalán), en (inglés).",
+    "textNotice": "Escribe en un solo idioma si lo prefieres. Pero si tu colección se lee en dos idiomas, escribe el título o la descripción como un pequeño mapa: copia esto y cambia las palabras.",
+    "textNoticeAfter": "Cada persona lo leerá en su idioma, en la web y en sus correos. Idiomas: es (español), ca (catalán), en (inglés)."
   },
   "deleteAccount": {
     "pageTitle": "Borrar tu cuenta",
@@ -1066,7 +1075,7 @@
     "horizonHelper": "De 1 a 365. Por defecto 90 — tres meses.",
     "maxActiveLabel": "Máximo de reservas activas por miembro",
     "maxActiveHelper": "De 1 a 50. Por defecto 10 — cuántas reservas propias de un miembro en esta colección pueden estar activas a la vez.",
-    "asksPhoneFull": "Pedir un teléfono de contacto al reservar: opcional para quien reserva, por si pasa algo inesperado. Solo lo ve quien gestiona las reservas y se borra el día después de cada reserva.",
+    "asksPhoneFull": "Pedir un teléfono de contacto al reservar (opcional)",
     "phoneLabel": "¿Puedes dejarnos un teléfono de contacto? Es por si pasa algo inesperado con lo que has reservado o con la reserva. Lo borraremos el día después de la reserva.",
     "phoneInvalid": "Escribe un teléfono: cifras, espacios y + ( ) . -, con al menos 6 cifras.",
     "unitLabel": "¿Cómo se reserva?",
@@ -1121,17 +1130,18 @@
   },
   "openingHours": {
     "label": "Horario semanal",
-    "helper": "En JSON: una clave por día de la semana (\"0\" lunes … \"6\" domingo), cada una con una lista de tramos [\"HH:MM\",\"HH:MM\"] — p. ej. {\"0\": [[\"10:00\",\"14:00\"],[\"16:00\",\"20:00\"]]}. Deja un día fuera, o ponle una lista vacía, para que quede cerrado.",
     "invalidJson": "Eso no es JSON válido — revisa las llaves y las comillas.",
-    "invalidOnSave": "No se ha guardado nada: el horario semanal (en «Más opciones») no es JSON válido. Corrígelo y vuelve a guardar.",
-    "requiredOnSave": "Para reservar por horas, pon al menos un tramo en «Horario semanal» (en «Más opciones»).",
+    "invalidOnSave": "No se ha guardado nada: el horario semanal no es JSON válido. Corrígelo y vuelve a guardar.",
+    "requiredOnSave": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
     "noneOpen": "Sin horario, nadie puede reservar: añade al menos un tramo.",
     "previewLabel": "Se lee así:",
-    "closed": "cerrado"
+    "closed": "cerrado",
+    "noticeBefore": "En JSON: una clave por día de la semana (\"0\" lunes … \"6\" domingo), cada una con una lista de tramos [\"HH:MM\",\"HH:MM\"] — p. ej.",
+    "noticeAfter": "Deja un día fuera, o ponle una lista vacía, para que quede cerrado."
   },
   "homePage": {
     "label": "Página web",
-    "helper": "Una dirección web opcional para esta colección (máx. 128 caracteres)."
+    "helper": "Hace que «Inicio» lleve a tu web en lugar de la página de inicio de OIUEEI."
   },
   "newVersion": {
     "body": "Hay una versión nueva de OIUEEI.",
@@ -1139,7 +1149,7 @@
   },
   "requestInfo": {
     "label": "Nota que se ve antes de pedir (opcional)",
-    "helper": "Se muestra arriba de la página de solicitud — la ve quien pide un préstamo, un alquiler o una reserva; un regalo o una venta nunca llegan a esa página, se completan directamente desde la tarjeta. P. ej. «trae el DNI», «la recogida es solo los martes». Admite Markdown.",
+    "helper": "Se muestra arriba de la página de solicitud — la ve quien pide un préstamo, un alquiler o una reserva.",
     "maxLength": "Máximo 512 caracteres por idioma."
   },
   "emailNote": {
@@ -1275,8 +1285,8 @@
     }
   },
   "collectionForm": {
-    "membersPriceStall": "Los miembros pueden vender (poner precio)",
-    "membersPriceLibrary": "Los miembros pueden alquilar (poner precio)"
+    "membersPriceStall": "Los miembros pueden vender: Cada miembro puede ponerles precio a sus propias cosas. Desactívalo para que solo puedan regalarlas.",
+    "membersPriceLibrary": "Los miembros pueden alquilar: Cada miembro puede ponerle precio a lo que presta. Desactívalo para que solo puedan prestar gratis."
   },
   "thingPause": {
     "toggleLabel": "Pausar reservas: entre esas dos fechas nadie puede pedirla ni reservarla; las reservas ya hechas no se anulan.",
@@ -1293,5 +1303,13 @@
     "priceLibraryHelp": "Sin precio, se presta gratis.",
     "unitsLabel": "¿Cuántas iguales hay?",
     "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una."
+  },
+  "collectionSettings": {
+    "menu": "Ajustes",
+    "appearance": "Apariencia",
+    "logoLabel": "Logo o imagen de cabecera",
+    "logoHelper": "Solo imágenes de mapa de bits (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP y TIFF), máx. 10 MB.",
+    "notifications": "Notificaciones",
+    "availability": "Disponibilidad"
   }
 }

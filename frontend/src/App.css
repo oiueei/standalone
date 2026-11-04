@@ -81,14 +81,13 @@ body {
 
 .form-hero-content {
   /* How much of the content column's right edge the icon corner (.hero-corners)
-     can take: the widest it gets is a curator's hero on CollectionPage — account
-     menu, collection menu, share menu — which is 3 controls of 44px
-     (.account-menu-trigger, .collection-menu-trigger and .share-menu-trigger all
-     declare that) and the 2 gaps between them (.hero-corners' `gap`). It was 4
-     and 3 until the contact icon went to the footer (2026-10-04). A hero with
-     fewer icons reserves the same width: the back link cannot know which ones its
-     page will render. Pinned in test/heroCornerLayout.test.jsx, which recomputes
-     it from the DOM and these rules. */
+     can take, so the back link keeps out from under it. Every hero reserves three
+     controls of 44px and the 2 gaps between them (.hero-corners' `gap`): the
+     account, collection and share menus are the most any page but a collection's
+     own holds, and the back link cannot know which ones its page will render. The
+     collection's own hero, with a fourth icon (the settings menu), raises it
+     alone: see .form-hero-content--settings. Pinned in test/heroCornerLayout.test.jsx,
+     which recomputes both from the DOM and these rules. */
   --hero-corners-width: calc(3 * 44px + 2 * var(--spacing-2-xs));
   /* The first 80px are the navigation band: the back link and the corner icons
      sit centred in it. Under it the content runs one rhythm (see below), and
@@ -99,12 +98,19 @@ body {
   padding: var(--hero-band) var(--page-margin) var(--spacing-m);
 }
 
+.form-hero-content.form-hero-content--settings {
+  /* CollectionHero only (not form-hero--collection, which JoinPage wears too): a
+     curator's corner there is account, settings, collection and share — 4 controls
+     of 44px and 3 gaps. Everywhere else the room for the back link stays as it was. */
+  --hero-corners-width: calc(4 * 44px + 3 * var(--spacing-2-xs));
+}
+
 .form-hero-content .back-link {
   color: var(--hero-text-color, var(--color-black-90));
   /* "← {collection name}" is the first thing in the hero and sits on the same
      band as the corner icons, which are absolutely positioned and reserve
      nothing: a long name ran underneath them. Capped so the text wraps before
-     the icons instead (a 320px screen leaves the link 288 - 148 - 8 = 132px). */
+     the icons instead (a 320px screen leaves the link 288 - 148 - 8 = 132px; 80px in a collection's own hero, whose back link is "← Home"). */
   max-width: calc(100% - var(--hero-corners-width) - var(--spacing-xs));
   /* Its 24px line sits at y=28..52 of the band (centred in 80px): the band is
      the hero's top padding, so the link climbs back into it and gives the rest
@@ -261,6 +267,7 @@ body {
 
 .account-menu-trigger,
 .collection-menu-trigger,
+.collection-settings-menu-trigger,
 .share-menu-trigger {
   width: 44px;
   height: 44px;
@@ -282,6 +289,7 @@ a.account-menu-trigger {
 
 .account-menu-panel,
 .collection-menu-panel,
+.collection-settings-menu-panel,
 .share-menu-panel {
   position: absolute;
   top: calc(100% + var(--spacing-2-xs));
@@ -305,7 +313,8 @@ a.account-menu-trigger {
 /* Each entry is a 44px tap target (DESIGN §4): the padding alone left them
    about 40px tall. Flex centres the text in that height. */
 .account-menu-panel a,
-.collection-menu-panel a {
+.collection-menu-panel a,
+.collection-settings-menu-panel a {
   display: flex;
   align-items: center;
   min-height: 44px;
@@ -352,7 +361,8 @@ a.account-menu-trigger {
    `:focus-visible` occurrence in this file — a second one earlier would
    shadow it there without changing anything visible. */
 .account-menu-panel a:hover,
-.collection-menu-panel a:hover {
+.collection-menu-panel a:hover,
+.collection-settings-menu-panel a:hover {
   background-color: var(--color-black-5);
 }
 
@@ -2446,4 +2456,13 @@ caption:has(.sr-only:only-child) {
   margin: 0 0 var(--spacing-s);
   color: var(--color-black-60);
   font-size: var(--fontsize-body-m);
+}
+
+/* A heading that opens a group of fields in the collection forms ("Visibility"), at the size
+   of the legend of the mode group above it. */
+.form-section-heading {
+  margin: 0;
+  font-size: var(--fontsize-heading-m);
+  line-height: var(--lineheight-m);
+  font-weight: 700;
 }

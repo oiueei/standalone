@@ -110,14 +110,65 @@ describe('the words of the phone field and of the switch', () => {
 
   test('the collection switch is fixed in the three languages', () => {
     expect(es.reservation.asksPhoneFull).toBe(
-      'Pedir un teléfono de contacto al reservar: opcional para quien reserva, por si pasa algo inesperado. Solo lo ve quien gestiona las reservas y se borra el día después de cada reserva.'
+      'Pedir un teléfono de contacto al reservar (opcional)'
     );
     expect(ca.reservation.asksPhoneFull).toBe(
-      "Demanar un telèfon de contacte en reservar: opcional per a qui reserva, per si passa alguna cosa inesperada. Només el veu qui gestiona les reserves i s'esborra l'endemà de cada reserva."
+      'Demanar un telèfon de contacte en reservar (opcional)'
     );
-    expect(en.reservation.asksPhoneFull).toBe(
-      'Ask for a contact phone when booking: optional for whoever books, in case something unexpected happens. Only those who manage the bookings see it, and it is deleted the day after each booking.'
-    );
+    expect(en.reservation.asksPhoneFull).toBe('Ask for a contact phone when booking (optional)');
+  });
+});
+
+const HOURLY_SHED_THING = {
+  ...SHED_THING,
+  reservation_unit: 'HOUR',
+  reservation_horizon_days: 90,
+  reservation_min_minutes: 60,
+  reservation_max_minutes: 180,
+  opening_hours: { 0: [['10:00', '14:00']] },
+};
+
+describe('RequestThingPage — the phone comes before the project note', () => {
+  const NOTE = en.reservation.projectNoteLabel;
+  const precedes = (a, b) =>
+    Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  test.each([
+    ['by the day', SHED_THING],
+    ['by the hour', HOURLY_SHED_THING],
+  ])('%s: the phone field is above the note', async (_unit, thing) => {
+    setApi(thing);
+    renderPage();
+    await screen.findByText(/Reserve Lathe/);
+
+    const phone = screen.getByLabelText(LABEL.en);
+    const note = screen.getByLabelText(NOTE);
+
+    expect(precedes(phone, note)).toBe(true);
+    expect(precedes(note, phone)).toBe(false);
+  });
+
+  test.each([
+    ['by the day', SHED_THING, '#reservation-project-note-phone'],
+    ['by the hour', HOURLY_SHED_THING, '#reservation-project-note-hourly-phone'],
+  ])('%s: the phone keeps its id, derived from the note’s', async (_unit, thing, selector) => {
+    setApi(thing);
+    const { container } = renderPage();
+    await screen.findByText(/Reserve Lathe/);
+
+    expect(container.querySelector(selector)).toBe(screen.getByLabelText(LABEL.en));
+  });
+
+  test.each([
+    ['by the day', SHED_THING],
+    ['by the hour', HOURLY_SHED_THING],
+  ])('%s: with no phone asked, the note is there alone', async (_unit, thing) => {
+    setApi({ ...thing, collection_reservation_asks_phone: false });
+    renderPage();
+    await screen.findByText(/Reserve Lathe/);
+
+    expect(screen.getByLabelText(NOTE)).toBeInTheDocument();
+    expect(screen.queryByLabelText(LABEL.en)).toBeNull();
   });
 });
 

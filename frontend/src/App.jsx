@@ -39,6 +39,9 @@ const EditThingPage = lazy(() => import('./pages/EditThingPage'));
 const ThingPage = lazy(() => import('./pages/ThingPage'));
 const CreateCollectionPage = lazy(() => import('./pages/CreateCollectionPage'));
 const NewCollectionPage = lazy(() => import('./pages/NewCollectionPage'));
+const CollectionAppearancePage = lazy(() => import('./pages/CollectionAppearancePage'));
+const CollectionNotificationsPage = lazy(() => import('./pages/CollectionNotificationsPage'));
+const CollectionAvailabilityPage = lazy(() => import('./pages/CollectionAvailabilityPage'));
 const EditCollectionPage = lazy(() => import('./pages/EditCollectionPage'));
 const EditProfilePage = lazy(() => import('./pages/EditProfilePage'));
 const DeleteAccountPage = lazy(() => import('./pages/DeleteAccountPage'));
@@ -114,6 +117,9 @@ const publicCollectionRoutes = (prefix) => [
 const protectedCollectionRoutes = (prefix) =>
   [
     ['edit', <EditCollectionPage />],
+    ['settings/appearance', <CollectionAppearancePage />],
+    ['settings/notifications', <CollectionNotificationsPage />],
+    ['settings/availability', <CollectionAvailabilityPage />],
     ['delete', <DeleteCollectionPage />],
     ['invites', <ManageInvitesPage />],
     ['leave', <LeaveCollectionPage />],

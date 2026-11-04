@@ -4,7 +4,7 @@ import { RadioButton, SelectionGroup } from 'hds-react';
  * A generic dynamic radio group — one HDS `SelectionGroup` of `RadioButton`s
  * built from a caller-supplied option list. Extracted for `RequestThingPage`'s
  * HOUR-unit reservation flow (duration, then start time — two more dynamic
- * radio groups after `ReservationRulesFields`' static DAY/HOUR one), so all
+ * radio groups after the Availability page's static DAY/HOUR one), so all
  * three share one place that gets the two documented `SelectionGroup` quirks
  * right (frontend/CLAUDE.md) plus a third this codebase found the hard way:
  *

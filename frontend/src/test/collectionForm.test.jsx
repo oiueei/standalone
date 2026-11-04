@@ -195,7 +195,7 @@ describe('CreateCollectionPage', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
     fireEvent.click(container.querySelector('#create-collection-visibility'));
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
 
     await waitFor(() => expect(createBody()?.visibility).toBe('PUBLIC'));
     expect(createBody()?.mode).toBe('COMMUNITY');
@@ -206,43 +206,10 @@ describe('CreateCollectionPage', () => {
     await fillTheRequiredFields(container, 'A quiet community');
 
     fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
 
     await waitFor(() => expect(createBody()?.visibility).toBe('PRIVATE'));
     expect(createBody()?.mode).toBe('COMMUNITY');
-  });
-
-  // The optional fields (thumbnail, welcome doc, tags, language, rental rules)
-  // fold into a "More options" accordion, closed on load, so the happy path is
-  // just title + mode + who-can-add. Nothing inside it is required or can block
-  // submit, so the form is still completable without ever opening it.
-  test('optional fields stay hidden until "More options" is opened', async () => {
-    const { container } = await renderCreate();
-
-    const thumb = () => container.querySelector('#create-collection-thumbnail');
-    expect(thumb()).not.toBeVisible();
-    expect(container.querySelector('#create-collection-welcome-doc')).not.toBeVisible();
-
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-
-    await waitFor(() => expect(thumb()).toBeVisible());
-    expect(container.querySelector('#create-collection-welcome-doc')).toBeVisible();
-  });
-
-  // The Create form used to omit the digest field entirely. That was survivable
-  // while `digest_frequency` defaulted to NONE; it stopped being survivable when
-  // the default became non-empty, because a group now mails its members from the
-  // moment it exists. The owner has to see — and be able to change — that at the
-  // moment they create it, which is exactly what these two pin.
-  test('the digest field is on the Create form, folded into "More options"', async () => {
-    const { container } = await renderCreate();
-
-    const digest = () => container.querySelector('#create-collection-digest');
-    expect(digest()).not.toBeVisible();
-
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-
-    await waitFor(() => expect(digest()).toBeVisible());
   });
 
   // The headline is the one thing that can block submit, so this is the shortest
@@ -259,67 +226,6 @@ describe('CreateCollectionPage', () => {
     );
     return post && JSON.parse(post[1].body);
   };
-
-  test('a new collection is created subscribed to its own digest', async () => {
-    const { container } = await renderCreate();
-    await fillTheRequiredFields(container, 'The street');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    // Not "whatever the server defaults to": the value the owner was shown in
-    // the form is the value that ships, so the field can never disagree with
-    // the row it created.
-    await waitFor(() => expect(createBody()?.digest_frequency).toBe('MONTHLY'));
-  });
-
-  test('turning the digest off at creation time is honoured', async () => {
-    const { container } = await renderCreate();
-    await fillTheRequiredFields(container, 'Quiet group');
-
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    fireEvent.click(await screen.findByRole('combobox', { name: /Digest emails/ }));
-    fireEvent.click(await screen.findByRole('option', { name: 'None' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()?.digest_frequency).toBe('NONE'));
-  });
-
-  // The toggle that decides whether members may recommend people at all: the
-  // owner's answer to "am I willing to be asked". It has to reach the POST.
-  test('the recommend-a-guest setting reaches the create request', async () => {
-    const { container } = await renderCreate();
-    await fillTheRequiredFields(container, 'Open group');
-
-    fireEvent.click(container.querySelector('#create-collection-allow-proposals'));
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()?.allow_member_proposals).toBe(true));
-  });
-
-  // A new collection asks its owner nothing until the owner says
-  // so (it used to start ticked). What the owner was shown is what ships.
-  test('left alone, a new group does not ask to be asked: it starts off and ships off', async () => {
-    const { container } = await renderCreate();
-    await fillTheRequiredFields(container, 'Quiet group');
-
-    expect(container.querySelector('#create-collection-allow-proposals')).not.toBeChecked();
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()?.allow_member_proposals).toBe(false));
-  });
-
-  test('the home-page URL, folded into "More options", reaches the create request', async () => {
-    const { container } = await renderCreate();
-    await fillTheRequiredFields(container, 'Ateneu');
-
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const homePage = container.querySelector('#create-collection-home-page');
-    await waitFor(() => expect(homePage).toBeVisible());
-    fireEvent.change(homePage, { target: { value: '  https://ateneu.example/  ' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()?.home_page).toBe('https://ateneu.example/'));
-  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -362,7 +268,7 @@ describe('CreateCollectionPage — what pressing "Create" leads to', () => {
     );
     typeTheTitle(container, 'The street');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
 
     // At the kind's address, from the kind the server answered with.
     expect(await screen.findByTestId('landed')).toHaveTextContent('/library/NEW001');
@@ -374,7 +280,7 @@ describe('CreateCollectionPage — what pressing "Create" leads to', () => {
     );
     typeTheTitle(container, '   ');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
 
     expect(await screen.findByText('Title is required.')).toBeInTheDocument();
     expect(posts()).toHaveLength(0);
@@ -413,12 +319,14 @@ describe('CreateCollectionPage — what pressing "Create" leads to', () => {
     const { container } = await renderCreateWith(postResponse);
     typeTheTitle(container, 'The street');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
 
     expect(await screen.findByText(said)).toBeInTheDocument();
     expect(screen.queryByTestId('landed')).toBeNull();
     expect(container.querySelector('#create-collection-headline')).toHaveValue('The street');
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ })).toBeEnabled()
+    );
   });
 });
 
@@ -432,6 +340,28 @@ describe('EditCollectionPage — load + pause + submit', () => {
 
     expect(await screen.findByDisplayValue('Loaded Name')).toBeInTheDocument();
   });
+
+  // The recommend switch lives on the Notifications page, and so does every other setting:
+  // saving this form sends none of them, so it can never reset one.
+  test.each([true, false])(
+    'saving sends no allow_member_proposals, whatever the collection has (%s)',
+    async (saved) => {
+      const { container } = await renderEdit({
+        headline: 'Comm',
+        mode: 'PROPRIETARY',
+        allowed_thing_types: ['GIFT_THING'],
+        allow_member_proposals: saved,
+      });
+      await screen.findByDisplayValue('Comm');
+      expect(container.querySelector('#edit-collection-allow-proposals')).toBeNull();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+      await waitFor(() => expect(screen.getByTestId('navigated')).toBeInTheDocument());
+      const patch = apiFetch.mock.calls.find(([, o]) => o?.method === 'PATCH');
+      expect(JSON.parse(patch[1].body)).not.toHaveProperty('allow_member_proposals');
+    }
+  );
 
   test('pause section shows the message field + "Pause collection" when not paused', async () => {
     const { container } = await renderEdit({
@@ -462,26 +392,6 @@ describe('EditCollectionPage — load + pause + submit', () => {
     expect(screen.getByRole('button', { name: 'Resume collection' })).toBeInTheDocument();
   });
 
-  // On Edit: digest, language, thumbnail and the welcome doc fold into the
-  // same "More options" accordion; status, mode and the identity cluster stay
-  // visible. The digest select lives on BOTH forms now (see the Create suite
-  // above) — it is folded here, not exclusive to here.
-  test('the digest select is hidden until "More options" is opened', async () => {
-    const { container } = await renderEdit({
-      headline: 'Comm',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['GIFT_THING'],
-    });
-
-    await screen.findByDisplayValue('Comm');
-    const digest = () => container.querySelector('#edit-collection-digest');
-    expect(digest()).not.toBeVisible();
-
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-
-    await waitFor(() => expect(digest()).toBeVisible());
-  });
-
   test('PATCHes /api/v1/collections/{code}/ with the edited fields', async () => {
     const { container } = await renderEdit({
       headline: 'Old Name',
@@ -508,33 +418,6 @@ describe('EditCollectionPage — load + pause + submit', () => {
     });
   });
 
-  test('loads the stored home page and PATCHes an edited one back', async () => {
-    const { container } = await renderEdit({
-      headline: 'Ateneu',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['GIFT_THING'],
-      home_page: 'https://old.example/',
-    });
-
-    await screen.findByDisplayValue('Ateneu');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const homePage = () => container.querySelector('#edit-collection-home-page');
-    await waitFor(() => expect(homePage()).toHaveValue('https://old.example/'));
-
-    fireEvent.change(homePage(), { target: { value: 'https://new.example/' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => {
-      const call = apiFetch.mock.calls.find(
-        (c) =>
-          c[0] === '/api/v1/collections/COL001/' &&
-          c[1]?.method === 'PATCH' &&
-          JSON.parse(c[1].body).home_page === 'https://new.example/'
-      );
-      expect(call).toBeTruthy();
-    });
-  });
-
   /**
    * "Con cuánta antelación pueden reservar (días)" would not stay saved.
    * The number field only told the page about a new value when it
@@ -546,60 +429,6 @@ describe('EditCollectionPage — load + pause + submit', () => {
    *
    * `fireEvent` moves no focus, so change → click here IS that path.
    */
-  test('a number typed into a day field is saved even if the field never lost focus', async () => {
-    const { container } = await renderEdit({
-      headline: 'Ateneu spaces',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['RESERVE_THING'],
-      reservation_max_days: 3,
-      reservation_horizon_days: 120,
-      reservation_max_active_per_member: 10,
-    });
-
-    await screen.findByDisplayValue('Ateneu spaces');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const horizon = () => container.querySelector('#edit-collection-reservation-horizon-days');
-    await waitFor(() => expect(horizon()).toHaveValue(120));
-
-    fireEvent.change(horizon(), { target: { value: '30' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => {
-      const call = apiFetch.mock.calls.find(
-        (c) => c[0] === '/api/v1/collections/COL001/' && c[1]?.method === 'PATCH'
-      );
-      expect(call).toBeTruthy();
-      expect(JSON.parse(call[1].body).reservation_horizon_days).toBe(30);
-    });
-  });
-
-  // The smoke suite axe-sweeps every route, but its EditCollectionPage fixture
-  // is a GIFT collection, so the reservations branch of "More options"
-  // (ReservationRulesFields — two NumberInputs wrapped in role="group", the
-  // WeekdayChips row) never reaches axe there. Sweep it here, opened.
-  test('the reservations rules branch, opened, has no accessibility violations', async () => {
-    const { container } = await renderEdit({
-      headline: 'Ateneu spaces',
-      mode: 'PROPRIETARY',
-      allowed_thing_types: ['RESERVE_THING'],
-      reservation_max_days: 3,
-      reservation_horizon_days: 120,
-      rental_weekdays: [0, 2, 4],
-    });
-
-    await screen.findByDisplayValue('Ateneu spaces');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    await waitFor(() =>
-      expect(screen.getByRole('spinbutton', { name: 'Longest reservation (days)' })).toBeVisible()
-    );
-    // The reservations branch, not the rental one — otherwise the sweep proves
-    // nothing about ReservationRulesFields.
-    expect(screen.getByRole('group', { name: 'Days open for reservations' })).toBeInTheDocument();
-
-    await settle(apiFetch);
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
   test('a rejected closure date shows the backend’s reason, not a generic error', async () => {
     // The backend 400s a >2-years-out closure date rather than dropping it
     // silently; the owner has to be told which token and why.
@@ -680,7 +509,7 @@ describe('CreateCollectionPage — collection_kinds capability', () => {
         'https://example.test/request-access/'
       );
       expect(container.querySelector('#create-collection-headline')).toBeNull();
-      expect(screen.queryByRole('button', { name: 'Create' })).toBeNull();
+      expect(screen.queryByRole('button', { name: /^Create (stall|library|shed)$/ })).toBeNull();
     }
   );
 
@@ -788,7 +617,7 @@ describe('CreateCollectionPage — a shed', () => {
     // An operator runs the premises: there is no radio for a community shed.
     expect(screen.queryByRole('radio')).toBeNull();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
 
     await waitFor(() => expect(createBody()).toBeTruthy());
     const body = createBody();
@@ -796,112 +625,174 @@ describe('CreateCollectionPage — a shed', () => {
     expect(body.allowed_thing_types).toEqual(['RESERVE_THING']);
     expect(body.mode).toBe('PROPRIETARY');
     expect(body.visibility).toBe('PRIVATE');
-    expect(body.reservation_max_days).toBe(1);
-    expect(body.reservation_max_active_per_member).toBe(10);
   });
 
-  test('an unparseable opening-hours draft stops Create instead of creating without it', async () => {
-    // The field keeps the last good value ({} here), so creating anyway would
-    // open an HOUR space with every day closed while the owner believes their
-    // schedule went in.
-    const { container } = await renderShed();
-    nameIt(container);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'By hour' }));
-    const field = screen.getByLabelText(/Weekly opening hours/);
-    fireEvent.change(field, { target: { value: '{"0": [["10:00","14:00"]],}' } });
-    fireEvent.blur(field);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    expect(await screen.findByText(/Nothing was saved: the weekly opening hours/)).toBeVisible();
-    expect(createBody()).toBeUndefined();
-    expect(screen.queryByTestId('navigated')).toBeNull();
-  });
-
-  test('booking by the hour makes the opening hours required, and Create sends nothing without a range', async () => {
-    const { container } = await renderShed();
-    nameIt(container);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'By hour' }));
-    expect(screen.getByLabelText(/Weekly opening hours/)).toBeRequired();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    expect(
-      await screen.findByText(/To book by the hour, add at least one time range/)
-    ).toBeVisible();
-    expect(createBody()).toBeUndefined();
-    expect(screen.queryByTestId('navigated')).toBeNull();
-  });
-
-  test('a week of days with no ranges is no schedule either', async () => {
-    const { container } = await renderShed();
-    nameIt(container);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'By hour' }));
-    const hours = screen.getByLabelText(/Weekly opening hours/);
-    fireEvent.change(hours, { target: { value: '{"0": [], "3": []}' } });
-    fireEvent.blur(hours);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    expect(
-      await screen.findByText(/To book by the hour, add at least one time range/)
-    ).toBeVisible();
-    expect(createBody()).toBeUndefined();
-  });
-
-  test('by the day the opening hours are not asked for', async () => {
+  test('its rules (by day, the limits, the hours) are the model’s, not sent from here', async () => {
     const { container } = await renderShed();
     nameIt(container);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    expect(createBody().reservation_unit).toBe('DAY');
-  });
-
-  test('a space booked by the hour is created with its schedule and its limits in minutes', async () => {
-    // Nothing on the Create path sent an HOUR-unit collection before: the
-    // owner's hours could have gone missing and the space opened with every
-    // day closed, found only when a member saw nothing to book.
-    const { container } = await renderShed();
-    nameIt(container);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'By hour' }));
-    const hours = screen.getByLabelText(/Weekly opening hours/);
-    fireEvent.change(hours, {
-      target: {
-        value: '{"0": [["10:00", "14:00"], ["16:00", "20:00"]], "4": [["10:00", "14:00"]]}',
-      },
-    });
-    fireEvent.blur(hours);
-    for (const [id, minutes] of [
-      ['#create-collection-reservation-min-minutes', '30'],
-      ['#create-collection-reservation-max-minutes', '120'],
-    ]) {
-      const input = container.querySelector(id);
-      fireEvent.change(input, { target: { value: minutes } });
-      fireEvent.blur(input);
-    }
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
 
     await waitFor(() => expect(createBody()).toBeTruthy());
     const body = createBody();
-    expect(body.reservation_unit).toBe('HOUR');
-    expect(body.opening_hours).toEqual({
-      0: [
-        ['10:00', '14:00'],
-        ['16:00', '20:00'],
-      ],
-      4: [['10:00', '14:00']],
-    });
-    expect(body.reservation_min_minutes).toBe(30);
-    expect(body.reservation_max_minutes).toBe(120);
-    // The day-unit cap is the other unit's: not sent, so it can't disagree.
-    expect(body).not.toHaveProperty('reservation_max_days');
+    for (const key of [
+      'reservation_unit',
+      'reservation_max_days',
+      'reservation_horizon_days',
+      'reservation_max_active_per_member',
+      'reservation_asks_phone',
+      'opening_hours',
+    ]) {
+      expect(body, key).not.toHaveProperty(key);
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+// The short form: what /{kind}/new asks and what it sends
+// ════════════════════════════════════════════════════════════════════════
+describe('CreateCollectionPage — the short form', () => {
+  const createBody = () => {
+    const post = apiFetch.mock.calls.find(
+      ([u, o]) => u === '/api/v1/collections/' && o?.method === 'POST'
+    );
+    return post && JSON.parse(post[1].body);
+  };
+  const create = (kind) =>
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^Create ${kind}$`) }));
+  const type = (container, id, value) =>
+    fireEvent.change(container.querySelector(id), { target: { value } });
+
+  test.each([
+    ['stall', 'STALL', { mode: 'PROPRIETARY', verbs: ['GIFT_THING', 'SELL_THING'] }],
+    ['library', 'LIBRARY', { mode: 'PROPRIETARY', verbs: ['LEND_THING', 'RENT_THING'] }],
+    ['shed', 'SHED', { mode: 'PROPRIETARY', verbs: ['RESERVE_THING'] }],
+  ])(
+    'a %s sends exactly its kind, title, description, mode, visibility, verbs and language',
+    async (prefix, kind, { mode, verbs }) => {
+      const { container } = await renderCreate(prefix);
+      type(container, '#create-collection-headline', '  The street  ');
+      type(container, '#create-collection-description', 'Things for all');
+
+      create(prefix);
+
+      await waitFor(() => expect(createBody()).toBeTruthy());
+      // The boundary of the form: anything else the collection has (palette, tags, digest,
+      // rules…) is the model’s default and has a settings page of its own.
+      expect(Object.keys(createBody()).sort()).toEqual([
+        'allowed_thing_types',
+        'description',
+        'headline',
+        'kind',
+        'language',
+        'mode',
+        'visibility',
+      ]);
+      expect(createBody()).toEqual({
+        kind,
+        headline: 'The street',
+        description: 'Things for all',
+        mode,
+        visibility: 'PRIVATE',
+        allowed_thing_types: verbs,
+        language: 'en',
+      });
+    }
+  );
+
+  test('a description left empty is not sent', async () => {
+    const { container } = await renderCreate();
+    type(container, '#create-collection-headline', 'No words');
+
+    create('stall');
+
+    await waitFor(() => expect(createBody()).toBeTruthy());
+    expect(createBody()).not.toHaveProperty('description');
+  });
+
+  test('it has no accordion and none of the fields that moved to the settings pages', async () => {
+    const { container } = await renderCreate('library');
+
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull();
+    for (const field of [
+      'thumbnail',
+      'welcome-doc',
+      'digest',
+      'language',
+      'home-page',
+      'allow-proposals',
+      'request-info',
+      'email-note',
+      'closed-dates',
+      'rental-durations',
+      'deposit-policy',
+    ]) {
+      expect(container.querySelector(`[id="create-collection-${field}"]`), field).toBeNull();
+    }
+    expect(screen.queryByText('Koro')).toBeNull();
+  });
+
+  test('it opens with a notice about writing in several languages, with its code sample', async () => {
+    const { container } = await renderCreate();
+
+    expect(screen.getByText(/Write in one language only if you prefer/)).toBeInTheDocument();
+    expect(screen.getByText('{"es": "Las cosas de mamá", "ca": "Les coses de mama"}')).toHaveClass(
+      'localized-example'
+    );
+    expect(screen.getByText(/Everyone then reads it in their own language/)).toBeInTheDocument();
+    // …above the title, not under it.
+    const notice = screen.getByText(/Write in one language only if you prefer/);
+    const title = container.querySelector('#create-collection-headline');
+    expect(notice.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('Visibility is a section of its own, after the mode', async () => {
+    await renderCreate();
+
+    const heading = screen.getByRole('heading', { level: 2, name: 'Visibility' });
+    const mode = screen.getByRole('radio', { name: /^Proprietary:/ });
+    expect(mode.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('the members’ price switch is under the mode, only for a community, in its long words', async () => {
+    const { container } = await renderCreate('library');
+    const price = () => container.querySelector('#create-collection-members-price');
+    expect(price()).toBeNull();
+
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+
+    expect(price()).toHaveAccessibleName(
+      'Members can rent out: Each member can set a price on what they lend. Turn off so they can only lend it for free.'
+    );
+    expect(price()).toHaveAttribute('aria-pressed', 'true');
+    const heading = screen.getByRole('heading', { level: 2, name: 'Visibility' });
+    expect(
+      price().compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  test('a community stall whose members may not set a price ships only the free verb', async () => {
+    const { container } = await renderCreate('stall');
+    type(container, '#create-collection-headline', 'Giveaways');
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+    expect(container.querySelector('#create-collection-members-price')).toHaveAccessibleName(
+      'Members can sell: Each member can set a price on their own things. Turn off so they can only give them away.'
+    );
+    fireEvent.click(container.querySelector('#create-collection-members-price'));
+
+    create('stall');
+
+    await waitFor(() => expect(createBody()).toBeTruthy());
+    expect(createBody()).toMatchObject({ mode: 'COMMUNITY', allowed_thing_types: ['GIFT_THING'] });
+  });
+
+  test('the language it sends is the one the interface is in', async () => {
+    const { container } = await renderCreate();
+    type(container, '#create-collection-headline', 'In English');
+
+    create('stall');
+
+    await waitFor(() => expect(createBody()?.language).toBe('en'));
   });
 });
 
@@ -935,49 +826,34 @@ describe('collection texts that open like a language map and are not one', () =>
  * line is in the DOM *and* in its select's accessible name.
  */
 describe('the help line of the selects reaches the page and the control’s accessible name', () => {
-  const DIGEST = 'Automatically email members and whoever runs the group a summary of new things.';
-  const LANGUAGE =
-    "The language the group's emails are written in. Any member who has set their own language reads them in theirs.";
   const STATUS = en.editCollection.statusHelper;
 
   const field = (name) => screen.getByRole('combobox', { name });
 
-  test('Create: the summary and the language of the group messages', async () => {
-    await renderCreate();
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-
-    expect(await screen.findByText(DIGEST)).toBeInTheDocument();
-    expect(field(/Digest emails/)).toHaveAccessibleName(expect.stringContaining(DIGEST));
-    expect(screen.getByText(LANGUAGE)).toBeInTheDocument();
-    expect(field(/Language of the group messages/)).toHaveAccessibleName(
-      expect.stringContaining(LANGUAGE)
-    );
-  });
-
-  test('Edit: the status, the summary and the language of the group messages', async () => {
+  test('Edit: the status', async () => {
     await renderEdit({
       headline: 'Loaded Name',
       mode: 'PROPRIETARY',
       allowed_thing_types: ['GIFT_THING'],
     });
     await screen.findByDisplayValue('Loaded Name');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
 
     expect(await screen.findByText(STATUS)).toBeInTheDocument();
     expect(field(/^Status/)).toHaveAccessibleName(expect.stringContaining(STATUS));
-    expect(screen.getByText(DIGEST)).toBeInTheDocument();
-    expect(field(/Digest emails/)).toHaveAccessibleName(expect.stringContaining(DIGEST));
-    expect(field(/Language of the group messages/)).toHaveAccessibleName(
-      expect.stringContaining(LANGUAGE)
-    );
   });
 
-  test('the forms have no accessibility violations with the help lines in', async () => {
-    const { container } = await renderCreate();
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    await screen.findByText(DIGEST);
+  test('the forms have no accessibility violations', async () => {
+    const create = await renderCreate();
+    expect(await axe(create.container)).toHaveNoViolations();
+    create.unmount();
 
-    expect(await axe(container)).toHaveNoViolations();
+    const edit = await renderEdit({
+      headline: 'Loaded Name',
+      mode: 'COMMUNITY',
+      allowed_thing_types: ['GIFT_THING'],
+    });
+    await screen.findByDisplayValue('Loaded Name');
+    expect(await axe(edit.container)).toHaveNoViolations();
   });
 });
 
@@ -998,108 +874,18 @@ describe('the switch that asks for a contact phone when booking', () => {
     reservation_max_active_per_member: 4,
   };
   const SWITCH = en.reservation.asksPhoneFull;
-  const createBody = () => {
-    const post = apiFetch.mock.calls.find(
-      ([u, o]) => u === '/api/v1/collections/' && o?.method === 'POST'
-    );
-    return post && JSON.parse(post[1].body);
-  };
   const patchBody = () => {
     const call = apiFetch.mock.calls.find(([, o]) => o?.method === 'PATCH');
     return call && JSON.parse(call[1].body);
   };
 
-  test('a new shed offers it, off, with title and explanation as one label', async () => {
-    const { container } = await renderCreate('shed');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-
-    const toggle = await screen.findByLabelText(SWITCH);
-    expect(toggle).toHaveAttribute('aria-pressed', 'false');
-    expect(container.querySelector('#create-collection-reservation-asks-phone')).toBe(toggle);
-  });
-
-  test('a stall and a library do not have it', async () => {
-    for (const kind of ['stall', 'library']) {
-      const { container, unmount } = await renderCreate(kind);
-      fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-      await screen.findByRole('button', { name: 'Add' });
-      expect(screen.queryByLabelText(SWITCH)).toBeNull();
-      expect(container.querySelector('[id$="reservation-asks-phone"]')).toBeNull();
-      unmount();
-    }
-  });
-
-  test('turned on at creation, it is in the POST', async () => {
-    const { container } = await renderCreate('shed');
-    fireEvent.change(container.querySelector('#create-collection-headline'), {
-      target: { value: 'Ateneu spaces' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    fireEvent.click(await screen.findByLabelText(SWITCH));
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    expect(createBody().reservation_asks_phone).toBe(true);
-  });
-
-  test('left alone at creation, the POST says false', async () => {
-    const { container } = await renderCreate('shed');
-    fireEvent.change(container.querySelector('#create-collection-headline'), {
-      target: { value: 'Ateneu spaces' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    expect(createBody().reservation_asks_phone).toBe(false);
-  });
-
-  test('a library’s POST has no such key', async () => {
-    const { container } = await renderCreate('library');
-    fireEvent.change(container.querySelector('#create-collection-headline'), {
-      target: { value: 'Tools' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-
-    await waitFor(() => expect(createBody()).toBeTruthy());
-    expect(createBody()).not.toHaveProperty('reservation_asks_phone');
-  });
-
-  test('editing a shed that asks shows it on, and turning it off reaches the PATCH', async () => {
-    await renderEdit({ ...SHED, reservation_asks_phone: true });
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const toggle = await screen.findByLabelText(SWITCH);
-    expect(toggle).toHaveAttribute('aria-pressed', 'true');
-
-    fireEvent.click(toggle);
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => expect(patchBody()).toBeTruthy());
-    expect(patchBody().reservation_asks_phone).toBe(false);
-  });
-
-  test('editing a shed that does not ask, turning it on reaches the PATCH', async () => {
-    await renderEdit({ ...SHED, reservation_asks_phone: false });
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const toggle = await screen.findByLabelText(SWITCH);
-    expect(toggle).toHaveAttribute('aria-pressed', 'false');
-
-    fireEvent.click(toggle);
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() => expect(patchBody()).toBeTruthy());
-    expect(patchBody().reservation_asks_phone).toBe(true);
-  });
-
-  test('a shed saved without touching it keeps it as loaded', async () => {
+  test('editing a shed sends no such key either', async () => {
     await renderEdit({ ...SHED, reservation_asks_phone: true });
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(patchBody()).toBeTruthy());
-    expect(patchBody().reservation_asks_phone).toBe(true);
+    expect(patchBody()).not.toHaveProperty('reservation_asks_phone');
   });
 
   test('editing a library sends no such key', async () => {

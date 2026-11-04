@@ -22,12 +22,10 @@ import { settle } from './settle';
 import en from '../i18n/locales/en.json';
 
 /**
- * The whole body Create POSTs and Edit PATCHes, field by field, with every field of
- * the "More options" block changed from the screen (or loaded, for what Edit loads).
- * The expected bodies are written by hand from what was typed and loaded — not copied
- * from what the pages send — so a field that stops reaching the server, or reaches it
- * under another name, fails here. They exist for the day the block both pages share
- * moves into one component: the two requests must not change by a byte.
+ * The whole body Create POSTs (the short form) and Edit PATCHes, field by field, with every
+ * field the page owns changed from the screen (or loaded, for what Edit loads). The expected bodies are written by hand from what was typed and loaded — not
+ * copied from what the pages send — so a field that stops reaching the server, or reaches
+ * it under another name, fails here.
  */
 
 const ok = (data) => ({ ok: true, status: 200, json: () => Promise.resolve(data) });
@@ -82,25 +80,6 @@ async function pickOption(comboName, optionName) {
   fireEvent.click(await screen.findByRole('option', { name: optionName }));
 }
 
-/** Everything the block holds, edited from the screen. `p` is the id prefix. */
-async function fillAdvanced(container, p) {
-  fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-  const tagInput = await screen.findByPlaceholderText(en.createCollection.tagsPlaceholder);
-  fireEvent.change(tagInput, { target: { value: 'Kitchen' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Monday' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Wednesday' }));
-  type(container, `#${p}-deposit-policy`, 'Back when it comes home');
-  type(container, `#${p}-closed-dates`, '25/12/2099, 01/01/2100');
-  type(container, `#${p}-request-info`, 'Ask in the evening');
-  type(container, `#${p}-email-note`, 'The key is in the box');
-  type(container, `#${p}-home-page`, 'https://group.example/');
-  await pickOption(/Digest emails/, en.editCollection.digestMonthly);
-  // The palette and the wave of the group's pages.
-  fireEvent.click(await screen.findByRole('button', { name: 'Metro' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Wave' }));
-}
-
 const patchBody = () => {
   const call = apiFetch.mock.calls.find(([, o]) => o?.method === 'PATCH');
   return call && JSON.parse(call[1].body);
@@ -112,11 +91,11 @@ const postBody = () => {
   return call && JSON.parse(call[1].body);
 };
 
-describe('Create — the body of a library with every optional field filled in', () => {
-  test('is exactly what was typed', async () => {
+describe('Create — the body of the short form', () => {
+  async function renderCreate(prefix) {
     setApi();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/library/new']}>
+    const view = render(
+      <MemoryRouter initialEntries={[`/${prefix}/new`]}>
         <Routes>
           <Route path="/:kind/new" element={<CreateCollectionPage />} />
           <Route path="*" element={<div data-testid="navigated" />} />
@@ -124,60 +103,39 @@ describe('Create — the body of a library with every optional field filled in',
       </MemoryRouter>
     );
     await waitFor(() =>
-      expect(container.querySelector('#create-collection-headline')).toBeInTheDocument()
+      expect(view.container.querySelector('#create-collection-headline')).toBeInTheDocument()
     );
     await settle(apiFetch);
+    return view;
+  }
+
+  test('a library is exactly what was typed and chosen, and nothing of the settings pages', async () => {
+    const { container } = await renderCreate('library');
     type(container, '#create-collection-headline', 'Tool shed');
     type(container, '#create-collection-description', 'Tools for the street');
-    await fillAdvanced(container, 'create-collection');
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+    fireEvent.click(container.querySelector('#create-collection-members-price'));
+    fireEvent.click(container.querySelector('#create-collection-visibility'));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create library' }));
 
     await waitFor(() => expect(postBody()).toBeTruthy());
     expect(postBody()).toEqual({
       kind: 'LIBRARY',
       headline: 'Tool shed',
       description: 'Tools for the street',
-      mode: 'PROPRIETARY',
-      visibility: 'PRIVATE',
-      allow_member_proposals: false,
-      allowed_thing_types: ['LEND_THING', 'RENT_THING'],
-      home_page: 'https://group.example/',
-      email_note: 'The key is in the box',
-      tags: ['Kitchen'],
-      thumbnail: '',
+      mode: 'COMMUNITY',
+      visibility: 'PUBLIC',
+      allowed_thing_types: ['LEND_THING'],
       language: 'en',
-      digest_frequency: 'MONTHLY',
-      theeeme: 'JMPA01',
-      koro: 'wave',
-      welcome_doc: '',
-      closed_dates: '25/12/2099, 01/01/2100',
-      request_info: 'Ask in the evening',
-      rental_weekdays: [0, 2],
-      rental_durations: [],
-      deposit_policy: 'Back when it comes home',
     });
   });
 
-  test('a stall has none of the library’s fields in its body', async () => {
-    setApi();
-    const { container } = render(
-      <MemoryRouter initialEntries={['/stall/new']}>
-        <Routes>
-          <Route path="/:kind/new" element={<CreateCollectionPage />} />
-          <Route path="*" element={<div data-testid="navigated" />} />
-        </Routes>
-      </MemoryRouter>
-    );
-    await waitFor(() =>
-      expect(container.querySelector('#create-collection-headline')).toBeInTheDocument()
-    );
-    await settle(apiFetch);
+  test('a stall left as it opens sends the private proprietary default', async () => {
+    const { container } = await renderCreate('stall');
     type(container, '#create-collection-headline', 'Free stall');
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    type(container, '#create-collection-email-note', 'Come by');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create stall' }));
 
     await waitFor(() => expect(postBody()).toBeTruthy());
     expect(postBody()).toEqual({
@@ -185,17 +143,8 @@ describe('Create — the body of a library with every optional field filled in',
       headline: 'Free stall',
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
-      allow_member_proposals: false,
       allowed_thing_types: ['GIFT_THING', 'SELL_THING'],
-      home_page: '',
-      email_note: 'Come by',
-      tags: [],
-      thumbnail: '',
       language: 'en',
-      digest_frequency: 'MONTHLY',
-      // No palette picked: none is sent and the server draws one. The koro is the basic wave.
-      koro: 'basic',
-      welcome_doc: '',
     });
   });
 });
@@ -246,7 +195,7 @@ async function renderEdit(collection) {
 }
 
 describe('Edit — the body of a library', () => {
-  test('saved untouched, it sends back what it loaded', async () => {
+  test('saved untouched, it sends back the six fields of the page as loaded', async () => {
     await renderEdit(LIBRARY);
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -258,81 +207,56 @@ describe('Edit — the body of a library', () => {
       status: 'ACTIVE',
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
-      allow_member_proposals: true,
-      digest_frequency: 'WEEKLY',
       allowed_thing_types: ['LEND_THING', 'RENT_THING'],
-      home_page: 'https://old.example/',
-      email_note: 'Old email note',
-      tags: ['Old tag'],
-      thumbnail: 'oiueei/collections/thumb',
-      language: 'en',
-      theeeme: 'BUU331',
-      koro: 'calm',
-      welcome_doc: 'oiueei/documents/doc',
-      closed_dates: '25/12/2099',
-      request_info: 'Old request note',
-      rental_weekdays: [1],
-      rental_durations: [7],
-      deposit_policy: 'Old policy',
     });
   });
 
-  test('every field of the optional block, edited, reaches the PATCH', async () => {
+  test('what the page owns, edited, reaches the PATCH', async () => {
     const { container } = await renderEdit(LIBRARY);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
-    const tagInput = await screen.findByPlaceholderText(en.createCollection.tagsPlaceholder);
-    fireEvent.change(tagInput, { target: { value: 'Kitchen' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Monday' }));
-    type(container, '#edit-collection-deposit-policy', 'New policy');
-    type(container, '#edit-collection-closed-dates', '01/01/2100');
-    type(container, '#edit-collection-request-info', 'New request note');
-    type(container, '#edit-collection-email-note', 'New email note');
-    type(container, '#edit-collection-home-page', 'https://new.example/');
-    await pickOption(/Digest emails/, en.editCollection.digestNone);
-    await pickOption(/Language of the group messages/, 'Español');
-    fireEvent.click(await screen.findByRole('button', { name: 'Metro' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Wave' }));
+    type(container, '#edit-collection-headline', '  Tool library  ');
+    type(container, '#edit-collection-description', '  Tools for the street  ');
+    await pickOption(/^Status/, en.editCollection.statusInactive);
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+    fireEvent.click(container.querySelector('#edit-collection-members-price'));
+    fireEvent.click(container.querySelector('#edit-collection-visibility'));
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(patchBody()).toBeTruthy());
     expect(patchBody()).toEqual({
-      headline: 'Tool shed',
-      description: 'Tools',
-      status: 'ACTIVE',
-      mode: 'PROPRIETARY',
-      visibility: 'PRIVATE',
-      allow_member_proposals: true,
-      digest_frequency: 'NONE',
-      allowed_thing_types: ['LEND_THING', 'RENT_THING'],
-      home_page: 'https://new.example/',
-      email_note: 'New email note',
-      tags: ['Old tag', 'Kitchen'],
-      thumbnail: 'oiueei/collections/thumb',
-      language: 'es',
-      theeeme: 'JMPA01',
-      koro: 'wave',
-      welcome_doc: 'oiueei/documents/doc',
-      closed_dates: '01/01/2100',
-      request_info: 'New request note',
-      rental_weekdays: [0, 1],
-      rental_durations: [7],
-      deposit_policy: 'New policy',
+      headline: 'Tool library',
+      description: 'Tools for the street',
+      status: 'INACTIVE',
+      mode: 'COMMUNITY',
+      visibility: 'PUBLIC',
+      allowed_thing_types: ['LEND_THING'],
     });
   });
 
-  test('the loaded photo and welcome document are shown, and the email-note test is there', async () => {
-    await renderEdit(LIBRARY);
-    fireEvent.click(screen.getByRole('button', { name: 'More options' }));
+  test('none of the fields that have a settings page of their own is on the page', async () => {
+    const { container } = await renderEdit(LIBRARY);
 
-    expect(await screen.findByRole('link', { name: /view/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /send me a test email/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull();
+    for (const field of [
+      'thumbnail',
+      'welcome-doc',
+      'digest',
+      'language',
+      'home-page',
+      'email-note',
+      'request-info',
+      'closed-dates',
+      'deposit-policy',
+      'allow-proposals',
+    ]) {
+      expect(container.querySelector(`[id="edit-collection-${field}"]`), field).toBeNull();
+    }
+    expect(screen.queryByRole('button', { name: /send me a test email/i })).toBeNull();
   });
 });
 
 describe('Edit — the body of a shed booked by the day', () => {
-  test('keeps the reservation fields and sends no rental ones as rules', async () => {
+  test('keeps its one verb and sends no reservation rule', async () => {
     await renderEdit({
       ...LIBRARY,
       kind: 'SHED',
@@ -354,27 +278,7 @@ describe('Edit — the body of a shed booked by the day', () => {
       status: 'ACTIVE',
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
-      allow_member_proposals: true,
-      digest_frequency: 'WEEKLY',
       allowed_thing_types: ['RESERVE_THING'],
-      home_page: 'https://old.example/',
-      email_note: 'Old email note',
-      tags: ['Old tag'],
-      thumbnail: 'oiueei/collections/thumb',
-      language: 'en',
-      theeeme: 'BUU331',
-      koro: 'calm',
-      welcome_doc: 'oiueei/documents/doc',
-      closed_dates: '25/12/2099',
-      request_info: 'Old request note',
-      rental_weekdays: [1],
-      rental_durations: [],
-      deposit_policy: '',
-      reservation_horizon_days: 30,
-      reservation_max_active_per_member: 4,
-      reservation_asks_phone: false,
-      reservation_unit: 'DAY',
-      reservation_max_days: 3,
     });
   });
 });

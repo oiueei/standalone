@@ -6,6 +6,7 @@ import { apiFetch } from '../../services/api';
 import AccountMenu from '../AccountMenu';
 import BackLink from '../BackLink';
 import ButtonLink from '../ButtonLink';
+import CollectionSettingsMenu from '../CollectionSettingsMenu';
 import CollectionMenu, {
   CollectionDigestStatus,
   CollectionDownloadsStatus,
@@ -112,6 +113,8 @@ export default function CollectionHero({
   // who is a curator and has the curator's menu). They get a menu of their own in
   // the corner — the welcome document, the summary switch when
   // the group sends one, and "Leave the group".
+  // The settings are what "Edit collection" is: in a network only the founder's.
+  const showsSettings = isCurator && (collection.mode !== 'NETWORK' || isOwner);
   const isMember = isAuthenticated && !!collection.is_member && !isCurator;
   const isDemo = !!collection.is_onboarding;
   const showInvite = !!collection.allow_member_proposals && !isDemo;
@@ -151,7 +154,7 @@ export default function CollectionHero({
     >
       <div className="form-hero-split">
         <div
-          className="form-hero-content"
+          className="form-hero-content form-hero-content--settings"
           style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}
         >
           <span className="hero-corners">
@@ -165,6 +168,9 @@ export default function CollectionHero({
               requestsInCollectionMenu={isCurator || isMember}
               offerSignIn={!showsSignedOutDoors}
             />
+            {/* The settings pages (appearance…), curators only, between the
+                  account menu and the collection's own options. */}
+            {showsSettings && <CollectionSettingsMenu code={code} kind={collection.kind} />}
             {/* The group's own options, between the account menu
                   and the share one: a curator's, and a
                   member's, with what is theirs. Nothing for a reader who is

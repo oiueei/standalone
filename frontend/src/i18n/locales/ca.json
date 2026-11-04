@@ -170,7 +170,13 @@
     "contact": "Contacte — OIUEEI",
     "ownerBookings": "Sol·licituds per a mi — OIUEEI",
     "dataExport": "Exportar dades — OIUEEI",
-    "reserveThing": "Reservar: {{headline}} — OIUEEI"
+    "reserveThing": "Reservar: {{headline}} — OIUEEI",
+    "collectionAppearance": "Aparença de {{headline}} — OIUEEI",
+    "collectionAppearanceDefault": "Aparença — OIUEEI",
+    "collectionNotifications": "Notificacions de {{headline}} — OIUEEI",
+    "collectionNotificationsDefault": "Notificacions — OIUEEI",
+    "collectionAvailability": "Disponibilitat de {{headline}} — OIUEEI",
+    "collectionAvailabilityDefault": "Disponibilitat — OIUEEI"
   },
   "login": {
     "title": "OIUEEI",
@@ -342,7 +348,7 @@
     "visitorJoinError": "No hem pogut afegir-te al grup. Torna-ho a provar.",
     "welcomeDoc": "Document de benvinguda del grup (PDF)",
     "noOpeningHoursLabel": "Encara no es pot reservar",
-    "noOpeningHoursBody": "Aquest taller es reserva per hores i no té horari. Afegeix-lo a Editar col·lecció, a «Més opcions»."
+    "noOpeningHoursBody": "Aquest taller es reserva per hores i no té horari. Afegeix-lo a Disponibilitat, al menú de configuració."
   },
   "digestMute": {
     "pageTitle": "Resums per correu — OIUEEI",
@@ -573,17 +579,16 @@
     "titleRequired": "El títol és obligatori.",
     "maxHeadline": "Màxim 64 caràcters per idioma.",
     "errorCreating": "Error en crear la col·lecció.",
-    "advancedTitle": "Més opcions",
     "theeemeLabel": "Theeeme",
     "koroLabel": "Koro",
-    "theeemeRandom": "Si no en tries cap, se n'escollirà un a l'atzar.",
     "tagsLabel": "Etiquetes",
     "tagsPlaceholder": "p. ex. Vintage, Cuina, Exterior",
     "tagsHelper": "Etiquetes opcionals per organitzar les coses d'aquesta col·lecció",
     "maxDescription": "La descripció és massa llarga: 2000 caràcters per idioma.",
     "modeProprietaryFull": "Pròpia: Només qui dinamitza el grup hi afegeix coses; d'entrada, tu.",
     "modeCommunityFull": "Comunitària: Tots els membres també poden afegir les seves pròpies coses.",
-    "modeNetworkFull": "Xarxa: Diverses entitats comparteixen una biblioteca: cadascuna posa les seves coses i les presta des del seu propi punt de recollida. Tu portes la xarxa; elles, el seu."
+    "modeNetworkFull": "Xarxa: Diverses entitats comparteixen una biblioteca: cadascuna posa les seves coses i les presta des del seu propi punt de recollida. Tu portes la xarxa; elles, el seu.",
+    "visibilityHeading": "Visibilitat"
   },
   "myBookings": {
     "pageTitle": "Les meves sol·licituds",
@@ -926,7 +931,7 @@
     "weekdaysLabel": "Dies de recollida i devolució",
     "weekdaysHelper": "Recollida i devolució han de caure en aquests dies. Buit = qualsevol dia.",
     "depositPolicyLabel": "Política de fiances (opcional)",
-    "depositPolicyHelper": "Com funcionen les fiances en aquesta col·lecció — l'import es posa a cada cosa, això explica la condició per retornar-la. Deixa-ho buit si la col·lecció no fa servir fiances.",
+    "depositPolicyHelper": "Com funcionen les fiances en aquesta col·lecció — l'import es posa a cada cosa, això explica la condició per retornar-la.",
     "d1": "1 dia",
     "d2": "2 dies",
     "d3": "3 dies",
@@ -952,10 +957,8 @@
   },
   "localized": {
     "hint": "Col·lecció bilingüe? Pots escriure un text per idioma.",
-    "tagsHint": "Les etiquetes també admeten una paraula per idioma.",
     "infoTitle": "Un text per idioma",
     "infoBody": "Si la teva col·lecció es llegeix en dos idiomes, escriu el títol o la descripció com un petit mapa: copia això i canvia les paraules. Cadascú ho llegirà en el seu idioma, al web i als seus correus.",
-    "tagsInfoBody": "Una etiqueta funciona igual: escriu-la com un mapa i cada membre veurà la seva.",
     "policyHint": "La política de fiances també admet un text per idioma.",
     "policyInfoBody": "Funciona igual: escriu-la com un petit mapa i cada membre llegirà la seva.",
     "requestInfoHint": "L'avís de la pàgina de sol·licitud també admet un text per idioma.",
@@ -963,7 +966,13 @@
     "emailNoteHint": "L'avís del correu també admet un text per idioma.",
     "emailNoteInfoBody": "Funciona igual: escriu-lo com un petit mapa i cada membre llegirà el seu al correu.",
     "infoFallback": "Idiomes: es (castellà), ca (català), en (anglès). Pots escriure només en un si ho prefereixes: tot el que no sigui un mapa es mostra tal com ho has escrit.",
-    "readAsPlain": "Es llegeix com a text normal: per escriure'n un per idioma, revisa les cometes i els codis es, ca, en."
+    "readAsPlain": "Es llegeix com a text normal: per escriure'n un per idioma, revisa les cometes i els codis es, ca, en.",
+    "tagsNotice": "Escriu les etiquetes en un sol idioma si ho prefereixes. Però si la teva col·lecció es llegeix en dos o més idiomes, pots escriure cada etiqueta en tots.",
+    "emailNoteNotice": "L'avís del correu també admet un text per idioma: es (castellà), ca (català), en (anglès).",
+    "requestInfoNotice": "L'avís de la pàgina de sol·licitud també admet un text per idioma: es (castellà), ca (català), en (anglès).",
+    "policyNotice": "La política de fiances també admet un text per idioma: es (castellà), ca (català), en (anglès).",
+    "textNotice": "Escriu en un sol idioma si ho prefereixes. Però si la teva col·lecció es llegeix en dos idiomes, escriu el títol o la descripció com un petit mapa: copia això i canvia les paraules.",
+    "textNoticeAfter": "Cadascú ho llegirà en el seu idioma, al web i als seus correus. Idiomes: es (castellà), ca (català), en (anglès)."
   },
   "deleteAccount": {
     "pageTitle": "Esborrar el teu compte",
@@ -1066,7 +1075,7 @@
     "horizonHelper": "D'1 a 365. Per defecte 90 — tres mesos.",
     "maxActiveLabel": "Màxim de reserves actives per membre",
     "maxActiveHelper": "D'1 a 50. Per defecte 10 — quantes reserves pròpies d'un membre en aquesta col·lecció poden estar actives alhora.",
-    "asksPhoneFull": "Demanar un telèfon de contacte en reservar: opcional per a qui reserva, per si passa alguna cosa inesperada. Només el veu qui gestiona les reserves i s'esborra l'endemà de cada reserva.",
+    "asksPhoneFull": "Demanar un telèfon de contacte en reservar (opcional)",
     "phoneLabel": "Ens pots deixar un telèfon de contacte? És per si passa alguna cosa inesperada amb el que has reservat o amb la reserva. L'esborrarem l'endemà de la reserva.",
     "phoneInvalid": "Escriu un telèfon: xifres, espais i + ( ) . -, amb almenys 6 xifres.",
     "unitLabel": "Com es reserva?",
@@ -1121,17 +1130,18 @@
   },
   "openingHours": {
     "label": "Horari setmanal",
-    "helper": "En JSON: una clau per dia de la setmana (\"0\" dilluns … \"6\" diumenge), cadascuna amb una llista de trams [\"HH:MM\",\"HH:MM\"] — p. ex. {\"0\": [[\"10:00\",\"14:00\"],[\"16:00\",\"20:00\"]]}. Deixa un dia fora, o posa-hi una llista buida, perquè quedi tancat.",
     "invalidJson": "Això no és JSON vàlid — revisa les claus i les cometes.",
-    "invalidOnSave": "No s'ha desat res: l'horari setmanal (a «Més opcions») no és JSON vàlid. Corregeix-lo i torna a desar.",
-    "requiredOnSave": "Per reservar per hores, posa almenys una franja a «Horari setmanal» (a «Més opcions»).",
+    "invalidOnSave": "No s'ha desat res: l'horari setmanal no és JSON vàlid. Corregeix-lo i torna a desar.",
+    "requiredOnSave": "Per reservar per hores, posa almenys una franja a «Horari setmanal».",
     "noneOpen": "Sense horari, ningú no pot reservar: afegeix almenys un tram.",
     "previewLabel": "Es llegeix així:",
-    "closed": "tancat"
+    "closed": "tancat",
+    "noticeBefore": "En JSON: una clau per dia de la setmana (\"0\" dilluns … \"6\" diumenge), cadascuna amb una llista de trams [\"HH:MM\",\"HH:MM\"] — p. ex.",
+    "noticeAfter": "Deixa un dia fora, o posa-hi una llista buida, perquè quedi tancat."
   },
   "homePage": {
     "label": "Pàgina web",
-    "helper": "Una adreça web opcional per a aquesta col·lecció (màx. 128 caràcters)."
+    "helper": "Fa que «Inici» porti al teu web en lloc de la pàgina d'inici d'OIUEEI."
   },
   "newVersion": {
     "body": "Hi ha una versió nova d'OIUEEI.",
@@ -1139,7 +1149,7 @@
   },
   "requestInfo": {
     "label": "Nota que es veu abans de demanar (opcional)",
-    "helper": "Es mostra a dalt de la pàgina de sol·licitud — la veu qui demana un préstec, un lloguer o una reserva; un regal o una venda mai hi arriben, es completen directament des de la targeta. P. ex. «porta el DNI», «la recollida és només els dimarts». Admet Markdown.",
+    "helper": "Es mostra a dalt de la pàgina de sol·licitud — la veu qui demana un préstec, un lloguer o una reserva.",
     "maxLength": "Màxim 512 caràcters per idioma."
   },
   "emailNote": {
@@ -1275,8 +1285,8 @@
     }
   },
   "collectionForm": {
-    "membersPriceStall": "Els membres poden vendre (posar preu)",
-    "membersPriceLibrary": "Els membres poden llogar (posar preu)"
+    "membersPriceStall": "Els membres poden vendre: Cada membre pot posar preu a les seves coses. Desactiva-ho perquè només les puguin regalar.",
+    "membersPriceLibrary": "Els membres poden llogar: Cada membre pot posar preu al que presta. Desactiva-ho perquè només puguin prestar de franc."
   },
   "thingPause": {
     "toggleLabel": "Pausar les reserves: entre aquestes dues dates ningú no la pot demanar ni reservar; les reserves ja fetes no s'anul·len.",
@@ -1293,5 +1303,13 @@
     "priceLibraryHelp": "Sense preu, es presta de franc.",
     "unitsLabel": "Quantes n'hi ha d'iguals?",
     "unitsHelp": "Si en tens diverses d'iguals, es poden reservar alhora fins a aquest nombre. Cada persona en reserva una."
+  },
+  "collectionSettings": {
+    "menu": "Configuració",
+    "appearance": "Aparença",
+    "logoLabel": "Logo o imatge de capçalera",
+    "logoHelper": "Només imatges de mapa de bits (JPG, PNG, WebP, GIF, HEIC/HEIF, AVIF, BMP i TIFF), màx. 10 MB.",
+    "notifications": "Notificacions",
+    "availability": "Disponibilitat"
   }
 }

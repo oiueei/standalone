@@ -2,10 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { WEEKDAY_VALUES, weekdayLabel, weekdayNarrow } from '../utils/rental';
 
 /**
- * The `[L M X J V S D]` weekday toggle row shared by `RentalRulesFields` (pickup
- * / return days) and `ReservationRulesFields` (days the space is open). The two
- * carried a byte-identical copy of this markup — only the label copy and the
- * label `id` differed.
+ * The `[L M X J V S D]` weekday toggle row shared by the Availability page of a
+ * library (pickup / return days), the same page of a shed (days the space is open) and
+ * the network point's page. Only the label copy and the label `id` differ.
  *
  * Accessible toggle `<button>`s: `aria-pressed`, the full weekday name as
  * `aria-label` / `title`, the narrow single letter as the visible face. Values

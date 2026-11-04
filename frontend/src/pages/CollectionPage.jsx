@@ -251,8 +251,11 @@ export default function CollectionPage() {
               style={{ marginBottom: 'var(--spacing-m)' }}
             >
               <p>{t('collectionPage.noOpeningHoursBody')}</p>
-              <ButtonLink to={`${collectionPath(code, collection.kind)}/edit`} style={btnStyle}>
-                {t('collectionPage.editCollection')}
+              <ButtonLink
+                to={`${collectionPath(code, collection.kind)}/settings/availability`}
+                style={btnStyle}
+              >
+                {t('collectionSettings.availability')}
               </ButtonLink>
             </Notification>
           )}
