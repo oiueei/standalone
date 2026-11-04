@@ -47,7 +47,7 @@ const THING = {
   collection_headline: 'Network',
   network_point: POINT,
 };
-const LINE = 'Lent by Cooperativa La Fusteria · Carrer Major 4 · martes y jueves';
+const LINE = 'Lent by Cooperativa La Fusteria Carrer Major 4 martes y jueves';
 
 const json = (data) => ({ ok: true, status: 200, json: () => Promise.resolve(data) });
 
@@ -82,7 +82,7 @@ describe('where the pickup point line is', () => {
 
     const line = await screen.findByTestId('network-point-line');
     expect(line).toHaveTextContent(LINE);
-    expect(line.className).toBe('thing-card-info-row');
+    expect(line).toHaveClass('network-point');
     expect(line.parentElement).toHaveClass('thing-card-info');
     await settle(apiFetch);
   });

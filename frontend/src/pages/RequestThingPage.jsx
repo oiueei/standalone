@@ -505,20 +505,13 @@ export default function RequestThingPage() {
         />
       ) : (
         <>
-          <NetworkPointLine point={thing.network_point} className="" />
+          <NetworkPointLine point={thing.network_point} />
           {hasAmount(thing.fee) && (
             <p>
               <strong>{t('request.priceLabel')}</strong>{' '}
               {t('request.priceValue', { fee: thing.fee })}
             </p>
           )}
-          {hasAmount(thing.deposit) && (
-            <p>
-              <strong>{t('thingPage.depositLabel')}</strong> {thing.deposit} €{' '}
-              {t('thingPage.depositRefundableNote')}
-            </p>
-          )}
-          <DepositPolicy thing={thing} />
           <div className="spacer-m" />
           {isDateBased && (
             <>
@@ -585,6 +578,16 @@ export default function RequestThingPage() {
           )}
 
           <div className="spacer-xs" />
+          {/* What is handed over and what comes back, read last: right above the button that asks. */}
+          <div>
+            {hasAmount(thing.deposit) && (
+              <p>
+                <strong>{t('thingPage.depositLabel')}</strong> {thing.deposit} €{' '}
+                {t('thingPage.depositRefundableNote')}
+              </p>
+            )}
+            <DepositPolicy thing={thing} />
+          </div>
           <div className="form-grid">
             {/* Said before the press (DESIGN §6): whoever runs the thing is sent the
                 requester's name and email with the request, so
