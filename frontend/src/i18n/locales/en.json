@@ -451,6 +451,9 @@
   },
   "request": {
     "pageTitle": "Request: {{headline}}",
+    "availableToday": "Available today",
+    "firstFreeDay": "First free day: {{date}}",
+    "noFreeDaysSoon": "No free days coming up",
     "priceLabel": "Price:",
     "priceValue": "{{fee}} EUR",
     "startLabel": "Start",

@@ -522,10 +522,10 @@ export default function RequestThingPage() {
                 notificationAriaLabel={t('thingPage.availabilityLabel')}
               >
                 {thing.available_today
-                  ? t('availability.IMMEDIATE')
+                  ? t('request.availableToday')
                   : thing.next_available
-                    ? t('availability.nextAvailable', { date: formatDate(thing.next_available) })
-                    : t('availability.noneSoon')}
+                    ? t('request.firstFreeDay', { date: formatDate(thing.next_available) })
+                    : t('request.noFreeDaysSoon')}
               </Notification>
               <div className="spacer-s" />
             </>

@@ -56,3 +56,21 @@ describe('ThingInfoRows — an amount of zero is not shown', () => {
     expect(screen.getByText('Deposit.')).toBeInTheDocument();
   });
 });
+
+describe('ThingInfoRows — availability row', () => {
+  // The thing's page and the card put the label in front of the row, so the value
+  // can be the bare date; only the request page, whose notice does not show its
+  // title, says the whole sentence.
+  test('says the date alone after its label', () => {
+    render(
+      <ThingInfoRows
+        thing={{ type: 'LEND_THING', available_today: false, next_available: '2026-11-09' }}
+        isDateBased
+      />
+    );
+
+    const label = screen.getByText('Availability.');
+    expect(label.parentElement).toHaveTextContent(/^Availability\.\s*09\/11\/2026$/);
+    expect(screen.queryByText(/First free day/)).toBeNull();
+  });
+});

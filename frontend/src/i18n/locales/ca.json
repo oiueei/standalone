@@ -445,6 +445,9 @@
   },
   "request": {
     "pageTitle": "Demanar: {{headline}}",
+    "availableToday": "Disponible avui",
+    "firstFreeDay": "Primer dia lliure: {{date}}",
+    "noFreeDaysSoon": "Sense dies lliures properament",
     "priceLabel": "Preu:",
     "priceValue": "{{fee}} EUR",
     "startLabel": "Inici",
