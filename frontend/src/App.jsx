@@ -34,7 +34,7 @@ const CollectionPage = lazy(() => import('./pages/CollectionPage'));
 const AddThingPage = lazy(() => import('./pages/AddThingPage'));
 const ImportThingsPage = lazy(() => import('./pages/ImportThingsPage'));
 const ImportInvitesPage = lazy(() => import('./pages/ImportInvitesPage'));
-const NetworkPointPage = lazy(() => import('./pages/NetworkPointPage'));
+const OrganisationPage = lazy(() => import('./pages/OrganisationPage'));
 const EditThingPage = lazy(() => import('./pages/EditThingPage'));
 const ThingPage = lazy(() => import('./pages/ThingPage'));
 const CreateCollectionPage = lazy(() => import('./pages/CreateCollectionPage'));
@@ -114,6 +114,12 @@ const publicCollectionRoutes = (prefix) => [
   />,
 ];
 
+/** `/{kind}/{code}/point` was the pickup point's page; it is the organisation page now. */
+function PointRedirect({ prefix }) {
+  const { code } = useParams();
+  return <Navigate to={`/${prefix}/${code}/organisation`} replace />;
+}
+
 const protectedCollectionRoutes = (prefix) =>
   [
     ['edit', <EditCollectionPage />],
@@ -129,7 +135,9 @@ const protectedCollectionRoutes = (prefix) =>
     ['things/:thingCode/request', <RequestThingPage />],
     ['things/:thingCode/delete', <DeleteThingPage />],
     ['invites/import', <ImportInvitesPage />],
-    ['point', <NetworkPointPage />],
+    ['organisation', <OrganisationPage />],
+    // The old address of the pickup point: it is the organisation page now.
+    ['point', <PointRedirect prefix={prefix} />],
     ['invites/remove', <RemoveGuestPage />],
   ].map(([sub, element]) => (
     <Route

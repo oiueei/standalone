@@ -294,7 +294,6 @@ export default function ThingPage() {
       kind={kind}
       headline={L(thing.collection_headline)}
       isCurator={menu.is_curator}
-      isNetwork={thing.collection_mode === 'NETWORK'}
       hasDateThings={menu.has_date_things}
       downloads={downloads}
       welcomeDocUrl={menu.welcome_doc_url || ''}

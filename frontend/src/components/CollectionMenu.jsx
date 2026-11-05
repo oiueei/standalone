@@ -72,7 +72,6 @@ export default function CollectionMenu({
   kind,
   headline,
   isCurator = true,
-  isNetwork = false,
   hasDateThings = false,
   downloads,
   welcomeDocUrl = '',
@@ -163,12 +162,10 @@ export default function CollectionMenu({
               <Link to={`${base}/invites`} onClick={close}>
                 {t('collectionPage.manageGuests')}
               </Link>
-              {/* A network's dinamizador answers for an entity: its pickup point. */}
-              {isNetwork && (
-                <Link to={`${base}/point`} onClick={close}>
-                  {t('networkPoint.menuEntry')}
-                </Link>
-              )}
+              {/* Every curator has a page of their own in the group: the entity they answer for. */}
+              <Link to={`${base}/organisation`} onClick={close}>
+                {t('organisation.menuEntry')}
+              </Link>
               {/* The CSV of invitations, like the CSV of things above: it was the last
                   block of the members page, and it is a page of its own.
                   Curators only, as the invitations are. */}
