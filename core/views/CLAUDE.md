@@ -295,10 +295,12 @@ Forwards a support/feedback message to the operator's mailbox (`CONTACT_EMAIL` e
 
 Helper function. Returns `True` if:
 - Viewer is the target (own profile)
-- Target is invited to any collection owned by viewer
-- Viewer is invited to any collection owned by target
+- Viewer **runs** (founds or co-curates) a collection the target is invited to
+- Target **runs** (founds or co-curates) a collection the viewer can read: viewer founds it, is invited to it, or it is `PUBLIC` and `ACTIVE` (the team named in a group's header is a link, so a signed-in reader of a public group can follow it; the clause follows `Collection.can_view`)
 
-This provides IDOR protection — users can only see profiles of people connected via collections.
+A member does not see another member, and a private or inactive group opens its team to nobody outside it. Two `EXISTS` queries, however many groups. `shared_collections` in the answer lists only the groups both are inside of (founder, co-curator or member), never one the viewer cannot see. Pinned in `test_profile_visibility.py`.
+
+This provides IDOR protection — users can only see profiles of people connected via collections, or of the team of a group they can read.
 
 ### UserDetailView
 
@@ -1269,7 +1271,7 @@ A collection lives at **`/{kind}/{code}`** — `/stall/…`, `/library/…`, `/s
 2. **Magic link authentication** — Passwordless via email. RSVPs are one-time use and expire per action (magic links 24h; booking accept/reject 72h; collection invites ~30 days — `RSVP.expiry_hours_for`).
 3. **JWT tokens** — HttpOnly cookie-based. Access tokens expire after 1 hour. Refresh tokens expire after 7 days. Tokens are rotated on refresh via `POST /api/v1/auth/refresh/`, old tokens blacklisted.
 4. **CSRF (cookie auth)** — because the access token rides in a cookie, `CookieJWTAuthentication` runs DRF's CSRF check (`enforce_csrf`, mirroring `SessionAuthentication`) for **cookie-authenticated unsafe methods** — defence in depth behind the cookie's `SameSite=Lax`. Bearer-header auth is exempt (the header is never sent cross-site), so API clients and the Bearer-token test suite are unaffected. `MeView` GET sets the `csrftoken` cookie via `@ensure_csrf_cookie` (hit on every app load); the SPA reads it and sends it as `X-CSRFToken` on every unsafe request. **The decorator sits on `dispatch`, not `get`** — it forces the cookie by calling `get_token()` from inside the method it wraps, and DRF's `APIView.dispatch()` runs `check_permissions()` (raising 401 for `IsAuthenticated` before `get()` is ever called) — so decorating `get()` directly meant the cookie was never set for exactly the visitor who needs it most: someone brand new, whose first-ever hit here 401s because `App.jsx`'s app-load warm-up fires before the magic-link GET that authenticates them completes. That silently broke the first unsafe request (a reservation, a question) from anyone whose magic link drops them straight onto one thing with no earlier authenticated page ever calling this endpoint successfully. Pinned by `test_me_get_sets_csrftoken_cookie_even_when_it_401s`. The test client disables the check by default (`enforce_csrf_checks=False`), so only `test_csrf.py` (which opts in) exercises it.
-5. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections.
+5. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections or of the team of a group they can read.
 6. **Custom DRF permissions** — `IsThingOwner`, `IsThingManager`, `IsCollectionOwner`, `IsCollectionCurator` in `core/permissions.py`.
 7. **Public collections (anonymous read)** — a collection with `visibility=PUBLIC` (and ACTIVE) is readable without authentication. The read endpoints `CollectionViewSet.retrieve`, `ThingViewSet.retrieve`, the FAQ list (GET on `ThingFAQListView`), `ThingTransferView` and `ThingCalendarView` are `AllowAny`, each gated by an **anonymous-safe** `can_view` (a `viewer_code(request)` helper passes the user's code, or `None` for a visitor, into the model guard — `None` matches PUBLIC collections only). Every *write/act* endpoint (reserve, ask a question, answer, add a thing, manage invites/visibility) still requires authentication plus membership/ownership, so an anonymous visitor may browse a public collection but must log in to act. INACTIVE things are excluded from the serialised `things` for any non-owner, the member roster serialises **codes only** for anonymous readers (names are for logged-in members; emails for the owner), and the collection *list* (`GET /collections/`) stays private (it returns only what the caller owns or co-owns).
 

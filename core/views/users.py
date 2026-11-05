@@ -2,6 +2,7 @@
 User views for OIUEEI.
 """
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -13,30 +14,37 @@ from core.serializers import UserPublicSerializer, UserSerializer, UserUpdateSer
 from core.views._helpers import refusal_body
 
 
+def _curated_by(user_code):
+    """Collections ``user_code`` runs: the founder's, or a co-curator's."""
+    return Q(owner_id=user_code) | Q(co_owners__code=user_code)
+
+
 def can_view_user(viewer_user_code, target_user_code):
     """
     Check if viewer can see target user's profile.
     Returns True if:
     - viewer is target (own profile)
-    - target is in invites of any collection owned by viewer
-    - viewer is in invites of any collection owned by target
+    - viewer runs (founds or co-curates) a collection target is invited to
+    - target runs a collection viewer can read: viewer founds it, is invited to
+      it, or it is PUBLIC and ACTIVE (the team named in its header is a link)
+
+    Two ``EXISTS`` queries whatever the number of collections. The readable-by-viewer
+    clause of the last rule must keep following ``Collection.can_view``.
     """
     if viewer_user_code == target_user_code:
         return True
 
-    # Check if target is invited to any of viewer's collections
     if Collection.objects.filter(
-        owner_id=viewer_user_code, invites__code=target_user_code
+        _curated_by(viewer_user_code), invites__code=target_user_code
     ).exists():
         return True
 
-    # Check if viewer is invited to any of target's collections
-    if Collection.objects.filter(
-        owner_id=target_user_code, invites__code=viewer_user_code
-    ).exists():
-        return True
-
-    return False
+    readable = (
+        Q(owner_id=viewer_user_code)
+        | Q(invites__code=viewer_user_code)
+        | Q(visibility=Collection.Visibility.PUBLIC, status=Collection.Status.ACTIVE)
+    )
+    return Collection.objects.filter(_curated_by(target_user_code)).filter(readable).exists()
 
 
 class UserDetailView(APIView):
@@ -70,17 +78,16 @@ class UserDetailView(APIView):
         serializer = UserPublicSerializer(user)
         data = serializer.data
 
-        # Find shared collections (where both users are owner or invited)
+        # Only collections both are inside of (founder, co-curator or member):
+        # a private group the target runs and the viewer cannot see never appears.
         viewer = request.user.code
-        # Collections owned by viewer where target is invited
-        shared_qs = Collection.objects.filter(owner_id=viewer, invites__code=user_code).values(
-            "code", "headline", "kind"
+        shared = list(
+            Collection.objects.filter(Q(owner_id=viewer) | Q(invites__code=viewer))
+            .filter(Q(owner_id=user_code) | Q(invites__code=user_code))
+            .values("code", "headline", "kind")
+            .distinct()
+            .order_by("code")
         )
-        # Collections owned by target where viewer is invited
-        shared_qs2 = Collection.objects.filter(owner_id=user_code, invites__code=viewer).values(
-            "code", "headline", "kind"
-        )
-        shared = list(shared_qs.union(shared_qs2))
         data["shared_collections"] = shared
 
         return Response(data)
