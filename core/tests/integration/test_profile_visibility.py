@@ -1,8 +1,8 @@
 """Who may open whose profile: the team of a group counts, not only its founder.
 
-A group's header links the names of its team to their profiles, so a reader of a
-public group, a member and a co-curator all have to be able to follow them; a member
-still cannot open another member's.
+A member can open the profile of the team of their group and a co-curator that of a
+member; someone outside the group opens none of them, even when the group is public.
+A member still cannot open another member's.
 """
 
 import pytest
@@ -45,26 +45,19 @@ def group(team, visibility=PUBLIC, status=Collection.Status.ACTIVE):
 
 
 class TestReaderOfAPublicGroup:
-    def test_sees_the_founder_and_each_co_curator(self, team):
-        group(team)
-        assert get_profile(team["reader"], team["founder"]).status_code == 200
-        assert get_profile(team["reader"], team["curator"]).status_code == 200
+    """Reading a public group does not open its team's general profiles."""
 
-    def test_does_not_see_a_member(self, team):
+    def test_sees_nobody_of_the_team_not_even_the_founder(self, team):
         group(team)
-        assert get_profile(team["reader"], team["member"]).status_code == 403
-
-    def test_has_no_shared_group_with_the_team(self, team):
-        group(team)
-        res = get_profile(team["reader"], team["curator"])
-        assert res.data["shared_collections"] == []
+        for target in ("founder", "curator", "member"):
+            assert get_profile(team["reader"], team[target]).status_code == 403
 
     def test_private_group_opens_nobody_to_a_reader(self, team):
         group(team, visibility=PRIVATE)
         for target in ("founder", "curator", "member"):
             assert get_profile(team["reader"], team[target]).status_code == 403
 
-    def test_inactive_public_group_opens_nobody_to_a_reader(self, team):
+    def test_inactive_group_opens_nobody_to_a_reader(self, team):
         group(team, status=Collection.Status.INACTIVE)
         for target in ("founder", "curator", "member"):
             assert get_profile(team["reader"], team[target]).status_code == 403
@@ -93,7 +86,7 @@ class TestInsideAGroup:
 
 
 class TestSharedCollectionsAreOnlyThoseBothAreIn:
-    def test_a_private_group_the_target_runs_and_the_viewer_cannot_see_never_shows(self, team):
+    def test_a_group_the_target_runs_and_the_viewer_is_not_in_never_shows(self, team):
         shared = group(team, visibility=PUBLIC)
         shared.invites.add(team["reader"])
         hidden = CollectionFactory(owner=team["curator"], visibility=PRIVATE)

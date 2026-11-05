@@ -25,11 +25,13 @@ def can_view_user(viewer_user_code, target_user_code):
     Returns True if:
     - viewer is target (own profile)
     - viewer runs (founds or co-curates) a collection target is invited to
-    - target runs a collection viewer can read: viewer founds it, is invited to
-      it, or it is PUBLIC and ACTIVE (the team named in its header is a link)
+    - target runs (founds or co-curates) a collection viewer is inside of: viewer
+      founds it or is invited to it
 
-    Two ``EXISTS`` queries whatever the number of collections. The readable-by-viewer
-    clause of the last rule must keep following ``Collection.can_view``.
+    A reader of a public group who is not in it opens nobody's profile: a team is
+    known to its group by the page of that group, not by the general profile.
+
+    Two ``EXISTS`` queries whatever the number of collections.
     """
     if viewer_user_code == target_user_code:
         return True
@@ -39,12 +41,8 @@ def can_view_user(viewer_user_code, target_user_code):
     ).exists():
         return True
 
-    readable = (
-        Q(owner_id=viewer_user_code)
-        | Q(invites__code=viewer_user_code)
-        | Q(visibility=Collection.Visibility.PUBLIC, status=Collection.Status.ACTIVE)
-    )
-    return Collection.objects.filter(_curated_by(target_user_code)).filter(readable).exists()
+    inside = Q(owner_id=viewer_user_code) | Q(invites__code=viewer_user_code)
+    return Collection.objects.filter(_curated_by(target_user_code)).filter(inside).exists()
 
 
 class UserDetailView(APIView):

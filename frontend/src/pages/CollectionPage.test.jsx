@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within, act, cleanup } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
@@ -2098,6 +2098,60 @@ describe('CollectionPage as a co-owner', () => {
       </MemoryRouter>
     );
   };
+
+  // A name in the team line opens that person's profile, which the server shows only
+  // to someone inside the group: for anyone else the name is plain text.
+  describe('the team line links to profiles only for those inside the group', () => {
+    const linkNames = (line) =>
+      within(line)
+        .queryAllByRole('link')
+        .map((a) => a.textContent);
+    const TEAM = [
+      { code: 'ABC123', name: 'Me' },
+      { code: 'XYZ999', name: 'Nil' },
+    ];
+    // [who is looking, session, the fields the server sends them]
+    const viewers = {
+      curator: [true, { is_curator: true, is_member: false }],
+      member: [true, { is_curator: false, is_member: true }],
+      'signed-in non-member': [true, { is_curator: false, is_member: false }],
+      'signed-out reader': [false, { is_curator: false, is_member: false }],
+    };
+
+    test.each(['curator', 'member'])('a %s gets a link per name', async (who) => {
+      renderTeamHero('en', { ...viewers[who][1], co_owners: TEAM });
+      const line = (await screen.findByText('Run by:')).closest('p');
+      expect(linkNames(line)).toEqual(['The Founder', 'Me', 'Nil']);
+    });
+
+    test.each(['signed-in non-member', 'signed-out reader'])(
+      'a %s sees the same names with no link',
+      async (who) => {
+        const [signedIn, fields] = viewers[who];
+        if (!signedIn) localStorage.removeItem('userCode');
+        renderTeamHero('en', { ...fields, co_owners: TEAM });
+        const line = (await screen.findByText('Run by:')).closest('p');
+        expect(line).toHaveTextContent('Run by: The Founder, Me, and Nil');
+        expect(linkNames(line)).toEqual([]);
+        expect(line.querySelector('.owner-link')).toBeNull();
+      }
+    );
+
+    test('with a single founder, a member links and a non-member does not', async () => {
+      renderTeamHero('en', { co_owners: [], is_curator: false, is_member: true });
+      let line = (await screen.findByText('Run by:')).closest('p');
+      expect(within(line).getByRole('link', { name: 'The Founder' })).toHaveAttribute(
+        'href',
+        '/OTHER1'
+      );
+      cleanup();
+
+      renderTeamHero('en', { co_owners: [], is_curator: false, is_member: false });
+      line = (await screen.findByText('Run by:')).closest('p');
+      expect(line).toHaveTextContent(/^Run by: The Founder$/);
+      expect(linkNames(line)).toEqual([]);
+    });
+  });
 
   // The API sends a co-curator's bare `name` — never the email in its place —
   // so one who set none arrives as ''. Joined with commas that left "Oriol, ," on
