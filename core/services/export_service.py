@@ -759,8 +759,19 @@ def build_account_export(user):
 # --------------------------------------------------------------------------- #
 
 
-def collection_stats_rows(collection):
+def _spreadsheet_safe(text):
+    """``text`` with an apostrophe in front when a spreadsheet would read it as a formula."""
+    return f"'{text}" if text.lstrip()[:1] in ("=", "+", "-", "@") else text
+
+
+def collection_stats_rows(collection, user=None):
     """``[(metric, value)]`` — the owner-only usage figures for a collection.
+
+    In a network, a ``user`` who is not the founder gets the figures of their own
+    things (the six rows about things, bookings and handovers), headed by a
+    ``Pickup point`` row saying whose they are; the members, the invitations and the
+    breakdown stay the network's. Without ``user``, or for the founder, or outside a
+    network, the figures are the collection's.
 
     The single definition of every metric, rendered two ways: ``CollectionStatsView``
     writes it as a CSV, the collection export carries it as a dict. Aggregate
@@ -776,7 +787,18 @@ def collection_stats_rows(collection):
     members = list(collection.invites.all())
     member_codes = [member.code for member in members]
 
-    rows = [["Members", len(members)]]
+    things = collection.things
+    bookings = BookingPeriod.objects.filter(thing_code__collections=collection)
+    transfers = ThingTransfer.objects.filter(thing__collections=collection)
+    rows = []
+    if collection.is_network() and user is not None and not collection.is_owner(user.code):
+        things = things.filter(owner=user)
+        bookings = bookings.filter(thing_code__owner=user)
+        transfers = transfers.filter(thing__owner=user)
+        point = collection.point_for(user.code)
+        rows.append(["Pickup point", _spreadsheet_safe(point.display_name if point else user.name)])
+
+    rows.append(["Members", len(members)])
     rows.append(
         [
             "Pending invitations",
@@ -785,25 +807,13 @@ def collection_stats_rows(collection):
             ).count(),
         ]
     )
-    rows.append(["Things total", collection.things.count()])
-    rows.append(["Things active", collection.things.filter(status=Thing.Status.ACTIVE).count()])
-    rows.append(["Things reserved", collection.things.filter(status=Thing.Status.TAKEN).count()])
-    rows.append([f"Things added ({win}d)", collection.things.filter(created__gte=since).count()])
+    rows.append(["Things total", things.count()])
+    rows.append(["Things active", things.filter(status=Thing.Status.ACTIVE).count()])
+    rows.append(["Things reserved", things.filter(status=Thing.Status.TAKEN).count()])
+    rows.append([f"Things added ({win}d)", things.filter(created__gte=since).count()])
+    rows.append([f"Bookings ({win}d)", bookings.filter(created__gte=since).distinct().count()])
     rows.append(
-        [
-            f"Bookings ({win}d)",
-            BookingPeriod.objects.filter(thing_code__collections=collection, created__gte=since)
-            .distinct()
-            .count(),
-        ]
-    )
-    rows.append(
-        [
-            f"Handovers ({win}d)",
-            ThingTransfer.objects.filter(thing__collections=collection, lent_date__gte=since_date)
-            .distinct()
-            .count(),
-        ]
+        [f"Handovers ({win}d)", transfers.filter(lent_date__gte=since_date).distinct().count()]
     )
     rows.append(
         [
@@ -971,7 +981,7 @@ def build_collection_export(collection, user=None):
         "bookings": _collection_bookings(thing_codes, people),
         "faqs": _collection_faqs(thing_codes, people),
         "transfers": _collection_transfers(thing_codes),
-        "stats": dict(collection_stats_rows(collection)),
+        "stats": dict(collection_stats_rows(collection, user)),
     }
     return {
         "_manifest": {

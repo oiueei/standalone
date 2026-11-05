@@ -1321,7 +1321,7 @@ class CollectionStatsView(APIView):
 
         # Every metric is defined once, in the service: this renders it as a CSV,
         # the collection export carries the same rows as a dict.
-        rows = [["metric", "value"], *collection_stats_rows(collection)]
+        rows = [["metric", "value"], *collection_stats_rows(collection, request.user)]
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = f'attachment; filename="{collection_code}-stats.csv"'
         csv.writer(response).writerows(rows)
