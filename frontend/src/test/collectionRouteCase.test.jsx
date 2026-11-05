@@ -168,4 +168,14 @@ describe('the sub-routes of a collection tell case apart', () => {
     expect(window.location.pathname).toBe('/library/COL001/organisation');
     expect(window.history.length).toBe(before + 1);
   });
+
+  test('the page of a curator is public: a reader with no session opens it, at any kind’s prefix', async () => {
+    window.history.pushState({}, '', '/library/NET001/organisation/L3L3oo');
+    const { default: App } = await import('../App');
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Lele' })).toBeVisible();
+    expect(screen.getByText('Pickup point of Demo network')).toBeVisible();
+    expect(screen.queryByRole('heading', { name: /Log in|Sign in/i })).toBeNull();
+  });
 });

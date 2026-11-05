@@ -1131,7 +1131,14 @@
     "pickupIntro": "You lend your things from your pickup point: where they are collected and returned, and when. Everyone who sees the network sees it.",
     "errorSaving": "Your page in this group could not be saved.",
     "errorLoading": "Your page in this group could not be loaded.",
-    "notACurator": "Only the team of a group has a page of their own in it."
+    "notACurator": "Only the team of a group has a page of their own in it.",
+    "pickupOf": "Pickup point of {{collection}}",
+    "runs": "Runs {{collection}}",
+    "contact": "Contact: {{value}}",
+    "seeWhatTheyLend": "See what they lend",
+    "address": "Address: {{value}}",
+    "hours": "Pickup and return hours: {{value}}",
+    "days": "Pickup and return days: {{value}}"
   },
   "closedDates": {
     "label": "Holidays and closures",

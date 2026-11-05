@@ -1131,7 +1131,14 @@
     "pickupIntro": "Prestas tus cosas desde tu punto de recogida: dónde se recogen y se devuelven, y cuándo. Lo ve todo el que ve la red.",
     "errorSaving": "No se ha podido guardar tu página en este grupo.",
     "errorLoading": "No se ha podido cargar tu página en este grupo.",
-    "notACurator": "Solo el equipo de un grupo tiene en él una página propia."
+    "notACurator": "Solo el equipo de un grupo tiene en él una página propia.",
+    "pickupOf": "Punto de recogida de {{collection}}",
+    "runs": "Dinamiza {{collection}}",
+    "contact": "Contacto: {{value}}",
+    "seeWhatTheyLend": "Ver lo que presta",
+    "address": "Dirección: {{value}}",
+    "hours": "Horario de recogida y devolución: {{value}}",
+    "days": "Días de recogida y devolución: {{value}}"
   },
   "closedDates": {
     "label": "Festivos y cierres",

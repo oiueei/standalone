@@ -1,7 +1,19 @@
 /**
+ * What one member of the team is called in this group: the `display_name` of their page
+ * there (`points`: the entity's name, else their account's), and the account's own name
+ * where they have no page. `''` when they have neither.
+ */
+export function teamMemberName(collection, member) {
+  const card = (collection.points ?? []).find((point) => point.user === member.code);
+  return card ? card.display_name : member.name;
+}
+
+/**
  * Who runs a collection, in the one order and with the one rule every place that
  * names them follows: the founder first, then the co-curators; those with a name
  * are named, those without are only counted — at the end.
+ *
+ * Each is called by the name of their page in the group (`teamMemberName`).
  *
  * The API sends a person's bare `name`, never an email standing in for it (the
  * email is withheld from co-members), so someone who set none arrives as
@@ -17,7 +29,7 @@ export function collectionTeam(collection) {
   const team = [
     { code: collection.owner, name: collection.owner_name },
     ...(collection.co_owners ?? []),
-  ];
+  ].map((member) => ({ ...member, name: teamMemberName(collection, member) }));
   const named = team.filter((member) => member.name);
   return { named, unnamedCount: team.length - named.length };
 }

@@ -35,6 +35,7 @@ const AddThingPage = lazy(() => import('./pages/AddThingPage'));
 const ImportThingsPage = lazy(() => import('./pages/ImportThingsPage'));
 const ImportInvitesPage = lazy(() => import('./pages/ImportInvitesPage'));
 const OrganisationPage = lazy(() => import('./pages/OrganisationPage'));
+const EntityPage = lazy(() => import('./pages/EntityPage'));
 const EditThingPage = lazy(() => import('./pages/EditThingPage'));
 const ThingPage = lazy(() => import('./pages/ThingPage'));
 const CreateCollectionPage = lazy(() => import('./pages/CreateCollectionPage'));
@@ -105,6 +106,14 @@ const publicCollectionRoutes = (prefix) => [
     caseSensitive
     path={`/${prefix}/:code/things/:thingCode`}
     element={<ThingPage />}
+  />,
+  // The page a curator has in the group, public like the collection: whoever can read
+  // the group can read it (the server decides that when the page asks for the group).
+  <Route
+    key={`${prefix}-entity`}
+    caseSensitive
+    path={`/${prefix}/:code/organisation/:userCode`}
+    element={<EntityPage />}
   />,
   <Route
     key={`${prefix}-join`}
