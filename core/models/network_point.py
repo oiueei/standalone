@@ -7,9 +7,15 @@ from .user import User
 
 
 class NetworkPoint(models.Model):
-    """The pickup point of one dinamizador of a network: the entity they answer for.
+    """The page one curator has in one group: the entity they answer for.
 
-    Each dinamizador of a NETWORK runs their own things on behalf of an entity (a
+    In **any** collection a curator (founder or co-curator) may set the identity half:
+    ``entity_name``, ``logo``, ``about`` and ``contact``. Only in a **network** the row
+    is also a pickup point (address, hours, days, closures and the loan conditions);
+    elsewhere those columns stay empty and the place belongs to the group. The model
+    keeps its name, and the table, from the network that came first.
+
+    In a network, each dinamizador of a NETWORK runs their own things on behalf of an entity (a
     cooperative, a neighbourhood association, a shop, a union), not from their home:
     its name, where members collect and return, when, and the conditions of its own
     loans. Public with the collection, address included.
@@ -38,6 +44,10 @@ class NetworkPoint(models.Model):
     # ``Collection.thumbnail`` (same width). ``db_default`` because the previous
     # release's dynos insert without naming the column while the release phase runs.
     logo = models.CharField(max_length=255, blank=True, default="", db_default="")
+    # Markdown about the entity, one text per language like ``Collection.description``
+    # (a ``TextField``: the serializer holds the visible limit). ``db_default`` for the
+    # same reason as ``logo``.
+    about = models.TextField(blank=True, default="", db_default="")
     # One set for pickup and return, like ``Collection.rental_weekdays`` (0=Mon…6=Sun).
     # Empty = the collection's days.
     weekdays = models.JSONField(default=list, blank=True)
