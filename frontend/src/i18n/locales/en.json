@@ -933,7 +933,7 @@
     "durationsHelper": "For lending/renting items. Renters pick one of these. Empty = any length.",
     "weekdaysLabel": "Pickup / return days",
     "weekdaysHelper": "Both pickup and return must fall on these days. Empty = any day.",
-    "depositPolicyLabel": "Deposit policy (optional)",
+    "depositPolicyLabel": "Deposit policy: how to get the deposit back; each thing sets its amount (optional)",
     "depositPolicyHelper": "How deposits work in this collection — the amount is set per thing, this explains the condition for getting it back.",
     "d1": "1 day",
     "d2": "2 days",
@@ -1153,13 +1153,13 @@
     "reload": "Reload"
   },
   "requestInfo": {
-    "label": "Note shown before someone asks (optional)",
+    "label": "Note before someone asks: at the top of the request page (optional)",
     "helper": "Shown at the top of the request page — seen by anyone requesting a loan, a rental or a reservation.",
     "maxLength": "Maximum 512 characters per language."
   },
   "emailNote": {
     "label": "Note in the emails after someone asks (optional)",
-    "helper": "Added to the emails a member receives about their request — when they send it and again when it's accepted (a reservation is confirmed on the spot, so its single email carries it) — after the link to the thing, in their own language. Markdown (bold, italics, lists, links) and emojis work. E.g. \"we confirm requests within 48h\", \"we're on floor 2\".",
+    "helper": "Goes in the emails a member gets about their request, after the link to the thing, in their language. Markdown and emojis work.",
     "maxLength": "Maximum 512 characters per language.",
     "testButton": "Send me a test email",
     "testSent": "Sent to your inbox — this is exactly how members will get it.",

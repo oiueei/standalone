@@ -933,7 +933,7 @@
     "durationsHelper": "Para objetos de préstamo/alquiler. Quien alquila elige una. Vacío = cualquier duración.",
     "weekdaysLabel": "Días de recogida y devolución",
     "weekdaysHelper": "Recogida y devolución deben caer en estos días. Vacío = cualquier día.",
-    "depositPolicyLabel": "Política de fianzas (opcional)",
+    "depositPolicyLabel": "Política de fianza: cómo se recupera; cada cosa fija su importe (opcional)",
     "depositPolicyHelper": "Cómo funcionan las fianzas en esta colección — el importe se pone en cada cosa, esto explica la condición para devolverla.",
     "d1": "1 día",
     "d2": "2 días",
@@ -1153,13 +1153,13 @@
     "reload": "Recargar"
   },
   "requestInfo": {
-    "label": "Nota que se ve antes de pedir (opcional)",
+    "label": "Nota antes de pedir: arriba de la página de solicitud (opcional)",
     "helper": "Se muestra arriba de la página de solicitud — la ve quien pide un préstamo, un alquiler o una reserva.",
     "maxLength": "Máximo 512 caracteres por idioma."
   },
   "emailNote": {
     "label": "Nota en los correos después de pedir (opcional)",
-    "helper": "Se añade a los correos que recibe un miembro sobre su solicitud — al enviarla y de nuevo al aceptársela (una reserva se confirma al momento, así que va en su único correo) — después del enlace a la publicación, en su propio idioma. Admite Markdown (negritas, cursivas, listas, enlaces) y emojis. P. ej. «confirmamos las solicitudes en 48h», «estamos en la planta 2».",
+    "helper": "Va en los correos que recibe un miembro sobre su solicitud, después del enlace a la cosa, en su idioma. Funcionan Markdown y emojis.",
     "maxLength": "Máximo 512 caracteres por idioma.",
     "testButton": "Envíame un correo de prueba",
     "testSent": "Enviado a tu correo: es justo como lo recibirán.",

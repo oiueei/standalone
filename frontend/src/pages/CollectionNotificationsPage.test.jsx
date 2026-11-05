@@ -21,6 +21,7 @@ vi.mock('../hooks/useCollectionLanguage', () => ({ default: vi.fn() }));
 import { apiFetch } from '../services/api';
 import useCollectionLanguage from '../hooks/useCollectionLanguage';
 import CollectionNotificationsPage from './CollectionNotificationsPage';
+import en from '../i18n/locales/en.json';
 import { dropHdsStyles } from '../test/dropHdsStyles';
 import { press, settle } from '../test/settle';
 import { axe, toHaveNoViolations } from 'jest-axe';
@@ -121,7 +122,7 @@ describe('CollectionNotificationsPage', () => {
     expect(
       screen.getByText('{"es": "Estamos en la planta 2", "ca": "Estem a la planta 2"}')
     ).toBeVisible();
-    expect(screen.getByText(/Added to the emails a member receives/)).toBeVisible();
+    expect(screen.getByText(en.emailNote.helper)).toBeVisible();
   });
 
   test('saves exactly its own five fields and nothing the collection keeps elsewhere', async () => {

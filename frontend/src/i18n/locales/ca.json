@@ -933,7 +933,7 @@
     "durationsHelper": "Per a objectes de préstec/lloguer. Qui lloga en tria una. Buit = qualsevol durada.",
     "weekdaysLabel": "Dies de recollida i devolució",
     "weekdaysHelper": "Recollida i devolució han de caure en aquests dies. Buit = qualsevol dia.",
-    "depositPolicyLabel": "Política de fiances (opcional)",
+    "depositPolicyLabel": "Política de fiança: com es recupera; cada cosa en fixa l'import (opcional)",
     "depositPolicyHelper": "Com funcionen les fiances en aquesta col·lecció — l'import es posa a cada cosa, això explica la condició per retornar-la.",
     "d1": "1 dia",
     "d2": "2 dies",
@@ -1153,13 +1153,13 @@
     "reload": "Torna a carregar"
   },
   "requestInfo": {
-    "label": "Nota que es veu abans de demanar (opcional)",
+    "label": "Nota abans de demanar: a dalt de la pàgina de sol·licitud (opcional)",
     "helper": "Es mostra a dalt de la pàgina de sol·licitud — la veu qui demana un préstec, un lloguer o una reserva.",
     "maxLength": "Màxim 512 caràcters per idioma."
   },
   "emailNote": {
     "label": "Nota als correus després de demanar (opcional)",
-    "helper": "S'afegeix als correus que rep un membre sobre la seva sol·licitud — quan l'envia i un altre cop quan l'hi accepten (una reserva es confirma a l'instant, així que va en el seu únic correu) — després de l'enllaç a la publicació, en el seu propi idioma. Admet Markdown (negretes, cursives, llistes, enllaços) i emojis. P. ex. «confirmem les sol·licituds en 48h», «som a la planta 2».",
+    "helper": "Va als correus que rep un membre sobre la seva sol·licitud, després de l'enllaç a la cosa, en el seu idioma. Hi funcionen Markdown i emojis.",
     "maxLength": "Màxim 512 caràcters per idioma.",
     "testButton": "Envia'm un correu de prova",
     "testSent": "Enviat al teu correu: és exactament com el rebran.",
