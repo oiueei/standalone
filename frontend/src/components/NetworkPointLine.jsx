@@ -30,6 +30,7 @@ export default function NetworkPointLine({ point }) {
         {point.address && <span className="network-point-detail">{point.address}</span>}{' '}
         {point.hours_note && <span className="network-point-detail">{point.hours_note}</span>}
       </div>
+      {point.logo_url && <img className="network-point-logo" src={point.logo_url} alt="" />}
     </div>
   );
 }

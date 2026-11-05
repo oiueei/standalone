@@ -295,10 +295,12 @@ Forwards a support/feedback message to the operator's mailbox (`CONTACT_EMAIL` e
 
 Helper function. Returns `True` if:
 - Viewer is the target (own profile)
-- Target is invited to any collection owned by viewer
-- Viewer is invited to any collection owned by target
+- Viewer **runs** (founds or co-curates) a collection the target is invited to
+- Target **runs** (founds or co-curates) a collection the viewer is inside of: viewer founds it or is invited to it
 
-This provides IDOR protection — users can only see profiles of people connected via collections.
+A member does not see another member, and a reader of a public group who is not in it opens nobody's general profile, the team's included (a team is known to its group by that group's page). Two `EXISTS` queries, however many groups. `shared_collections` in the answer lists only the groups both are inside (founder, co-curator or member). Pinned in `test_profile_visibility.py`.
+
+This provides IDOR protection — users can only see profiles of people connected via collections, or of the team of a group they are inside.
 
 ### UserDetailView
 
@@ -696,6 +698,8 @@ Invites many guests at once from a client-parsed CSV (`{"invites": [{"email": ..
 | **Permission** | `IsAuthenticated` + collection curator (owner or co-owner) |
 
 Curator usage statistics for a collection, returned as a `metric,value` CSV download: a snapshot (members, pending invitations, things total/active) plus a 90-day activity window, and an aggregate age-range/postal-code breakdown (member demographics stay COMMUNITY-only and per-member on the guests page — this endpoint is aggregate-only). **A bracket or a postal code is named only when at least `STATS_MIN_GROUP` (3) members share it**: below that the figure is about a person ("Postal 48001: 1" in a group of two), so those members are summed into "Birth year shared by fewer than 3" / "Postal, other codes", and an empty bracket is left out too — were only the small ones missing, the gaps would name them. Same rule in every mode, since this file and the collection export that carries it travel. Pinned in `test_collection_stats.py`.
+
+**In a NETWORK the founder gets the figures of the whole network and a dinamizador those of their own things**: the six rows about things, bookings and handovers (`Things total/active/reserved/added`, `Bookings`, `Handovers`) are cut to the dinamizador's, the members, invitations and breakdown stay the network's (the members belong to the network, not to an entity), and a first row `Pickup point` (the entity's name, else the dinamizador's own, quoted with an apostrophe if it starts like a formula) says whose figures they are. Same condition as the group copy; outside a network nothing changes. Pinned in `test_collection_stats.py`.
 
 The metrics themselves live in [`export_service.collection_stats_rows()`](../services/CLAUDE.md#export_servicepy--data-portability-right-to-a-copy); this view only wraps them in a CSV. The collection export renders the same rows as a dict, so the two can't drift.
 
@@ -1211,7 +1215,7 @@ Your own data, as one JSON file — the self-service half of the right the priva
 | **Permission** | `IsAuthenticated` + collection curator, owner or co-owner (`require_collection_curator`) |
 | **Rate limit** | 10 requests per day per user |
 
-A whole group as its owner or a co-owner runs it, other members' things included. **A plain member gets 403, not a smaller file**: there is no partial export by design — "some of the group, depending on who asks" is a second access-control model to keep correct forever, and what a member is entitled to is their own account copy. **In a NETWORK the founder gets the whole group and a co-curator only the things they run** (and what hangs from them); the `.ics` calendar narrows the same way.
+A whole group as its owner or a co-owner runs it, other members' things included. **A plain member gets 403, not a smaller file**: there is no partial export by design — "some of the group, depending on who asks" is a second access-control model to keep correct forever, and what a member is entitled to is their own account copy. **In a NETWORK the founder gets the whole group and a co-curator only the things they run** (and what hangs from them); the `.ics` calendar narrows the same way, and so does the `stats` block of the copy (the same rows as the stats CSV, with its `Pickup point` row: the file's things and its figures agree).
 
 Deliberately not folded into the account export: a collection of 4,000 things would bloat every personal download, this button belongs beside the stats CSV, and keeping them apart lets the account copy stay honestly framed as *your* data while this one is what it is — an operational copy of a group, carrying other people's details, which the page has to say out loud.
 
@@ -1267,7 +1271,7 @@ A collection lives at **`/{kind}/{code}`** — `/stall/…`, `/library/…`, `/s
 2. **Magic link authentication** — Passwordless via email. RSVPs are one-time use and expire per action (magic links 24h; booking accept/reject 72h; collection invites ~30 days — `RSVP.expiry_hours_for`).
 3. **JWT tokens** — HttpOnly cookie-based. Access tokens expire after 1 hour. Refresh tokens expire after 7 days. Tokens are rotated on refresh via `POST /api/v1/auth/refresh/`, old tokens blacklisted.
 4. **CSRF (cookie auth)** — because the access token rides in a cookie, `CookieJWTAuthentication` runs DRF's CSRF check (`enforce_csrf`, mirroring `SessionAuthentication`) for **cookie-authenticated unsafe methods** — defence in depth behind the cookie's `SameSite=Lax`. Bearer-header auth is exempt (the header is never sent cross-site), so API clients and the Bearer-token test suite are unaffected. `MeView` GET sets the `csrftoken` cookie via `@ensure_csrf_cookie` (hit on every app load); the SPA reads it and sends it as `X-CSRFToken` on every unsafe request. **The decorator sits on `dispatch`, not `get`** — it forces the cookie by calling `get_token()` from inside the method it wraps, and DRF's `APIView.dispatch()` runs `check_permissions()` (raising 401 for `IsAuthenticated` before `get()` is ever called) — so decorating `get()` directly meant the cookie was never set for exactly the visitor who needs it most: someone brand new, whose first-ever hit here 401s because `App.jsx`'s app-load warm-up fires before the magic-link GET that authenticates them completes. That silently broke the first unsafe request (a reservation, a question) from anyone whose magic link drops them straight onto one thing with no earlier authenticated page ever calling this endpoint successfully. Pinned by `test_me_get_sets_csrftoken_cookie_even_when_it_401s`. The test client disables the check by default (`enforce_csrf_checks=False`), so only `test_csrf.py` (which opts in) exercises it.
-5. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections.
+5. **IDOR protection** — `can_view_user()` ensures users can only view profiles of people connected via collections or of the team of a group they are inside.
 6. **Custom DRF permissions** — `IsThingOwner`, `IsThingManager`, `IsCollectionOwner`, `IsCollectionCurator` in `core/permissions.py`.
 7. **Public collections (anonymous read)** — a collection with `visibility=PUBLIC` (and ACTIVE) is readable without authentication. The read endpoints `CollectionViewSet.retrieve`, `ThingViewSet.retrieve`, the FAQ list (GET on `ThingFAQListView`), `ThingTransferView` and `ThingCalendarView` are `AllowAny`, each gated by an **anonymous-safe** `can_view` (a `viewer_code(request)` helper passes the user's code, or `None` for a visitor, into the model guard — `None` matches PUBLIC collections only). Every *write/act* endpoint (reserve, ask a question, answer, add a thing, manage invites/visibility) still requires authentication plus membership/ownership, so an anonymous visitor may browse a public collection but must log in to act. INACTIVE things are excluded from the serialised `things` for any non-owner, the member roster serialises **codes only** for anonymous readers (names are for logged-in members; emails for the owner), and the collection *list* (`GET /collections/`) stays private (it returns only what the caller owns or co-owns).
 

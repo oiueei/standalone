@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Button } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
+import ImageUpload from '../components/ImageUpload';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -48,6 +49,8 @@ export default function NetworkPointPage() {
   const [address, setAddress] = useState('');
   const [hoursNote, setHoursNote] = useState('');
   const [contact, setContact] = useState('');
+  const [logo, setLogo] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
   const [weekdays, setWeekdays] = useState([]);
   const [closedDates, setClosedDates] = useState('');
   const [depositPolicy, setDepositPolicy] = useState('');
@@ -83,6 +86,8 @@ export default function NetworkPointPage() {
           setAddress(point.address || '');
           setHoursNote(point.hours_note || '');
           setContact(point.contact || '');
+          setLogo(point.logo || '');
+          setLogoUrl(point.logo_url || '');
           setWeekdays(point.weekdays || []);
           setClosedDates(closedDatesToDisplay(point.closed_dates));
           setDepositPolicy(point.deposit_policy || '');
@@ -117,6 +122,8 @@ export default function NetworkPointPage() {
           address: address.trim(),
           hours_note: hoursNote.trim(),
           contact: contact.trim(),
+          // Sent empty too: that is what takes the logo off.
+          logo: logo || '',
           weekdays,
           closed_dates: closedDates,
           deposit_policy: depositPolicy.trim(),
@@ -162,6 +169,14 @@ export default function NetworkPointPage() {
             value={entityName}
             maxLength={64}
             onChange={(e) => setEntityName(e.target.value)}
+          />
+          <ImageUpload
+            id="network-point-logo"
+            label={t('networkPoint.logoLabel')}
+            helperText={`${t('networkPoint.logoHelper')} ${t('collectionSettings.logoHelper')}`}
+            onChange={setLogo}
+            currentUrl={logoUrl}
+            folder="oiueei/collections"
           />
           <TextInput
             id="network-point-address"

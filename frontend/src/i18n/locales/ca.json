@@ -445,6 +445,9 @@
   },
   "request": {
     "pageTitle": "Demanar: {{headline}}",
+    "availableToday": "Disponible avui",
+    "firstFreeDay": "Primer dia lliure: {{date}}",
+    "noFreeDaysSoon": "Sense dies lliures properament",
     "priceLabel": "Preu:",
     "priceValue": "{{fee}} EUR",
     "startLabel": "Inici",
@@ -1106,6 +1109,8 @@
     "intro": "Prestes les teves coses des del teu punt de recollida: l'entitat de la qual respons, on es recullen i es retornen, i quan. Ho veu tothom qui veu la xarxa.",
     "entityName": "Nom de l'entitat",
     "entityNameHelper": "Una cooperativa, una associació de barri, una botiga… Si el deixes buit, s'ensenya el teu nom.",
+    "logoLabel": "Logo de l'entitat",
+    "logoHelper": "Surt al costat del nom a cada cosa que prestes.",
     "address": "Adreça",
     "hours": "Horari de recollida i devolució",
     "hoursHelper": "Per exemple: dimarts i dijous de 18 a 20.",

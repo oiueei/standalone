@@ -204,6 +204,7 @@ The pickup point of one dinamizador of a **NETWORK** (`core/models/network_point
 | `address` | CharField(64) | Same width as `Thing.location`, which it replaces in a network |
 | `hours_note` | CharField(128) | Free text ("martes y jueves de 18 a 20") |
 | `contact` | CharField(64) | Web or phone of the entity; shown as typed, escaped, never made a link |
+| `logo` | CharField(255), `db_default=""` | The entity's logo: a storage key in `oiueei/collections/`, like `Collection.thumbnail` (same width; the folder is reused, not a new one). `db_default` because the previous release's dynos insert without naming the column while the release phase runs (migration 0174). It is in `asset_cleanup.ASSET_FIELDS`, so changing or removing it, deleting the point (a dinamizador leaving takes it) or deleting the collection destroys the old object like a thumbnail, and the orphan sweep keeps one a point holds. The data exports carry no points, so none of them lists it |
 | `weekdays` | JSONField (list) | One set for pickup **and** return, like `Collection.rental_weekdays` (0=Mon…6=Sun). Empty = the collection's |
 | `closed_dates` | JSONField (list) | The entity's own closures, ISO strings cleaned like `Collection.closed_dates` |
 | `deposit_policy` / `request_info` / `email_note` | CharField(1024 / 2048 / 2048) | The collection's fields with the collection's widths and serializers (visible limit per language 256 / 512 / 512) |

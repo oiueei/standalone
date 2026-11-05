@@ -116,6 +116,8 @@ export default function CollectionHero({
   // The settings are what "Edit collection" is: in a network only the founder's.
   const showsSettings = isCurator && (collection.mode !== 'NETWORK' || isOwner);
   const isMember = isAuthenticated && !!collection.is_member && !isCurator;
+  // Who may open the team's profiles: the server lets in only people inside the group.
+  const insideGroup = isCurator || isMember;
   const isDemo = !!collection.is_onboarding;
   const showInvite = !!collection.allow_member_proposals && !isDemo;
   // A member has a summary only where the group sends the weekly or monthly one; whoever
@@ -248,10 +250,14 @@ export default function CollectionHero({
                   <strong>{t('collectionPage.curatorsLabel')}</strong>{' '}
                   {teamLine.map((part, i) => {
                     if (part.type === 'member') {
-                      return (
+                      // A name opens its profile only for someone inside the group:
+                      // the server answers anyone else with a refusal.
+                      return insideGroup ? (
                         <Link key={i} to={`/${part.member.code}`} className="owner-link">
                           {part.member.name}
                         </Link>
+                      ) : (
+                        part.member.name
                       );
                     }
                     // The count of those without a name is plain text, and so is
@@ -264,9 +270,13 @@ export default function CollectionHero({
               collection.owner_name && (
                 <p className="form-hero-text">
                   <strong>{t('collectionPage.curator')}</strong>{' '}
-                  <Link to={`/${collection.owner}`} className="owner-link">
-                    {collection.owner_name}
-                  </Link>
+                  {insideGroup ? (
+                    <Link to={`/${collection.owner}`} className="owner-link">
+                      {collection.owner_name}
+                    </Link>
+                  ) : (
+                    collection.owner_name
+                  )}
                 </p>
               )}
           {/* The group's welcome PDF is an entry of the collection menu,

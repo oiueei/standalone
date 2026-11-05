@@ -851,6 +851,25 @@ div[class*='Linkbox-module_linkbox'] {
   overflow-wrap: anywhere;
 }
 
+/* The entity's logo, at the end of the box: 48px tall, as wide as its proportion
+   gives (never more than 96px) and never cropped; from 768px, 72px and 144px. The
+   name beside it already says who it is, so the image has no alternative text. */
+.network-point-logo {
+  flex: 0 0 auto;
+  margin-left: auto;
+  height: 48px;
+  width: auto;
+  max-width: 96px;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .network-point-logo {
+    height: 72px;
+    max-width: 144px;
+  }
+}
+
 .network-point-text > strong,
 .network-point-detail {
   display: block;

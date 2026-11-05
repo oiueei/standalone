@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import en from '../i18n/locales/en.json';
 
 window.scrollTo = vi.fn();
 
@@ -10,7 +11,13 @@ vi.mock('../services/api', () => ({
   getCsrfToken: () => 'tok',
 }));
 
+vi.mock('../utils/uploadImage', async (importOriginal) => ({
+  ...(await importOriginal()),
+  uploadImage: vi.fn(),
+}));
+
 import { apiFetch } from '../services/api';
+import { uploadImage } from '../utils/uploadImage';
 import NetworkPointPage from './NetworkPointPage';
 
 /**
@@ -39,6 +46,8 @@ const EMPTY_POINT = {
   address: '',
   hours_note: '',
   contact: '',
+  logo: '',
+  logo_url: null,
   weekdays: [],
   closed_dates: [],
   deposit_policy: '',
@@ -131,6 +140,7 @@ describe('NetworkPointPage', () => {
       address: 'Plaça 1',
       hours_note: '',
       contact: '',
+      logo: '',
       weekdays: [2],
       closed_dates: '',
       deposit_policy: '',
@@ -166,5 +176,84 @@ describe('NetworkPointPage', () => {
     expect(
       await screen.findByText('Only the team of the network has a pickup point.')
     ).toBeInTheDocument();
+  });
+
+  test('asks for the entity’s logo, after its name, in the collections’ folder', async () => {
+    const { container } = renderPage();
+    await screen.findByLabelText(/Name of the entity/);
+
+    expect(screen.getByText('Entity logo')).toBeInTheDocument();
+    expect(screen.getByText(/Shown beside the name on everything you lend\./)).toBeInTheDocument();
+    const name = screen.getByLabelText(/Name of the entity/);
+    const upload = container.querySelector('input[type="file"]');
+    expect(name.compareDocumentPosition(upload) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    fireEvent.change(upload, {
+      target: { files: [new File(['x'], 'logo.png', { type: 'image/png' })] },
+    });
+    await waitFor(() =>
+      expect(uploadImage).toHaveBeenCalledWith(expect.any(File), 'oiueei/collections')
+    );
+  });
+
+  test('a logo that was uploaded goes in the PUT', async () => {
+    uploadImage.mockResolvedValue({
+      publicId: 'oiueei/collections/fusteria',
+      url: 'https://cdn/x',
+    });
+    const { container } = renderPage();
+    await screen.findByLabelText(/Name of the entity/);
+    fireEvent.change(container.querySelector('input[type="file"]'), {
+      target: { files: [new File(['x'], 'logo.png', { type: 'image/png' })] },
+    });
+    await screen.findByRole('button', { name: /Remove/ });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(putCall()).toBeTruthy());
+    expect(JSON.parse(putCall()[1].body).logo).toBe('oiueei/collections/fusteria');
+  });
+
+  test('a saved logo shows, and taking it off sends an empty one', async () => {
+    mockApi({
+      point: json({
+        ...EMPTY_POINT,
+        logo: 'oiueei/collections/fusteria',
+        logo_url: 'https://cdn/oiueei/collections/fusteria',
+      }),
+    });
+    renderPage();
+    await screen.findByLabelText(/Name of the entity/);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Remove/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(putCall()).toBeTruthy());
+    expect(JSON.parse(putCall()[1].body).logo).toBe('');
+  });
+
+  test('saving without touching the logo sends the one it has', async () => {
+    mockApi({
+      point: json({
+        ...EMPTY_POINT,
+        logo: 'oiueei/collections/fusteria',
+        logo_url: 'https://cdn/oiueei/collections/fusteria',
+      }),
+    });
+    renderPage();
+    await screen.findByLabelText(/Name of the entity/);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(putCall()).toBeTruthy());
+    expect(JSON.parse(putCall()[1].body).logo).toBe('oiueei/collections/fusteria');
+  });
+
+  test('the logo’s help says what it is for and which images the upload takes', async () => {
+    const { container } = renderPage();
+    await screen.findByLabelText(/Name of the entity/);
+
+    const help = `${en.networkPoint.logoHelper} ${en.collectionSettings.logoHelper}`;
+    expect(container.querySelector('.image-upload')).toHaveTextContent(help);
   });
 });

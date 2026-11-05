@@ -139,18 +139,19 @@ describe('RequestThingPage — the availability notice states the status once', 
     localStorage.clear();
   });
 
-  test('available today: the heading is "Availability." and the body is just "Immediate"', async () => {
+  test('available today: the notice says "Available today"', async () => {
     mockRoutes({ thing: { ...RENTAL_THING, available_today: true } });
     renderPage('RCOL01', 'RTHG01');
     await screen.findByText('Rental length');
 
-    // The bug: the body was `${availabilityLabel} ${status}`, so with the
-    // Notification's own label the word "Availability." printed twice.
-    expect(screen.getByText('Immediate')).toBeInTheDocument();
-    expect(screen.queryByText(/Availability\.\s*Immediate/)).toBeNull();
+    // The small notice does not show its title, so the body is a whole sentence; and it
+    // is not `${availabilityLabel} ${status}`, which printed "Availability." twice.
+    expect(screen.getByText('Available today')).toBeInTheDocument();
+    expect(screen.queryByText('Immediate')).toBeNull();
+    expect(screen.queryByText(/Availability\.\s*Available today/)).toBeNull();
   });
 
-  test('not available today: the body is the next-available date, once', async () => {
+  test('not available today: the notice names the first free day, once', async () => {
     const soon = plusDays(new Date(), 5);
     mockRoutes({
       thing: { ...RENTAL_THING, available_today: false, next_available: iso(soon) },
@@ -158,18 +159,19 @@ describe('RequestThingPage — the availability notice states the status once', 
     renderPage('RCOL01', 'RTHG01');
     await screen.findByText('Rental length');
 
-    expect(screen.getByText(display(soon))).toBeInTheDocument();
-    expect(screen.queryByText(new RegExp(`Availability\\.\\s*${display(soon)}`))).toBeNull();
+    expect(screen.getByText(`First free day: ${display(soon)}`)).toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(`Availability\\.\\s*First free day`))).toBeNull();
   });
 
-  test('nothing on the horizon: the body is the "not available soon" line', async () => {
+  test('nothing on the horizon: the notice says there are no free days coming up', async () => {
     mockRoutes({
       thing: { ...RENTAL_THING, available_today: false, next_available: null },
     });
     renderPage('RCOL01', 'RTHG01');
     await screen.findByText('Rental length');
 
-    expect(screen.getByText('Not available soon')).toBeInTheDocument();
+    expect(screen.getByText('No free days coming up')).toBeInTheDocument();
+    expect(screen.queryByText('Not available soon')).toBeNull();
   });
 });
 

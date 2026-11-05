@@ -304,8 +304,36 @@ class TestWhatThePageIsTold:
             "address": "Carrer Major 4",
             "hours_note": "martes y jueves de 18 a 20",
             "contact": "93 000 00 00",
+            "logo_url": None,
         }
-        assert theirs == {"display_name": "Lili", "address": "", "hours_note": "", "contact": ""}
+        assert theirs == {
+            "display_name": "Lili",
+            "address": "",
+            "hours_note": "",
+            "contact": "",
+            "logo_url": None,
+        }
+
+    def test_the_thing_carries_the_logo_of_its_entity(self, world):
+        NetworkPoint.objects.create(
+            collection=world["network"],
+            user=world["lele"],
+            entity_name="La Fusteria",
+            logo="oiueei/collections/fusteria",
+        )
+
+        mine = self.read(world, world["leles"])["network_point"]
+        theirs = self.read(world, world["lilis"])["network_point"]
+        card = {
+            t["code"]: t
+            for t in client_for(world["lolo"])
+            .get(f"/api/v1/collections/{world['network'].code}/")
+            .data["things"]
+        }[world["leles"].code]["network_point"]
+
+        assert mine["logo_url"].endswith("oiueei/collections/fusteria")
+        assert card["logo_url"] == mine["logo_url"]
+        assert theirs["logo_url"] is None
 
     def test_a_thing_outside_a_network_has_no_point(self, db):
         founder = _user("FOUN01", "Lala")

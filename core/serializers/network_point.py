@@ -8,7 +8,8 @@ point cannot say in one language what the collection could not.
 from rest_framework import serializers
 
 from core.models import NetworkPoint
-from core.validators import LocalizedTextField, SafeHeadlineField
+from core.utils import asset_url
+from core.validators import ImageIdField, LocalizedTextField, SafeHeadlineField
 
 POINT_FIELDS = [
     "code",
@@ -18,6 +19,8 @@ POINT_FIELDS = [
     "address",
     "hours_note",
     "contact",
+    "logo",
+    "logo_url",
     "weekdays",
     "closed_dates",
     "deposit_policy",
@@ -35,11 +38,15 @@ class NetworkPointSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user_id")
     display_name = serializers.CharField(read_only=True)
     email_note = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = NetworkPoint
         fields = POINT_FIELDS
         read_only_fields = POINT_FIELDS
+
+    def get_logo_url(self, obj):
+        return asset_url(obj.logo) if obj.logo else None
 
     def get_email_note(self, obj):
         request = self.context.get("request")
@@ -58,6 +65,8 @@ class NetworkPointWriteSerializer(serializers.ModelSerializer):
     address = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
     hours_note = SafeHeadlineField(max_length=128, required=False, allow_blank=True)
     contact = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
+    # The same folder as a collection's logo: an entity's is the same kind of image.
+    logo = ImageIdField(folder="oiueei/collections", required=False, allow_blank=True)
     weekdays = serializers.ListField(
         child=serializers.IntegerField(min_value=0, max_value=6),
         required=False,
@@ -80,6 +89,7 @@ class NetworkPointWriteSerializer(serializers.ModelSerializer):
             "address",
             "hours_note",
             "contact",
+            "logo",
             "weekdays",
             "closed_dates",
             "deposit_policy",

@@ -445,6 +445,9 @@
   },
   "request": {
     "pageTitle": "Pedir: {{headline}}",
+    "availableToday": "Disponible hoy",
+    "firstFreeDay": "Primer día libre: {{date}}",
+    "noFreeDaysSoon": "Sin días libres próximamente",
     "priceLabel": "Precio:",
     "priceValue": "{{fee}} EUR",
     "startLabel": "Inicio",
@@ -1106,6 +1109,8 @@
     "intro": "Prestas tus cosas desde tu punto de recogida: la entidad de la que respondes, dónde se recogen y se devuelven, y cuándo. Lo ve todo el que ve la red.",
     "entityName": "Nombre de la entidad",
     "entityNameHelper": "Una cooperativa, una asociación de barrio, una tienda… Si lo dejas vacío, se enseña tu nombre.",
+    "logoLabel": "Logo de la entidad",
+    "logoHelper": "Sale junto al nombre en cada cosa que prestas.",
     "address": "Dirección",
     "hours": "Horario de recogida y devolución",
     "hoursHelper": "Por ejemplo: martes y jueves de 18 a 20.",

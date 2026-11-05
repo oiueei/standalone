@@ -451,6 +451,9 @@
   },
   "request": {
     "pageTitle": "Request: {{headline}}",
+    "availableToday": "Available today",
+    "firstFreeDay": "First free day: {{date}}",
+    "noFreeDaysSoon": "No free days coming up",
     "priceLabel": "Price:",
     "priceValue": "{{fee}} EUR",
     "startLabel": "Start",
@@ -1106,6 +1109,8 @@
     "intro": "You lend your things from your pickup point: the entity you answer for, where they are collected and returned, and when. Everyone who sees the network sees it.",
     "entityName": "Name of the entity",
     "entityNameHelper": "A cooperative, a neighbourhood association, a shop… Left empty, your own name is shown.",
+    "logoLabel": "Entity logo",
+    "logoHelper": "Shown beside the name on everything you lend.",
     "address": "Address",
     "hours": "Pickup and return hours",
     "hoursHelper": "For example: Tuesdays and Thursdays, 6 to 8 pm.",
