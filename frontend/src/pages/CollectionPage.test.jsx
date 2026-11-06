@@ -1855,9 +1855,28 @@ describe('CollectionPage — a network', () => {
     expect(screen.getByText(en.collectionPage.networkNote)).toBeInTheDocument();
   });
 
-  test('a library that is not a network says nothing of the sort', async () => {
-    await renderAs({ ...NETWORK, mode: 'PROPRIETARY' }, 'ABC123');
+  test('a network with a description of its own does not repeat it: the note is only the default', async () => {
+    await renderAs({ ...NETWORK, description: 'Tools shared among the neighbourhood.' }, 'ABC123');
 
+    expect(screen.getByText('Tools shared among the neighbourhood.')).toBeInTheDocument();
+    expect(screen.queryByText(en.collectionPage.networkNote)).toBeNull();
+  });
+
+  test('a description written only in another language leaves the note out too', async () => {
+    await renderAs({ ...NETWORK, description: '{"es":"Herramientas del barrio"}' }, 'ABC123');
+
+    expect(screen.queryByText(en.collectionPage.networkNote)).toBeNull();
+  });
+
+  test('a library that is not a network and has no description says nothing of the sort', async () => {
+    await renderAs({ ...NETWORK, mode: 'PROPRIETARY' }, 'ABC123');
+    expect(screen.queryByText(en.collectionPage.networkNote)).toBeNull();
+  });
+
+  test('a library that is not a network and has a description says nothing of the sort', async () => {
+    await renderAs({ ...NETWORK, mode: 'PROPRIETARY', description: 'Our tools.' }, 'ABC123');
+
+    expect(screen.getByText('Our tools.')).toBeInTheDocument();
     expect(screen.queryByText(en.collectionPage.networkNote)).toBeNull();
   });
 
