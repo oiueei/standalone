@@ -367,6 +367,7 @@
     "depositRefundableNote": "(es retorna)",
     "unitsCount_one": "{{count}} unitat",
     "unitsCount_other": "{{count}} unitats",
+    "unitsFreeToday": "Disponibles avui: {{free}} de {{units}}",
     "pausedRange": "Sense reserves del {{from}} al {{until}}",
     "pausedDay": "Sense reserves el {{date}}",
     "availabilityLabel": "Disponibilitat.",
@@ -450,6 +451,10 @@
     "noFreeDaysSoon": "Sense dies lliures properament",
     "priceLabel": "Preu:",
     "priceValue": "{{fee}} EUR",
+    "quantityLabel": "Quants?",
+    "quantityHelp": "Fins a {{units}}. Els dies en què no en queden tants de lliures surten en gris al calendari.",
+    "priceTotal": "Preu: {{count}} × {{unit}} = {{total}}",
+    "depositTotal": "Fiança: {{count}} × {{unit}} = {{total}}",
     "startLabel": "Inici",
     "endLabel": "Fi",
     "startRequired": "La data d'inici és obligatòria.",
@@ -1321,7 +1326,8 @@
     "priceLibrary": "Preu del lloguer (opcional)",
     "priceLibraryHelp": "Sense preu, es presta de franc.",
     "unitsLabel": "Quantes n'hi ha d'iguals?",
-    "unitsHelp": "Si en tens diverses d'iguals, es poden reservar alhora fins a aquest nombre. Cada persona en reserva una."
+    "unitsHelp": "Si en tens diverses d'iguals, es poden reservar alhora fins a aquest nombre. Cada persona en reserva una.",
+    "unitsHelpLibrary": "Si en tens unes quantes d'iguals, se'n poden demanar unes quantes alhora, fins a aquest nombre."
   },
   "collectionSettings": {
     "menu": "Configuració",

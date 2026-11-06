@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification, TextArea, TextInput } from 'hds-react';
-import { DATE_TYPES, hasAmount } from '../constants/things';
+import { Button, Notification, NumberInput, TextArea, TextInput } from 'hds-react';
+import { DATE_TYPES, amountTimes, hasAmount } from '../constants/things';
 import {
   isPickupDisabled,
   reservationPickupDisabled,
@@ -66,6 +66,10 @@ export default function RequestThingPage() {
   const [startDate, setStartDate] = useState(isoToDisplay(location.state?.prefillDate) || '');
   const [endDate, setEndDate] = useState('');
   const [duration, setDuration] = useState('');
+  // A loan or rental of a thing with several identical units: how many are asked for.
+  // Kept as typed (the field can be empty for a moment); `askedQuantity` is what it
+  // means.
+  const [quantity, setQuantity] = useState(1);
   const [projectNote, setProjectNote] = useState('');
   // The optional contact phone: only on a reservation whose collection asks for it.
   const [contactPhone, setContactPhone] = useState('');
@@ -121,15 +125,40 @@ export default function RequestThingPage() {
       .catch(() => setFailedCode(thingCode));
   }, [userCode, thingCode, code]);
 
+  // Several identical ones to a loan or a rental: the field, and what it asks for.
+  const hasQuantity = !!thing && thing.type !== 'RESERVE_THING' && thing.units > 1;
+  const askedQuantity = hasQuantity
+    ? Math.min(thing.units, Math.max(1, Math.round(Number(quantity)) || 1))
+    : 1;
+  // What the dates were when the calendar was last asked for, read by the effect below
+  // when a new answer comes in — a ref, so the request is not made again for each date.
+  const datesRef = useRef({});
+
   useEffect(() => {
     if (!userCode || !thing || !DATE_TYPES.includes(thing.type)) return;
     // `for=request`: a curator who books is shown what a member is — the stretches in
-    // which every unit is taken — not the bookings with names.
-    apiFetch(`/api/v1/things/${thingCode}/calendar/?for=request`)
+    // which every unit is taken — not the bookings with names. With several units,
+    // `quantity` is how many are wanted: the days with fewer free come back as taken.
+    const asking = askedQuantity > 1 ? `&quantity=${askedQuantity}` : '';
+    apiFetch(`/api/v1/things/${thingCode}/calendar/?for=request${asking}`)
       .then((res) => (res.ok ? res.json() : []))
-      .then((data) => setBlockedPeriods(data))
+      .then((data) => {
+        setBlockedPeriods(data);
+        // The dates already chosen stay only if they are still free for that many
+        // (as a change of the length empties the pickup).
+        const { startDate: start, endDate: end, rules } = datesRef.current;
+        if (!rules) return;
+        const startIso = displayToIso(start);
+        const startBlocked = startIso && rules.pickupBlocked(startIso, data);
+        if (startBlocked) setStartDate('');
+        if (!rules.constrained && displayToIso(end)) {
+          if (startBlocked || rules.returnBlocked(displayToIso(end), startIso, data)) {
+            setEndDate('');
+          }
+        }
+      })
       .catch(() => {});
-  }, [userCode, thingCode, thing]);
+  }, [userCode, thingCode, thing, askedQuantity]);
 
   // Per-collection rental rules (#7): a set of fixed lengths + allowed weekdays.
   const rentalDurations = thing?.rental_durations || [];
@@ -192,6 +221,30 @@ export default function RequestThingPage() {
       closedDates,
     });
 
+  // How the dates are judged, kept where the calendar effect above can read it: a
+  // change of quantity brings a new calendar, and the dates chosen under the old one are
+  // dropped if they no longer fit.
+  useEffect(() => {
+    datesRef.current = {
+      startDate,
+      endDate,
+      rules: {
+        constrained: isConstrainedRental,
+        pickupBlocked: (iso, periods) =>
+          isConstrainedRental
+            ? isPickupDisabled(iso, {
+                rentalWeekdays,
+                blockedPeriods: periods,
+                duration: chosenDuration,
+                closedDates,
+              })
+            : freePickupDisabled(iso, { rentalWeekdays, blockedPeriods: periods, closedDates }),
+        returnBlocked: (iso, pickup, periods) =>
+          freeReturnDisabled(iso, { pickup, rentalWeekdays, blockedPeriods: periods, closedDates }),
+      },
+    };
+  });
+
   // The request body, built fresh from current form state — `null` when a
   // required field is still empty. A function, not a one-off inline block, so
   // both the normal submit and the manual "Join this group" fallback (a
@@ -237,11 +290,13 @@ export default function RequestThingPage() {
         if (!chosenDuration || !startIso) return null;
         const end = derivedReturnDate(startIso, chosenDuration);
         body = { start_date: startIso, end_date: end };
+        if (hasQuantity) body.quantity = askedQuantity;
       } else {
         const startIso = displayToIso(startDate);
         const endIso = displayToIso(endDate);
         if (!startIso || !endIso) return null;
         body = { start_date: startIso, end_date: endIso };
+        if (hasQuantity) body.quantity = askedQuantity;
       }
     }
     // Pass the collection context so the backend applies that collection's
@@ -506,12 +561,21 @@ export default function RequestThingPage() {
       ) : (
         <>
           <NetworkPointLine point={thing.network_point} />
-          {hasAmount(thing.fee) && (
-            <p>
-              <strong>{t('request.priceLabel')}</strong>{' '}
-              {t('request.priceValue', { fee: thing.fee })}
-            </p>
-          )}
+          {hasAmount(thing.fee) &&
+            (askedQuantity > 1 ? (
+              <p>
+                {t('request.priceTotal', {
+                  count: askedQuantity,
+                  unit: t('request.priceValue', { fee: thing.fee }),
+                  total: t('request.priceValue', { fee: amountTimes(thing.fee, askedQuantity) }),
+                })}
+              </p>
+            ) : (
+              <p>
+                <strong>{t('request.priceLabel')}</strong>{' '}
+                {t('request.priceValue', { fee: thing.fee })}
+              </p>
+            ))}
           <div className="spacer-m" />
           {isDateBased && (
             <>
@@ -526,7 +590,30 @@ export default function RequestThingPage() {
                   : thing.next_available
                     ? t('request.firstFreeDay', { date: formatDate(thing.next_available) })
                     : t('request.noFreeDaysSoon')}
+                {thing.units > 1 && thing.units_free_today > 0 && (
+                  <div>
+                    {t('thingPage.unitsFreeToday', {
+                      free: thing.units_free_today,
+                      units: thing.units,
+                    })}
+                  </div>
+                )}
               </Notification>
+              <div className="spacer-s" />
+            </>
+          )}
+          {hasQuantity && (
+            <>
+              <NumberInput
+                id="request-quantity"
+                label={t('request.quantityLabel')}
+                helperText={t('request.quantityHelp', { units: thing.units })}
+                value={quantity === '' ? '' : Number(quantity)}
+                onChange={(e) => setQuantity(e.target.value)}
+                min={1}
+                max={thing.units}
+                step={1}
+              />
               <div className="spacer-s" />
             </>
           )}
@@ -580,12 +667,22 @@ export default function RequestThingPage() {
           <div className="spacer-xs" />
           {/* What is handed over and what comes back, read last: right above the button that asks. */}
           <div>
-            {hasAmount(thing.deposit) && (
-              <p>
-                <strong>{t('thingPage.depositLabel')}</strong> {thing.deposit} €{' '}
-                {t('thingPage.depositRefundableNote')}
-              </p>
-            )}
+            {hasAmount(thing.deposit) &&
+              (askedQuantity > 1 ? (
+                <p>
+                  {t('request.depositTotal', {
+                    count: askedQuantity,
+                    unit: `${thing.deposit} €`,
+                    total: `${amountTimes(thing.deposit, askedQuantity)} €`,
+                  })}{' '}
+                  {t('thingPage.depositRefundableNote')}
+                </p>
+              ) : (
+                <p>
+                  <strong>{t('thingPage.depositLabel')}</strong> {thing.deposit} €{' '}
+                  {t('thingPage.depositRefundableNote')}
+                </p>
+              ))}
             <DepositPolicy thing={thing} />
           </div>
           <div className="form-grid">

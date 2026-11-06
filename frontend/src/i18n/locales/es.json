@@ -367,6 +367,7 @@
     "depositRefundableNote": "(se devuelve)",
     "unitsCount_one": "{{count}} unidad",
     "unitsCount_other": "{{count}} unidades",
+    "unitsFreeToday": "Disponibles hoy: {{free}} de {{units}}",
     "pausedRange": "Sin reservas del {{from}} al {{until}}",
     "pausedDay": "Sin reservas el {{date}}",
     "availabilityLabel": "Disponibilidad.",
@@ -450,6 +451,10 @@
     "noFreeDaysSoon": "Sin días libres próximamente",
     "priceLabel": "Precio:",
     "priceValue": "{{fee}} EUR",
+    "quantityLabel": "¿Cuántos?",
+    "quantityHelp": "Hasta {{units}}. Los días en que no quedan tantos libres salen en gris en el calendario.",
+    "priceTotal": "Precio: {{count}} × {{unit}} = {{total}}",
+    "depositTotal": "Fianza: {{count}} × {{unit}} = {{total}}",
     "startLabel": "Inicio",
     "endLabel": "Fin",
     "startRequired": "La fecha de inicio es obligatoria.",
@@ -1321,7 +1326,8 @@
     "priceLibrary": "Precio del alquiler (opcional)",
     "priceLibraryHelp": "Sin precio, se presta gratis.",
     "unitsLabel": "¿Cuántas iguales hay?",
-    "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una."
+    "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una.",
+    "unitsHelpLibrary": "Si tienes varias iguales, se pueden pedir varias a la vez, hasta este número."
   },
   "collectionSettings": {
     "menu": "Ajustes",
