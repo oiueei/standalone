@@ -464,7 +464,9 @@ describe('RequestThingPage — asking for several', () => {
       renderRequest();
       await screen.findByText(/Arduino kit/);
 
-      expect(calendarUrls()).toEqual(['/api/v1/things/LOAN01/calendar/?for=request']);
+      await waitFor(() =>
+        expect(calendarUrls()).toEqual(['/api/v1/things/LOAN01/calendar/?for=request'])
+      );
     });
 
     test('is asked again with the quantity when it changes', async () => {
