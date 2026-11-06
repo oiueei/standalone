@@ -29,6 +29,7 @@ import ResponsiveTable from '../components/ResponsiveTable';
 import { collectionThingPath } from '../utils/collectionPath';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { errorKey, translateError } from '../utils/errorKey';
+import { withQuantity } from '../utils/quantity';
 
 /**
  * The owner's side of MyBookingsPage: every request made on their things, in one
@@ -239,7 +240,7 @@ export default function OwnerBookingsPage() {
     _type: b.thing_type,
     _status: b.status,
     _thingCode: b.thing_code,
-    _thingHeadline: L(b.thing_headline) || b.thing_code,
+    _thingHeadline: withQuantity(t, L(b.thing_headline) || b.thing_code, b.quantity),
     _collectionCode: b.collection_code,
     _collectionKind: b.collection_kind,
     _collectionHeadline: L(b.collection_headline),

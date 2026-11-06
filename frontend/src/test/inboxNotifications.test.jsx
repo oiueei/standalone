@@ -1419,3 +1419,59 @@ describe('InboxNotifications — "a member" in the middle of a sentence', () => 
     ).toBeInTheDocument();
   });
 });
+
+describe('InboxNotifications — a request for several names how many', () => {
+  const renderInbox = (notifications) => {
+    apiFetch.mockImplementation((url) => {
+      if (url.startsWith('/api/v1/inbox/')) return ok(notifications);
+      return ok([]);
+    });
+    return render(
+      <MemoryRouter>
+        <InboxNotifications />
+      </MemoryRouter>
+    );
+  };
+
+  const notice = (type, extra = {}, payload = {}) => ({
+    code: 'NOTQ01',
+    type,
+    payload: {
+      thing_headline: 'Arduino kit',
+      requester_name: 'Lele',
+      owner_name: 'Lala',
+      decider_name: 'Lila',
+      accepted: true,
+      booking_code: 'BKG001',
+      thing_code: 'THG001',
+      collection_code: 'COL001',
+      start_date: '2026-09-01',
+      end_date: '2026-09-08',
+      ...payload,
+    },
+    created: '2026-08-01T10:00:00Z',
+    ...extra,
+  });
+
+  test.each([
+    ['BOOKING_REQUESTED', 'Lele requested 4 × Arduino kit.'],
+    ['BOOKING_ACCEPTED', 'Lala confirmed your request for 4 × Arduino kit.'],
+    ['BOOKING_REJECTED', null],
+    ['BOOKING_DECIDED', null],
+  ])('%s with a quantity says "4 × Arduino kit"', async (type, exact) => {
+    renderInbox([notice(type, {}, { quantity: 4 })]);
+
+    expect(await screen.findByText(/4 × Arduino kit/)).toBeInTheDocument();
+    if (exact) expect(screen.getByText(exact)).toBeInTheDocument();
+  });
+
+  test.each([
+    ['without a quantity', {}],
+    ['with a quantity of one', { quantity: 1 }],
+  ])('%s it is the name as it was', async (_, extra) => {
+    renderInbox([notice('BOOKING_REQUESTED', {}, extra)]);
+
+    expect(await screen.findByText('Lele requested Arduino kit.')).toBeInTheDocument();
+    expect(screen.queryByText(/×/)).toBeNull();
+  });
+});

@@ -127,6 +127,7 @@
     "formerMember": "Antic membre",
     "aMember": "Un membre",
     "aMemberInline": "un membre",
+    "quantityTimes": "{{count}} × {{headline}}",
     "closeThisTab": "Ja pots tancar aquesta pestanya — l'enllaç ja és de camí a la teva safata d'entrada.",
     "alphaNotice": "OIUEEI és en fase alfa: res no està acabat i hi trobaràs vores per polir.",
     "colActions": "Accions"

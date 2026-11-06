@@ -365,6 +365,7 @@ export default function ThingPage() {
           activePendingCode={activePendingCode}
           isOwner={canManage}
           thingType={thing.type}
+          thingHeadline={thing.headline}
         />
 
         {/* Owner actions. With a request waiting, "Confirm request" and "Decline request"

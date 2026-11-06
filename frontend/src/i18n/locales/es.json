@@ -127,6 +127,7 @@
     "formerMember": "Antiguo miembro",
     "aMember": "Un miembro",
     "aMemberInline": "un miembro",
+    "quantityTimes": "{{count}} × {{headline}}",
     "closeThisTab": "Ya puedes cerrar esta pestaña — el enlace está de camino a tu bandeja de entrada.",
     "alphaNotice": "OIUEEI está en fase alfa: nada está terminado y encontrarás bordes sin pulir.",
     "colActions": "Acciones"

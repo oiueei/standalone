@@ -16,6 +16,7 @@ import {
   summarizeOwnerBookings,
 } from '../utils/inboxGroups';
 import { collectionPath, collectionThingPath } from '../utils/collectionPath';
+import { withQuantity } from '../utils/quantity';
 
 // The figures on the summary card come from the owner-bookings list, which the API
 // pages (100 at most). A group with more history than this many pages says nothing
@@ -220,7 +221,7 @@ export default function InboxNotifications({ collection, reloadKey = 0, onNetwor
   const localizedPayload = (payload) => ({
     ...payload,
     collection_headline: L(payload.collection_headline),
-    thing_headline: L(payload.thing_headline),
+    thing_headline: withQuantity(t, L(payload.thing_headline), payload.quantity),
     owner_name: named(payload.owner_name),
     owner_name_inline: namedInline(payload.owner_name),
     questioner_name: named(payload.questioner_name),

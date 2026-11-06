@@ -133,6 +133,7 @@
     "formerMember": "Former member",
     "aMember": "A member",
     "aMemberInline": "a member",
+    "quantityTimes": "{{count}} × {{headline}}",
     "closeThisTab": "You can close this tab now — the link is on its way to your inbox.",
     "alphaNotice": "OIUEEI is in alpha: nothing is finished and you will find rough edges.",
     "colActions": "Actions"
