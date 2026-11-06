@@ -239,9 +239,13 @@ export default function CollectionHero({
           {collection.description && (
             <MarkdownText text={L(collection.description)} className="form-hero-text" />
           )}
-          {/* What a network is, for whoever lands on one: it shows rather than claims
-              (DESIGN §6) — who lends, and from where, is on each card. */}
-          {collection.mode === 'NETWORK' && (
+          {/* What a network is, for whoever lands on one, as the default text: it comes
+              out only when the group has no description in the reader's language
+              (the very test that paints the description above). With one, whoever
+              founded the network has already explained it in their own words. It
+              shows rather than claims (DESIGN §6) — who lends, and from where, is on
+              each card. */}
+          {collection.mode === 'NETWORK' && !L(collection.description) && (
             <p className="form-hero-text">{t('collectionPage.networkNote')}</p>
           )}
           {/* Attribution. With co-curators, one line names the whole team,
