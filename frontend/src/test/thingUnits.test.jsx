@@ -380,8 +380,11 @@ describe('RequestThingPage — a booking with several units', () => {
     renderRequest();
     await screen.findByText(/Reserve Lathe/);
 
-    const urls = apiFetch.mock.calls.map(([url]) => url).filter((url) => /\/calendar\//.test(url));
-    expect(urls).toEqual(['/api/v1/things/RSV01/calendar/?for=request']);
+    // The page asks for the calendar in an effect after the thing is painted, so the
+    // call may not have been made yet when the title appears: wait for it.
+    const urls = () =>
+      apiFetch.mock.calls.map(([url]) => url).filter((url) => /\/calendar\//.test(url));
+    await waitFor(() => expect(urls()).toEqual(['/api/v1/things/RSV01/calendar/?for=request']));
   });
 
   test('says the one-at-a-time refusal in the reader’s language', async () => {
