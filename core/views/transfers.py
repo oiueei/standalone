@@ -52,7 +52,9 @@ class ThingTransferView(APIView):
         current_transfer = next((t for t in transfers if t.returned_date is None), None)
         current_holder = None
         current_holder_name = None
-        if current_transfer:
+        # With several identical units, several people may hold one at once: there is
+        # no "current holder" to name.
+        if current_transfer and thing.units <= 1:
             current_holder = current_transfer.to_user_id
             # Bare name, not display_name — shown community-wide in the journey,
             # so the email fallback would leak addresses. A NULL user is a

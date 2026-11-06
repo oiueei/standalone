@@ -54,61 +54,69 @@ class SaturatedPeriod:
     status: str = "ACCEPTED"
 
 
-def saturated_periods(periods, units):
-    """The stretches in which ``units`` or more of ``periods`` are on at once.
+def saturated_periods(periods, units, *, need=1):
+    """The stretches in which a request for ``need`` more units no longer fits
+    among ``units``: where what is already on, counted by each booking's
+    ``quantity``, plus ``need`` exceeds ``units``.
 
     The one rule of "full" for a thing with several identical units: the request
     check (``BookingPeriod.has_overlap``), the calendar served to the browser and the
     live availability all read it, so the page greys out exactly what the server
-    refuses.
+    refuses. With every quantity 1 and ``need=1`` it is "``units`` or more of
+    ``periods`` are on at once".
 
     With ``units <= 1`` it is ``periods`` unchanged: every booking is its own
     stretch, which is what a single thing has always been.
 
     Whole-day bookings (``start_time`` NULL) count on each day of
-    ``[start_date, end_date)``; a day with ``units`` of them is full, and
+    ``[start_date, end_date)``; a day that cannot take ``need`` more is full, and
     consecutive full days come out as one whole-day stretch. An hourly booking
     (``start_time`` and ``end_time``, always on its ``start_date``) counts only
     against the others of its day, on top of the whole-day ones covering it: with
     ``w`` of those, the day's hourly stretches are swept with a threshold of
-    ``units - w``. Touching at an end is not an overlap, as in ``has_overlap``, and
-    stretches that run into each other come out as one.
+    ``units - need + 1 - w``. Touching at an end is not an overlap, as in
+    ``has_overlap``, and stretches that run into each other come out as one.
     """
     if units <= 1:
         return periods
+
+    # The most that may already be on for ``need`` more to be refused: the count at
+    # which a stretch turns full.
+    limit = units - need + 1
 
     whole = defaultdict(int)
     hourly = defaultdict(list)
     for p in periods:
         if not (p.start_date and p.end_date):
             continue
+        weight = getattr(p, "quantity", 1)
         if p.start_time is None or p.end_time is None:
             day = p.start_date
             while day < p.end_date:
-                whole[day] += 1
+                whole[day] += weight
                 day += timedelta(days=1)
         else:
-            hourly[p.start_date].append((p.start_time, p.end_time))
+            hourly[p.start_date].append((p.start_time, p.end_time, weight))
 
     full_days = []
     out = []
     for day in sorted(set(whole) | set(hourly)):
         covering = whole.get(day, 0)
-        if covering >= units:
+        if covering >= limit:
             full_days.append(day)
             continue
-        threshold = units - covering
+        threshold = limit - covering
         # Ends sort before starts at the same time (-1 < 1): touching is no overlap.
         events = sorted(
-            [(s, 1) for s, _ in hourly[day]] + [(e, -1) for _, e in hourly[day]],
+            [(s, 1, w) for s, _, w in hourly[day]] + [(e, -1, w) for _, e, w in hourly[day]],
             key=lambda event: (event[0], event[1]),
         )
         count = 0
         opened = None
         spans = []
-        for at, delta in events:
+        for at, direction, weight in events:
             before = count
-            count += delta
+            count += direction * weight
             if before < threshold <= count:
                 opened = at
             elif before >= threshold > count:
@@ -191,6 +199,11 @@ class BookingPeriod(models.Model):
     # database default is for the previous release's dynos, which insert without
     # naming the column.
     contact_phone = models.CharField(max_length=32, blank=True, default="", db_default="")
+    # LEND/RENT of a thing with several identical units: how many this request
+    # holds. 1 everywhere else (a reservation takes one space, a gift or a sale one
+    # thing). ``saturated_periods`` weighs each booking by it. The database default is
+    # for the previous release's dynos, which insert without naming the column.
+    quantity = models.PositiveSmallIntegerField(default=1, db_default=1)
     requester_code = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,
@@ -322,6 +335,7 @@ class BookingPeriod(models.Model):
         end_time=None,
         units=1,
         requester_code=None,
+        quantity=1,
     ):
         """
         Check if there's a conflict with existing PENDING or ACCEPTED bookings.
@@ -349,7 +363,9 @@ class BookingPeriod(models.Model):
         ``units`` of the existing bookings are already on" — ``saturated_periods``,
         the same rule the calendar serves to the browser. With 1 the check is the
         one above, unchanged. ``requester_code`` narrows the existing bookings to
-        one person's, for "one person, one unit at a time".
+        one person's, for "one person, one unit at a time". ``quantity`` is how many
+        units the request asks for (LEND/RENT with several units): it conflicts where
+        what is already on, plus that many, goes over ``units``.
         """
         queryset = cls.objects.filter(
             thing_code=thing_code,
@@ -367,7 +383,7 @@ class BookingPeriod(models.Model):
             # count at any instant inside the request involves rows covering that
             # instant, and a full stretch of such rows always touches the request's days,
             # so only the hours of an hourly request still need comparing.
-            for full in saturated_periods(list(queryset), units):
+            for full in saturated_periods(list(queryset), units, need=quantity):
                 if start_time is None or end_time is None or full.start_time is None:
                     return True
                 if full.start_time < end_time and full.end_time > start_time:

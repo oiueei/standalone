@@ -210,6 +210,7 @@ TEXTS = {
     "decision_plain": (
         "La teva sol·licitud {action} de '{thing}' ha estat {decision}. Veure la publicació: {url}"
     ),
+    "quantity_times": "{count} × {headline}",
     "decision_by_confirmed": "{who} ha acceptat la teva sol·licitud {action}:",
     "decision_by_declined": "{who} ha rebutjat la teva sol·licitud {action}:",
     "point_name_label": "Punt de recollida",

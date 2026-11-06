@@ -119,9 +119,11 @@ class Thing(models.Model):
         ),
     )
     is_endless = models.BooleanField(default=False)
-    # RESERVE_THING only: how many identical ones the space has, so that many
-    # reservations can overlap (``BookingPeriod.saturated_periods``). 1 = the
-    # ordinary single thing, and every other type stays at 1. The database default
+    # How many identical ones there are: a space (RESERVE_THING) takes that many
+    # reservations at once, a loan or a rental (LEND/RENT) that many units out at
+    # once, each request holding ``BookingPeriod.quantity`` of them
+    # (``saturated_periods``). 1 = the ordinary single thing, and every other type
+    # stays at 1. The database default
     # is for the previous release's dynos, which insert without naming the column.
     units = models.PositiveSmallIntegerField(default=1, db_default=1)
     # A thing with a calendar (loan, rental, reservation) can be paused: from
@@ -289,13 +291,39 @@ class Thing(models.Model):
         pause = self.pause_period()
         return pause is not None and start_date < pause.end_date and pause.start_date < end_date
 
-    def served_periods(self, periods):
+    def units_free_today(self, today=None):
+        """How many of a loan or rental's identical units are free today, or ``None``
+        when the number says nothing: a thing with one unit, or one that is not
+        carried away. A request holds ``quantity`` units on ``[start, end)``, so one
+        that is back today is free again; a pause in force leaves none."""
+        from core.models.booking import RETURNABLE_TYPES, BookingPeriod
+
+        if self.units <= 1 or self.type not in RETURNABLE_TYPES:
+            return None
+        today = today or timezone.localdate()
+        pause = self.pause_period(today)
+        if pause is not None and pause.start_date <= today < pause.end_date:
+            return 0
+        if hasattr(self, "_blocked_periods"):
+            periods = self._blocked_periods
+        else:
+            periods = list(BookingPeriod.get_blocked_periods(self.code))
+        taken = sum(
+            p.quantity
+            for p in periods
+            if p.start_date and p.end_date and p.start_date <= today < p.end_date
+        )
+        return max(0, self.units - taken)
+
+    def served_periods(self, periods, need=1):
         """What is taken, as the browser is told and the availability is worked out:
         the stretches in which every unit is booked (``saturated_periods``) plus the
-        pause. With one unit and no pause, ``periods`` unchanged."""
+        pause. With one unit and no pause, ``periods`` unchanged. ``need`` is how many
+        units the reader means to ask for: the stretches where fewer than that are
+        free are served as taken."""
         from core.models.booking import saturated_periods
 
-        served = saturated_periods(periods, self.units)
+        served = saturated_periods(periods, self.units, need=need)
         pause = self.pause_period()
         if pause is None:
             return served

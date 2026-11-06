@@ -397,6 +397,7 @@ def _booking_columns(booking):
         "created": _iso(booking.created),
         "status": booking.status,
         "thing_type": booking.thing_type,
+        "quantity": booking.quantity,
         "start_date": _iso(booking.start_date),
         "end_date": _iso(booking.end_date),
         "thing": {"code": booking.thing_code_id, "headline": booking.thing_code.headline},

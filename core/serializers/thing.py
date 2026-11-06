@@ -49,13 +49,21 @@ def validate_deposit_for_type(thing_type, deposit):
         )
 
 
+UNITS_TYPES = (Thing.Type.RESERVE_THING, Thing.Type.LEND_THING, Thing.Type.RENT_THING)
+
+
 def validate_units_for_type(thing_type, units):
-    """Several identical units mean something only for a space that is booked: on any
-    other type the number stays 1. Like the deposit, judged on the row that results,
-    and from every door (the JSON API, the edit form)."""
-    if units is not None and units != 1 and thing_type != Thing.Type.RESERVE_THING:
+    """Several identical units mean something only for a space that is booked and for
+    a loan or a rental: on any other type the number stays 1. Like the deposit, judged
+    on the row that results, and from every door (the JSON API, the edit form)."""
+    if units is not None and units != 1 and thing_type not in UNITS_TYPES:
         raise serializers.ValidationError(
-            {"units": "Only a space that is booked can have several identical units."}
+            {
+                "units": (
+                    "Only a space that is booked, or a loan or a rental, can have "
+                    "several identical units."
+                )
+            }
         )
 
 
@@ -155,6 +163,7 @@ class ThingComputedFieldsMixin(serializers.Serializer):
     transfer_count = serializers.SerializerMethodField()
     available_today = serializers.SerializerMethodField()
     next_available = serializers.SerializerMethodField()
+    units_free_today = serializers.SerializerMethodField()
     paused_from = serializers.SerializerMethodField()
     paused_until = serializers.SerializerMethodField()
     can_manage = serializers.SerializerMethodField()
@@ -409,6 +418,9 @@ class ThingComputedFieldsMixin(serializers.Serializer):
         window = self._availability_window(obj)
         return window["next_available"] if window else None
 
+    def get_units_free_today(self, obj):
+        return obj.units_free_today()
+
 
 class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
     """Full thing serializer."""
@@ -467,6 +479,7 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
             "location",
             "condition",
             "available_today",
+            "units_free_today",
             "next_available",
             "paused_from",
             "paused_until",

@@ -63,6 +63,7 @@ class TestEmailLanguage:
         class FakeBooking:
             start_date = None
             end_date = None
+            quantity = 1
             requester_email = "lala1@your-domain.test"
 
         class FakeCollections:
@@ -97,6 +98,7 @@ class TestEmailLanguage:
         class FakeBooking:
             start_date = None
             end_date = None
+            quantity = 1
             requester_email = "lala1@your-domain.test"
 
         class FakeCollections:
@@ -137,6 +139,7 @@ class TestEmailLanguage:
         class FakeBooking:
             start_date = None
             end_date = None
+            quantity = 1
 
         class FakeRequester:
             email = "lala1@your-domain.test"

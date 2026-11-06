@@ -18,7 +18,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models.booking import BookingPeriod
+from core.models.booking import RETURNABLE_TYPES, BookingPeriod
 from core.models.collection import Collection
 from core.models.rsvp import RSVP
 from core.models.thing import Thing
@@ -38,6 +38,20 @@ from core.services.booking_service import (
 from core.services.email_service import send_return_overdue_email
 from core.services.team import managers_ready_collections
 from core.views._helpers import get_viewable_thing, refusal_body, viewer_code
+
+
+def _quantity_asked(request, thing):
+    """How many units the reader means to ask for (``?quantity=``), for a loan or a
+    rental with several: the calendar then greys out the days with fewer free. 1 when
+    it is missing, not a number or outside 1 to the thing's units, and always 1 for
+    anything that is not a loan or a rental."""
+    if thing.type not in RETURNABLE_TYPES or thing.units <= 1:
+        return 1
+    try:
+        asked = int(request.query_params.get("quantity", 1))
+    except (TypeError, ValueError):
+        return 1
+    return asked if 1 <= asked <= thing.units else 1
 
 
 class ThingCalendarView(APIView):
@@ -76,7 +90,8 @@ class ThingCalendarView(APIView):
             # same to them as to a member. With one unit and no pause it is every
             # booking, as before.
             serializer = BookingPeriodCalendarSerializer(
-                thing.served_periods(list(blocked_periods)), many=True
+                thing.served_periods(list(blocked_periods), need=_quantity_asked(request, thing)),
+                many=True,
             )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -326,6 +341,10 @@ class BookingRemindReturnView(APIView):
             )
 
         send_return_overdue_email(
-            request.user, booking.thing_code, booking.end_date, booking.requester_code.email
+            request.user,
+            booking.thing_code,
+            booking.end_date,
+            booking.requester_code.email,
+            quantity=booking.quantity,
         )
         return Response({"status": "ok"}, status=status.HTTP_200_OK)

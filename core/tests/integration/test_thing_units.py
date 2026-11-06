@@ -481,17 +481,19 @@ class TestTheNumberOfUnits:
 
         assert self._create(authenticated_client, collection, units=20).status_code == 201
 
-    @pytest.mark.parametrize("kind,verbs", [("LIBRARY", ["LEND_THING", "RENT_THING"])])
-    def test_a_loan_cannot_have_several_units(self, authenticated_client, user, kind, verbs):
+    def test_a_loan_can_have_several_units(self, authenticated_client, user):
         library = Collection.objects.create(
-            code="UNLB01", owner=user, headline="Library", kind=kind, allowed_thing_types=verbs
+            code="UNLB01",
+            owner=user,
+            headline="Library",
+            kind="LIBRARY",
+            allowed_thing_types=["LEND_THING", "RENT_THING"],
         )
 
-        res = self._create(authenticated_client, library, units=2)
+        res = self._create(authenticated_client, library, units=6)
 
-        assert res.status_code == status.HTTP_400_BAD_REQUEST
-        assert "units" in res.data
-        assert not Thing.objects.filter(collections=library).exists()
+        assert res.status_code == status.HTTP_201_CREATED, res.data
+        assert Thing.objects.get(code=res.data["code"]).units == 6
 
     def test_a_gift_cannot_have_several_units(self, authenticated_client, user):
         stall = Collection.objects.create(code="UNST01", owner=user, headline="Stall")
@@ -523,7 +525,7 @@ class TestTheNumberOfUnits:
         thing.refresh_from_db()
         assert thing.units == 7
 
-    def test_editing_a_loan_to_several_units_is_refused(self, authenticated_client, user):
+    def test_editing_a_loan_to_several_units_is_allowed(self, authenticated_client, user):
         library = Collection.objects.create(
             code="UNLB03",
             owner=user,
@@ -536,23 +538,20 @@ class TestTheNumberOfUnits:
 
         res = authenticated_client.patch(THING_URL.format(loan.code), {"units": 2}, format="json")
 
-        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert res.status_code == status.HTTP_200_OK, res.data
         loan.refresh_from_db()
-        assert loan.units == 1
+        assert loan.units == 2
 
-    def test_a_thing_that_is_not_a_reservation_goes_back_to_one_unit_when_saved(
-        self, authenticated_client, user
-    ):
+    def test_a_loan_keeps_its_units_when_saved_for_something_else(self, authenticated_client, user):
         library = Collection.objects.create(
-            code="UNLB04",
+            code="UNLB05",
             owner=user,
             headline="Library",
             kind="LIBRARY",
             allowed_thing_types=["LEND_THING", "RENT_THING"],
         )
-        # What a row left behind by a thing that used to be a reservation looks like.
         loan = Thing.objects.create(
-            code="UNLN02", type=Thing.Type.LEND_THING, owner=user, headline="Drill", units=3
+            code="UNLN03", type=Thing.Type.LEND_THING, owner=user, headline="Drill", units=3
         )
         library.things.add(loan)
 
@@ -562,7 +561,25 @@ class TestTheNumberOfUnits:
 
         assert res.status_code == status.HTTP_200_OK, res.data
         loan.refresh_from_db()
-        assert loan.units == 1
+        assert loan.units == 3
+
+    def test_a_thing_that_is_neither_a_reservation_nor_a_loan_goes_back_to_one_unit(
+        self, authenticated_client, user
+    ):
+        stall = Collection.objects.create(code="UNST04", owner=user, headline="Stall")
+        # What a row left behind by a thing that used to be a reservation looks like.
+        gift = Thing.objects.create(
+            code="UNGF02", type=Thing.Type.GIFT_THING, owner=user, headline="Drill", units=3
+        )
+        stall.things.add(gift)
+
+        res = authenticated_client.patch(
+            THING_URL.format(gift.code), {"headline": "Drill 2"}, format="json"
+        )
+
+        assert res.status_code == status.HTTP_200_OK, res.data
+        gift.refresh_from_db()
+        assert gift.units == 1
 
 
 # ── The cross-check: what is served as free is what the request accepts ──────────────

@@ -142,6 +142,7 @@ class TestBookingCalendarView:
         # guest's: this is the richer of the two serializers, so it is the one a
         # new field lands on by default.
         assert set(response.data[0]) == {
+            "quantity",
             "code",
             "created",
             "requester_code",

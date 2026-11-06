@@ -93,6 +93,7 @@ class Command(BaseCommand):
                     thing=thing,
                     end_date=booking.end_date,
                     owner_email=manager.email,
+                    quantity=booking.quantity,
                 )
                 for manager in _team_of(booking)
             ]
@@ -102,6 +103,7 @@ class Command(BaseCommand):
                     thing=thing,
                     end_date=booking.end_date,
                     requester_email=requester.email,
+                    quantity=booking.quantity,
                 )
             )
             total += self._send_each(booking, sends)
@@ -149,6 +151,7 @@ class Command(BaseCommand):
                     thing=thing,
                     start_date=booking.start_date,
                     requester_email=requester.email,
+                    quantity=booking.quantity,
                 )
             ]
             sends += [
@@ -157,6 +160,7 @@ class Command(BaseCommand):
                     thing=thing,
                     start_date=booking.start_date,
                     owner_email=manager.email,
+                    quantity=booking.quantity,
                 )
                 for manager in _team_of(booking)
             ]

@@ -28,6 +28,7 @@ from core.serializers import (
     ThingUpdateSerializer,
 )
 from core.serializers.thing import (
+    UNITS_TYPES,
     optimise_thing_queryset,
     validate_deposit_for_type,
     validate_units_for_type,
@@ -267,8 +268,9 @@ class ThingViewSet(ModelViewSet):
                 raise ValidationError({"type": mismatch})
             validated["type"] = derived
         new_type = validated.get("type", thing.type)
-        if new_type != Thing.Type.RESERVE_THING:
-            # A thing that is not a reservation has one unit, whatever it had before.
+        if new_type not in UNITS_TYPES:
+            # A thing that is neither a reservation nor a loan or a rental has one
+            # unit, whatever it had before.
             validated["units"] = 1
         if new_type != thing.type:
             # Only on a change: a thing already offered under a verb the policy
