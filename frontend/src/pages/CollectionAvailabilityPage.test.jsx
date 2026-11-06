@@ -20,6 +20,7 @@ vi.mock('../hooks/useCollectionLanguage', () => ({ default: vi.fn() }));
 
 import { apiFetch } from '../services/api';
 import CollectionAvailabilityPage from './CollectionAvailabilityPage';
+import en from '../i18n/locales/en.json';
 import { dropHdsStyles } from '../test/dropHdsStyles';
 import { settle } from '../test/settle';
 import { axe, toHaveNoViolations } from 'jest-axe';
@@ -366,7 +367,7 @@ describe('CollectionAvailabilityPage — the fields of a library', () => {
     mockApi({ collection: LIBRARY });
     renderPage();
     await loaded();
-    const note = screen.getByRole('textbox', { name: /note shown before someone asks/i });
+    const note = screen.getByRole('textbox', { name: en.requestInfo.label });
     expect(note).toHaveValue('Bring ID.');
 
     fireEvent.change(note, { target: { value: '  Pickup is Tuesdays only.  ' } });
@@ -379,7 +380,7 @@ describe('CollectionAvailabilityPage — the fields of a library', () => {
     mockApi({ collection: LIBRARY });
     renderPage();
     await loaded();
-    const note = screen.getByRole('textbox', { name: /note shown before someone asks/i });
+    const note = screen.getByRole('textbox', { name: en.requestInfo.label });
 
     fireEvent.change(note, { target: { value: 'Bring ID.' } });
     expect(screen.getByText('9/512')).toBeInTheDocument();

@@ -519,12 +519,21 @@ class Collection(models.Model):
     def point_for(self, user_code):
         """The pickup point ``user_code`` set up in this network, or ``None``.
 
-        Only a network has points; elsewhere (and for a dinamizador who has not set
-        one) the answer is ``None`` and the collection's own rules apply. Reads
+        Only a network has pickup points; elsewhere (and for a dinamizador who has not
+        set one) the answer is ``None`` and the collection's own rules apply. A row
+        outside a network is only an identity card: ``card_for`` gives it. Reads
         ``points.all()`` so a caller that prefetched them pays no query.
         """
         if not self.is_network():
             return None
+        return self.card_for(user_code)
+
+    def card_for(self, user_code):
+        """The row ``user_code`` has in this collection, in any mode, or ``None``.
+
+        Their name, logo, about and contact here. Reads ``points.all()`` once per
+        instance (and nothing if prefetched), like ``point_for``.
+        """
         # One read per collection instance, not one per thing asked about.
         by_user = self.__dict__.get("_points_by_user")
         if by_user is None:

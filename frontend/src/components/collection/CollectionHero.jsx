@@ -17,7 +17,8 @@ import ShareCollectionMenu from '../ShareCollectionMenu';
 import useTheeeme from '../../hooks/useTheeeme';
 import { useCollectionBase } from '../../hooks/useCollectionBase';
 import { useLocalized } from '../../utils/localized';
-import { teamParts } from '../../utils/team';
+import { teamParts, teamMemberName } from '../../utils/team';
+import { collectionPath } from '../../utils/collectionPath';
 import { DATE_TYPES } from '../../constants/things';
 
 // What the member's "Invite someone" button controls (aria-controls) and the
@@ -116,8 +117,14 @@ export default function CollectionHero({
   // The settings are what "Edit collection" is: in a network only the founder's.
   const showsSettings = isCurator && (collection.mode !== 'NETWORK' || isOwner);
   const isMember = isAuthenticated && !!collection.is_member && !isCurator;
-  // Who may open the team's profiles: the server lets in only people inside the group.
-  const insideGroup = isCurator || isMember;
+  // Each name of the team opens the page that person has in the group, for everyone
+  // who can read the group.
+  const entityPath = (userCode) =>
+    collectionPath(code, collection.kind, `/organisation/${userCode}`);
+  const founderName = teamMemberName(collection, {
+    code: collection.owner,
+    name: collection.owner_name,
+  });
   const isDemo = !!collection.is_onboarding;
   const showInvite = !!collection.allow_member_proposals && !isDemo;
   // A member has a summary only where the group sends the weekly or monthly one; whoever
@@ -183,7 +190,6 @@ export default function CollectionHero({
                 kind={collection.kind}
                 headline={headline}
                 isCurator={isCurator}
-                isNetwork={collection.mode === 'NETWORK'}
                 hasDateThings={hasDateThings}
                 downloads={downloads}
                 welcomeDocUrl={collection.welcome_doc_url || ''}
@@ -250,14 +256,10 @@ export default function CollectionHero({
                   <strong>{t('collectionPage.curatorsLabel')}</strong>{' '}
                   {teamLine.map((part, i) => {
                     if (part.type === 'member') {
-                      // A name opens its profile only for someone inside the group:
-                      // the server answers anyone else with a refusal.
-                      return insideGroup ? (
-                        <Link key={i} to={`/${part.member.code}`} className="owner-link">
+                      return (
+                        <Link key={i} to={entityPath(part.member.code)} className="owner-link">
                           {part.member.name}
                         </Link>
-                      ) : (
-                        part.member.name
                       );
                     }
                     // The count of those without a name is plain text, and so is
@@ -267,16 +269,12 @@ export default function CollectionHero({
                 </p>
               )
             : !isOwner &&
-              collection.owner_name && (
+              founderName && (
                 <p className="form-hero-text">
                   <strong>{t('collectionPage.curator')}</strong>{' '}
-                  {insideGroup ? (
-                    <Link to={`/${collection.owner}`} className="owner-link">
-                      {collection.owner_name}
-                    </Link>
-                  ) : (
-                    collection.owner_name
-                  )}
+                  <Link to={entityPath(collection.owner)} className="owner-link">
+                    {founderName}
+                  </Link>
                 </p>
               )}
           {/* The group's welcome PDF is an entry of the collection menu,

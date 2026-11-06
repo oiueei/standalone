@@ -37,7 +37,11 @@ from core.serializers import (
     CollectionUpdateSerializer,
     EmailNoteTestSerializer,
 )
-from core.serializers.network_point import NetworkPointSerializer, NetworkPointWriteSerializer
+from core.serializers.network_point import (
+    IDENTITY_FIELDS,
+    NetworkPointSerializer,
+    NetworkPointWriteSerializer,
+)
 from core.serializers.theeeme import theeeme_colors
 from core.serializers.thing import optimise_thing_queryset
 from core.services.creator_policy import (
@@ -119,6 +123,9 @@ def _optimise_collection_queryset(queryset, viewer=None):
         # signed-in one, so it is prefetched unconditionally alongside
         # `invites` rather than gated behind `viewer` the way `digest_muted` is.
         "co_owners",
+        # The curators' pages travel with every collection (public, in any mode), and
+        # `point_for` / `card_for` read the same rows: one query for all of them.
+        Prefetch("points", queryset=NetworkPoint.objects.select_related("user")),
         Prefetch("things", queryset=optimise_thing_queryset(Thing.objects.all())),
     )
     if viewer is not None and viewer.is_authenticated:
@@ -660,6 +667,9 @@ class CollectionCoOwnerView(APIView):
             things_deleted = demote_curator(collection, member, actor=request.user)
         else:
             collection.co_owners.remove(member)
+            # Outside a network the role's page goes with it too (their things stay).
+            if was_co_owner:
+                collection.points.filter(user=member).delete()
         if was_co_owner:
             payload = {
                 "collection_headline": collection.headline,
@@ -1705,27 +1715,23 @@ class CollectionPointView(APIView):
     """
     GET / PUT /api/v1/collections/{collection_code}/point/
 
-    The pickup point of the dinamizador asking, in a network: the entity they answer
-    for, where and when members collect and return, and the conditions of their own
-    loans. Each dinamizador reads and edits **only their own** (the founder is one too);
-    the points of the others are in the collection's payload, public with it.
+    The page the curator asking has in this group, in any collection: the entity they
+    answer for (name, logo, about, contact). In a **network** it is also their pickup
+    point (address, hours, days, closures) and the conditions of their own loans. Each
+    curator (the founder included) reads and edits **only their own**; the others' are
+    in the collection's payload, public with it.
 
-    No point yet is a 200 with the empty fields: setting one up is a first PUT. A
-    collection that is not a network has no points (404), and a member who is not a
-    dinamizador gets 403.
+    Outside a network a PUT keeps only the identity fields and ignores the rest without
+    error, and a GET serves the network's fields empty. No row yet is a 200 with the
+    empty fields: setting one up is a first PUT. A member who is not a curator gets 403.
     """
 
     permission_classes = [IsAuthenticated]
 
     def _resolve(self, request, collection_code):
         collection = get_object_or_404(Collection, code=collection_code)
-        if not collection.is_network():
-            return collection, Response(
-                refusal_body("Only a network has pickup points.", code="not_a_network"),
-                status=status.HTTP_404_NOT_FOUND,
-            )
         denied = require_collection_curator(
-            collection, request.user.code, "Only a dinamizador can set up a pickup point"
+            collection, request.user.code, "Only a curator can set up their page in a group"
         )
         return collection, denied
 
@@ -1746,7 +1752,10 @@ class CollectionPointView(APIView):
         point = collection.points.filter(user=request.user).first() or NetworkPoint(
             collection=collection, user=request.user
         )
-        serializer = NetworkPointWriteSerializer(point, data=request.data, partial=True)
+        data = request.data
+        if not collection.is_network():
+            data = {key: value for key, value in data.items() if key in IDENTITY_FIELDS}
+        serializer = NetworkPointWriteSerializer(point, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(NetworkPointSerializer(point, context={"request": request}).data)

@@ -1,8 +1,8 @@
-"""Who may open whose profile: the team of a group counts, not only its founder.
+"""Who may open whose profile: whoever is inside the same group.
 
-A member can open the profile of the team of their group and a co-curator that of a
-member; someone outside the group opens none of them, even when the group is public.
-A member still cannot open another member's.
+Founder, co-curators and members open each other's public profile; someone outside
+the group opens none of them, even when the group is public, and a person of another
+group is just as closed.
 """
 
 import pytest
@@ -70,9 +70,36 @@ class TestInsideAGroup:
         assert res.status_code == 200
         assert shared_codes(res) == {collection.code}
 
-    def test_member_does_not_see_another_member(self, team):
+    def test_member_sees_another_member_of_the_same_group(self, team):
+        collection = group(team, visibility=PRIVATE)
+        res = get_profile(team["member"], team["member2"])
+        assert res.status_code == 200
+        assert shared_codes(res) == {collection.code}
+
+    def test_member_does_not_see_a_member_of_another_group(self, team):
         group(team, visibility=PRIVATE)
+        other = CollectionFactory(owner=team["curator"], visibility=PRIVATE)
+        other.invites.add(team["reader"])
+        assert get_profile(team["member"], team["reader"]).status_code == 403
+
+    def test_two_groups_each_with_one_of_them_do_not_make_them_share_one(self, team):
+        # The joins must not mix collections: one in A, the other in B, never together.
+        CollectionFactory(owner=team["founder"]).invites.add(team["member"])
+        CollectionFactory(owner=team["curator"]).invites.add(team["member2"])
         assert get_profile(team["member"], team["member2"]).status_code == 403
+
+    def test_answer_has_exactly_the_public_keys(self, team):
+        group(team, visibility=PRIVATE)
+        res = get_profile(team["member"], team["member2"])
+        assert set(res.data) == {
+            "code",
+            "name",
+            "headline",
+            "about",
+            "photo_url",
+            "created",
+            "shared_collections",
+        }
 
     def test_co_curator_sees_a_member_and_shares_the_group(self, team):
         collection = group(team, visibility=PRIVATE)

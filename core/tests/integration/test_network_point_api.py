@@ -1,5 +1,6 @@
 """Each dinamizador reads and edits only their own pickup point; the points are public
-with the collection."""
+with the collection. (Outside a network the same page is an identity card: see
+``test_curator_entity.py``.)"""
 
 import pytest
 from django.utils import timezone
@@ -100,14 +101,6 @@ def test_a_plain_member_cannot_set_a_point(world):
     assert not NetworkPoint.objects.exists()
 
 
-def test_a_collection_that_is_not_a_network_has_no_points(world):
-    proprietary = CollectionFactory(owner=world["founder"], mode=Collection.Mode.PROPRIETARY)
-
-    res = client_for(world["founder"]).get(f"/api/v1/collections/{proprietary.code}/point/")
-
-    assert res.status_code == status.HTTP_404_NOT_FOUND
-
-
 @pytest.mark.parametrize(
     "body",
     [
@@ -121,6 +114,7 @@ def test_a_collection_that_is_not_a_network_has_no_points(world):
         {"deposit_policy": "x" * 257},
         {"request_info": "x" * 513},
         {"email_note": "x" * 513},
+        {"about": "x" * 2001},
     ],
 )
 def test_the_limits_are_the_collections_own(world, body):
@@ -176,18 +170,6 @@ def test_the_entitys_email_note_is_read_back_by_its_dinamizador_and_the_founder_
         "lili": "",
         "lolo": "",
     }
-
-
-def test_a_collection_that_is_not_a_network_carries_no_points(world):
-    proprietary = CollectionFactory(
-        owner=world["founder"],
-        mode=Collection.Mode.PROPRIETARY,
-        visibility=Collection.Visibility.PUBLIC,
-    )
-
-    res = client_for().get(f"/api/v1/collections/{proprietary.code}/")
-
-    assert res.data["points"] == []
 
 
 def test_a_dinamizador_saves_and_removes_the_logo_of_their_entity(world):

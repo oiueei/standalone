@@ -487,6 +487,7 @@ FAQS = [
 NETWORK_POINTS = [
     {
         "code": "N3tP01",
+        "about": "Som una petita cooperativa de veïnes i veïns. Guardem les eines i els jocs de taula del carrer i els prestem els dimarts i els dijous.\n\nRetorna el que t'emportis **net** i avisa'ns si alguna cosa es trenca: passa.",
         "hours_note": "Dimarts i dijous de 18 a 20 h",
         "deposit_policy": "",
         "request_info": "",
@@ -494,6 +495,7 @@ NETWORK_POINTS = [
     },
     {
         "code": "N3tP02",
+        "about": "L'associació del Passatge dels Gats Sords, fundada per gent que mai no es va posar d'acord en un nom.\n\nPrestem des del soterrani, els dissabtes al matí, i sempre hi ha temps per xerrar amb un cafè.",
         "hours_note": "Dissabtes de 10 a 13 h",
         "deposit_policy": "20 € de fiança per cosa, que es lliuren en recollir i es retornen tan bon punt torna neta.",
         "request_info": "Porta el carnet de soci. Només obrim els dissabtes; si no pots venir, demana a un veí que la reculli per tu.",
@@ -501,7 +503,16 @@ NETWORK_POINTS = [
     },
     {
         "code": "N3tP03",
+        "about": "Presto des del meu racó de la plaça, a les tardes entre setmana. Escriu-me i quedem.",
         "hours_note": "Tardes entre setmana, per acord",
+        "deposit_policy": "",
+        "request_info": "",
+        "email_note": "",
+    },
+    {
+        "code": "1u1uP1",
+        "about": "Un grup de veïnes i veïns del replà. Som qui mantenim aquesta biblioteca en ordre i responem les teves preguntes.",
+        "hours_note": "",
         "deposit_policy": "",
         "request_info": "",
         "email_note": "",

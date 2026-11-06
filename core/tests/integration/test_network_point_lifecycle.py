@@ -66,6 +66,8 @@ def test_point_for_finds_the_point_of_a_dinamizador_only_in_a_network(network):
     assert group.point_for("FOUN01") is None
     group.mode = Collection.Mode.PROPRIETARY
     assert group.point_for("ENTA01") is None
+    # The card is the same row in any mode: it is what point_for narrows to a network.
+    assert group.card_for("ENTA01") == network["point"]
 
 
 def test_demoting_a_dinamizador_deletes_their_point_and_leaves_the_others(network):

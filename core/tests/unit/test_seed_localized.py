@@ -102,6 +102,7 @@ class TestSeedFileParity:
                 assert len(row["question"]) <= 64 and len(row["answer"]) <= 256, (code, row)
             for row in module.NETWORK_POINTS:
                 assert len(row["hours_note"]) <= 128, (code, row)
+                assert len(row["about"]) <= DESCRIPTION_LIMIT, (code, row)
                 assert len(row["deposit_policy"]) <= 256, (code, row)
                 assert len(row["request_info"]) <= 512, (code, row)
                 assert len(row["email_note"]) <= 512, (code, row)
@@ -388,7 +389,20 @@ class TestTheDemoNetwork:
         call_command("seed_demo", lang="en", verbosity=0)
         call_command("seed_demo", lang="en", verbosity=0)
 
-        assert NetworkPoint.objects.count() == 3
+        assert NetworkPoint.objects.count() == 4
+
+    def test_a_co_curator_outside_the_network_has_an_identity_card_with_an_about(self):
+        from core.models import NetworkPoint
+
+        call_command("seed_demo", lang="en", verbosity=0)
+
+        card = NetworkPoint.objects.get(collection_id="1u1uC1", user_id="La1aN1")
+        assert card.entity_name == "Veïnat del Replà"
+        assert not Collection.objects.get(code="1u1uC1").is_network()
+        assert card.address == "" and card.weekdays == []
+        for point in NetworkPoint.objects.all():
+            assert parse_localized(point.about) is not None, point.code
+            assert set(parse_localized(point.about)) == {"es", "ca", "en"}
 
     def test_a_point_of_a_character_the_seed_no_longer_places_goes_and_a_real_ones_stays(self):
         from core.models import NetworkPoint

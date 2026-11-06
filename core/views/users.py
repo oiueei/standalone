@@ -14,9 +14,9 @@ from core.serializers import UserPublicSerializer, UserSerializer, UserUpdateSer
 from core.views._helpers import refusal_body
 
 
-def _curated_by(user_code):
-    """Collections ``user_code`` runs: the founder's, or a co-curator's."""
-    return Q(owner_id=user_code) | Q(co_owners__code=user_code)
+def _inside(user_code):
+    """Collections ``user_code`` is inside of: founds, or is invited to (co-curators included)."""
+    return Q(owner_id=user_code) | Q(invites__code=user_code)
 
 
 def can_view_user(viewer_user_code, target_user_code):
@@ -24,25 +24,24 @@ def can_view_user(viewer_user_code, target_user_code):
     Check if viewer can see target user's profile.
     Returns True if:
     - viewer is target (own profile)
-    - viewer runs (founds or co-curates) a collection target is invited to
-    - target runs (founds or co-curates) a collection viewer is inside of: viewer
-      founds it or is invited to it
+    - there is a collection both are inside of (founder, co-curator or member)
 
-    A reader of a public group who is not in it opens nobody's profile: a team is
-    known to its group by the page of that group, not by the general profile.
+    Someone who is not in a group opens nobody's profile through it, even a public
+    group's: a team is known to its group by the page of that group. What the other
+    person sees is ``UserPublicSerializer``, never language, demographics or email
+    preferences.
 
-    Two ``EXISTS`` queries whatever the number of collections.
+    One ``EXISTS`` query whatever the number of collections. The two ``filter()``
+    calls are deliberate: each joins ``invites`` on its own.
     """
     if viewer_user_code == target_user_code:
         return True
 
-    if Collection.objects.filter(
-        _curated_by(viewer_user_code), invites__code=target_user_code
-    ).exists():
-        return True
-
-    inside = Q(owner_id=viewer_user_code) | Q(invites__code=viewer_user_code)
-    return Collection.objects.filter(_curated_by(target_user_code)).filter(inside).exists()
+    return (
+        Collection.objects.filter(_inside(viewer_user_code))
+        .filter(_inside(target_user_code))
+        .exists()
+    )
 
 
 class UserDetailView(APIView):
@@ -80,8 +79,8 @@ class UserDetailView(APIView):
         # a private group the target runs and the viewer cannot see never appears.
         viewer = request.user.code
         shared = list(
-            Collection.objects.filter(Q(owner_id=viewer) | Q(invites__code=viewer))
-            .filter(Q(owner_id=user_code) | Q(invites__code=user_code))
+            Collection.objects.filter(_inside(viewer))
+            .filter(_inside(user_code))
             .values("code", "headline", "kind")
             .distinct()
             .order_by("code")

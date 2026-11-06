@@ -9,7 +9,25 @@ from rest_framework import serializers
 
 from core.models import NetworkPoint
 from core.utils import asset_url
-from core.validators import ImageIdField, LocalizedTextField, SafeHeadlineField
+from core.validators import (
+    LOCALIZED_DESCRIPTION_STORAGE,
+    LOCALIZED_DESCRIPTION_VISIBLE,
+    ImageIdField,
+    LocalizedTextField,
+    SafeHeadlineField,
+)
+
+# What only a network's pickup point has: the place and the conditions of its loans.
+# Outside a network the row is an identity card and these are served empty.
+NETWORK_ONLY_FIELDS = {
+    "address": "",
+    "hours_note": "",
+    "weekdays": [],
+    "closed_dates": [],
+    "deposit_policy": "",
+    "request_info": "",
+    "email_note": "",
+}
 
 POINT_FIELDS = [
     "code",
@@ -21,6 +39,7 @@ POINT_FIELDS = [
     "contact",
     "logo",
     "logo_url",
+    "about",
     "weekdays",
     "closed_dates",
     "deposit_policy",
@@ -29,9 +48,14 @@ POINT_FIELDS = [
 ]
 
 
+# What a curator may set in any collection; the rest is a network's pickup point.
+IDENTITY_FIELDS = ("entity_name", "logo", "about", "contact")
+
+
 class NetworkPointSerializer(serializers.ModelSerializer):
-    """A point as the network's readers see it: public with the collection, address
-    included. Only ``email_note`` is not: the note the entity writes into the emails
+    """A curator's page in a group as its readers see it: public with the collection,
+    address included (in a network; elsewhere the place fields are served empty, whatever
+    the columns hold). Only ``email_note`` is not: the note the entity writes into the emails
     its requesters get is read back by its own dinamizador and by the founder, who
     answers for the network, and by nobody else."""
 
@@ -48,6 +72,12 @@ class NetworkPointSerializer(serializers.ModelSerializer):
     def get_logo_url(self, obj):
         return asset_url(obj.logo) if obj.logo else None
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not instance.collection.is_network():
+            data.update({key: type(empty)() for key, empty in NETWORK_ONLY_FIELDS.items()})
+        return data
+
     def get_email_note(self, obj):
         request = self.context.get("request")
         user = getattr(request, "user", None)
@@ -59,7 +89,8 @@ class NetworkPointSerializer(serializers.ModelSerializer):
 
 
 class NetworkPointWriteSerializer(serializers.ModelSerializer):
-    """What a dinamizador may set on their own point."""
+    """What a curator may set on their own page in a group. Outside a network only the
+    identity fields (``IDENTITY_FIELDS``) are kept; the view drops the rest."""
 
     entity_name = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
     address = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
@@ -67,6 +98,12 @@ class NetworkPointWriteSerializer(serializers.ModelSerializer):
     contact = SafeHeadlineField(max_length=64, required=False, allow_blank=True)
     # The same folder as a collection's logo: an entity's is the same kind of image.
     logo = ImageIdField(folder="oiueei/collections", required=False, allow_blank=True)
+    about = LocalizedTextField(
+        max_length=LOCALIZED_DESCRIPTION_VISIBLE,
+        storage_max_length=LOCALIZED_DESCRIPTION_STORAGE,
+        required=False,
+        allow_blank=True,
+    )
     weekdays = serializers.ListField(
         child=serializers.IntegerField(min_value=0, max_value=6),
         required=False,
@@ -90,6 +127,7 @@ class NetworkPointWriteSerializer(serializers.ModelSerializer):
             "hours_note",
             "contact",
             "logo",
+            "about",
             "weekdays",
             "closed_dates",
             "deposit_policy",

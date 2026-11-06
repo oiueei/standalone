@@ -1136,8 +1136,9 @@ PENDING_INVITATIONS = [
 # The pickup points of the demo network (`NetworkPoint`): one per dinamizador, each
 # answering for an entity that does not exist (the names and streets are invented).
 # Structure only; the hours of each point and the conditions it writes (deposit, request
-# note, email note) are text, in the per-language files. Lolo sets no entity so the
-# network shows him by his own name; he sets no days either, so the network's apply.
+# note, email note) and the entity's about are text, in the per-language files. Lolo sets
+# no entity so the network shows him by his own name; he sets no days either, so the
+# network's apply.
 NETWORK_POINTS = [
     {
         "code": "N3tP01",
@@ -1165,6 +1166,18 @@ NETWORK_POINTS = [
         "user_code": "l0l0oh",
         "entity_name": "",
         "address": "Plaça de l'Arbre Fosc 2",
+        "contact": "",
+        "weekdays": [],
+        "closed_dates": [],
+    },
+    # Outside a network the row is only an identity card (name, logo, about, contact):
+    # Lala, co-curator of Lulu's library, shows herself in that group under a name of her own.
+    {
+        "code": "1u1uP1",
+        "collection_code": "1u1uC1",
+        "user_code": "La1aN1",
+        "entity_name": "Veïnat del Replà",
+        "address": "",
         "contact": "",
         "weekdays": [],
         "closed_dates": [],

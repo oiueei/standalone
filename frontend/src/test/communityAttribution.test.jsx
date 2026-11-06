@@ -42,13 +42,14 @@ beforeEach(() => {
   });
 });
 
-const renderCard = (ownerName) =>
+const renderCard = (ownerName, { insideGroup = true } = {}) =>
   render(
     <MemoryRouter>
       <ThingLinkbox
         thing={{ ...THING, owner_name: ownerName }}
         collectionCode="COL001"
         collectionMode="COMMUNITY"
+        insideGroup={insideGroup}
       />
     </MemoryRouter>
   );
@@ -79,7 +80,7 @@ describe('Community attribution when the name is withheld', () => {
     expect(screen.queryByRole('link', { name: /A member/ })).not.toBeInTheDocument();
   });
 
-  test('a name that was served still links to the member', () => {
+  test('a name that was served links to the member, for someone inside the group', () => {
     renderCard('Lele');
 
     expect(screen.getByRole('link', { name: 'Lele' })).toBeInTheDocument();

@@ -111,7 +111,8 @@ README_TEXTS = {
             "about": (
                 "This is a copy of your OIUEEI data, taken the moment you asked for it. "
                 "Each key below is a part of your account, and `_manifest.counts` says how "
-                "many rows each one has. Downloading it changes nothing in OIUEEI."
+                "many rows each one has. Downloading it changes nothing in OIUEEI. "
+                "`organisations` is the page you have in each group you run."
             ),
             "not_included": [
                 "Credentials. The public link to your collections, the tokens behind magic "
@@ -166,7 +167,8 @@ README_TEXTS = {
             "about": (
                 "Esta es una copia de tus datos en OIUEEI, hecha en el momento en que la "
                 "pediste. Cada clave de abajo es una parte de tu cuenta, y `_manifest.counts` "
-                "dice cuántas filas tiene cada una. Descargarla no cambia nada en OIUEEI."
+                "dice cuántas filas tiene cada una. Descargarla no cambia nada en OIUEEI. "
+                "`organisations` es la página que tienes en cada grupo que dinamizas."
             ),
             "not_included": [
                 "Credenciales. El enlace público de tus colecciones, los tokens de los "
@@ -225,7 +227,7 @@ README_TEXTS = {
                 "Aquesta és una còpia de les teves dades a OIUEEI, feta en el moment en què "
                 "la vas demanar. Cada clau de sota és una part del teu compte, i "
                 "`_manifest.counts` diu quantes files té cadascuna. Descarregar-la no canvia "
-                "res a OIUEEI."
+                "res a OIUEEI. `organisations` és la pàgina que tens a cada grup que dinamitzes."
             ),
             "not_included": [
                 "Credencials. L'enllaç públic de les teves col·leccions, els tokens dels "
@@ -686,6 +688,35 @@ def _notifications(user):
     ]
 
 
+def _organisations(user):
+    """The page they have in each group they run: name, logo, about and contact, and in a
+    network the pickup point and the conditions of their own loans. Public with the
+    group, except ``email_note`` (theirs and the founder's), which is theirs to keep here.
+    The logo travels as a link, like every image."""
+    rows = []
+    for point in user.network_points.select_related("collection").order_by("collection__created"):
+        row = {
+            "collection": point.collection_id,
+            "collection_headline": point.collection.headline,
+            "entity_name": point.entity_name,
+            "logo": asset_url(point.logo) if point.logo else None,
+            "about": point.about,
+            "contact": point.contact,
+        }
+        if point.collection.is_network():
+            row.update(
+                address=point.address,
+                hours_note=point.hours_note,
+                weekdays=point.weekdays,
+                closed_dates=point.closed_dates,
+                deposit_policy=point.deposit_policy,
+                request_info=point.request_info,
+                email_note=point.email_note,
+            )
+        rows.append(row)
+    return rows
+
+
 def _reports_filed(user):
     """Reports they filed. Reports about *their* things are absent on purpose:
     reporting is anonymous in both the app and this file."""
@@ -733,6 +764,7 @@ def build_account_export(user):
         "profile": _profile(user),
         "collections_owned": _collections_owned(user),
         "collections_member_of": _collections_member_of(user),
+        "organisations": _organisations(user),
         "things": _things(user),
         "bookings": _bookings(user),
         "faqs": _faqs(user),

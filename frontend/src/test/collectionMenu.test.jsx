@@ -25,6 +25,7 @@ vi.mock('../utils/downloadBlob', async (importOriginal) => ({
 // guide for whoever runs a group adds one more (pinned in `curatorGuide.test.jsx`).
 vi.mock('../deployment', async (orig) => ({ ...(await orig()), curatorGuidePath: null }));
 
+import en from '../i18n/locales/en.json';
 import { apiFetch } from '../services/api';
 import downloadBlob from '../utils/downloadBlob';
 import CollectionPage from '../pages/CollectionPage';
@@ -204,21 +205,17 @@ beforeEach(() => {
  *   disappears with the panel, and the focus would fall to <body>.
  */
 describe('the collection menu in the CollectionPage hero corner', () => {
-  test('a dinamizador of a network finds their pickup point in the menu', async () => {
-    renderCollection({ ...COLLECTION, mode: 'NETWORK' });
+  test.each([
+    ['a network', { mode: 'NETWORK' }],
+    ['a collection that is not a network', {}],
+  ])('a curator of %s finds their organisation in the menu', async (_, extra) => {
+    renderCollection({ ...COLLECTION, ...extra });
     await openMenu();
 
-    expect(within(panel()).getByRole('link', { name: 'My pickup point' })).toHaveAttribute(
+    expect(within(panel()).getByRole('link', { name: en.organisation.menuEntry })).toHaveAttribute(
       'href',
-      '/collections/COL001/point'
+      '/collections/COL001/organisation'
     );
-  });
-
-  test('a collection that is not a network has no pickup point entry', async () => {
-    renderCollection(COLLECTION);
-    await openMenu();
-
-    expect(within(panel()).queryByRole('link', { name: 'My pickup point' })).toBeNull();
   });
 
   test('a curator gets the trigger; the panel holds both links and the three downloads', async () => {
@@ -268,20 +265,22 @@ describe('the collection menu in the CollectionPage hero corner', () => {
       // A page of its own, no longer a section of /add.
       ['Add several at once (CSV)', '/collections/COL001/import'],
       ['Manage members', '/collections/COL001/invites'],
-      // …and so is the CSV of invitations, right after the
-      // members page it left.
+      // The curator's own page in the group, in every collection.
+      [en.organisation.menuEntry, '/collections/COL001/organisation'],
+      // …and so is the CSV of invitations, a page of its own.
       ['Invite many at once (CSV)', '/collections/COL001/invites/import'],
     ]);
   });
 
-  test('"Invite many at once (CSV)" is right after "Manage members", and nowhere else', async () => {
+  test('"Invite many at once (CSV)" follows the members and organisation entries, and is nowhere else', async () => {
     renderCollection(COLLECTION);
     await openMenu();
 
     const names = within(panel())
       .getAllByRole('link')
       .map((link) => link.textContent);
-    expect(names.indexOf('Invite many at once (CSV)')).toBe(names.indexOf('Manage members') + 1);
+    expect(names.indexOf(en.organisation.menuEntry)).toBe(names.indexOf('Manage members') + 1);
+    expect(names.indexOf('Invite many at once (CSV)')).toBe(names.indexOf('Manage members') + 2);
     expect(
       within(panel()).getAllByRole('link', { name: 'Invite many at once (CSV)' })
     ).toHaveLength(1);
@@ -1004,11 +1003,12 @@ describe('the collection menu for a member', () => {
     renderCollection({ ...COLLECTION, welcome_doc_url: DOC, digest_frequency: 'WEEKLY' });
     await openMenu();
 
-    expect(entries().slice(0, 5)).toEqual([
+    expect(entries().slice(0, 6)).toEqual([
       "The group's welcome document (PDF)",
       'Add thing',
       'Add several at once (CSV)',
       'Manage members',
+      en.organisation.menuEntry,
       'Invite many at once (CSV)',
     ]);
     expect(within(panel()).queryByRole('link', { name: LEAVE })).toBeNull();
@@ -1157,10 +1157,11 @@ describe('the collection menu — "Requests to me"', () => {
     const first = panel().firstElementChild;
     expect(first).toHaveTextContent(REQUESTS);
     expect(first.nextElementSibling).toHaveClass('collection-menu-divider');
-    expect(entries().slice(1, 5)).toEqual([
+    expect(entries().slice(1, 6)).toEqual([
       'Add thing',
       'Add several at once (CSV)',
       'Manage members',
+      en.organisation.menuEntry,
       'Invite many at once (CSV)',
     ]);
   });

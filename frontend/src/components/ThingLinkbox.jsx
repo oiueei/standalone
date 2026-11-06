@@ -28,6 +28,7 @@ function ThingLinkbox({
   collectionHeadline,
   collectionOwner,
   collectionMode,
+  insideGroup = false,
   isPaused,
   canAct = true,
   hideType = false,
@@ -154,10 +155,11 @@ function ThingLinkbox({
             {/* The contributing member. A reader with no account is told there
                 *is* one — which is what the COMMUNITY grid exists to show —
                 but not who: the API withholds the name from them
-                (`ThingComputedFieldsMixin.get_owner_name`). No link either:
-                the profile behind it is `IsAuthenticated`, so for that reader
-                it was only ever a door onto a 403. */}
-            {thing.owner_name && thing.owner ? (
+                (`ThingComputedFieldsMixin.get_owner_name`). The link is for
+                someone inside the group only (`insideGroup`): the profile behind
+                it opens for the group's own people and nobody else, so for any
+                other reader it was only ever a door onto a 403. */}
+            {insideGroup && thing.owner_name && thing.owner ? (
               <Link to={`/${thing.owner}`} className="thing-card-owner-link">
                 {thing.owner_name}
               </Link>

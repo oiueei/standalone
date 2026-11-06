@@ -485,6 +485,7 @@ FAQS = [
 NETWORK_POINTS = [
     {
         "code": "N3tP01",
+        "about": "Somos una pequeña cooperativa de vecinas y vecinos. Guardamos las herramientas y los juegos de mesa de la calle y los prestamos los martes y los jueves.\n\nDevuelve lo que te lleves **limpio** y avísanos si algo se rompe: pasa.",
         "hours_note": "Martes y jueves de 18 a 20 h",
         "deposit_policy": "",
         "request_info": "",
@@ -492,6 +493,7 @@ NETWORK_POINTS = [
     },
     {
         "code": "N3tP02",
+        "about": "La asociación del Passatge dels Gats Sords, fundada por gente que nunca se puso de acuerdo en un nombre.\n\nPrestamos desde el sótano, los sábados por la mañana, y siempre hay tiempo para charlar con un café.",
         "hours_note": "Sábados de 10 a 13 h",
         "deposit_policy": "20 € de fianza por cosa, que se entregan al recoger y se devuelven en cuanto vuelve limpia.",
         "request_info": "Trae el carné de socio. Solo abrimos los sábados; si no puedes venir, pídele a un vecino que la recoja por ti.",
@@ -499,7 +501,16 @@ NETWORK_POINTS = [
     },
     {
         "code": "N3tP03",
+        "about": "Presto desde mi rincón de la plaza, por las tardes entre semana. Escríbeme y quedamos.",
         "hours_note": "Tardes entre semana, por acuerdo",
+        "deposit_policy": "",
+        "request_info": "",
+        "email_note": "",
+    },
+    {
+        "code": "1u1uP1",
+        "about": "Un grupo de vecinas y vecinos del rellano. Somos quienes mantenemos esta biblioteca en orden y respondemos a tus preguntas.",
+        "hours_note": "",
         "deposit_policy": "",
         "request_info": "",
         "email_note": "",

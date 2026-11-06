@@ -482,6 +482,7 @@ FAQS = [
 NETWORK_POINTS = [
     {
         "code": "N3tP01",
+        "about": "We are a small cooperative of neighbours. We keep the tools and the board games of the street and lend them out on Tuesdays and Thursdays.\n\nBring back what you borrow **clean**, and tell us if something breaks: it happens.",
         "hours_note": "Tuesdays and Thursdays, 6 to 8 pm",
         "deposit_policy": "",
         "request_info": "",
@@ -489,6 +490,7 @@ NETWORK_POINTS = [
     },
     {
         "code": "N3tP02",
+        "about": "The association of the Passatge dels Gats Sords, founded by people who never could agree on a name.\n\nWe lend from the basement, on Saturday mornings, and we are always up for a chat over a coffee.",
         "hours_note": "Saturdays, 10 am to 1 pm",
         "deposit_policy": "A 20 € deposit for each thing, handed over at pickup and given back as soon as it returns clean.",
         "request_info": "Bring your member card. We only open on Saturdays; if you can't come, ask a neighbour to collect it for you.",
@@ -496,7 +498,16 @@ NETWORK_POINTS = [
     },
     {
         "code": "N3tP03",
+        "about": "I lend from my own corner of the square, on weekday evenings. Write to me and we will arrange a time.",
         "hours_note": "Weekday evenings, by arrangement",
+        "deposit_policy": "",
+        "request_info": "",
+        "email_note": "",
+    },
+    {
+        "code": "1u1uP1",
+        "about": "A group of neighbours from the landing. We are the ones who keep this library tidy and answer your questions.",
+        "hours_note": "",
         "deposit_policy": "",
         "request_info": "",
         "email_note": "",

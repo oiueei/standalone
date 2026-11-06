@@ -157,6 +157,7 @@ import LegalPage from '../pages/LegalPage';
 import ContactPage from '../pages/ContactPage';
 import DigestMutePage from '../pages/DigestMutePage';
 import NotificationsPage from '../pages/NotificationsPage';
+import OrganisationPage from '../pages/OrganisationPage';
 import ManageInvitesPage from '../pages/ManageInvitesPage';
 import HomePage from '../pages/HomePage';
 import CollectionPage from '../pages/CollectionPage';
@@ -250,6 +251,11 @@ smokeAndAxe('NotificationsPage', NotificationsPage);
 smokeAndAxe('AddThingPage', AddThingPage, {
   path: '/collections/:code/add',
   entry: '/collections/COL001/add',
+});
+
+smokeAndAxe('OrganisationPage', OrganisationPage, {
+  path: '/collections/:code/organisation',
+  entry: '/collections/COL001/organisation',
 });
 
 smokeAndAxe('ImportThingsPage', ImportThingsPage, {

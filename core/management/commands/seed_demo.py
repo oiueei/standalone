@@ -46,9 +46,9 @@ SUPPORTED_LANGS = ["en", "es", "ca"]
 _LOCALIZED_FIELDS = {
     "COLLECTIONS": ("headline", "description"),
     "THINGS": ("headline", "description"),
-    # A pickup point's hours are plain text and follow --lang; the conditions it
-    # writes are owner text like any other.
-    "NETWORK_POINTS": ("deposit_policy", "request_info", "email_note"),
+    # A pickup point's hours are plain text and follow --lang; its about and the
+    # conditions it writes are owner text like any other.
+    "NETWORK_POINTS": ("about", "deposit_policy", "request_info", "email_note"),
 }
 _LOCALIZED_ENTITIES = tuple(_LOCALIZED_FIELDS)
 
@@ -278,7 +278,8 @@ class Command(BaseCommand):
             )
 
     def _seed_points(self, points):
-        """The pickup points of the demo network, one per dinamizador.
+        """The pickup points of the demo network, one per dinamizador, and the identity card
+        of a co-curator outside it.
 
         Like the rest of the group, only the demo characters' points are the seed's:
         one it no longer places is taken out, and a point of anybody else is left
@@ -293,6 +294,7 @@ class Command(BaseCommand):
                     "address": data["address"],
                     "hours_note": data["hours_note"],
                     "contact": data["contact"],
+                    "about": data["about"],
                     "weekdays": data["weekdays"],
                     "closed_dates": data["closed_dates"],
                     "deposit_policy": data["deposit_policy"],

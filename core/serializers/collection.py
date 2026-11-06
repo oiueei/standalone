@@ -289,12 +289,10 @@ class CollectionSerializer(serializers.ModelSerializer):
         return [{"code": u.code, "name": u.name} for u in obj.co_owners.all()]
 
     def get_points(self, obj):
-        """The pickup points of a network's dinamizadores — public with the collection,
-        address included: each answers for an entity, not for their home. ``[]`` and
-        no query outside a network."""
-        if not obj.is_network():
-            return []
-        points = obj.points.select_related("user", "collection").order_by("code")
+        """The pages of the group's curators — public with the collection, in every mode.
+        In a network each is a pickup point, address included: it answers for an entity,
+        not for a home. Elsewhere it carries only name, logo, about and contact."""
+        points = sorted(obj.points.all(), key=lambda point: point.code)
         return NetworkPointSerializer(points, many=True, context=self.context).data
 
     def get_is_member(self, obj):

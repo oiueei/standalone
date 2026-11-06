@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { render, screen, waitFor, fireEvent, within, act, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
@@ -2046,9 +2046,12 @@ describe('CollectionPage as a co-owner', () => {
     expect(line).toHaveTextContent('Run by: The Founder, Me, and Nil');
     expect(within(line).getByRole('link', { name: 'The Founder' })).toHaveAttribute(
       'href',
-      '/OTHER1'
+      '/collections/COL001/organisation/OTHER1'
     );
-    expect(within(line).getByRole('link', { name: 'Nil' })).toHaveAttribute('href', '/XYZ999');
+    expect(within(line).getByRole('link', { name: 'Nil' })).toHaveAttribute(
+      'href',
+      '/collections/COL001/organisation/XYZ999'
+    );
     // The team and the founder share one label now, so "no separate founder
     // line" is: the label is on the page once.
     expect(screen.getAllByText('Run by:')).toHaveLength(1);
@@ -2099,13 +2102,16 @@ describe('CollectionPage as a co-owner', () => {
     );
   };
 
-  // A name in the team line opens that person's profile, which the server shows only
-  // to someone inside the group: for anyone else the name is plain text.
-  describe('the team line links to profiles only for those inside the group', () => {
-    const linkNames = (line) =>
+  // Each name in the team line is the name of that person's page in the group (the
+  // entity's name, else their account's) and opens that page — for everyone who can read
+  // the group, inside it or not, with a session or without. The general profile stays
+  // closed to those outside; nobody reaches it from here.
+  describe('the team line names each person by their page in the group and links to it', () => {
+    const links = (line) =>
       within(line)
         .queryAllByRole('link')
-        .map((a) => a.textContent);
+        .map((a) => [a.textContent, a.getAttribute('href')]);
+    const page = (userCode) => `/collections/COL001/organisation/${userCode}`;
     const TEAM = [
       { code: 'ABC123', name: 'Me' },
       { code: 'XYZ999', name: 'Nil' },
@@ -2118,38 +2124,70 @@ describe('CollectionPage as a co-owner', () => {
       'signed-out reader': [false, { is_curator: false, is_member: false }],
     };
 
-    test.each(['curator', 'member'])('a %s gets a link per name', async (who) => {
-      renderTeamHero('en', { ...viewers[who][1], co_owners: TEAM });
+    test.each(Object.keys(viewers))('a %s gets a link per name, to its page', async (who) => {
+      const [signedIn, fields] = viewers[who];
+      if (!signedIn) localStorage.removeItem('userCode');
+      renderTeamHero('en', { ...fields, co_owners: TEAM });
+
       const line = (await screen.findByText('Run by:')).closest('p');
-      expect(linkNames(line)).toEqual(['The Founder', 'Me', 'Nil']);
+      expect(line).toHaveTextContent('Run by: The Founder, Me, and Nil');
+      expect(links(line)).toEqual([
+        ['The Founder', page('OTHER1')],
+        ['Me', page('ABC123')],
+        ['Nil', page('XYZ999')],
+      ]);
     });
 
-    test.each(['signed-in non-member', 'signed-out reader'])(
-      'a %s sees the same names with no link',
+    test('the name of a person is their entity’s, and one with no page keeps their account’s', async () => {
+      renderTeamHero('en', {
+        co_owners: TEAM,
+        points: [
+          { user: 'OTHER1', display_name: 'Associació del Passatge' },
+          { user: 'XYZ999', display_name: 'Nil' },
+        ],
+      });
+
+      const line = (await screen.findByText('Run by:')).closest('p');
+      expect(line).toHaveTextContent('Run by: Associació del Passatge, Me, and Nil');
+      expect(links(line)).toEqual([
+        ['Associació del Passatge', page('OTHER1')],
+        ['Me', page('ABC123')],
+        ['Nil', page('XYZ999')],
+      ]);
+    });
+
+    test('a page whose name is empty counts the person among those without one', async () => {
+      renderTeamHero('en', {
+        co_owners: TEAM,
+        points: [{ user: 'XYZ999', display_name: '' }],
+      });
+
+      const line = (await screen.findByText('Run by:')).closest('p');
+      expect(line).toHaveTextContent('Run by: The Founder, Me, and 1 more person');
+      expect(links(line).map(([name]) => name)).toEqual(['The Founder', 'Me']);
+    });
+
+    test.each(Object.keys(viewers))(
+      'with a single founder, a %s gets a link to their page too',
       async (who) => {
         const [signedIn, fields] = viewers[who];
         if (!signedIn) localStorage.removeItem('userCode');
-        renderTeamHero('en', { ...fields, co_owners: TEAM });
+        renderTeamHero('en', { ...fields, co_owners: [] });
+
         const line = (await screen.findByText('Run by:')).closest('p');
-        expect(line).toHaveTextContent('Run by: The Founder, Me, and Nil');
-        expect(linkNames(line)).toEqual([]);
-        expect(line.querySelector('.owner-link')).toBeNull();
+        expect(line).toHaveTextContent(/^Run by: The Founder$/);
+        expect(links(line)).toEqual([['The Founder', page('OTHER1')]]);
       }
     );
 
-    test('with a single founder, a member links and a non-member does not', async () => {
-      renderTeamHero('en', { co_owners: [], is_curator: false, is_member: true });
-      let line = (await screen.findByText('Run by:')).closest('p');
-      expect(within(line).getByRole('link', { name: 'The Founder' })).toHaveAttribute(
-        'href',
-        '/OTHER1'
-      );
-      cleanup();
+    test('a single founder is named by their entity', async () => {
+      renderTeamHero('en', {
+        co_owners: [],
+        points: [{ user: 'OTHER1', display_name: 'Cooperativa Brúixola' }],
+      });
 
-      renderTeamHero('en', { co_owners: [], is_curator: false, is_member: false });
-      line = (await screen.findByText('Run by:')).closest('p');
-      expect(line).toHaveTextContent(/^Run by: The Founder$/);
-      expect(linkNames(line)).toEqual([]);
+      const line = (await screen.findByText('Run by:')).closest('p');
+      expect(links(line)).toEqual([['Cooperativa Brúixola', page('OTHER1')]]);
     });
   });
 

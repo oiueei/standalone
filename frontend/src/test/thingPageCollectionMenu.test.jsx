@@ -1,3 +1,4 @@
+import en from '../i18n/locales/en.json';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
@@ -163,6 +164,7 @@ describe('the thing page — who has the collection menu', () => {
       'Add thing',
       'Add several at once (CSV)',
       'Manage members',
+      en.organisation.menuEntry,
       'Invite many at once (CSV)',
       'Download the calendar (ICS)',
       'Download the stats (CSV)',

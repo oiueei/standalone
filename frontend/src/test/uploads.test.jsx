@@ -20,6 +20,7 @@ import { uploadImage, UploadRateLimitedError, UploadTooLargeError } from '../uti
 import { uploadPdf, PDF_MAX_BYTES } from '../utils/uploadPdf';
 import ImageUpload from '../components/ImageUpload';
 import PdfUpload from '../components/PdfUpload';
+import en from '../i18n/locales/en.json';
 import GalleryUpload from '../components/GalleryUpload';
 
 // HDS FileInput hides a real <input type="file"> behind its own button, and
@@ -214,8 +215,8 @@ describe('PdfUpload', () => {
 
     expect(fileInput(container)).toHaveAttribute('accept', '.pdf,application/pdf');
     // A document is not an image: the label must not be the photo one.
-    expect(screen.getByText('Add file')).toBeInTheDocument();
-    expect(screen.queryByText('Add a file')).toBeNull();
+    expect(screen.getByText(en.upload.addFileGeneric)).toBeInTheDocument();
+    expect(screen.queryByText(en.upload.addFile)).toBeNull();
   });
 
   // The *inline* size guard. It is no longer the only cap — the byte count is

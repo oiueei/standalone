@@ -211,6 +211,7 @@ export default function ThingsSection({
                 collectionHeadline={headline}
                 collectionOwner={collection.owner}
                 collectionMode={collection.mode}
+                insideGroup={!!collection.is_curator || !!collection.is_member}
                 isPaused={collection.is_paused}
                 hideType={singleType}
                 canAct={isAuthenticated}
@@ -283,6 +284,7 @@ export function InactiveThings({ collection, code, headline, onUpdateThing }) {
                   collectionHeadline={headline}
                   collectionOwner={collection.owner}
                   collectionMode={collection.mode}
+                  insideGroup={!!collection.is_curator || !!collection.is_member}
                   hideType={singleType}
                   onUpdateThing={onUpdateThing}
                 />
