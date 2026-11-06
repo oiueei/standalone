@@ -1300,6 +1300,14 @@ def _thing_url(thing, reader=None, collection=None):
     return f"{base}/things/{thing.code}"
 
 
+def _counted(headline, quantity, lang):
+    """A thing's title as a request for several of it names it: "6 × Arduino kit".
+    With one it is the title as it was."""
+    if not quantity or quantity <= 1:
+        return headline
+    return _texts(lang)("quantity_times").format(count=quantity, headline=headline)
+
+
 def _action_noun(thing, lang=None):
     """The per-type action noun for the booking emails (e.g. 'purchase', 'compra').
 
@@ -1745,7 +1753,7 @@ def send_booking_request_email(requester, thing, booking, manager_email, accept_
     T, L = _texts(lang), _local(lang)
     requester_name = requester.display_name
     action = _action_noun(thing, lang)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), booking.quantity, lang)
     header = headline  # the thing being requested is this email's parent
 
     if booking.start_date and booking.end_date:
@@ -1826,7 +1834,7 @@ def send_booking_decision_email(booking, thing, accepted=True, collection=None, 
         )
     decision_word = T("decision_confirmed") if accepted else T("decision_cancelled")
     action = _action_noun(thing, lang)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), booking.quantity, lang)
     header = headline  # the thing this decision is about is the parent
 
     # The reader is the requester, and this is the one booking email that used to
@@ -1887,7 +1895,7 @@ def _send_network_decision_email(
     """The decision email of a thing in a network (see ``send_booking_decision_email``)."""
     T, L = _texts(lang), _local(lang)
     action = _action_noun(thing, lang)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), booking.quantity, lang)
     thing_url = _thing_url(thing, reader=user, collection=collection)
     rescued = decided_by is not None and decided_by.code != thing.owner_id
     who = L(network.headline) if rescued else _member_name(_point_name(thing, point), lang)
@@ -1975,7 +1983,7 @@ def send_booking_confirmation_email(requester, thing, booking, collection=None, 
     contact_shared = T("contact_shared_request")
     thing_url = _thing_url(thing, reader=user, collection=collection)
     action = _action_noun(thing, lang)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), booking.quantity, lang)
     header = headline  # the thing this confirms is this email's parent
 
     if booking.start_date and booking.end_date:
@@ -2335,11 +2343,11 @@ def send_broadcast_email(
     )
 
 
-def send_return_reminder_email(requester_name, thing, end_date, owner_email):
+def send_return_reminder_email(requester_name, thing, end_date, owner_email, quantity=1):
     """Remind the owner that a booking ends tomorrow."""
     user, lang = _recipient(owner_email)
     T, L = _texts(lang), _local(lang)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), quantity, lang)
     header = headline
     subject = T("reminder_subject").format(thing=headline)
     end = _fmt_date(end_date)
@@ -2408,7 +2416,7 @@ def send_thing_withdrawn_email(
     )
 
 
-def send_return_due_email(owner_name, thing, end_date, requester_email):
+def send_return_due_email(owner_name, thing, end_date, requester_email, quantity=1):
     """Remind the **borrower** that they hand the thing back tomorrow.
 
     The counterpart of ``send_return_reminder_email``, and the half that was
@@ -2427,7 +2435,7 @@ def send_return_due_email(owner_name, thing, end_date, requester_email):
     if network is not None:
         owner_name = _point_name(thing, point)
     owner_name = _member_name(owner_name, lang, inline=True)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), quantity, lang)
     header = headline
     thing_url = _thing_url(thing, reader=user)
     subject = T("return_due_subject").format(thing=headline)
@@ -2451,7 +2459,7 @@ def send_return_due_email(owner_name, thing, end_date, requester_email):
     )
 
 
-def send_pickup_due_email(owner_name, thing, start_date, requester_email):
+def send_pickup_due_email(owner_name, thing, start_date, requester_email, quantity=1):
     """Remind the **borrower** they pick the thing up tomorrow (LEND/RENT).
 
     The arrival nudge of a loan or rental: the only pickup email before this
@@ -2468,7 +2476,7 @@ def send_pickup_due_email(owner_name, thing, start_date, requester_email):
         owner_name = _point_name(thing, point)
     raw_owner_name = owner_name
     owner_name = _member_name(owner_name, lang, inline=True)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), quantity, lang)
     header = headline
     thing_url = _thing_url(thing, reader=user)
     subject = T("pickup_due_subject").format(thing=headline)
@@ -2497,7 +2505,7 @@ def send_pickup_due_email(owner_name, thing, start_date, requester_email):
     )
 
 
-def send_pickup_reminder_email(requester_name, thing, start_date, owner_email):
+def send_pickup_reminder_email(requester_name, thing, start_date, owner_email, quantity=1):
     """Remind the owner they hand the thing over tomorrow (LEND/RENT).
 
     The owner's half of the pickup nudge — the same reader the return reminder
@@ -2507,7 +2515,7 @@ def send_pickup_reminder_email(requester_name, thing, start_date, owner_email):
     """
     user, lang = _recipient(owner_email)
     T, L = _texts(lang), _local(lang)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), quantity, lang)
     header = headline
     subject = T("pickup_reminder_subject").format(thing=headline)
     start = _fmt_date(start_date)
@@ -2517,7 +2525,7 @@ def send_pickup_reminder_email(requester_name, thing, start_date, owner_email):
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang, header=header)
 
 
-def send_return_overdue_email(manager, thing, end_date, requester_email):
+def send_return_overdue_email(manager, thing, end_date, requester_email, quantity=1):
     """Nudge the **borrower** whose loan or rental is past its return date.
 
     The one return email that is sent by a person rather than by the daily
@@ -2531,7 +2539,7 @@ def send_return_overdue_email(manager, thing, end_date, requester_email):
     """
     user, lang = _recipient(requester_email)
     T, L = _texts(lang), _local(lang)
-    headline = L(thing.headline)
+    headline = _counted(L(thing.headline), quantity, lang)
     header = headline
     thing_url = _thing_url(thing, reader=user)
     subject = T("return_overdue_subject").format(thing=headline)

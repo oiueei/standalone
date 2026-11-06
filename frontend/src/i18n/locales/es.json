@@ -127,6 +127,7 @@
     "formerMember": "Antiguo miembro",
     "aMember": "Un miembro",
     "aMemberInline": "un miembro",
+    "quantityTimes": "{{count}} × {{headline}}",
     "closeThisTab": "Ya puedes cerrar esta pestaña — el enlace está de camino a tu bandeja de entrada.",
     "alphaNotice": "OIUEEI está en fase alfa: nada está terminado y encontrarás bordes sin pulir.",
     "colActions": "Acciones"
@@ -367,6 +368,7 @@
     "depositRefundableNote": "(se devuelve)",
     "unitsCount_one": "{{count}} unidad",
     "unitsCount_other": "{{count}} unidades",
+    "unitsFreeToday": "Disponibles hoy: {{free}} de {{units}}",
     "pausedRange": "Sin reservas del {{from}} al {{until}}",
     "pausedDay": "Sin reservas el {{date}}",
     "availabilityLabel": "Disponibilidad.",
@@ -450,6 +452,10 @@
     "noFreeDaysSoon": "Sin días libres próximamente",
     "priceLabel": "Precio:",
     "priceValue": "{{fee}} EUR",
+    "quantityLabel": "¿Cuántos?",
+    "quantityHelp": "Hasta {{units}}. Los días en que no quedan tantos libres salen en gris en el calendario.",
+    "priceTotal": "Precio: {{count}} × {{unit}} = {{total}}",
+    "depositTotal": "Fianza: {{count}} × {{unit}} = {{total}}",
     "startLabel": "Inicio",
     "endLabel": "Fin",
     "startRequired": "La fecha de inicio es obligatoria.",
@@ -1255,6 +1261,9 @@
     "reservation_max_active_one": "Ya tienes 1 reserva activa aquí: es el máximo que permite esta colección.",
     "reservation_max_active_other": "Ya tienes {{count}} reservas activas aquí: es el máximo que permite esta colección.",
     "reservation_one_per_person": "Ya tienes una reserva de esto a esa hora.",
+    "not_enough_units": "No quedan {{count}} libres en esas fechas.",
+    "loan_one_per_person": "Ya tienes una solicitud de esto en esas fechas. Para cambiar la cantidad, cancélala y vuelve a pedir.",
+    "quantity_invalid": "Pide entre 1 y {{max}}.",
     "thing_paused": "Esta cosa está en pausa en esas fechas.",
     "reservation_needs_days": "Esto se reserva por días: elige cuántos.",
     "reservation_needs_times": "Esto se reserva por horas: elige una hora de inicio.",
@@ -1318,7 +1327,8 @@
     "priceLibrary": "Precio del alquiler (opcional)",
     "priceLibraryHelp": "Sin precio, se presta gratis.",
     "unitsLabel": "¿Cuántas iguales hay?",
-    "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una."
+    "unitsHelp": "Si tienes varias iguales, se pueden reservar a la vez hasta este número. Cada persona reserva una.",
+    "unitsHelpLibrary": "Si tienes varias iguales, se pueden pedir varias a la vez, hasta este número."
   },
   "collectionSettings": {
     "menu": "Ajustes",

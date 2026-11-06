@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification } from 'hds-react';
-import { DETAIL_TYPES, clampUnits, deriveThingType } from '../constants/things';
+import { DETAIL_TYPES, clampUnits, deriveThingType, kindHasUnits } from '../constants/things';
 import { membersPriceFromVerbs } from '../utils/collectionKind';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
@@ -155,8 +155,8 @@ export default function AddThingPage() {
     if (kind === 'STALL' && isEndless) {
       body.is_endless = true;
     }
-    // Only a shed's space has several identical ones.
-    if (kind === 'SHED') body.units = clampUnits(units);
+    // Only a shed's space and a library's thing have several identical ones.
+    if (kindHasUnits(kind)) body.units = clampUnits(units);
     try {
       const res = await apiFetch('/api/v1/things/', {
         method: 'POST',

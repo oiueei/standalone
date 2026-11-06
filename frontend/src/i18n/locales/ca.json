@@ -127,6 +127,7 @@
     "formerMember": "Antic membre",
     "aMember": "Un membre",
     "aMemberInline": "un membre",
+    "quantityTimes": "{{count}} × {{headline}}",
     "closeThisTab": "Ja pots tancar aquesta pestanya — l'enllaç ja és de camí a la teva safata d'entrada.",
     "alphaNotice": "OIUEEI és en fase alfa: res no està acabat i hi trobaràs vores per polir.",
     "colActions": "Accions"
@@ -367,6 +368,7 @@
     "depositRefundableNote": "(es retorna)",
     "unitsCount_one": "{{count}} unitat",
     "unitsCount_other": "{{count}} unitats",
+    "unitsFreeToday": "Disponibles avui: {{free}} de {{units}}",
     "pausedRange": "Sense reserves del {{from}} al {{until}}",
     "pausedDay": "Sense reserves el {{date}}",
     "availabilityLabel": "Disponibilitat.",
@@ -450,6 +452,10 @@
     "noFreeDaysSoon": "Sense dies lliures properament",
     "priceLabel": "Preu:",
     "priceValue": "{{fee}} EUR",
+    "quantityLabel": "Quants?",
+    "quantityHelp": "Fins a {{units}}. Els dies en què no en queden tants de lliures surten en gris al calendari.",
+    "priceTotal": "Preu: {{count}} × {{unit}} = {{total}}",
+    "depositTotal": "Fiança: {{count}} × {{unit}} = {{total}}",
     "startLabel": "Inici",
     "endLabel": "Fi",
     "startRequired": "La data d'inici és obligatòria.",
@@ -1255,6 +1261,9 @@
     "reservation_max_active_one": "Ja tens 1 reserva activa aquí: és el màxim que permet aquesta col·lecció.",
     "reservation_max_active_other": "Ja tens {{count}} reserves actives aquí: és el màxim que permet aquesta col·lecció.",
     "reservation_one_per_person": "Ja tens una reserva d'això a aquesta hora.",
+    "not_enough_units": "No en queden {{count}} de lliures en aquestes dates.",
+    "loan_one_per_person": "Ja tens una sol·licitud d'això en aquestes dates. Per canviar la quantitat, cancel·la-la i torna a demanar.",
+    "quantity_invalid": "Demana'n entre 1 i {{max}}.",
     "thing_paused": "Aquesta cosa està en pausa en aquestes dates.",
     "reservation_needs_days": "Això es reserva per dies: tria quants.",
     "reservation_needs_times": "Això es reserva per hores: tria una hora d'inici.",
@@ -1318,7 +1327,8 @@
     "priceLibrary": "Preu del lloguer (opcional)",
     "priceLibraryHelp": "Sense preu, es presta de franc.",
     "unitsLabel": "Quantes n'hi ha d'iguals?",
-    "unitsHelp": "Si en tens diverses d'iguals, es poden reservar alhora fins a aquest nombre. Cada persona en reserva una."
+    "unitsHelp": "Si en tens diverses d'iguals, es poden reservar alhora fins a aquest nombre. Cada persona en reserva una.",
+    "unitsHelpLibrary": "Si en tens unes quantes d'iguals, se'n poden demanar unes quantes alhora, fins a aquest nombre."
   },
   "collectionSettings": {
     "menu": "Configuració",

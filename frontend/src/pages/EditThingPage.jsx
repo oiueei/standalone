@@ -8,6 +8,7 @@ import {
   KIND_THING_TYPES,
   clampUnits,
   deriveThingType,
+  kindHasUnits,
   kindOfThingType,
 } from '../constants/things';
 import { apiFetch, extractApiError } from '../services/api';
@@ -216,8 +217,8 @@ export default function EditThingPage() {
     if (kind === 'STALL') {
       body.is_endless = isEndless;
     }
-    // Only a shed's space has several identical ones.
-    if (kind === 'SHED') body.units = clampUnits(units);
+    // Only a shed's space and a library's thing have several identical ones.
+    if (kindHasUnits(kind)) body.units = clampUnits(units);
     // Only a thing with a calendar can be paused. Off sends both days empty: that is
     // what takes a pause off.
     if (hasCalendar) {

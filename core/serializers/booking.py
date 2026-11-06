@@ -76,6 +76,7 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "status",
+            "quantity",
             "project_note",
             "contact_phone",
             "can_remind_return",
@@ -154,6 +155,7 @@ class BookingPeriodOwnerCalendarSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "status",
+            "quantity",
             "project_note",
         ]
 
@@ -166,6 +168,9 @@ class ThingRequestWithDatesSerializer(serializers.Serializer):
 
     start_date = serializers.DateField()
     end_date = serializers.DateField()
+    # How many of a thing's identical units. The range is the thing's (1 to
+    # ``units``), judged by the service under its lock with a coded refusal.
+    quantity = serializers.IntegerField(required=False, default=1)
 
     def validate_start_date(self, value):
         """Validate that start_date is today or in the future."""
@@ -268,6 +273,7 @@ class MyBookingSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "status",
+            "quantity",
             "project_note",
         ]
 

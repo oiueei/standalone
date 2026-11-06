@@ -162,6 +162,30 @@ describe('the network’s filter by who lends', () => {
     expect(within(lenderRow()).queryByText(/Lulu|Hidden/)).toBeNull();
   });
 
+  test('the filter row and the hero line order the entities the same way, accents in their place', async () => {
+    const names = { FOUN01: 'Zeta', ENTA01: 'Àgora', ENTB01: 'Ateneu' };
+    const accented = {
+      ...NETWORK,
+      co_owners: NETWORK.co_owners.slice(0, 2),
+      points: Object.entries(names).map(([user, display_name]) => ({ user, display_name })),
+      things: [
+        thing('THG001', 'FOUN01', 'Ladder', { network_point: { display_name: 'Zeta' } }),
+        thing('THG002', 'ENTA01', 'Drill', { network_point: { display_name: 'Àgora' } }),
+        thing('THG003', 'ENTB01', 'Rake', { network_point: { display_name: 'Ateneu' } }),
+      ],
+    };
+    await openAt('/library/COL001', 'Drill', accented);
+
+    const chips = within(lenderRow())
+      .getAllByRole('button')
+      .map((b) => b.textContent.replace(/ \(\d+\)$/, ''));
+    expect(chips).toEqual(['All', 'Àgora', 'Ateneu', 'Zeta']);
+    const heroLine = document.querySelector('.form-hero').textContent;
+    expect(heroLine.indexOf('Àgora')).toBeGreaterThan(-1);
+    expect(heroLine.indexOf('Àgora')).toBeLessThan(heroLine.indexOf('Ateneu'));
+    expect(heroLine.indexOf('Ateneu')).toBeLessThan(heroLine.indexOf('Zeta'));
+  });
+
   test('pressing one filters the cards and puts the dinamizador in the address', async () => {
     await openAt('/library/COL001', 'Drill');
 

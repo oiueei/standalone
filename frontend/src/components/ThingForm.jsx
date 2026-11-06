@@ -5,6 +5,7 @@ import {
   DETAIL_TYPES,
   AVAILABILITY_VALUES,
   CONDITION_VALUES,
+  kindHasUnits,
 } from '../constants/things';
 import ImageUpload from './ImageUpload';
 import GalleryUpload from './GalleryUpload';
@@ -34,8 +35,8 @@ import hdsLang from '../utils/hdsLang';
  * (a thing with no collection, or one a mixed collection kept from the other
  * family): the line under the price ("No price, it's a gift") would promise what does
  * not happen, so the label is the neutral one and the line is left out.
- * A shed's space also asks how many identical ones there are (`units`, 1 to 20): up to
- * that many can be booked at once.
+ * A shed's space and a library's thing also ask how many identical ones there are
+ * (`units`, 1 to 20): up to that many can be booked, or lent out, at once.
  * `idPrefix` is `add-thing` or `edit-thing`.
  */
 export default function ThingForm({
@@ -86,7 +87,7 @@ export default function ThingForm({
     : undefined;
 
   const showEndless = kind === 'STALL';
-  const showUnits = kind === 'SHED';
+  const showUnits = kindHasUnits(kind);
   const showFee = priceAllowed;
   // Deposit is a guarantee that comes back, not part of the price — a library's
   // things only. Its own gate, never the price's: a rental carries both, a loan only
@@ -175,7 +176,7 @@ export default function ThingForm({
         <NumberInput
           id={`${idPrefix}-units`}
           label={t('thingForm.unitsLabel')}
-          helperText={t('thingForm.unitsHelp')}
+          helperText={t(kind === 'LIBRARY' ? 'thingForm.unitsHelpLibrary' : 'thingForm.unitsHelp')}
           value={units === '' ? '' : Number(units)}
           onChange={(e) => setUnits(e.target.value)}
           min={1}

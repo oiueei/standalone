@@ -133,6 +133,7 @@
     "formerMember": "Former member",
     "aMember": "A member",
     "aMemberInline": "a member",
+    "quantityTimes": "{{count}} × {{headline}}",
     "closeThisTab": "You can close this tab now — the link is on its way to your inbox.",
     "alphaNotice": "OIUEEI is in alpha: nothing is finished and you will find rough edges.",
     "colActions": "Actions"
@@ -373,6 +374,7 @@
     "depositRefundableNote": "(refundable)",
     "unitsCount_one": "{{count}} unit",
     "unitsCount_other": "{{count}} units",
+    "unitsFreeToday": "Available today: {{free}} of {{units}}",
     "pausedRange": "No bookings from {{from}} to {{until}}",
     "pausedDay": "No bookings on {{date}}",
     "availabilityLabel": "Availability.",
@@ -456,6 +458,10 @@
     "noFreeDaysSoon": "No free days coming up",
     "priceLabel": "Price:",
     "priceValue": "{{fee}} EUR",
+    "quantityLabel": "How many?",
+    "quantityHelp": "Up to {{units}}. Days with fewer than that free are greyed out in the calendar.",
+    "priceTotal": "Price: {{count}} × {{unit}} = {{total}}",
+    "depositTotal": "Deposit: {{count}} × {{unit}} = {{total}}",
     "startLabel": "Start",
     "endLabel": "End",
     "startRequired": "Start date is required.",
@@ -1255,6 +1261,9 @@
     "reservation_max_active_one": "You already have 1 active reservation here — the most this collection allows.",
     "reservation_max_active_other": "You already have {{count}} active reservations here — the most this collection allows.",
     "reservation_one_per_person": "You already have a booking of this at that time.",
+    "not_enough_units": "There aren't {{count}} free on those dates.",
+    "loan_one_per_person": "You already have a request for this on those dates. To change how many, cancel it and ask again.",
+    "quantity_invalid": "Ask for between 1 and {{max}}.",
     "thing_paused": "This thing is paused on those dates.",
     "reservation_needs_days": "This is booked by the day — pick how many days.",
     "reservation_needs_times": "This is booked by the hour — pick a start time.",
@@ -1318,7 +1327,8 @@
     "priceLibrary": "Rental price (optional)",
     "priceLibraryHelp": "No price, it's lent for free.",
     "unitsLabel": "How many identical ones are there?",
-    "unitsHelp": "If you have several identical ones, they can be booked at the same time up to this number. Each person books one."
+    "unitsHelp": "If you have several identical ones, they can be booked at the same time up to this number. Each person books one.",
+    "unitsHelpLibrary": "If you have several identical ones, people can borrow several at once, up to this number."
   },
   "collectionSettings": {
     "menu": "Settings",

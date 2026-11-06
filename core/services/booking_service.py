@@ -464,6 +464,8 @@ def _notify_team_of_decision(booking, thing, collection, decider, accepted):
             "thing_code": thing.code,
             "collection_code": collection.code if collection else "",
         }
+        if booking.quantity > 1:
+            payload["quantity"] = booking.quantity
         if booking.start_date and booking.end_date:
             payload["start_date"] = str(booking.start_date)
             payload["end_date"] = str(booking.end_date)
@@ -528,6 +530,8 @@ def finalize_booking_decision(booking, accepted, decided_by=None):
         "thing_code": thing.code,
         "collection_code": collection.code if collection else "",
     }
+    if booking.quantity > 1:
+        payload["quantity"] = booking.quantity
     if booking.start_date and booking.end_date:
         # A loan or rental ran for dates: the requester's notice says which,
         # under the body, the way their request told the owner (2026-09-29).
@@ -697,8 +701,14 @@ def request_date_based_booking(
     end_date,
     rental_collection=None,
     collection_code=None,
+    quantity=1,
 ):
-    """LEND/RENT — date-based booking with rental-rules + overlap enforcement."""
+    """LEND/RENT — date-based booking with rental-rules + overlap enforcement.
+
+    ``quantity`` is how many of a thing's identical units the request holds (1 to
+    ``thing.units``). With several units: one live request per person on the same
+    dates, and the request must fit among the units still free.
+    """
     require_a_seat(thing, requester)
     # Enforce the collection's rental rules (fixed durations + allowed pickup/
     # return weekdays). The frontend already prevents these — server-side backstop.
@@ -715,7 +725,34 @@ def request_date_based_booking(
         if locked.pause_overlaps(start_date, end_date):
             raise _thing_paused()
 
-        if BookingPeriod.has_overlap(thing.code, start_date, end_date):
+        if quantity is None or not 1 <= quantity <= locked.units:
+            raise BookingRequestError(
+                f"Ask for between 1 and {locked.units}.",
+                code="quantity_invalid",
+                params={"max": locked.units},
+            )
+
+        if locked.units > 1:
+            # One live request per person and thing on the same dates: to change how
+            # many, cancel the pending one and ask again.
+            if BookingPeriod.has_overlap(
+                thing.code, start_date, end_date, requester_code=requester.code
+            ):
+                raise BookingRequestError(
+                    "You already have a request for this on those dates.",
+                    status_code=409,
+                    code="loan_one_per_person",
+                )
+            if BookingPeriod.has_overlap(
+                thing.code, start_date, end_date, units=locked.units, quantity=quantity
+            ):
+                raise BookingRequestError(
+                    f"There aren't {quantity} free on those dates.",
+                    status_code=409,
+                    code="not_enough_units",
+                    params={"count": quantity},
+                )
+        elif BookingPeriod.has_overlap(thing.code, start_date, end_date):
             raise BookingRequestError(
                 "Selected dates overlap with existing booking",
                 status_code=409,
@@ -731,6 +768,7 @@ def request_date_based_booking(
             owner_code=thing.owner,
             start_date=start_date,
             end_date=end_date,
+            quantity=quantity,
         )
 
     send_booking_request_notifications(requester, thing, booking, collection_code)
@@ -830,6 +868,8 @@ def send_booking_request_notifications(requester, thing, booking, collection_cod
         "thing_code": thing.code,
         "collection_code": collection.code if collection else "",
     }
+    if booking.quantity > 1:
+        payload["quantity"] = booking.quantity
     if booking.start_date and booking.end_date:
         # A loan or rental asks for dates: the inbox says which, under the
         # body, the way a reservation notice does. GIFT/SELL carry none.

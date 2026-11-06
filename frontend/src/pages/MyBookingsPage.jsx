@@ -16,6 +16,7 @@ import CancelReservationDialog from '../components/CancelReservationDialog';
 import ResponsiveTable from '../components/ResponsiveTable';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { errorKey, translateError } from '../utils/errorKey';
+import { withQuantity } from '../utils/quantity';
 
 // Booking status is a semantic state — HDS StatusLabel owns this (no hardcoded
 // green/red hex). The thing *type* stays a plain Tag (it's a category, not a state).
@@ -142,7 +143,7 @@ export default function MyBookingsPage() {
     _type: b.thing_type,
     _status: b.status,
     _thingCode: b.thing_code,
-    _thingHeadline: L(b.thing_headline) || b.thing_code,
+    _thingHeadline: withQuantity(t, L(b.thing_headline) || b.thing_code, b.quantity),
     _ownerName: b.owner_name,
     _startDate: b.start_date,
     _endDate: b.end_date,

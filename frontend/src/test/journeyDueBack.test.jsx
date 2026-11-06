@@ -151,3 +151,72 @@ describe('Journey names, signed out', () => {
     expect(await screen.findByText(/Former member/)).toBeInTheDocument();
   });
 });
+
+/**
+ * With several identical units several people may hold one at once, so the server
+ * names no current holder and the page has no "Currently with" line; with one unit
+ * it is there as ever.
+ */
+describe('Journey — who has it now', () => {
+  const withHolder = (name) => {
+    apiFetch.mockImplementation((url) => {
+      if (url.includes('/transfers/')) {
+        return ok({
+          ...journey(false),
+          current_holder: name ? 'BOR001' : null,
+          current_holder_name: name,
+        });
+      }
+      if (url.includes('/faq/')) return ok({ results: [] });
+      if (url.includes('/calendar/')) return ok([]);
+      if (url.includes('/things/')) return ok(THING);
+      return ok({});
+    });
+  };
+
+  test('names the current holder when the server does', async () => {
+    withHolder('Lele');
+    renderThing();
+
+    expect(await screen.findByText('Currently with Lele')).toBeInTheDocument();
+  });
+
+  test('has no such line when the server sends none', async () => {
+    withHolder(null);
+    renderThing();
+
+    await screen.findByText(/Returned on/);
+    expect(screen.queryByText(/Currently with/)).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * The owner's list of a thing's bookings says how many of it a request holds.
+ */
+describe('The thing page — a request for several in the owner’s list', () => {
+  test('names the thing with how many, before who and when', async () => {
+    localStorage.setItem('userCode', 'OWN001');
+    apiFetch.mockImplementation((url) => {
+      if (url.includes('/transfers/')) return ok({ ...journey(false), total_transfers: 0 });
+      if (url.includes('/faq/')) return ok({ results: [] });
+      if (url.includes('/calendar/')) {
+        return ok([
+          {
+            code: 'BKG001',
+            status: 'ACCEPTED',
+            requester_name: 'Lele',
+            quantity: 4,
+            created: '2026-07-20T10:00:00Z',
+            start_date: '2099-10-05',
+            end_date: '2099-10-06',
+          },
+        ]);
+      }
+      if (url.includes('/things/')) return ok({ ...THING, can_manage: true, units: 6 });
+      return ok({});
+    });
+    renderThing();
+
+    expect(await screen.findByText(/4 × A cordless drill\. Lele\./)).toBeInTheDocument();
+  });
+});

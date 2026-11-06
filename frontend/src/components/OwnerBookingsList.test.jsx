@@ -56,3 +56,49 @@ describe('OwnerBookingsList', () => {
     expect(screen.queryByText(/06\/10\/2026/)).toBeNull();
   });
 });
+
+describe('OwnerBookingsList — a request for several', () => {
+  const several = { ...wholeDayBooking, requester_name: 'Lele', quantity: 4 };
+
+  test('says how many of the thing, before who and when', () => {
+    render(
+      <OwnerBookingsList
+        bookings={[several]}
+        activePendingCode={null}
+        isOwner={true}
+        thingHeadline="Arduino kit"
+      />
+    );
+
+    expect(screen.getByText(/^4 × Arduino kit\. Lele\./)).toBeInTheDocument();
+  });
+
+  test.each([
+    ['one', { ...several, quantity: 1 }],
+    ['none said', { ...several, quantity: undefined }],
+  ])('says nothing of it with %s', (_, booking) => {
+    render(
+      <OwnerBookingsList
+        bookings={[booking]}
+        activePendingCode={null}
+        isOwner={true}
+        thingHeadline="Arduino kit"
+      />
+    );
+
+    expect(screen.queryByText(/×/)).toBeNull();
+  });
+
+  test('resolves a headline written in several languages', () => {
+    render(
+      <OwnerBookingsList
+        bookings={[several]}
+        activePendingCode={null}
+        isOwner={true}
+        thingHeadline='{"en":"Arduino kit","es":"Kit de Arduino"}'
+      />
+    );
+
+    expect(screen.getByText(/4 × Arduino kit/)).toBeInTheDocument();
+  });
+});

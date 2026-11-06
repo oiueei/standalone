@@ -199,6 +199,7 @@ TEXTS = {
     "decision_plain": (
         "Tu solicitud de {action} de '{thing}' ha sido {decision}. Ver la publicación: {url}"
     ),
+    "quantity_times": "{count} × {headline}",
     "decision_by_confirmed": "{who} ha aceptado tu solicitud de {action}:",
     "decision_by_declined": "{who} ha rechazado tu solicitud de {action}:",
     "point_name_label": "Punto de recogida",

@@ -203,6 +203,7 @@ TEXTS = {
         "Your {action} request for '{thing}' {when} has been {decision}. View thing: {url}"
     ),
     "decision_plain": "Your {action} request for '{thing}' has been {decision}. View thing: {url}",
+    "quantity_times": "{count} × {headline}",
     "decision_by_confirmed": "{who} has accepted your {action} request:",
     "decision_by_declined": "{who} has declined your {action} request:",
     "point_name_label": "Pickup point",

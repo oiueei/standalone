@@ -7,6 +7,7 @@ import {
   IconLocation,
   IconShield,
   IconLayers,
+  IconCheckCircle,
   IconCrossCircle,
 } from 'hds-react';
 import { formatDate } from '../utils/rental';
@@ -84,6 +85,15 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
         <div className="thing-card-info-row">
           <IconLayers size="m" aria-hidden="true" />
           <span>{t('thingPage.unitsCount', { count: thing.units })}</span>
+        </div>
+      )}
+      {/* And how many of them are free today, for a loan or a rental with several. */}
+      {thing.units > 1 && thing.units_free_today > 0 && (
+        <div className="thing-card-info-row">
+          <IconCheckCircle size="m" aria-hidden="true" />
+          <span>
+            {t('thingPage.unitsFreeToday', { free: thing.units_free_today, units: thing.units })}
+          </span>
         </div>
       )}
       {/* A pause in force (the server sends no days once it has passed): one day or a

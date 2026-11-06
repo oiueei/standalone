@@ -232,6 +232,8 @@ def _event_lines(booking, texts, lang, collection_headline, now):
     """One VEVENT for one reservation."""
     thing = booking.thing_code
     headline = resolve_localized(thing.headline, lang)
+    if booking.quantity > 1:
+        headline = f"{booking.quantity} × {headline}"
     person = (booking.requester_code.name or "").strip() or texts["a_member"]
     summary = texts[f"subject_{booking.thing_type}"].format(thing=headline, person=person)
 

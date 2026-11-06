@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.models import Collection, Thing
-from core.models.booking import DATE_BASED_TYPES
+from core.models.booking import DATE_BASED_TYPES, RETURNABLE_TYPES
 from core.serializers.booking import (
     ReservationRequestSerializer,
     ThingRequestWithDatesSerializer,
@@ -36,6 +36,14 @@ from core.services.booking_service import (
 )
 from core.services.team import managers_ready_collections
 from core.views._helpers import body_dict, deny_if_cannot_view, refusal_body
+
+
+def _asks_for_several(request):
+    """Whether the body names a ``quantity`` other than 1."""
+    data = body_dict(request)
+    if "quantity" not in data or data["quantity"] is None:
+        return False
+    return data["quantity"] != 1 and str(data["quantity"]).strip() != "1"
 
 
 class ThingRequestView(APIView):
@@ -123,6 +131,12 @@ class ThingRequestView(APIView):
         collection_code = body_dict(request).get("collection_code")
 
         try:
+            if thing.type not in RETURNABLE_TYPES and _asks_for_several(request):
+                # Only a loan or a rental can hold several units: a reservation takes
+                # one space and a gift or a sale one thing.
+                raise BookingRequestError(
+                    "Ask for between 1 and 1.", code="quantity_invalid", params={"max": 1}
+                )
             if thing.type == Thing.Type.RESERVE_THING:
                 return self._request_reservation(request, thing, owner_email, collection_code)
             if thing.type in DATE_BASED_TYPES:
@@ -191,6 +205,7 @@ class ThingRequestView(APIView):
             end_date,
             rental_collection,
             collection_code,
+            quantity=serializer.validated_data["quantity"],
         )
         return Response(
             {
@@ -198,6 +213,7 @@ class ThingRequestView(APIView):
                 "booking_code": booking.code,
                 "start_date": str(start_date),
                 "end_date": str(end_date),
+                "quantity": booking.quantity,
             },
             status=status.HTTP_201_CREATED,
         )

@@ -1211,3 +1211,30 @@ describe('OwnerBookingsPage — the contact phone under the address', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+describe('OwnerBookingsPage — a request for several', () => {
+  test('names the thing with how many', async () => {
+    mockApi([
+      {
+        results: [
+          booking({ quantity: 4 }),
+          booking({ code: 'BKG002', thing_headline: 'Tent', thing_code: 'THG002' }),
+        ],
+        next: null,
+      },
+    ]);
+    renderPage();
+
+    expect(await screen.findAllByText('4 × Cordless drill')).not.toHaveLength(0);
+    expect(screen.getAllByText('Tent')).not.toHaveLength(0);
+    expect(screen.queryByText('4 × Tent')).toBeNull();
+  });
+
+  test('and on a phone’s card', async () => {
+    mockMatchMedia(PHONE);
+    mockApi([{ results: [booking({ quantity: 2 })], next: null }]);
+    renderPage();
+
+    expect(await screen.findByText('2 × Cordless drill')).toBeInTheDocument();
+  });
+});

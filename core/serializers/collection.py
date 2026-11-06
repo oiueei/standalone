@@ -50,6 +50,7 @@ class CollectionThingSummarySerializer(ThingComputedFieldsMixin, serializers.Mod
             "fee",
             "availability",
             "available_today",
+            "units_free_today",
             "next_available",
             "paused_from",
             "paused_until",

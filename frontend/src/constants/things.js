@@ -13,6 +13,17 @@ export const clampUnits = (value) => {
   return Number.isFinite(n) && n >= 1 ? Math.min(20, n) : 1;
 };
 
+/** Whether a thing of this kind of collection can have several identical ones: a shed's
+ *  space (booked at the same time) and a library's thing (lent out at the same time). */
+export const kindHasUnits = (kind) => kind === 'SHED' || kind === 'LIBRARY';
+
+/** A price or a deposit times how many are asked for, written the way the amount came
+ *  ("5.00" gives "30.00", "5" gives "30"): the total the request page shows. */
+export const amountTimes = (value, count) => {
+  const total = Number(value) * count;
+  return String(value).includes('.') ? total.toFixed(2) : String(Math.round(total * 100) / 100);
+};
+
 // Types booked by date. RESERVE is date-based too (pickup date + duration), so
 // its reserve button navigates to RequestThingPage like LEND/RENT.
 export const DATE_TYPES = ['LEND_THING', 'RENT_THING', 'RESERVE_THING'];

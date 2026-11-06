@@ -778,3 +778,23 @@ describe('MyBookingsPage — the bold links of the table', () => {
     }
   });
 });
+
+describe('MyBookingsPage — a request for several', () => {
+  test('names the thing with how many, in the table', async () => {
+    mockList([booking({ quantity: 4 }), booking({ code: 'BKG002', thing_headline: 'Tent' })]);
+    renderPage();
+
+    expect(await screen.findByText('4 × Cordless drill')).toBeInTheDocument();
+    // One is the name as it was.
+    expect(screen.getByText('Tent')).toBeInTheDocument();
+    expect(screen.getAllByText(/×/)).toHaveLength(1);
+  });
+
+  test('and on a phone’s card', async () => {
+    mockMatchMedia(PHONE);
+    mockList([booking({ quantity: 3 })]);
+    renderPage();
+
+    expect(await screen.findByText('3 × Cordless drill')).toBeInTheDocument();
+  });
+});

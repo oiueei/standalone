@@ -176,16 +176,16 @@ describe('the units field of the thing form', () => {
     expect(screen.getByText(en.thingForm.unitsHelp)).toBeInTheDocument();
   });
 
-  test.each([
-    ['a stall', { kind: 'STALL', allowed_thing_types: ['GIFT_THING', 'SELL_THING'] }],
-    ['a library', { kind: 'LIBRARY', allowed_thing_types: ['LEND_THING', 'RENT_THING'] }],
-  ])('%s does not ask for it', async (_, collection) => {
-    const { container } = await renderAdd({ ...collection, headline: 'Group' });
-    await screen.findByLabelText(/Title/);
+  test.each([['a stall', { kind: 'STALL', allowed_thing_types: ['GIFT_THING', 'SELL_THING'] }]])(
+    '%s does not ask for it',
+    async (_, collection) => {
+      const { container } = await renderAdd({ ...collection, headline: 'Group' });
+      await screen.findByLabelText(/Title/);
 
-    expect(container.querySelector('[id$="-units"]')).toBeNull();
-    expect(screen.queryByLabelText(en.thingForm.unitsLabel)).toBeNull();
-  });
+      expect(container.querySelector('[id$="-units"]')).toBeNull();
+      expect(screen.queryByLabelText(en.thingForm.unitsLabel)).toBeNull();
+    }
+  );
 
   test('what is typed is sent when a shed’s space is created', async () => {
     const { container } = await renderAdd(SHED);
@@ -274,16 +274,16 @@ describe('the units field of the thing form', () => {
     expect(await unitsInput(container, 'edit-thing')).toHaveValue(1);
   });
 
-  test('editing a loan neither shows nor sends it', async () => {
+  test('editing a gift neither shows nor sends it', async () => {
     const { container } = await renderEdit({
       code: 'THG001',
-      type: 'LEND_THING',
-      collection_kind: 'LIBRARY',
-      collection_allowed_thing_types: ['LEND_THING', 'RENT_THING'],
-      headline: 'Drill',
+      type: 'GIFT_THING',
+      collection_kind: 'STALL',
+      collection_allowed_thing_types: ['GIFT_THING', 'SELL_THING'],
+      headline: 'Chair',
       description: '',
     });
-    await screen.findByDisplayValue('Drill');
+    await screen.findByDisplayValue('Chair');
     expect(container.querySelector('#edit-thing-units')).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
