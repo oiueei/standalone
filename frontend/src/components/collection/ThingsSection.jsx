@@ -5,6 +5,7 @@ import { Button } from 'hds-react';
 import ThingLinkbox from '../ThingLinkbox';
 import useTheeeme from '../../hooks/useTheeeme';
 import { useLocalized } from '../../utils/localized';
+import { compareNames } from '../../utils/team';
 import { collectionPath } from '../../utils/collectionPath';
 
 /**
@@ -28,7 +29,7 @@ const CARDS_PER_PAGE = 24;
  * of their pickup point and how many things they show, by name. A thing carries the
  * name its server resolved (`network_point.display_name`).
  */
-function lendersOf(collection, visibleThings, t) {
+function lendersOf(collection, visibleThings, t, language) {
   const curators = new Set([collection.owner, ...(collection.co_owners || []).map((c) => c.code)]);
   const byCode = new Map();
   for (const thing of visibleThings) {
@@ -43,7 +44,7 @@ function lendersOf(collection, visibleThings, t) {
       });
     }
   }
-  return [...byCode.values()].sort((a, b) => a.name.localeCompare(b.name));
+  return [...byCode.values()].sort(compareNames(language));
 }
 
 /**
@@ -60,7 +61,8 @@ export default function ThingsSection({
   onUpdateThing,
   onJoinedGroup,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage || i18n.language;
   const { btnSecondaryStyle } = useTheeeme();
   const L = useLocalized();
   const navigate = useNavigate();
@@ -83,7 +85,8 @@ export default function ThingsSection({
   // A network's dinamizadores that have something to show, each by the name of their
   // pickup point (the entity's, else their own — resolved by the server on the thing).
   // Only a dinamizador of this network counts, and only with a visible thing.
-  const lenders = collection.mode === 'NETWORK' ? lendersOf(collection, visibleThings, t) : [];
+  const lenders =
+    collection.mode === 'NETWORK' ? lendersOf(collection, visibleThings, t, language) : [];
   // An address naming anybody else (not a dinamizador, not a network) is the collection
   // as it is, with no error.
   const effectiveLender = lenders.some((l) => l.code === curatorCode) ? curatorCode : null;

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { collectionTeam, teamParts, teamText } from './team';
+import { collectionTeam, compareNames, teamParts, teamText } from './team';
 
 // A stand-in for `t` that shows the key and the count, so the rule is tested
 // apart from any language's wording.
@@ -24,7 +24,7 @@ describe('collectionTeam', () => {
     expect(collectionTeam({ owner: 'OWN001', owner_name: 'Lili' }).named).toHaveLength(1);
   });
 
-  test('the founder comes first, then the co-curators in the order given', () => {
+  test('everyone is in alphabetical order, the founder as one more', () => {
     const { named } = collectionTeam(
       group({
         co_owners: [
@@ -34,7 +34,73 @@ describe('collectionTeam', () => {
       })
     );
 
-    expect(named.map((member) => member.name)).toEqual(['Lili', 'Zoe', 'Abel']);
+    expect(named.map((member) => member.name)).toEqual(['Abel', 'Lili', 'Zoe']);
+  });
+
+  // The order is the alphabet of whoever reads: the accented capital sorts with its
+  // letter, not after Z, and case and accent do not break a tie.
+  test.each(['ca', 'es'])(
+    'in %s «Àlex» sorts between nobody and «Ana», the founder «Zoe» last',
+    (lang) => {
+      const { named } = collectionTeam(
+        group({
+          owner_name: 'Zoe',
+          co_owners: [
+            { code: 'CO0001', name: 'Ana' },
+            { code: 'CO0002', name: 'Àlex' },
+          ],
+        }),
+        lang
+      );
+
+      expect(named.map((member) => member.name)).toEqual(['Àlex', 'Ana', 'Zoe']);
+    }
+  );
+
+  test('«Çan» and «Éric» fall among the C and E, not after Z', () => {
+    const { named } = collectionTeam(
+      group({
+        owner_name: 'Zoe',
+        co_owners: [
+          { code: 'CO0001', name: 'Éric' },
+          { code: 'CO0002', name: 'Çan' },
+          { code: 'CO0003', name: 'Dora' },
+        ],
+      }),
+      'ca'
+    );
+
+    expect(named.map((member) => member.name)).toEqual(['Çan', 'Dora', 'Éric', 'Zoe']);
+  });
+
+  test('a member is placed by the name of their page in the group, not by their account', () => {
+    const { named } = collectionTeam(
+      group({
+        owner_name: 'Marta',
+        points: [{ user: 'CO0001', display_name: 'Ateneu' }],
+        co_owners: [{ code: 'CO0001', name: 'Zoe' }],
+      }),
+      'es'
+    );
+
+    expect(named.map((member) => member.name)).toEqual(['Ateneu', 'Marta']);
+  });
+
+  test('those with no name stay out of the order and are counted', () => {
+    const { named, unnamedCount } = collectionTeam(
+      group({
+        owner_name: '',
+        co_owners: [
+          { code: 'CO0001', name: '' },
+          { code: 'CO0002', name: 'Zoe' },
+          { code: 'CO0003', name: 'Ana' },
+        ],
+      }),
+      'es'
+    );
+
+    expect(named.map((member) => member.name)).toEqual(['Ana', 'Zoe']);
+    expect(unnamedCount).toBe(2);
   });
 
   test('someone with no name is counted, not listed — the founder included', () => {
@@ -59,6 +125,22 @@ describe('collectionTeam', () => {
   });
 });
 
+describe('compareNames', () => {
+  test('is the one comparator over anything carrying a name, per language', () => {
+    const lenders = [{ name: 'Zeta' }, { name: 'Àgora' }, { name: 'Ateneu' }];
+
+    expect(lenders.sort(compareNames('ca')).map((l) => l.name)).toEqual([
+      'Àgora',
+      'Ateneu',
+      'Zeta',
+    ]);
+  });
+
+  test('an unreadable language tag still compares', () => {
+    expect(compareNames('not a language')({ name: 'a' }, { name: 'b' })).toBeLessThan(0);
+  });
+});
+
 const MORE = (n) => `<collectionPage.curatorsMore:${n}>`;
 const pair = (...names) => names.map((name, i) => ({ code: `CO000${i + 1}`, name }));
 const nameless = (n) => Array.from({ length: n }, (_, i) => ({ code: `CO009${i}`, name: '' }));
@@ -71,10 +153,10 @@ describe('teamText', () => {
   // The conjunction and the commas are the language's own (`Intl.ListFormat`), in the
   // language that is on screen.
   test.each([
-    ['en', 'Lili and Zoe', 'Lili, Zoe, and Abel'],
-    ['es', 'Lili y Zoe', 'Lili, Zoe y Abel'],
-    ['ca', 'Lili i Zoe', 'Lili, Zoe i Abel'],
-  ])('in %s two names are "%s" and three are "%s", founder first', (language, two, three) => {
+    ['en', 'Lili and Zoe', 'Abel, Lili, and Zoe'],
+    ['es', 'Lili y Zoe', 'Abel, Lili y Zoe'],
+    ['ca', 'Lili i Zoe', 'Abel, Lili i Zoe'],
+  ])('in %s two names are "%s" and three are "%s", alphabetical', (language, two, three) => {
     expect(teamText(group({ co_owners: pair('Zoe') }), t, language)).toBe(two);
     expect(teamText(group({ co_owners: pair('Zoe', 'Abel') }), t, language)).toBe(three);
   });
@@ -87,9 +169,9 @@ describe('teamText', () => {
   });
 
   test.each([
-    ['en', `Lili, Abel, and ${MORE(2)}`, `Lili and ${MORE(1)}`],
-    ['es', `Lili, Abel y ${MORE(2)}`, `Lili y ${MORE(1)}`],
-    ['ca', `Lili, Abel i ${MORE(2)}`, `Lili i ${MORE(1)}`],
+    ['en', `Abel, Lili, and ${MORE(2)}`, `Lili and ${MORE(1)}`],
+    ['es', `Abel, Lili y ${MORE(2)}`, `Lili y ${MORE(1)}`],
+    ['ca', `Abel, Lili i ${MORE(2)}`, `Lili i ${MORE(1)}`],
   ])(
     'in %s the unnamed are the last element of the list: two names and two without, one and one',
     (language, twoAndTwo, oneAndOne) => {
@@ -112,7 +194,7 @@ describe('teamText', () => {
         t,
         'en'
       )
-    ).toBe(`Lili, Abel, and ${MORE(1)}`);
+    ).toBe(`Abel, Lili, and ${MORE(1)}`);
   });
 
   test('with nobody named there is nothing to say: an empty string, not "2 more people"', () => {
@@ -137,9 +219,9 @@ describe('teamText', () => {
 describe('teamParts', () => {
   test('is the members, the count and what the language puts between them, in order', () => {
     expect(teamParts(group({ co_owners: [...pair('Abel'), ...nameless(2)] }), t, 'en')).toEqual([
-      { type: 'member', member: { code: 'OWN001', name: 'Lili' } },
-      { type: 'literal', value: ', ' },
       { type: 'member', member: { code: 'CO0001', name: 'Abel' } },
+      { type: 'literal', value: ', ' },
+      { type: 'member', member: { code: 'OWN001', name: 'Lili' } },
       { type: 'literal', value: ', and ' },
       { type: 'more', text: MORE(2) },
     ]);

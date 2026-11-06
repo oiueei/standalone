@@ -603,7 +603,7 @@ describe('UserPage — My groups: the team in the language on screen', () => {
   // The founder is "Lili" in every case.
   const CASES = [
     ['en', 'two names', named('Lolo'), 'Lili and Lolo'],
-    ['en', 'three names', named('Lolo', 'Abel'), 'Lili, Lolo, and Abel'],
+    ['en', 'three names', named('Lolo', 'Abel'), 'Abel, Lili, and Lolo'],
     [
       'en',
       'two names and two without',
@@ -612,7 +612,7 @@ describe('UserPage — My groups: the team in the language on screen', () => {
     ],
     ['en', 'one name and one without', nameless(1), 'Lili and 1 more person'],
     ['es', 'two names', named('Lolo'), 'Lili y Lolo'],
-    ['es', 'three names', named('Lolo', 'Abel'), 'Lili, Lolo y Abel'],
+    ['es', 'three names', named('Lolo', 'Abel'), 'Abel, Lili y Lolo'],
     [
       'es',
       'two names and two without',
@@ -621,7 +621,7 @@ describe('UserPage — My groups: the team in the language on screen', () => {
     ],
     ['es', 'one name and one without', nameless(1), 'Lili y 1 persona más'],
     ['ca', 'two names', named('Lolo'), 'Lili i Lolo'],
-    ['ca', 'three names', named('Lolo', 'Abel'), 'Lili, Lolo i Abel'],
+    ['ca', 'three names', named('Lolo', 'Abel'), 'Abel, Lili i Lolo'],
     [
       'ca',
       'two names and two without',

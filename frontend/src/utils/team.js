@@ -9,9 +9,28 @@ export function teamMemberName(collection, member) {
 }
 
 /**
+ * The comparator every list of names follows, the team line and a network's lender
+ * filter alike: the alphabet of the language on screen, accents and case set aside
+ * (`sensitivity: 'base'`), so "Àgora" sorts with the A's and "Ça" with the C's.
+ * A tag the browser cannot make sense of falls back to its default language.
+ * Takes the language, returns a function over two things carrying a `name`.
+ */
+export function compareNames(language) {
+  const options = { sensitivity: 'base' };
+  let collator;
+  try {
+    collator = new Intl.Collator(language, options);
+  } catch {
+    collator = new Intl.Collator(undefined, options);
+  }
+  return (a, b) => collator.compare(a.name, b.name);
+}
+
+/**
  * Who runs a collection, in the one order and with the one rule every place that
- * names them follows: the founder first, then the co-curators; those with a name
- * are named, those without are only counted — at the end.
+ * names them follows: everyone alphabetically by the name they are shown under, the
+ * founder as one more (`compareNames`, in the language of whoever reads); those with a
+ * name are named, those without are only counted — at the end.
  *
  * Each is called by the name of their page in the group (`teamMemberName`).
  *
@@ -25,12 +44,12 @@ export function teamMemberName(collection, member) {
  * column of "My groups" on the own profile (plain text) both read it, so the two
  * cannot come to disagree about who is on the team or how it is written.
  */
-export function collectionTeam(collection) {
+export function collectionTeam(collection, language) {
   const team = [
     { code: collection.owner, name: collection.owner_name },
     ...(collection.co_owners ?? []),
   ].map((member) => ({ ...member, name: teamMemberName(collection, member) }));
-  const named = team.filter((member) => member.name);
+  const named = team.filter((member) => member.name).sort(compareNames(language));
   return { named, unnamedCount: team.length - named.length };
 }
 
@@ -72,7 +91,7 @@ export function formatList(words, language) {
  * renders them one by one, with a `Link` for each member; `teamText` joins them.
  */
 export function teamParts(collection, t, language) {
-  const { named, unnamedCount } = collectionTeam(collection);
+  const { named, unnamedCount } = collectionTeam(collection, language);
   if (named.length === 0) return [];
   const elements = named.map((member) => ({ type: 'member', member }));
   if (unnamedCount > 0) {

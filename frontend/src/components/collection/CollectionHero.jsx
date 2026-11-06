@@ -83,8 +83,8 @@ export default function CollectionHero({
   // server-computed field that also admits a co-owner.
   const isOwner = userCode === collection.owner;
   const isCurator = !!collection.is_curator;
-  // The team the hero names, founder first, whoever has no name counted at the
-  // end rather than listed, written as the language on screen writes a list
+  // The team the hero names, alphabetically by the name each is shown under (the
+  // founder as one more), whoever has no name counted at the end rather than listed, written as the language on screen writes a list
   // ("A y B", "A, B y C") — one rule (`utils/team.js`) shared with the "Run by"
   // column of "My groups", so the two cannot disagree. The pieces come apart so
   // each name can be a link.
@@ -245,7 +245,8 @@ export default function CollectionHero({
             <p className="form-hero-text">{t('collectionPage.networkNote')}</p>
           )}
           {/* Attribution. With co-curators, one line names the whole team,
-                founder first, everyone at the same level and shown to everyone
+                alphabetical by the name each is shown under (the founder as one
+                more), everyone at the same level and shown to everyone
                 (2026-09); whoever has no name is counted at the end, not
                 linked, and with nobody named there is no line. Without, the
                 single founder line, and only to non-owners — the owner knows

@@ -2015,7 +2015,7 @@ describe('CollectionPage as a co-owner', () => {
     );
   });
 
-  test('the hero names the whole team on one "Run by:" line, founder first', async () => {
+  test('the hero names the whole team on one "Run by:" line, alphabetical', async () => {
     apiFetch.mockImplementation((url) =>
       url.startsWith('/api/v1/inbox/')
         ? Promise.resolve({ ok: true, status: 200, json: async () => [] })
@@ -2041,9 +2041,9 @@ describe('CollectionPage as a co-owner', () => {
     );
 
     const line = (await screen.findByText(/Run by:/)).closest('p');
-    // founder first, then each co-curator, all linked — written as English writes a
+    // alphabetical, the founder as one more, all linked — written as English writes a
     // list of three: commas, and the conjunction before the last
-    expect(line).toHaveTextContent('Run by: The Founder, Me, and Nil');
+    expect(line).toHaveTextContent('Run by: Me, Nil, and The Founder');
     expect(within(line).getByRole('link', { name: 'The Founder' })).toHaveAttribute(
       'href',
       '/collections/COL001/organisation/OTHER1'
@@ -2130,11 +2130,11 @@ describe('CollectionPage as a co-owner', () => {
       renderTeamHero('en', { ...fields, co_owners: TEAM });
 
       const line = (await screen.findByText('Run by:')).closest('p');
-      expect(line).toHaveTextContent('Run by: The Founder, Me, and Nil');
+      expect(line).toHaveTextContent('Run by: Me, Nil, and The Founder');
       expect(links(line)).toEqual([
-        ['The Founder', page('OTHER1')],
         ['Me', page('ABC123')],
         ['Nil', page('XYZ999')],
+        ['The Founder', page('OTHER1')],
       ]);
     });
 
@@ -2163,8 +2163,8 @@ describe('CollectionPage as a co-owner', () => {
       });
 
       const line = (await screen.findByText('Run by:')).closest('p');
-      expect(line).toHaveTextContent('Run by: The Founder, Me, and 1 more person');
-      expect(links(line).map(([name]) => name)).toEqual(['The Founder', 'Me']);
+      expect(line).toHaveTextContent('Run by: Me, The Founder, and 1 more person');
+      expect(links(line).map(([name]) => name)).toEqual(['Me', 'The Founder']);
     });
 
     test.each(Object.keys(viewers))(
@@ -2221,8 +2221,8 @@ describe('CollectionPage as a co-owner', () => {
       renderTeamHero('en', { co_owners: [{ code: 'XYZ999', name: 'Nil' }, nameless('XYZ001')] });
 
       const line = (await screen.findByText('Run by:')).closest('p');
-      expect(line).toHaveTextContent(/^Run by: The Founder, Nil, and 1 more person$/);
-      expect(linked(line)).toEqual(['The Founder', 'Nil']);
+      expect(line).toHaveTextContent(/^Run by: Nil, The Founder, and 1 more person$/);
+      expect(linked(line)).toEqual(['Nil', 'The Founder']);
     });
 
     test('two named and two without a name: "A, B, and 2 more people"', async () => {
@@ -2231,8 +2231,8 @@ describe('CollectionPage as a co-owner', () => {
       });
 
       const line = (await screen.findByText('Run by:')).closest('p');
-      expect(line).toHaveTextContent(/^Run by: The Founder, Nil, and 2 more people$/);
-      expect(linked(line)).toEqual(['The Founder', 'Nil']);
+      expect(line).toHaveTextContent(/^Run by: Nil, The Founder, and 2 more people$/);
+      expect(linked(line)).toEqual(['Nil', 'The Founder']);
     });
 
     test('a founder with no name is one of the people counted', async () => {
@@ -2282,7 +2282,7 @@ describe('CollectionPage as a co-owner', () => {
       });
 
       const line = (await screen.findByText(label)).closest('p');
-      expect(line).toHaveTextContent(`${label} El Fundador, Yo ${and} Nil`);
+      expect(line).toHaveTextContent(`${label} El Fundador, Nil ${and} Yo`);
       expect(screen.getAllByText(label)).toHaveLength(1);
     });
 
