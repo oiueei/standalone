@@ -603,7 +603,7 @@ Lists pending collection invitations (not yet accepted) for the current user. Re
 | **Permission** | `IsAuthenticated` + collection curator (owner or co-owner) |
 | **Rate limit** | POST: 30 requests/hour per user. DELETE: unrestricted. |
 
-Curator management of the public share token — a co-owner may generate, rotate and revoke it just like the owner. The token is a 22-character URL-safe bearer credential (`secrets.token_urlsafe(16)`); anyone with the resulting `/share/{token}` link can join the collection by completing the join flow. The token is intentionally excluded from `CollectionSerializer` and any other read endpoint — it must never leak.
+Curator management of the public share token — a co-owner may generate, rotate and revoke it just like the owner. **In a NETWORK rotating (`rotate` on an existing token) and revoking are the founder's alone** (403 `network_founder_only`): they would kill the links and QR codes the other entities handed out. Generating the first link and reading the existing one stay any dinamizador's; `ShareCollectionMenu` shows rotate/revoke only with `canTakeBack` (the hero passes `canEditCollection`). The token is a 22-character URL-safe bearer credential (`secrets.token_urlsafe(16)`); anyone with the resulting `/share/{token}` link can join the collection by completing the join flow. The token is intentionally excluded from `CollectionSerializer` and any other read endpoint — it must never leak.
 
 **`POST` behaviour:**
 - Generates a new token if none exists. Returns the existing token unchanged on subsequent calls (idempotent).

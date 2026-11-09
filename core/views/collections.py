@@ -1434,6 +1434,10 @@ class CollectionShareLinkView(APIView):
     Owner or co-owner. Token is a 22-char URL-safe bearer credential — anyone
     with the link can join the collection via /share/{token}, so the token
     must not appear in any read endpoint.
+
+    In a NETWORK, generating the link the first time and reading the existing one
+    stay any dinamizador's (inviting is theirs), but rotating or revoking it is the
+    founder's alone: it would kill the links and QR codes everyone else handed out.
     """
 
     permission_classes = [IsAuthenticated]
@@ -1449,6 +1453,15 @@ class CollectionShareLinkView(APIView):
             return denied
 
         rotate = bool(body_dict(request).get("rotate"))
+
+        if rotate and collection.share_token:
+            denied = require_network_founder(
+                collection,
+                request.user.code,
+                "Only the founder of a network can take back its share link",
+            )
+            if denied:
+                return denied
 
         if rotate or not collection.share_token:
             collection.share_token = generate_share_token()
@@ -1470,6 +1483,14 @@ class CollectionShareLinkView(APIView):
 
         denied = require_collection_curator(
             collection, request.user.code, "Only the owner or a co-owner can manage the share link"
+        )
+        if denied:
+            return denied
+
+        denied = require_network_founder(
+            collection,
+            request.user.code,
+            "Only the founder of a network can take back its share link",
         )
         if denied:
             return denied

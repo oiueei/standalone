@@ -203,6 +203,7 @@ export default function CollectionHero({
                 collectionKind={collection.kind}
                 collectionHeadline={headline}
                 isPublic={collection.visibility === 'PUBLIC'}
+                canTakeBack={showsSettings}
               />
             )}
           </span>

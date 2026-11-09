@@ -56,7 +56,7 @@ describe('ShareCollectionMenu icon trigger', () => {
   });
 
   test('opens a list of buttons, and says so with aria-expanded and aria-controls', () => {
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
 
     const trigger = screen.getByRole('button', { name: /share collection/i });
@@ -80,7 +80,7 @@ describe('ShareCollectionMenu icon trigger', () => {
   });
 
   test('still opens the full menu from that single trigger', () => {
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
     for (const name of [/^email$/i, /copy invite link/i, /whatsapp/i, /qr code/i]) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
@@ -170,7 +170,7 @@ describe('ShareCollectionMenu icon trigger', () => {
   });
 
   test('has no accessibility violations with the panel open', async () => {
-    const { container } = render(<ShareCollectionMenu {...props} isPublic={false} />);
+    const { container } = render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
 
     expect(await axe(container)).toHaveNoViolations();
@@ -185,8 +185,16 @@ describe('ShareCollectionMenu revoke / rotate', () => {
     expect(screen.queryByRole('button', { name: /rotate link/i })).toBeNull();
   });
 
-  test('revoking a PRIVATE share link confirms, then DELETEs the token', async () => {
+  test('without canTakeBack (a dinamizador of a network) the menu shows neither entry', () => {
     render(<ShareCollectionMenu {...props} isPublic={false} />);
+    openMenu();
+    expect(screen.getByRole('button', { name: /whatsapp/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /stop sharing/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /rotate link/i })).toBeNull();
+  });
+
+  test('revoking a PRIVATE share link confirms, then DELETEs the token', async () => {
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /stop sharing/i }));
 
@@ -204,7 +212,7 @@ describe('ShareCollectionMenu revoke / rotate', () => {
   });
 
   test('rotating a PRIVATE share link POSTs rotate:true', async () => {
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /rotate link/i }));
     fireEvent.click(screen.getByRole('button', { name: /^rotate link$/i }));
@@ -220,7 +228,7 @@ describe('ShareCollectionMenu revoke / rotate', () => {
     // The confirm is the only thing between a menu pick and an irreversible
     // change to a credential other people are holding. If Cancel still went
     // through, the dialog would be theatre.
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /stop sharing/i }));
 
@@ -249,7 +257,7 @@ describe('ShareCollectionMenu revoke / rotate', () => {
 describe('a failed revoke or rotate must not claim it worked', () => {
   test('a failed rotate reports the failure, and never says "rotated"', async () => {
     apiFetch.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve({}) });
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /rotate link/i }));
     fireEvent.click(screen.getByRole('button', { name: /^rotate link$/i }));
@@ -260,7 +268,7 @@ describe('a failed revoke or rotate must not claim it worked', () => {
 
   test('a failed revoke reports the failure, and never says the link is off', async () => {
     apiFetch.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve({}) });
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /stop sharing/i }));
     fireEvent.click(screen.getByRole('button', { name: /^stop sharing$/i }));
@@ -278,7 +286,7 @@ describe('the link is minted once', () => {
       configurable: true,
       value: { writeText: vi.fn(() => Promise.resolve()) },
     });
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
 
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /copy invite link/i }));
@@ -346,7 +354,7 @@ describe('handing the link over', () => {
   });
 
   test('a PRIVATE group hands out the token the server minted', async () => {
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
 
     pick('Copy invite link');
 
@@ -365,7 +373,7 @@ describe('handing the link over', () => {
     // browser that wants a gesture it didn't see. The owner then pastes
     // whatever was there before into a message to a friend.
     navigator.clipboard.writeText.mockRejectedValue(new Error('denied'));
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
 
     pick('Copy invite link');
 
@@ -377,7 +385,7 @@ describe('handing the link over', () => {
     // Not merely "shows an error": the mail draft must not open with a blank or
     // stale link in it, which is the version the recipient would actually get.
     apiFetch.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve({}) });
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
 
     pick('Email');
 
@@ -387,7 +395,7 @@ describe('handing the link over', () => {
   });
 
   test('the email draft carries the link and names the collection', async () => {
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
 
     pick('Email');
 
@@ -484,7 +492,7 @@ describe('handing the link over', () => {
   test('the WhatsApp hand-off carries the link and cannot reach back', async () => {
     // `noopener` is the load-bearing argument: without it the opened page gets a
     // handle on this one through `window.opener`.
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
 
     pick('WhatsApp');
 
@@ -496,7 +504,7 @@ describe('handing the link over', () => {
   });
 
   test('the QR encodes the invite link, and prints it underneath', async () => {
-    render(<ShareCollectionMenu {...props} isPublic={false} />);
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
 
     pick('QR code');
 

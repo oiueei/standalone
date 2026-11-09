@@ -59,6 +59,7 @@ export default function ShareCollectionMenu({
   collectionKind,
   collectionHeadline,
   isPublic,
+  canTakeBack = false,
 }) {
   const { t } = useTranslation();
   const { btnStyle, btnSecondaryStyle } = useTheeeme();
@@ -191,21 +192,23 @@ export default function ShareCollectionMenu({
     },
     { value: 'qr', label: t('shareMenu.qr'), icon: <IconCamera aria-hidden="true" /> },
   ];
-  // Taking a link back only exists for a PRIVATE collection (see above).
-  const credentialEntries = isPublic
-    ? []
-    : [
-        {
-          value: 'rotate',
-          label: t('shareMenu.rotate'),
-          icon: <IconArrowRedo aria-hidden="true" />,
-        },
-        {
-          value: 'revoke',
-          label: t('shareMenu.revoke'),
-          icon: <IconCrossCircle aria-hidden="true" />,
-        },
-      ];
+  // Taking a link back only exists for a PRIVATE collection (see above), and in a
+  // network only for its founder (`canTakeBack`): the server refuses anyone else.
+  const credentialEntries =
+    isPublic || !canTakeBack
+      ? []
+      : [
+          {
+            value: 'rotate',
+            label: t('shareMenu.rotate'),
+            icon: <IconArrowRedo aria-hidden="true" />,
+          },
+          {
+            value: 'revoke',
+            label: t('shareMenu.revoke'),
+            icon: <IconCrossCircle aria-hidden="true" />,
+          },
+        ];
   const entryButton = (entry) => (
     <button key={entry.value} type="button" onClick={() => pick(entry.value)}>
       {entry.icon}

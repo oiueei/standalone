@@ -374,3 +374,88 @@ class TestCalendarAndCopy:
         )
 
         assert res.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+class TestTheShareLink:
+    """Generating and reading the link stay every dinamizador's (inviting is theirs);
+    taking it back would kill the links and QR codes the others handed out."""
+
+    def _url(self, group):
+        return BASE.format(code=group.code) + "share-link/"
+
+    def _with_token(self, network, token="TOKEN-OF-THE-NETWORK"):
+        network["group"].share_token = token
+        network["group"].save(update_fields=["share_token"])
+
+    def test_a_dinamizador_cannot_rotate_the_link(self, network):
+        self._with_token(network)
+
+        res = client_for(network["lele"]).post(
+            self._url(network["group"]), {"rotate": True}, format="json"
+        )
+
+        assert res.status_code == status.HTTP_403_FORBIDDEN
+        assert res.data["code"] == "network_founder_only"
+        network["group"].refresh_from_db()
+        assert network["group"].share_token == "TOKEN-OF-THE-NETWORK"
+
+    def test_a_dinamizador_cannot_revoke_the_link(self, network):
+        self._with_token(network)
+
+        res = client_for(network["lele"]).delete(self._url(network["group"]))
+
+        assert res.status_code == status.HTTP_403_FORBIDDEN
+        assert res.data["code"] == "network_founder_only"
+        network["group"].refresh_from_db()
+        assert network["group"].share_token == "TOKEN-OF-THE-NETWORK"
+
+    def test_a_dinamizador_generates_the_first_link(self, network):
+        res = client_for(network["lele"]).post(self._url(network["group"]), {}, format="json")
+
+        assert res.status_code == status.HTTP_200_OK
+        network["group"].refresh_from_db()
+        assert network["group"].share_token == res.data["share_token"]
+
+    def test_a_dinamizador_reads_the_existing_link(self, network):
+        self._with_token(network)
+
+        res = client_for(network["lele"]).post(self._url(network["group"]), {}, format="json")
+
+        assert res.status_code == status.HTTP_200_OK
+        assert res.data["share_token"] == "TOKEN-OF-THE-NETWORK"
+
+    def test_asking_to_rotate_before_there_is_a_link_just_generates_one(self, network):
+        res = client_for(network["lele"]).post(
+            self._url(network["group"]), {"rotate": True}, format="json"
+        )
+
+        assert res.status_code == status.HTTP_200_OK
+        assert res.data["share_token"]
+
+    def test_the_founder_rotates_and_revokes(self, network):
+        self._with_token(network)
+        client = client_for(network["founder"])
+
+        rotated = client.post(self._url(network["group"]), {"rotate": True}, format="json")
+        revoked = client.delete(self._url(network["group"]))
+
+        assert rotated.status_code == status.HTTP_200_OK
+        assert rotated.data["share_token"] != "TOKEN-OF-THE-NETWORK"
+        assert revoked.status_code == status.HTTP_200_OK
+        network["group"].refresh_from_db()
+        assert network["group"].share_token is None
+
+    @pytest.mark.parametrize("mode", [Collection.Mode.PROPRIETARY, Collection.Mode.COMMUNITY])
+    def test_a_co_curator_elsewhere_still_rotates_and_revokes(self, mode):
+        g, _, lele, _, _ = _group(mode)
+        g.share_token = "OLD-TOKEN"
+        g.save(update_fields=["share_token"])
+        client = client_for(lele)
+
+        rotated = client.post(self._url(g), {"rotate": True}, format="json")
+        revoked = client.delete(self._url(g))
+
+        assert rotated.status_code == status.HTTP_200_OK
+        assert rotated.data["share_token"] != "OLD-TOKEN"
+        assert revoked.status_code == status.HTTP_200_OK
