@@ -7,7 +7,7 @@ is unchanged: a member owns what they contribute, and a curator's reach there
 still stops short of editing it.
 
 These tests pin `Thing.can_manage`, the `IsThingManager` permission, the widened
-`_can_delete`, and the `can_manage` serializer field the frontend gates on.
+`Thing.can_delete`, and the `can_manage` serializer field the frontend gates on.
 """
 
 import pytest

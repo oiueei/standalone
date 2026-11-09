@@ -20,7 +20,7 @@ class IsThingManager(BasePermission):
 
     The mirror of `IsThingOwner`, one tier wider, for the catalogue actions
     a PROPRIETARY collection's curators run collectively (edit, hide,
-    activate). Deleting keeps its own `_can_delete` check.
+    activate). Deleting keeps its own check (`Thing.can_delete`).
     """
 
     def has_object_permission(self, request, view, obj):
