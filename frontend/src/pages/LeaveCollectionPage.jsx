@@ -8,6 +8,7 @@ import Toast from '../components/Toast';
 import ThingsGoNotice from '../components/ThingsGoNotice';
 import useTheeeme from '../hooks/useTheeeme';
 import useCollectionTheeeme from '../hooks/useCollectionTheeeme';
+import useCollectionLanguage from '../hooks/useCollectionLanguage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useCollectionBase } from '../hooks/useCollectionBase';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -34,6 +35,11 @@ export default function LeaveCollectionPage() {
   const [palette, setPalette] = useState(null);
   const [settled, setSettled] = useState(false);
   useCollectionTheeeme(palette?.colors, palette?.koro);
+  // The group's own language, as the other pages of a collection speak it. The load below
+  // keeps `t` out of its dependencies: this hook changes the language as the answer lands.
+  const [groupLanguage, setGroupLanguage] = useState('');
+  const [groupTexts, setGroupTexts] = useState([]);
+  useCollectionLanguage(groupLanguage, groupTexts);
 
   useEffect(() => {
     const userCode = localStorage.getItem('userCode');
@@ -45,6 +51,8 @@ export default function LeaveCollectionPage() {
         const data = await res.json();
         if (cancelled) return;
         setPalette({ colors: data.theeeme_colors, koro: data.koro });
+        setGroupLanguage(data.language || '');
+        setGroupTexts([data.headline]);
         setGoingTitles(
           (data.things || [])
             .filter((thing) => thing.owner === userCode)

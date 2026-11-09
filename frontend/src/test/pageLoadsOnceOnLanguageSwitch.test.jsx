@@ -65,6 +65,7 @@ import EntityPage from '../pages/EntityPage';
 import CollectionAppearancePage from '../pages/CollectionAppearancePage';
 import CollectionNotificationsPage from '../pages/CollectionNotificationsPage';
 import CollectionAvailabilityPage from '../pages/CollectionAvailabilityPage';
+import LeaveCollectionPage from '../pages/LeaveCollectionPage';
 
 const STORAGE_KEY = 'i18nextLng';
 
@@ -240,6 +241,13 @@ const PAGES = [
     Page: CollectionNotificationsPage,
     route: '/collections/:code/settings/notifications',
     entry: '/collections/COL001/settings/notifications',
+    gets: ['/api/v1/collections/COL001/'],
+  },
+  {
+    name: 'LeaveCollectionPage',
+    Page: LeaveCollectionPage,
+    route: '/collections/:code/leave',
+    entry: '/collections/COL001/leave',
     gets: ['/api/v1/collections/COL001/'],
   },
   {
