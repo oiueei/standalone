@@ -157,6 +157,13 @@ const PAGES = [
     entry: '/collections/COL001/invites',
     gets: ['/api/v1/collections/COL001/'],
   },
+  {
+    name: 'OrganisationPage',
+    Page: OrganisationPage,
+    route: '/collections/:code/organisation',
+    entry: '/collections/COL001/organisation',
+    gets: ['/api/v1/collections/COL001/', '/api/v1/collections/COL001/point/'],
+  },
   // These never listed `t`; they are in the table so it stays that way.
   {
     name: 'AddThingPage',
@@ -213,13 +220,6 @@ const PAGES = [
     route: '/share/:token',
     entry: '/share/aB3xK_9-pQrS2tUvWx1y',
     gets: ['/api/v1/share/aB3xK_9-pQrS2tUvWx1y/preview/'],
-  },
-  {
-    name: 'OrganisationPage',
-    Page: OrganisationPage,
-    route: '/collections/:code/organisation',
-    entry: '/collections/COL001/organisation',
-    gets: ['/api/v1/collections/COL001/', '/api/v1/collections/COL001/point/'],
   },
   {
     name: 'EntityPage',
@@ -313,6 +313,24 @@ describe("a page of a collection in another language asks for its data once, wha
     await act(async () => {});
 
     for (const url of page.gets) expect(timesAsked(url), url).toBe(1);
+  });
+});
+
+describe("an owner who wrote the title in the reader's language keeps the reader's language", () => {
+  test('OrganisationPage: a per-language title vetoes the collection language', async () => {
+    const localized = { ...COLLECTION, headline: '{"es": "Las cosas", "en": "The things"}' };
+    apiFetch.mockImplementation((url) =>
+      /\/collections\/[^/]+\/$/.test(url) ? ok(localized) : respond(url)
+    );
+
+    renderPage(PAGES.find((page) => page.name === 'OrganisationPage'));
+
+    // The page has painted its data (the group's title in English)...
+    expect(await screen.findByText('The things')).toBeInTheDocument();
+    await act(async () => {});
+    // ...and the group's Spanish did not take the interface over.
+    expect(i18n.language).toBe('en');
+    expect(screen.getByTestId('probe')).toHaveTextContent(en.common.home);
   });
 });
 

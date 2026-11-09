@@ -65,7 +65,10 @@ export default function OrganisationPage() {
   const [requestInfo, setRequestInfo] = useState('');
   const [emailNote, setEmailNote] = useState('');
 
-  useCollectionLanguage(collection?.language || '', [collection]);
+  useCollectionLanguage(collection?.language || '', [
+    collection?.headline,
+    collection?.description,
+  ]);
   useCollectionTheeeme(palette?.colors, palette?.koro);
   useDocumentTitle(t('titles.organisation'));
 
