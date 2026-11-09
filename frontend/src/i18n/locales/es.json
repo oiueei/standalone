@@ -1248,6 +1248,7 @@
     "not_awaiting_return": "Esto ya no está pendiente de devolución.",
     "priced_things_remain": "Algunas cosas de este grupo tienen precio. Quítaselo o retíralas antes de quitar a los miembros la opción de poner precio.",
     "opening_hours_required": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
+    "units_below_booked": "Hay reservas que necesitan al menos {{min}} a la vez.",
     "rental_length_not_allowed": "Esta colección solo permite periodos de {{allowed}} días.",
     "rental_pickup_weekday": "Ese día de la semana no se puede recoger.",
     "rental_return_weekday": "Ese día de la semana no se puede devolver.",

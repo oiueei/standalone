@@ -17,6 +17,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from core.exceptions import RefusedField
 from core.models import Collection, Thing
+from core.models.booking import BookingPeriod, saturated_periods
 from core.models.collection import KIND_THING_TYPES
 from core.models.event import Event
 from core.models.notification import InAppNotification
@@ -40,7 +41,7 @@ from core.services.creator_policy import (
 )
 from core.services.email_service import send_thing_hidden_by_founder_email
 from core.services.membership_service import delete_thing
-from core.utils import parse_localized
+from core.utils import Refusal, parse_localized
 from core.views._helpers import refusal_body, type_validity_error, verb_from_price, viewer_code
 
 
@@ -292,7 +293,37 @@ class ThingViewSet(ModelViewSet):
                 err = type_validity_error(new_type, collection)
                 if err:
                     raise ValidationError({"type": err})
-        serializer.save()
+        if "units" in validated and validated["units"] < thing.units:
+            self._save_lowering_units(serializer, thing, validated["units"])
+        else:
+            serializer.save()
+
+    @staticmethod
+    def _save_lowering_units(serializer, thing, units):
+        """Save an edit that leaves fewer units than the thing has, unless the live
+        requests already need more at the same time.
+
+        The thing's row is locked first, as the requests lock it, so a request cannot
+        slip in between the check and the save. ``saturated_periods(live, units + 1)``
+        is empty exactly when no stretch has ``units + 1`` or more on at once; if it is
+        not, the least that fits is the first count from which it is.
+        """
+        with transaction.atomic():
+            Thing.objects.select_for_update().get(code=thing.code)
+            live = list(BookingPeriod.get_blocked_periods(thing.code))
+            if saturated_periods(live, units + 1):
+                least = units + 1
+                while saturated_periods(live, least + 1):
+                    least += 1
+                raise RefusedField(
+                    "units",
+                    Refusal(
+                        f"There are bookings that need at least {least} at the same time.",
+                        "units_below_booked",
+                        min=least,
+                    ),
+                )
+            serializer.save()
 
     # Single-thing create is the one-by-one equivalent of the 10/h bulk endpoint;
     # cap it too so the bulk limit can't be bypassed into unbounded rows. Generous

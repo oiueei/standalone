@@ -302,7 +302,7 @@ class TestWhoGetsIn:
 
         assert _book(collection, thing, person, day).start_date == day
 
-    def test_lowering_the_units_cancels_nothing_and_refuses_the_next_one(
+    def test_lowering_the_units_to_what_is_booked_at_once_cancels_nothing_and_refuses_the_next(
         self, shed, authenticated_client
     ):
         collection, thing = shed
@@ -311,7 +311,7 @@ class TestWhoGetsIn:
         for person in (a, b, c):
             _book(collection, thing, person, day)
 
-        res = authenticated_client.patch(THING_URL.format(thing.code), {"units": 2}, format="json")
+        res = authenticated_client.patch(THING_URL.format(thing.code), {"units": 3}, format="json")
 
         assert res.status_code == status.HTTP_200_OK, res.data
         assert (
@@ -583,6 +583,108 @@ class TestTheNumberOfUnits:
 
 
 # ── The cross-check: what is served as free is what the request accepts ──────────────
+
+
+def _live(thing, who, start, end, *, quantity=1, status=None, start_time=None, end_time=None):
+    return BookingPeriod.objects.create(
+        thing_code=thing,
+        thing_type=thing.type,
+        requester_code=who,
+        requester_email=who.email,
+        owner_code=thing.owner,
+        status=status or BookingPeriod.Status.ACCEPTED,
+        start_date=start,
+        end_date=end,
+        start_time=start_time,
+        end_time=end_time,
+        quantity=quantity,
+    )
+
+
+class TestLoweringTheUnitsBelowWhatIsBooked:
+    """Fewer units than the live requests need at the same time would let a pending one be
+    accepted with more units out than exist, so the edit is refused."""
+
+    def _patch(self, client, thing, units):
+        return client.patch(THING_URL.format(thing.code), {"units": units}, format="json")
+
+    def test_two_requests_of_one_that_overlap_fit_in_two_units(self, shed, authenticated_client):
+        collection, thing = shed
+        a, b = _members(collection, 2)
+        start = date.today() + timedelta(days=3)
+        _live(thing, a, start, start + timedelta(days=2))
+        _live(thing, b, start + timedelta(days=1), start + timedelta(days=3))
+
+        res = self._patch(authenticated_client, thing, 2)
+
+        assert res.status_code == status.HTTP_200_OK, res.data
+        thing.refresh_from_db()
+        assert thing.units == 2
+
+    def test_a_pending_request_of_three_refuses_two_units_and_says_the_least(
+        self, shed, authenticated_client
+    ):
+        collection, thing = shed
+        (a,) = _members(collection, 1)
+        start = date.today() + timedelta(days=3)
+        _live(
+            thing, a, start, start + timedelta(days=2), quantity=3,
+            status=BookingPeriod.Status.PENDING,
+        )  # fmt: skip
+
+        res = self._patch(authenticated_client, thing, 2)
+
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert res.data["code"] == "units_below_booked"
+        assert res.data["units"]
+        assert res.json()["params"] == {"min": 3}
+        thing.refresh_from_db()
+        assert thing.units == 4
+
+    def test_requests_that_do_not_overlap_allow_one_unit(self, shed, authenticated_client):
+        collection, thing = shed
+        a, b = _members(collection, 2)
+        start = date.today() + timedelta(days=3)
+        _live(thing, a, start, start + timedelta(days=2))
+        _live(thing, b, start + timedelta(days=2), start + timedelta(days=4))
+
+        res = self._patch(authenticated_client, thing, 1)
+
+        assert res.status_code == status.HTTP_200_OK, res.data
+
+    def test_an_accepted_one_that_is_over_does_not_count(self, shed, authenticated_client):
+        collection, thing = shed
+        a, b = _members(collection, 2)
+        past = date.today() - timedelta(days=10)
+        _live(thing, a, past, past + timedelta(days=2))
+        _live(thing, b, past, past + timedelta(days=2))
+
+        res = self._patch(authenticated_client, thing, 1)
+
+        assert res.status_code == status.HTTP_200_OK, res.data
+
+    def test_two_overlapping_hourly_slots_refuse_one_unit(self, hourly_shed, authenticated_client):
+        collection, thing = hourly_shed
+        a, b = _members(collection, 2)
+        day = date.today() + timedelta(days=3)
+        _live(thing, a, day, day + timedelta(days=1), start_time=time(10), end_time=time(12))
+        _live(thing, b, day, day + timedelta(days=1), start_time=time(11), end_time=time(13))
+
+        res = self._patch(authenticated_client, thing, 1)
+
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert res.data["code"] == "units_below_booked"
+        assert res.json()["params"] == {"min": 2}
+
+    def test_raising_or_keeping_the_units_is_never_checked(self, shed, authenticated_client):
+        collection, thing = shed
+        a, b, c, d = _members(collection, 4)
+        day = date.today() + timedelta(days=3)
+        for person in (a, b, c, d):
+            _live(thing, person, day, day + timedelta(days=1))
+
+        assert self._patch(authenticated_client, thing, 4).status_code == status.HTTP_200_OK
+        assert self._patch(authenticated_client, thing, 6).status_code == status.HTTP_200_OK
 
 
 def _slot_free_in(served, day, start, end):

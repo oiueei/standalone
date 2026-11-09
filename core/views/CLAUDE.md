@@ -387,7 +387,7 @@ The one-click unsubscribe at the foot of every digest. The token signs `{user_co
 | `create` | `POST /api/v1/things/` | `IsAuthenticated` — **a thing is created in a collection**: no `collection_code` is a 400 `{"collection_code": ["A thing is created in a collection."]}`, before any other check |
 | `retrieve` | `GET /api/v1/things/{code}/` | `AllowAny` + `can_view()` — anonymous-safe: visible when the thing sits in a PUBLIC, ACTIVE collection |
 | `update` | `PUT /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingManager` |
-| `partial_update` | `PATCH /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingManager` |
+| `partial_update` | `PATCH /api/v1/things/{code}/` | `IsAuthenticated` + `IsThingManager` — a PATCH that **lowers `units`** is saved under the thing's row lock and refused with 400 `units_below_booked` (`{min}`) while live requests (`BookingPeriod.get_blocked_periods`, weighed by `quantity`) need more than the new number at once; the lock orders it with `request_date_based_booking` / `request_reservation` |
 | `destroy` | `DELETE /api/v1/things/{code}/` | `IsAuthenticated` + `_can_delete()` — the `THING_REMOVED` event is written by the `Thing` delete receiver (`core/services/deletion_events.py`), not by the view; `perform_destroy` only wraps the delete in `deleting_as(request.user)` so the event names who deleted |
 | `activate` | `POST /api/v1/things/{code}/activate/` | `IsAuthenticated` + `IsThingManager` |
 | `hide` | `POST /api/v1/things/{code}/hide/` | `IsAuthenticated` + `IsThingManager` |

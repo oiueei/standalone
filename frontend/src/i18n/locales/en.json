@@ -1248,6 +1248,7 @@
     "not_awaiting_return": "This isn't waiting to be returned any more.",
     "priced_things_remain": "Some things in this group have a price. Take it off them, or remove them, before turning off prices for members.",
     "opening_hours_required": "To book by the hour, add at least one time range to “Weekly opening hours”.",
+    "units_below_booked": "There are bookings that need at least {{min}} at the same time.",
     "rental_length_not_allowed": "This collection only allows periods of {{allowed}} days.",
     "rental_pickup_weekday": "Pickup isn't possible on that day of the week.",
     "rental_return_weekday": "Return isn't possible on that day of the week.",
