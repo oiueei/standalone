@@ -30,6 +30,7 @@ expect.extend(toHaveNoViolations);
 // What other pages own: the PATCH of this page must leave all of it alone.
 const OTHERS = {
   code: 'COL001',
+  is_curator: true,
   headline: 'The Workshop',
   description: 'Tools and a bench',
   mode: 'PROPRIETARY',
@@ -333,15 +334,14 @@ describe('CollectionAvailabilityPage — the rest', () => {
     expect(screen.queryByRole('heading', { name: 'Availability' })).toBeNull();
   });
 
-  test('cannot be saved before the collection has loaded', async () => {
+  test('a collection that cannot be read gives no form, so there is nothing to save', async () => {
     apiFetch.mockImplementation(() =>
       Promise.resolve({ ok: false, status: 500, json: async () => ({}) })
     );
     renderPage();
 
-    const button = await screen.findByRole('button', { name: 'Save' });
-    expect(button).toBeDisabled();
-    fireEvent.click(button);
+    expect(await screen.findByText(en.editCollection.errorLoading)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
     expect(patchBody()).toBeNull();
   });
 

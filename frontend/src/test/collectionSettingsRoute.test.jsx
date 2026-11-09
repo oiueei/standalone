@@ -18,7 +18,13 @@ globalThis.fetch = vi.fn((url) => {
     json: () =>
       Promise.resolve(
         collection
-          ? { code: 'COL001', headline: 'The lending library', kind: 'LIBRARY', things: [] }
+          ? {
+              code: 'COL001',
+              headline: 'The lending library',
+              kind: 'LIBRARY',
+              is_curator: true,
+              things: [],
+            }
           : {}
       ),
   });

@@ -19,6 +19,7 @@ import { useCollectionBase } from '../../hooks/useCollectionBase';
 import { useLocalized } from '../../utils/localized';
 import { teamParts, teamMemberName } from '../../utils/team';
 import { collectionPath } from '../../utils/collectionPath';
+import { canEditCollection } from '../../utils/canEditCollection';
 import { DATE_TYPES } from '../../constants/things';
 
 // What the member's "Invite someone" button controls (aria-controls) and the
@@ -115,7 +116,7 @@ export default function CollectionHero({
   // the corner — the welcome document, the summary switch when
   // the group sends one, and "Leave the group".
   // The settings are what "Edit collection" is: in a network only the founder's.
-  const showsSettings = isCurator && (collection.mode !== 'NETWORK' || isOwner);
+  const showsSettings = canEditCollection(collection, userCode);
   const isMember = isAuthenticated && !!collection.is_member && !isCurator;
   // Each name of the team opens the page that person has in the group, for everyone
   // who can read the group.
@@ -344,7 +345,7 @@ export default function CollectionHero({
                 </ButtonLink>
                 {/* In a network the settings are the founder's: each dinamizador
                     edits their own point (it has its own page), not the group. */}
-                {(collection.mode !== 'NETWORK' || isOwner) && (
+                {showsSettings && (
                   <ButtonLink to={`${base}/edit`} style={btnSecondaryStyle}>
                     {t('collectionPage.editCollection')}
                   </ButtonLink>
