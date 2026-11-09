@@ -85,7 +85,7 @@ export default function OrganisationPage() {
           setPalette({ colors: data.theeeme_colors, koro: data.koro });
         }
         if (pointRes.status === 403) {
-          setProblem(t('organisation.notACurator'));
+          setProblem('organisation.notACurator');
         } else if (pointRes.ok) {
           const point = await pointRes.json();
           setEntityName(point.entity_name || '');
@@ -101,10 +101,10 @@ export default function OrganisationPage() {
           setRequestInfo(point.request_info || '');
           setEmailNote(point.email_note || '');
         } else {
-          setProblem(t('organisation.errorLoading'));
+          setProblem('organisation.errorLoading');
         }
       } catch {
-        if (!cancelled) setProblem(t('common.connectionError'));
+        if (!cancelled) setProblem('common.connectionError');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -112,7 +112,7 @@ export default function OrganisationPage() {
     return () => {
       cancelled = true;
     };
-  }, [userCode, code, t]);
+  }, [userCode, code]);
 
   const isNetwork = collection?.mode === 'NETWORK';
   const aboutCount = localizedCounter(about, 2000);
@@ -172,7 +172,7 @@ export default function OrganisationPage() {
     >
       <h1 className="page-title-xl">{t('organisation.pageTitle')}</h1>
       {problem ? (
-        <p>{problem}</p>
+        <p>{t(problem)}</p>
       ) : (
         <div className="form-grid">
           <FieldNotice id="organisation-notice" label={t('organisation.noticeTitle')}>

@@ -60,6 +60,11 @@ import DeleteThingPage from '../pages/DeleteThingPage';
 import DeleteCollectionPage from '../pages/DeleteCollectionPage';
 import JoinPage from '../pages/JoinPage';
 import SharePage from '../pages/SharePage';
+import OrganisationPage from '../pages/OrganisationPage';
+import EntityPage from '../pages/EntityPage';
+import CollectionAppearancePage from '../pages/CollectionAppearancePage';
+import CollectionNotificationsPage from '../pages/CollectionNotificationsPage';
+import CollectionAvailabilityPage from '../pages/CollectionAvailabilityPage';
 
 const STORAGE_KEY = 'i18nextLng';
 
@@ -152,7 +157,7 @@ const PAGES = [
     entry: '/collections/COL001/invites',
     gets: ['/api/v1/collections/COL001/'],
   },
-  // These six never listed `t`; they are in the table so it stays that way.
+  // These never listed `t`; they are in the table so it stays that way.
   {
     name: 'AddThingPage',
     Page: AddThingPage,
@@ -209,6 +214,43 @@ const PAGES = [
     entry: '/share/aB3xK_9-pQrS2tUvWx1y',
     gets: ['/api/v1/share/aB3xK_9-pQrS2tUvWx1y/preview/'],
   },
+  {
+    name: 'OrganisationPage',
+    Page: OrganisationPage,
+    route: '/collections/:code/organisation',
+    entry: '/collections/COL001/organisation',
+    gets: ['/api/v1/collections/COL001/', '/api/v1/collections/COL001/point/'],
+  },
+  {
+    name: 'EntityPage',
+    Page: EntityPage,
+    route: '/collections/:code/organisation/:userCode',
+    entry: '/collections/COL001/organisation/ABC123',
+    gets: ['/api/v1/collections/COL001/'],
+  },
+  {
+    name: 'CollectionAppearancePage',
+    Page: CollectionAppearancePage,
+    route: '/collections/:code/settings/appearance',
+    entry: '/collections/COL001/settings/appearance',
+    gets: ['/api/v1/collections/COL001/'],
+  },
+  {
+    name: 'CollectionNotificationsPage',
+    Page: CollectionNotificationsPage,
+    route: '/collections/:code/settings/notifications',
+    entry: '/collections/COL001/settings/notifications',
+    gets: ['/api/v1/collections/COL001/'],
+  },
+  {
+    name: 'CollectionAvailabilityPage',
+    Page: CollectionAvailabilityPage,
+    route: '/collections/:code/settings/availability',
+    entry: '/collections/COL001/settings/availability',
+    // Availability paints not-found for a stall, and the common collection is no one's kind.
+    collection: { kind: 'LIBRARY' },
+    gets: ['/api/v1/collections/COL001/'],
+  },
 ];
 
 function Probe() {
@@ -254,6 +296,13 @@ afterEach(async () => {
 
 describe("a page of a collection in another language asks for its data once, whatever 't' does", () => {
   test.each(PAGES)('$name', async (page) => {
+    if (page.collection) {
+      apiFetch.mockImplementation((url) =>
+        /\/collections\/[^/]+\/$/.test(url)
+          ? ok({ ...COLLECTION, ...page.collection })
+          : respond(url)
+      );
+    }
     renderPage(page);
 
     // The collection says Spanish, the browser English: the hook moves the UI.
@@ -318,6 +367,16 @@ describe('a refused load still says why, in the language being read', () => {
     // on the way in and stored the result.
     expect(await screen.findByText(at(es, page.key))).toBeInTheDocument();
     expect(screen.queryByText(at(en, page.key))).not.toBeInTheDocument();
+  });
+
+  test('OrganisationPage: a refused point says it is not for them, in the language being read', async () => {
+    apiFetch.mockImplementation((url) => (/\/point\/$/.test(url) ? refused(403) : respond(url)));
+
+    renderPage(PAGES.find((page) => page.name === 'OrganisationPage'));
+
+    // The group speaks Spanish: the sentence follows, it was not translated on the way in.
+    expect(await screen.findByText(es.organisation.notACurator)).toBeInTheDocument();
+    expect(screen.queryByText(en.organisation.notACurator)).not.toBeInTheDocument();
   });
 
   test('CollectionPage: a request that never arrives paints the connection error', async () => {
