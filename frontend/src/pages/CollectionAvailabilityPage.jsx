@@ -9,7 +9,7 @@ import ClosedDatesField from '../components/ClosedDatesField';
 import WeekdayChips from '../components/WeekdayChips';
 import OpeningHoursField from '../components/OpeningHoursField';
 import RadioOptionGroup from '../components/RadioOptionGroup';
-import BoundedDayInput from '../components/BoundedDayInput';
+import BoundedNumberInput from '../components/BoundedNumberInput';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
 import NotFoundPage from './NotFoundPage';
@@ -281,7 +281,7 @@ export default function CollectionAvailabilityPage() {
         )}
         {isShed && (
           <>
-            <BoundedDayInput
+            <BoundedNumberInput
               id="availability-reservation-horizon-days"
               label={t('reservation.horizonLabel')}
               helperText={t('reservation.horizonHelper')}
@@ -291,7 +291,7 @@ export default function CollectionAvailabilityPage() {
               value={reservationHorizonDays}
               onChange={setReservationHorizonDays}
             />
-            <BoundedDayInput
+            <BoundedNumberInput
               id="availability-reservation-max-active"
               label={t('reservation.maxActiveLabel')}
               helperText={t('reservation.maxActiveHelper')}
@@ -322,7 +322,7 @@ export default function CollectionAvailabilityPage() {
             />
             {reservationUnit === 'HOUR' ? (
               <>
-                <BoundedDayInput
+                <BoundedNumberInput
                   id="availability-reservation-min-minutes"
                   label={t('reservation.minMinutesLabel')}
                   helperText={t('reservation.minMinutesHelper')}
@@ -332,7 +332,7 @@ export default function CollectionAvailabilityPage() {
                   value={reservationMinMinutes}
                   onChange={setReservationMinMinutes}
                 />
-                <BoundedDayInput
+                <BoundedNumberInput
                   id="availability-reservation-max-minutes"
                   label={t('reservation.maxMinutesLabel')}
                   helperText={t('reservation.maxMinutesHelper')}
@@ -372,7 +372,7 @@ export default function CollectionAvailabilityPage() {
               </>
             ) : (
               <>
-                <BoundedDayInput
+                <BoundedNumberInput
                   id="availability-reservation-max-days"
                   label={t('reservation.maxDaysLabel')}
                   helperText={t('reservation.maxDaysHelper')}

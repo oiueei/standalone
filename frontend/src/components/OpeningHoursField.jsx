@@ -13,7 +13,7 @@ import { errorKey, translateError } from '../utils/errorKey';
  * pasting the JSON directly is faster than clicking through seven fieldsets
  * for a schedule you already have written down somewhere.
  *
- * Local `draft` mirrors `BoundedDayInput`'s pattern — the owner can type a
+ * Local `draft` mirrors `BoundedNumberInput`'s pattern — the owner can type a
  * momentarily unbalanced brace without the field fighting them — but unlike
  * that field (and unlike `ClosedDatesField`, which forwards its raw string
  * untouched), this one *must* parse on the way out: `opening_hours` is a
@@ -25,7 +25,7 @@ import { errorKey, translateError } from '../utils/errorKey';
  * forms (`_validate_opening_hours`, surfaced as its own 400 via Toast).
  *
  * **The re-sync compares content, not the `value` reference, and does it
- * during render — not in an effect.** `BoundedDayInput` can key its resync
+ * during render — not in an effect.** `BoundedNumberInput` can key its resync
  * effect on the bare reference because its `value` is a number — equal
  * content IS equal reference there. This field's `value` is an object, so a
  * parent that ever passes `openingHours={form.opening_hours || {}}` (a fresh

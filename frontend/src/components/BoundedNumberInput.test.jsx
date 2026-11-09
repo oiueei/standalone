@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
-import BoundedDayInput from './BoundedDayInput';
+import BoundedNumberInput from './BoundedNumberInput';
 
 // The number fields decide what a member can book: the longest span, how far ahead, how many
 // at once. They are the fiddly part — HDS NumberInput is controlled, so a naive clamp snaps
@@ -17,14 +17,14 @@ function renderField(over = {}) {
     onChange: vi.fn(),
     ...over,
   };
-  return { ...render(<BoundedDayInput {...props} />), props };
+  return { ...render(<BoundedNumberInput {...props} />), props };
 }
 
 // HDS NumberInput wraps the numeric <input> in a role="group", so the label text matches
 // twice — query the input by its spinbutton role.
 const field = () => screen.getByRole('spinbutton', { name: 'Longest reservation (days)' });
 
-describe('BoundedDayInput', () => {
+describe('BoundedNumberInput', () => {
   test('shows the stored value', () => {
     renderField({ value: 5 });
     expect(field()).toHaveValue(5);
@@ -106,7 +106,7 @@ describe('BoundedDayInput', () => {
   test('a value that changed from outside the component re-syncs the field', () => {
     const { rerender, props } = renderField({ value: 3 });
     expect(field()).toHaveValue(3);
-    rerender(<BoundedDayInput {...props} value={6} />);
+    rerender(<BoundedNumberInput {...props} value={6} />);
     expect(field()).toHaveValue(6);
   });
 });

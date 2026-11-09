@@ -21,7 +21,7 @@ import { NumberInput } from 'hds-react';
  * the fallback for an empty one. The parent still only hears a number that
  * differs from the one it holds.
  */
-export default function BoundedDayInput({
+export default function BoundedNumberInput({
   id,
   label,
   helperText,
