@@ -20,10 +20,9 @@ release does the half that is safe with both codebases running:
    database operation), so the model, the serializers and every query stop
    naming them.
 
-The next release drops the columns (`0166`, written ahead of time in the project's
-work notes). Reversible: backwards, the fields return to the state, the database
-defaults go, and the collections keep the columns this migration added until they
-are removed in turn.
+The next release drops the columns (`0166`). Reversible: backwards, the fields return
+to the state, the database defaults go, and the collections keep the columns this
+migration added until they are removed in turn.
 """
 
 import django.db.models.deletion
