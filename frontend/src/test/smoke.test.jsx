@@ -287,7 +287,7 @@ smokeAndAxe('CollectionPage', CollectionPage, {
 smokeAndAxe('EditCollectionPage', EditCollectionPage, {
   path: '/collections/:code/edit',
   entry: '/collections/COL001/edit',
-  heading: 'Edit collection',
+  heading: 'General',
 });
 
 smokeAndAxe('CollectionAppearancePage', CollectionAppearancePage, {

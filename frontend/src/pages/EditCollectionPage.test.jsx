@@ -26,6 +26,8 @@ import EditCollectionPage from './EditCollectionPage';
 import { dropHdsStyles } from '../test/dropHdsStyles';
 import { settle } from '../test/settle';
 import en from '../i18n/locales/en.json';
+import es from '../i18n/locales/es.json';
+import ca from '../i18n/locales/ca.json';
 
 // `collectionForm.test.jsx` covers the shape of this form (which fields are
 // visible, the pause section). These cover what
@@ -224,12 +226,51 @@ describe('EditCollectionPage — saving', () => {
     expect(body).not.toHaveProperty('reservation_unit');
   });
 
+  test('the tab says General settings of the collection once it is known, and General settings before', async () => {
+    apiFetch.mockImplementation(() => new Promise(() => {}));
+    const pending = renderPage();
+    expect(document.title).toBe('General settings — OIUEEI');
+    pending.unmount();
+
+    mockApi();
+    renderPage();
+    await screen.findByDisplayValue('Kitchen Collection');
+    expect(document.title).toBe('General settings of Kitchen Collection — OIUEEI');
+  });
+
+  test('the three titles of the page are fixed in the three languages', () => {
+    expect([es, ca, en].map((l) => l.editCollection.pageTitle)).toEqual([
+      'General',
+      'General',
+      'General',
+    ]);
+    expect([es, ca, en].map((l) => l.titles.editCollection)).toEqual([
+      'Ajustes generales de {{headline}} — OIUEEI',
+      'Configuració general de {{headline}} — OIUEEI',
+      'General settings of {{headline}} — OIUEEI',
+    ]);
+    expect([es, ca, en].map((l) => l.titles.editCollectionDefault)).toEqual([
+      'Ajustes generales — OIUEEI',
+      'Configuració general — OIUEEI',
+      'General settings — OIUEEI',
+    ]);
+    expect([es, ca, en].map((l) => l.collectionSettings.general)).toEqual([
+      'General',
+      'General',
+      'General',
+    ]);
+  });
+
+  test('nothing reads the old button’s words any more', () => {
+    for (const l of [es, ca, en]) expect(l.collectionPage).not.toHaveProperty('editCollection');
+  });
+
   test('the shape of the page: a notice, the title, the description and the state, then mode and visibility', async () => {
     mockApi();
     const { container } = renderPage();
     await screen.findByDisplayValue('Kitchen Collection');
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Edit collection' })).toBeVisible();
+    expect(screen.getByRole('heading', { level: 1, name: 'General' })).toBeVisible();
     expect(screen.getByText(/Write in one language only if you prefer/)).toBeVisible();
     expect(screen.getByRole('heading', { level: 2, name: 'Visibility' })).toBeVisible();
     expect(screen.queryByRole('button', { name: 'More options' })).toBeNull();

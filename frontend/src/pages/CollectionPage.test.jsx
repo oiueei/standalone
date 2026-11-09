@@ -685,15 +685,15 @@ describe('CollectionPage — the member row: "Invite someone" and "Add thing"', 
       is_curator: true,
       is_member: false,
     });
-    await screen.findByRole('link', { name: 'Edit collection' });
+    await screen.findByRole('link', { name: 'Invite your people' });
 
     expect(screen.queryByRole('button', { name: 'Invite someone' })).toBeNull();
     // The menu is closed, so the only "Add thing" is the hero's — in the row of
-    // "Edit collection", not in a member's row.
+    // "Invite your people", not in a member's row.
     const [add] = screen.getAllByRole('link', { name: 'Add thing' });
     expect(screen.getAllByRole('link', { name: 'Add thing' })).toHaveLength(1);
     expect(
-      within(add.closest('.button-row-wide')).getByRole('link', { name: 'Edit collection' })
+      within(add.closest('.button-row-wide')).getByRole('link', { name: 'Invite your people' })
     ).toBeInTheDocument();
   });
 });
@@ -859,7 +859,7 @@ describe('CollectionPage — an hourly shed nobody can book yet', () => {
 
     expect(screen.getByText(en.collectionPage.noOpeningHoursLabel)).toBeInTheDocument();
     expect(screen.getByText(NOTICE)).toBeInTheDocument();
-    expect(NOTICE).not.toMatch(/More options|Edit collection/);
+    expect(NOTICE).not.toMatch(/More options|General/);
     const links = screen.getAllByRole('link', { name: en.collectionSettings.availability });
     expect(links).toHaveLength(1);
     expect(links[0]).toHaveAttribute('href', '/shed/COL001/settings/availability');
@@ -1882,14 +1882,16 @@ describe('CollectionPage — a network', () => {
 
   test('a dinamizador is not offered the settings of the group, the founder is', async () => {
     await renderAs(NETWORK, 'ABC123');
-    expect(screen.queryByRole('link', { name: 'Edit collection' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
+    expect(document.querySelector('a[href$="/edit"]')).toBeNull();
     expect(screen.getAllByRole('link', { name: 'Add thing' }).length).toBeGreaterThan(0);
   });
 
   test('the founder is offered them', async () => {
     await renderAs({ ...NETWORK, is_curator: true }, 'FOUN01');
 
-    expect(screen.getByRole('link', { name: 'Edit collection' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByRole('link', { name: 'General' })).toBeInTheDocument();
   });
 });
 
@@ -1935,7 +1937,7 @@ describe('CollectionPage as a co-owner', () => {
       </MemoryRouter>
     );
 
-    expect(await screen.findByRole('link', { name: 'Edit collection' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Settings' })).toBeInTheDocument();
     // "Manage members" lives in the collection menu now (2026-10-03): open it.
     fireEvent.click(screen.getByRole('button', { name: 'Collection options' }));
     expect(await screen.findByRole('link', { name: 'Manage members' })).toBeInTheDocument();
@@ -1944,14 +1946,11 @@ describe('CollectionPage as a co-owner', () => {
     expect(screen.queryByRole('button', { name: 'Join this group' })).not.toBeInTheDocument();
   });
 
-  // The hero row holds "Add thing" and "Edit collection": the
-  // first primary, the second secondary — and "Invite your people", always, a third
-  // secondary one (`test/inviteYourPeople.test.jsx` pins when it is there). It once
-  // held "Edit collection" alone — the rest of the curator's controls are in the
-  // collection menu, one click further — and then "Edit collection" primary with
-  // "Add thing" after it: the thing a curator does most is put things in, so that is
-  // the button the eye lands on.
-  test('the curator hero row holds "Add thing" and then "Edit collection", the first primary, and "Invite your people"', async () => {
+  // The hero row holds exactly "Add thing" (primary: the thing a curator does most is
+  // put things in) and "Invite your people" (secondary; `test/inviteYourPeople.test.jsx`
+  // pins when it is there). Editing the group is "General" in the pencil menu, and
+  // that is the only link to `/edit` on the page.
+  test('the curator hero row holds "Add thing" and then "Invite your people", the first primary, and no link to /edit outside the pencil menu', async () => {
     apiFetch.mockImplementation((url) =>
       url.startsWith('/api/v1/inbox/')
         ? Promise.resolve({ ok: true, status: 200, json: async () => [] })
@@ -1966,22 +1965,25 @@ describe('CollectionPage as a co-owner', () => {
       </MemoryRouter>
     );
 
-    await screen.findByRole('link', { name: 'Edit collection' });
+    await screen.findByRole('link', { name: 'Invite your people' });
     const row = container.querySelector('.button-row-wide');
     expect(row).not.toBeNull();
     const inRow = [...row.querySelectorAll('a, button')];
-    expect(inRow.map((el) => el.textContent)).toEqual([
-      'Add thing',
-      'Edit collection',
-      'Invite your people',
-    ]);
+    expect(inRow.map((el) => el.textContent)).toEqual(['Add thing', 'Invite your people']);
     expect(inRow[0]).toHaveAttribute('href', '/collections/COL001/add');
-    expect(inRow[1]).toHaveAttribute('href', '/collections/COL001/edit');
-    expect(inRow[2]).toHaveAttribute('href', '/collections/COL001/invites');
+    expect(inRow[1]).toHaveAttribute('href', '/collections/COL001/invites');
     // The secondary tokens are a white background; the primary's are the theeeme's.
     expect(inRow[0].style.getPropertyValue('--background-color')).not.toBe('var(--color-white)');
     expect(inRow[1].style.getPropertyValue('--background-color')).toBe('var(--color-white)');
-    expect(inRow[2].style.getPropertyValue('--background-color')).toBe('var(--color-white)');
+    // The menu is closed: nothing on the page leads to the edit page yet…
+    expect(container.querySelector('a[href$="/edit"]')).toBeNull();
+    // …and it is the pencil's first entry.
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(container.querySelectorAll('a[href$="/edit"]')).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'General' })).toHaveAttribute(
+      'href',
+      '/collections/COL001/edit'
+    );
   });
 
   // The button is there with things or without: an empty group

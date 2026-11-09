@@ -154,8 +154,8 @@
     "deleteCollectionDefault": "Delete collection — OIUEEI",
     "editProfile": "Edit profile — OIUEEI",
     "notifications": "Email preferences — OIUEEI",
-    "editCollection": "Edit {{headline}} — OIUEEI",
-    "editCollectionDefault": "Edit collection — OIUEEI",
+    "editCollection": "General settings of {{headline}} — OIUEEI",
+    "editCollectionDefault": "General settings — OIUEEI",
     "newCollection": "New collection — OIUEEI",
     "collection": "{{headline}} — OIUEEI",
     "collectionDefault": "Collection — OIUEEI",
@@ -327,7 +327,6 @@
     "demotedNetworkBody_other": "You're a regular member of “{{collection_headline}}” again. Your {{count}} things there were deleted."
   },
   "collectionPage": {
-    "editCollection": "Edit collection",
     "addThing": "Add thing",
     "manageGuests": "Manage members",
     "inviteYourPeople": "Invite your people",
@@ -566,7 +565,7 @@
     "nameHelper": "Your name, a nickname, anything you like. It appears beside the questions you ask, in the journey of anything you have held, and in your groups’ member lists — publicly, if the group shares publicly."
   },
   "editCollection": {
-    "pageTitle": "Edit collection",
+    "pageTitle": "General",
     "titleLabel": "Title",
     "descriptionLabel": "Description",
     "statusLabel": "Status",
@@ -1337,6 +1336,7 @@
     "unitsHelpLibrary": "If you have several identical ones, people can borrow several at once, up to this number."
   },
   "collectionSettings": {
+    "general": "General",
     "menu": "Settings",
     "appearance": "Appearance",
     "logoLabel": "Logo or header image",

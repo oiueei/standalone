@@ -145,8 +145,8 @@
     "deleteThing": "Eliminar {{headline}} — OIUEEI",
     "deleteThingDefault": "Eliminar cosa — OIUEEI",
     "editProfile": "Editar perfil — OIUEEI",
-    "editCollection": "Editar {{headline}} — OIUEEI",
-    "editCollectionDefault": "Editar col·lecció — OIUEEI",
+    "editCollection": "Configuració general de {{headline}} — OIUEEI",
+    "editCollectionDefault": "Configuració general — OIUEEI",
     "newCollection": "Nova col·lecció — OIUEEI",
     "collection": "{{headline}} — OIUEEI",
     "collectionDefault": "Col·lecció — OIUEEI",
@@ -321,7 +321,6 @@
     "demotedNetworkBody_other": "Tornes a ser un membre normal de “{{collection_headline}}”. Les teves {{count}} coses d'allà s'han esborrat."
   },
   "collectionPage": {
-    "editCollection": "Editar col·lecció",
     "addThing": "Afegir cosa",
     "manageGuests": "Gestionar membres",
     "inviteYourPeople": "Convida la teva gent",
@@ -560,7 +559,7 @@
     "nameHelper": "El teu nom, un àlies, el que vulguis. Apareix al costat de les preguntes que fas, al recorregut de les coses que has tingut i a la llista de membres dels teus grups — en públic, si el grup comparteix en públic."
   },
   "editCollection": {
-    "pageTitle": "Editar col·lecció",
+    "pageTitle": "General",
     "titleLabel": "Títol",
     "descriptionLabel": "Descripció",
     "statusLabel": "Estat",
@@ -1337,6 +1336,7 @@
     "unitsHelpLibrary": "Si en tens unes quantes d'iguals, se'n poden demanar unes quantes alhora, fins a aquest nombre."
   },
   "collectionSettings": {
+    "general": "General",
     "menu": "Configuració",
     "appearance": "Aparença",
     "logoLabel": "Logo o imatge de capçalera",

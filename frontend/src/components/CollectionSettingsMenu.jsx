@@ -11,12 +11,16 @@ const PANEL_ID = 'collection-settings-menu-panel';
 /**
  * The way to the collection's settings pages, one icon in the hero's corner
  * between the account menu and the collection menu. Curators only (owner and
- * co-curators, `is_curator`): the same gate as "Edit collection".
+ * co-curators, `is_curator`; in a network only its founder, `canEditCollection`).
  *
  * Built like `CollectionMenu`: a trigger with `aria-expanded` / `aria-controls`
  * and a plain `<div>` panel of links — not `role="menu"`, which would promise
  * arrow-key navigation these ordinary Tab-reachable links do not have, and no
  * `aria-label` on the panel (axe flags one on a div with no role).
+ *
+ * The panel opens with "General" (the collection's title, description, state, mode and
+ * visibility), then Appearance, Notifications and, where the kind has one,
+ * Availability.
  *
  * Props: `code`; `kind` (makes the address of the pages).
  */
@@ -45,6 +49,9 @@ export default function CollectionSettingsMenu({ code, kind }) {
       </button>
       {open && (
         <div id={PANEL_ID} className="collection-settings-menu-panel">
+          <Link to={`${base}/edit`} onClick={close}>
+            {t('collectionSettings.general')}
+          </Link>
           <Link to={`${base}/settings/appearance`} onClick={close}>
             {t('collectionSettings.appearance')}
           </Link>

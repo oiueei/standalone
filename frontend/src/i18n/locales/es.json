@@ -145,8 +145,8 @@
     "deleteThing": "Eliminar {{headline}} — OIUEEI",
     "deleteThingDefault": "Eliminar cosa — OIUEEI",
     "editProfile": "Editar perfil — OIUEEI",
-    "editCollection": "Editar {{headline}} — OIUEEI",
-    "editCollectionDefault": "Editar colección — OIUEEI",
+    "editCollection": "Ajustes generales de {{headline}} — OIUEEI",
+    "editCollectionDefault": "Ajustes generales — OIUEEI",
     "newCollection": "Nueva colección — OIUEEI",
     "collection": "{{headline}} — OIUEEI",
     "collectionDefault": "Colección — OIUEEI",
@@ -321,7 +321,6 @@
     "demotedNetworkBody_other": "Vuelves a ser un miembro normal de “{{collection_headline}}”. Tus {{count}} cosas de allí se han borrado."
   },
   "collectionPage": {
-    "editCollection": "Editar colección",
     "addThing": "Añadir cosa",
     "manageGuests": "Gestionar miembros",
     "inviteYourPeople": "Invita a tu gente",
@@ -560,7 +559,7 @@
     "nameHelper": "Tu nombre, un apodo, lo que quieras. Aparece junto a las preguntas que haces, en el recorrido de las cosas que has tenido y en la lista de miembros de tus grupos — en público, si el grupo comparte en público."
   },
   "editCollection": {
-    "pageTitle": "Editar colección",
+    "pageTitle": "General",
     "titleLabel": "Título",
     "descriptionLabel": "Descripción",
     "statusLabel": "Estado",
@@ -1337,6 +1336,7 @@
     "unitsHelpLibrary": "Si tienes varias iguales, se pueden pedir varias a la vez, hasta este número."
   },
   "collectionSettings": {
+    "general": "General",
     "menu": "Ajustes",
     "appearance": "Apariencia",
     "logoLabel": "Logo o imagen de cabecera",

@@ -115,7 +115,8 @@ export default function CollectionHero({
   // who is a curator and has the curator's menu). They get a menu of their own in
   // the corner — the welcome document, the summary switch when
   // the group sends one, and "Leave the group".
-  // The settings are what "Edit collection" is: in a network only the founder's.
+  // The settings (the pencil menu, "General" included) are the curators' and, in a
+  // network, only the founder's.
   const showsSettings = canEditCollection(collection, userCode);
   const isMember = isAuthenticated && !!collection.is_member && !isCurator;
   // Each name of the team opens the page that person has in the group, for everyone
@@ -331,35 +332,17 @@ export default function CollectionHero({
             )}
           {isCurator && (
             <>
-              {/* "Add thing" first and primary, then "Edit collection":
-                    what a curator does most, and what
-                    an empty group needs before anything else, is put things in it;
-                    editing the group is the second thing. It used to be the other way round
-                    ("Edit collection" primary, "Add thing" beside it). Always there,
-                    with things or without, and still an
-                    entry of the collection menu (deliberately repeated there).
-                    "Manage members" and the downloads live only in the menu; the
-                    outcome of a download lands right under the row. */}
+              {/* Two buttons: "Add thing" (primary: what a curator does most, and what
+                    an empty group needs before anything else) and "Invite your people"
+                    (secondary). Always there, with things or without and with members
+                    or without. Editing the group is not here: it is "General" in the
+                    pencil menu, with the other settings. "Manage members" and the
+                    downloads live only in the collection menu; the outcome of a
+                    download lands right under the row. */}
               <div className="button-row-wide">
                 <ButtonLink to={`${base}/add`} style={btnStyle}>
                   {t('collectionPage.addThing')}
                 </ButtonLink>
-                {/* In a network the settings are the founder's: each dinamizador
-                    edits their own point (it has its own page), not the group. */}
-                {showsSettings && (
-                  <ButtonLink to={`${base}/edit`} style={btnSecondaryStyle}>
-                    {t('collectionPage.editCollection')}
-                  </ButtonLink>
-                )}
-                {/* The third button of the row (it was a quiet line
-                      under the row, "Your collection is taking shape. Now invite your
-                      circle →"): secondary, like "Edit collection", so the row keeps its
-                      one primary. It was shown only while the group had things and
-                      nobody invited, and went with the first guest who accepted — a curator
-                      who had invited people found the button gone. Now it is
-                      always there for whoever runs the group, owner or co-curator, with
-                      things or without and with members or without: inviting is not a
-                      step of the beginning. */}
                 <ButtonLink to={`${base}/invites`} style={btnSecondaryStyle}>
                   {t('collectionPage.inviteYourPeople')}
                 </ButtonLink>

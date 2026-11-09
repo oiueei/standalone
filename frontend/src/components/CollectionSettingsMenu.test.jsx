@@ -41,11 +41,24 @@ describe('CollectionSettingsMenu', () => {
     );
   });
 
-  test('offers Appearance and Notifications to a stall, and no Availability: it has no request page', () => {
+  test.each(['STALL', 'LIBRARY', 'SHED'])(
+    'General is the first entry of a %s, and leads to the collection’s edit page',
+    (kind) => {
+      renderMenu(kind);
+      fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+      const [first] = screen.getAllByRole('link');
+      expect(first).toHaveTextContent('General');
+      expect(first).toHaveAttribute('href', `/${kind.toLowerCase()}/COL001/edit`);
+    }
+  );
+
+  test('offers General, Appearance and Notifications to a stall, and no Availability: it has no request page', () => {
     renderMenu();
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
     expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
+      '/stall/COL001/edit',
       '/stall/COL001/settings/appearance',
       '/stall/COL001/settings/notifications',
     ]);
@@ -56,6 +69,7 @@ describe('CollectionSettingsMenu', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
     expect(screen.getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
+      `/${kind.toLowerCase()}/COL001/edit`,
       `/${kind.toLowerCase()}/COL001/settings/appearance`,
       `/${kind.toLowerCase()}/COL001/settings/notifications`,
       `/${kind.toLowerCase()}/COL001/settings/availability`,

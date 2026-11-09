@@ -189,7 +189,7 @@ beforeEach(() => {
 /**
  * The collection's own options, one click from its page:
  * "Add thing", "Manage members" and the three downloads left the hero row
- * (which keeps "Edit collection" alone) and the settings page's foot, and
+ * (which keeps "Add thing" and "Invite your people") and the settings page's foot, and
  * live in this menu instead — a fourth icon in the hero's corner, curators
  * only. These tests pin the menu's own decisions:
  *

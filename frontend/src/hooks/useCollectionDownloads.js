@@ -8,8 +8,8 @@ import useCalendarExport from './useCalendarExport';
  * The three downloads a curator takes from the collection's own page (the
  * collection menu, 2026-10-03): the calendar .ics, the stats CSV and the
  * whole-collection JSON. `CollectionPage` calls this once and hands the
- * result to the menu and to the status zone under the "Edit collection"
- * row: one call, two halves, so the menu that starts a download and the zone
+ * result to the menu and to the status zone under the hero's
+ * row of buttons: one call, two halves, so the menu that starts a download and the zone
  * that reports it can never disagree about which one is running.
  *
  * The calendar half is `useCalendarExport` untouched: the POST, the

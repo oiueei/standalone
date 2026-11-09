@@ -13,10 +13,10 @@ const PANEL_ID = 'collection-menu-panel';
 
 /**
  * The collection's own options, one click from its page:
- * "Add thing" and "Manage members" used to crowd the hero beside "Edit
- * collection", and the two data downloads lived at the foot of the settings
- * page — so a curator ran the group from three places at once. The hero row
- * holds "Add thing" and "Edit collection" ("Add thing" stays here too);
+ * "Add thing" and "Manage members" used to crowd the hero, and the two data
+ * downloads lived at the foot of the settings page — so a curator ran the group
+ * from three places at once. The hero row holds "Add thing" and "Invite your
+ * people" ("Add thing" stays here too);
  * everything else is this menu, the second of the corner's icons (`AccountMenu` ·
  * this · `ShareCollectionMenu`; there used to be a fourth, a contact icon), shown
  * to curators only (owner or co-owner,
@@ -230,7 +230,7 @@ export default function CollectionMenu({
 
 /**
  * The outcome zone for the menu's three downloads, under the hero's
- * "Edit collection" row (where the calendar's used to sit). One message at
+ * row of buttons (where the calendar's used to sit). One message at
  * a time: it renders the state of the download that last started —
  * "Preparing the file…" while it runs, then that download's own result
  * (the calendar's counts; a failure's reason; a stats download that
