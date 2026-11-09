@@ -317,7 +317,7 @@
     "promotedNetworkBody": "Ara pots ajudar a dinamitzar “{{collection_headline}}”: convidar membres, escriure al grup, pujar les teves pròpies coses i decidir-hi. El teu nom apareix ara a la pàgina de la col·lecció, a «Dinamització»; qui la va fundar es queda els ajustos i decideix qui forma part de l'equip.",
     "demotedLabel": "Ja no formes part de la dinamització",
     "demotedBody": "Tornes a ser un membre normal de “{{collection_headline}}”.",
-    "demotedNetworkBody_one": "Tornes a ser un membre normal de “{{collection_headline}}”. La teva 1 cosa d'allà s'ha esborrat.",
+    "demotedNetworkBody_one": "Tornes a ser un membre normal de “{{collection_headline}}”. La teva cosa d'allà s'ha esborrat.",
     "demotedNetworkBody_other": "Tornes a ser un membre normal de “{{collection_headline}}”. Les teves {{count}} coses d'allà s'han esborrat."
   },
   "collectionPage": {
@@ -672,7 +672,7 @@
     "promoteConfirmNetworkBody": "Qui forma part de la dinamització pot convidar membres, escriure a tothom i pujar les seves pròpies coses, i decideix només sobre aquestes: respon les seves preguntes i sol·licituds, i baixa el seu calendari i una còpia del grup amb les seves coses i la llista de membres (amb el correu de cadascú). No pot treure membres, editar els ajustos de la xarxa, afegir altres persones a la dinamització ni tocar les coses d'una altra entitat. El seu nom apareixerà a la pàgina de la col·lecció. Ho pots desfer quan vulguis, però les seves coses s'esborraran amb el càrrec.",
     "promoteConfirm": "Afegir a la dinamització",
     "demoteConfirmTitle": "Vols treure {{name}} de la dinamització?",
-    "demoteNetworkBody_one": "La seva 1 cosa s'esborrarà de la xarxa i s'avisarà qui l'hagués demanada. Continua sent membre.",
+    "demoteNetworkBody_one": "La seva cosa s'esborrarà de la xarxa i s'avisarà qui l'hagués demanada. Continua sent membre.",
     "demoteNetworkBody_other": "Les seves {{count}} coses s'esborraran de la xarxa i s'avisarà qui les hagués demanades. Continua sent membre.",
     "demoteConfirm": "Treure de la dinamització",
     "promoted": "Ara forma part de la dinamització.",
@@ -705,7 +705,7 @@
     "ownerReject": "Ara no",
     "ownerApproved": "Invitació enviada.",
     "ownerDeclined": "Rebutjada. L'hi hem dit al membre, sense dir per què.",
-    "settingFull": "Els membres poden recomanar persones (Ells proposen, tu decideixes: no surt cap invitació sense el teu vistiplau.)"
+    "settingFull": "Els membres poden recomanar persones (La proposta és seva i la decisió, teva: no surt cap invitació sense el teu vistiplau.)"
   },
   "removeGuest": {
     "pageTitle": "Treure: {{name}}",
@@ -1133,7 +1133,7 @@
     "nameHelper": "Una cooperativa, una associació, una botiga… o el teu propi nom. Si el deixes buit, s'ensenya el teu nom.",
     "logoLabel": "Logo",
     "logoHelper": "S'ensenya al costat del teu nom en aquest grup.",
-    "aboutLabel": "Sobre nosaltres",
+    "aboutLabel": "Presentació",
     "aboutMaxLength": "Màxim 2000 caràcters per idioma.",
     "contactLabel": "Contacte (web o telèfon)",
     "pickupTitle": "Punt de recollida",

@@ -317,7 +317,7 @@
     "promotedNetworkBody": "Ahora puedes ayudar a dinamizar “{{collection_headline}}”: invitar a miembros, escribir al grupo, subir tus propias cosas y decidir sobre ellas. Tu nombre aparece ahora en la página de la colección, en «Dinamización»; quien la fundó se queda con los ajustes y decide quién forma parte del equipo.",
     "demotedLabel": "Ya no formas parte de la dinamización",
     "demotedBody": "Vuelves a ser un miembro normal de “{{collection_headline}}”.",
-    "demotedNetworkBody_one": "Vuelves a ser un miembro normal de “{{collection_headline}}”. Tu 1 cosa de allí se ha borrado.",
+    "demotedNetworkBody_one": "Vuelves a ser un miembro normal de “{{collection_headline}}”. Tu cosa de allí se ha borrado.",
     "demotedNetworkBody_other": "Vuelves a ser un miembro normal de “{{collection_headline}}”. Tus {{count}} cosas de allí se han borrado."
   },
   "collectionPage": {
@@ -672,7 +672,7 @@
     "promoteConfirmNetworkBody": "Quien forma parte de la dinamización puede invitar a miembros, escribir a todo el mundo y subir sus propias cosas, y decide solo sobre ellas: responde sus preguntas y solicitudes, y baja su calendario y una copia del grupo con sus cosas y la lista de miembros (con el correo de cada uno). No puede quitar miembros, editar los ajustes de la red, sumar a otras personas a la dinamización ni tocar las cosas de otra entidad. Su nombre aparecerá en la página de la colección. Puedes deshacerlo cuando quieras, pero sus cosas se borrarán con el cargo.",
     "promoteConfirm": "Sumar a la dinamización",
     "demoteConfirmTitle": "¿Quitar a {{name}} de la dinamización?",
-    "demoteNetworkBody_one": "Su 1 cosa se borrará de la red y se avisará a quien la hubiera pedido. Sigue siendo miembro.",
+    "demoteNetworkBody_one": "Su cosa se borrará de la red y se avisará a quien la hubiera pedido. Sigue siendo miembro.",
     "demoteNetworkBody_other": "Sus {{count}} cosas se borrarán de la red y se avisará a quien las hubiera pedido. Sigue siendo miembro.",
     "demoteConfirm": "Quitar de la dinamización",
     "promoted": "Ahora forma parte de la dinamización.",
@@ -705,7 +705,7 @@
     "ownerReject": "Ahora no",
     "ownerApproved": "Invitación enviada.",
     "ownerDeclined": "Rechazada. Se lo hemos dicho al miembro, sin decir por qué.",
-    "settingFull": "Los miembros pueden recomendar personas (Ellos proponen, tú decides: no sale ninguna invitación sin tu visto bueno.)"
+    "settingFull": "Los miembros pueden recomendar personas (La propuesta es suya y la decisión, tuya: no sale ninguna invitación sin tu visto bueno.)"
   },
   "removeGuest": {
     "pageTitle": "Quitar: {{name}}",
@@ -1133,7 +1133,7 @@
     "nameHelper": "Una cooperativa, una asociación, una tienda… o tu propio nombre. Si lo dejas vacío, se enseña tu nombre.",
     "logoLabel": "Logo",
     "logoHelper": "Se enseña junto a tu nombre en este grupo.",
-    "aboutLabel": "Sobre nosotros",
+    "aboutLabel": "Presentación",
     "aboutMaxLength": "Máximo 2000 caracteres por idioma.",
     "contactLabel": "Contacto (web o teléfono)",
     "pickupTitle": "Punto de recogida",

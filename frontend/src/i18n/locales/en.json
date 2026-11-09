@@ -323,7 +323,7 @@
     "promotedNetworkBody": "You can help run “{{collection_headline}}” now: invite members, message the group, add your own things and decide on them. Your name now shows on the collection's page, under \"Run by\"; the founder keeps the settings and decides who is on the team.",
     "demotedLabel": "You no longer help run this group",
     "demotedBody": "You're a regular member of “{{collection_headline}}” again.",
-    "demotedNetworkBody_one": "You're a regular member of “{{collection_headline}}” again. Your 1 thing there was deleted.",
+    "demotedNetworkBody_one": "You're a regular member of “{{collection_headline}}” again. Your thing there was deleted.",
     "demotedNetworkBody_other": "You're a regular member of “{{collection_headline}}” again. Your {{count}} things there were deleted."
   },
   "collectionPage": {
@@ -678,7 +678,7 @@
     "promoteConfirmNetworkBody": "Someone on the team can invite members, message everyone and add their own things, and decides only on those: they answer their own questions and requests, and download their own calendar and a copy of the group with their things and the member list (with everyone's email). They cannot remove members, edit the network's settings, add others to the team or touch another entity's things. Their name will show on the collection's page. You can undo it whenever you like, but their things will be deleted with the role.",
     "promoteConfirm": "Add to the team",
     "demoteConfirmTitle": "Remove {{name}} from the team?",
-    "demoteNetworkBody_one": "Their 1 thing will be deleted from the network, and whoever asked for it will be told. They stay a member.",
+    "demoteNetworkBody_one": "Their thing will be deleted from the network, and whoever asked for it will be told. They stay a member.",
     "demoteNetworkBody_other": "Their {{count}} things will be deleted from the network, and whoever asked for them will be told. They stay a member.",
     "demoteConfirm": "Remove from the team",
     "promoted": "Added to the team.",
