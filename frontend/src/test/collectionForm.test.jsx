@@ -43,7 +43,8 @@ function setApi({ collection = {} } = {}) {
     const method = opts.method || 'GET';
     if (url === '/api/v1/collections/' && method === 'POST')
       return Promise.resolve(mockResponse({ code: 'NEW001', kind: 'STALL' }));
-    if (/\/collections\/[^/]+\//.test(url)) return Promise.resolve(mockResponse(collection));
+    if (/\/collections\/[^/]+\//.test(url))
+      return Promise.resolve(mockResponse({ is_curator: true, ...collection }));
     return Promise.resolve(mockResponse({}));
   });
 }
@@ -439,7 +440,9 @@ describe('EditCollectionPage — load + pause + submit', () => {
     apiFetch.mockImplementation((url, opts = {}) => {
       const method = opts.method || 'GET';
       if (method === 'PATCH') return Promise.resolve(mockResponse({}, false)); // 400
-      return Promise.resolve(mockResponse({ headline: 'X', allowed_thing_types: ['GIFT_THING'] }));
+      return Promise.resolve(
+        mockResponse({ is_curator: true, headline: 'X', allowed_thing_types: ['GIFT_THING'] })
+      );
     });
 
     render(

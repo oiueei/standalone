@@ -15,10 +15,11 @@ import en from '../i18n/locales/en.json';
 import CollectionAppearancePage from '../pages/CollectionAppearancePage';
 import CollectionNotificationsPage from '../pages/CollectionNotificationsPage';
 import CollectionAvailabilityPage from '../pages/CollectionAvailabilityPage';
+import EditCollectionPage from '../pages/EditCollectionPage';
 import { settle } from './settle';
 
 /**
- * The three settings forms read the collection through one hook. Whoever cannot edit it
+ * The four collection forms read the collection through one hook. Whoever cannot edit it
  * goes to the collection with no message, a refused read does the same (403) or says it
  * is not there (404), and any other failure says so in words: never an empty form.
  */
@@ -43,6 +44,7 @@ const PAGES = [
   { name: 'Appearance', Page: CollectionAppearancePage, segment: 'appearance' },
   { name: 'Notifications', Page: CollectionNotificationsPage, segment: 'notifications' },
   { name: 'Availability', Page: CollectionAvailabilityPage, segment: 'availability' },
+  { name: 'Edit', Page: EditCollectionPage, segment: null },
 ];
 
 function Collection() {

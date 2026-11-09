@@ -36,6 +36,7 @@ import en from '../i18n/locales/en.json';
 
 const COLLECTION = {
   code: 'COL001',
+  is_curator: true,
   headline: 'Kitchen Collection',
   description: 'Things from the kitchen',
   mode: 'PROPRIETARY',
@@ -237,15 +238,14 @@ describe('EditCollectionPage — saving', () => {
     }
   });
 
-  test('cannot be saved before the collection has loaded', async () => {
+  test('a collection that cannot be read gives no form, so there is nothing to save', async () => {
     apiFetch.mockImplementation(() =>
       Promise.resolve({ ok: false, status: 500, json: async () => ({}) })
     );
     renderPage();
 
-    const save = await screen.findByRole('button', { name: 'Save' });
-    expect(save).toBeDisabled();
-    fireEvent.click(save);
+    expect(await screen.findByText(en.editCollection.errorLoading)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
     expect(apiFetch.mock.calls.some(([, o]) => o?.method === 'PATCH')).toBe(false);
   });
 });

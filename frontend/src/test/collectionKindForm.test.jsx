@@ -46,7 +46,8 @@ function setApi(collection = {}) {
     const method = opts.method || 'GET';
     if (url === '/api/v1/collections/' && method === 'POST')
       return Promise.resolve(mockResponse({ code: 'NEW001', kind: 'STALL' }));
-    if (/\/collections\/[^/]+\//.test(url)) return Promise.resolve(mockResponse(collection));
+    if (/\/collections\/[^/]+\//.test(url))
+      return Promise.resolve(mockResponse({ is_curator: true, ...collection }));
     return Promise.resolve(mockResponse({}));
   });
 }
