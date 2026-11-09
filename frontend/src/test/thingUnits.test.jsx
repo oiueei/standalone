@@ -263,7 +263,7 @@ describe('the units field of the thing form', () => {
 
   test('what the server says about the units is said in the units field, in the reader’s language', async () => {
     const body = {
-      units: ['There are bookings that need at least 3 at the same time.'],
+      units: ['server sentence'],
       code: 'units_below_booked',
       params: { min: 3 },
     };
@@ -289,8 +289,9 @@ describe('the units field of the thing form', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     const message = await screen.findByText(
-      'There are bookings that need at least 3 at the same time.'
+      en.requestErrors.units_below_booked.replace('{{min}}', '3')
     );
+    expect(screen.queryByText('server sentence')).toBeNull();
     const describedBy = container
       .querySelector('#edit-thing-units')
       .getAttribute('aria-describedby');
