@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Koros, Notification, IconGlobe, IconLocation, IconClock, IconCalendar } from 'hds-react';
+import { Notification, IconGlobe, IconLocation, IconClock, IconCalendar } from 'hds-react';
 import { apiFetch } from '../services/api';
-import AccountMenu from '../components/AccountMenu';
-import BackLink from '../components/BackLink';
 import ButtonLink from '../components/ButtonLink';
 import LoadingSpinner from '../components/LoadingSpinner';
 import MarkdownText from '../components/MarkdownText';
@@ -37,7 +35,7 @@ export default function EntityPage() {
   const { t, i18n } = useTranslation();
   const L = useLocalized();
   const { code, userCode } = useParams();
-  const { btnStyle, tc, koro } = useTheeeme();
+  const { btnStyle } = useTheeeme();
   const [collection, setCollection] = useState(null);
   const [error, setError] = useState('');
 
@@ -134,66 +132,42 @@ export default function EntityPage() {
   ].filter((row) => row.value);
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      title={name}
+      backTo={base}
+      backLabel={groupName || t('common.collection')}
+      logoUrl={card?.logo_url}
+      heroClassName="form-hero--collection"
+      description={t(isNetwork ? 'organisation.pickupOf' : 'organisation.runs', {
+        collection: groupName,
+      })}
     >
-      <div
-        className="form-hero form-hero--collection"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-split">
-          <div
-            className="form-hero-content"
-            style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}
-          >
-            <span className="hero-corners">
-              <AccountMenu />
-            </span>
-            <BackLink to={base} label={groupName || t('common.collection')} />
-            {card?.logo_url && <img className="hero-logo" src={card.logo_url} alt="" />}
-            <h1 className="form-hero-title">{name}</h1>
-            <p className="form-hero-text">
-              {t(isNetwork ? 'organisation.pickupOf' : 'organisation.runs', {
-                collection: groupName,
-              })}
-            </p>
-          </div>
+      {rows.length > 0 && (
+        <div className="thing-card-info">
+          {rows.map((row) => {
+            const RowIcon = row.icon;
+            return (
+              <div className="thing-card-info-row" key={row.key}>
+                <RowIcon size="m" aria-hidden="true" />
+                <span>{t(row.label, { value: row.value })}</span>
+              </div>
+            );
+          })}
         </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
-        {rows.length > 0 && (
-          <div className="thing-card-info">
-            {rows.map((row) => {
-              const RowIcon = row.icon;
-              return (
-                <div className="thing-card-info-row" key={row.key}>
-                  <RowIcon size="m" aria-hidden="true" />
-                  <span>{t(row.label, { value: row.value })}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {about && (
-          <>
-            <h2>{t('organisation.aboutLabel')}</h2>
-            <MarkdownText text={about} />
-          </>
-        )}
-        {isNetwork && (
-          <div className="button-row-wide">
-            <ButtonLink to={`${base}/${userCode}`} style={btnStyle}>
-              {t('organisation.seeWhatTheyLend')}
-            </ButtonLink>
-          </div>
-        )}
-      </div>
-    </div>
+      )}
+      {about && (
+        <>
+          <h2>{t('organisation.aboutLabel')}</h2>
+          <MarkdownText text={about} />
+        </>
+      )}
+      {isNetwork && (
+        <div className="button-row-wide">
+          <ButtonLink to={`${base}/${userCode}`} style={btnStyle}>
+            {t('organisation.seeWhatTheyLend')}
+          </ButtonLink>
+        </div>
+      )}
+    </PageLayout>
   );
 }
