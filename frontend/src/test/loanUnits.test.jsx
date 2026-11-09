@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { axe, toHaveNoViolations } from 'jest-axe';
@@ -205,6 +205,15 @@ describe('the units field of the thing form in a library', () => {
 
     await waitFor(() => expect(sentBody('POST')).toBeTruthy());
     expect(sentBody('POST').units).toBe(6);
+  });
+
+  test('more than twenty is brought to twenty on screen, not only when it is sent', async () => {
+    const { container } = await renderAdd(LIBRARY);
+    const field = await unitsInput(container, 'add-thing');
+
+    fireEvent.change(field, { target: { value: '25' } });
+
+    expect(field).toHaveValue(20);
   });
 
   test('a shed keeps the help it had', async () => {
@@ -455,6 +464,67 @@ describe('RequestThingPage — asking for several', () => {
 
       await waitFor(() => expect(sentBody('POST')).toBeTruthy());
       expect(sentBody('POST')).not.toHaveProperty('quantity');
+    });
+  });
+
+  describe('the field keeps what is on screen equal to what is asked for', () => {
+    test('more than there are is brought to the units at once, and the price says the same', async () => {
+      setApi();
+      const { container } = renderRequest();
+      await screen.findByText(/Arduino kit/);
+
+      fireEvent.change(quantityInput(container), { target: { value: '9' } });
+
+      expect(quantityInput(container)).toHaveValue(6);
+      expect(await screen.findByText('Price: 6 × 5.00 EUR = 30.00 EUR')).toBeInTheDocument();
+    });
+
+    test('emptied and left, it goes back to 1', async () => {
+      setApi();
+      const { container } = renderRequest();
+      await screen.findByText(/Arduino kit/);
+      fireEvent.change(quantityInput(container), { target: { value: '4' } });
+
+      fireEvent.change(quantityInput(container), { target: { value: '' } });
+      fireEvent.blur(quantityInput(container));
+
+      expect(quantityInput(container)).toHaveValue(1);
+    });
+  });
+
+  describe('a late answer for an older quantity', () => {
+    test('does not paint the days of the quantity that is no longer asked for', async () => {
+      let releaseThree;
+      apiFetch.mockImplementation((url) => {
+        if (/\/calendar\//.test(url) && url.includes('quantity=3')) {
+          return new Promise((resolve) => {
+            releaseThree = () =>
+              resolve(
+                mockResponse([
+                  { start_date: '2026-06-10', end_date: '2026-06-12', status: 'ACCEPTED' },
+                ])
+              );
+          });
+        }
+        if (/\/calendar\//.test(url)) return Promise.resolve(mockResponse([]));
+        if (/\/things\/[^/]+\/(\?.*)?$/.test(url)) return Promise.resolve(mockResponse(thing));
+        return Promise.resolve(mockResponse({}));
+      });
+      const { container } = renderRequest();
+      await screen.findByText(/Arduino kit/);
+      fireEvent.change(quantityInput(container), { target: { value: '3' } });
+      await waitFor(() => expect(calendarUrls()).toHaveLength(2));
+      fireEvent.change(quantityInput(container), { target: { value: '4' } });
+      await waitFor(() => expect(calendarUrls()).toHaveLength(3));
+      await act(async () => {});
+
+      // The first answer arrives after the second one has been painted.
+      await act(async () => releaseThree());
+      await act(async () => {});
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'Choose date' })[0]);
+      await waitFor(() => expect(document.querySelector('[data-date]')).toBeTruthy());
+      expect(document.querySelector('[data-date="2026-06-10"]').tagName).toBe('BUTTON');
     });
   });
 

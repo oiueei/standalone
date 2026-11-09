@@ -30,6 +30,8 @@ export default function BoundedNumberInput({
   fallback,
   value,
   onChange,
+  invalid,
+  errorText,
 }) {
   const [draft, setDraft] = useState(String(value));
   // Re-sync when the value arrives from outside — e.g. the Edit form finishing
@@ -63,6 +65,8 @@ export default function BoundedNumberInput({
       id={id}
       label={label}
       helperText={helperText}
+      invalid={invalid}
+      errorText={errorText}
       min={min}
       max={max}
       step={1}

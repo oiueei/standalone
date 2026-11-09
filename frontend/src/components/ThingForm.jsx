@@ -7,6 +7,7 @@ import {
   CONDITION_VALUES,
   kindHasUnits,
 } from '../constants/things';
+import BoundedNumberInput from './BoundedNumberInput';
 import ImageUpload from './ImageUpload';
 import GalleryUpload from './GalleryUpload';
 import LocalizedInfo from './LocalizedInfo';
@@ -173,15 +174,15 @@ export default function ThingForm({
         />
       )}
       {showUnits && (
-        <NumberInput
+        <BoundedNumberInput
           id={`${idPrefix}-units`}
           label={t('thingForm.unitsLabel')}
           helperText={t(kind === 'LIBRARY' ? 'thingForm.unitsHelpLibrary' : 'thingForm.unitsHelp')}
-          value={units === '' ? '' : Number(units)}
-          onChange={(e) => setUnits(e.target.value)}
+          value={units}
+          onChange={setUnits}
           min={1}
           max={20}
-          step={1}
+          fallback={1}
           invalid={!!errors.units}
           errorText={errors.units}
         />
