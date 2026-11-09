@@ -11,6 +11,8 @@ from datetime import timedelta
 import pytest
 from django.core import mail
 from django.core.management import call_command
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -245,6 +247,39 @@ class TestReminders:
         [message] = [m for m in mail.outbox if m.to == ["lolo@your-domain.test"]]
         assert "Ghost entity" not in message.body
         assert "Lala" in message.body
+
+
+class TestReminderQueryBudget:
+    def _loans_due_tomorrow(self, net, n):
+        today = timezone.localdate()
+        for _ in range(n):
+            thing = ThingFactory(owner=net["lele"], type=LEND)
+            net["group"].things.add(thing)
+            BookingPeriodFactory(
+                thing_code=thing,
+                requester_code=net["lolo"],
+                owner_code=net["lele"],
+                thing_type=LEND,
+                status="ACCEPTED",
+                start_date=today - timedelta(days=6),
+                end_date=today + timedelta(days=1),
+            )
+
+    def _point_queries(self):
+        mail.outbox.clear()
+        with CaptureQueriesContext(connection) as queries:
+            call_command("send_reminders")
+        return [q["sql"] for q in queries if "network_points" in q["sql"]]
+
+    def test_the_pickup_points_are_read_once_however_many_loans_are_due(self, net):
+        a_point(net)
+        self._loans_due_tomorrow(net, 2)
+        few = self._point_queries()
+        self._loans_due_tomorrow(net, 3)
+        many = self._point_queries()
+
+        assert len(mail.outbox) >= 5
+        assert len(many) == len(few), f"{len(few)} point reads for 2 loans, {len(many)} for 5"
 
 
 class TestTheRequestReceived:
