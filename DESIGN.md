@@ -153,7 +153,9 @@ If at any point we find ourselves about to add a third-party analytics SDK, that
 
 ## 10. Koros Wave Pattern and Theeeme Color System
 
-All pages use a consistent `form-hero` + `Koros` layout pattern. The HDS Hero component is not used; instead, a custom `form-hero` section provides the page header, followed by an HDS `Koros` component (60px height) that creates a wave transition into the page content. Each user can choose their preferred Koros wave type (basic, beat, calm, pulse, vibration, or wave) via the `koro` field on their profile. The chosen type is stored in `localStorage` and applied across all pages.
+All pages use a consistent `form-hero` + `Koros` layout pattern. The HDS Hero component is not used; instead, a custom `form-hero` section provides the page header, followed by an HDS `Koros` component (48px high) that creates a wave transition into the page content.
+
+**The palette and the wave belong to a collection, not to the reader.** The people who run a collection choose its six colours and its koro type (basic, beat, calm, pulse, vibration or wave) on its Appearance page, and every page of that collection wears them for everyone who opens it. Nothing about it is chosen by the reader or stored in their browser. Outside a collection (home, profile, login, legal, the 404…) the app paints with its own palette, `Braaanding`, a row edited by whoever runs the deployment. Design a view for the palette in force, whichever it is; never assume one. The detail (which pages declare a palette, how it reaches the first paint) is in [`frontend/CLAUDE.md`](frontend/CLAUDE.md), *Whose palette: the collection's, or the app's own*.
 
 ### Layout Structure
 
@@ -161,7 +163,7 @@ Every page follows this structure: a full-width `form-hero` with theeeme-driven 
 
 ### Theeeme Color Roles
 
-Each theeeme defines six colours used consistently across the interface:
+Each palette defines six colours used consistently across the interface:
 
 | Token | Role |
 |-------|------|
@@ -172,7 +174,7 @@ Each theeeme defines six colours used consistently across the interface:
 | `color_05` | Koros text (title, description, back-link) via the `--hero-text-color` CSS custom property |
 | `color_06` | Primary button text |
 
-This system ensures that every user's experience is visually coherent: changing a theeeme recolours the entire interface — koros, background, buttons, and text — in one step. The koro wave type adds a further layer of personalisation, letting each user choose the wave motif that best suits their taste.
+This system ensures that every page of a collection is visually coherent: changing a collection's palette recolours its koros, background, buttons and text in one step, for everyone who opens it, and the koro type adds a motif of the collection's own choosing. Pages outside a collection stay in the app's palette.
 
 ---
 
@@ -227,6 +229,6 @@ When asked to design or review a view, apply this checklist:
 7. Is it performant on modest hardware?
 8. Will it hold up in other languages?
 9. Does it collect only the data it strictly needs?
-10. Does it use the form-hero + Koros layout with theeeme colours?
+10. Does it use the form-hero + Koros layout with the palette in force (the collection's or the app's)?
 11. Are all icons black (or `--color-black-40` when disabled)?
 12. Do all media queries use only the three approved breakpoints (768px / 992px / 1248px) in `min-width` order, with xs as the mobile default?
