@@ -8,7 +8,7 @@ import threading
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -1752,10 +1752,22 @@ class CollectionPointView(APIView):
         point = collection.points.filter(user=request.user).first() or NetworkPoint(
             collection=collection, user=request.user
         )
-        data = request.data
+        data = body_dict(request)
         if not collection.is_network():
             data = {key: value for key, value in data.items() if key in IDENTITY_FIELDS}
         serializer = NetworkPointWriteSerializer(point, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            with transaction.atomic():
+                point = serializer.save()
+        except IntegrityError:
+            # Two first PUTs of the same curator raced: both saw no row and both
+            # created one, and the second met `one_point_per_curator`. The row that
+            # won is theirs, so the PUT applies to it instead.
+            point = collection.points.filter(user=request.user).first()
+            if point is None:
+                raise
+            serializer = NetworkPointWriteSerializer(point, data=data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            point = serializer.save()
         return Response(NetworkPointSerializer(point, context={"request": request}).data)

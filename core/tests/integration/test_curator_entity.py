@@ -106,6 +106,13 @@ def test_a_put_outside_a_network_keeps_the_identity_and_ignores_the_place(group)
         assert getattr(card, field) == empty, field
 
 
+def test_a_list_body_is_no_change_outside_a_network(group):
+    res = client_for(group["curator"]).put(url(group), ["x"], format="json")
+
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data["entity_name"] == ""
+
+
 def test_a_plain_member_gets_403_outside_a_network(group):
     client = client_for(group["member"])
 

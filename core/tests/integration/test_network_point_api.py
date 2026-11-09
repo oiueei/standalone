@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Collection, NetworkPoint, User
+from core.serializers.network_point import NetworkPointWriteSerializer
 from core.tests.factories import CollectionFactory
 
 LEND, RENT = "LEND_THING", "RENT_THING"
@@ -224,3 +225,37 @@ def test_the_logo_travels_with_the_collection_to_everyone(world):
 
     [point] = res.data["points"]
     assert point["logo_url"].endswith("oiueei/collections/fusteria")
+
+
+def test_a_list_body_is_no_change_in_a_network(world):
+    res = client_for(world["lele"]).put(url(world), [1, 2], format="json")
+
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data["entity_name"] == ""
+
+
+def test_two_first_puts_of_the_same_curator_leave_one_row_with_the_data_of_the_second(
+    world, monkeypatch
+):
+    """The row a concurrent first PUT created just before this one's save is the one
+    this PUT applies to, instead of a 500 on `one_point_per_curator`."""
+    original = NetworkPointWriteSerializer.is_valid
+    raced = []
+
+    def validate_after_a_rival_created_the_row(self, **kwargs):
+        if not raced:
+            raced.append(True)
+            NetworkPoint.objects.create(
+                collection=world["network"], user=world["lele"], entity_name="Rival"
+            )
+        return original(self, **kwargs)
+
+    monkeypatch.setattr(
+        NetworkPointWriteSerializer, "is_valid", validate_after_a_rival_created_the_row
+    )
+
+    res = client_for(world["lele"]).put(url(world), {"entity_name": "Mine"}, format="json")
+
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data["entity_name"] == "Mine"
+    assert NetworkPoint.objects.get().entity_name == "Mine"
