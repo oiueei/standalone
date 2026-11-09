@@ -46,10 +46,10 @@ const SHED = {
   allowed_thing_types: ['RESERVE_THING'],
 };
 
-function setApi({ collection = {}, thing = {} } = {}) {
+function setApi({ collection = {}, thing = {}, patch = mockResponse({}) } = {}) {
   apiFetch.mockImplementation((url, opts = {}) => {
     const method = opts.method || 'GET';
-    if (method === 'PATCH') return Promise.resolve(mockResponse({}));
+    if (method === 'PATCH') return Promise.resolve(patch);
     if (url === '/api/v1/things/' && method === 'POST')
       return Promise.resolve(mockResponse({ code: 'NEW001' }));
     if (/\/collections\/[^/]+\//.test(url)) return Promise.resolve(mockResponse(collection));
@@ -72,8 +72,8 @@ async function renderAdd(collection) {
   return view;
 }
 
-async function renderEdit(thing) {
-  setApi({ thing });
+async function renderEdit(thing, patch) {
+  setApi({ thing, patch });
   const view = render(
     <MemoryRouter initialEntries={['/things/THG001/edit']}>
       <Routes>
@@ -259,6 +259,45 @@ describe('the units field of the thing form', () => {
 
     await waitFor(() => expect(sentBody('PATCH')).toBeTruthy());
     expect(sentBody('PATCH').units).toBe(2);
+  });
+
+  test('what the server says about the units is said in the units field, in the reader’s language', async () => {
+    const body = {
+      units: ['server sentence'],
+      code: 'units_below_booked',
+      params: { min: 3 },
+    };
+    const { container } = await renderEdit(
+      {
+        code: 'THG001',
+        type: 'RESERVE_THING',
+        collection_kind: 'SHED',
+        collection_allowed_thing_types: ['RESERVE_THING'],
+        headline: 'Lathe',
+        description: '',
+        units: 4,
+      },
+      {
+        ...mockResponse(body, false, 400),
+        clone() {
+          return mockResponse(body, false, 400);
+        },
+      }
+    );
+    fireEvent.change(await unitsInput(container, 'edit-thing'), { target: { value: '2' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    const message = await screen.findByText(
+      en.requestErrors.units_below_booked.replace('{{min}}', '3')
+    );
+    expect(screen.queryByText('server sentence')).toBeNull();
+    const describedBy = container
+      .querySelector('#edit-thing-units')
+      .getAttribute('aria-describedby');
+    expect(describedBy.split(' ')).toContain(message.closest('[id]').id);
+    expect(screen.queryByText(en.editThing.errorSaving)).toBeNull();
+    expect(screen.queryByTestId('navigated')).toBeNull();
   });
 
   test('editing a space saved without a number shows 1', async () => {

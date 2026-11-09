@@ -39,6 +39,7 @@ const THEEEMES = [row('BUU331', 'Bussi', 'bus'), row('JMPA01', 'Metro', 'metro')
 const ok = (data) => ({ ok: true, status: 200, json: () => Promise.resolve(data) });
 
 const COLLECTION = {
+  is_curator: true,
   kind: 'LIBRARY',
   headline: 'Tool shed',
   description: '',

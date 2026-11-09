@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Koros } from 'hds-react';
-import BackLink from '../components/BackLink';
 import JoinToAct from '../components/JoinToAct';
-import useTheeeme from '../hooks/useTheeeme';
 import useCollectionTheeeme from '../hooks/useCollectionTheeeme';
 import LoadingSpinner from '../components/LoadingSpinner';
-import AccountMenu from '../components/AccountMenu';
+import PageLayout from '../components/PageLayout';
 import { apiFetch } from '../services/api';
 import { useLocalized } from '../utils/localized';
 import useCollectionLanguage from '../hooks/useCollectionLanguage';
@@ -33,7 +30,6 @@ export default function JoinPage() {
   // simply has no `?thing=` and behaves as before.
   const thingCode = searchParams.get('thing') || undefined;
   const { t } = useTranslation();
-  const { tc, koro } = useTheeeme();
   const L = useLocalized();
   // The name is seeded from the navigation state when there is one — that
   // renders it with no flicker — but it can't be the only source. Only
@@ -103,47 +99,24 @@ export default function JoinPage() {
   if (!settled) return <LoadingSpinner />;
 
   return (
-    <div
-      className="form-page"
-      style={tc.color_02 ? { backgroundColor: `var(--color-${tc.color_02})` } : undefined}
+    <PageLayout
+      title={heading}
+      backTo={base}
+      backLabel={headline || t('common.collection')}
+      logoUrl={thumbnailUrl}
+      heroClassName="form-hero--collection"
+      // No "Sign in" icon without a session: the email below serves a new address, an
+      // account that exists and a member alike, so it is the page's only action. With a
+      // session the menu is as ever.
+      offerSignIn={false}
     >
-      <div
-        className="form-hero form-hero--collection"
-        style={tc.color_03 ? { backgroundColor: `var(--color-${tc.color_03})` } : undefined}
-      >
-        <div className="form-hero-split">
-          <div
-            className="form-hero-content"
-            style={tc.color_05 ? { '--hero-text-color': `var(--color-${tc.color_05})` } : undefined}
-          >
-            {/* No "Sign in" icon without a session: the email below serves a new
-                address, an account that exists and a member alike, so it is the
-                page's only action. With a session the menu is as ever. */}
-            <span className="hero-corners">
-              <AccountMenu offerSignIn={false} />
-            </span>
-            <BackLink to={base} label={headline || t('common.collection')} />
-            {/* The image is the collection's logo, not a backdrop, exactly as in
-                its own hero (the <h1> already names it, so no alt). */}
-            {thumbnailUrl && <img className="hero-logo" src={thumbnailUrl} alt="" />}
-            <h1 className="form-hero-title">{heading}</h1>
-          </div>
-        </div>
-        <Koros
-          className="form-hero-koros"
-          type={koro}
-          style={tc.color_02 ? { fill: `var(--color-${tc.color_02})` } : undefined}
-        />
-      </div>
-      <div className="page-container">
-        <JoinToAct
-          collectionCode={code}
-          collectionHeadline={headline}
-          thingCode={thingCode}
-          mode={mode}
-          allowedThingTypes={allowedThingTypes}
-        />
-      </div>
-    </div>
+      <JoinToAct
+        collectionCode={code}
+        collectionHeadline={headline}
+        thingCode={thingCode}
+        mode={mode}
+        allowedThingTypes={allowedThingTypes}
+      />
+    </PageLayout>
   );
 }

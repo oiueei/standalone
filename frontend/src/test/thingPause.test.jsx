@@ -131,16 +131,45 @@ describe('the words of the pause', () => {
     ]);
   });
 
-  test('the warning is fixed in the plural of the three languages', () => {
-    expect(es.thingPause.bookingsInRange_other).toBe(
-      'Hay {{count}} reservas en esas fechas: no se anulan. Puedes cancelarlas desde tus reservas.'
-    );
-    expect(ca.thingPause.bookingsInRange_other).toBe(
-      "Hi ha {{count}} reserves en aquestes dates: no s'anul·len. Les pots cancel·lar des de les teves reserves."
-    );
-    expect(en.thingPause.bookingsInRange_other).toBe(
-      'There are {{count}} bookings on those dates: they are not cancelled. You can cancel them from your bookings.'
-    );
+  test('the warning is fixed, singular and plural, in the three languages', () => {
+    const keys = [
+      'bookingsInRange_one',
+      'bookingsInRange_other',
+      'loansInRange_one',
+      'loansInRange_other',
+    ];
+    const expected = {
+      es: [
+        'Hay {{count}} reserva en esas fechas: la pausa no la anula. Si hace falta, puedes cancelarla en <1>Solicitudes para mí</1>.',
+        'Hay {{count}} reservas en esas fechas: la pausa no las anula. Si hace falta, puedes cancelarlas en <1>Solicitudes para mí</1>.',
+        'Hay {{count}} solicitud en esas fechas: la pausa no la anula. Si está pendiente, puedes rechazarla en <1>Solicitudes para mí</1>; si ya está aceptada, sigue en pie.',
+        'Hay {{count}} solicitudes en esas fechas: la pausa no las anula. Las pendientes puedes rechazarlas en <1>Solicitudes para mí</1>; las aceptadas siguen en pie.',
+      ],
+      ca: [
+        "Hi ha {{count}} reserva en aquestes dates: la pausa no l'anul·la. Si cal, la pots cancel·lar a <1>Sol·licituds per a mi</1>.",
+        'Hi ha {{count}} reserves en aquestes dates: la pausa no les anul·la. Si cal, les pots cancel·lar a <1>Sol·licituds per a mi</1>.',
+        "Hi ha {{count}} sol·licitud en aquestes dates: la pausa no l'anul·la. Si està pendent, la pots rebutjar a <1>Sol·licituds per a mi</1>; si ja està acceptada, es manté.",
+        'Hi ha {{count}} sol·licituds en aquestes dates: la pausa no les anul·la. Les pendents les pots rebutjar a <1>Sol·licituds per a mi</1>; les acceptades es mantenen.',
+      ],
+      en: [
+        'There is {{count}} booking on those dates: the pause does not cancel it. If need be, you can cancel it in <1>Requests to me</1>.',
+        'There are {{count}} bookings on those dates: the pause does not cancel them. If need be, you can cancel them in <1>Requests to me</1>.',
+        'There is {{count}} request on those dates: the pause does not cancel it. If it is still pending, you can decline it in <1>Requests to me</1>; if it has been accepted, it stands.',
+        'There are {{count}} requests on those dates: the pause does not cancel them. Pending ones you can decline in <1>Requests to me</1>; accepted ones stand.',
+      ],
+    };
+    const langs = { es, ca, en };
+    for (const [l, texts] of Object.entries(expected)) {
+      expect(keys.map((k) => langs[l].thingPause[k])).toEqual(texts);
+    }
+  });
+
+  test('no word of the pause sends the manager to their own bookings', () => {
+    for (const l of [es, ca, en]) {
+      for (const text of Object.values(l.thingPause)) {
+        expect(text).not.toMatch(/tus reservas|les teves reserves|your bookings/i);
+      }
+    }
   });
 
   test('the rows of the thing and the refusal are fixed in the three languages', () => {
@@ -362,33 +391,55 @@ describe('the warning about bookings in the pause', () => {
     return view;
   };
 
-  test('says how many, in the plural, with two', async () => {
+  const noticeText = async () =>
+    (await screen.findByRole('link', { name: en.home.requestsToMe })).closest(
+      '[class*="Notification"], .hds-notification, [role="status"] > *'
+    ).textContent;
+
+  test('a loan: says how many, in the plural, with two, and what can be done', async () => {
     await withDays([
       booking('2026-06-11', '2026-06-12', 'ACCEPTED', 'BKG001'),
       booking('2026-06-08', '2026-06-15', 'PENDING', 'BKG002'),
     ]);
 
-    expect(
-      await screen.findByText(
-        'There are 2 bookings on those dates: they are not cancelled. You can cancel them from your bookings.'
-      )
-    ).toBeInTheDocument();
+    const link = await screen.findByRole('link', { name: en.home.requestsToMe });
+    expect(link).toHaveAttribute('href', '/owner-bookings');
+    expect(await noticeText()).toContain(
+      'There are 2 requests on those dates: the pause does not cancel them. Pending ones you can decline in Requests to me; accepted ones stand.'
+    );
+    expect(screen.queryByText(/cancel it|you can cancel/i)).toBeNull();
   });
 
-  test('says it in the singular with one', async () => {
+  test('a loan: says it in the singular with one', async () => {
     await withDays([booking('2026-06-11', '2026-06-12')]);
 
-    expect(
-      await screen.findByText(
-        'There is 1 booking on those dates: it is not cancelled. You can cancel it from your bookings.'
-      )
-    ).toBeInTheDocument();
+    expect(await noticeText()).toContain(
+      'There is 1 request on those dates: the pause does not cancel it. If it is still pending, you can decline it in Requests to me; if it has been accepted, it stands.'
+    );
+  });
+
+  test('a reservation: says it can be cancelled, with the link to Requests to me', async () => {
+    const view = await renderEdit({
+      type: 'RESERVE_THING',
+      collection_kind: 'SHED',
+      collection_allowed_thing_types: ['RESERVE_THING'],
+      bookings: [booking('2026-06-11', '2026-06-12')],
+    });
+    fireEvent.click(toggle(view.container));
+    typeDate(view.container, 'edit-thing-paused-from', '10/06/2026');
+    typeDate(view.container, 'edit-thing-paused-until', '12/06/2026');
+
+    const link = await screen.findByRole('link', { name: en.home.requestsToMe });
+    expect(link).toHaveAttribute('href', '/owner-bookings');
+    expect(await noticeText()).toContain(
+      'There is 1 booking on those dates: the pause does not cancel it. If need be, you can cancel it in Requests to me.'
+    );
   });
 
   test('says nothing with none', async () => {
     await withDays([booking('2026-07-01', '2026-07-03')]);
 
-    expect(screen.queryByText(/bookings? on those dates/)).toBeNull();
+    expect(screen.queryByText(/(bookings?|requests?) on those dates/)).toBeNull();
   });
 
   test('does not count a booking that only touches an end', async () => {
@@ -397,18 +448,18 @@ describe('the warning about bookings in the pause', () => {
       booking('2026-06-13', '2026-06-15', 'ACCEPTED', 'BKG002'),
     ]);
 
-    expect(screen.queryByText(/bookings? on those dates/)).toBeNull();
+    expect(screen.queryByText(/(bookings?|requests?) on those dates/)).toBeNull();
   });
 
   test('says nothing while the pause is off, however many bookings there are', async () => {
     await renderEdit({ bookings: [booking('2026-06-11', '2026-06-12')] });
 
-    expect(screen.queryByText(/bookings? on those dates/)).toBeNull();
+    expect(screen.queryByText(/(bookings?|requests?) on those dates/)).toBeNull();
   });
 
   test('sits in a live region that was already there when the message came', async () => {
     const { container } = await withDays([booking('2026-06-11', '2026-06-12')]);
-    await screen.findByText(/bookings? on those dates/);
+    await screen.findByText(/(bookings?|requests?) on those dates/);
 
     const region = container.querySelector(
       '[role="status"]:has(.hds-notification, [class*="Notification"])'
@@ -418,7 +469,7 @@ describe('the warning about bookings in the pause', () => {
 
   test('axe finds nothing wrong with the form with the pause on and a warning showing', async () => {
     const { container } = await withDays([booking('2026-06-11', '2026-06-12')]);
-    await screen.findByText(/bookings? on those dates/);
+    await screen.findByText(/(bookings?|requests?) on those dates/);
 
     expect(await axe(container)).toHaveNoViolations();
   });

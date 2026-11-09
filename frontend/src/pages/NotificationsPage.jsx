@@ -17,7 +17,7 @@ export default function NotificationsPage() {
 
   useDocumentTitle(t('titles.notifications'));
 
-  const { tc: theeemeColors, btnStyle } = useTheeeme();
+  const { toggleTheme, btnStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [notifyActivity, setNotifyActivity] = useState(true);
@@ -100,11 +100,7 @@ export default function NotificationsPage() {
               checked
               disabled
               onChange={() => {}}
-              theme={
-                theeemeColors.color_01
-                  ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` }
-                  : undefined
-              }
+              theme={toggleTheme}
             />
             <ToggleButton
               id="notify-activity"
@@ -115,11 +111,7 @@ export default function NotificationsPage() {
                 setNotifyActivity(!val);
                 setSaved(false);
               }}
-              theme={
-                theeemeColors.color_01
-                  ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` }
-                  : undefined
-              }
+              theme={toggleTheme}
             />
             <ToggleButton
               id="notify-news"
@@ -130,11 +122,7 @@ export default function NotificationsPage() {
                 setNotifyNews(!val);
                 setSaved(false);
               }}
-              theme={
-                theeemeColors.color_01
-                  ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` }
-                  : undefined
-              }
+              theme={toggleTheme}
             />
           </div>
           <StatusRegion>

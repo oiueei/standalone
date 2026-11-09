@@ -184,7 +184,7 @@ export default function AddThingPage() {
   };
 
   // Theeeme colors from localStorage (set by HomePage on login)
-  const { tc, btnStyle } = useTheeeme();
+  const { btnStyle } = useTheeeme();
 
   if (!settled) return <LoadingSpinner />;
 
@@ -195,7 +195,6 @@ export default function AddThingPage() {
       <div className="form-grid">
         <ThingForm
           idPrefix="add-thing"
-          theeemeColor01={tc.color_01}
           errors={errors}
           kind={kind}
           type={type}

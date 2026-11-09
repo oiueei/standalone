@@ -11,7 +11,13 @@ from rest_framework.views import exception_handler
 # ``ErrorDetail``; the field still carries the English sentence for a client that
 # does not know the code. Every code here needs a ``requestErrors.<code>`` string.
 CODED_VALIDATION_REFUSALS = frozenset(
-    {"no_prices_here", "priced_things_remain", "things_limit", "opening_hours_required"}
+    {
+        "no_prices_here",
+        "priced_things_remain",
+        "things_limit",
+        "opening_hours_required",
+        "units_below_booked",
+    }
 )
 
 

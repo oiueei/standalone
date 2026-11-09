@@ -42,7 +42,7 @@ export default function OrganisationPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const base = useCollectionBase(code);
-  const { tc, btnStyle } = useTheeeme();
+  const { btnStyle } = useTheeeme();
   const userCode = localStorage.getItem('userCode');
 
   const [collection, setCollection] = useState(null);
@@ -65,7 +65,10 @@ export default function OrganisationPage() {
   const [requestInfo, setRequestInfo] = useState('');
   const [emailNote, setEmailNote] = useState('');
 
-  useCollectionLanguage(collection?.language || '', [collection]);
+  useCollectionLanguage(collection?.language || '', [
+    collection?.headline,
+    collection?.description,
+  ]);
   useCollectionTheeeme(palette?.colors, palette?.koro);
   useDocumentTitle(t('titles.organisation'));
 
@@ -85,7 +88,7 @@ export default function OrganisationPage() {
           setPalette({ colors: data.theeeme_colors, koro: data.koro });
         }
         if (pointRes.status === 403) {
-          setProblem(t('organisation.notACurator'));
+          setProblem('organisation.notACurator');
         } else if (pointRes.ok) {
           const point = await pointRes.json();
           setEntityName(point.entity_name || '');
@@ -101,10 +104,10 @@ export default function OrganisationPage() {
           setRequestInfo(point.request_info || '');
           setEmailNote(point.email_note || '');
         } else {
-          setProblem(t('organisation.errorLoading'));
+          setProblem('organisation.errorLoading');
         }
       } catch {
-        if (!cancelled) setProblem(t('common.connectionError'));
+        if (!cancelled) setProblem('common.connectionError');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -112,15 +115,20 @@ export default function OrganisationPage() {
     return () => {
       cancelled = true;
     };
-  }, [userCode, code, t]);
+  }, [userCode, code]);
 
   const isNetwork = collection?.mode === 'NETWORK';
   const aboutCount = localizedCounter(about, 2000);
   const requestInfoCount = localizedCounter(requestInfo, 512);
   const emailNoteCount = localizedCounter(emailNote, 512);
   const depositCount = localizedCounter(depositPolicy, 256);
+  // The network's fields only count while they are on screen.
+  const tooLong =
+    aboutCount.over ||
+    (isNetwork && (requestInfoCount.over || emailNoteCount.over || depositCount.over));
 
   const handleSave = async () => {
+    if (tooLong) return;
     setSaving(true);
     setToast(null);
     try {
@@ -172,7 +180,7 @@ export default function OrganisationPage() {
     >
       <h1 className="page-title-xl">{t('organisation.pageTitle')}</h1>
       {problem ? (
-        <p>{problem}</p>
+        <p>{t(problem)}</p>
       ) : (
         <div className="form-grid">
           <FieldNotice id="organisation-notice" label={t('organisation.noticeTitle')}>
@@ -200,6 +208,7 @@ export default function OrganisationPage() {
             value={about}
             onChange={(e) => setAbout(e.target.value)}
             invalid={aboutCount.over}
+            errorText={aboutCount.over ? t('organisation.aboutMaxLength') : undefined}
             helperText={localizedHelper(about, 2000, t)}
           />
           <TextInput
@@ -235,8 +244,6 @@ export default function OrganisationPage() {
                 helperKey="networkPoint.weekdaysHelper"
                 weekdays={weekdays}
                 setWeekdays={setWeekdays}
-                color01={tc.color_01}
-                color06={tc.color_06}
               />
               <ClosedDatesField
                 id="organisation-closed-dates"
@@ -279,6 +286,7 @@ export default function OrganisationPage() {
                   value={depositPolicy}
                   onChange={(e) => setDepositPolicy(e.target.value)}
                   invalid={depositCount.over}
+                  errorText={depositCount.over ? t('rental.depositPolicyMaxLength') : undefined}
                   helperText={localizedHelper(depositPolicy, 256, t)}
                 />
               </div>
@@ -304,7 +312,7 @@ export default function OrganisationPage() {
             </>
           )}
           <Button
-            disabled={saving || aboutCount.over}
+            disabled={saving || tooLong}
             onClick={handleSave}
             style={{ ...btnStyle, width: '100%' }}
           >

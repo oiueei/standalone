@@ -30,6 +30,7 @@ expect.extend(toHaveNoViolations);
 
 const COLLECTION = {
   code: 'COL001',
+  is_curator: true,
   headline: 'Kitchen Collection',
   description: 'Things from the kitchen',
   kind: 'LIBRARY',
@@ -299,6 +300,21 @@ describe('CollectionNotificationsPage', () => {
     expect(patchBody()).toBeNull();
   });
 
+  test('Save is disabled while the note is past 512 and enabled again when it fits', async () => {
+    mockApi();
+    renderPage();
+    const note = await screen.findByDisplayValue('We confirm within 48h.');
+    await settle(apiFetch);
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    expect(saveButton).toBeEnabled();
+
+    fireEvent.change(note, { target: { value: 'x'.repeat(513) } });
+    expect(saveButton).toBeDisabled();
+
+    fireEvent.change(note, { target: { value: 'x'.repeat(512) } });
+    expect(saveButton).toBeEnabled();
+  });
+
   test('the help line of the summary and of the language reach the control’s accessible name', async () => {
     mockApi();
     renderPage();
@@ -326,15 +342,14 @@ describe('CollectionNotificationsPage', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  test('cannot be saved before the collection has loaded', async () => {
+  test('a collection that cannot be read gives no form, so there is nothing to save', async () => {
     apiFetch.mockImplementation(() =>
       Promise.resolve({ ok: false, status: 500, json: async () => ({}) })
     );
     renderPage();
 
-    const button = await screen.findByRole('button', { name: 'Save' });
-    expect(button).toBeDisabled();
-    fireEvent.click(button);
+    expect(await screen.findByText(en.editCollection.errorLoading)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
     expect(patchBody()).toBeNull();
   });
 

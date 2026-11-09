@@ -257,15 +257,15 @@ describe('an approval refused because the person was already invited', () => {
   test.each([
     [
       'en',
-      "This person has already had an invitation and can't get another by email. They can join with the share link.",
+      "This person has already had an invitation and can't get another by email. Send them the invitation link yourself.",
     ],
     [
       'es',
-      'Esta persona ya recibió una invitación y no se le puede enviar otra por correo. Puede unirse con el enlace para compartir.',
+      'Esta persona ya recibió una invitación y no se le puede enviar otra por correo. Mándale tú el enlace de invitación.',
     ],
     [
       'ca',
-      "Aquesta persona ja ha rebut una invitació i no se n'hi pot enviar cap altra per correu. S'hi pot unir amb l'enllaç per compartir.",
+      "Aquesta persona ja va rebre una invitació i no se n'hi pot enviar una altra per correu. Envia-li tu l'enllaç d'invitació.",
     ],
   ])('says it in %s, with no help line under it', async (language, sentence) => {
     const { default: i18n } = await import('../i18n');

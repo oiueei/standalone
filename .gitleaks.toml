@@ -27,4 +27,9 @@ regexes = [
   # swapped for a low-entropy stand-in). Not a real token — the share token is
   # generated per collection with secrets.token_urlsafe and never committed.
   '''aB3xK_9-pQrS2tUvWx1y''',
+  # An object-storage key of an upload folder (`oiueei/things/…`, `/collections/…`, …),
+  # as tests write them next to a `key` field. The generic-api-key rule reads the
+  # assignment and the slash-separated word as a credential; it is a path inside the
+  # public media bucket, not a secret. Bound to the folders uploads may write to.
+  '''^oiueei/(?:things|collections|users|documents|seed)/[A-Za-z0-9_-]+$''',
 ]

@@ -19,6 +19,7 @@ vi.mock('../services/api', async (importOriginal) => ({
 vi.mock('../hooks/useCollectionLanguage', () => ({ default: vi.fn() }));
 
 import { apiFetch } from '../services/api';
+import en from '../i18n/locales/en.json';
 import CollectionAppearancePage from './CollectionAppearancePage';
 import { dropHdsStyles } from '../test/dropHdsStyles';
 import { settle } from '../test/settle';
@@ -30,6 +31,7 @@ const THEEEMES = [
 
 const COLLECTION = {
   code: 'COL001',
+  is_curator: true,
   headline: 'Kitchen Collection',
   description: 'Things from the kitchen',
   kind: 'STALL',
@@ -253,9 +255,9 @@ describe('CollectionAppearancePage', () => {
     expect(screen.getByRole('group', { name: 'Koro' })).toBeInTheDocument();
   });
 
-  test('cannot be saved before the collection has loaded', async () => {
+  test('a collection that cannot be read gives no form, so there is nothing to save', async () => {
     mockApi();
-    // The collection read fails: the form shows, but a save would send blanks.
+    // The collection read fails: no form is painted, so a save could never send blanks.
     apiFetch.mockImplementation((url) =>
       String(url).includes('/theeemes/')
         ? Promise.resolve({ ok: true, status: 200, json: async () => THEEEMES })
@@ -263,9 +265,8 @@ describe('CollectionAppearancePage', () => {
     );
     renderPage();
 
-    const save = await screen.findByRole('button', { name: 'Save' });
-    expect(save).toBeDisabled();
-    fireEvent.click(save);
+    expect(await screen.findByText(en.editCollection.errorLoading)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
     expect(patchBody()).toBeNull();
   });
 

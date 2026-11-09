@@ -127,3 +127,43 @@ describe('the contact phone a group may ask for when booking', () => {
     expect(text).toContain(FIRST_SENTENCE_END[lang] + SENTENCE[lang]);
   });
 });
+
+describe('what is seen of a profile, of a team page and of an invitation', () => {
+  // Three things the paragraph about who sees what inside a group has to say: a profile
+  // is seen by people who share a group (`can_view_user`, `UserPublicSerializer`), a
+  // curator's page travels with the group (`NetworkPointSerializer`), and an emailed
+  // invitation leaves a year-long fingerprint of the address (`InvitationRecord`).
+  const SENTENCES = {
+    es: [
+      'Tu perfil (nombre público, presentación, «acerca de ti» y foto) lo ve quien comparte algún grupo contigo, nunca tu email, tu idioma ni tus datos demográficos.',
+      'Quien dinamiza un grupo puede tener en él una página con el nombre de su entidad, un logo, una presentación y un contacto (y, en una red, la dirección y el horario de su punto de recogida): se ve junto con el grupo, también sin cuenta si el grupo es público.',
+      'Si alguien te invita por email, el grupo guarda durante un año una huella de tu dirección (no la dirección) para no volver a invitarte; se borra pasado ese año.',
+    ],
+    ca: [
+      'El teu perfil (nom públic, presentació, «sobre tu» i foto) el veu qui comparteix algun grup amb tu, mai el teu email, el teu idioma ni les teves dades demogràfiques.',
+      "Qui dinamitza un grup hi pot tenir una pàgina amb el nom de la seva entitat, un logo, una presentació i un contacte (i, en una xarxa, l'adreça i l'horari del seu punt de recollida): es veu juntament amb el grup, també sense compte si el grup és públic.",
+      "Si algú et convida per email, el grup guarda durant un any una empremta de la teva adreça (no l'adreça) per no tornar a convidar-te; s'esborra passat aquest any.",
+    ],
+    en: [
+      'Your profile (public name, bio, about and photo) is seen by the people who share a group with you, never your email, your language or your demographic details.',
+      'Whoever runs a group can have a page in it with the name of their organisation, a logo, an introduction and a contact (and, in a network, the address and hours of their pickup point): it is seen together with the group, also without an account if the group is public.',
+      'If someone invites you by email, the group keeps for a year a fingerprint of your address (not the address) so as not to invite you again; it is deleted after that year.',
+    ],
+  };
+  const PARAGRAPH_LEAD = {
+    es: '**Quién ve qué dentro de un grupo:**',
+    ca: "**Qui veu què dins d'un grup:**",
+    en: '**Who sees what inside a group:**',
+  };
+
+  test.each(CODES.flatMap((lang) => [0, 1, 2].map((i) => [lang, i])))(
+    '%s says sentence %i once, inside that paragraph',
+    (lang, i) => {
+      const text = LANGS[lang];
+      const sentence = SENTENCES[lang][i];
+      expect(text.split(sentence)).toHaveLength(2);
+      const paragraph = text.split('\n').find((line) => line.startsWith(PARAGRAPH_LEAD[lang]));
+      expect(paragraph).toContain(sentence);
+    }
+  );
+});

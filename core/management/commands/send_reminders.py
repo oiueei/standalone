@@ -37,6 +37,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import F, Prefetch
 
 from core.models.booking import BookingPeriod
+from core.models.network_point import NetworkPoint
 from core.models.thing import Thing
 from core.services.email_service import (
     send_pickup_due_email,
@@ -48,8 +49,15 @@ from core.services.email_service import (
 from core.services.team import managers_ready_collections
 
 # The team behind each thing, loaded with the bookings: `Thing.managers()` then
-# walks prefetched rows, so a run costs no query per collection per booking.
-_TEAM = Prefetch("thing_code__collections", queryset=managers_ready_collections())
+# walks prefetched rows, so a run costs no query per collection per booking. The
+# curators' pages come with them: in a network every email names the pickup point of
+# the thing's owner (`point_for` reads `points.all()`, and `display_name` its user).
+_TEAM = Prefetch(
+    "thing_code__collections",
+    queryset=managers_ready_collections().prefetch_related(
+        Prefetch("points", queryset=NetworkPoint.objects.select_related("user"))
+    ),
+)
 
 
 def _team_of(booking):

@@ -21,7 +21,7 @@ import { NumberInput } from 'hds-react';
  * the fallback for an empty one. The parent still only hears a number that
  * differs from the one it holds.
  */
-export default function BoundedDayInput({
+export default function BoundedNumberInput({
   id,
   label,
   helperText,
@@ -30,6 +30,8 @@ export default function BoundedDayInput({
   fallback,
   value,
   onChange,
+  invalid,
+  errorText,
 }) {
   const [draft, setDraft] = useState(String(value));
   // Re-sync when the value arrives from outside — e.g. the Edit form finishing
@@ -63,6 +65,8 @@ export default function BoundedDayInput({
       id={id}
       label={label}
       helperText={helperText}
+      invalid={invalid}
+      errorText={errorText}
       min={min}
       max={max}
       step={1}

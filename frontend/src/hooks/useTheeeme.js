@@ -28,6 +28,8 @@ import { useDeclaredCollectionTheeeme } from './useCollectionTheeeme';
  * focus never recolours the button — the two-tone ring in `App.css` marks it.
  *
  * - `tableTheme`: the `theme` of an HDS `Table` (header fill `color_03`, header text `color_05`).
+ * - `toggleTheme`: the `theme` of an HDS `ToggleButton` (`--toggle-button-color` is `color_01`);
+ *   `undefined` without one. `test/themedToggles.test.js` sweeps for every toggle that omits it.
  * - `uploadStyle`: the `--upload-*` CSS vars for the ImageUpload/GalleryUpload wrapper.
  */
 
@@ -138,9 +140,22 @@ export default function useTheeeme() {
           ...(tc.color_05 ? { '--header-color': `var(--color-${tc.color_05})` } : {}),
         }
       : undefined;
+    // The colour of an HDS `ToggleButton` when it is on.
+    const toggleTheme = tc.color_01
+      ? { '--toggle-button-color': `var(--color-${tc.color_01})` }
+      : undefined;
     // The colour of the text links in the page's content (`App.css` reads it).
     const linkToken = linkColorToken(tc);
-    return { tc, koro, btnStyle, btnSecondaryStyle, uploadStyle, tableTheme, linkToken };
+    return {
+      tc,
+      koro,
+      btnStyle,
+      btnSecondaryStyle,
+      uploadStyle,
+      tableTheme,
+      toggleTheme,
+      linkToken,
+    };
   }, [colorsKey, koro]);
 
   // On the root, so every page gets the link colour without passing it down.

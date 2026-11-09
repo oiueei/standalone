@@ -127,6 +127,25 @@ class TestWeighedSaturatedPeriods:
         assert saturated_periods(rows, 4, need=1) == []
 
 
+class TestLoweringTheUnitsBelowWhatIsRequested:
+    def test_a_pending_request_of_three_keeps_a_library_thing_from_dropping_to_two(
+        self, api_client, library, user
+    ):
+        collection, thing, (a, _, _) = library
+        Thing.objects.filter(pk=thing.pk).update(units=4)
+        assert _ask(api_client, a, thing, collection, quantity=3).status_code == 201
+
+        res = _as(api_client, user).patch(
+            f"/api/v1/things/{thing.code}/", {"units": 2}, format="json"
+        )
+
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert res.data["code"] == "units_below_booked"
+        assert res.json()["params"] == {"min": 3}
+        thing.refresh_from_db()
+        assert thing.units == 4
+
+
 class TestAskingForSeveral:
     def test_the_quantity_is_stored_and_answered(self, api_client, library):
         collection, thing, (a, _, _) = library

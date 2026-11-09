@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { TextInput, Button } from 'hds-react';
-import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import ImageUpload from '../components/ImageUpload';
 import TheeemeSelector from '../components/TheeemeSelector';
@@ -10,13 +9,12 @@ import KoroSelector from '../components/KoroSelector';
 import TagInput from '../components/TagInput';
 import FieldNotice from '../components/FieldNotice';
 import LoadingSpinner from '../components/LoadingSpinner';
+import CollectionFormRefusal from '../components/CollectionFormRefusal';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 import useTheeemeList from '../hooks/useTheeemeList';
-import useCollectionTheeeme from '../hooks/useCollectionTheeeme';
-import useCollectionLanguage from '../hooks/useCollectionLanguage';
+import useCollectionForm from '../hooks/useCollectionForm';
 import useDocumentTitle from '../hooks/useDocumentTitle';
-import { useCollectionBase } from '../hooks/useCollectionBase';
 import { useLocalized } from '../utils/localized';
 
 const TAGS_EXAMPLE = '{"es": "Juguetes", "ca": "Joguines"}';
@@ -33,12 +31,8 @@ export default function CollectionAppearancePage() {
   const { t } = useTranslation();
   const L = useLocalized();
   const { code } = useParams();
-  const base = useCollectionBase(code);
-  const navigate = useNavigate();
   const { btnStyle } = useTheeeme();
   const theeemes = useTheeemeList();
-  const [loading, setLoading] = useState(true);
-  const [loaded, setLoaded] = useState(false);
   const [headline, setHeadline] = useState('');
   const [thumbnail, setThumbnail] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
@@ -46,53 +40,28 @@ export default function CollectionAppearancePage() {
   const [koro, setKoro] = useState('basic');
   const [tags, setTags] = useState([]);
   const [homePage, setHomePage] = useState('');
-  // The page wears the palette the collection has saved, not the one being tried.
-  const [savedPalette, setSavedPalette] = useState(null);
-  useCollectionTheeeme(savedPalette?.colors, savedPalette?.koro);
-  const [savedLanguage, setSavedLanguage] = useState('');
-  const [savedTexts, setSavedTexts] = useState([]);
-  useCollectionLanguage(savedLanguage, savedTexts);
-  const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState(null);
+  const { loading, loaded, refusal, base, save, submitting, toast, setToast } = useCollectionForm(
+    code,
+    {
+      onLoad: (data) => {
+        setHeadline(data.headline || '');
+        setThumbnail(data.thumbnail || '');
+        setThumbnailUrl(data.thumbnail_url || '');
+        setTheeeme(data.theeeme || '');
+        setKoro(data.koro || 'basic');
+        setTags(data.tags || []);
+        setHomePage(data.home_page || '');
+      },
+    }
+  );
   useDocumentTitle(
     headline
       ? t('titles.collectionAppearance', { headline: L(headline) })
       : t('titles.collectionAppearanceDefault')
   );
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await apiFetch(`/api/v1/collections/${code}/`);
-        if (res.ok) {
-          const data = await res.json();
-          setHeadline(data.headline || '');
-          setThumbnail(data.thumbnail || '');
-          setThumbnailUrl(data.thumbnail_url || '');
-          setTheeeme(data.theeeme || '');
-          setKoro(data.koro || 'basic');
-          setTags(data.tags || []);
-          setHomePage(data.home_page || '');
-          setSavedPalette({ colors: data.theeeme_colors, koro: data.koro });
-          setSavedLanguage(data.language || '');
-          setSavedTexts([data.headline, data.description]);
-          setLoaded(true);
-        } else {
-          setToast({ type: 'error', messageKey: 'editCollection.errorLoading' });
-        }
-      } catch {
-        setToast({ type: 'error', messageKey: 'common.connectionError' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [code]);
-
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!loaded) return;
-    setSubmitting(true);
-    setToast(null);
     const body = {
       thumbnail: thumbnail || '',
       koro,
@@ -100,29 +69,11 @@ export default function CollectionAppearancePage() {
       home_page: homePage.trim(),
     };
     if (theeeme) body.theeeme = theeeme;
-    try {
-      const res = await apiFetch(`/api/v1/collections/${code}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        navigate(base);
-      } else if (res.status === 429) {
-        setToast({ type: 'error', message: t('common.tooManyAttempts') });
-      } else if (res.status === 400) {
-        const message = await extractApiError(res);
-        setToast({ type: 'error', message: message || t('editCollection.errorSaving') });
-      } else {
-        setToast({ type: 'error', message: t('editCollection.errorSaving') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setSubmitting(false);
-    }
+    save(body);
   };
 
   if (loading) return <LoadingSpinner />;
+  if (refusal) return <CollectionFormRefusal refusal={refusal} base={base} />;
 
   return (
     <PageLayout backTo={base} backLabel={L(headline) || t('common.collection')}>

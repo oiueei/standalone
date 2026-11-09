@@ -574,7 +574,7 @@ class Collection(models.Model):
         day-to-day email) and cannot edit or accept for another entity, so folding it
         into ``can_manage`` would hand over both. Deleting is a different power and
         not this one's: the owner of a collection deletes any thing of it in every
-        mode (``ThingViewSet._can_delete``).
+        mode (``Thing.can_delete``).
         """
         return self.is_network() and self.is_owner(user_code)
 

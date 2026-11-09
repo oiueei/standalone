@@ -65,7 +65,7 @@ function CreateCollectionForm({ kind }) {
   const location = useLocation();
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
-  const { tc: theeemeColors, btnStyle } = useTheeeme();
+  const { btnStyle } = useTheeeme();
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
@@ -220,7 +220,6 @@ function CreateCollectionForm({ kind }) {
           setVisibility={setVisibility}
           membersPrice={membersPrice}
           setMembersPrice={setMembersPrice}
-          theeemeColor01={theeemeColors.color_01}
         />
       </div>
       <div className="form-actions">

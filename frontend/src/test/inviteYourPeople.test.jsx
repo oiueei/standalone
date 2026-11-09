@@ -18,8 +18,8 @@ import CollectionPage from '../pages/CollectionPage';
 /**
  * "Your collection is taking shape. Now invite your circle →" was a quiet line under
  * the curator's hero row, shown while the group had things and nobody invited. It is
- * a third button of the row now: `[Add thing]` primary,
- * `[Edit collection]`, `[Invite your people]`, to the invitations page, and one
+ * a second button of the row now: `[Add thing]` primary,
+ * `[Invite your people]`, to the invitations page, and one
  * primary still. It was shown only while the group had things and nobody invited,
  * so it went with the first guest who accepted; now it is **always** there for
  * whoever runs the group — with things or without, with members or without.
@@ -85,25 +85,24 @@ const isPrimary = (link) =>
 beforeEach(() => vi.clearAllMocks());
 
 describe('the curator hero row — "Invite your people"', () => {
-  const THREE = ['Add thing', 'Edit collection', 'Invite your people'];
+  const TWO = ['Add thing', 'Invite your people'];
 
-  test('with things and nobody invited: three buttons, the third secondary, to the invitations', async () => {
+  test('with things and nobody invited: two buttons, the second secondary, to the invitations', async () => {
     const { container } = renderCollection(FOUNDER);
     await screen.findByText('Kettle');
 
     const row = heroRow(container);
-    expect(labels(row)).toEqual(THREE);
+    expect(labels(row)).toEqual(TWO);
     expect(row.map((a) => a.getAttribute('href'))).toEqual([
       '/collections/COL001/add',
-      '/collections/COL001/edit',
       '/collections/COL001/invites',
     ]);
     // One primary, the first: the row keeps its rule.
-    expect(row.map(isPrimary)).toEqual([true, false, false]);
+    expect(row.map(isPrimary)).toEqual([true, false]);
   });
 
   // The button stayed only until the first guest accepted (the old condition); a curator who
-  // had invited people found it gone. It is the row's third button in every shape of the group.
+  // had invited people found it gone. It is the row's second button in every shape of the group.
   test('with the first guest in, it is still there', async () => {
     const { container } = renderCollection({
       ...FOUNDER,
@@ -112,9 +111,9 @@ describe('the curator hero row — "Invite your people"', () => {
     await screen.findByText('Kettle');
 
     const row = heroRow(container);
-    expect(labels(row)).toEqual(THREE);
-    expect(row[2]).toHaveAttribute('href', '/collections/COL001/invites');
-    expect(row.map(isPrimary)).toEqual([true, false, false]);
+    expect(labels(row)).toEqual(TWO);
+    expect(row[1]).toHaveAttribute('href', '/collections/COL001/invites');
+    expect(row.map(isPrimary)).toEqual([true, false]);
   });
 
   test('with many members, and many guests still pending, it is still there', async () => {
@@ -125,16 +124,16 @@ describe('the curator hero row — "Invite your people"', () => {
     });
     await screen.findByText('Kettle');
 
-    expect(labels(heroRow(container))).toEqual(THREE);
+    expect(labels(heroRow(container))).toEqual(TWO);
   });
 
   test('with nothing to show yet, it is there too', async () => {
     const { container } = renderCollection({ ...FOUNDER, things: [] });
-    await screen.findByRole('link', { name: 'Edit collection' });
+    await screen.findByRole('link', { name: 'Invite your people' });
 
     const row = heroRow(container);
-    expect(labels(row)).toEqual(THREE);
-    expect(row[2]).toHaveAttribute('href', '/collections/COL001/invites');
+    expect(labels(row)).toEqual(TWO);
+    expect(row[1]).toHaveAttribute('href', '/collections/COL001/invites');
   });
 
   test('a group whose things are all hidden has it too', async () => {
@@ -142,20 +141,20 @@ describe('the curator hero row — "Invite your people"', () => {
       ...FOUNDER,
       things: [THING({ status: 'INACTIVE' })],
     });
-    await screen.findByRole('link', { name: 'Edit collection' });
+    await screen.findByRole('link', { name: 'Invite your people' });
 
-    expect(labels(heroRow(container))).toEqual(THREE);
+    expect(labels(heroRow(container))).toEqual(TWO);
   });
 
-  test('a group with no things and members: the three, whoever got in', async () => {
+  test('a group with no things and members: the two, whoever got in', async () => {
     const { container } = renderCollection({
       ...FOUNDER,
       things: [],
       invites: [{ code: 'GUEST1', name: 'Lele' }],
     });
-    await screen.findByRole('link', { name: 'Edit collection' });
+    await screen.findByRole('link', { name: 'Invite your people' });
 
-    expect(labels(heroRow(container))).toEqual(THREE);
+    expect(labels(heroRow(container))).toEqual(TWO);
   });
 
   test('a co-curator has it as the founder does', async () => {
@@ -168,7 +167,7 @@ describe('the curator hero row — "Invite your people"', () => {
     });
     await screen.findByText('Kettle');
 
-    expect(labels(heroRow(container))).toEqual(THREE);
+    expect(labels(heroRow(container))).toEqual(TWO);
   });
 
   test('the line is gone: nothing says the collection is taking shape, in any wording', async () => {

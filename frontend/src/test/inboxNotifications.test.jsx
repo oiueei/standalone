@@ -370,6 +370,21 @@ describe('InboxNotifications — every type says something', () => {
       links: '/collections/COL001',
     },
     {
+      what: 'a demotion in a network with one thing deleted says it without the number',
+      notification: {
+        code: 'NOTA12',
+        type: 'DEMOTED_CO_OWNER',
+        payload: {
+          collection_headline: 'Toy library',
+          collection_code: 'COL001',
+          things_deleted: 1,
+        },
+        created: '2026-08-06T10:00:00Z',
+      },
+      says: [/Your thing there was deleted\./i],
+      links: '/collections/COL001',
+    },
+    {
       // The team-side record of a decision (2026-09-29): whoever made the call
       // reads their own trace, not a report of themselves in the third person.
       what: 'a decision you made yourself is your own trace, naming who asked',

@@ -42,6 +42,9 @@ import useTheeeme from '../hooks/useTheeeme';
  *   its own `offerSignIn` through, so a door that leaves the
  *   "already have an account?" button out leaves the icon out too. Nothing changes for
  *   a signed-in reader.
+ * - `logoUrl`: optional image for a collection's hero (`heroClassName="form-hero--collection"`):
+ *   an `<img class="hero-logo" alt="">` between the back link and the title. Decorative,
+ *   since the title already names whoever it belongs to.
  * - `heroClassName`: optional extra class for the `.form-hero`, for a page whose hero
  *   needs a rule of its own (the request page's smaller title: `form-hero--request`).
  * - `children`: page-container content.
@@ -55,6 +58,7 @@ export default function PageLayout({
   collectionMenu,
   offerSignIn = true,
   heroClassName,
+  logoUrl,
   children,
 }) {
   const { tc, koro } = useTheeeme();
@@ -76,6 +80,7 @@ export default function PageLayout({
             {collectionMenu}
           </span>
           {backTo && <BackLink to={backTo} label={backLabel} />}
+          {logoUrl && <img className="hero-logo" src={logoUrl} alt="" />}
           {title && <h1 className="form-hero-title">{title}</h1>}
           {description && <div className="form-hero-text">{description}</div>}
           {heroActions && <div className="button-row-wide hero-actions">{heroActions}</div>}

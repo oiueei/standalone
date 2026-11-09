@@ -215,3 +215,28 @@ describe('the hero actions stylesheet', () => {
     expect(colours.join(' ')).not.toMatch(/hero-text-color/);
   });
 });
+
+describe('PageLayout — logoUrl', () => {
+  test('the logo is an image with no alt between the way back and the title', () => {
+    const { container } = renderLayout({
+      backTo: '/library/COL001',
+      backLabel: 'La Marina',
+      logoUrl: 'https://cdn.example/logo.png',
+      heroClassName: 'form-hero--collection',
+    });
+
+    const logo = container.querySelector('.form-hero-content img.hero-logo');
+    expect(logo).toHaveAttribute('src', 'https://cdn.example/logo.png');
+    expect(logo).toHaveAttribute('alt', '');
+    const back = container.querySelector('.back-link');
+    const title = screen.getByRole('heading', { name: 'A title' });
+    expect(back.compareDocumentPosition(logo)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(logo.compareDocumentPosition(title)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  test.each([undefined, ''])('without a logo (%j) the hero paints no image', (logoUrl) => {
+    const { container } = renderLayout({ logoUrl });
+
+    expect(container.querySelector('.form-hero img')).toBeNull();
+  });
+});

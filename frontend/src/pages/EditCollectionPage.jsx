@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { TextInput, TextArea, Select, Button } from 'hds-react';
-import { apiFetch, extractApiError } from '../services/api';
+import { apiFetch } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import CollectionForm from '../components/CollectionForm';
 import CollectionModeField from '../components/CollectionModeField';
 import FieldNotice from '../components/FieldNotice';
 import useCapabilities, { isOfferable } from '../hooks/useCapabilities';
 import LoadingSpinner from '../components/LoadingSpinner';
+import CollectionFormRefusal from '../components/CollectionFormRefusal';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
-import useCollectionTheeeme from '../hooks/useCollectionTheeeme';
-import useCollectionLanguage from '../hooks/useCollectionLanguage';
+import useCollectionForm from '../hooks/useCollectionForm';
 import { useLocalized, localizedCounter, localizedHelper } from '../utils/localized';
 import hdsLang from '../utils/hdsLang';
-import { useCollectionBase } from '../hooks/useCollectionBase';
 import { allowedVerbsFor, membersPriceFromVerbs } from '../utils/collectionKind';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 
@@ -39,12 +38,9 @@ export default function EditCollectionPage() {
   // page title and the back label show the resolved words.
   const L = useLocalized();
   const { code } = useParams();
-  const base = useCollectionBase(code);
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
   const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
-  const [loading, setLoading] = useState(true);
-  const [loaded, setLoaded] = useState(false);
   const [headline, setHeadline] = useState('');
   useDocumentTitle(
     headline
@@ -68,14 +64,6 @@ export default function EditCollectionPage() {
   // Whether the members of a COMMUNITY stall or library may set a price (both of the
   // kind's verbs stored) or only give and lend (the free verb alone).
   const [membersPrice, setMembersPrice] = useState(true);
-  // The collection's stored language, and its texts as saved, never as being typed: the
-  // page follows these so that rewriting the title does not move its own language.
-  const [savedLanguage, setSavedLanguage] = useState('');
-  const [savedTexts, setSavedTexts] = useState([]);
-  useCollectionLanguage(savedLanguage, savedTexts);
-  // The page wears the palette the group has saved.
-  const [savedPalette, setSavedPalette] = useState(null);
-  useCollectionTheeeme(savedPalette?.colors, savedPalette?.koro);
   const [pauseMessage, setPauseMessage] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   // The one control on this page still stricter than "the server enforces
@@ -88,8 +76,27 @@ export default function EditCollectionPage() {
   const isOwner = userCode === ownerCode;
   const [pauseSubmitting, setPauseSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState(null);
+  // Reading, the saved palette and language, and the PATCH with its refusals are the
+  // hook's; the page follows the *saved* language, so rewriting the title does not
+  // move its own.
+  const { loading, loaded, refusal, base, save, submitting, toast, setToast } = useCollectionForm(
+    code,
+    {
+      onLoad: (data) => {
+        setOwnerCode(data.owner || null);
+        setHeadline(data.headline || '');
+        setDescription(data.description || '');
+        setStatus(data.status || 'ACTIVE');
+        setMode(data.mode || 'PROPRIETARY');
+        setSavedMode(data.mode || 'PROPRIETARY');
+        setVisibility(data.visibility || 'PRIVATE');
+        setKind(data.kind || '');
+        setMembersPrice(membersPriceFromVerbs(data.kind, data.allowed_thing_types));
+        setPauseMessage(data.pause_message || '');
+        setIsPaused(data.is_paused || false);
+      },
+    }
+  );
 
   const STATUS_OPTIONS = [
     { label: t('editCollection.statusActive'), value: 'ACTIVE' },
@@ -125,40 +132,6 @@ export default function EditCollectionPage() {
     setMode(newMode);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const collectionRes = await apiFetch(`/api/v1/collections/${code}/`);
-
-        if (collectionRes.ok) {
-          const data = await collectionRes.json();
-          setOwnerCode(data.owner || null);
-          setHeadline(data.headline || '');
-          setDescription(data.description || '');
-          setStatus(data.status || 'ACTIVE');
-          setMode(data.mode || 'PROPRIETARY');
-          setSavedMode(data.mode || 'PROPRIETARY');
-          setVisibility(data.visibility || 'PRIVATE');
-          setKind(data.kind || '');
-          setMembersPrice(membersPriceFromVerbs(data.kind, data.allowed_thing_types));
-          setSavedLanguage(data.language || '');
-          setSavedPalette({ colors: data.theeeme_colors, koro: data.koro });
-          setSavedTexts([data.headline, data.description]);
-          setPauseMessage(data.pause_message || '');
-          setIsPaused(data.is_paused || false);
-          setLoaded(true);
-        } else {
-          setToast({ type: 'error', messageKey: 'editCollection.errorLoading' });
-        }
-      } catch {
-        setToast({ type: 'error', messageKey: 'common.connectionError' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [userCode, code, navigate]);
-
   const validate = () => {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
@@ -169,11 +142,8 @@ export default function EditCollectionPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!loaded || !validate()) return;
-    setSubmitting(true);
-    setToast(null);
-
     const body = {
       headline: headline.trim(),
       description: description.trim(),
@@ -183,33 +153,13 @@ export default function EditCollectionPage() {
       allowed_thing_types: allowedVerbsFor(kind, mode, membersPrice),
     };
 
-    try {
-      const res = await apiFetch(`/api/v1/collections/${code}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        navigate(`${base}`);
-      } else if (res.status === 429) {
-        setToast({ type: 'error', message: t('common.tooManyAttempts') });
-      } else if (res.status === 400) {
-        // Surface the backend's own message — it names the offending types when
-        // narrowing would orphan things — so the owner can act on it.
-        const message = await extractApiError(res);
-        setToast({ type: 'error', message: message || t('editCollection.errorSaving') });
-      } else {
-        setToast({ type: 'error', message: t('editCollection.errorSaving') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setSubmitting(false);
-    }
+    save(body);
   };
 
   if (loading) {
     return <LoadingSpinner />;
   }
+  if (refusal) return <CollectionFormRefusal refusal={refusal} base={base} />;
 
   const handlePauseToggle = async () => {
     setPauseSubmitting(true);
@@ -304,7 +254,6 @@ export default function EditCollectionPage() {
           setVisibility={setVisibility}
           membersPrice={membersPrice}
           setMembersPrice={setMembersPrice}
-          theeemeColor01={tc.color_01}
         />
       </div>
       <div className="form-actions">

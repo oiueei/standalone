@@ -380,7 +380,7 @@ describe('who gets the settings menu', () => {
   // do not mount, and the hero would vanish mid-test.
   const NETWORK = { ...CURATED, mode: 'NETWORK' };
 
-  test('in a network a dinamizador has no settings: they are the founder’s, as "Edit collection"', async () => {
+  test('in a network a dinamizador has no settings: they are the founder’s, and so is "General"', async () => {
     await renderAs({ ...NETWORK, owner: 'OTHER1', co_owners: [{ code: 'ABC123', name: 'Me' }] });
 
     expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();

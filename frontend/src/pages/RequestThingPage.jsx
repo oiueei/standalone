@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification, NumberInput, TextArea, TextInput } from 'hds-react';
+import { Button, Notification, TextArea, TextInput } from 'hds-react';
+import BoundedNumberInput from '../components/BoundedNumberInput';
 import { DATE_TYPES, amountTimes, hasAmount } from '../constants/things';
 import {
   isPickupDisabled,
@@ -67,8 +68,8 @@ export default function RequestThingPage() {
   const [endDate, setEndDate] = useState('');
   const [duration, setDuration] = useState('');
   // A loan or rental of a thing with several identical units: how many are asked for.
-  // Kept as typed (the field can be empty for a moment); `askedQuantity` is what it
-  // means.
+  // `BoundedNumberInput` brings what is typed into 1..units on screen; `askedQuantity`
+  // stays as the defence at the moment of sending.
   const [quantity, setQuantity] = useState(1);
   const [projectNote, setProjectNote] = useState('');
   // The optional contact phone: only on a reservation whose collection asks for it.
@@ -135,14 +136,17 @@ export default function RequestThingPage() {
   const datesRef = useRef({});
 
   useEffect(() => {
-    if (!userCode || !thing || !DATE_TYPES.includes(thing.type)) return;
+    if (!userCode || !thing || !DATE_TYPES.includes(thing.type)) return undefined;
     // `for=request`: a curator who books is shown what a member is — the stretches in
     // which every unit is taken — not the bookings with names. With several units,
     // `quantity` is how many are wanted: the days with fewer free come back as taken.
     const asking = askedQuantity > 1 ? `&quantity=${askedQuantity}` : '';
+    // An answer for a quantity or a thing that is no longer the one asked for is dropped.
+    let stale = false;
     apiFetch(`/api/v1/things/${thingCode}/calendar/?for=request${asking}`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
+        if (stale) return;
         setBlockedPeriods(data);
         // The dates already chosen stay only if they are still free for that many
         // (as a change of the length empties the pickup).
@@ -158,6 +162,9 @@ export default function RequestThingPage() {
         }
       })
       .catch(() => {});
+    return () => {
+      stale = true;
+    };
   }, [userCode, thingCode, thing, askedQuantity]);
 
   // Per-collection rental rules (#7): a set of fixed lengths + allowed weekdays.
@@ -604,15 +611,15 @@ export default function RequestThingPage() {
           )}
           {hasQuantity && (
             <>
-              <NumberInput
+              <BoundedNumberInput
                 id="request-quantity"
                 label={t('request.quantityLabel')}
                 helperText={t('request.quantityHelp', { units: thing.units })}
-                value={quantity === '' ? '' : Number(quantity)}
-                onChange={(e) => setQuantity(e.target.value)}
+                value={quantity}
+                onChange={setQuantity}
                 min={1}
                 max={thing.units}
-                step={1}
+                fallback={1}
               />
               <div className="spacer-s" />
             </>

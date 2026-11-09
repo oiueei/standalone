@@ -11,7 +11,7 @@ import {
   kindHasUnits,
   kindOfThingType,
 } from '../constants/things';
-import { apiFetch, extractApiError } from '../services/api';
+import { apiFetch, codedErrorMessage, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ThingForm from '../components/ThingForm';
@@ -34,7 +34,7 @@ export default function EditThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
-  const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const capabilities = useCapabilities();
@@ -244,6 +244,10 @@ export default function EditThingPage() {
         const first = (value) => (Array.isArray(value) ? value[0] : value);
         if (fields && (fields.paused_from || fields.paused_until)) {
           setPauseErrors({ from: first(fields.paused_from), until: first(fields.paused_until) });
+        } else if (fields?.units) {
+          // Fewer units than the live requests need at once: said on the units field,
+          // in the reader's language when the server sent its code.
+          setErrors({ units: codedErrorMessage(fields) || first(fields.units) });
         } else {
           const detail = await extractApiError(res);
           setToast({ type: 'error', message: detail || t('editThing.errorSaving') });
@@ -266,7 +270,6 @@ export default function EditThingPage() {
       <div className="form-grid">
         <ThingForm
           idPrefix="edit-thing"
-          theeemeColor01={tc.color_01}
           errors={errors}
           kind={kind}
           type={type}
@@ -307,7 +310,6 @@ export default function EditThingPage() {
         {hasCalendar && (
           <PauseFields
             idPrefix="edit-thing"
-            theeemeColor01={tc.color_01}
             enabled={pauseOn}
             setEnabled={setPauseOn}
             from={pauseFrom}
@@ -316,6 +318,7 @@ export default function EditThingPage() {
             setUntil={setPauseUntil}
             errors={pauseErrors}
             bookings={bookings}
+            isReservation={savedType === 'RESERVE_THING'}
           />
         )}
       </div>

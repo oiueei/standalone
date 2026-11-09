@@ -1,5 +1,6 @@
 import { Select, TextInput, TextArea, NumberInput, ToggleButton } from 'hds-react';
 import { useTranslation } from 'react-i18next';
+import useTheeeme from '../hooks/useTheeeme';
 import {
   DATE_TYPES,
   DETAIL_TYPES,
@@ -7,6 +8,7 @@ import {
   CONDITION_VALUES,
   kindHasUnits,
 } from '../constants/things';
+import BoundedNumberInput from './BoundedNumberInput';
 import ImageUpload from './ImageUpload';
 import GalleryUpload from './GalleryUpload';
 import LocalizedInfo from './LocalizedInfo';
@@ -41,7 +43,6 @@ import hdsLang from '../utils/hdsLang';
  */
 export default function ThingForm({
   idPrefix,
-  theeemeColor01,
   errors,
   kind,
   type,
@@ -82,9 +83,7 @@ export default function ThingForm({
 }) {
   const { t, i18n } = useTranslation();
   const L = useLocalized();
-  const toggleTheme = theeemeColor01
-    ? { '--toggle-button-color': `var(--color-${theeemeColor01})` }
-    : undefined;
+  const { toggleTheme } = useTheeeme();
 
   const showEndless = kind === 'STALL';
   const showUnits = kindHasUnits(kind);
@@ -173,15 +172,15 @@ export default function ThingForm({
         />
       )}
       {showUnits && (
-        <NumberInput
+        <BoundedNumberInput
           id={`${idPrefix}-units`}
           label={t('thingForm.unitsLabel')}
           helperText={t(kind === 'LIBRARY' ? 'thingForm.unitsHelpLibrary' : 'thingForm.unitsHelp')}
-          value={units === '' ? '' : Number(units)}
-          onChange={(e) => setUnits(e.target.value)}
+          value={units}
+          onChange={setUnits}
           min={1}
           max={20}
-          step={1}
+          fallback={1}
           invalid={!!errors.units}
           errorText={errors.units}
         />

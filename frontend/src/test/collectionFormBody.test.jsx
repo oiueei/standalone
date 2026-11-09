@@ -60,7 +60,8 @@ function setApi(collection = {}) {
     if (url === '/api/v1/theeemes/') return Promise.resolve(ok(THEEEMES));
     if (url === '/api/v1/collections/' && method === 'POST')
       return Promise.resolve(ok({ code: 'NEW001', kind: 'LIBRARY' }));
-    if (/\/collections\/[^/]+\//.test(url)) return Promise.resolve(ok(collection));
+    if (/\/collections\/[^/]+\//.test(url))
+      return Promise.resolve(ok({ is_curator: true, ...collection }));
     return Promise.resolve(ok({}));
   });
 }

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import useTheeeme from '../hooks/useTheeeme';
 import { WEEKDAY_VALUES, weekdayLabel, weekdayNarrow } from '../utils/rental';
 
 /**
@@ -12,12 +13,12 @@ import { WEEKDAY_VALUES, weekdayLabel, weekdayNarrow } from '../utils/rental';
  * kept sorted however the chips were clicked. Controlled: `weekdays` +
  * `setWeekdays` are owned by the caller.
  *
- * `color01` / `color06` are theeeme token names for a **selected** chip:
- * `color01` fills it, `color06` is its text — the same pairing the primary button
+ * A **selected** chip is filled with the palette in force (`useTheeeme`): `color_01`
+ * fills it, `color_06` is its text — the same pairing the primary button
  * uses, so the contrast is the one `paletteContrast.test.js` already guarantees
- * (>= 4.5:1 across all 12 curated palettes). When `color06` is absent the text
- * falls back to white; that only reads on a dark `color01` (bus, tram), so
- * callers with a theeeme in hand should always pass it.
+ * (>= 4.5:1 across all 12 curated palettes). When `color_06` is absent the text
+ * falls back to white; that only reads on a dark `color_01` (bus, tram), and every
+ * palette that can be in force has both.
  */
 export default function WeekdayChips({
   labelId,
@@ -25,10 +26,11 @@ export default function WeekdayChips({
   helperKey,
   weekdays = [],
   setWeekdays = () => {},
-  color01,
-  color06,
 }) {
   const { t, i18n } = useTranslation();
+  const { tc } = useTheeeme();
+  const color01 = tc.color_01;
+  const color06 = tc.color_06;
 
   return (
     <div className="weekday-field">

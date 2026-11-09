@@ -145,8 +145,8 @@
     "deleteThing": "Eliminar {{headline}} — OIUEEI",
     "deleteThingDefault": "Eliminar cosa — OIUEEI",
     "editProfile": "Editar perfil — OIUEEI",
-    "editCollection": "Editar {{headline}} — OIUEEI",
-    "editCollectionDefault": "Editar col·lecció — OIUEEI",
+    "editCollection": "Configuració general de {{headline}} — OIUEEI",
+    "editCollectionDefault": "Configuració general — OIUEEI",
     "newCollection": "Nova col·lecció — OIUEEI",
     "collection": "{{headline}} — OIUEEI",
     "collectionDefault": "Col·lecció — OIUEEI",
@@ -317,11 +317,10 @@
     "promotedNetworkBody": "Ara pots ajudar a dinamitzar “{{collection_headline}}”: convidar membres, escriure al grup, pujar les teves pròpies coses i decidir-hi. El teu nom apareix ara a la pàgina de la col·lecció, a «Dinamització»; qui la va fundar es queda els ajustos i decideix qui forma part de l'equip.",
     "demotedLabel": "Ja no formes part de la dinamització",
     "demotedBody": "Tornes a ser un membre normal de “{{collection_headline}}”.",
-    "demotedNetworkBody_one": "Tornes a ser un membre normal de “{{collection_headline}}”. La teva 1 cosa d'allà s'ha esborrat.",
+    "demotedNetworkBody_one": "Tornes a ser un membre normal de “{{collection_headline}}”. La teva cosa d'allà s'ha esborrat.",
     "demotedNetworkBody_other": "Tornes a ser un membre normal de “{{collection_headline}}”. Les teves {{count}} coses d'allà s'han esborrat."
   },
   "collectionPage": {
-    "editCollection": "Editar col·lecció",
     "addThing": "Afegir cosa",
     "manageGuests": "Gestionar membres",
     "inviteYourPeople": "Convida la teva gent",
@@ -560,13 +559,13 @@
     "nameHelper": "El teu nom, un àlies, el que vulguis. Apareix al costat de les preguntes que fas, al recorregut de les coses que has tingut i a la llista de membres dels teus grups — en públic, si el grup comparteix en públic."
   },
   "editCollection": {
-    "pageTitle": "Editar col·lecció",
+    "pageTitle": "General",
     "titleLabel": "Títol",
     "descriptionLabel": "Descripció",
     "statusLabel": "Estat",
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
-    "statusHelper": "Les col·leccions inactives no són visibles per als membres.",
+    "statusHelper": "Inactiva: ningú més que qui la va fundar la veu, ni amb l'enllaç d'invitació. Per a un descans, millor pausar-la (a sota): es continua veient i només deixa de rebre sol·licituds.",
     "networkFixed": "Aquesta biblioteca és una xarxa: diverses entitats, cadascuna presta les seves coses des del seu punt de recollida. Una biblioteca neix xarxa o no, i no es pot canviar.",
     "modeLabel": "Mode",
     "digestLabel": "Correus resum",
@@ -652,6 +651,7 @@
     "remindReturnNotice": "Quan recordes a algú que torni una cosa, et pot respondre directament: veurà la teva adreça de correu."
   },
   "manageInvites": {
+    "alreadyAskedNotice": "Algunes persones ja van rebre una invitació i no se'ls en pot enviar una altra per correu. Envia'ls tu l'enllaç d'invitació.",
     "pageTitle": "Gestionar membres",
     "colGuest": "Persona",
     "colStatus": "Estat",
@@ -671,7 +671,7 @@
     "promoteConfirmNetworkBody": "Qui forma part de la dinamització pot convidar membres, escriure a tothom i pujar les seves pròpies coses, i decideix només sobre aquestes: respon les seves preguntes i sol·licituds, i baixa el seu calendari i una còpia del grup amb les seves coses i la llista de membres (amb el correu de cadascú). No pot treure membres, editar els ajustos de la xarxa, afegir altres persones a la dinamització ni tocar les coses d'una altra entitat. El seu nom apareixerà a la pàgina de la col·lecció. Ho pots desfer quan vulguis, però les seves coses s'esborraran amb el càrrec.",
     "promoteConfirm": "Afegir a la dinamització",
     "demoteConfirmTitle": "Vols treure {{name}} de la dinamització?",
-    "demoteNetworkBody_one": "La seva 1 cosa s'esborrarà de la xarxa i s'avisarà qui l'hagués demanada. Continua sent membre.",
+    "demoteNetworkBody_one": "La seva cosa s'esborrarà de la xarxa i s'avisarà qui l'hagués demanada. Continua sent membre.",
     "demoteNetworkBody_other": "Les seves {{count}} coses s'esborraran de la xarxa i s'avisarà qui les hagués demanades. Continua sent membre.",
     "demoteConfirm": "Treure de la dinamització",
     "promoted": "Ara forma part de la dinamització.",
@@ -704,7 +704,7 @@
     "ownerReject": "Ara no",
     "ownerApproved": "Invitació enviada.",
     "ownerDeclined": "Rebutjada. L'hi hem dit al membre, sense dir per què.",
-    "settingFull": "Els membres poden recomanar persones (Ells proposen, tu decideixes: no surt cap invitació sense el teu vistiplau.)"
+    "settingFull": "Els membres poden recomanar persones (La proposta és seva i la decisió, teva: no surt cap invitació sense el teu vistiplau.)"
   },
   "removeGuest": {
     "pageTitle": "Treure: {{name}}",
@@ -850,7 +850,7 @@
   },
   "pause": {
     "sectionHeading": "Pausar",
-    "sectionHelper": "Amb la col·lecció pausada, els membres la poden veure però no poden fer noves sol·licituds ni reserves.",
+    "sectionHelper": "Per a unes vacances o un tancament temporal: els membres continuen veient la col·lecció, però no poden fer sol·licituds ni reserves noves. Les que ja estan fetes no s'anul·len. Per a una sola cosa, pausa les seves dates a «Editar cosa».",
     "messageLabel": "Missatge als membres",
     "messageHelper": "Explica als membres per què la col·lecció està pausada. Màxim 256 caràcters.",
     "pauseButton": "Pausar col·lecció",
@@ -941,6 +941,7 @@
     "weekdaysHelper": "Recollida i devolució han de caure en aquests dies. Buit = qualsevol dia.",
     "depositPolicyLabel": "Política de fiança: com es recupera; cada cosa en fixa l'import (opcional)",
     "depositPolicyHelper": "Com funcionen les fiances en aquesta col·lecció — l'import es posa a cada cosa, això explica la condició per retornar-la.",
+    "depositPolicyMaxLength": "Màxim 256 caràcters per idioma.",
     "d1": "1 dia",
     "d2": "2 dies",
     "d3": "3 dies",
@@ -1131,7 +1132,8 @@
     "nameHelper": "Una cooperativa, una associació, una botiga… o el teu propi nom. Si el deixes buit, s'ensenya el teu nom.",
     "logoLabel": "Logo",
     "logoHelper": "S'ensenya al costat del teu nom en aquest grup.",
-    "aboutLabel": "Sobre nosaltres",
+    "aboutLabel": "Presentació",
+    "aboutMaxLength": "Màxim 2000 caràcters per idioma.",
     "contactLabel": "Contacte (web o telèfon)",
     "pickupTitle": "Punt de recollida",
     "pickupIntro": "Prestes les teves coses des del teu punt de recollida: on es recullen i es retornen, i quan. Ho veu tothom qui veu la xarxa.",
@@ -1186,7 +1188,7 @@
     "already_reminded_today": "Ja l'hi has recordat avui.",
     "already_requested": "Ja ho has demanat: espera la resposta de qui ho ofereix.",
     "cancel_forbidden": "No pots cancel·lar aquesta reserva.",
-    "invite_already_asked": "Aquesta persona ja ha rebut una invitació i no se n'hi pot enviar cap altra per correu. S'hi pot unir amb l'enllaç per compartir.",
+    "invite_already_asked": "Aquesta persona ja va rebre una invitació i no se n'hi pot enviar una altra per correu. Envia-li tu l'enllaç d'invitació.",
     "co_owners_full_one": "La dinamització d'aquest grup ja suma 1 persona a més de qui el va crear: és el màxim que permet.",
     "co_owners_full_other": "La dinamització d'aquest grup ja suma {{count}} persones a més de qui el va crear: és el màxim que permet.",
     "curator_things_lent_out": "Algunes de les seves coses estan prestades ara: {{things}}. Ho podràs fer quan acabin aquests préstecs.",
@@ -1246,6 +1248,7 @@
     "not_awaiting_return": "Això ja no està pendent de retorn.",
     "priced_things_remain": "Algunes coses d'aquest grup tenen preu. Treu-los-el o retira-les abans de treure als membres l'opció de posar preu.",
     "opening_hours_required": "Per reservar per hores, posa almenys una franja a «Horari setmanal».",
+    "units_below_booked": "Hi ha reserves que necessiten almenys {{min}} alhora.",
     "rental_length_not_allowed": "Aquesta col·lecció només permet períodes de {{allowed}} dies.",
     "rental_pickup_weekday": "Aquest dia de la setmana no es pot recollir.",
     "rental_return_weekday": "Aquest dia de la setmana no es pot retornar.",
@@ -1317,8 +1320,10 @@
     "toggleLabel": "Pausar les reserves: entre aquestes dues dates ningú no la pot demanar ni reservar; les reserves ja fetes no s'anul·len.",
     "fromLabel": "Des de",
     "untilLabel": "Fins a",
-    "bookingsInRange_one": "Hi ha {{count}} reserva en aquestes dates: no s'anul·la. La pots cancel·lar des de les teves reserves.",
-    "bookingsInRange_other": "Hi ha {{count}} reserves en aquestes dates: no s'anul·len. Les pots cancel·lar des de les teves reserves.",
+    "bookingsInRange_one": "Hi ha {{count}} reserva en aquestes dates: la pausa no l'anul·la. Si cal, la pots cancel·lar a <1>Sol·licituds per a mi</1>.",
+    "bookingsInRange_other": "Hi ha {{count}} reserves en aquestes dates: la pausa no les anul·la. Si cal, les pots cancel·lar a <1>Sol·licituds per a mi</1>.",
+    "loansInRange_one": "Hi ha {{count}} sol·licitud en aquestes dates: la pausa no l'anul·la. Si està pendent, la pots rebutjar a <1>Sol·licituds per a mi</1>; si ja està acceptada, es manté.",
+    "loansInRange_other": "Hi ha {{count}} sol·licituds en aquestes dates: la pausa no les anul·la. Les pendents les pots rebutjar a <1>Sol·licituds per a mi</1>; les acceptades es mantenen.",
     "malformedDate": "Escriu una data com DD/MM/AAAA."
   },
   "thingForm": {
@@ -1331,6 +1336,7 @@
     "unitsHelpLibrary": "Si en tens unes quantes d'iguals, se'n poden demanar unes quantes alhora, fins a aquest nombre."
   },
   "collectionSettings": {
+    "general": "General",
     "menu": "Configuració",
     "appearance": "Aparença",
     "logoLabel": "Logo o imatge de capçalera",

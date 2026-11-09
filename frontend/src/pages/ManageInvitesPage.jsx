@@ -11,7 +11,8 @@ import {
   IconStarFill,
 } from 'hds-react';
 import ThemedDialog from '../components/ThemedDialog';
-import { apiFetch, extractApiError } from '../services/api';
+import StatusRegion from '../components/StatusRegion';
+import { apiFetch, apiErrorMessage, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Toast from '../components/Toast';
@@ -24,6 +25,7 @@ import { parseEmailList } from '../utils/emailList';
 import useCollectionLanguage from '../hooks/useCollectionLanguage';
 import { useCollectionBase } from '../hooks/useCollectionBase';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import useShareLink from '../hooks/useShareLink';
 
 export default function ManageInvitesPage() {
   const { code } = useParams();
@@ -69,6 +71,14 @@ export default function ManageInvitesPage() {
   // shape the CSV tool says it in; null for none, or after a single invitation.
   const [bulkResult, setBulkResult] = useState(null);
   const [toast, setToast] = useState(null);
+  // Set when the server refused to email an address it has already invited: 'one' for a
+  // single invitation (its coded refusal), 'many' for a batch that skipped one. The
+  // notice stays until the next send, with the way to hand over the invitation link
+  // yourself, which a toast that fades could not offer.
+  const [alreadyAsked, setAlreadyAsked] = useState(null);
+  const [collectionKind, setCollectionKind] = useState('');
+  const [isPublicGroup, setIsPublicGroup] = useState(false);
+  const shareLink = useShareLink({ code, kind: collectionKind, isPublic: isPublicGroup });
   const [promoting, setPromoting] = useState(null);
   // The member a curator has clicked to promote, pending confirmation. Promotion
   // hands over nearly the founder's whole reach — the member list (with emails)
@@ -95,6 +105,8 @@ export default function ManageInvitesPage() {
         setPalette({ colors: data.theeeme_colors, koro: data.koro });
         setIsCurator(!!data.is_curator);
         setIsNetwork(data.mode === 'NETWORK');
+        setCollectionKind(data.kind || '');
+        setIsPublicGroup(data.visibility === 'PUBLIC');
         setOwnerCode(data.owner || '');
         setCoOwnerCodes(new Set((data.co_owners || []).map((u) => u.code)));
         setLoadError('');
@@ -210,6 +222,9 @@ export default function ManageInvitesPage() {
       ]);
       setInviteEmail(emails.filter((email) => skipped.has(same(email))).join(', '));
       setBulkResult(data);
+      if ((data.skipped || []).some((row) => row.reason === 'already_asked')) {
+        setAlreadyAsked('many');
+      }
     } else if (res.status === 429) {
       setToast({ type: 'error', message: t('common.tooManyAttempts') });
     } else {
@@ -230,8 +245,15 @@ export default function ManageInvitesPage() {
     } else if (res.status === 429) {
       setToast({ type: 'error', message: t('common.tooManyAttempts') });
     } else {
-      const detail = await extractApiError(res);
-      setToast({ type: 'error', message: detail || t('manageInvites.errorSending') });
+      // The body is read once: the code says whether this is the refusal to email an
+      // address already invited, which gets a notice with the link instead of a toast.
+      const body = await res.json().catch(() => null);
+      if (body?.code === 'invite_already_asked') {
+        setAlreadyAsked('one');
+      } else {
+        const detail = apiErrorMessage(body);
+        setToast({ type: 'error', message: detail || t('manageInvites.errorSending') });
+      }
     }
   };
 
@@ -242,7 +264,9 @@ export default function ManageInvitesPage() {
     inviteLockRef.current = true;
     setInviteLoading(true);
     setToast(null);
+    shareLink.setToast(null);
     setBulkResult(null);
+    setAlreadyAsked(null);
     try {
       // One address is the invitation it always was; several are a batch.
       if (emails.length === 1) await inviteOne(emails[0]);
@@ -508,6 +532,25 @@ export default function ManageInvitesPage() {
             </Button>
           </div>
           <BulkInviteResult result={bulkResult} />
+          <StatusRegion>
+            {alreadyAsked && (
+              <Notification type="info" size="small" style={{ marginTop: 'var(--spacing-s)' }}>
+                <p style={{ margin: 0 }}>
+                  {alreadyAsked === 'one'
+                    ? t('requestErrors.invite_already_asked')
+                    : t('manageInvites.alreadyAskedNotice')}
+                </p>
+                <Button
+                  size="small"
+                  variant="secondary"
+                  onClick={() => shareLink.copy()}
+                  style={{ ...btnSecondaryStyle, marginTop: 'var(--spacing-xs)' }}
+                >
+                  {t('shareMenu.copy')}
+                </Button>
+              </Notification>
+            )}
+          </StatusRegion>
         </>
       )}
 
@@ -595,7 +638,13 @@ export default function ManageInvitesPage() {
         </ThemedDialog>
       )}
 
-      <Toast toast={toast} onClose={() => setToast(null)} />
+      <Toast
+        toast={shareLink.toast || toast}
+        onClose={() => {
+          setToast(null);
+          shareLink.setToast(null);
+        }}
+      />
     </PageLayout>
   );
 }

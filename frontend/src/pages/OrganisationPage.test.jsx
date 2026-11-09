@@ -91,6 +91,48 @@ beforeEach(() => {
   mockApi();
 });
 
+describe('OrganisationPage — a field past its limit', () => {
+  const saveButton = () => screen.getByRole('button', { name: 'Save' });
+  const FIELDS = [
+    { label: /^About/, limit: 2000, message: en.organisation.aboutMaxLength },
+    { label: /Deposit policy/i, limit: 256, message: en.rental.depositPolicyMaxLength },
+    { label: en.requestInfo.label, limit: 512, message: en.requestInfo.maxLength },
+    { label: en.emailNote.label, limit: 512, message: en.emailNote.maxLength },
+  ];
+
+  test.each(FIELDS)(
+    'in a network, $limit characters is the most the field takes, and Save waits',
+    async ({ label, limit, message }) => {
+      renderPage();
+      const field = await screen.findByRole('textbox', { name: label });
+      expect(saveButton()).toBeEnabled();
+
+      fireEvent.change(field, { target: { value: 'x'.repeat(limit + 1) } });
+      expect(screen.getByText(message)).toBeInTheDocument();
+      expect(saveButton()).toBeDisabled();
+
+      fireEvent.change(field, { target: { value: 'x'.repeat(limit) } });
+      expect(screen.queryByText(message)).toBeNull();
+      expect(saveButton()).toBeEnabled();
+    }
+  );
+
+  test('outside a network only About holds Save back', async () => {
+    mockApi({
+      point: json({ ...EMPTY_POINT, request_info: 'x'.repeat(600) }),
+      collection: NOT_A_NETWORK,
+    });
+    renderPage();
+    // The long note is stored but its field is not on the page.
+    const about = await screen.findByRole('textbox', { name: /^About/ });
+    expect(screen.queryByRole('textbox', { name: en.requestInfo.label })).toBeNull();
+    expect(saveButton()).toBeEnabled();
+
+    fireEvent.change(about, { target: { value: 'x'.repeat(2001) } });
+    expect(saveButton()).toBeDisabled();
+  });
+});
+
 describe('OrganisationPage — in a network', () => {
   test('shows the fields of the point the dinamizador already has', async () => {
     mockApi({

@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { nestedTabStops } from './nestedInteractive';
 import { settle } from './settle';
@@ -37,6 +37,8 @@ const MOCK_COLLECTION = {
   status: 'ACTIVE',
   owner: 'ABC123',
   owner_name: 'Test User',
+  // The settings pages are for whoever runs the collection: without it they redirect.
+  is_curator: true,
   thumbnail_url: '',
   tags: ['Vintage', 'Kitchen'],
   things: [],
@@ -83,6 +85,9 @@ const MOCK_THEEEMES = [
   },
 ];
 
+// What one page's collection adds to MOCK_COLLECTION (`routeOpts.collection`).
+let collectionOverride = {};
+
 function mockResponse(data, ok = true) {
   return { ok, status: ok ? 200 : 400, json: () => Promise.resolve(data) };
 }
@@ -106,7 +111,8 @@ vi.mock('../services/api', () => ({
       return Promise.resolve(mockResponse({ results: [] }));
     if (url.match(/\/things\/[^/]+\//)) return Promise.resolve(mockResponse(MOCK_THING));
     if (url.includes('/things/')) return Promise.resolve(mockResponse({ results: [] }));
-    if (url.match(/\/collections\/[^/]+\//)) return Promise.resolve(mockResponse(MOCK_COLLECTION));
+    if (url.match(/\/collections\/[^/]+\//))
+      return Promise.resolve(mockResponse({ ...MOCK_COLLECTION, ...collectionOverride }));
     if (url.includes('/collections/')) return Promise.resolve(mockResponse({ results: [] }));
     if (url.match(/\/users\/[^/]+\//))
       return Promise.resolve(mockResponse({ ...MOCK_USER, collections: [] }));
@@ -121,7 +127,8 @@ globalThis.fetch = vi.fn(() =>
 );
 
 // ── Helper: render with route params ──────────────────────────────────
-function renderWithRoute(Component, { path, entry, state } = {}) {
+function renderWithRoute(Component, { path, entry, state, collection } = {}) {
+  collectionOverride = collection || {};
   const initialEntry = state ? { pathname: entry || '/', state } : entry || '/';
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
@@ -166,6 +173,10 @@ import EditThingPage from '../pages/EditThingPage';
 import RequestThingPage from '../pages/RequestThingPage';
 import UserPage from '../pages/UserPage';
 import SharePage from '../pages/SharePage';
+import EntityPage from '../pages/EntityPage';
+import CollectionAppearancePage from '../pages/CollectionAppearancePage';
+import CollectionNotificationsPage from '../pages/CollectionNotificationsPage';
+import CollectionAvailabilityPage from '../pages/CollectionAvailabilityPage';
 import JoinPage from '../pages/JoinPage';
 import DeleteCollectionPage from '../pages/DeleteCollectionPage';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -200,6 +211,11 @@ function smokeAndAxe(name, Component, routeOpts) {
 
     test('has no accessibility violations', async () => {
       const { container } = renderWithRoute(Component, routeOpts);
+      // A page that redirected would pass axe on an empty div: the ones that can
+      // name their title must be showing it.
+      if (routeOpts?.heading) {
+        await screen.findByRole('heading', { level: 1, name: routeOpts.heading });
+      }
       // Wait for async rendering to settle
       await waitFor(() => {
         expect(
@@ -271,6 +287,59 @@ smokeAndAxe('CollectionPage', CollectionPage, {
 smokeAndAxe('EditCollectionPage', EditCollectionPage, {
   path: '/collections/:code/edit',
   entry: '/collections/COL001/edit',
+  heading: 'General',
+});
+
+smokeAndAxe('CollectionAppearancePage', CollectionAppearancePage, {
+  path: '/collections/:code/settings/appearance',
+  entry: '/collections/COL001/settings/appearance',
+  heading: 'Appearance',
+});
+
+smokeAndAxe('CollectionNotificationsPage', CollectionNotificationsPage, {
+  path: '/collections/:code/settings/notifications',
+  entry: '/collections/COL001/settings/notifications',
+  heading: 'Notifications',
+});
+
+smokeAndAxe('CollectionAvailabilityPage (a library)', CollectionAvailabilityPage, {
+  path: '/collections/:code/settings/availability',
+  entry: '/collections/COL001/settings/availability',
+  heading: 'Availability',
+  collection: { kind: 'LIBRARY', deposit_policy: 'Back when returned.', rental_durations: [7] },
+});
+
+// By the hour it paints more fields: the unit, the minutes and the opening hours.
+smokeAndAxe('CollectionAvailabilityPage (a shed by the hour)', CollectionAvailabilityPage, {
+  path: '/collections/:code/settings/availability',
+  entry: '/collections/COL001/settings/availability',
+  heading: 'Availability',
+  collection: {
+    kind: 'SHED',
+    reservation_unit: 'HOUR',
+    opening_hours: { 0: [['10:00', '14:00']] },
+  },
+});
+
+smokeAndAxe('EntityPage', EntityPage, {
+  path: '/collections/:code/organisation/:userCode',
+  entry: '/collections/COL001/organisation/ABC123',
+  heading: 'La Fusteria',
+  collection: {
+    kind: 'LIBRARY',
+    mode: 'NETWORK',
+    points: [
+      {
+        user: 'ABC123',
+        display_name: 'La Fusteria',
+        about: 'We lend tools.',
+        contact: 'https://your-domain.test',
+        address: 'Carrer Major 4',
+        hours_note: 'Tuesdays',
+        weekdays: [1],
+      },
+    ],
+  },
 });
 
 smokeAndAxe('ManageInvitesPage', ManageInvitesPage, {

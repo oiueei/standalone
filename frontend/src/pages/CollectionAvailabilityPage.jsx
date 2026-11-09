@@ -1,23 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useCallback, useState } from 'react';
+import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { TextArea, Select, Button, Notification, ToggleButton } from 'hds-react';
-import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import FieldNotice from '../components/FieldNotice';
 import ClosedDatesField from '../components/ClosedDatesField';
 import WeekdayChips from '../components/WeekdayChips';
 import OpeningHoursField from '../components/OpeningHoursField';
 import RadioOptionGroup from '../components/RadioOptionGroup';
-import BoundedDayInput from '../components/BoundedDayInput';
+import BoundedNumberInput from '../components/BoundedNumberInput';
 import LoadingSpinner from '../components/LoadingSpinner';
+import CollectionFormRefusal from '../components/CollectionFormRefusal';
 import Toast from '../components/Toast';
 import NotFoundPage from './NotFoundPage';
 import useTheeeme from '../hooks/useTheeeme';
-import useCollectionTheeeme from '../hooks/useCollectionTheeeme';
-import useCollectionLanguage from '../hooks/useCollectionLanguage';
+import useCollectionForm from '../hooks/useCollectionForm';
 import useDocumentTitle from '../hooks/useDocumentTitle';
-import { useCollectionBase } from '../hooks/useCollectionBase';
 import { useLocalized, localizedCounter, localizedHelper } from '../utils/localized';
 import {
   RENTAL_DURATION_PRESETS,
@@ -50,11 +48,7 @@ export default function CollectionAvailabilityPage() {
   const { t, i18n } = useTranslation();
   const L = useLocalized();
   const { code } = useParams();
-  const base = useCollectionBase(code);
-  const navigate = useNavigate();
-  const { btnStyle, tc } = useTheeeme();
-  const [loading, setLoading] = useState(true);
-  const [loaded, setLoaded] = useState(false);
+  const { btnStyle, toggleTheme } = useTheeeme();
   const [kind, setKind] = useState('');
   const [headline, setHeadline] = useState('');
   const [requestInfo, setRequestInfo] = useState('');
@@ -74,63 +68,45 @@ export default function CollectionAvailabilityPage() {
   // then, rather than sending the last good value.
   const [openingHoursValid, setOpeningHoursValid] = useState(true);
   const reportHoursValidity = useCallback((valid) => setOpeningHoursValid(valid), []);
-  const [savedPalette, setSavedPalette] = useState(null);
-  useCollectionTheeeme(savedPalette?.colors, savedPalette?.koro);
-  const [savedLanguage, setSavedLanguage] = useState('');
-  const [savedTexts, setSavedTexts] = useState([]);
-  useCollectionLanguage(savedLanguage, savedTexts);
-  const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState(null);
+  const { loading, loaded, refusal, base, save, submitting, toast, setToast } = useCollectionForm(
+    code,
+    {
+      onLoad: (data) => {
+        setKind(data.kind || '');
+        setHeadline(data.headline || '');
+        setRequestInfo(data.request_info || '');
+        setClosedDates(closedDatesToDisplay(data.closed_dates));
+        setRentalDurations(data.rental_durations || []);
+        setRentalWeekdays(data.rental_weekdays || []);
+        setDepositPolicy(data.deposit_policy || '');
+        setReservationUnit(data.reservation_unit || 'DAY');
+        setReservationMaxDays(data.reservation_max_days ?? 1);
+        setReservationHorizonDays(data.reservation_horizon_days ?? 90);
+        setReservationMaxActivePerMember(data.reservation_max_active_per_member ?? 10);
+        setReservationAsksPhone(!!data.reservation_asks_phone);
+        setReservationMinMinutes(data.reservation_min_minutes ?? 60);
+        setReservationMaxMinutes(data.reservation_max_minutes ?? 180);
+        setOpeningHours(data.opening_hours || {});
+      },
+    }
+  );
   useDocumentTitle(
     headline
       ? t('titles.collectionAvailability', { headline: L(headline) })
       : t('titles.collectionAvailabilityDefault')
   );
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await apiFetch(`/api/v1/collections/${code}/`);
-        if (res.ok) {
-          const data = await res.json();
-          setKind(data.kind || '');
-          setHeadline(data.headline || '');
-          setRequestInfo(data.request_info || '');
-          setClosedDates(closedDatesToDisplay(data.closed_dates));
-          setRentalDurations(data.rental_durations || []);
-          setRentalWeekdays(data.rental_weekdays || []);
-          setDepositPolicy(data.deposit_policy || '');
-          setReservationUnit(data.reservation_unit || 'DAY');
-          setReservationMaxDays(data.reservation_max_days ?? 1);
-          setReservationHorizonDays(data.reservation_horizon_days ?? 90);
-          setReservationMaxActivePerMember(data.reservation_max_active_per_member ?? 10);
-          setReservationAsksPhone(!!data.reservation_asks_phone);
-          setReservationMinMinutes(data.reservation_min_minutes ?? 60);
-          setReservationMaxMinutes(data.reservation_max_minutes ?? 180);
-          setOpeningHours(data.opening_hours || {});
-          setSavedPalette({ colors: data.theeeme_colors, koro: data.koro });
-          setSavedLanguage(data.language || '');
-          setSavedTexts([data.headline, data.description]);
-          setLoaded(true);
-        } else {
-          setToast({ type: 'error', messageKey: 'editCollection.errorLoading' });
-        }
-      } catch {
-        setToast({ type: 'error', messageKey: 'common.connectionError' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [code]);
-
   const isShed = kind === 'SHED';
   const isLibrary = kind === 'LIBRARY';
   const requestInfoCount = localizedCounter(requestInfo, 512);
   const depositCount = localizedCounter(depositPolicy, 256);
 
-  const handleSubmit = async () => {
-    if (!loaded || requestInfoCount.over || (isLibrary && depositCount.over)) return;
+  // Past a limit the button is disabled and the field says why; the early return in
+  // `handleSubmit` is only a defence.
+  const tooLong = requestInfoCount.over || (isLibrary && depositCount.over);
+
+  const handleSubmit = () => {
+    if (!loaded || tooLong) return;
     // A toast, not an inline error: it names the field and is visible wherever the
     // page has been scrolled to.
     if (isShed && reservationUnit === 'HOUR' && !openingHoursValid) {
@@ -143,8 +119,6 @@ export default function CollectionAvailabilityPage() {
       setToast({ type: 'error', message: t('openingHours.requiredOnSave') });
       return;
     }
-    setSubmitting(true);
-    setToast(null);
     const body = {
       request_info: requestInfo.trim(),
       closed_dates: closedDates,
@@ -167,35 +141,13 @@ export default function CollectionAvailabilityPage() {
         body.reservation_max_days = reservationMaxDays;
       }
     }
-    try {
-      const res = await apiFetch(`/api/v1/collections/${code}/`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        navigate(base);
-      } else if (res.status === 429) {
-        setToast({ type: 'error', message: t('common.tooManyAttempts') });
-      } else if (res.status === 400) {
-        const message = await extractApiError(res);
-        setToast({ type: 'error', message: message || t('editCollection.errorSaving') });
-      } else {
-        setToast({ type: 'error', message: t('editCollection.errorSaving') });
-      }
-    } catch {
-      setToast({ type: 'error', message: t('common.connectionError') });
-    } finally {
-      setSubmitting(false);
-    }
+    save(body);
   };
 
   if (loading) return <LoadingSpinner />;
+  if (refusal) return <CollectionFormRefusal refusal={refusal} base={base} />;
   // A stall has no request page to configure: it is not a page of the app.
   if (loaded && !isLibrary && !isShed) return <NotFoundPage />;
-
-  const toggleTheme = tc.color_01
-    ? { '--toggle-button-color': `var(--color-${tc.color_01})` }
-    : undefined;
 
   return (
     <PageLayout backTo={base} backLabel={L(headline) || t('common.collection')}>
@@ -251,8 +203,6 @@ export default function CollectionAvailabilityPage() {
               helperKey="rental.weekdaysHelper"
               weekdays={rentalWeekdays}
               setWeekdays={setRentalWeekdays}
-              color01={tc.color_01}
-              color06={tc.color_06}
             />
             <div>
               <FieldNotice
@@ -269,6 +219,7 @@ export default function CollectionAvailabilityPage() {
                 value={depositPolicy}
                 onChange={(e) => setDepositPolicy(e.target.value)}
                 invalid={depositCount.over}
+                errorText={depositCount.over ? t('rental.depositPolicyMaxLength') : undefined}
                 helperText={localizedHelper(depositPolicy, 256, t)}
               />
             </div>
@@ -276,7 +227,7 @@ export default function CollectionAvailabilityPage() {
         )}
         {isShed && (
           <>
-            <BoundedDayInput
+            <BoundedNumberInput
               id="availability-reservation-horizon-days"
               label={t('reservation.horizonLabel')}
               helperText={t('reservation.horizonHelper')}
@@ -286,7 +237,7 @@ export default function CollectionAvailabilityPage() {
               value={reservationHorizonDays}
               onChange={setReservationHorizonDays}
             />
-            <BoundedDayInput
+            <BoundedNumberInput
               id="availability-reservation-max-active"
               label={t('reservation.maxActiveLabel')}
               helperText={t('reservation.maxActiveHelper')}
@@ -317,7 +268,7 @@ export default function CollectionAvailabilityPage() {
             />
             {reservationUnit === 'HOUR' ? (
               <>
-                <BoundedDayInput
+                <BoundedNumberInput
                   id="availability-reservation-min-minutes"
                   label={t('reservation.minMinutesLabel')}
                   helperText={t('reservation.minMinutesHelper')}
@@ -327,7 +278,7 @@ export default function CollectionAvailabilityPage() {
                   value={reservationMinMinutes}
                   onChange={setReservationMinMinutes}
                 />
-                <BoundedDayInput
+                <BoundedNumberInput
                   id="availability-reservation-max-minutes"
                   label={t('reservation.maxMinutesLabel')}
                   helperText={t('reservation.maxMinutesHelper')}
@@ -367,7 +318,7 @@ export default function CollectionAvailabilityPage() {
               </>
             ) : (
               <>
-                <BoundedDayInput
+                <BoundedNumberInput
                   id="availability-reservation-max-days"
                   label={t('reservation.maxDaysLabel')}
                   helperText={t('reservation.maxDaysHelper')}
@@ -383,8 +334,6 @@ export default function CollectionAvailabilityPage() {
                   helperKey="reservation.weekdaysHelper"
                   weekdays={rentalWeekdays}
                   setWeekdays={setRentalWeekdays}
-                  color01={tc.color_01}
-                  color06={tc.color_06}
                 />
               </>
             )}
@@ -393,7 +342,7 @@ export default function CollectionAvailabilityPage() {
       </div>
       <div className="form-actions">
         <Button
-          disabled={submitting || !loaded}
+          disabled={submitting || !loaded || tooLong}
           onClick={handleSubmit}
           style={{ ...btnStyle, width: '100%' }}
         >

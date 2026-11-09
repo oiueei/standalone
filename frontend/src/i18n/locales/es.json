@@ -145,8 +145,8 @@
     "deleteThing": "Eliminar {{headline}} — OIUEEI",
     "deleteThingDefault": "Eliminar cosa — OIUEEI",
     "editProfile": "Editar perfil — OIUEEI",
-    "editCollection": "Editar {{headline}} — OIUEEI",
-    "editCollectionDefault": "Editar colección — OIUEEI",
+    "editCollection": "Ajustes generales de {{headline}} — OIUEEI",
+    "editCollectionDefault": "Ajustes generales — OIUEEI",
     "newCollection": "Nueva colección — OIUEEI",
     "collection": "{{headline}} — OIUEEI",
     "collectionDefault": "Colección — OIUEEI",
@@ -317,11 +317,10 @@
     "promotedNetworkBody": "Ahora puedes ayudar a dinamizar “{{collection_headline}}”: invitar a miembros, escribir al grupo, subir tus propias cosas y decidir sobre ellas. Tu nombre aparece ahora en la página de la colección, en «Dinamización»; quien la fundó se queda con los ajustes y decide quién forma parte del equipo.",
     "demotedLabel": "Ya no formas parte de la dinamización",
     "demotedBody": "Vuelves a ser un miembro normal de “{{collection_headline}}”.",
-    "demotedNetworkBody_one": "Vuelves a ser un miembro normal de “{{collection_headline}}”. Tu 1 cosa de allí se ha borrado.",
+    "demotedNetworkBody_one": "Vuelves a ser un miembro normal de “{{collection_headline}}”. Tu cosa de allí se ha borrado.",
     "demotedNetworkBody_other": "Vuelves a ser un miembro normal de “{{collection_headline}}”. Tus {{count}} cosas de allí se han borrado."
   },
   "collectionPage": {
-    "editCollection": "Editar colección",
     "addThing": "Añadir cosa",
     "manageGuests": "Gestionar miembros",
     "inviteYourPeople": "Invita a tu gente",
@@ -560,13 +559,13 @@
     "nameHelper": "Tu nombre, un apodo, lo que quieras. Aparece junto a las preguntas que haces, en el recorrido de las cosas que has tenido y en la lista de miembros de tus grupos — en público, si el grupo comparte en público."
   },
   "editCollection": {
-    "pageTitle": "Editar colección",
+    "pageTitle": "General",
     "titleLabel": "Título",
     "descriptionLabel": "Descripción",
     "statusLabel": "Estado",
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
-    "statusHelper": "Las colecciones inactivas no son visibles para los miembros.",
+    "statusHelper": "Inactiva: nadie más que quien la fundó la ve, ni con el enlace de invitación. Para un descanso, mejor pausarla (abajo): se sigue viendo y solo deja de aceptar solicitudes.",
     "networkFixed": "Esta biblioteca es una red: varias entidades, cada una presta sus cosas desde su punto de recogida. Una biblioteca nace red o no, y no se puede cambiar.",
     "modeLabel": "Modo",
     "digestLabel": "Correos resumen",
@@ -652,6 +651,7 @@
     "remindReturnNotice": "Cuando recuerdas a alguien que devuelva una cosa, puede responderte directamente: verá tu dirección de correo."
   },
   "manageInvites": {
+    "alreadyAskedNotice": "Algunas personas ya recibieron una invitación y no se les puede enviar otra por correo. Mándales tú el enlace de invitación.",
     "pageTitle": "Gestionar miembros",
     "colGuest": "Persona",
     "colStatus": "Estado",
@@ -671,7 +671,7 @@
     "promoteConfirmNetworkBody": "Quien forma parte de la dinamización puede invitar a miembros, escribir a todo el mundo y subir sus propias cosas, y decide solo sobre ellas: responde sus preguntas y solicitudes, y baja su calendario y una copia del grupo con sus cosas y la lista de miembros (con el correo de cada uno). No puede quitar miembros, editar los ajustes de la red, sumar a otras personas a la dinamización ni tocar las cosas de otra entidad. Su nombre aparecerá en la página de la colección. Puedes deshacerlo cuando quieras, pero sus cosas se borrarán con el cargo.",
     "promoteConfirm": "Sumar a la dinamización",
     "demoteConfirmTitle": "¿Quitar a {{name}} de la dinamización?",
-    "demoteNetworkBody_one": "Su 1 cosa se borrará de la red y se avisará a quien la hubiera pedido. Sigue siendo miembro.",
+    "demoteNetworkBody_one": "Su cosa se borrará de la red y se avisará a quien la hubiera pedido. Sigue siendo miembro.",
     "demoteNetworkBody_other": "Sus {{count}} cosas se borrarán de la red y se avisará a quien las hubiera pedido. Sigue siendo miembro.",
     "demoteConfirm": "Quitar de la dinamización",
     "promoted": "Ahora forma parte de la dinamización.",
@@ -704,7 +704,7 @@
     "ownerReject": "Ahora no",
     "ownerApproved": "Invitación enviada.",
     "ownerDeclined": "Rechazada. Se lo hemos dicho al miembro, sin decir por qué.",
-    "settingFull": "Los miembros pueden recomendar personas (Ellos proponen, tú decides: no sale ninguna invitación sin tu visto bueno.)"
+    "settingFull": "Los miembros pueden recomendar personas (La propuesta es suya y la decisión, tuya: no sale ninguna invitación sin tu visto bueno.)"
   },
   "removeGuest": {
     "pageTitle": "Quitar: {{name}}",
@@ -850,7 +850,7 @@
   },
   "pause": {
     "sectionHeading": "Pausar",
-    "sectionHelper": "Con la colección pausada, los miembros pueden verla pero no pueden hacer nuevas solicitudes ni reservas.",
+    "sectionHelper": "Para unas vacaciones o un cierre temporal: los miembros siguen viendo la colección, pero no pueden hacer solicitudes ni reservas nuevas. Las que ya están hechas no se anulan. Para una sola cosa, pausa sus fechas en «Editar cosa».",
     "messageLabel": "Mensaje a los miembros",
     "messageHelper": "Explica a los miembros por qué la colección está pausada. Máximo 256 caracteres.",
     "pauseButton": "Pausar colección",
@@ -941,6 +941,7 @@
     "weekdaysHelper": "Recogida y devolución deben caer en estos días. Vacío = cualquier día.",
     "depositPolicyLabel": "Política de fianza: cómo se recupera; cada cosa fija su importe (opcional)",
     "depositPolicyHelper": "Cómo funcionan las fianzas en esta colección — el importe se pone en cada cosa, esto explica la condición para devolverla.",
+    "depositPolicyMaxLength": "Máximo 256 caracteres por idioma.",
     "d1": "1 día",
     "d2": "2 días",
     "d3": "3 días",
@@ -1131,7 +1132,8 @@
     "nameHelper": "Una cooperativa, una asociación, una tienda… o tu propio nombre. Si lo dejas vacío, se enseña tu nombre.",
     "logoLabel": "Logo",
     "logoHelper": "Se enseña junto a tu nombre en este grupo.",
-    "aboutLabel": "Sobre nosotros",
+    "aboutLabel": "Presentación",
+    "aboutMaxLength": "Máximo 2000 caracteres por idioma.",
     "contactLabel": "Contacto (web o teléfono)",
     "pickupTitle": "Punto de recogida",
     "pickupIntro": "Prestas tus cosas desde tu punto de recogida: dónde se recogen y se devuelven, y cuándo. Lo ve todo el que ve la red.",
@@ -1186,7 +1188,7 @@
     "already_reminded_today": "Ya se lo has recordado hoy.",
     "already_requested": "Ya lo has pedido: espera la respuesta de quien lo ofrece.",
     "cancel_forbidden": "No puedes cancelar esta reserva.",
-    "invite_already_asked": "Esta persona ya recibió una invitación y no se le puede enviar otra por correo. Puede unirse con el enlace para compartir.",
+    "invite_already_asked": "Esta persona ya recibió una invitación y no se le puede enviar otra por correo. Mándale tú el enlace de invitación.",
     "co_owners_full_one": "La dinamización de este grupo ya suma 1 persona además de quien lo creó: es el máximo que permite.",
     "co_owners_full_other": "La dinamización de este grupo ya suma {{count}} personas además de quien lo creó: es el máximo que permite.",
     "curator_things_lent_out": "Algunas de sus cosas están prestadas ahora: {{things}}. Podrás hacerlo cuando terminen esos préstamos.",
@@ -1246,6 +1248,7 @@
     "not_awaiting_return": "Esto ya no está pendiente de devolución.",
     "priced_things_remain": "Algunas cosas de este grupo tienen precio. Quítaselo o retíralas antes de quitar a los miembros la opción de poner precio.",
     "opening_hours_required": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
+    "units_below_booked": "Hay reservas que necesitan al menos {{min}} a la vez.",
     "rental_length_not_allowed": "Esta colección solo permite periodos de {{allowed}} días.",
     "rental_pickup_weekday": "Ese día de la semana no se puede recoger.",
     "rental_return_weekday": "Ese día de la semana no se puede devolver.",
@@ -1317,8 +1320,10 @@
     "toggleLabel": "Pausar reservas: entre esas dos fechas nadie puede pedirla ni reservarla; las reservas ya hechas no se anulan.",
     "fromLabel": "Desde",
     "untilLabel": "Hasta",
-    "bookingsInRange_one": "Hay {{count}} reserva en esas fechas: no se anula. Puedes cancelarla desde tus reservas.",
-    "bookingsInRange_other": "Hay {{count}} reservas en esas fechas: no se anulan. Puedes cancelarlas desde tus reservas.",
+    "bookingsInRange_one": "Hay {{count}} reserva en esas fechas: la pausa no la anula. Si hace falta, puedes cancelarla en <1>Solicitudes para mí</1>.",
+    "bookingsInRange_other": "Hay {{count}} reservas en esas fechas: la pausa no las anula. Si hace falta, puedes cancelarlas en <1>Solicitudes para mí</1>.",
+    "loansInRange_one": "Hay {{count}} solicitud en esas fechas: la pausa no la anula. Si está pendiente, puedes rechazarla en <1>Solicitudes para mí</1>; si ya está aceptada, sigue en pie.",
+    "loansInRange_other": "Hay {{count}} solicitudes en esas fechas: la pausa no las anula. Las pendientes puedes rechazarlas en <1>Solicitudes para mí</1>; las aceptadas siguen en pie.",
     "malformedDate": "Escribe una fecha como DD/MM/AAAA."
   },
   "thingForm": {
@@ -1331,6 +1336,7 @@
     "unitsHelpLibrary": "Si tienes varias iguales, se pueden pedir varias a la vez, hasta este número."
   },
   "collectionSettings": {
+    "general": "General",
     "menu": "Ajustes",
     "appearance": "Apariencia",
     "logoLabel": "Logo o imagen de cabecera",

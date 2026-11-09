@@ -6,7 +6,7 @@ from django.db.models import Count, Prefetch
 from django.utils import timezone
 from rest_framework import serializers
 
-from core.models import Collection, Thing
+from core.models import Collection, NetworkPoint, Thing
 from core.models.booking import DATE_BASED_TYPES, BookingPeriod
 from core.serializers.theeeme import theeeme_colors
 from core.utils import asset_url, doc_asset_url
@@ -112,8 +112,17 @@ def optimise_thing_queryset(queryset, *, with_collections=False):
         # `Collection.is_curator` reads `co_owners` via `.all()`.
         # The palette rides with the collection, joined here so reading it costs no
         # query per thing (`collection_theeeme_colors`).
+        # The curators' pages ride along too: in a network `point_for` / `card_for` read
+        # `points.all()` once per collection instance, and `display_name` the point's
+        # user, so without them every thing would cost a query per getter.
         related.insert(
-            0, Prefetch("collections", queryset=Collection.objects.select_related("theeeme"))
+            0,
+            Prefetch(
+                "collections",
+                queryset=Collection.objects.select_related("theeeme").prefetch_related(
+                    Prefetch("points", queryset=NetworkPoint.objects.select_related("user"))
+                ),
+            ),
         )
         related.insert(1, "collections__co_owners")
     return (

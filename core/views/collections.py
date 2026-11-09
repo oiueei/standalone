@@ -8,7 +8,7 @@ import threading
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -1434,6 +1434,10 @@ class CollectionShareLinkView(APIView):
     Owner or co-owner. Token is a 22-char URL-safe bearer credential — anyone
     with the link can join the collection via /share/{token}, so the token
     must not appear in any read endpoint.
+
+    In a NETWORK, generating the link the first time and reading the existing one
+    stay any dinamizador's (inviting is theirs), but rotating or revoking it is the
+    founder's alone: it would kill the links and QR codes everyone else handed out.
     """
 
     permission_classes = [IsAuthenticated]
@@ -1449,6 +1453,15 @@ class CollectionShareLinkView(APIView):
             return denied
 
         rotate = bool(body_dict(request).get("rotate"))
+
+        if rotate and collection.share_token:
+            denied = require_network_founder(
+                collection,
+                request.user.code,
+                "Only the founder of a network can take back its share link",
+            )
+            if denied:
+                return denied
 
         if rotate or not collection.share_token:
             collection.share_token = generate_share_token()
@@ -1470,6 +1483,14 @@ class CollectionShareLinkView(APIView):
 
         denied = require_collection_curator(
             collection, request.user.code, "Only the owner or a co-owner can manage the share link"
+        )
+        if denied:
+            return denied
+
+        denied = require_network_founder(
+            collection,
+            request.user.code,
+            "Only the founder of a network can take back its share link",
         )
         if denied:
             return denied
@@ -1752,10 +1773,22 @@ class CollectionPointView(APIView):
         point = collection.points.filter(user=request.user).first() or NetworkPoint(
             collection=collection, user=request.user
         )
-        data = request.data
+        data = body_dict(request)
         if not collection.is_network():
             data = {key: value for key, value in data.items() if key in IDENTITY_FIELDS}
         serializer = NetworkPointWriteSerializer(point, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            with transaction.atomic():
+                point = serializer.save()
+        except IntegrityError:
+            # Two first PUTs of the same curator raced: both saw no row and both
+            # created one, and the second met `one_point_per_curator`. The row that
+            # won is theirs, so the PUT applies to it instead.
+            point = collection.points.filter(user=request.user).first()
+            if point is None:
+                raise
+            serializer = NetworkPointWriteSerializer(point, data=data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            point = serializer.save()
         return Response(NetworkPointSerializer(point, context={"request": request}).data)

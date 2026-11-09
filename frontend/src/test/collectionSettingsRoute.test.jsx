@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 
 /**
@@ -18,7 +18,13 @@ globalThis.fetch = vi.fn((url) => {
     json: () =>
       Promise.resolve(
         collection
-          ? { code: 'COL001', headline: 'The lending library', kind: 'LIBRARY', things: [] }
+          ? {
+              code: 'COL001',
+              headline: 'The lending library',
+              kind: 'LIBRARY',
+              is_curator: true,
+              things: [],
+            }
           : {}
       ),
   });
@@ -75,5 +81,53 @@ describe('the appearance route', () => {
     expect(new URLSearchParams(window.location.search).get('next')).toBe(
       '/library/COL001/settings/appearance'
     );
+  });
+});
+
+describe('the way to the general settings', () => {
+  test('a curator opens the pencil, picks General and lands on the edit page', async () => {
+    localStorage.setItem('userCode', 'USR001');
+    const FULL = {
+      code: 'COL001',
+      headline: 'The lending library',
+      description: '',
+      status: 'ACTIVE',
+      mode: 'PROPRIETARY',
+      visibility: 'PRIVATE',
+      kind: 'LIBRARY',
+      owner: 'USR001',
+      owner_name: 'Me',
+      is_curator: true,
+      is_member: false,
+      allowed_thing_types: ['LEND_THING'],
+      language: '',
+      thumbnail_url: '',
+      tags: [],
+      things: [],
+      invites: [],
+      pending_invites: [],
+      co_owners: [],
+      points: [],
+    };
+    globalThis.fetch = vi.fn((url) => {
+      const u = String(url);
+      const isCollection = u.includes('/api/v1/collections/COL001/');
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(isCollection ? FULL : []),
+      });
+    });
+    window.history.pushState({}, '', '/library/COL001');
+    const { default: App } = await import('../App');
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Settings' }));
+    const general = screen.getByRole('link', { name: 'General' });
+    expect(general).toHaveAttribute('href', '/library/COL001/edit');
+    fireEvent.click(general);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'General' })).toBeVisible();
+    expect(window.location.pathname).toBe('/library/COL001/edit');
   });
 });

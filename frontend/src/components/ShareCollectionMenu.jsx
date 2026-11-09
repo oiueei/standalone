@@ -16,7 +16,7 @@ import useTheeeme from '../hooks/useTheeeme';
 import useDismissable from '../hooks/useDismissable';
 import { apiFetch } from '../services/api';
 import Toast from './Toast';
-import { collectionPath } from '../utils/collectionPath';
+import useShareLink from '../hooks/useShareLink';
 
 // qrcode.react only renders once the owner opens the QR dialog — split it
 // out of the CollectionPage chunk instead of shipping it to every visitor.
@@ -59,35 +59,22 @@ export default function ShareCollectionMenu({
   collectionKind,
   collectionHeadline,
   isPublic,
+  canTakeBack = false,
 }) {
   const { t } = useTranslation();
   const { btnStyle, btnSecondaryStyle } = useTheeeme();
-  const [toast, setToast] = useState(null);
+  const { ensureShareUrl, copy, setUrl, toast, setToast } = useShareLink({
+    code: collectionCode,
+    kind: collectionKind,
+    isPublic,
+  });
   const [qrUrl, setQrUrl] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [open, setOpen] = useState(false);
-  const cachedUrlRef = useRef(null);
   const wrapperRef = useRef(null);
   const buttonRef = useRef(null);
   const panelId = `share-menu-panel-${useId()}`;
   useDismissable({ open, setOpen, wrapperRef, buttonRef });
-
-  const ensureShareUrl = async () => {
-    if (cachedUrlRef.current) return cachedUrlRef.current;
-    // Public collections need no share token — anyone can read them without an
-    // account, so share the collection page directly (no /share email gate).
-    if (isPublic) {
-      cachedUrlRef.current = `${window.location.origin}${collectionPath(collectionCode, collectionKind)}`;
-      return cachedUrlRef.current;
-    }
-    const res = await apiFetch(`/api/v1/collections/${collectionCode}/share-link/`, {
-      method: 'POST',
-    });
-    if (!res.ok) throw new Error('share-link request failed');
-    const data = await res.json();
-    cachedUrlRef.current = data.share_url;
-    return data.share_url;
-  };
 
   // With the kind ("…, a library of things on OIUEEI…") when the collection has one;
   // the words it always had when it does not.
@@ -106,15 +93,6 @@ export default function ShareCollectionMenu({
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
-  const handleCopy = async (url) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setToast({ type: 'success', message: t('shareMenu.copied') });
-    } catch {
-      setToast({ type: 'error', message: t('shareMenu.copyError') });
-    }
-  };
-
   const handleWhatsApp = async (url) => {
     const text = encodeURIComponent(
       kind
@@ -125,10 +103,10 @@ export default function ShareCollectionMenu({
   };
 
   const trigger = async (action) => {
+    if (action === 'copy') return copy();
     try {
       const url = await ensureShareUrl();
       if (action === 'email') return handleEmail(url);
-      if (action === 'copy') return handleCopy(url);
       if (action === 'whatsapp') return handleWhatsApp(url);
       if (action === 'qr') return setQrUrl(url);
     } catch {
@@ -147,7 +125,7 @@ export default function ShareCollectionMenu({
       });
       if (!res.ok) throw new Error('rotate failed');
       const data = await res.json();
-      cachedUrlRef.current = data.share_url;
+      setUrl(data.share_url);
       setToast({ type: 'success', message: t('shareMenu.rotated') });
     } catch {
       setToast({ type: 'error', message: t('shareMenu.linkError') });
@@ -162,7 +140,7 @@ export default function ShareCollectionMenu({
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('revoke failed');
-      cachedUrlRef.current = null;
+      setUrl(null);
       setToast({ type: 'success', message: t('shareMenu.revoked') });
     } catch {
       setToast({ type: 'error', message: t('shareMenu.linkError') });
@@ -191,21 +169,23 @@ export default function ShareCollectionMenu({
     },
     { value: 'qr', label: t('shareMenu.qr'), icon: <IconCamera aria-hidden="true" /> },
   ];
-  // Taking a link back only exists for a PRIVATE collection (see above).
-  const credentialEntries = isPublic
-    ? []
-    : [
-        {
-          value: 'rotate',
-          label: t('shareMenu.rotate'),
-          icon: <IconArrowRedo aria-hidden="true" />,
-        },
-        {
-          value: 'revoke',
-          label: t('shareMenu.revoke'),
-          icon: <IconCrossCircle aria-hidden="true" />,
-        },
-      ];
+  // Taking a link back only exists for a PRIVATE collection (see above), and in a
+  // network only for its founder (`canTakeBack`): the server refuses anyone else.
+  const credentialEntries =
+    isPublic || !canTakeBack
+      ? []
+      : [
+          {
+            value: 'rotate',
+            label: t('shareMenu.rotate'),
+            icon: <IconArrowRedo aria-hidden="true" />,
+          },
+          {
+            value: 'revoke',
+            label: t('shareMenu.revoke'),
+            icon: <IconCrossCircle aria-hidden="true" />,
+          },
+        ];
   const entryButton = (entry) => (
     <button key={entry.value} type="button" onClick={() => pick(entry.value)}>
       {entry.icon}
@@ -294,7 +274,7 @@ export default function ShareCollectionMenu({
             <Button
               variant="secondary"
               iconStart={<IconCopy aria-hidden="true" />}
-              onClick={() => handleCopy(qrUrl)}
+              onClick={() => copy(qrUrl)}
               style={btnSecondaryStyle}
             >
               {t('shareMenu.copy')}
