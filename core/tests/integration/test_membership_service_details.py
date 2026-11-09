@@ -174,3 +174,71 @@ class TestEndingAMembership:
         assert sent.subject == T("thing_left_subject", lang="es").format(
             thing="Drill", group="The street"
         )
+
+
+class TestDemotingADinamizadorTellsWhoAskedForTheirThings:
+    """The notice goes out once the demotion commits, to the people with a live request on
+    a thing that went with the role, and to nobody else."""
+
+    @pytest.fixture
+    def network(self, founder, member, asker):
+        other = User.objects.create(code="MOTH01", email="lolo@your-domain.test", name="Lolo")
+        bystander = User.objects.create(code="MBYS01", email="lulu@your-domain.test", name="Lulu")
+        collection = Collection.objects.create(
+            code="MNET01",
+            owner=founder,
+            headline="The network",
+            mode=Collection.Mode.NETWORK,
+            allowed_thing_types=["LEND_THING"],
+            language="es",
+        )
+        collection.invites.add(member, other, asker, bystander)
+        collection.co_owners.add(member, other)
+        return collection, other, bystander
+
+    def _demote(self, founder, collection, member):
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        client = APIClient()
+        client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(founder).access_token}"
+        )
+        return client.delete(
+            f"/api/v1/collections/{collection.code}/co-owners/",
+            {"user_code": member.code},
+            format="json",
+        )
+
+    def test_only_the_requester_of_a_demoted_dinamizadors_thing_is_emailed_on_commit(
+        self, network, founder, member, asker, django_capture_on_commit_callbacks
+    ):
+        collection, other, bystander = network
+        mine = thing(collection, member, "DEM001", "Ladder", type_="LEND_THING")
+        theirs = thing(collection, other, "DEM002", "Saw", type_="LEND_THING")
+        book(mine, asker)
+        book(theirs, bystander)
+        mail.outbox.clear()
+
+        with django_capture_on_commit_callbacks(execute=True):
+            res = self._demote(founder, collection, member)
+
+        assert res.status_code == 200
+        (sent,) = mail.outbox
+        assert sent.to == [asker.email]
+        assert sent.subject == T("thing_left_subject", lang="es").format(
+            thing="Ladder", group="The network"
+        )
+
+    def test_nothing_is_sent_before_the_demotion_commits(
+        self, network, founder, member, asker, django_capture_on_commit_callbacks
+    ):
+        collection, _, _ = network
+        book(thing(collection, member, "DEM003", "Ladder", type_="LEND_THING"), asker)
+        mail.outbox.clear()
+
+        with django_capture_on_commit_callbacks(execute=False):
+            res = self._demote(founder, collection, member)
+
+        assert res.status_code == 200
+        assert mail.outbox == []
