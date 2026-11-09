@@ -1,5 +1,6 @@
 import { DateInput, Notification, ToggleButton } from 'hds-react';
 import { useTranslation } from 'react-i18next';
+import useTheeeme from '../hooks/useTheeeme';
 import { DISPLAY_DATE_FORMAT, displayToIso } from '../utils/rental';
 import { bookingsInPause } from '../utils/pause';
 import hdsLang from '../utils/hdsLang';
@@ -20,7 +21,6 @@ import StatusRegion from './StatusRegion';
  */
 export default function PauseFields({
   idPrefix,
-  theeemeColor01,
   enabled,
   setEnabled,
   from,
@@ -31,9 +31,7 @@ export default function PauseFields({
   bookings = [],
 }) {
   const { t, i18n } = useTranslation();
-  const toggleTheme = theeemeColor01
-    ? { '--toggle-button-color': `var(--color-${theeemeColor01})` }
-    : undefined;
+  const { toggleTheme } = useTheeeme();
   // Only shown inside the block below, which exists while the pause is on.
   const count = bookingsInPause(bookings, displayToIso(from), displayToIso(until));
 

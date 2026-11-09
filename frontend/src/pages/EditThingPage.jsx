@@ -34,7 +34,7 @@ export default function EditThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
   const userCode = localStorage.getItem('userCode');
-  const { tc, btnStyle, btnSecondaryStyle } = useTheeeme();
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const capabilities = useCapabilities();
@@ -266,7 +266,6 @@ export default function EditThingPage() {
       <div className="form-grid">
         <ThingForm
           idPrefix="edit-thing"
-          theeemeColor01={tc.color_01}
           errors={errors}
           kind={kind}
           type={type}
@@ -307,7 +306,6 @@ export default function EditThingPage() {
         {hasCalendar && (
           <PauseFields
             idPrefix="edit-thing"
-            theeemeColor01={tc.color_01}
             enabled={pauseOn}
             setEnabled={setPauseOn}
             from={pauseFrom}

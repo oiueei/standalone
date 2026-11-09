@@ -48,7 +48,7 @@ export default function CollectionAvailabilityPage() {
   const { t, i18n } = useTranslation();
   const L = useLocalized();
   const { code } = useParams();
-  const { btnStyle, tc } = useTheeeme();
+  const { btnStyle, toggleTheme } = useTheeeme();
   const [kind, setKind] = useState('');
   const [headline, setHeadline] = useState('');
   const [requestInfo, setRequestInfo] = useState('');
@@ -149,10 +149,6 @@ export default function CollectionAvailabilityPage() {
   // A stall has no request page to configure: it is not a page of the app.
   if (loaded && !isLibrary && !isShed) return <NotFoundPage />;
 
-  const toggleTheme = tc.color_01
-    ? { '--toggle-button-color': `var(--color-${tc.color_01})` }
-    : undefined;
-
   return (
     <PageLayout backTo={base} backLabel={L(headline) || t('common.collection')}>
       <h1 className="page-title-xl">{t('collectionSettings.availability')}</h1>
@@ -207,8 +203,6 @@ export default function CollectionAvailabilityPage() {
               helperKey="rental.weekdaysHelper"
               weekdays={rentalWeekdays}
               setWeekdays={setRentalWeekdays}
-              color01={tc.color_01}
-              color06={tc.color_06}
             />
             <div>
               <FieldNotice
@@ -340,8 +334,6 @@ export default function CollectionAvailabilityPage() {
                   helperKey="reservation.weekdaysHelper"
                   weekdays={rentalWeekdays}
                   setWeekdays={setRentalWeekdays}
-                  color01={tc.color_01}
-                  color06={tc.color_06}
                 />
               </>
             )}

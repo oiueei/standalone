@@ -42,7 +42,7 @@ export default function OrganisationPage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const base = useCollectionBase(code);
-  const { tc, btnStyle } = useTheeeme();
+  const { btnStyle } = useTheeeme();
   const userCode = localStorage.getItem('userCode');
 
   const [collection, setCollection] = useState(null);
@@ -244,8 +244,6 @@ export default function OrganisationPage() {
                 helperKey="networkPoint.weekdaysHelper"
                 weekdays={weekdays}
                 setWeekdays={setWeekdays}
-                color01={tc.color_01}
-                color06={tc.color_06}
               />
               <ClosedDatesField
                 id="organisation-closed-dates"

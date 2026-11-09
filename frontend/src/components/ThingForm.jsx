@@ -1,5 +1,6 @@
 import { Select, TextInput, TextArea, NumberInput, ToggleButton } from 'hds-react';
 import { useTranslation } from 'react-i18next';
+import useTheeeme from '../hooks/useTheeeme';
 import {
   DATE_TYPES,
   DETAIL_TYPES,
@@ -42,7 +43,6 @@ import hdsLang from '../utils/hdsLang';
  */
 export default function ThingForm({
   idPrefix,
-  theeemeColor01,
   errors,
   kind,
   type,
@@ -83,9 +83,7 @@ export default function ThingForm({
 }) {
   const { t, i18n } = useTranslation();
   const L = useLocalized();
-  const toggleTheme = theeemeColor01
-    ? { '--toggle-button-color': `var(--color-${theeemeColor01})` }
-    : undefined;
+  const { toggleTheme } = useTheeeme();
 
   const showEndless = kind === 'STALL';
   const showUnits = kindHasUnits(kind);

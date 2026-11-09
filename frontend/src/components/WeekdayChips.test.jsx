@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import WeekdayChips from './WeekdayChips';
+import declarePalette from '../test/declarePalette';
 
 // WeekdayChips owns the weekday toggle logic for BOTH rules blocks (rental
 // pickup/return days, reservation open days). A value that leaves here in the
@@ -84,18 +85,20 @@ describe('WeekdayChips — the selected chip stays legible on every theeeme', ()
     // drops well below WCAG AA — engel is 1.22:1. color_06-on-color_01 is the
     // primary-button pairing, which paletteContrast.test.js already pins at
     // >= 4.5:1 for all 12.
-    renderChips({ weekdays: [2], color01: 'engel', color06: 'black' });
+    declarePalette({ color_01: 'engel', color_06: 'black' });
+    renderChips({ weekdays: [2] });
     expect(chip('Wednesday')).toHaveStyle({
       backgroundColor: 'var(--color-engel)',
       color: 'var(--color-black)',
     });
   });
 
-  test('with no theeeme in hand the chip is left to the CSS default (white on black-90)', () => {
+  test('with a palette that has no color_06 the chip is left to the CSS default (white on black-90)', () => {
     // The fallback only has to read on a dark surface, which the App.css default
     // (.weekday-chip.selected → black-90 fill) guarantees; the inline white here
     // matches it rather than fighting it.
-    renderChips({ weekdays: [2], color01: 'bus' });
+    declarePalette({ color_01: 'bus' });
+    renderChips({ weekdays: [2] });
     expect(chip('Wednesday')).toHaveStyle({
       backgroundColor: 'var(--color-bus)',
       color: 'var(--color-white)',
@@ -103,7 +106,8 @@ describe('WeekdayChips — the selected chip stays legible on every theeeme', ()
   });
 
   test('an unselected chip carries no inline colour at all', () => {
-    renderChips({ weekdays: [], color01: 'engel', color06: 'black' });
+    declarePalette({ color_01: 'engel', color_06: 'black' });
+    renderChips({ weekdays: [] });
     expect(chip('Wednesday')).not.toHaveAttribute('style');
   });
 });

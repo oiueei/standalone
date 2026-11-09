@@ -32,7 +32,7 @@ export default function CollectionNotificationsPage() {
   const { t, i18n } = useTranslation();
   const L = useLocalized();
   const { code } = useParams();
-  const { btnStyle, btnSecondaryStyle, tc } = useTheeeme();
+  const { btnStyle, btnSecondaryStyle, toggleTheme } = useTheeeme();
   const [headline, setHeadline] = useState('');
   const [allowProposals, setAllowProposals] = useState(false);
   const [welcomeDoc, setWelcomeDoc] = useState('');
@@ -81,9 +81,6 @@ export default function CollectionNotificationsPage() {
   if (loading) return <LoadingSpinner />;
   if (refusal) return <CollectionFormRefusal refusal={refusal} base={base} />;
 
-  const toggleTheme = tc.color_01
-    ? { '--toggle-button-color': `var(--color-${tc.color_01})` }
-    : undefined;
   const digestOptions = [
     { label: t('editCollection.digestNone'), value: 'NONE' },
     { label: t('editCollection.digestWeekly'), value: 'WEEKLY' },

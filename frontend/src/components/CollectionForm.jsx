@@ -1,5 +1,6 @@
 import { ToggleButton } from 'hds-react';
 import { useTranslation } from 'react-i18next';
+import useTheeeme from '../hooks/useTheeeme';
 import { hasPriceVerbs } from '../utils/collectionKind';
 
 /**
@@ -25,12 +26,9 @@ export default function CollectionForm({
   setVisibility = () => {},
   membersPrice = true,
   setMembersPrice = () => {},
-  theeemeColor01,
 }) {
   const { t } = useTranslation();
-  const toggleTheme = theeemeColor01
-    ? { '--toggle-button-color': `var(--color-${theeemeColor01})` }
-    : undefined;
+  const { toggleTheme } = useTheeeme();
   // Only where members add things themselves and a price is possible at all.
   const showMembersPrice = hasPriceVerbs(kind) && mode === 'COMMUNITY';
 

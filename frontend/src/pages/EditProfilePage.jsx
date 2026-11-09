@@ -23,7 +23,7 @@ export default function EditProfilePage() {
   const backPath = location.state?.backPath || '/';
   const backLabel = location.state?.backLabel || t('common.home');
   const userCode = localStorage.getItem('userCode');
-  const { tc: theeemeColors, btnStyle } = useTheeeme();
+  const { toggleTheme, btnStyle } = useTheeeme();
 
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -254,11 +254,7 @@ export default function EditProfilePage() {
           checked
           disabled
           onChange={() => {}}
-          theme={
-            theeemeColors.color_01
-              ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` }
-              : undefined
-          }
+          theme={toggleTheme}
         />
         <ToggleButton
           id="notify-activity"
@@ -266,11 +262,7 @@ export default function EditProfilePage() {
           label={t('notifications.activityFull')}
           checked={notifyActivity}
           onChange={(val) => setNotifyActivity(!val)}
-          theme={
-            theeemeColors.color_01
-              ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` }
-              : undefined
-          }
+          theme={toggleTheme}
         />
         <ToggleButton
           id="notify-news"
@@ -278,11 +270,7 @@ export default function EditProfilePage() {
           label={t('notifications.newsFull')}
           checked={notifyNews}
           onChange={(val) => setNotifyNews(!val)}
-          theme={
-            theeemeColors.color_01
-              ? { '--toggle-button-color': `var(--color-${theeemeColors.color_01})` }
-              : undefined
-          }
+          theme={toggleTheme}
         />
       </div>
       <div className="form-actions">

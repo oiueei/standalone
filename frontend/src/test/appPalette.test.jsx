@@ -231,6 +231,34 @@ describe('a collection’s buttons hover with the -dark shade, the app’s with 
   });
 });
 
+describe('a switch that is on takes the palette’s color_01', () => {
+  test('a collection palette: its color_01', () => {
+    const { result } = renderHook(() => {
+      useCollectionTheeeme(BUSSI);
+      return useTheeeme();
+    });
+
+    expect(result.current.toggleTheme).toEqual({ '--toggle-button-color': 'var(--color-bus)' });
+  });
+
+  test('with nothing declared: the app’s first colour', () => {
+    const { result } = renderHook(() => useTheeeme());
+
+    expect(result.current.toggleTheme).toEqual({
+      '--toggle-button-color': 'var(--color-braaanding-01)',
+    });
+  });
+
+  test('a palette with no color_01 gives no theme at all', () => {
+    const { result } = renderHook(() => {
+      useCollectionTheeeme({ color_02: 'white' });
+      return useTheeeme();
+    });
+
+    expect(result.current.toggleTheme).toBeUndefined();
+  });
+});
+
 describe('the content link colour understands the app’s tokens', () => {
   const setApp = (values) => {
     for (const [n, hex] of Object.entries(values)) {

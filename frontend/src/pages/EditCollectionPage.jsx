@@ -254,7 +254,6 @@ export default function EditCollectionPage() {
           setVisibility={setVisibility}
           membersPrice={membersPrice}
           setMembersPrice={setMembersPrice}
-          theeemeColor01={tc.color_01}
         />
       </div>
       <div className="form-actions">
