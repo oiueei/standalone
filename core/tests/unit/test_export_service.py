@@ -274,6 +274,49 @@ class TestAccountExportShape:
         assert bookings["requested_by_me"][0]["owner"] == {"code": "TEST02", "name": "Test User 2"}
 
 
+class TestTheContactPhoneLeftWhenBooking:
+    """The phone is the booker's own data (right of access), but it is promised to be seen
+    only by whoever manages the booking and gone the day after: a downloaded file is not
+    deleted, so only the booker's own copy carries it."""
+
+    PHONE = "600123456"
+
+    def _phones(self, **by_code):
+        for code, phone in by_code.items():
+            BookingPeriod.objects.filter(code=code).update(contact_phone=phone)
+
+    def test_the_one_who_booked_gets_it_in_what_they_requested(self, user, world):
+        self._phones(BKOU01=self.PHONE)
+
+        requested = build_account_export(user)["bookings"]["requested_by_me"]
+
+        assert requested[0]["code"] == "BKOU01"
+        assert requested[0]["contact_phone"] == self.PHONE
+
+    def test_it_reads_empty_once_the_purge_has_emptied_it(self, user, world):
+        requested = build_account_export(user)["bookings"]["requested_by_me"]
+
+        assert requested[0]["contact_phone"] == ""
+
+    def test_whoever_manages_the_booking_does_not_get_it_in_their_copy(self, user2, world):
+        self._phones(BKOU01=self.PHONE)  # booked by `user` on a thing of `user2`
+
+        received = build_account_export(user2)["bookings"]["received_by_me"]
+
+        assert [b["code"] for b in received] == ["BKOU01"]
+        assert "contact_phone" not in received[0]
+        assert self.PHONE not in json.dumps(build_account_export(user2))
+
+    def test_the_groups_copy_does_not_carry_it_either(self, user, world):
+        self._phones(BKIN01=self.PHONE)
+
+        payload = build_collection_export(world["mine"])
+
+        assert [b["code"] for b in payload["bookings"]] == ["BKIN01"]
+        assert "contact_phone" not in payload["bookings"][0]
+        assert self.PHONE not in json.dumps(payload)
+
+
 class TestAccountExportOmissions:
     def test_share_tokens_never_reach_the_bytes(self, user, world):
         raw = export_bytes(build_account_export(user))

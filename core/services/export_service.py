@@ -596,12 +596,23 @@ def _things(user):
 
 
 def _bookings(user):
-    """Both sides of every reservation they were part of."""
+    """Both sides of every reservation they were part of.
+
+    The contact phone a person left when booking is theirs, so it is in what they
+    requested (``""`` once the daily purge has emptied it). It is not in the bookings
+    they received nor in a group's copy: the request page promises that only whoever
+    manages the booking sees it and that it is gone the day after, and a downloaded
+    file is not deleted.
+    """
     requested = user.booking_requests.select_related("thing_code", "owner_code").order_by("created")
     received = user.booking_owned.select_related("thing_code", "requester_code").order_by("created")
     return {
         "requested_by_me": [
-            {**_booking_columns(booking), "owner": _person(booking.owner_code)}
+            {
+                **_booking_columns(booking),
+                "contact_phone": booking.contact_phone,
+                "owner": _person(booking.owner_code),
+            }
             for booking in requested
         ],
         "received_by_me": [
