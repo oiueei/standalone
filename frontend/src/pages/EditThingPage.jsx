@@ -318,6 +318,7 @@ export default function EditThingPage() {
             setUntil={setPauseUntil}
             errors={pauseErrors}
             bookings={bookings}
+            isReservation={savedType === 'RESERVE_THING'}
           />
         )}
       </div>

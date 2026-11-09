@@ -1320,8 +1320,10 @@
     "toggleLabel": "Pause bookings: between these two dates nobody can request or book it; bookings already made are not cancelled.",
     "fromLabel": "From",
     "untilLabel": "Until",
-    "bookingsInRange_one": "There is {{count}} booking on those dates: it is not cancelled. You can cancel it from your bookings.",
-    "bookingsInRange_other": "There are {{count}} bookings on those dates: they are not cancelled. You can cancel them from your bookings.",
+    "bookingsInRange_one": "There is {{count}} booking on those dates: the pause does not cancel it. If need be, you can cancel it in <1>Requests to me</1>.",
+    "bookingsInRange_other": "There are {{count}} bookings on those dates: the pause does not cancel them. If need be, you can cancel them in <1>Requests to me</1>.",
+    "loansInRange_one": "There is {{count}} request on those dates: the pause does not cancel it. If it is still pending, you can decline it in <1>Requests to me</1>; if it has been accepted, it stands.",
+    "loansInRange_other": "There are {{count}} requests on those dates: the pause does not cancel them. Pending ones you can decline in <1>Requests to me</1>; accepted ones stand.",
     "malformedDate": "Enter a date as DD/MM/YYYY."
   },
   "thingForm": {

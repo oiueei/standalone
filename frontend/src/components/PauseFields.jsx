@@ -1,5 +1,6 @@
 import { DateInput, Notification, ToggleButton } from 'hds-react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import useTheeeme from '../hooks/useTheeeme';
 import { DISPLAY_DATE_FORMAT, displayToIso } from '../utils/rental';
 import { bookingsInPause } from '../utils/pause';
@@ -13,7 +14,8 @@ import StatusRegion from './StatusRegion';
  * page sends both days empty.
  *
  * Before saving it says how many of the thing's bookings fall in those days, so that
- * whoever pauses it knows they are not cancelled and where to do that: the same strict
+ * whoever pauses it knows they are not cancelled and where to deal with them ("Requests to me":
+ * a reservation can be cancelled there, a loan only declined while pending): the same strict
  * overlap the server uses, worked out on the list a manager already receives.
  *
  * Controlled; the dates are the display strings of the date inputs and `errors` holds
@@ -29,6 +31,7 @@ export default function PauseFields({
   setUntil,
   errors = {},
   bookings = [],
+  isReservation = false,
 }) {
   const { t, i18n } = useTranslation();
   const { toggleTheme } = useTheeeme();
@@ -79,7 +82,11 @@ export default function PauseFields({
           <StatusRegion>
             {count > 0 && (
               <Notification type="alert" size="small">
-                {t('thingPause.bookingsInRange', { count })}
+                <Trans
+                  i18nKey={isReservation ? 'thingPause.bookingsInRange' : 'thingPause.loansInRange'}
+                  count={count}
+                  components={[<span key="0" />, <Link key="1" to="/owner-bookings" />]}
+                />
               </Notification>
             )}
           </StatusRegion>

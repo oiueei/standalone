@@ -1320,8 +1320,10 @@
     "toggleLabel": "Pausar les reserves: entre aquestes dues dates ningú no la pot demanar ni reservar; les reserves ja fetes no s'anul·len.",
     "fromLabel": "Des de",
     "untilLabel": "Fins a",
-    "bookingsInRange_one": "Hi ha {{count}} reserva en aquestes dates: no s'anul·la. La pots cancel·lar des de les teves reserves.",
-    "bookingsInRange_other": "Hi ha {{count}} reserves en aquestes dates: no s'anul·len. Les pots cancel·lar des de les teves reserves.",
+    "bookingsInRange_one": "Hi ha {{count}} reserva en aquestes dates: la pausa no l'anul·la. Si cal, la pots cancel·lar a <1>Sol·licituds per a mi</1>.",
+    "bookingsInRange_other": "Hi ha {{count}} reserves en aquestes dates: la pausa no les anul·la. Si cal, les pots cancel·lar a <1>Sol·licituds per a mi</1>.",
+    "loansInRange_one": "Hi ha {{count}} sol·licitud en aquestes dates: la pausa no l'anul·la. Si està pendent, la pots rebutjar a <1>Sol·licituds per a mi</1>; si ja està acceptada, es manté.",
+    "loansInRange_other": "Hi ha {{count}} sol·licituds en aquestes dates: la pausa no les anul·la. Les pendents les pots rebutjar a <1>Sol·licituds per a mi</1>; les acceptades es mantenen.",
     "malformedDate": "Escriu una data com DD/MM/AAAA."
   },
   "thingForm": {

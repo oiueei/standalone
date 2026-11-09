@@ -1320,8 +1320,10 @@
     "toggleLabel": "Pausar reservas: entre esas dos fechas nadie puede pedirla ni reservarla; las reservas ya hechas no se anulan.",
     "fromLabel": "Desde",
     "untilLabel": "Hasta",
-    "bookingsInRange_one": "Hay {{count}} reserva en esas fechas: no se anula. Puedes cancelarla desde tus reservas.",
-    "bookingsInRange_other": "Hay {{count}} reservas en esas fechas: no se anulan. Puedes cancelarlas desde tus reservas.",
+    "bookingsInRange_one": "Hay {{count}} reserva en esas fechas: la pausa no la anula. Si hace falta, puedes cancelarla en <1>Solicitudes para mí</1>.",
+    "bookingsInRange_other": "Hay {{count}} reservas en esas fechas: la pausa no las anula. Si hace falta, puedes cancelarlas en <1>Solicitudes para mí</1>.",
+    "loansInRange_one": "Hay {{count}} solicitud en esas fechas: la pausa no la anula. Si está pendiente, puedes rechazarla en <1>Solicitudes para mí</1>; si ya está aceptada, sigue en pie.",
+    "loansInRange_other": "Hay {{count}} solicitudes en esas fechas: la pausa no las anula. Las pendientes puedes rechazarlas en <1>Solicitudes para mí</1>; las aceptadas siguen en pie.",
     "malformedDate": "Escribe una fecha como DD/MM/AAAA."
   },
   "thingForm": {
