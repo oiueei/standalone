@@ -214,7 +214,7 @@ export default function CollectionNotificationsPage() {
       </div>
       <div className="form-actions">
         <Button
-          disabled={submitting || !loaded}
+          disabled={submitting || !loaded || emailNoteCount.over}
           onClick={handleSubmit}
           style={{ ...btnStyle, width: '100%' }}
         >

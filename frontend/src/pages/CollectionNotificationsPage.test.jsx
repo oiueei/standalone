@@ -299,6 +299,21 @@ describe('CollectionNotificationsPage', () => {
     expect(patchBody()).toBeNull();
   });
 
+  test('Save is disabled while the note is past 512 and enabled again when it fits', async () => {
+    mockApi();
+    renderPage();
+    const note = await screen.findByDisplayValue('We confirm within 48h.');
+    await settle(apiFetch);
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    expect(saveButton).toBeEnabled();
+
+    fireEvent.change(note, { target: { value: 'x'.repeat(513) } });
+    expect(saveButton).toBeDisabled();
+
+    fireEvent.change(note, { target: { value: 'x'.repeat(512) } });
+    expect(saveButton).toBeEnabled();
+  });
+
   test('the help line of the summary and of the language reach the control’s accessible name', async () => {
     mockApi();
     renderPage();

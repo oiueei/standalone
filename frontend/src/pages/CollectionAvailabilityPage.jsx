@@ -129,8 +129,12 @@ export default function CollectionAvailabilityPage() {
   const requestInfoCount = localizedCounter(requestInfo, 512);
   const depositCount = localizedCounter(depositPolicy, 256);
 
+  // Past a limit the button is disabled and the field says why; the early return in
+  // `handleSubmit` is only a defence.
+  const tooLong = requestInfoCount.over || (isLibrary && depositCount.over);
+
   const handleSubmit = async () => {
-    if (!loaded || requestInfoCount.over || (isLibrary && depositCount.over)) return;
+    if (!loaded || tooLong) return;
     // A toast, not an inline error: it names the field and is visible wherever the
     // page has been scrolled to.
     if (isShed && reservationUnit === 'HOUR' && !openingHoursValid) {
@@ -269,6 +273,7 @@ export default function CollectionAvailabilityPage() {
                 value={depositPolicy}
                 onChange={(e) => setDepositPolicy(e.target.value)}
                 invalid={depositCount.over}
+                errorText={depositCount.over ? t('rental.depositPolicyMaxLength') : undefined}
                 helperText={localizedHelper(depositPolicy, 256, t)}
               />
             </div>
@@ -393,7 +398,7 @@ export default function CollectionAvailabilityPage() {
       </div>
       <div className="form-actions">
         <Button
-          disabled={submitting || !loaded}
+          disabled={submitting || !loaded || tooLong}
           onClick={handleSubmit}
           style={{ ...btnStyle, width: '100%' }}
         >

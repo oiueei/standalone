@@ -393,6 +393,36 @@ describe('CollectionAvailabilityPage — the fields of a library', () => {
     expect(patchBody()).toBeNull();
   });
 
+  test('a deposit policy past 256 says so and Save is disabled until it fits again', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+    const policy = screen.getByRole('textbox', { name: /deposit policy/i });
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    expect(saveButton).toBeEnabled();
+
+    fireEvent.change(policy, { target: { value: 'x'.repeat(257) } });
+    expect(screen.getByText(en.rental.depositPolicyMaxLength)).toBeInTheDocument();
+    expect(saveButton).toBeDisabled();
+
+    fireEvent.change(policy, { target: { value: 'x'.repeat(256) } });
+    expect(screen.queryByText(en.rental.depositPolicyMaxLength)).toBeNull();
+    expect(saveButton).toBeEnabled();
+  });
+
+  test('a note past 512 disables Save, and a shed has no deposit field to hold it back', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    const note = screen.getByRole('textbox', { name: en.requestInfo.label });
+
+    fireEvent.change(note, { target: { value: 'x'.repeat(513) } });
+    expect(saveButton).toBeDisabled();
+    fireEvent.change(note, { target: { value: 'short' } });
+    expect(saveButton).toBeEnabled();
+  });
+
   test('the deposit policy starts empty, shows what is stored and sends what is typed', async () => {
     mockApi({ collection: { ...LIBRARY, deposit_policy: '' } });
     renderPage();

@@ -122,8 +122,13 @@ export default function OrganisationPage() {
   const requestInfoCount = localizedCounter(requestInfo, 512);
   const emailNoteCount = localizedCounter(emailNote, 512);
   const depositCount = localizedCounter(depositPolicy, 256);
+  // The network's fields only count while they are on screen.
+  const tooLong =
+    aboutCount.over ||
+    (isNetwork && (requestInfoCount.over || emailNoteCount.over || depositCount.over));
 
   const handleSave = async () => {
+    if (tooLong) return;
     setSaving(true);
     setToast(null);
     try {
@@ -203,6 +208,7 @@ export default function OrganisationPage() {
             value={about}
             onChange={(e) => setAbout(e.target.value)}
             invalid={aboutCount.over}
+            errorText={aboutCount.over ? t('organisation.aboutMaxLength') : undefined}
             helperText={localizedHelper(about, 2000, t)}
           />
           <TextInput
@@ -282,6 +288,7 @@ export default function OrganisationPage() {
                   value={depositPolicy}
                   onChange={(e) => setDepositPolicy(e.target.value)}
                   invalid={depositCount.over}
+                  errorText={depositCount.over ? t('rental.depositPolicyMaxLength') : undefined}
                   helperText={localizedHelper(depositPolicy, 256, t)}
                 />
               </div>
@@ -307,7 +314,7 @@ export default function OrganisationPage() {
             </>
           )}
           <Button
-            disabled={saving || aboutCount.over}
+            disabled={saving || tooLong}
             onClick={handleSave}
             style={{ ...btnStyle, width: '100%' }}
           >
