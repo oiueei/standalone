@@ -14,7 +14,7 @@ from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import RSVP, BookingPeriod, Collection, Thing
+from core.models import RSVP, BookingPeriod, Collection, NetworkPoint, Thing
 from core.models.transfer import ThingTransfer
 from core.tests.factories import (
     BookingPeriodFactory,
@@ -144,6 +144,40 @@ class TestListEndpointQueryBudgets:
         assert r2.status_code == 200
 
         assert len(big) == len(small), f"N+1 on things list: {len(small)} queries vs {len(big)}"
+
+    @pytest.mark.parametrize("mode", [Collection.Mode.PROPRIETARY, Collection.Mode.NETWORK])
+    @pytest.mark.parametrize("entity_name", ["Coop Lele", ""])
+    def test_things_list_in_a_group_has_no_per_thing_point_queries(
+        self, authenticated_client, user, user2, mode, entity_name
+    ):
+        """The curators' pages ride with the collections the list prefetches, so a
+        network's pickup points cost no query per thing (location, deposit policy,
+        request note and rental rules all read them)."""
+        network = CollectionFactory(
+            owner=user2, mode=mode, allowed_thing_types=["LEND_THING"], code="NETW01"
+        )
+        network.co_owners.add(user)
+        NetworkPoint.objects.create(collection=network, user=user, entity_name=entity_name)
+        NetworkPoint.objects.create(collection=network, user=user2, entity_name="Founder")
+
+        def grow(n):
+            network.things.add(*ThingFactory.create_batch(n, owner=user, type="LEND_THING"))
+
+        url = "/api/v1/things/"
+        _warm_activity(authenticated_client)
+        grow(2)
+        with CaptureQueriesContext(connection) as small:
+            r1 = authenticated_client.get(url)
+        assert r1.status_code == 200
+
+        grow(4)
+        with CaptureQueriesContext(connection) as big:
+            r2 = authenticated_client.get(url)
+        assert r2.status_code == 200
+
+        assert len(big) == len(small), (
+            f"N+1 on points: {len(small)} queries for 2 things, {len(big)} for 6"
+        )
 
     def test_transfer_count_annotation_is_correct(
         self, authenticated_client, user, user2, collection
