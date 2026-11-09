@@ -652,6 +652,7 @@
     "remindReturnNotice": "Quan recordes a algú que torni una cosa, et pot respondre directament: veurà la teva adreça de correu."
   },
   "manageInvites": {
+    "alreadyAskedNotice": "Algunes persones ja van rebre una invitació i no se'ls en pot enviar una altra per correu. Envia'ls tu l'enllaç d'invitació.",
     "pageTitle": "Gestionar membres",
     "colGuest": "Persona",
     "colStatus": "Estat",
@@ -1188,7 +1189,7 @@
     "already_reminded_today": "Ja l'hi has recordat avui.",
     "already_requested": "Ja ho has demanat: espera la resposta de qui ho ofereix.",
     "cancel_forbidden": "No pots cancel·lar aquesta reserva.",
-    "invite_already_asked": "Aquesta persona ja ha rebut una invitació i no se n'hi pot enviar cap altra per correu. S'hi pot unir amb l'enllaç per compartir.",
+    "invite_already_asked": "Aquesta persona ja va rebre una invitació i no se n'hi pot enviar una altra per correu. Envia-li tu l'enllaç d'invitació.",
     "co_owners_full_one": "La dinamització d'aquest grup ja suma 1 persona a més de qui el va crear: és el màxim que permet.",
     "co_owners_full_other": "La dinamització d'aquest grup ja suma {{count}} persones a més de qui el va crear: és el màxim que permet.",
     "curator_things_lent_out": "Algunes de les seves coses estan prestades ara: {{things}}. Ho podràs fer quan acabin aquests préstecs.",

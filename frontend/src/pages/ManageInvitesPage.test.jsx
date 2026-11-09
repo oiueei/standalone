@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 import { describe, test, expect, vi, afterEach, beforeEach } from 'vitest';
 import ManageInvitesPage from './ManageInvitesPage';
@@ -861,5 +861,155 @@ describe('ManageInvitesPage hands the confirmation the removed member’s things
     const state = await removeAna({ ...COLLECTION, things: [thing('T2', 'OWNER1', 'Ladder')] });
 
     expect(state.thingTitles).toEqual([]);
+  });
+});
+
+/**
+ * An address the server has already invited gets no second email. The refusal is a notice
+ * that stays under the field, with the button that copies the invitation link so the
+ * curator can hand it over themselves, not a toast that fades before they have read it.
+ */
+describe('ManageInvitesPage — an invitation the server will not email again', () => {
+  const ASKED_ONE = "This person has already had an invitation and can't get another by email.";
+  const ASKED_MANY = "Some people have already had an invitation and can't get another by email.";
+  const SHARE_URL = 'https://example.test/share/TOKEN123';
+  let writeText;
+
+  beforeEach(() => {
+    localStorage.setItem('userCode', 'OWNER1');
+    writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    localStorage.clear();
+  });
+
+  const refusal = {
+    status: 400,
+    body: { error: 'x', code: 'invite_already_asked' },
+  };
+  const field = () => screen.getByLabelText('Guest email');
+  const type = (value) => fireEvent.change(field(), { target: { value } });
+  const send = () => fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
+  const copyButton = () => screen.getByRole('button', { name: 'Copy invite link' });
+  const shareCalls = () => globalThis.fetch.mock.calls.filter(([u]) => u.endsWith('/share-link/'));
+
+  async function open({ collection = COLLECTION, ...routes } = {}) {
+    mockRoutes({ collection, ...routes });
+    const inner = globalThis.fetch;
+    globalThis.fetch = vi.fn((url, opts) =>
+      url.endsWith('/share-link/')
+        ? Promise.resolve({ ok: true, status: 200, json: async () => ({ share_url: SHARE_URL }) })
+        : inner(url, opts)
+    );
+    renderPage();
+    await screen.findByText(/Ana/);
+  }
+
+  test('a single refusal stays as a notice with the copy button, however long it takes', async () => {
+    await open({ invite: refusal });
+    type('lili2@your-domain.test');
+    send();
+
+    expect(await screen.findByText(ASKED_ONE, { exact: false })).toBeInTheDocument();
+    expect(copyButton()).toBeInTheDocument();
+
+    vi.useFakeTimers();
+    act(() => vi.advanceTimersByTime(60000));
+    expect(screen.getByText(ASKED_ONE, { exact: false })).toBeInTheDocument();
+    expect(copyButton()).toBeInTheDocument();
+  });
+
+  test('a private group’s button asks for the link and copies the share_url', async () => {
+    await open({ invite: refusal });
+    type('lili2@your-domain.test');
+    send();
+    await screen.findByText(ASKED_ONE, { exact: false });
+
+    fireEvent.click(copyButton());
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(SHARE_URL));
+    expect(shareCalls()).toHaveLength(1);
+    expect(shareCalls()[0][1].method).toBe('POST');
+    expect(await screen.findByText('Invite link copied to clipboard.')).toBeInTheDocument();
+  });
+
+  test('a public group’s button copies the collection’s own address and asks for nothing', async () => {
+    await open({
+      invite: refusal,
+      collection: { ...COLLECTION, visibility: 'PUBLIC', kind: 'LIBRARY' },
+    });
+    type('lili2@your-domain.test');
+    send();
+    await screen.findByText(ASKED_ONE, { exact: false });
+
+    fireEvent.click(copyButton());
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/library/COL001`)
+    );
+    expect(shareCalls()).toHaveLength(0);
+  });
+
+  test('a batch that skipped someone already asked shows the notice and the button', async () => {
+    await open({
+      bulk: {
+        status: 200,
+        body: {
+          invited: 1,
+          skipped: [{ email: 'lele@your-domain.test', reason: 'already_asked' }],
+        },
+      },
+    });
+    type('lala@your-domain.test, lele@your-domain.test');
+    send();
+
+    expect(await screen.findByText(ASKED_MANY, { exact: false })).toBeInTheDocument();
+    expect(copyButton()).toBeInTheDocument();
+  });
+
+  test('a batch that skipped nobody for that reason shows no notice', async () => {
+    await open({
+      bulk: {
+        status: 200,
+        body: {
+          invited: 1,
+          skipped: [{ email: 'lele@your-domain.test', reason: 'already_member' }],
+        },
+      },
+    });
+    type('lala@your-domain.test, lele@your-domain.test');
+    send();
+
+    await screen.findByText(/lele@your-domain.test — already a member/);
+    expect(screen.queryByRole('button', { name: 'Copy invite link' })).toBeNull();
+    expect(screen.queryByText(ASKED_MANY, { exact: false })).toBeNull();
+  });
+
+  test('the next send takes the notice away', async () => {
+    await open({ invite: refusal });
+    type('lili2@your-domain.test');
+    send();
+    await screen.findByText(ASKED_ONE, { exact: false });
+
+    mockRoutes({ invite: { status: 200 } });
+    type('someone-new@your-domain.test');
+    send();
+
+    await waitFor(() =>
+      expect(screen.queryByText(ASKED_ONE, { exact: false })).not.toBeInTheDocument()
+    );
+    expect(screen.queryByRole('button', { name: 'Copy invite link' })).toBeNull();
+  });
+
+  test('another refusal keeps its toast and shows no notice', async () => {
+    await open({ invite: { status: 400, body: { error: 'Something else went wrong.' } } });
+    type('lili2@your-domain.test');
+    send();
+
+    expect(await screen.findByText('Something else went wrong.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Copy invite link' })).toBeNull();
   });
 });

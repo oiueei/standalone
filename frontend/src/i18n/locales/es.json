@@ -652,6 +652,7 @@
     "remindReturnNotice": "Cuando recuerdas a alguien que devuelva una cosa, puede responderte directamente: verá tu dirección de correo."
   },
   "manageInvites": {
+    "alreadyAskedNotice": "Algunas personas ya recibieron una invitación y no se les puede enviar otra por correo. Mándales tú el enlace de invitación.",
     "pageTitle": "Gestionar miembros",
     "colGuest": "Persona",
     "colStatus": "Estado",
@@ -1188,7 +1189,7 @@
     "already_reminded_today": "Ya se lo has recordado hoy.",
     "already_requested": "Ya lo has pedido: espera la respuesta de quien lo ofrece.",
     "cancel_forbidden": "No puedes cancelar esta reserva.",
-    "invite_already_asked": "Esta persona ya recibió una invitación y no se le puede enviar otra por correo. Puede unirse con el enlace para compartir.",
+    "invite_already_asked": "Esta persona ya recibió una invitación y no se le puede enviar otra por correo. Mándale tú el enlace de invitación.",
     "co_owners_full_one": "La dinamización de este grupo ya suma 1 persona además de quien lo creó: es el máximo que permite.",
     "co_owners_full_other": "La dinamización de este grupo ya suma {{count}} personas además de quien lo creó: es el máximo que permite.",
     "curator_things_lent_out": "Algunas de sus cosas están prestadas ahora: {{things}}. Podrás hacerlo cuando terminen esos préstamos.",
