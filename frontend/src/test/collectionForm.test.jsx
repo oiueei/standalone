@@ -21,6 +21,8 @@ import EditCollectionPage from '../pages/EditCollectionPage';
 import { dropHdsStyles } from './dropHdsStyles';
 import { settle } from './settle';
 import en from '../i18n/locales/en.json';
+import es from '../i18n/locales/es.json';
+import ca from '../i18n/locales/ca.json';
 import declarePalette from './declarePalette';
 
 // This file is about what a deployment with no forms of its own hosted elsewhere shows
@@ -857,6 +859,40 @@ describe('the help line of the selects reaches the page and the control’s acce
     });
     await screen.findByDisplayValue('Loaded Name');
     expect(await axe(edit.container)).toHaveNoViolations();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════
+describe('Inactive or paused: the edit page says which to use', () => {
+  test('the two help texts are fixed letter by letter in the three languages', () => {
+    expect([es, ca, en].map((l) => l.editCollection.statusHelper)).toEqual([
+      'Inactiva: nadie más que quien la fundó la ve, ni con el enlace de invitación. Para un descanso, mejor pausarla (abajo): se sigue viendo y solo deja de aceptar solicitudes.',
+      "Inactiva: ningú més que qui la va fundar la veu, ni amb l'enllaç d'invitació. Per a un descans, millor pausar-la (a sota): es continua veient i només deixa de rebre sol·licituds.",
+      'Inactive: nobody but its founder can see it, not even with the invitation link. For a break, pause it instead (below): it stays visible and only stops taking requests.',
+    ]);
+    expect([es, ca, en].map((l) => l.pause.sectionHelper)).toEqual([
+      'Para unas vacaciones o un cierre temporal: los miembros siguen viendo la colección, pero no pueden hacer solicitudes ni reservas nuevas. Las que ya están hechas no se anulan. Para una sola cosa, pausa sus fechas en «Editar cosa».',
+      "Per a unes vacances o un tancament temporal: els membres continuen veient la col·lecció, però no poden fer sol·licituds ni reserves noves. Les que ja estan fetes no s'anul·len. Per a una sola cosa, pausa les seves dates a «Editar cosa».",
+      'For a holiday or a temporary closure: members still see the collection, but cannot make new requests or bookings. Those already made are not cancelled. For a single thing, pause its dates in “Edit thing”.',
+    ]);
+  });
+
+  test('they name the edit-thing page by the words that page carries', () => {
+    expect(es.pause.sectionHelper).toContain(`«${es.editThing.pageTitle}»`);
+    expect(ca.pause.sectionHelper).toContain(`«${ca.editThing.pageTitle}»`);
+    expect(en.pause.sectionHelper).toContain(`“${en.editThing.pageTitle}”`);
+  });
+
+  test('the page paints both', async () => {
+    await renderEdit({
+      headline: 'Loaded Name',
+      mode: 'PROPRIETARY',
+      allowed_thing_types: ['GIFT_THING'],
+    });
+    await screen.findByDisplayValue('Loaded Name');
+
+    expect(await screen.findByText(en.editCollection.statusHelper)).toBeInTheDocument();
+    expect(screen.getByText(en.pause.sectionHelper)).toBeInTheDocument();
   });
 });
 

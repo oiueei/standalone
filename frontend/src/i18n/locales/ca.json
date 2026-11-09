@@ -566,7 +566,7 @@
     "statusLabel": "Estat",
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
-    "statusHelper": "Les col·leccions inactives no són visibles per als membres.",
+    "statusHelper": "Inactiva: ningú més que qui la va fundar la veu, ni amb l'enllaç d'invitació. Per a un descans, millor pausar-la (a sota): es continua veient i només deixa de rebre sol·licituds.",
     "networkFixed": "Aquesta biblioteca és una xarxa: diverses entitats, cadascuna presta les seves coses des del seu punt de recollida. Una biblioteca neix xarxa o no, i no es pot canviar.",
     "modeLabel": "Mode",
     "digestLabel": "Correus resum",
@@ -850,7 +850,7 @@
   },
   "pause": {
     "sectionHeading": "Pausar",
-    "sectionHelper": "Amb la col·lecció pausada, els membres la poden veure però no poden fer noves sol·licituds ni reserves.",
+    "sectionHelper": "Per a unes vacances o un tancament temporal: els membres continuen veient la col·lecció, però no poden fer sol·licituds ni reserves noves. Les que ja estan fetes no s'anul·len. Per a una sola cosa, pausa les seves dates a «Editar cosa».",
     "messageLabel": "Missatge als membres",
     "messageHelper": "Explica als membres per què la col·lecció està pausada. Màxim 256 caràcters.",
     "pauseButton": "Pausar col·lecció",

@@ -566,7 +566,7 @@
     "statusLabel": "Estado",
     "statusActive": "Activa",
     "statusInactive": "Inactiva",
-    "statusHelper": "Las colecciones inactivas no son visibles para los miembros.",
+    "statusHelper": "Inactiva: nadie más que quien la fundó la ve, ni con el enlace de invitación. Para un descanso, mejor pausarla (abajo): se sigue viendo y solo deja de aceptar solicitudes.",
     "networkFixed": "Esta biblioteca es una red: varias entidades, cada una presta sus cosas desde su punto de recogida. Una biblioteca nace red o no, y no se puede cambiar.",
     "modeLabel": "Modo",
     "digestLabel": "Correos resumen",
@@ -850,7 +850,7 @@
   },
   "pause": {
     "sectionHeading": "Pausar",
-    "sectionHelper": "Con la colección pausada, los miembros pueden verla pero no pueden hacer nuevas solicitudes ni reservas.",
+    "sectionHelper": "Para unas vacaciones o un cierre temporal: los miembros siguen viendo la colección, pero no pueden hacer solicitudes ni reservas nuevas. Las que ya están hechas no se anulan. Para una sola cosa, pausa sus fechas en «Editar cosa».",
     "messageLabel": "Mensaje a los miembros",
     "messageHelper": "Explica a los miembros por qué la colección está pausada. Máximo 256 caracteres.",
     "pauseButton": "Pausar colección",

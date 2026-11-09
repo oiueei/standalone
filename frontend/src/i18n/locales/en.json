@@ -572,7 +572,7 @@
     "statusLabel": "Status",
     "statusActive": "Active",
     "statusInactive": "Inactive",
-    "statusHelper": "Inactive collections are not visible to members.",
+    "statusHelper": "Inactive: nobody but its founder can see it, not even with the invitation link. For a break, pause it instead (below): it stays visible and only stops taking requests.",
     "networkFixed": "This library is a network: several entities, each lending its own things from its own pickup point. A library is born a network or not, and it cannot change.",
     "modeLabel": "Mode",
     "digestLabel": "Digest emails",
@@ -856,7 +856,7 @@
   },
   "pause": {
     "sectionHeading": "Pause",
-    "sectionHelper": "While paused, the collection is visible but members cannot make new requests.",
+    "sectionHelper": "For a holiday or a temporary closure: members still see the collection, but cannot make new requests or bookings. Those already made are not cancelled. For a single thing, pause its dates in “Edit thing”.",
     "messageLabel": "Message to members",
     "messageHelper": "Let members know why the collection is paused. Maximum 256 characters.",
     "pauseButton": "Pause collection",
