@@ -218,6 +218,70 @@ describe('OrganisationPage — in a network', () => {
     expect(screen.queryByText('THE COLLECTION')).toBeNull();
   });
 
+  test.each([
+    ['a 500', () => mockApi({ point: json({}, 500) }), en.organisation.errorLoading],
+    [
+      'a network failure',
+      () =>
+        apiFetch.mockImplementation((url) =>
+          url.endsWith('/point/')
+            ? Promise.reject(new Error('offline'))
+            : Promise.resolve(json(COLLECTION))
+        ),
+      en.common.connectionError,
+    ],
+  ])(
+    'when loading the point fails with %s, the page says so and offers no form',
+    async (_, arrange, message) => {
+      arrange();
+      renderPage();
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
+    }
+  );
+
+  describe('when saving fails', () => {
+    const SAVE_FAILURES = [
+      [
+        'a 400 with a message says that message',
+        () => json({ error: 'That is not a date' }, 400),
+        'That is not a date',
+      ],
+      [
+        'a 400 without a readable message says the generic one',
+        () => json({}, 400),
+        en.organisation.errorSaving,
+      ],
+      ['a 429 says to wait', () => json({}, 429), en.common.tooManyAttempts],
+      ['a 500 says the generic one', () => json({}, 500), en.organisation.errorSaving],
+      [
+        'a network failure says so',
+        () => Promise.reject(new Error('offline')),
+        en.common.connectionError,
+      ],
+    ];
+
+    test.each(SAVE_FAILURES)(
+      '%s, stays on the page and lets the curator try again',
+      async (_, put, message) => {
+        mockApi();
+        apiFetch.mockImplementation((url, options) => {
+          if (!url.endsWith('/point/')) return Promise.resolve(json(COLLECTION));
+          return options?.method === 'PUT'
+            ? Promise.resolve().then(put)
+            : Promise.resolve(json(EMPTY_POINT));
+        });
+        renderPage();
+        fireEvent.click(await screen.findByRole('button', { name: 'Save' }));
+
+        expect(await screen.findByText(message)).toBeInTheDocument();
+        expect(screen.queryByText('THE COLLECTION')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+      }
+    );
+  });
+
   test('a plain member is told the page is the team’s', async () => {
     mockApi({ point: json({}, 403) });
     renderPage();
