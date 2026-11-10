@@ -641,6 +641,23 @@ class TestLoweringTheUnitsBelowWhatIsBooked:
         thing.refresh_from_db()
         assert thing.units == 4
 
+    def test_three_at_once_refuse_one_unit_and_say_three_is_the_least(
+        self, shed, authenticated_client
+    ):
+        collection, thing = shed
+        a, b, c = _members(collection, 3)
+        day = date.today() + timedelta(days=3)
+        for person in (a, b, c):
+            _live(thing, person, day, day + timedelta(days=2))
+
+        res = self._patch(authenticated_client, thing, 1)
+
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert res.data["code"] == "units_below_booked"
+        assert res.json()["params"] == {"min": 3}
+        thing.refresh_from_db()
+        assert thing.units == 4
+
     def test_requests_that_do_not_overlap_allow_one_unit(self, shed, authenticated_client):
         collection, thing = shed
         a, b = _members(collection, 2)

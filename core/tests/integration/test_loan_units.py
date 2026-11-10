@@ -145,6 +145,23 @@ class TestLoweringTheUnitsBelowWhatIsRequested:
         thing.refresh_from_db()
         assert thing.units == 4
 
+    def test_overlapping_requests_of_three_and_two_say_five_is_the_least(
+        self, api_client, library, user
+    ):
+        collection, thing, (a, b, _) = library
+        assert _ask(api_client, a, thing, collection, quantity=3).status_code == 201
+        assert _ask(api_client, b, thing, collection, quantity=2).status_code == 201
+
+        res = _as(api_client, user).patch(
+            f"/api/v1/things/{thing.code}/", {"units": 1}, format="json"
+        )
+
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert res.data["code"] == "units_below_booked"
+        assert res.json()["params"] == {"min": 5}
+        thing.refresh_from_db()
+        assert thing.units == 6
+
 
 class TestAskingForSeveral:
     def test_the_quantity_is_stored_and_answered(self, api_client, library):
