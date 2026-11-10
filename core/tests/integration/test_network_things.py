@@ -170,6 +170,7 @@ class TestDeletingAThing:
         res = client_for(world["lolo"]).delete(f"/api/v1/things/{world['leles'].code}/")
 
         assert res.status_code == status.HTTP_403_FORBIDDEN
+        assert Thing.objects.filter(code=world["leles"].code).exists()
 
     def test_the_founder_still_deletes_any_thing_of_the_network(self, world):
         res = client_for(world["founder"]).delete(f"/api/v1/things/{world['leles'].code}/")
@@ -218,6 +219,8 @@ class TestTheFoundersRescue:
         res = client_for(world["lili"]).post(f"/api/v1/bookings/{booking.code}/reject/")
 
         assert res.status_code == status.HTTP_403_FORBIDDEN
+        booking.refresh_from_db()
+        assert booking.status == BookingPeriod.Status.PENDING
 
     def test_the_member_is_told_and_so_is_the_owner_when_the_founder_rejects(self, world):
         booking = _request(world["leles"], world["lolo"])
@@ -290,6 +293,8 @@ class TestTheFoundersRescue:
         )
 
         assert res.status_code == status.HTTP_403_FORBIDDEN
+        world["leles"].refresh_from_db()
+        assert world["leles"].headline != "Mine now"
 
     def test_the_founder_is_not_one_of_the_managers_who_get_the_daily_mail(self, world):
         assert world["founder"].code not in [
@@ -308,6 +313,11 @@ class TestTheFoundersRescue:
         res = client_for(world["founder"]).post(f"/api/v1/bookings/{booking.code}/reject/")
 
         assert res.status_code == status.HTTP_403_FORBIDDEN
+        booking.refresh_from_db()
+        assert booking.status == BookingPeriod.Status.PENDING
+        assert not InAppNotification.objects.filter(
+            type=InAppNotification.Type.BOOKING_REJECTED
+        ).exists()
 
 
 @pytest.mark.django_db
