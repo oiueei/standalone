@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import Collection, NetworkPoint, User
 from core.serializers.network_point import NetworkPointWriteSerializer
-from core.tests.factories import CollectionFactory
+from core.tests.factories import CollectionFactory, ThingFactory
 
 LEND, RENT = "LEND_THING", "RENT_THING"
 
@@ -122,6 +122,8 @@ def test_the_limits_are_the_collections_own(world, body):
     res = client_for(world["lele"]).put(url(world), body, format="json")
 
     assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert set(body) <= set(res.data)
+    assert not NetworkPoint.objects.exists()
 
 
 def test_closed_dates_are_cleaned_like_the_collections(world):
@@ -259,3 +261,35 @@ def test_two_first_puts_of_the_same_curator_leave_one_row_with_the_data_of_the_s
     assert res.status_code == status.HTTP_200_OK
     assert res.data["entity_name"] == "Mine"
     assert NetworkPoint.objects.get().entity_name == "Mine"
+
+
+def test_a_closed_date_stored_badly_does_not_take_the_page_or_the_requests_down(world):
+    """A point whose ``closed_dates`` holds junk (written past the serializer) still lets
+    the thing be read and asked for: only the valid date counts as a closure."""
+    closed = timezone.localdate() + timezone.timedelta(days=40)
+    point = NetworkPoint.objects.create(
+        collection=world["network"], user=world["lele"], entity_name="La Fusteria"
+    )
+    NetworkPoint.objects.filter(pk=point.pk).update(
+        closed_dates=["2026-13-40", None, closed.isoformat()]
+    )
+    thing = ThingFactory(owner=world["lele"], type=LEND)
+    world["network"].things.add(thing)
+    start = timezone.localdate() + timezone.timedelta(days=10)
+
+    read = client_for(world["lolo"]).get(
+        f"/api/v1/things/{thing.code}/?collection={world['network'].code}"
+    )
+    asked = client_for(world["lolo"]).post(
+        f"/api/v1/things/{thing.code}/request/",
+        {
+            "start_date": start.isoformat(),
+            "end_date": (start + timezone.timedelta(days=2)).isoformat(),
+            "collection_code": world["network"].code,
+        },
+        format="json",
+    )
+
+    assert read.status_code == status.HTTP_200_OK
+    assert read.data["closed_dates"] == [closed.isoformat()]
+    assert asked.status_code == status.HTTP_201_CREATED, asked.data

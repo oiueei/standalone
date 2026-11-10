@@ -139,6 +139,7 @@ class TestNamingTheTeam:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        assert g.co_owners.filter(code="MEMB01").exists()
 
 
 @pytest.mark.django_db
@@ -161,6 +162,8 @@ class TestTheSettings:
         res = client_for(lele).patch(BASE.format(code=g.code), {"headline": "Mine"}, format="json")
 
         assert res.status_code == status.HTTP_200_OK
+        g.refresh_from_db()
+        assert g.headline == "Mine"
 
 
 @pytest.mark.django_db
@@ -173,6 +176,9 @@ class TestInvitingAndRemoving:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        invited = User.objects.get(email="lulu@your-domain.test")
+        assert invited.rsvps.filter(target_code=network["group"].code).exists()
+        assert [m.to for m in mail.outbox] == [["lulu@your-domain.test"]]
 
     def test_every_dinamizador_bulk_invites_in_a_network(self, network):
         url = BASE.format(code=network["group"].code) + "invite/bulk/"
@@ -224,6 +230,43 @@ class TestInvitingAndRemoving:
         res = client_for(network["founder"]).delete(url, {"user_code": "MEMB01"}, format="json")
 
         assert res.status_code == status.HTTP_409_CONFLICT
+        assert res.data["code"] == "member_holds_loans"
+        assert network["group"].invites.filter(code="MEMB01").exists()
+
+    @pytest.mark.parametrize(
+        "case", ["pending", "somebody_elses", "over", "not_returnable", "other_collection"]
+    )
+    def test_only_a_running_accepted_loan_of_this_network_held_by_the_member_blocks(
+        self, network, case
+    ):
+        today = timezone.localdate()
+        day = timezone.timedelta
+        thing, who, kind, start, end = network["leles"], network["lolo"], LEND, -1, 10
+        status_ = BookingPeriod.Status.ACCEPTED
+        if case == "pending":
+            status_ = BookingPeriod.Status.PENDING
+        elif case == "somebody_elses":
+            who = network["lili"]
+        elif case == "over":
+            start, end = -20, -5
+        elif case == "not_returnable":
+            kind = "GIFT_THING"
+        elif case == "other_collection":
+            thing = ThingFactory(owner=network["lele"], type=LEND)
+        BookingPeriodFactory(
+            thing_code=thing,
+            requester_code=who,
+            thing_type=kind,
+            status=status_,
+            start_date=today + day(days=start),
+            end_date=today + day(days=end),
+        )
+        url = BASE.format(code=network["group"].code) + "invite/"
+
+        res = client_for(network["founder"]).delete(url, {"user_code": "MEMB01"}, format="json")
+
+        assert res.status_code == status.HTTP_200_OK, res.data
+        assert not network["group"].invites.filter(code="MEMB01").exists()
 
     def test_a_loan_that_has_not_started_does_not_block_and_falls_with_the_member(self, network):
         loan = _loan(network["leles"], network["lolo"], started=False)
@@ -272,6 +315,7 @@ class TestInvitingAndRemoving:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        assert not g.invites.filter(code="MEMB01").exists()
 
 
 @pytest.mark.django_db
@@ -374,6 +418,11 @@ class TestCalendarAndCopy:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        assert res.data["recipients"] == len(mail.outbox) > 0
+        notified = InAppNotification.objects.filter(type=InAppNotification.Type.BROADCAST)
+        assert set(notified.values_list("user_id", flat=True)) == {
+            m for m in ("ENTA01", "ENTB01", "MEMB01")
+        }
 
 
 @pytest.mark.django_db

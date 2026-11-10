@@ -693,6 +693,31 @@ class TestBookingPeriodModel:
             is False
         )
 
+    @pytest.mark.parametrize("units", [1, 3])
+    def test_the_bookings_of_one_thing_do_not_block_another(self, units):
+        """The same dates on a different thing are free, with one unit or several: a
+        thing with ``units`` bookings on them is full, the other one is untouched."""
+        from core.models.booking import BookingPeriod
+
+        owner = self._create_user()
+        busy = self._create_thing(owner, code="BUSY01", thing_type="LEND_THING")
+        other = self._create_thing(owner, code="FREE01", thing_type="LEND_THING")
+        for i in range(units):
+            BookingPeriod.objects.create(
+                thing_code=busy,
+                thing_type="LEND_THING",
+                requester_code=self._create_user(f"REQ00{i}"),
+                requester_email=f"lili{i}@your-domain.test",
+                owner_code=owner,
+                start_date="2026-03-01",
+                end_date="2026-03-10",
+            )
+
+        taken = BookingPeriod.has_overlap(busy.code, "2026-03-05", "2026-03-15", units=units)
+        free = BookingPeriod.has_overlap(other.code, "2026-03-05", "2026-03-15", units=units)
+
+        assert (taken, free) == (True, False)
+
     def test_has_overlap_back_to_back_boundary(self):
         """Back-to-back handovers are legal: a pickup ON the return day (or a
         return ON the pickup day) does not overlap. compute_availability and

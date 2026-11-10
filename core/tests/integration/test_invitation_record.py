@@ -172,6 +172,14 @@ class TestWhoIsRefused:
 
         assert_refused(invite(own, by=curator))
 
+    def test_the_founder_cannot_invite_a_guest_a_co_curator_already_asked(self, group, owner):
+        curator = User.objects.create(code="CURA01", email="lele@your-domain.test", name="Lele")
+        group.invites.add(curator)
+        group.co_owners.add(curator)
+        assert invite(group, by=curator).status_code == 200
+
+        assert_refused(invite(group, by=owner))
+
     def test_another_founder_can_still_invite_them(self, group):
         invite(group)
         answer(GUEST, RSVP.Action.COLLECTION_REJECT)

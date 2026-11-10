@@ -111,6 +111,8 @@ class TestTheModeIsFixed:
         )
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        stall.refresh_from_db()
+        assert stall.mode == Collection.Mode.COMMUNITY
 
 
 @pytest.mark.django_db

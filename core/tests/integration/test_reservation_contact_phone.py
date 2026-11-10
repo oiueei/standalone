@@ -209,6 +209,7 @@ class TestSavingTheNumber:
         res = _book(api_client, shed, contact_phone=number)
 
         assert res.status_code == status.HTTP_201_CREATED, res.data
+        assert BookingPeriod.objects.get(code=res.data["booking_code"]).contact_phone == number
 
     @pytest.mark.parametrize(
         "number",

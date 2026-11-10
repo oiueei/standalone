@@ -144,6 +144,13 @@ class TestThePauseIsOneStretch:
         assert (pause.start_date, pause.end_date) == (_d(10), _d(13))
         assert pause.start_time is None and pause.end_time is None
 
+    def test_a_pause_with_only_one_day_stored_is_no_stretch(self, library):
+        _, thing = library
+        Thing.objects.filter(pk=thing.pk).update(paused_from=_d(10), paused_until=None)
+        thing.refresh_from_db()
+
+        assert thing.pause_period() is None
+
     def test_a_pause_that_has_ended_is_no_stretch(self, library):
         _, thing = library
         _pause(thing, _d(-5), _d(-1))
@@ -481,6 +488,8 @@ class TestSettingThePause:
         )
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        thing.refresh_from_db()
+        assert (thing.paused_from, thing.paused_until) == (_d(10), _d(10))
 
     def test_a_pause_that_starts_today_is_allowed(self, library, authenticated_client):
         _, thing = library
@@ -490,6 +499,8 @@ class TestSettingThePause:
         )
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        thing.refresh_from_db()
+        assert (thing.paused_from, thing.paused_until) == (_d(0), _d(3))
 
     def test_somebody_who_does_not_manage_it_cannot_set_one(self, library, api_client):
         collection, thing = library
@@ -521,6 +532,9 @@ class TestSettingThePause:
         res = self._patch(authenticated_client, thing, paused_from=None)
 
         assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert set(res.data) & {"paused_from", "paused_until"}
+        thing.refresh_from_db()
+        assert (thing.paused_from, thing.paused_until) == (_d(10), _d(12))
 
     def test_a_pause_that_ends_before_it_starts_is_refused_in_its_field(
         self, library, authenticated_client
@@ -576,10 +590,13 @@ class TestSettingThePause:
         stall = Collection.objects.create(code="PAST02", owner=user, headline="Stall")
         gift = Thing.objects.create(code="PATH05", type=Thing.Type.GIFT_THING, owner=user)
         stall.things.add(gift)
+        _pause(gift, _d(10), _d(12))
 
         res = self._patch(authenticated_client, gift, paused_from=None, paused_until=None)
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        gift.refresh_from_db()
+        assert (gift.paused_from, gift.paused_until) == (None, None)
 
     def test_a_pause_that_has_ended_does_not_stop_an_unrelated_edit(
         self, library, authenticated_client
@@ -590,6 +607,8 @@ class TestSettingThePause:
         res = self._patch(authenticated_client, thing, headline="Drill 2")
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        thing.refresh_from_db()
+        assert thing.headline == "Drill 2"
 
     def test_a_space_can_be_paused(self, shed, authenticated_client):
         _, thing = shed
@@ -599,6 +618,8 @@ class TestSettingThePause:
         )
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        thing.refresh_from_db()
+        assert (thing.paused_from, thing.paused_until) == (_d(10), _d(12))
 
     def test_creating_a_thing_cannot_set_it(self, library, authenticated_client):
         collection, _ = library
