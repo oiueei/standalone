@@ -521,6 +521,9 @@ class TestSettingThePause:
         res = self._patch(authenticated_client, thing, paused_from=None)
 
         assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert set(res.data) & {"paused_from", "paused_until"}
+        thing.refresh_from_db()
+        assert (thing.paused_from, thing.paused_until) == (_d(10), _d(12))
 
     def test_a_pause_that_ends_before_it_starts_is_refused_in_its_field(
         self, library, authenticated_client

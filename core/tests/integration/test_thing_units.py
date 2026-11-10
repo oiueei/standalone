@@ -262,7 +262,7 @@ class TestWhoGetsIn:
 
         refusal = _refusal(collection, thing, c, day + timedelta(days=1), 2)
 
-        assert refusal.status_code == 409
+        assert (refusal.status_code, refusal.code) == (409, "dates_taken")
 
     def test_the_same_person_cannot_hold_two_at_once(self, shed):
         collection, thing = shed

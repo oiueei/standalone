@@ -224,6 +224,8 @@ class TestInvitingAndRemoving:
         res = client_for(network["founder"]).delete(url, {"user_code": "MEMB01"}, format="json")
 
         assert res.status_code == status.HTTP_409_CONFLICT
+        assert res.data["code"] == "member_holds_loans"
+        assert network["group"].invites.filter(code="MEMB01").exists()
 
     def test_a_loan_that_has_not_started_does_not_block_and_falls_with_the_member(self, network):
         loan = _loan(network["leles"], network["lolo"], started=False)

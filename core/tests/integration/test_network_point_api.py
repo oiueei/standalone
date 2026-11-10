@@ -122,6 +122,8 @@ def test_the_limits_are_the_collections_own(world, body):
     res = client_for(world["lele"]).put(url(world), body, format="json")
 
     assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert set(body) <= set(res.data)
+    assert not NetworkPoint.objects.exists()
 
 
 def test_closed_dates_are_cleaned_like_the_collections(world):
