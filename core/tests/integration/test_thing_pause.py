@@ -144,6 +144,13 @@ class TestThePauseIsOneStretch:
         assert (pause.start_date, pause.end_date) == (_d(10), _d(13))
         assert pause.start_time is None and pause.end_time is None
 
+    def test_a_pause_with_only_one_day_stored_is_no_stretch(self, library):
+        _, thing = library
+        Thing.objects.filter(pk=thing.pk).update(paused_from=_d(10), paused_until=None)
+        thing.refresh_from_db()
+
+        assert thing.pause_period() is None
+
     def test_a_pause_that_has_ended_is_no_stretch(self, library):
         _, thing = library
         _pause(thing, _d(-5), _d(-1))

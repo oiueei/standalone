@@ -99,6 +99,15 @@ class TestWhoIsTold:
         assert message.subject == "“Cordless drill” has been withdrawn from The street"
         assert "your request is cancelled" in message.body
 
+    def test_the_notice_speaks_the_language_of_the_group(self, world, callbacks):
+        Collection.objects.filter(pk=world["group"].pk).update(language="ca")
+        ask(world, "lili", start=3, end=6)
+
+        delete(world, callbacks=callbacks)
+
+        [message] = mail.outbox
+        assert message.subject == "S'ha retirat «Cordless drill» de The street"
+
     def test_an_accepted_future_request_is_told(self, world, callbacks):
         ask(world, "lili", start=3, end=6, status_=BookingPeriod.Status.ACCEPTED)
 

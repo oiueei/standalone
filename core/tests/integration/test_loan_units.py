@@ -126,6 +126,33 @@ class TestWeighedSaturatedPeriods:
         assert saturated_periods(rows, 4, need=2)[0].start_time == time(10)
         assert saturated_periods(rows, 4, need=1) == []
 
+    def test_a_stretch_stays_one_while_more_start_and_one_ends_above_the_threshold(self):
+        """Two units: three hourly slots overlap, the second and third starting while it is
+        already full and the second ending while it still is. The full stretch is one,
+        from when the second came in to when the others end."""
+        day, nxt = self.d, self.d + timedelta(days=1)
+        rows = [
+            _row(day, nxt, 1, time(10), time(12)),
+            _row(day, nxt, 1, time(10, 30), time(11, 30)),
+            _row(day, nxt, 1, time(11), time(12)),
+        ]
+
+        full = saturated_periods(rows, 2, need=1)
+
+        assert [(p.start_time, p.end_time) for p in full] == [(time(10, 30), time(12))]
+
+    def test_a_booking_without_dates_does_not_hide_the_ones_after_it(self):
+        """A held gift has no dates; the dated bookings listed after it still count."""
+        rows = [
+            _row(None, None),
+            _row(self.d, self.d + timedelta(days=1)),
+            _row(self.d, self.d + timedelta(days=1)),
+        ]
+
+        full = saturated_periods(rows, 2, need=1)
+
+        assert [(p.start_date, p.end_date) for p in full] == [(self.d, self.d + timedelta(days=1))]
+
 
 class TestLoweringTheUnitsBelowWhatIsRequested:
     def test_a_pending_request_of_three_keeps_a_library_thing_from_dropping_to_two(
@@ -441,6 +468,29 @@ class TestHowManyAreFreeToday:
 
         assert res.data["units"] == 6
         assert res.data["units_free_today"] == 1
+
+    def test_two_units_are_counted_too(self, api_client, user, library):
+        collection, thing, (a, _, _) = library
+        Thing.objects.filter(pk=thing.pk).update(units=2)
+        thing.refresh_from_db()
+        today = date.today()
+        self._hold(thing, a, user, 1, today - timedelta(days=1), today + timedelta(days=2))
+
+        assert thing.units_free_today() == 1
+
+    def test_a_pause_that_has_since_ended_still_leaves_none_on_a_day_inside_it(
+        self, api_client, user, library
+    ):
+        collection, thing, _ = library
+        today = date.today()
+        inside = today - timedelta(days=3)
+        Thing.objects.filter(pk=thing.pk).update(
+            paused_from=inside - timedelta(days=1), paused_until=today - timedelta(days=1)
+        )
+        thing.refresh_from_db()
+
+        assert thing.units_free_today(inside) == 0
+        assert thing.units_free_today(today) == 6
 
     def test_all_free_when_nothing_is_out(self, api_client, user, library):
         _, thing, _ = library

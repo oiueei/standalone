@@ -233,6 +233,41 @@ class TestInvitingAndRemoving:
         assert res.data["code"] == "member_holds_loans"
         assert network["group"].invites.filter(code="MEMB01").exists()
 
+    @pytest.mark.parametrize(
+        "case", ["pending", "somebody_elses", "over", "not_returnable", "other_collection"]
+    )
+    def test_only_a_running_accepted_loan_of_this_network_held_by_the_member_blocks(
+        self, network, case
+    ):
+        today = timezone.localdate()
+        day = timezone.timedelta
+        thing, who, kind, start, end = network["leles"], network["lolo"], LEND, -1, 10
+        status_ = BookingPeriod.Status.ACCEPTED
+        if case == "pending":
+            status_ = BookingPeriod.Status.PENDING
+        elif case == "somebody_elses":
+            who = network["lili"]
+        elif case == "over":
+            start, end = -20, -5
+        elif case == "not_returnable":
+            kind = "GIFT_THING"
+        elif case == "other_collection":
+            thing = ThingFactory(owner=network["lele"], type=LEND)
+        BookingPeriodFactory(
+            thing_code=thing,
+            requester_code=who,
+            thing_type=kind,
+            status=status_,
+            start_date=today + day(days=start),
+            end_date=today + day(days=end),
+        )
+        url = BASE.format(code=network["group"].code) + "invite/"
+
+        res = client_for(network["founder"]).delete(url, {"user_code": "MEMB01"}, format="json")
+
+        assert res.status_code == status.HTTP_200_OK, res.data
+        assert not network["group"].invites.filter(code="MEMB01").exists()
+
     def test_a_loan_that_has_not_started_does_not_block_and_falls_with_the_member(self, network):
         loan = _loan(network["leles"], network["lolo"], started=False)
         url = BASE.format(code=network["group"].code) + "invite/"
