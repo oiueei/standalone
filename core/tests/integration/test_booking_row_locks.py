@@ -490,6 +490,66 @@ class TestTwoRequestsForOneSlotAreSerialised:
         assert second_result == ("refused", 409), second_result
         assert BookingPeriod.objects.filter(thing_code=thing).count() == 1
 
+    def test_two_requests_for_the_last_units_of_a_loan_let_exactly_one_in(
+        self, monkeypatch, user, user2
+    ):
+        """A loan with three identical units and one already asked for: two members
+        ask for two each at the same time. Both count "two free" before either
+        commits unless the Thing lock serialises them; the loser must get the 409
+        and the units held must add up to three, never five.
+
+        With several units the first ``has_overlap`` the service makes inside the
+        lock is the one-live-request-per-person check, before the units are counted,
+        so the barrier sits there."""
+        other = User.objects.create(code="RCEL12", email="lele@your-domain.test")
+        holder = User.objects.create(code="RCEL13", email="lulu@your-domain.test")
+        thing = Thing.objects.create(
+            code="RCEL11",
+            type=Thing.Type.LEND_THING,
+            owner=user,
+            headline="A ladder",
+            units=3,
+        )
+        self._group_of(user, thing, "RCEL14", user2, other)
+        start = date.today() + timedelta(days=3)
+        end = start + timedelta(days=4)
+        BookingPeriod.objects.create(
+            thing_code=thing,
+            thing_type=thing.type,
+            requester_code=holder,
+            requester_email=holder.email,
+            owner_code=user,
+            start_date=start,
+            end_date=end,
+            status=BookingPeriod.Status.PENDING,
+            quantity=1,
+        )
+        original = BookingPeriod.has_overlap
+
+        def first(guard):
+            monkeypatch.setattr(BookingPeriod, "has_overlap", _one_shot(original, guard))
+            try:
+                return request_date_based_booking(thing, user2, start, end, quantity=2)
+            finally:
+                monkeypatch.setattr(BookingPeriod, "has_overlap", original)
+
+        def second():
+            try:
+                return request_date_based_booking(thing, other, start, end, quantity=2)
+            except BookingRequestError as exc:
+                return ("refused", exc.status_code, exc.code)
+
+        first_result, second_result, was_blocked = _run_both(first, second)
+
+        assert was_blocked, "the second loan request counted the units past the lock"
+        assert isinstance(first_result, BookingPeriod)
+        assert second_result == ("refused", 409, "not_enough_units"), second_result
+        held = BookingPeriod.objects.filter(
+            thing_code=thing,
+            status__in=[BookingPeriod.Status.PENDING, BookingPeriod.Status.ACCEPTED],
+        )
+        assert sum(row.quantity for row in held) == 3
+
 
 # ── The collection row: the co-curator ceiling ───────────────────────────────
 # `Collection.promote_co_owner` reads the set's size and adds under a lock on the
