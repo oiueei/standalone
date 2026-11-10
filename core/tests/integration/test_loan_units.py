@@ -193,6 +193,7 @@ class TestAskingForSeveral:
         )
 
         assert later.status_code == 201, later.data
+        assert BookingPeriod.objects.get(code=later.data["booking_code"]).quantity == 2
 
     def test_a_cancelled_request_frees_its_units_and_the_person(self, api_client, library):
         collection, thing, (a, b, _) = library
@@ -201,10 +202,14 @@ class TestAskingForSeveral:
             status=BookingPeriod.Status.CANCELLED
         )
 
-        assert _ask(api_client, b, thing, collection, quantity=6).status_code == 201
+        freed = _ask(api_client, b, thing, collection, quantity=6)
+        assert freed.status_code == 201
+        assert BookingPeriod.objects.get(code=freed.data["booking_code"]).quantity == 6
         # A cancelled one does not count as "already asked" either.
         BookingPeriod.objects.filter(requester_code=b).delete()
-        assert _ask(api_client, a, thing, collection, quantity=6).status_code == 201
+        again = _ask(api_client, a, thing, collection, quantity=6)
+        assert again.status_code == 201
+        assert BookingPeriod.objects.get(code=again.data["booking_code"]).quantity == 6
 
     @pytest.mark.parametrize("quantity", [0, 7, -1])
     def test_outside_one_to_the_units_is_refused_with_the_limit(

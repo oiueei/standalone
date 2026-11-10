@@ -651,6 +651,8 @@ class TestLoweringTheUnitsBelowWhatIsBooked:
         res = self._patch(authenticated_client, thing, 1)
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        thing.refresh_from_db()
+        assert thing.units == 1
 
     def test_an_accepted_one_that_is_over_does_not_count(self, shed, authenticated_client):
         collection, thing = shed
@@ -662,6 +664,8 @@ class TestLoweringTheUnitsBelowWhatIsBooked:
         res = self._patch(authenticated_client, thing, 1)
 
         assert res.status_code == status.HTTP_200_OK, res.data
+        thing.refresh_from_db()
+        assert thing.units == 1
 
     def test_two_overlapping_hourly_slots_refuse_one_unit(self, hourly_shed, authenticated_client):
         collection, thing = hourly_shed
@@ -685,6 +689,8 @@ class TestLoweringTheUnitsBelowWhatIsBooked:
 
         assert self._patch(authenticated_client, thing, 4).status_code == status.HTTP_200_OK
         assert self._patch(authenticated_client, thing, 6).status_code == status.HTTP_200_OK
+        thing.refresh_from_db()
+        assert thing.units == 6
 
 
 def _slot_free_in(served, day, start, end):

@@ -139,6 +139,7 @@ class TestNamingTheTeam:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        assert g.co_owners.filter(code="MEMB01").exists()
 
 
 @pytest.mark.django_db
@@ -161,6 +162,8 @@ class TestTheSettings:
         res = client_for(lele).patch(BASE.format(code=g.code), {"headline": "Mine"}, format="json")
 
         assert res.status_code == status.HTTP_200_OK
+        g.refresh_from_db()
+        assert g.headline == "Mine"
 
 
 @pytest.mark.django_db
@@ -173,6 +176,9 @@ class TestInvitingAndRemoving:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        invited = User.objects.get(email="lulu@your-domain.test")
+        assert invited.rsvps.filter(target_code=network["group"].code).exists()
+        assert [m.to for m in mail.outbox] == [["lulu@your-domain.test"]]
 
     def test_every_dinamizador_bulk_invites_in_a_network(self, network):
         url = BASE.format(code=network["group"].code) + "invite/bulk/"
@@ -274,6 +280,7 @@ class TestInvitingAndRemoving:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        assert not g.invites.filter(code="MEMB01").exists()
 
 
 @pytest.mark.django_db
@@ -376,6 +383,11 @@ class TestCalendarAndCopy:
         )
 
         assert res.status_code == status.HTTP_200_OK
+        assert res.data["recipients"] == len(mail.outbox) > 0
+        notified = InAppNotification.objects.filter(type=InAppNotification.Type.BROADCAST)
+        assert set(notified.values_list("user_id", flat=True)) == {
+            m for m in ("ENTA01", "ENTB01", "MEMB01")
+        }
 
 
 @pytest.mark.django_db

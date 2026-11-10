@@ -127,11 +127,6 @@ class TestEachEntityRunsItsOwnThings:
         booking.refresh_from_db()
         assert booking.status == BookingPeriod.Status.ACCEPTED
 
-    def test_the_founder_still_deletes_any_thing_as_in_every_mode(self, world):
-        res = client_for(world["founder"]).delete(f"/api/v1/things/{world['leles'].code}/")
-
-        assert res.status_code == status.HTTP_204_NO_CONTENT
-
     def test_a_proprietary_co_curator_still_runs_every_thing(self, world):
         shared = CollectionFactory(owner=world["founder"], allowed_thing_types=[LEND, RENT])
         shared.invites.add(world["lili"])
@@ -142,6 +137,8 @@ class TestEachEntityRunsItsOwnThings:
         res = client_for(world["lili"]).post(f"/api/v1/things/{thing.code}/hide/")
 
         assert res.status_code == status.HTTP_200_OK
+        thing.refresh_from_db()
+        assert thing.status == Thing.Status.INACTIVE
 
 
 @pytest.mark.django_db
@@ -178,6 +175,7 @@ class TestDeletingAThing:
         res = client_for(world["founder"]).delete(f"/api/v1/things/{world['leles'].code}/")
 
         assert res.status_code == status.HTTP_204_NO_CONTENT
+        assert not Thing.objects.filter(code=world["leles"].code).exists()
 
     def test_in_a_community_a_lent_thing_is_still_not_its_owners_to_delete(self, world):
         community = CollectionFactory(
