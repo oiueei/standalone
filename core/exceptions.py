@@ -17,6 +17,7 @@ CODED_VALIDATION_REFUSALS = frozenset(
         "things_limit",
         "opening_hours_required",
         "units_below_booked",
+        "donations_info_required",
     }
 )
 

@@ -2,12 +2,14 @@
 Collection serializers for OIUEEI.
 """
 
+import json
 from datetime import datetime, timedelta
 
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
+from core.exceptions import RefusedField
 from core.models import RSVP, Collection, InvitationProposal, Theeeme, Thing
 from core.models.collection import KIND_THING_TYPES, kind_for_thing_type
 from core.serializers.network_point import NetworkPointSerializer
@@ -158,6 +160,8 @@ class CollectionSerializer(serializers.ModelSerializer):
             "reservation_max_days",
             "reservation_horizon_days",
             "reservation_max_active_per_member",
+            "accepts_donations",
+            "donations_info",
             "reservation_asks_phone",
             "reservation_unit",
             "opening_hours",
@@ -571,6 +575,45 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         return attrs
 
 
+def _donations_text_is_empty(text):
+    """No words in any language: blank, or a ``{lang: text}`` map whose texts are all blank."""
+    text = (text or "").strip()
+    if not text:
+        return True
+    if text.startswith("{"):
+        try:
+            parsed = json.loads(text)
+        except ValueError:
+            return False
+        if isinstance(parsed, dict) and parsed:
+            return all(isinstance(v, str) and not v.strip() for v in parsed.values())
+    return False
+
+
+def _validate_donations(kind, accepts, info):
+    """Donations belong to a library: the switch and the text mean nothing anywhere else.
+    Judged on the state the request leaves behind. On with no text in any language is
+    refused, because the "Donate things" button would lead to a blank page."""
+    if kind != Collection.Kind.LIBRARY:
+        if accepts:
+            raise serializers.ValidationError(
+                {"accepts_donations": "Only a library can accept donations."}
+            )
+        if not _donations_text_is_empty(info):
+            raise serializers.ValidationError(
+                {"donations_info": "Only a library can have donation instructions."}
+            )
+        return
+    if accepts and _donations_text_is_empty(info):
+        raise RefusedField(
+            "donations_info",
+            Refusal(
+                "Write the donation instructions, or turn donations off.",
+                "donations_info_required",
+            ),
+        )
+
+
 def _validate_phone_switch(kind, asks_phone):
     """The contact-phone switch means something in a shed only: turning it on anywhere
     else would promise a field no request page of that kind will ever show."""
@@ -870,6 +913,15 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     email_note = LocalizedTextField(
         max_length=512, storage_max_length=2048, required=False, allow_blank=True
     )
+    # LIBRARY only (see ``_validate_donations``). Writing the text and switching
+    # donations on are separate edits, so turning them off keeps what was written.
+    accepts_donations = serializers.BooleanField(required=False)
+    donations_info = LocalizedTextField(
+        max_length=LOCALIZED_DESCRIPTION_VISIBLE,
+        storage_max_length=LOCALIZED_DESCRIPTION_STORAGE,
+        required=False,
+        allow_blank=True,
+    )
 
     # A curator picks one of the twelve palettes of `theeemes` (the app's own,
     # `Braaanding`, is a different table and cannot be named here); left out, a new
@@ -898,6 +950,8 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "reservation_max_days",
             "reservation_horizon_days",
             "reservation_max_active_per_member",
+            "accepts_donations",
+            "donations_info",
             "reservation_asks_phone",
             "reservation_unit",
             "opening_hours",
@@ -956,6 +1010,12 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         kind = instance.kind if instance else Collection.Kind.STALL
         allowed_thing_types = normalize_allowed_thing_types(kind, mode, allowed_thing_types)
         _validate_phone_switch(kind, attrs.get("reservation_asks_phone", False))
+        if instance is not None and ("accepts_donations" in attrs or "donations_info" in attrs):
+            _validate_donations(
+                kind,
+                attrs.get("accepts_donations", instance.accepts_donations),
+                attrs.get("donations_info", instance.donations_info),
+            )
         # Switching to PROPRIETARY widens a free-only list, so write it back whenever
         # the list or the mode is part of the edit.
         if "allowed_thing_types" in attrs or "mode" in attrs:

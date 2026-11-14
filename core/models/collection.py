@@ -287,6 +287,14 @@ class Collection(models.Model):
     # 512/2048 like `request_info`: the visible limit is per language and the
     # column has to hold all three plus the JSON scaffolding.
     email_note = models.CharField(max_length=2048, blank=True, default="")
+    # LIBRARY only: the team can take donated things. ``donations_info`` is the Markdown
+    # (one text per language, 2000 visible each) the "Donate things" page shows. Two
+    # fields on purpose, unlike ``deposit_policy`` (writing it is the switch): turning
+    # donations off for a season must not lose what was written. On with no text is
+    # refused by the serializer, since the button would lead to a blank page. Both
+    # carry a database default for the previous release's dynos.
+    accepts_donations = models.BooleanField(default=False, db_default=False)
+    donations_info = models.TextField(blank=True, default="", db_default="")
     kind = models.CharField(max_length=8, choices=Kind.choices, default=Kind.STALL)
     # The verbs this collection takes, always within ``KIND_THING_TYPES[kind]`` and
     # never empty: both of the kind's verbs, or — in a COMMUNITY stall or library
