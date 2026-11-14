@@ -419,3 +419,64 @@ class TestTheDemoNetwork:
 
         assert not NetworkPoint.objects.filter(pk=stray.pk).exists()
         assert NetworkPoint.objects.filter(pk=kept.pk).exists()
+
+
+class TestTheDemoLibraryAcceptsDonations:
+    """Lili's library takes donations, with instructions in all three languages."""
+
+    def test_the_instructions_are_one_text_per_language_within_the_visible_limit(self):
+        texts = parse_localized(common.DONATIONS_INFO_LILI)
+
+        assert texts is not None and set(texts) == set(SUPPORTED_LANGS)
+        for lang, text in texts.items():
+            assert len(text) <= DESCRIPTION_LIMIT, lang
+            # What the page shows: headings (`#` is the h2 under the page's h1) and a list.
+            assert text.count("\n# ") + text.startswith("# ") >= 2, lang
+            assert "\n- " in text, lang
+        assert len(common.DONATIONS_INFO_LILI) <= DESCRIPTION_STORAGE
+
+    def test_only_that_library_is_marked_and_it_is_a_library(self):
+        marked = [c for c in common.COLLECTIONS if c.get("accepts_donations")]
+
+        assert [c["code"] for c in marked] == ["l1l1C1"]
+        assert marked[0]["kind"] == "LIBRARY"
+        assert marked[0]["donations_info"] == common.DONATIONS_INFO_LILI
+
+    @pytest.mark.django_db
+    def test_seeding_stores_it_and_a_second_run_changes_nothing(self):
+        call_command("seed_demo", lang="en", verbosity=0)
+        first = Collection.objects.filter(accepts_donations=True).values_list(
+            "code", "donations_info"
+        )
+        first = list(first)
+        call_command("seed_demo", lang="en", verbosity=0)
+
+        assert first == [("l1l1C1", common.DONATIONS_INFO_LILI)]
+        assert (
+            list(
+                Collection.objects.filter(accepts_donations=True).values_list(
+                    "code", "donations_info"
+                )
+            )
+            == first
+        )
+        # Every reader finds the text in their language.
+        stored = Collection.objects.get(code="l1l1C1").donations_info
+        assert resolve_localized(stored, "ca").startswith("# Què acceptem")
+        assert resolve_localized(stored, "es").startswith("# Qué aceptamos")
+        assert resolve_localized(stored, "en").startswith("# What we take")
+
+    @pytest.mark.django_db
+    def test_it_is_what_the_api_would_accept(self):
+        from core.serializers.collection import CollectionUpdateSerializer
+
+        call_command("seed_demo", lang="en", verbosity=0)
+        library = Collection.objects.get(code="l1l1C1")
+
+        serializer = CollectionUpdateSerializer(
+            library,
+            data={"accepts_donations": True, "donations_info": library.donations_info},
+            partial=True,
+        )
+
+        assert serializer.is_valid(), serializer.errors

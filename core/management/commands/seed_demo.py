@@ -254,6 +254,8 @@ class Command(BaseCommand):
                 "tags": data.get("tags", []),
                 "allowed_thing_types": data.get("allowed_thing_types", []),
                 "deposit_policy": data.get("deposit_policy", ""),
+                "accepts_donations": data.get("accepts_donations", False),
+                "donations_info": data.get("donations_info", ""),
                 # Empty is the "no fixed rule" default the model documents, so a
                 # collection that says nothing keeps the free date range.
                 "rental_durations": data.get("rental_durations", []),
