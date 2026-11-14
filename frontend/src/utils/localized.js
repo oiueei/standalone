@@ -107,3 +107,25 @@ export function localizedHelper(value, limit, t) {
   const counter = localizedCounter(value, limit);
   return counter.unreadMap ? `${counter.text} — ${t('localized.readAsPlain')}` : counter.text;
 }
+
+/**
+ * Whether a text the owner may have written per language says nothing in any of
+ * them: blank, or a `{lang: text}` map whose texts are all blank. The server's rule
+ * for "donations on with no instructions", so the form disables Save for exactly the
+ * case the server would refuse.
+ */
+export function isBlankLocalized(value) {
+  const text = (value || '').trim();
+  if (!text) return true;
+  if (!text.startsWith('{')) return false;
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const values = Object.values(parsed);
+      return values.length > 0 && values.every((v) => typeof v === 'string' && !v.trim());
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}

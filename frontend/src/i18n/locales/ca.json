@@ -1184,6 +1184,15 @@
     "testSent": "Enviat al teu correu: és exactament com el rebran.",
     "testError": "No s'ha pogut enviar el correu de prova. Torna-ho a provar."
   },
+  "donations": {
+    "heading": "Donacions",
+    "toggleLabel": "Acceptar donacions: un botó «Donar coses» porta qui llegeixi la biblioteca a les teves instruccions. Desactiva'l per treure'l.",
+    "notice": "Explica què accepta la biblioteca i com portar-ho: on, quan i què no pot acceptar.",
+    "infoLabel": "Instruccions per a qui doni",
+    "infoHelper": "Admet Markdown",
+    "infoRequired": "Escriu les instruccions o desactiva les donacions.",
+    "maxLength": "Màxim 2000 caràcters per idioma."
+  },
   "requestErrors": {
     "already_reminded_today": "Ja l'hi has recordat avui.",
     "already_requested": "Ja ho has demanat: espera la resposta de qui ho ofereix.",

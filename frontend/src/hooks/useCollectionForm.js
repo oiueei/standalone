@@ -28,7 +28,8 @@ import { useCollectionBase } from './useCollectionBase';
  *
  * `save(body)` sends the `PATCH` and goes to the collection when it succeeds; each
  * failure becomes `toast` (429, the server's own 400 message, anything else, no
- * connection).
+ * connection). `save(body, { onRefused })`: for a 400, `onRefused(data)` gets the parsed
+ * body first and answers `true` when the page has said it in a field of its own.
  */
 export default function useCollectionForm(code, { onLoad } = {}) {
   const { t } = useTranslation();
@@ -89,7 +90,7 @@ export default function useCollectionForm(code, { onLoad } = {}) {
   }, [code]);
 
   const save = useCallback(
-    async (body) => {
+    async (body, { onRefused } = {}) => {
       setSubmitting(true);
       setToast(null);
       try {
@@ -104,8 +105,18 @@ export default function useCollectionForm(code, { onLoad } = {}) {
         } else if (res.status === 400) {
           // The server's own message names what it refused (the verbs that would
           // orphan things, a field out of range), so the owner can act on it.
-          const message = await extractApiError(res);
-          setToast({ type: 'error', message: message || t('editCollection.errorSaving') });
+          let handled = false;
+          if (onRefused) {
+            try {
+              handled = !!onRefused(await res.clone().json());
+            } catch {
+              handled = false;
+            }
+          }
+          if (!handled) {
+            const message = await extractApiError(res);
+            setToast({ type: 'error', message: message || t('editCollection.errorSaving') });
+          }
         } else {
           setToast({ type: 'error', message: t('editCollection.errorSaving') });
         }

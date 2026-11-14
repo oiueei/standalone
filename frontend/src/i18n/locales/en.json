@@ -1184,6 +1184,15 @@
     "testSent": "Sent to your inbox — this is exactly how members will get it.",
     "testError": "Couldn't send the test email. Please try again."
   },
+  "donations": {
+    "heading": "Donations",
+    "toggleLabel": "Accept donations: A “Donate things” button takes anyone who reads the library to your instructions. Turn off to take it away.",
+    "notice": "Say what the library takes and how to bring it: where, when, and what it can’t accept.",
+    "infoLabel": "Instructions for donors",
+    "infoHelper": "Markdown supported",
+    "infoRequired": "Write the instructions, or turn donations off.",
+    "maxLength": "Maximum 2000 characters per language."
+  },
   "requestErrors": {
     "already_reminded_today": "You've already reminded them today.",
     "already_requested": "You've already asked for this — wait for the owner's answer.",

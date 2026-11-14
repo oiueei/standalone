@@ -13,7 +13,12 @@ import CollectionFormRefusal from '../components/CollectionFormRefusal';
 import Toast from '../components/Toast';
 import useTheeeme from '../hooks/useTheeeme';
 import useCollectionForm from '../hooks/useCollectionForm';
-import { useLocalized, localizedCounter, localizedHelper } from '../utils/localized';
+import {
+  useLocalized,
+  localizedCounter,
+  localizedHelper,
+  isBlankLocalized,
+} from '../utils/localized';
 import hdsLang from '../utils/hdsLang';
 import { allowedVerbsFor, membersPriceFromVerbs } from '../utils/collectionKind';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -30,7 +35,8 @@ const TEXT_EXAMPLE = '{"es": "Las cosas de mamá", "ca": "Les coses de mama"}';
  * Availability), each sending only its own fields.
  *
  * The PATCH sends exactly `headline`, `description`, `status`, `mode`, `visibility` and
- * `allowed_thing_types`, and only once the collection has loaded.
+ * `allowed_thing_types` — plus, in a library, `accepts_donations` and `donations_info` —
+ * and only once the collection has loaded.
  */
 export default function EditCollectionPage() {
   const { t, i18n } = useTranslation();
@@ -64,6 +70,11 @@ export default function EditCollectionPage() {
   // Whether the members of a COMMUNITY stall or library may set a price (both of the
   // kind's verbs stored) or only give and lend (the free verb alone).
   const [membersPrice, setMembersPrice] = useState(true);
+  // A library's donations: the switch and the instructions its "Donate things" page shows.
+  // Turning the switch off keeps the text, and the PATCH sends it as it stands.
+  const [acceptsDonations, setAcceptsDonations] = useState(false);
+  const [donationsInfo, setDonationsInfo] = useState('');
+  const [donationsError, setDonationsError] = useState('');
   const [pauseMessage, setPauseMessage] = useState('');
   const [isPaused, setIsPaused] = useState(false);
   // The one control on this page still stricter than "the server enforces
@@ -92,6 +103,8 @@ export default function EditCollectionPage() {
         setVisibility(data.visibility || 'PRIVATE');
         setKind(data.kind || '');
         setMembersPrice(membersPriceFromVerbs(data.kind, data.allowed_thing_types));
+        setAcceptsDonations(!!data.accepts_donations);
+        setDonationsInfo(data.donations_info || '');
         setPauseMessage(data.pause_message || '');
         setIsPaused(data.is_paused || false);
       },
@@ -132,6 +145,11 @@ export default function EditCollectionPage() {
     setMode(newMode);
   };
 
+  const isLibrary = kind === 'LIBRARY';
+  const donationsOver = isLibrary && localizedCounter(donationsInfo, 2000).over;
+  // The server refuses "on" with no words in any language (a button to a blank page).
+  const donationsMissing = isLibrary && acceptsDonations && isBlankLocalized(donationsInfo);
+
   const validate = () => {
     const newErrors = {};
     if (!headline.trim()) newErrors.headline = t('editCollection.titleRequired');
@@ -143,7 +161,7 @@ export default function EditCollectionPage() {
   };
 
   const handleSubmit = () => {
-    if (!loaded || !validate()) return;
+    if (!loaded || donationsOver || donationsMissing || !validate()) return;
     const body = {
       headline: headline.trim(),
       description: description.trim(),
@@ -153,7 +171,19 @@ export default function EditCollectionPage() {
       allowed_thing_types: allowedVerbsFor(kind, mode, membersPrice),
     };
 
-    save(body);
+    if (isLibrary) {
+      body.accepts_donations = acceptsDonations;
+      body.donations_info = donationsInfo.trim();
+    }
+
+    setDonationsError('');
+    save(body, {
+      onRefused: (data) => {
+        if (data?.code !== 'donations_info_required') return false;
+        setDonationsError(t('donations.infoRequired'));
+        return true;
+      },
+    });
   };
 
   if (loading) {
@@ -254,11 +284,25 @@ export default function EditCollectionPage() {
           setVisibility={setVisibility}
           membersPrice={membersPrice}
           setMembersPrice={setMembersPrice}
+          donations={
+            isLibrary
+              ? {
+                  accepts: acceptsDonations,
+                  setAccepts: setAcceptsDonations,
+                  info: donationsInfo,
+                  setInfo: (v) => {
+                    setDonationsInfo(v);
+                    setDonationsError('');
+                  },
+                  error: donationsMissing ? t('donations.infoRequired') : donationsError,
+                }
+              : null
+          }
         />
       </div>
       <div className="form-actions">
         <Button
-          disabled={submitting || !loaded}
+          disabled={submitting || !loaded || donationsOver || donationsMissing}
           onClick={handleSubmit}
           style={{ ...btnStyle, width: '100%' }}
         >

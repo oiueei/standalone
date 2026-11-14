@@ -1184,6 +1184,15 @@
     "testSent": "Enviado a tu correo: es justo como lo recibirán.",
     "testError": "No se ha podido enviar el correo de prueba. Inténtalo de nuevo."
   },
+  "donations": {
+    "heading": "Donaciones",
+    "toggleLabel": "Aceptar donaciones: un botón «Donar cosas» lleva a quien lea la biblioteca a tus instrucciones. Desactívalo para quitarlo.",
+    "notice": "Cuenta qué acepta la biblioteca y cómo traerlo: dónde, cuándo y qué no puede aceptar.",
+    "infoLabel": "Instrucciones para quien done",
+    "infoHelper": "Admite Markdown",
+    "infoRequired": "Escribe las instrucciones o desactiva las donaciones.",
+    "maxLength": "Máximo 2000 caracteres por idioma."
+  },
   "requestErrors": {
     "already_reminded_today": "Ya se lo has recordado hoy.",
     "already_requested": "Ya lo has pedido: espera la respuesta de quien lo ofrece.",
