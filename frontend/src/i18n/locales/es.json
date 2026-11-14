@@ -159,6 +159,7 @@
     "guests": "Miembros — {{headline}} — OIUEEI",
     "guestsDefault": "Miembros — OIUEEI",
     "user": "{{name}} — OIUEEI",
+    "donate": "Donar cosas a {{collection}} — OIUEEI",
     "notFound": "Página no encontrada — OIUEEI",
     "deleteCollection": "Eliminar {{headline}} — OIUEEI",
     "deleteCollectionDefault": "Eliminar colección — OIUEEI",
@@ -1185,6 +1186,8 @@
     "testError": "No se ha podido enviar el correo de prueba. Inténtalo de nuevo."
   },
   "donations": {
+    "button": "Donar cosas",
+    "pageTitle": "Donar cosas",
     "heading": "Donaciones",
     "toggleLabel": "Aceptar donaciones: un botón «Donar cosas» lleva a quien lea la biblioteca a tus instrucciones. Desactívalo para quitarlo.",
     "notice": "Cuenta qué acepta la biblioteca y cómo traerlo: dónde, cuándo y qué no puede aceptar.",

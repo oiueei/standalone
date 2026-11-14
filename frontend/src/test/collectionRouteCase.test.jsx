@@ -144,6 +144,23 @@ describe('the sub-routes of a collection tell case apart', () => {
     expect(screen.queryByText('Page not found')).toBeNull();
   });
 
+  test('`donate` is a page of the collection, and its static route outranks the optional code', async () => {
+    await openApp('/library/COL001/donate');
+
+    expect(await screen.findByText('Page not found')).toBeInTheDocument();
+    // The mocked library accepts no donations, so the page is the not-found of the donate
+    // page itself, never the collection filtered by a code called `donate`.
+    expect(screen.queryByRole('heading', { name: 'The lending library' })).toBeNull();
+  });
+
+  test('`DONATE` has the shape of a code and names nobody: the collection, not the page', async () => {
+    await openApp('/library/COL001/DONATE');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'The lending library' })
+    ).toBeVisible();
+  });
+
   test('the lowercase import is still the import page', async () => {
     await openApp('/library/COL001/import');
 

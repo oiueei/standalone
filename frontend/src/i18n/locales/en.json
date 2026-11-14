@@ -168,6 +168,7 @@
     "guests": "Members — {{headline}} — OIUEEI",
     "guestsDefault": "Members — OIUEEI",
     "user": "{{name}} — OIUEEI",
+    "donate": "Donate things to {{collection}} — OIUEEI",
     "notFound": "Page not found — OIUEEI",
     "share": "Join — OIUEEI",
     "shareNamed": "Join {{name}} — OIUEEI",
@@ -1185,6 +1186,8 @@
     "testError": "Couldn't send the test email. Please try again."
   },
   "donations": {
+    "button": "Donate things",
+    "pageTitle": "Donate things",
     "heading": "Donations",
     "toggleLabel": "Accept donations: A “Donate things” button takes anyone who reads the library to your instructions. Turn off to take it away.",
     "notice": "Say what the library takes and how to bring it: where, when, and what it can’t accept.",

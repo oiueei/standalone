@@ -158,6 +158,27 @@ class TestEveryOtherPageCarriesTheSitesCard:
         assert "<title>OIUEEI</title>" in body
         assert "og:image" not in body
 
+    def test_a_libraries_donate_page_is_served_with_the_sites_card(self, built, owner):
+        """The "Donate things" page is a route of the SPA: a cold load answers it, and the
+        card is the site's, never the collection's (it is no page a preview describes)."""
+        _collection(owner, kind=Collection.Kind.LIBRARY)
+
+        response = Client().get("/library/PUB001/donate")
+
+        assert response.status_code == 200
+        assert response.content.decode() == _neutral()
+
+    @pytest.mark.parametrize("prefix", ["stall", "shed", "collections"])
+    def test_the_donate_page_at_another_kinds_prefix_is_moved_to_the_libraries(
+        self, built, owner, prefix
+    ):
+        _collection(owner, kind=Collection.Kind.LIBRARY)
+
+        response = Client().get(f"/{prefix}/PUB001/donate")
+
+        assert response.status_code == 301
+        assert response["Location"] == "/library/PUB001/donate"
+
     @override_settings(EMAIL_LANGUAGE="es")
     def test_it_speaks_the_deployments_language(self, built, db):
         body = _body("/login")
@@ -349,6 +370,14 @@ class TestQueryBudget:
 
         with django_assert_max_num_queries(2):
             Client().get("/stall/PUB001")
+
+    def test_the_donate_page_costs_the_one_query_of_the_kinds_address(
+        self, built, owner, django_assert_max_num_queries
+    ):
+        _collection(owner, kind=Collection.Kind.LIBRARY)
+
+        with django_assert_max_num_queries(1):
+            Client().get("/library/PUB001/donate")
 
     def test_a_thing_costs_a_few(self, built, owner, django_assert_max_num_queries):
         _thing(owner, _collection(owner))

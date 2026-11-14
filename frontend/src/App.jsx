@@ -36,6 +36,7 @@ const ImportThingsPage = lazy(() => import('./pages/ImportThingsPage'));
 const ImportInvitesPage = lazy(() => import('./pages/ImportInvitesPage'));
 const OrganisationPage = lazy(() => import('./pages/OrganisationPage'));
 const EntityPage = lazy(() => import('./pages/EntityPage'));
+const DonatePage = lazy(() => import('./pages/DonatePage'));
 const EditThingPage = lazy(() => import('./pages/EditThingPage'));
 const ThingPage = lazy(() => import('./pages/ThingPage'));
 const CreateCollectionPage = lazy(() => import('./pages/CreateCollectionPage'));
@@ -114,6 +115,15 @@ const publicCollectionRoutes = (prefix) => [
     caseSensitive
     path={`/${prefix}/:code/organisation/:userCode`}
     element={<EntityPage />}
+  />,
+  // The instructions for giving things to a library. Static and case-sensitive: `donate`
+  // has the shape of a code, so the optional `:curatorCode` of the collection route
+  // must not take it (`DONATE` is a code that names nobody, as `DELETE` is).
+  <Route
+    key={`${prefix}-donate`}
+    caseSensitive
+    path={`/${prefix}/:code/donate`}
+    element={<DonatePage />}
   />,
   <Route
     key={`${prefix}-join`}
