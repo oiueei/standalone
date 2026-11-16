@@ -173,7 +173,7 @@ describe('EditCollectionPage — saving', () => {
     expect(await screen.findByText(/[Tt]oo many/)).toBeInTheDocument();
   });
 
-  test('the PATCH carries exactly the six fields of this page', async () => {
+  test('the PATCH of a library carries exactly the eight fields of this page', async () => {
     mockApi();
     renderPage();
     await screen.findByDisplayValue('Kitchen Collection');
@@ -187,8 +187,10 @@ describe('EditCollectionPage — saving', () => {
     // The boundary of the page: what a settings page owns is never sent from here, so
     // saving this form cannot reset a logo, a language, a welcome PDF or a rule.
     expect(Object.keys(body).sort()).toEqual([
+      'accepts_donations',
       'allowed_thing_types',
       'description',
+      'donations_info',
       'headline',
       'mode',
       'status',
@@ -201,6 +203,8 @@ describe('EditCollectionPage — saving', () => {
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
       allowed_thing_types: ['LEND_THING', 'RENT_THING'],
+      accepts_donations: false,
+      donations_info: '',
     });
   });
 
@@ -224,6 +228,9 @@ describe('EditCollectionPage — saving', () => {
     const body = JSON.parse(patch.body);
     expect(body).toMatchObject({ mode: 'PROPRIETARY', allowed_thing_types: ['RESERVE_THING'] });
     expect(body).not.toHaveProperty('reservation_unit');
+    // Donations are a library's: a shed sends the six fields only.
+    expect(body).not.toHaveProperty('accepts_donations');
+    expect(body).not.toHaveProperty('donations_info');
   });
 
   test('the tab says General settings of the collection once it is known, and General settings before', async () => {

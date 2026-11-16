@@ -174,6 +174,7 @@ import RequestThingPage from '../pages/RequestThingPage';
 import UserPage from '../pages/UserPage';
 import SharePage from '../pages/SharePage';
 import EntityPage from '../pages/EntityPage';
+import DonatePage from '../pages/DonatePage';
 import CollectionAppearancePage from '../pages/CollectionAppearancePage';
 import CollectionNotificationsPage from '../pages/CollectionNotificationsPage';
 import CollectionAvailabilityPage from '../pages/CollectionAvailabilityPage';
@@ -339,6 +340,17 @@ smokeAndAxe('EntityPage', EntityPage, {
         weekdays: [1],
       },
     ],
+  },
+});
+
+smokeAndAxe('DonatePage', DonatePage, {
+  path: '/collections/:code/donate',
+  entry: '/collections/COL001/donate',
+  heading: 'Donate things',
+  collection: {
+    kind: 'LIBRARY',
+    accepts_donations: true,
+    donations_info: '# What we take\n\n- Books',
   },
 });
 

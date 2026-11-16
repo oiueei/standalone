@@ -196,7 +196,7 @@ async function renderEdit(collection) {
 }
 
 describe('Edit — the body of a library', () => {
-  test('saved untouched, it sends back the six fields of the page as loaded', async () => {
+  test('saved untouched, it sends back the eight fields of the page of a library as loaded', async () => {
     await renderEdit(LIBRARY);
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -209,6 +209,8 @@ describe('Edit — the body of a library', () => {
       mode: 'PROPRIETARY',
       visibility: 'PRIVATE',
       allowed_thing_types: ['LEND_THING', 'RENT_THING'],
+      accepts_donations: false,
+      donations_info: '',
     });
   });
 
@@ -231,6 +233,8 @@ describe('Edit — the body of a library', () => {
       mode: 'COMMUNITY',
       visibility: 'PUBLIC',
       allowed_thing_types: ['LEND_THING'],
+      accepts_donations: false,
+      donations_info: '',
     });
   });
 

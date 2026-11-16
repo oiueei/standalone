@@ -159,6 +159,7 @@
     "guests": "Membres — {{headline}} — OIUEEI",
     "guestsDefault": "Membres — OIUEEI",
     "user": "{{name}} — OIUEEI",
+    "donate": "Donar coses a {{collection}} — OIUEEI",
     "notFound": "Pàgina no trobada — OIUEEI",
     "deleteCollection": "Eliminar {{headline}} — OIUEEI",
     "deleteCollectionDefault": "Eliminar col·lecció — OIUEEI",
@@ -1184,6 +1185,17 @@
     "testSent": "Enviat al teu correu: és exactament com el rebran.",
     "testError": "No s'ha pogut enviar el correu de prova. Torna-ho a provar."
   },
+  "donations": {
+    "button": "Donar coses",
+    "pageTitle": "Donar coses",
+    "heading": "Donacions",
+    "toggleLabel": "Acceptar donacions: un botó «Donar coses» porta qui llegeixi la biblioteca a les teves instruccions. Desactiva'l per treure'l.",
+    "notice": "Explica què accepta la biblioteca i com portar-ho: on, quan i què no pot acceptar.",
+    "infoLabel": "Instruccions per a qui doni",
+    "infoHelper": "Admet Markdown",
+    "infoRequired": "Escriu les instruccions o desactiva les donacions.",
+    "maxLength": "Màxim 2000 caràcters per idioma."
+  },
   "requestErrors": {
     "already_reminded_today": "Ja l'hi has recordat avui.",
     "already_requested": "Ja ho has demanat: espera la resposta de qui ho ofereix.",
@@ -1249,6 +1261,7 @@
     "priced_things_remain": "Algunes coses d'aquest grup tenen preu. Treu-los-el o retira-les abans de treure als membres l'opció de posar preu.",
     "opening_hours_required": "Per reservar per hores, posa almenys una franja a «Horari setmanal».",
     "units_below_booked": "Hi ha reserves que necessiten almenys {{min}} alhora.",
+    "donations_info_required": "Escriu les instruccions o desactiva les donacions.",
     "rental_length_not_allowed": "Aquesta col·lecció només permet períodes de {{allowed}} dies.",
     "rental_pickup_weekday": "Aquest dia de la setmana no es pot recollir.",
     "rental_return_weekday": "Aquest dia de la setmana no es pot retornar.",

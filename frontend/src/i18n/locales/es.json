@@ -159,6 +159,7 @@
     "guests": "Miembros — {{headline}} — OIUEEI",
     "guestsDefault": "Miembros — OIUEEI",
     "user": "{{name}} — OIUEEI",
+    "donate": "Donar cosas a {{collection}} — OIUEEI",
     "notFound": "Página no encontrada — OIUEEI",
     "deleteCollection": "Eliminar {{headline}} — OIUEEI",
     "deleteCollectionDefault": "Eliminar colección — OIUEEI",
@@ -1184,6 +1185,17 @@
     "testSent": "Enviado a tu correo: es justo como lo recibirán.",
     "testError": "No se ha podido enviar el correo de prueba. Inténtalo de nuevo."
   },
+  "donations": {
+    "button": "Donar cosas",
+    "pageTitle": "Donar cosas",
+    "heading": "Donaciones",
+    "toggleLabel": "Aceptar donaciones: un botón «Donar cosas» lleva a quien lea la biblioteca a tus instrucciones. Desactívalo para quitarlo.",
+    "notice": "Cuenta qué acepta la biblioteca y cómo traerlo: dónde, cuándo y qué no puede aceptar.",
+    "infoLabel": "Instrucciones para quien done",
+    "infoHelper": "Admite Markdown",
+    "infoRequired": "Escribe las instrucciones o desactiva las donaciones.",
+    "maxLength": "Máximo 2000 caracteres por idioma."
+  },
   "requestErrors": {
     "already_reminded_today": "Ya se lo has recordado hoy.",
     "already_requested": "Ya lo has pedido: espera la respuesta de quien lo ofrece.",
@@ -1249,6 +1261,7 @@
     "priced_things_remain": "Algunas cosas de este grupo tienen precio. Quítaselo o retíralas antes de quitar a los miembros la opción de poner precio.",
     "opening_hours_required": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
     "units_below_booked": "Hay reservas que necesitan al menos {{min}} a la vez.",
+    "donations_info_required": "Escribe las instrucciones o desactiva las donaciones.",
     "rental_length_not_allowed": "Esta colección solo permite periodos de {{allowed}} días.",
     "rental_pickup_weekday": "Ese día de la semana no se puede recoger.",
     "rental_return_weekday": "Ese día de la semana no se puede devolver.",

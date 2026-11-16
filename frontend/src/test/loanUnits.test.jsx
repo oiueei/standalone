@@ -330,6 +330,7 @@ describe('RequestThingPage — asking for several', () => {
       setApi();
       const { container } = renderRequest();
       await screen.findByText(/Arduino kit/);
+      await settle(apiFetch);
 
       const field = quantityInput(container);
       expect(field).toHaveValue(1);
@@ -347,6 +348,7 @@ describe('RequestThingPage — asking for several', () => {
       setApi();
       const { container } = renderRequest();
       await screen.findByText(/Arduino kit/);
+      await settle(apiFetch);
 
       const field = quantityInput(container);
       const start = container.querySelector('#request-start-date');
@@ -358,6 +360,7 @@ describe('RequestThingPage — asking for several', () => {
       setApi();
       const { container } = renderRequest();
       await screen.findByText(/Arduino kit/);
+      await settle(apiFetch);
 
       expect(quantityInput(container)).not.toBeNull();
     });
@@ -370,6 +373,7 @@ describe('RequestThingPage — asking for several', () => {
       setApi();
       const { container } = renderRequest();
       await screen.findByText(/Arduino kit/);
+      await settle(apiFetch);
 
       expect(quantityInput(container)).toBeNull();
     });
@@ -386,6 +390,7 @@ describe('RequestThingPage — asking for several', () => {
       setApi();
       const { container } = renderRequest();
       await screen.findByText(/Reserve Arduino kit/);
+      await settle(apiFetch);
 
       expect(quantityInput(container)).toBeNull();
     });
@@ -409,6 +414,7 @@ describe('RequestThingPage — asking for several', () => {
         quantity: 4,
         collection_code: 'COL001',
       });
+      await settle(apiFetch);
     });
 
     test('left alone it is 1', async () => {
@@ -422,6 +428,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await waitFor(() => expect(sentBody('POST')).toBeTruthy());
       expect(sentBody('POST').quantity).toBe(1);
+      await settle(apiFetch);
     });
 
     test('with fixed lengths it travels too', async () => {
@@ -436,6 +443,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await waitFor(() => expect(sentBody('POST')).toBeTruthy());
       expect(sentBody('POST')).toMatchObject({ end_date: '2026-06-17', quantity: 2 });
+      await settle(apiFetch);
     });
 
     test('a number out of range is brought into it, never sent as it is', async () => {
@@ -450,6 +458,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await waitFor(() => expect(sentBody('POST')).toBeTruthy());
       expect(sentBody('POST').quantity).toBe(6);
+      await settle(apiFetch);
     });
 
     test('a thing with one unit sends no quantity at all', async () => {
@@ -464,6 +473,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await waitFor(() => expect(sentBody('POST')).toBeTruthy());
       expect(sentBody('POST')).not.toHaveProperty('quantity');
+      await settle(apiFetch);
     });
   });
 
@@ -477,6 +487,7 @@ describe('RequestThingPage — asking for several', () => {
 
       expect(quantityInput(container)).toHaveValue(6);
       expect(await screen.findByText('Price: 6 × 5.00 EUR = 30.00 EUR')).toBeInTheDocument();
+      await settle(apiFetch);
     });
 
     test('emptied and left, it goes back to 1', async () => {
@@ -487,6 +498,8 @@ describe('RequestThingPage — asking for several', () => {
 
       fireEvent.change(quantityInput(container), { target: { value: '' } });
       fireEvent.blur(quantityInput(container));
+      // The calendar asked again for the new quantity answers on its own time.
+      await settle(apiFetch);
 
       expect(quantityInput(container)).toHaveValue(1);
     });
@@ -537,6 +550,7 @@ describe('RequestThingPage — asking for several', () => {
       await waitFor(() =>
         expect(calendarUrls()).toEqual(['/api/v1/things/LOAN01/calendar/?for=request'])
       );
+      await settle(apiFetch);
     });
 
     test('is asked again with the quantity when it changes', async () => {
@@ -549,6 +563,7 @@ describe('RequestThingPage — asking for several', () => {
       await waitFor(() =>
         expect(calendarUrls()).toContain('/api/v1/things/LOAN01/calendar/?for=request&quantity=3')
       );
+      await settle(apiFetch);
     });
 
     test('and back to none when it goes back to one', async () => {
@@ -562,6 +577,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await waitFor(() => expect(calendarUrls()).toHaveLength(3));
       expect(calendarUrls()[2]).toBe('/api/v1/things/LOAN01/calendar/?for=request');
+      await settle(apiFetch);
     });
 
     test('the days it comes back as taken are greyed out in the pickup picker', async () => {
@@ -622,6 +638,7 @@ describe('RequestThingPage — asking for several', () => {
       await waitFor(() => expect(container.querySelector('#request-end-date')).toHaveValue(''));
       // The pickup is not over the busy day: it stays.
       expect(container.querySelector('#request-start-date')).toHaveValue('10/06/2026');
+      await settle(apiFetch);
     });
 
     test('a pickup that lands on the busy days is emptied with it', async () => {
@@ -640,6 +657,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await waitFor(() => expect(container.querySelector('#request-start-date')).toHaveValue(''));
       expect(container.querySelector('#request-end-date')).toHaveValue('');
+      await settle(apiFetch);
     });
 
     test('with fixed lengths the pickup is emptied when it no longer fits', async () => {
@@ -657,6 +675,7 @@ describe('RequestThingPage — asking for several', () => {
       fireEvent.change(quantityInput(container), { target: { value: '3' } });
 
       await waitFor(() => expect(container.querySelector('#request-pickup-date')).toHaveValue(''));
+      await settle(apiFetch);
     });
   });
 
@@ -670,6 +689,7 @@ describe('RequestThingPage — asking for several', () => {
       expect(screen.getByText('5.00 EUR', { exact: false })).toBeInTheDocument();
       expect(screen.getByText(en.thingPage.depositLabel)).toBeInTheDocument();
       expect(screen.queryByText(/×/)).toBeNull();
+      await settle(apiFetch);
     });
 
     test('with several, both are per unit and the total is shown', async () => {
@@ -683,6 +703,7 @@ describe('RequestThingPage — asking for several', () => {
       expect(screen.getByText(/Deposit: 6 × 20.00 € = 120.00 €/)).toBeInTheDocument();
       // The price label is the sentence's own now, not a second line.
       expect(screen.queryByText(en.request.priceLabel)).toBeNull();
+      await settle(apiFetch);
     });
 
     test('a thing with no deposit shows no deposit line, with any quantity', async () => {
@@ -694,6 +715,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await screen.findByText('Price: 2 × 5.00 EUR = 10.00 EUR');
       expect(screen.queryByText(/Deposit/)).toBeNull();
+      await settle(apiFetch);
     });
 
     test('a free thing has no price line, with any quantity', async () => {
@@ -705,6 +727,7 @@ describe('RequestThingPage — asking for several', () => {
 
       await screen.findByText(/Deposit: 2 × 20.00 € = 40.00 €/);
       expect(screen.queryByText(/Price/)).toBeNull();
+      await settle(apiFetch);
     });
   });
 
@@ -734,6 +757,7 @@ describe('RequestThingPage — asking for several', () => {
 
       expect(await screen.findByText("There aren't 3 free on those dates.")).toBeInTheDocument();
       expect(screen.queryByText(en.request.dateOverlap)).toBeNull();
+      await settle(apiFetch);
     });
 
     test('one request per person', async () => {
@@ -745,6 +769,7 @@ describe('RequestThingPage — asking for several', () => {
 
       expect(await screen.findByText(en.requestErrors.loan_one_per_person)).toBeInTheDocument();
       expect(screen.queryByText(en.request.dateOverlap)).toBeNull();
+      await settle(apiFetch);
     });
 
     test('a quantity out of range', async () => {
@@ -759,6 +784,7 @@ describe('RequestThingPage — asking for several', () => {
       await ask(container);
 
       expect(await screen.findByText('Ask for between 1 and 6.')).toBeInTheDocument();
+      await settle(apiFetch);
     });
   });
 
@@ -767,6 +793,7 @@ describe('RequestThingPage — asking for several', () => {
       setApi();
       renderRequest();
       await screen.findByText(/Arduino kit/);
+      await settle(apiFetch);
 
       expect(screen.getByText(en.request.availableToday)).toBeInTheDocument();
       expect(screen.getByText('Available today: 4 of 6')).toBeInTheDocument();
@@ -781,6 +808,7 @@ describe('RequestThingPage — asking for several', () => {
       setApi();
       renderRequest();
       await screen.findByText(/Arduino kit/);
+      await settle(apiFetch);
 
       expect(screen.queryByText(/of 6/)).toBeNull();
     });
@@ -790,6 +818,8 @@ describe('RequestThingPage — asking for several', () => {
     setApi();
     const { container } = renderRequest();
     await screen.findByText(/Arduino kit/);
+
+    await settle(apiFetch);
 
     expect(await axe(container)).toHaveNoViolations();
   });

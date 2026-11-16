@@ -67,6 +67,48 @@ DEPOSIT_POLICY_LILI = _localized_tag(
     en="The deposit equals the rental fee. Refunded when the thing comes back in good shape.",
 )
 
+# Lili's donation instructions: Markdown, one text per language, shown on the library's
+# "Donate things" page. The headings are `#` because the page owns the h1 and the app draws
+# a `#` as the h2 right under it. Short on purpose: what is taken, what is not, how to bring it.
+DONATIONS_INFO_LILI = _localized_tag(
+    es=(
+        "# Qué aceptamos\n\n"
+        "- Herramientas de mano y eléctricas que funcionen\n"
+        "- Utensilios de cocina completos y en buen estado\n"
+        "- Juegos y material de ocio con todas sus piezas\n\n"
+        "# Qué no podemos aceptar\n\n"
+        "- Aparatos rotos o sin cargador\n"
+        "- Ropa, colchones y muebles grandes\n\n"
+        "# Cómo traerlo\n\n"
+        "Pásate por el punto de recogida los martes y jueves de 18 a 20 h, "
+        "o escríbenos antes si no puedes cargarlo."
+    ),
+    ca=(
+        "# Què acceptem\n\n"
+        "- Eines de mà i elèctriques que funcionin\n"
+        "- Estris de cuina complets i en bon estat\n"
+        "- Jocs i material de lleure amb totes les peces\n\n"
+        "# Què no podem acceptar\n\n"
+        "- Aparells trencats o sense carregador\n"
+        "- Roba, matalassos i mobles grans\n\n"
+        "# Com portar-ho\n\n"
+        "Passa pel punt de recollida els dimarts i dijous de 18 a 20 h, "
+        "o escriu-nos abans si no ho pots carregar."
+    ),
+    en=(
+        "# What we take\n\n"
+        "- Hand and power tools that work\n"
+        "- Complete kitchen utensils in good shape\n"
+        "- Games and leisure gear with all their pieces\n\n"
+        "# What we can't take\n\n"
+        "- Broken appliances or ones with no charger\n"
+        "- Clothes, mattresses and large furniture\n\n"
+        "# How to bring it\n\n"
+        "Drop by the pickup point on Tuesdays and Thursdays from 6 to 8 pm, "
+        "or write to us first if you can't carry it."
+    ),
+)
+
 USERS = [
     {
         "code": "La1aN1",
@@ -162,6 +204,9 @@ COLLECTIONS = [
         ],
         "thumbnail": "l1l1C1",
         "deposit_policy": DEPOSIT_POLICY_LILI,
+        # The demo's one library that takes donations (its "Donate things" page).
+        "accepts_donations": True,
+        "donations_info": DONATIONS_INFO_LILI,
     },
     {
         "code": "1u1uC1",

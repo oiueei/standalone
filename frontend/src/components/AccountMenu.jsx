@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { IconUser } from 'hds-react';
+import { IconHome, IconSignout, IconUser } from 'hds-react';
+import { IconMyRequests, IconRequestsToMe } from './icons/OiueeiIcons';
 import useDismissable from '../hooks/useDismissable';
 import useReceivesRequests from '../hooks/useReceivesRequests';
 import { isDoorPath, loginPathFor } from '../utils/nextPath';
@@ -133,22 +134,27 @@ export default function AccountMenu({ requestsInCollectionMenu = false, offerSig
       {open && (
         <nav id={PANEL_ID} className="account-menu-panel" aria-label={label}>
           <NavLink to="/" end onClick={close}>
-            {t('common.home')}
+            <IconHome aria-hidden="true" />
+            <span>{t('common.home')}</span>
           </NavLink>
           <NavLink to="/me" end onClick={close}>
-            {t('home.myProfile')}
+            <IconUser aria-hidden="true" />
+            <span>{t('home.myProfile')}</span>
           </NavLink>
           <NavLink to="/my-bookings" end onClick={close}>
-            {t('home.myRequests')}
+            <IconMyRequests aria-hidden="true" />
+            <span>{t('home.myRequests')}</span>
           </NavLink>
           {receivesRequests && !requestsInCollectionMenu && (
             <NavLink to="/owner-bookings" end onClick={close}>
-              {t('home.requestsToMe')}
+              <IconRequestsToMe aria-hidden="true" />
+              <span>{t('home.requestsToMe')}</span>
             </NavLink>
           )}
           <hr className="account-menu-divider" />
           <Link to="/logout" onClick={close}>
-            {t('userPage.logout')}
+            <IconSignout aria-hidden="true" />
+            <span>{t('userPage.logout')}</span>
           </Link>
         </nav>
       )}

@@ -128,6 +128,14 @@ export default function CollectionHero({
     name: collection.owner_name,
   });
   const isDemo = !!collection.is_onboarding;
+  // A library that takes donations offers "Donate things" to everyone who reads it except
+  // its team (who write the instructions): always secondary and last in its row.
+  const showDonate = collection.kind === 'LIBRARY' && !!collection.accepts_donations && !isCurator;
+  const donateButton = showDonate && (
+    <ButtonLink to={`${base}/donate`} style={btnSecondaryStyle}>
+      {t('donations.button')}
+    </ButtonLink>
+  );
   const showInvite = !!collection.allow_member_proposals && !isDemo;
   // A member has a summary only where the group sends the weekly or monthly one; whoever
   // runs the group also gets the daily one about sign-ups, whatever the frequency.
@@ -304,6 +312,7 @@ export default function CollectionHero({
                 <ButtonLink to={`${base}/join`} style={btnStyle}>
                   {t('login.signIn')}
                 </ButtonLink>
+                {donateButton}
               </div>
             </div>
           )}
@@ -322,6 +331,7 @@ export default function CollectionHero({
                   <Button style={btnStyle} disabled={joining} onClick={handleJoin}>
                     {joining ? t('joinToAct.joining') : t('collectionPage.visitorJoin')}
                   </Button>
+                  {donateButton}
                 </div>
                 {joinError && (
                   <p role="alert" style={{ color: 'var(--color-error)', marginBottom: 0 }}>
@@ -374,7 +384,7 @@ export default function CollectionHero({
                 uploaded to the bucket and all — to collect a 403 at the end.
                 They get the join button above instead, which is the thing that
                 actually unlocks it. */}
-              {(showInvite || collection.mode === 'COMMUNITY' || isDemo) && (
+              {(showInvite || collection.mode === 'COMMUNITY' || isDemo || showDonate) && (
                 <div className="button-row-wide">
                   {showInvite && (
                     <Button
@@ -397,6 +407,7 @@ export default function CollectionHero({
                       {t('collectionPage.leaveGroup')}
                     </ButtonLink>
                   )}
+                  {donateButton}
                 </div>
               )}
               {showInvite && recommendOpen && (

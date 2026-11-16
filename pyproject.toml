@@ -94,14 +94,24 @@ only_mutate = [
     # "core/serializers/user.py",
     # "core/services/asset_cleanup.py",
 ]
-# The locales are read by core/tests/unit/test_refusal_codes.py (every refusal
-# code must have a string in all three); without them in ./mutants the stats
-# run fails before a single mutant is tried.
+# What the backend tests read from outside core/, copied into ./mutants:
+#   - pytest.ini, manage.py, config/, conftest.py: Django and pytest start from
+#     them.
+#   - frontend/public: the email service reads the inline logo from disk.
+#   - frontend/src: the parity tests read their shared JSON cases
+#     (src/test/*Parity.json), the locales (every refusal code needs a string in
+#     all three), the stylesheet (the palette test compares it with the seeded
+#     colours) and utils/rental.js and the *.test.js files they mirror.
+#   - frontend/index.html, frontend/package.json: read by the app code the
+#     tests exercise (the SPA index and the link preview, the app palette).
+# Without any of them the stats run fails before a single mutant is tried.
 also_copy = [
     "pytest.ini",
     "manage.py",
     "config/",
     "conftest.py",
     "frontend/public",
-    "frontend/src/i18n/locales",
+    "frontend/src",
+    "frontend/index.html",
+    "frontend/package.json",
 ]

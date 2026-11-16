@@ -334,6 +334,7 @@ describe('the units field of the thing form', () => {
   test('axe finds nothing wrong with the form that asks', async () => {
     const { container } = await renderAdd(SHED);
     await unitsInput(container, 'add-thing');
+    await settle(apiFetch);
 
     expect(await axe(container)).toHaveNoViolations();
   });
@@ -424,6 +425,7 @@ describe('RequestThingPage — a booking with several units', () => {
     const urls = () =>
       apiFetch.mock.calls.map(([url]) => url).filter((url) => /\/calendar\//.test(url));
     await waitFor(() => expect(urls()).toEqual(['/api/v1/things/RSV01/calendar/?for=request']));
+    await settle(apiFetch);
   });
 
   test('says the one-at-a-time refusal in the reader’s language', async () => {
@@ -450,12 +452,14 @@ describe('RequestThingPage — a booking with several units', () => {
     ).toBeInTheDocument();
     // Not the generic "those dates are taken" this page says for any other 409.
     expect(screen.queryByText(en.request.dateOverlap)).toBeNull();
+    await settle(apiFetch);
   });
 
   test('axe finds nothing wrong with the page', async () => {
     setRequestApi();
     const { container } = renderRequest();
     await screen.findByText(/Reserve Lathe/);
+    await settle(apiFetch);
 
     expect(await axe(container)).toHaveNoViolations();
   });

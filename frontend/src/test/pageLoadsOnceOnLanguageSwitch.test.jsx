@@ -62,6 +62,7 @@ import JoinPage from '../pages/JoinPage';
 import SharePage from '../pages/SharePage';
 import OrganisationPage from '../pages/OrganisationPage';
 import EntityPage from '../pages/EntityPage';
+import DonatePage from '../pages/DonatePage';
 import CollectionAppearancePage from '../pages/CollectionAppearancePage';
 import CollectionNotificationsPage from '../pages/CollectionNotificationsPage';
 import CollectionAvailabilityPage from '../pages/CollectionAvailabilityPage';
@@ -227,6 +228,14 @@ const PAGES = [
     Page: EntityPage,
     route: '/collections/:code/organisation/:userCode',
     entry: '/collections/COL001/organisation/ABC123',
+    gets: ['/api/v1/collections/COL001/'],
+  },
+  {
+    name: 'DonatePage',
+    Page: DonatePage,
+    route: '/collections/:code/donate',
+    entry: '/collections/COL001/donate',
+    collection: { kind: 'LIBRARY', accepts_donations: true, donations_info: 'Bring books.' },
     gets: ['/api/v1/collections/COL001/'],
   },
   {

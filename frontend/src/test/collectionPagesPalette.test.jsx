@@ -23,6 +23,7 @@ import ImportInvitesPage from '../pages/ImportInvitesPage';
 import ImportThingsPage from '../pages/ImportThingsPage';
 import RemoveGuestPage from '../pages/RemoveGuestPage';
 import LeaveCollectionPage from '../pages/LeaveCollectionPage';
+import DonatePage from '../pages/DonatePage';
 import HomePage from '../pages/HomePage';
 
 /**
@@ -203,6 +204,7 @@ const PAGES = [
     '/collections/COL001/things/THG001/request',
   ],
   ['JoinPage', JoinPage, '/collections/:code/join', '/collections/COL001/join'],
+  ['DonatePage', DonatePage, '/collections/:code/donate', '/collections/COL001/donate'],
   ['SharePage', SharePage, '/share/:token', '/share/TOK'],
   ['AddThingPage', AddThingPage, '/collections/:code/add', '/collections/COL001/add'],
   [

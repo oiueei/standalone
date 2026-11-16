@@ -1,7 +1,23 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { IconDocumentGroup, Notification } from 'hds-react';
+import {
+  IconBell,
+  IconBellCrossed,
+  IconCalendarEvent,
+  IconCompany,
+  IconDocument,
+  IconDocumentGroup,
+  IconDownload,
+  IconGraphColumns,
+  IconGroup,
+  IconPlus,
+  IconQuestionCircle,
+  IconSignout,
+  IconUpload,
+  Notification,
+} from 'hds-react';
+import { IconInviteMany, IconRequestsToMe } from './icons/OiueeiIcons';
 import useDismissable from '../hooks/useDismissable';
 import useReceivesRequests from '../hooks/useReceivesRequests';
 import { curatorGuidePath } from '../deployment';
@@ -106,7 +122,10 @@ export default function CollectionMenu({
   const welcomeDocLabel = t('collectionPage.welcomeDoc');
   const digestButton = digest && (
     <button type="button" disabled={digest.busy} onClick={runAndClose(digest.toggle)}>
-      {digest.muted ? t('collectionMenu.unmuteDigest') : t('collectionMenu.muteDigest')}
+      {digest.muted ? <IconBell aria-hidden="true" /> : <IconBellCrossed aria-hidden="true" />}
+      <span>
+        {digest.muted ? t('collectionMenu.unmuteDigest') : t('collectionMenu.muteDigest')}
+      </span>
     </button>
   );
 
@@ -128,7 +147,8 @@ export default function CollectionMenu({
           {receivesRequests && (
             <>
               <Link to="/owner-bookings" onClick={close}>
-                {t('home.requestsToMe')}
+                <IconRequestsToMe aria-hidden="true" />
+                <span>{t('home.requestsToMe')}</span>
               </Link>
               <hr className="collection-menu-divider" />
             </>
@@ -145,32 +165,38 @@ export default function CollectionMenu({
               aria-label={`${welcomeDocLabel}. ${t('common.opensInNewTab')}`}
               onClick={close}
             >
-              {welcomeDocLabel}
+              <IconDocument aria-hidden="true" />
+              <span>{welcomeDocLabel}</span>
             </a>
           )}
           {isCurator ? (
             <>
               <Link to={`${base}/add`} onClick={close}>
-                {t('collectionPage.addThing')}
+                <IconPlus aria-hidden="true" />
+                <span>{t('collectionPage.addThing')}</span>
               </Link>
               {/* The CSV import used to be a line under an empty group's phrase, then a
                   section of the add page; it is a page of its own now
                   and this entry — curators only — is the way to it. */}
               <Link to={`${base}/import`} onClick={close}>
-                {t('collectionPage.addManyCsv')}
+                <IconUpload aria-hidden="true" />
+                <span>{t('collectionPage.addManyCsv')}</span>
               </Link>
               <Link to={`${base}/invites`} onClick={close}>
-                {t('collectionPage.manageGuests')}
+                <IconGroup aria-hidden="true" />
+                <span>{t('collectionPage.manageGuests')}</span>
               </Link>
               {/* Every curator has a page of their own in the group: the entity they answer for. */}
               <Link to={`${base}/organisation`} onClick={close}>
-                {t('organisation.menuEntry')}
+                <IconCompany aria-hidden="true" />
+                <span>{t('organisation.menuEntry')}</span>
               </Link>
               {/* The CSV of invitations, like the CSV of things above: it was the last
                   block of the members page, and it is a page of its own.
                   Curators only, as the invitations are. */}
               <Link to={`${base}/invites/import`} onClick={close}>
-                {t('bulkInvite.heading')}
+                <IconInviteMany aria-hidden="true" />
+                <span>{t('bulkInvite.heading')}</span>
               </Link>
               <hr className="collection-menu-divider" />
               {hasDateThings && (
@@ -179,7 +205,8 @@ export default function CollectionMenu({
                   disabled={calendar.downloading}
                   onClick={runAndClose(calendar.download)}
                 >
-                  {t('calendarExport.downloadButton')}
+                  <IconCalendarEvent aria-hidden="true" />
+                  <span>{t('calendarExport.downloadButton')}</span>
                 </button>
               )}
               <button
@@ -187,19 +214,22 @@ export default function CollectionMenu({
                 disabled={stats.downloading}
                 onClick={runAndClose(stats.download)}
               >
-                {t('stats.downloadStats')}
+                <IconGraphColumns aria-hidden="true" />
+                <span>{t('stats.downloadStats')}</span>
               </button>
               <button
                 type="button"
                 disabled={collectionExport.downloading}
                 onClick={runAndClose(collectionExport.download)}
               >
-                {t('collectionExport.downloadButton')}
+                <IconDownload aria-hidden="true" />
+                <span>{t('collectionExport.downloadButton')}</span>
               </button>
               {/* The deployment's guide for whoever runs a group, where it has one. */}
               {curatorGuidePath && (
                 <Link to={curatorGuidePath} onClick={close}>
-                  {t('curatorGuide.link')}
+                  <IconQuestionCircle aria-hidden="true" />
+                  <span>{t('curatorGuide.link')}</span>
                 </Link>
               )}
               {/* The summary goes to the whole team, the founder included, so whoever
@@ -218,7 +248,8 @@ export default function CollectionMenu({
               {/* The same link as "My groups" on the own profile, with the same state:
                   the confirmation page has nothing else to name the group with. */}
               <Link to={`${base}/leave`} state={{ headline }} onClick={close}>
-                {t('collectionPage.leaveGroup')}
+                <IconSignout aria-hidden="true" />
+                <span>{t('collectionPage.leaveGroup')}</span>
               </Link>
             </>
           )}
