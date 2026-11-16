@@ -148,7 +148,7 @@ export default function EntityPage() {
             const RowIcon = row.icon;
             return (
               <div className="thing-card-info-row" key={row.key}>
-                <RowIcon size="m" aria-hidden="true" />
+                <RowIcon aria-hidden="true" />
                 <span>{t(row.label, { value: row.value })}</span>
               </div>
             );

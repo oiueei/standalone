@@ -190,7 +190,7 @@ function ThingLinkbox({
         <ThingInfoRows thing={thing} isDateBased={isDateBased} hideType={hideType}>
           {thing.transfer_count > 0 && (
             <div className="thing-card-info-row">
-              <IconSwapUser size="m" aria-hidden="true" />
+              <IconSwapUser aria-hidden="true" />
               <span>
                 {t(
                   `transfers.${

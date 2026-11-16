@@ -30,14 +30,14 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
       {/* Type row — hidden when the collection allows only one thing type (redundant). */}
       {!hideType && (
         <div className="thing-card-info-row">
-          <IconTicket size="m" aria-hidden="true" />
+          <IconTicket aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.typeLabel')}</span>
           <span>{t('types.' + thing.type)}</span>
         </div>
       )}
       {hasAmount(thing.fee) && (
         <div className="thing-card-info-row">
-          <IconEuroSign size="m" aria-hidden="true" />
+          <IconEuroSign aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.priceLabel')}</span>
           <span>{thing.fee} €</span>
         </div>
@@ -48,7 +48,7 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
           plus a guarantee that comes back. */}
       {hasAmount(thing.deposit) && (
         <div className="thing-card-info-row">
-          <IconLock size="m" aria-hidden="true" />
+          <IconLock aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.depositLabel')}</span>
           <span>
             {thing.deposit} € {t('thingPage.depositRefundableNote')}
@@ -59,7 +59,7 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
       {/* Live availability (date-based things): computed from the booking calendar */}
       {isDateBased && (
         <div className="thing-card-info-row">
-          <IconCalendar size="m" aria-hidden="true" />
+          <IconCalendar aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
           <span>
             {thing.available_today
@@ -75,7 +75,7 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
       {/* Static availability hint (non-date types only) */}
       {!isDateBased && thing.availability && (
         <div className="thing-card-info-row">
-          <IconCalendar size="m" aria-hidden="true" />
+          <IconCalendar aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.availabilityLabel')}</span>
           <span>{t('availability.' + thing.availability)}</span>
         </div>
@@ -83,14 +83,14 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
       {/* How many identical ones a space has, only when there are several. */}
       {thing.units > 1 && (
         <div className="thing-card-info-row">
-          <IconLayers size="m" aria-hidden="true" />
+          <IconLayers aria-hidden="true" />
           <span>{t('thingPage.unitsCount', { count: thing.units })}</span>
         </div>
       )}
       {/* And how many of them are free today, for a loan or a rental with several. */}
       {thing.units > 1 && thing.units_free_today > 0 && (
         <div className="thing-card-info-row">
-          <IconCheckCircle size="m" aria-hidden="true" />
+          <IconCheckCircle aria-hidden="true" />
           <span>
             {t('thingPage.unitsFreeToday', { free: thing.units_free_today, units: thing.units })}
           </span>
@@ -100,7 +100,7 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
           stretch, in the format the page uses for every date. */}
       {thing.paused_from && thing.paused_until && (
         <div className="thing-card-info-row">
-          <IconCrossCircle size="m" aria-hidden="true" />
+          <IconCrossCircle aria-hidden="true" />
           <span>
             {thing.paused_from === thing.paused_until
               ? t('thingPage.pausedDay', { date: formatDate(thing.paused_from) })
@@ -113,14 +113,14 @@ export default function ThingInfoRows({ thing, isDateBased, hideType = false, le
       )}
       {thing.location && (
         <div className="thing-card-info-row">
-          <IconLocation size="m" aria-hidden="true" />
+          <IconLocation aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.locationLabel')}</span>
           <span>{thing.location}</span>
         </div>
       )}
       {thing.condition && (
         <div className="thing-card-info-row">
-          <IconShield size="m" aria-hidden="true" />
+          <IconShield aria-hidden="true" />
           <span className="thing-card-info-label">{t('thingPage.conditionLabel')}</span>
           <span>{t('condition.' + thing.condition)}</span>
         </div>
