@@ -55,7 +55,9 @@ function renderCollection(over = {}, { signedIn = true } = {}) {
   return render(
     <MemoryRouter initialEntries={['/library/COL001']}>
       <Routes>
-        <Route path="/library/:code" element={<CollectionPage />} />
+        {['library', 'stall', 'shed'].map((prefix) => (
+          <Route key={prefix} path={`/${prefix}/:code`} element={<CollectionPage />} />
+        ))}
       </Routes>
     </MemoryRouter>
   );

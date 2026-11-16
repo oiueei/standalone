@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import en from '../i18n/locales/en.json';
@@ -37,12 +37,22 @@ const COLLECTION = {
   donations_info: '# What we take\n\n- **Books** in good shape\n- Board games',
 };
 
+/** Shows where the router ended up, so a redirect is something a test can read. */
+function Where() {
+  return <output data-testid="where">{useLocation().pathname}</output>;
+}
+
+// Mounted under every prefix, as App.jsx does: a stall or a shed asked for at /library/…
+// is moved to its own prefix, and there has to be a route there to land on.
 function renderPage(data = COLLECTION, status = 200) {
   apiFetch.mockImplementation(() => Promise.resolve(json(data, status)));
   return render(
     <MemoryRouter initialEntries={['/library/COL001/donate']}>
+      <Where />
       <Routes>
-        <Route path="/library/:code/donate" element={<DonatePage />} />
+        {['library', 'stall', 'shed'].map((prefix) => (
+          <Route key={prefix} path={`/${prefix}/:code/donate`} element={<DonatePage />} />
+        ))}
       </Routes>
     </MemoryRouter>
   );
@@ -97,12 +107,17 @@ describe('DonatePage', () => {
   });
 
   test.each([
-    ['donations are off, with the text still stored', { accepts_donations: false }],
-    ['it is a stall carrying old data', { kind: 'STALL' }],
-    ['it is a shed carrying old data', { kind: 'SHED' }],
-  ])('there is no page when %s', async (_why, over) => {
+    ['donations are off, with the text still stored', { accepts_donations: false }, 'library'],
+    ['it is a stall carrying old data', { kind: 'STALL' }, 'stall'],
+    ['it is a shed carrying old data', { kind: 'SHED' }, 'shed'],
+  ])('there is no page when %s', async (_why, over, prefix) => {
     renderPage({ ...COLLECTION, ...over });
 
+    // The address first: the redirect to the kind's own prefix has to have happened before the
+    // page is judged, or "not found" could be read a moment before the router moves on.
+    await waitFor(() =>
+      expect(screen.getByTestId('where')).toHaveTextContent(`/${prefix}/COL001/donate`)
+    );
     expect(await screen.findByText('Page not found')).toBeInTheDocument();
     expect(screen.queryByText('Board games')).toBeNull();
   });
