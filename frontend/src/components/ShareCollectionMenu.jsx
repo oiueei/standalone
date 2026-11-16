@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   IconArrowRedo,
-  IconCamera,
   IconCopy,
   IconCrossCircle,
   IconEnvelope,
@@ -11,6 +10,7 @@ import {
   IconWhatsapp,
   LoadingSpinner,
 } from 'hds-react';
+import { IconQrCode } from './icons/OiueeiIcons';
 import ThemedDialog from './ThemedDialog';
 import useTheeeme from '../hooks/useTheeeme';
 import useDismissable from '../hooks/useDismissable';
@@ -167,7 +167,7 @@ export default function ShareCollectionMenu({
       label: t('shareMenu.whatsapp'),
       icon: <IconWhatsapp aria-hidden="true" />,
     },
-    { value: 'qr', label: t('shareMenu.qr'), icon: <IconCamera aria-hidden="true" /> },
+    { value: 'qr', label: t('shareMenu.qr'), icon: <IconQrCode aria-hidden="true" /> },
   ];
   // Taking a link back only exists for a PRIVATE collection (see above), and in a
   // network only for its founder (`canTakeBack`): the server refuses anyone else.

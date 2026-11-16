@@ -8,6 +8,7 @@ vi.mock('../services/api', () => ({ apiFetch: vi.fn() }));
 import { apiFetch } from '../services/api';
 import AccountMenu from './AccountMenu';
 import { press, settle } from '../test/settle';
+import { iconOf } from '../test/menuEntryIcon';
 
 expect.extend(toHaveNoViolations);
 
@@ -479,5 +480,25 @@ describe('AccountMenu — signed out', () => {
     const { container } = renderAt('/collections/COL001');
 
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe('AccountMenu — an icon before every entry', () => {
+  test('each entry opens with its own decorative icon and keeps its name', async () => {
+    meSays(true);
+    renderMenu();
+    await press(screen.getByRole('button', { name: /your account/i }));
+    await settle();
+
+    const icons = {
+      Home: 'home',
+      'My profile': 'user',
+      'My requests': 'my-requests',
+      'Requests to me': 'requests-to-me',
+      'Log out': 'signout',
+    };
+    for (const [name, icon] of Object.entries(icons)) {
+      expect(iconOf(screen.getByRole('link', { name }), name)).toBe(icon);
+    }
   });
 });

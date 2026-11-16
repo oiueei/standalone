@@ -103,3 +103,21 @@ describe('CollectionSettingsMenu', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+describe('CollectionSettingsMenu — an icon before every entry', () => {
+  test('each entry opens with its own decorative icon and keeps its name', async () => {
+    const { iconOf } = await import('../test/menuEntryIcon');
+    renderMenu('LIBRARY');
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+
+    const icons = {
+      General: 'general',
+      Appearance: 'theeemes',
+      Notifications: 'bell',
+      Availability: 'calendar',
+    };
+    for (const [name, icon] of Object.entries(icons)) {
+      expect(iconOf(screen.getByRole('link', { name }), name)).toBe(icon);
+    }
+  });
+});

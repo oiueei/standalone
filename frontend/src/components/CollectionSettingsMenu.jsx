@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { IconPenLine } from 'hds-react';
+import { IconBell, IconCalendar, IconPenLine } from 'hds-react';
+import { IconGeneral, IconTheeemes } from './icons/OiueeiIcons';
 import useDismissable from '../hooks/useDismissable';
 import { useCollectionBase } from '../hooks/useCollectionBase';
 import { collectionPath } from '../utils/collectionPath';
@@ -50,18 +51,22 @@ export default function CollectionSettingsMenu({ code, kind }) {
       {open && (
         <div id={PANEL_ID} className="collection-settings-menu-panel">
           <Link to={`${base}/edit`} onClick={close}>
-            {t('collectionSettings.general')}
+            <IconGeneral aria-hidden="true" />
+            <span>{t('collectionSettings.general')}</span>
           </Link>
           <Link to={`${base}/settings/appearance`} onClick={close}>
-            {t('collectionSettings.appearance')}
+            <IconTheeemes aria-hidden="true" />
+            <span>{t('collectionSettings.appearance')}</span>
           </Link>
           <Link to={`${base}/settings/notifications`} onClick={close}>
-            {t('collectionSettings.notifications')}
+            <IconBell aria-hidden="true" />
+            <span>{t('collectionSettings.notifications')}</span>
           </Link>
           {/* A stall has no request page, so nothing to say about when it can be asked for. */}
           {(kind === 'LIBRARY' || kind === 'SHED') && (
             <Link to={`${base}/settings/availability`} onClick={close}>
-              {t('collectionSettings.availability')}
+              <IconCalendar aria-hidden="true" />
+              <span>{t('collectionSettings.availability')}</span>
             </Link>
           )}
         </div>

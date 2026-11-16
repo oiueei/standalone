@@ -24,6 +24,7 @@ import { apiFetch } from '../services/api';
 import ShareCollectionMenu from './ShareCollectionMenu';
 import AccountMenu from './AccountMenu';
 import en from '../i18n/locales/en.json';
+import { iconOf } from '../test/menuEntryIcon';
 
 const props = {
   collectionCode: 'COL001',
@@ -515,5 +516,18 @@ describe('handing the link over', () => {
     );
     // … and what the person holding the phone up can check against it.
     expect(screen.getByText('http://x/share/NEWTOKEN')).toBeInTheDocument();
+  });
+});
+
+describe('ShareCollectionMenu — an icon before every entry', () => {
+  test('QR code wears OIUEEI’s own icon, not the camera, and every entry keeps its name', () => {
+    render(<ShareCollectionMenu {...props} isPublic={false} canTakeBack />);
+    openMenu();
+
+    expect(iconOf(screen.getByRole('button', { name: 'QR code' }), 'QR code')).toBe('qr-code');
+    expect(document.querySelector('svg[aria-label="camera"]')).toBeNull();
+    for (const name of ['Email', 'Copy invite link', 'WhatsApp', 'Rotate link', 'Stop sharing']) {
+      iconOf(screen.getByRole('button', { name }), name);
+    }
   });
 });
