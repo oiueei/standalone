@@ -440,11 +440,10 @@ describe('the share menu panel anchors to the corner row, and fits a 320px scree
   });
 
   test("the panel is pinned to the row's right edge, never wider than the screen", () => {
-    // At 320px the screen minus the page's two side paddings is 288px: the panel
-    // (min-width 12rem, the widest label "Copy invite link" + icon) fits inside it.
+    // The panel is as wide as its longest entry (`menuPanelWidth.test.jsx`), capped at
+    // the screen minus the page's two side paddings, 288px at 320px.
     expect(declarations('.share-menu-panel', 'position')).toEqual(['absolute']);
     expect(declarations('.share-menu-panel', 'right')).toEqual(['0']);
-    expect(declarations('.share-menu-panel', 'min-width')).toEqual(['12rem']);
     expect(declarations('.share-menu-panel', 'max-width')).toEqual([
       'calc(100vw - 2 * var(--spacing-s))',
     ]);

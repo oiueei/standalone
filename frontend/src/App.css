@@ -297,7 +297,9 @@ a.account-menu-trigger {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  min-width: 12rem;
+  /* As wide as the longest entry, each on one line; the cap is for a 320px screen,
+     where an entry longer than the screen may break. */
+  width: max-content;
   max-width: calc(100vw - 2 * var(--spacing-s));
   background-color: var(--color-white);
   border: 1px solid var(--color-black-20);
