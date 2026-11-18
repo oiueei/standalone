@@ -649,7 +649,7 @@
     "waitingOnYou": "Esperant la teva resposta",
     "noPending": "Ara mateix no hi ha res esperant-te.",
     "noBookings": "Encara ningú no t'ha demanat res.",
-    "colWhoWhen": "Qui i quan",
+    "colWho": "Qui",
     "requestedBy": "La demana {{name}}",
     "acceptTooltip": "Confirmar aquesta sol·licitud",
     "rejectTooltip": "Rebutjar aquesta sol·licitud",

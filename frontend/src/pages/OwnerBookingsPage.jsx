@@ -406,20 +406,15 @@ export default function OwnerBookingsPage() {
       ),
     },
     {
-      key: '_whoWhen',
-      headerName: t('ownerBookings.colWhoWhen'),
+      key: '_who',
+      headerName: t('ownerBookings.colWho'),
       transform: (row) => (
         <div className="table-cell-lines">
-          {/* Always shown: a requester who never set a name arrives as '' from
-              `requester_name` (the serializer never puts their address in the name's
-              place), and dropping the line entirely loses "who asked".
-              `common.aMember` is the same stand-in the inbox and the cards use. */}
-          <p>
-            {t('ownerBookings.requestedBy', {
-              name: row._requesterName || t('common.aMember'),
-            })}
-          </p>
-          {/* And the address itself, under the name, as a link: the
+          {/* The public name alone, as the person set it. With none there is no line
+              (the address below already says who it is); the dialogs that name them
+              in a sentence keep `common.aMember`. */}
+          {row._requesterName && <p>{row._requesterName}</p>}
+          {/* The address itself, under the name, as a link: the
               reader runs this thing, and the request email already carries it to them
               — the exception to never naming anyone by their address, the reader holds
               it. It arrives in
@@ -439,24 +434,29 @@ export default function OwnerBookingsPage() {
             </p>
           )}
           {/* What a library asked the borrower for, only for whoever manages the thing (the
-              server sends it to nobody else): four lines under the address, the address with
+              server sends it to nobody else): four lines under the address, each on its own with no label, the address with
               its own line breaks. Deleted when the loan is marked returned. */}
           {row._lendingContact && (
             <>
-              <p>
-                {t('lendingContact.fullName')}: {row._lendingContact.full_name}
-              </p>
-              <p className="table-cell-line--pre-line">
-                {t('lendingContact.address')}: {row._lendingContact.address}
-              </p>
-              <p>
-                {t('lendingContact.phone')}: {row._lendingContact.phone}
-              </p>
-              <p>
-                {t('lendingContact.identityDocument')}: {row._lendingContact.identity_document}
-              </p>
+              <p>{row._lendingContact.full_name}</p>
+              <p className="table-cell-line--pre-line">{row._lendingContact.address}</p>
+              <p>{row._lendingContact.phone}</p>
+              <p>{row._lendingContact.identity_document}</p>
             </>
           )}
+          {row._projectNote && (
+            <p className="table-cell-line--note">
+              {t('reservation.noteFrom', { note: row._projectNote })}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: '_when',
+      headerName: t('myBookings.colWhen'),
+      transform: (row) => (
+        <div className="table-cell-lines">
           <p>
             {t('myBookings.requested', {
               date: formatDate(row._created),
@@ -471,11 +471,6 @@ export default function OwnerBookingsPage() {
           {row._returnedAt && (
             <p className="table-cell-line--muted">
               {t('ownerBookings.returnedOn', { date: formatDate(row._returnedAt) })}
-            </p>
-          )}
-          {row._projectNote && (
-            <p className="table-cell-line--note">
-              {t('reservation.noteFrom', { note: row._projectNote })}
             </p>
           )}
         </div>

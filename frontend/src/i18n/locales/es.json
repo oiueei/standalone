@@ -649,7 +649,7 @@
     "waitingOnYou": "Esperando tu respuesta",
     "noPending": "Ahora mismo no hay nada esperándote.",
     "noBookings": "Todavía nadie te ha pedido nada.",
-    "colWhoWhen": "Quién y cuándo",
+    "colWho": "Quién",
     "requestedBy": "La pide {{name}}",
     "acceptTooltip": "Confirmar esta solicitud",
     "rejectTooltip": "Rechazar esta solicitud",

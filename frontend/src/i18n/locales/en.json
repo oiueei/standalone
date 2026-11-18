@@ -655,7 +655,7 @@
     "waitingOnYou": "Waiting on you",
     "noPending": "Nothing waiting on you right now.",
     "noBookings": "Nobody has requested anything from you yet.",
-    "colWhoWhen": "Who and when",
+    "colWho": "Who",
     "requestedBy": "Asked by {{name}}",
     "acceptTooltip": "Confirm this request",
     "rejectTooltip": "Decline this request",

@@ -86,7 +86,7 @@ describe('OwnerBookingsPage in a network', () => {
     mockApi([{ results: [booking({ can_decide: false })], next: null }]);
     renderPage();
 
-    await screen.findByText('Asked by Lele');
+    await screen.findByText('Lele');
 
     expect(screen.getAllByRole('button', { name: /decline|reject/i }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('button', { name: /confirm|accept/i })).not.toBeInTheDocument();
@@ -96,7 +96,7 @@ describe('OwnerBookingsPage in a network', () => {
     mockApi([{ results: [booking({ can_decide: true })], next: null }]);
     renderPage();
 
-    await screen.findByText('Asked by Lele');
+    await screen.findByText('Lele');
 
     expect(screen.getAllByRole('button', { name: /confirm|accept/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('button', { name: /decline|reject/i }).length).toBeGreaterThan(0);
@@ -122,7 +122,7 @@ describe('OwnerBookingsPage listing', () => {
     renderPage();
 
     // The column an owner needs that the requester's page doesn't have: who asked.
-    expect(await screen.findByText('Asked by Lele')).toBeInTheDocument();
+    expect(await screen.findByText('Lele')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Cordless drill' })).toHaveAttribute(
       'href',
       '/things/THG001'
@@ -131,10 +131,10 @@ describe('OwnerBookingsPage listing', () => {
     expect(screen.getByRole('heading', { name: 'Past requests' })).toBeInTheDocument();
   });
 
-  test('the thing and its group are one column; who asked, when and the note are the next', async () => {
-    // The first column used to hold six lines. "Thing" is the link
-    // and the group it is in; "Who and when" is who asked, the request date, the
-    // dates (or "No dates") and, for a reservation, the project note.
+  test('the thing and its group are one column; who asked and when are two more, each with its own lines', async () => {
+    // "Thing" is the link and the group it is in; "Who" is what the person said
+    // (name, address, contact details, the project note); "When" is the request
+    // date, the dates (or "No dates") and the reminder / return dates.
     mockApi([
       {
         results: [
@@ -143,6 +143,9 @@ describe('OwnerBookingsPage listing', () => {
             collection_headline: 'Tool library',
             collection_code: 'COL001',
             project_note: 'Painting the hall',
+            requester_email: 'lele@your-domain.test',
+            return_reminded_at: '2026-08-02T10:00:00Z',
+            returned_at: '2026-08-03T10:00:00Z',
           }),
         ],
         next: null,
@@ -154,20 +157,32 @@ describe('OwnerBookingsPage listing', () => {
     const headers = within(screen.getAllByRole('table')[0])
       .getAllByRole('columnheader')
       .map((th) => th.textContent);
-    expect(headers).toEqual(['Thing', 'Who and when', 'Status', 'Actions']);
+    expect(headers).toEqual(['Thing', 'Who', 'When', 'Status', 'Actions']);
 
-    const [thing, whoWhen] = within(
+    const [thing, who, when] = within(
       screen.getByRole('link', { name: 'Cordless drill' }).closest('tr')
     ).getAllByRole('cell');
     expect(within(thing).getByRole('link', { name: 'Cordless drill' })).toBeInTheDocument();
     expect(thing).toHaveTextContent('Tool library');
     expect(thing).not.toHaveTextContent(/Asked by/);
-    expect(whoWhen).toHaveTextContent('Asked by Lele');
-    expect(whoWhen).toHaveTextContent(/Requested/);
-    expect(whoWhen).toHaveTextContent('01/09/2025');
-    // The project note is in this cell too, not in the first.
-    expect(whoWhen).toHaveTextContent('Painting the hall');
     expect(thing).not.toHaveTextContent('Painting the hall');
+
+    expect(who.querySelector('p').textContent).toBe('Lele');
+    expect(who).not.toHaveTextContent('Asked by');
+    expect(within(who).getByRole('link', { name: 'lele@your-domain.test' })).toBeInTheDocument();
+    expect(who).toHaveTextContent('Painting the hall');
+    expect(who).not.toHaveTextContent(/Requested/);
+    expect(who).not.toHaveTextContent('01/09/2025');
+    expect(who).not.toHaveTextContent(/Reminded on/);
+    expect(who).not.toHaveTextContent(/Returned on/);
+
+    expect(when).toHaveTextContent(/Requested/);
+    expect(when).toHaveTextContent('01/09/2025');
+    expect(when).toHaveTextContent(/Reminded on/);
+    expect(when).toHaveTextContent(/Returned on/);
+    expect(when).not.toHaveTextContent('Asked by');
+    expect(when).not.toHaveTextContent('lele@your-domain.test');
+    expect(when).not.toHaveTextContent('Painting the hall');
   });
 
   test('the lines of a cell touch: they carry the shared class and no margin of their own', async () => {
@@ -178,7 +193,7 @@ describe('OwnerBookingsPage listing', () => {
     const cells = within(
       screen.getByRole('link', { name: 'Cordless drill' }).closest('tr')
     ).getAllByRole('cell');
-    for (const cell of cells.slice(0, 2)) {
+    for (const cell of cells.slice(0, 3)) {
       expect(cell.querySelector('.table-cell-lines')).not.toBeNull();
       for (const line of cell.querySelectorAll('p')) {
         expect(line.getAttribute('style')).toBeNull();
@@ -389,6 +404,15 @@ describe('OwnerBookingsPage cancelling a member’s reservation', () => {
     expect(postUrls()).toEqual([]);
   });
 
+  test('the dialog still says "Asked by A member" for a requester with no name, though the cell has no line', async () => {
+    mockApi([{ results: [{ ...reservation, requester_name: '' }], next: null }]);
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel reservation' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Cancel this reservation?' });
+    expect(dialog).toHaveTextContent('Asked by A member');
+  });
+
   test('confirming cancels it once and tells the curator the member was told', async () => {
     mockApi([{ results: [reservation], next: null }]);
     renderPage();
@@ -526,9 +550,16 @@ describe('OwnerBookingsPage on a phone', () => {
       'href',
       '/things/THG001'
     );
-    expect(within(card).getByText('Asked by Lele')).toBeInTheDocument();
+    expect(within(card).getByText('Lele')).toBeInTheDocument();
     expect(within(card).getByText('Requested 01/08/2026')).toBeInTheDocument();
     expect(within(card).getByText('01/09/2025 — 08/09/2025')).toBeInTheDocument();
+    // Who comes before When, as the two columns do.
+    expect(
+      within(card)
+        .getByText('Lele')
+        .compareDocumentPosition(within(card).getByText('Requested 01/08/2026')) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
     expect(within(card).getByText('Lend')).toBeInTheDocument();
     expect(within(card).getByText('Pending')).toBeInTheDocument();
     expect(within(card).getByRole('button', { name: 'Confirm this request' })).toBeVisible();
@@ -760,13 +791,13 @@ describe('OwnerBookingsPage — the bold links of the table', () => {
 
 // The request email already carries the requester's address to
 // every manager of the thing and the API sends it in `requester_email`; the page
-// is the other place a manager looks for it, so it sits under "Asked by …" as a link
+// is the other place a manager looks for it, so it sits under the name as a link
 // they can write from. Table and phone card are painted from the same cell, so one
 // test each says it.
 describe('OwnerBookingsPage — the requester’s address under the name', () => {
   const asked = (over = {}) => booking({ requester_email: 'lele@your-domain.test', ...over });
 
-  test('in the table it is a mailto link right under "Asked by …"', async () => {
+  test('in the table it is a mailto link right under the name', async () => {
     mockApi([{ results: [asked()], next: null }]);
     renderPage();
 
@@ -776,8 +807,9 @@ describe('OwnerBookingsPage — the requester’s address under the name', () =>
       within(screen.getAllByRole('table')[0]).getByRole('link', { name: 'lele@your-domain.test' })
     ).toBe(link);
     // Its own line, directly under the name's.
-    expect(link.closest('p').previousElementSibling).toHaveTextContent('Asked by Lele');
-    expect(link.closest('p').nextElementSibling).toHaveTextContent('Requested 01/08/2026');
+    expect(link.closest('p').previousElementSibling.textContent).toBe('Lele');
+    // Nothing after it in the Who cell: the request date is in When.
+    expect(link.closest('p').nextElementSibling).toBeNull();
   });
 
   test('on a phone it is in the card, the same link', async () => {
@@ -790,7 +822,7 @@ describe('OwnerBookingsPage — the requester’s address under the name', () =>
       const [card] = within(list).getAllByRole('listitem');
       const link = within(card).getByRole('link', { name: 'lele@your-domain.test' });
       expect(link).toHaveAttribute('href', 'mailto:lele@your-domain.test');
-      expect(link.closest('p').previousElementSibling).toHaveTextContent('Asked by Lele');
+      expect(link.closest('p').previousElementSibling.textContent).toBe('Lele');
       expect(screen.queryByRole('table')).toBeNull();
     } finally {
       media.restore();
@@ -824,14 +856,16 @@ describe('OwnerBookingsPage — the requester’s address under the name', () =>
     );
   });
 
-  test('a requester with no name is still "A member" and still has the address to write to', async () => {
+  test('a requester with no name has no name line: the cell opens with the address, and no "A member"', async () => {
     mockApi([{ results: [asked({ requester_name: '' })], next: null }]);
     renderPage();
 
-    expect(await screen.findByText('Asked by A member')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'lele@your-domain.test' })).toBeInTheDocument();
-    // …and the address does not take the name's place.
-    expect(screen.queryByText('Asked by lele@your-domain.test')).toBeNull();
+    const link = await screen.findByRole('link', { name: 'lele@your-domain.test' });
+    const who = link.closest('.table-cell-lines');
+    expect(who.firstElementChild).toBe(link.closest('p'));
+    expect(who).not.toHaveTextContent('A member');
+    expect(who).not.toHaveTextContent('Asked by');
+    expect([...who.querySelectorAll('p')].some((p) => p.textContent.trim() === '')).toBe(false);
   });
 
   test.each([
@@ -844,7 +878,7 @@ describe('OwnerBookingsPage — the requester’s address under the name', () =>
       mockApi([{ results: [booking({ requester_email: value })], next: null }]);
       renderPage();
 
-      expect(await screen.findByText('Asked by Lele')).toBeInTheDocument();
+      expect(await screen.findByText('Lele')).toBeInTheDocument();
       expect(document.querySelector('a[href^="mailto:"]')).toBeNull();
       expect(screen.getByText('Requested 01/08/2026')).toBeInTheDocument();
     }
@@ -1206,7 +1240,7 @@ describe('OwnerBookingsPage — the contact phone under the address', () => {
     mockApi([{ results: [asked({ contact_phone: value })], next: null }]);
     renderPage();
 
-    expect(await screen.findByText('Asked by Lele')).toBeInTheDocument();
+    expect(await screen.findByText('Lele')).toBeInTheDocument();
     expect(document.querySelector('a[href^="tel:"]')).toBeNull();
     expect(screen.getByRole('link', { name: 'lele@your-domain.test' })).toBeInTheDocument();
   });
@@ -1568,10 +1602,10 @@ describe('OwnerBookingsPage — the contact details a library asked the borrower
       ...over,
     });
   const lines = (scope) => [
-    scope.getByText('Full name: Laura Pérez Gómez'),
-    scope.getByText(/^Address: C\/ de la Fusteria 12, 3r 2a/),
-    scope.getByText('Phone: +34 600 000 000'),
-    scope.getByText('Identity document: 12345678Z'),
+    scope.getByText('Laura Pérez Gómez'),
+    scope.getByText(/^C\/ de la Fusteria 12, 3r 2a/),
+    scope.getByText('+34 600 000 000'),
+    scope.getByText('12345678Z'),
   ];
 
   test('the four lines sit under the address, the address with its own line breaks', async () => {
@@ -1584,6 +1618,20 @@ describe('OwnerBookingsPage — the contact details a library asked the borrower
     const email = screen.getByRole('link', { name: 'lele@your-domain.test' }).closest('p');
     expect(email.nextElementSibling).toBe(name);
     expect([name, address, phone, document].map((p) => p.tagName)).toEqual(['P', 'P', 'P', 'P']);
+  });
+
+  test('the four go bare, with no "Full name:", "Address:", "Phone:" or "Identity document:" in front', async () => {
+    mockApi([{ results: [loan()], next: null }]);
+    renderPage();
+
+    const [name, address, phone, document] = lines(within(await screen.findByRole('table')));
+    expect(name.textContent).toBe('Laura Pérez Gómez');
+    expect(address.textContent).toBe('C/ de la Fusteria 12, 3r 2a\n08003 Barcelona');
+    expect(phone.textContent).toBe('+34 600 000 000');
+    expect(document.textContent).toBe('12345678Z');
+    expect(screen.getByRole('table')).not.toHaveTextContent(
+      /Full name|Address:|Phone:|Identity document/
+    );
   });
 
   test('a request with none (or an older payload) shows no such lines', async () => {
@@ -1599,8 +1647,8 @@ describe('OwnerBookingsPage — the contact details a library asked the borrower
     renderPage();
 
     await screen.findAllByText('Ladder');
-    expect(screen.queryByText(/^Identity document:/)).toBeNull();
-    expect(screen.queryByText(/^Full name:/)).toBeNull();
+    expect(screen.queryByText('12345678Z')).toBeNull();
+    expect(screen.queryByText('Laura Pérez Gómez')).toBeNull();
   });
 
   test('on a phone the card carries them too', async () => {
@@ -1618,7 +1666,7 @@ describe('OwnerBookingsPage — the contact details a library asked the borrower
   test('the table has no axe violations with them', async () => {
     mockApi([{ results: [loan()], next: null }]);
     const { container } = renderPage();
-    await screen.findByText('Full name: Laura Pérez Gómez');
+    await screen.findByText('Laura Pérez Gómez');
 
     await settle(apiFetch);
     expect(await axe(container, { rules: { region: { enabled: false } } })).toHaveNoViolations();
