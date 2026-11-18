@@ -1266,6 +1266,7 @@
     "not_a_member": "Tienes que ser miembro de este grupo para reservar.",
     "not_available": "Ahora mismo no está disponible.",
     "not_awaiting_return": "Esto ya no está pendiente de devolución.",
+    "not_on_loan": "Esto no es un préstamo en curso.",
     "priced_things_remain": "Algunas cosas de este grupo tienen precio. Quítaselo o retíralas antes de quitar a los miembros la opción de poner precio.",
     "opening_hours_required": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
     "units_below_booked": "Hay reservas que necesitan al menos {{min}} a la vez.",

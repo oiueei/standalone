@@ -232,6 +232,10 @@ class BookingPeriod(models.Model):
     # is capped at one nudge a day, so this is the timestamp that answers
     # "was it already today?" — see `can_be_return_reminded`.
     return_reminded_at = models.DateTimeField(null=True, blank=True)
+    # When whoever manages the thing said the loan came back
+    # (`/bookings/{code}/returned/`). Null = nobody has said so, which is also what
+    # every loan from before the field looks like. Nullable, so no `db_default`.
+    returned_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=9, choices=Status.choices, default=Status.PENDING, db_index=True
     )
@@ -290,6 +294,8 @@ class BookingPeriod(models.Model):
         """
         if self.status != self.Status.ACCEPTED or self.thing_type not in RETURNABLE_TYPES:
             return False
+        if self.returned_at is not None:
+            return False
         today = today or timezone.localdate()
         if not self.start_date or not self.end_date or self.end_date >= today:
             return False
@@ -302,6 +308,18 @@ class BookingPeriod(models.Model):
                 start_date__lte=today,
             ).exists()
         return not lent_again
+
+    def can_be_marked_returned(self, today=None):
+        """Whether a manager may say "it came back" about this booking: an ACCEPTED loan
+        or rental that has started (``start_date`` today or earlier) and that nobody has
+        marked returned yet. Overdue or not: a loan still inside its dates may also come
+        back early. Reads only the row, so the /owner-bookings/ serializer costs no
+        query per row; the endpoint asks it again under the row lock."""
+        if self.status != self.Status.ACCEPTED or self.thing_type not in RETURNABLE_TYPES:
+            return False
+        if self.returned_at is not None or self.start_date is None:
+            return False
+        return self.start_date <= (today or timezone.localdate())
 
     def accept(self):
         """Accept the booking request."""

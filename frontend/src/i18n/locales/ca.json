@@ -1266,6 +1266,7 @@
     "not_a_member": "Has de ser membre d'aquest grup per reservar.",
     "not_available": "Ara mateix no està disponible.",
     "not_awaiting_return": "Això ja no està pendent de retorn.",
+    "not_on_loan": "Això no és un préstec en curs.",
     "priced_things_remain": "Algunes coses d'aquest grup tenen preu. Treu-los-el o retira-les abans de treure als membres l'opció de posar preu.",
     "opening_hours_required": "Per reservar per hores, posa almenys una franja a «Horari setmanal».",
     "units_below_booked": "Hi ha reserves que necessiten almenys {{min}} alhora.",

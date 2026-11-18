@@ -662,3 +662,55 @@ class TestTwoRemindersAtOnceSendOne:
         assert not errors, f"a press raised instead of answering: {errors!r}"
         assert sorted(statuses) == [200, 429], statuses
         assert [m.to for m in mail.outbox] == [[user2.email]]
+
+
+# ── Marking a loan returned: two presses at once mark it once ─────────────────
+# `BookingReturnedView` re-reads the booking under `select_for_update()` and
+# judges `can_be_marked_returned` again inside the lock. Unlocked, both presses read
+# "not returned yet" and both write; locked, the second waits for the first to
+# commit, finds `returned_at` set and is refused.
+
+
+class TestTwoReturnsAtOnceMarkOne:
+    def test_the_second_press_waits_and_is_refused(self, monkeypatch, user, user2):
+        group = Collection.objects.create(
+            code="RTRC01", owner=user, headline="Taller", kind=Collection.Kind.LIBRARY
+        )
+        group.invites.add(user2)
+        drill = Thing.objects.create(code="RTRT01", owner=user, headline="Drill", type="LEND_THING")
+        group.things.add(drill)
+        today = date.today()
+        booking = BookingPeriod.objects.create(
+            thing_code=drill,
+            thing_type=drill.type,
+            requester_code=user2,
+            requester_email=user2.email,
+            owner_code=user,
+            start_date=today - timedelta(days=3),
+            end_date=today + timedelta(days=4),
+            status=BookingPeriod.Status.ACCEPTED,
+        )
+        token = RefreshToken.for_user(user).access_token
+
+        def press():
+            client = APIClient()
+            client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+            return client.post(f"/api/v1/bookings/{booking.code}/returned/").status_code
+
+        def first(guard):
+            # The write happens inside the transaction, with the row locked: hold it
+            # there until the second press has run into the lock.
+            original = BookingPeriod.save
+            monkeypatch.setattr(BookingPeriod, "save", _one_shot(original, guard))
+            try:
+                return press()
+            finally:
+                monkeypatch.setattr(BookingPeriod, "save", original)
+
+        first_status, second_status, was_blocked = _run_both(first, press)
+
+        assert was_blocked, "the second press read straight past the lock"
+        assert sorted([first_status, second_status]) == [200, 400], (first_status, second_status)
+        booking.refresh_from_db()
+        assert booking.returned_at is not None
+        assert booking.end_date == today
