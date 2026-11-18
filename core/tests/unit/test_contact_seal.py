@@ -1,17 +1,29 @@
-"""Sealing a borrower's contact details: `core.services.lending_contact`.
+"""Sealing contact details at rest: `core.services.contact_seal`.
 
 What matters is what the column never holds (the details as readable text), that a token
 nobody can open is `None` and not a 500, and that the key follows `SECRET_KEY`.
 """
 
+import base64
 import json
 
 import pytest
 from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from django.conf import settings
 from django.db import connection
 
 from core.models import BookingPeriod, Thing, User
-from core.services.lending_contact import _fernet, seal, unseal
+from core.services.contact_seal import (
+    LENDING_INFO,
+    _fernet,
+    is_sealed_phone,
+    seal,
+    seal_phone,
+    unseal,
+    unseal_phone,
+)
 
 DETAILS = {
     "full_name": "Laura Pérez Gómez",
@@ -60,12 +72,12 @@ class TestWhatCannotBeOpenedIsNone:
         assert unseal(token) is None
 
     def test_a_valid_token_of_this_key_that_holds_no_mapping(self):
-        token = _fernet().encrypt(json.dumps(["not", "a", "mapping"]).encode()).decode()
+        token = _fernet(LENDING_INFO).encrypt(json.dumps(["not", "a", "mapping"]).encode()).decode()
 
         assert unseal(token) is None
 
     def test_a_valid_token_that_is_not_json(self):
-        assert unseal(_fernet().encrypt(b"plain words").decode()) is None
+        assert unseal(_fernet(LENDING_INFO).encrypt(b"plain words").decode()) is None
 
     def test_a_token_made_with_a_key_that_is_not_derived_from_the_secret(self):
         assert unseal(Fernet(Fernet.generate_key()).encrypt(b"{}").decode()) is None
@@ -105,3 +117,78 @@ class TestTheColumnNeverHoldsThemInTheClear:
         for secret in ("12345678Z", "Laura", "Pérez", "Fusteria", "600 000 000"):
             assert secret not in raw
         assert unseal(BookingPeriod.objects.get(pk=booking.pk).lending_contact) == DETAILS
+
+
+class TestThePhone:
+    """A reservation's phone: the same sealing, with a key of its own."""
+
+    def test_what_is_sealed_comes_back(self):
+        assert unseal_phone(seal_phone("+34 600 123 456")) == "+34 600 123 456"
+
+    def test_the_token_does_not_show_the_number(self):
+        token = seal_phone("600123456")
+
+        assert "600123456" not in token
+        assert is_sealed_phone(token)
+
+    def test_nothing_to_seal_is_empty(self):
+        assert seal_phone("") == ""
+        assert seal_phone("   ") == ""
+        assert seal_phone(None) == ""
+
+    def test_the_spaces_around_it_do_not_stay(self):
+        assert unseal_phone(seal_phone("  600123456  ")) == "600123456"
+
+    @pytest.mark.parametrize("empty", ["", None])
+    def test_an_empty_value_is_empty(self, empty):
+        assert unseal_phone(empty) == ""
+
+    def test_a_token_of_another_key_is_empty(self):
+        foreign = Fernet(Fernet.generate_key()).encrypt(b"600123456").decode()
+
+        assert unseal_phone(foreign) == ""
+
+    def test_a_tampered_token_is_empty(self):
+        token = seal_phone("600123456")
+        flipped = token[:-6] + ("A" if token[-6] != "A" else "B") + token[-5:]
+
+        assert unseal_phone(flipped) == ""
+
+    def test_a_loan_token_does_not_open_as_a_phone_and_the_phone_not_as_a_loan(self):
+        # Two keys, two `info`s: a token of one is no token of the other.
+        assert unseal_phone(seal(DETAILS)) == ""
+        assert unseal(seal_phone("600123456")) is None
+
+    def test_other_text_that_is_no_phone_is_empty(self):
+        assert unseal_phone("not a phone at all") == ""
+        assert unseal_phone("12345") == ""  # fewer than six digits
+        assert unseal_phone("6" * 33) == ""  # longer than a phone
+
+    def test_a_phone_left_in_plain_text_by_the_release_before_is_read_as_it_is(self):
+        assert unseal_phone("+34 600 123 456") == "+34 600 123 456"
+        assert unseal_phone("(93) 123-45.67") == "(93) 123-45.67"
+
+    def test_a_plain_phone_is_not_a_sealed_one(self):
+        assert not is_sealed_phone("600123456")
+        assert not is_sealed_phone("")
+
+    def test_rotating_the_secret_key_leaves_it_empty(self, settings):
+        token = seal_phone("600123456")
+        settings.SECRET_KEY = "another-secret-key-not-the-first-0123456789"
+
+        assert unseal_phone(token) == ""
+
+
+class TestLoanDetailsSealedBeforeStillOpen:
+    """The loan's key is unchanged by the module's new shape, or what is stored would
+    be unreadable."""
+
+    def test_a_token_made_with_the_info_of_before_opens(self):
+        key = HKDF(
+            algorithm=hashes.SHA256(), length=32, salt=None, info=b"oiueei-lending-contact"
+        ).derive(settings.SECRET_KEY.encode())
+        token = Fernet(base64.urlsafe_b64encode(key)).encrypt(
+            json.dumps(DETAILS, ensure_ascii=False, sort_keys=True).encode()
+        )
+
+        assert unseal(token.decode()) == DETAILS

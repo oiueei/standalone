@@ -10,17 +10,17 @@ from rest_framework import serializers
 from rest_framework.exceptions import ErrorDetail
 
 from core.models.booking import BookingPeriod
-from core.services.lending_contact import unseal
+from core.services.contact_seal import (
+    CONTACT_PHONE_MIN_DIGITS,
+    CONTACT_PHONE_PATTERN,
+    unseal,
+    unseal_phone,
+)
 from core.validators import SafeHeadlineField, SafeTextField
 
 # Bookings/orders can't be placed more than ~3 months ahead — matches the
 # frontend's today+90 cap and the availability horizon.
 MAX_BOOKING_HORIZON_DAYS = 90
-
-# A contact phone: digits and the punctuation people type around them, at least six
-# digits, at most the column's 32 characters.
-CONTACT_PHONE_PATTERN = re.compile(r"^[0-9 +().-]{6,32}$")
-CONTACT_PHONE_MIN_DIGITS = 6
 
 # The four details a library may ask a borrower for, in the order the form shows them. All
 # four are required whenever the library asks.
@@ -161,7 +161,7 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             return ""
         if obj.end_date is not None and obj.end_date <= timezone.localdate():
             return ""
-        return obj.contact_phone
+        return unseal_phone(obj.contact_phone)
 
     def get_can_decide(self, obj):
         request = self.context.get("request")

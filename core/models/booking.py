@@ -193,12 +193,14 @@ class BookingPeriod(models.Model):
     project_note = models.CharField(max_length=512, blank=True, default="")
     # RESERVE_THING only, and only when the collection asks for it
     # (``Collection.reservation_asks_phone``): an optional phone number for a
-    # same-day problem. Served to whoever manages the reservation, blank from the
-    # day after it (``BookingPeriodSerializer``) and emptied for good by
-    # ``purge_expired_data``. Never in an email or the calendar export. The
-    # database default is for the previous release's dynos, which insert without
-    # naming the column.
-    contact_phone = models.CharField(max_length=32, blank=True, default="", db_default="")
+    # same-day problem. Kept **sealed** (``core.services.contact_seal``), never as
+    # readable text: the column is a ``TextField`` because a token does not fit
+    # 32 characters (the request serializer caps the number itself at 32). Served,
+    # opened, to whoever manages the reservation, blank from the day after it
+    # (``BookingPeriodSerializer``) and emptied for good by ``purge_expired_data``.
+    # Never in an email or the calendar export. The database default is for the
+    # previous release's dynos, which insert without naming the column.
+    contact_phone = models.TextField(blank=True, default="", db_default="")
     # LEND/RENT of a thing with several identical units: how many this request
     # holds. 1 everywhere else (a reservation takes one space, a gift or a sale one
     # thing). ``saturated_periods`` weighs each booking by it. The database default is
@@ -206,7 +208,7 @@ class BookingPeriod(models.Model):
     quantity = models.PositiveSmallIntegerField(default=1, db_default=1)
     # LEND/RENT in a library that asks (``Collection.lending_asks_contact``): the borrower's
     # full name, address, phone and identity document as one **sealed** JSON token
-    # (``core.services.lending_contact``), never readable in the column. Empty = nobody left
+    # (``core.services.contact_seal``), never readable in the column. Empty = nobody left
     # any. Served, opened, to whoever manages the thing; emptied when the loan is marked
     # returned, when the request is rejected, cancelled or expires, and by
     # ``purge_expired_data`` 90 days after the return date. Never in an email, the

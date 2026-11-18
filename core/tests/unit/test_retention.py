@@ -35,6 +35,7 @@ from core.models import (
     User,
 )
 from core.models.invitation_record import INVITE_RECORD_MONTHS, address_hash
+from core.services.contact_seal import is_sealed_phone, seal_phone, unseal_phone
 
 pytestmark = pytest.mark.django_db
 
@@ -714,7 +715,7 @@ class TestReservationPhones:
         _run(commit=True)
 
         today.refresh_from_db()
-        assert today.contact_phone == "600123456"
+        assert unseal_phone(today.contact_phone) == "600123456"
 
     def test_a_cancelled_reservation_that_is_over_is_emptied_too(self, user, user2):
         cancelled = self._booking(
@@ -746,6 +747,48 @@ class TestReservationPhones:
         assert "phones emptied (the day after the booking): 1" in output
         old.refresh_from_db()
         assert old.contact_phone == "600123456"
+
+    def test_a_phone_left_in_plain_text_is_sealed_while_it_lives(self, user, user2):
+        # What a dyno of the release before the sealing writes while a release runs.
+        live = self._booking(user, user2, "PHPLN1", end_offset=3)
+        assert live.contact_phone == "600123456"
+
+        output = _run(commit=True)
+
+        live.refresh_from_db()
+        assert is_sealed_phone(live.contact_phone)
+        assert unseal_phone(live.contact_phone) == "600123456"
+        assert "Reservation contact phones sealed (left in plain text): 1" in output
+        # …and no row still living holds a number as readable text.
+        assert not BookingPeriod.objects.exclude(contact_phone="").exclude(pk=live.pk).exists()
+
+    def test_a_dry_run_counts_the_plain_phones_and_seals_none(self, user, user2):
+        live = self._booking(user, user2, "PHPLN2", end_offset=3)
+
+        output = _run()
+
+        assert "Reservation contact phones sealed (left in plain text): 1" in output
+        live.refresh_from_db()
+        assert live.contact_phone == "600123456"
+
+    def test_a_phone_already_sealed_is_not_sealed_again(self, user, user2):
+        live = self._booking(user, user2, "PHPLN3", end_offset=3)
+        BookingPeriod.objects.filter(pk=live.pk).update(contact_phone=seal_phone("600123456"))
+        token = BookingPeriod.objects.get(pk=live.pk).contact_phone
+
+        output = _run(commit=True)
+
+        assert "sealed (left in plain text): 0" in output
+        assert BookingPeriod.objects.get(pk=live.pk).contact_phone == token
+
+    def test_an_expired_plain_phone_is_emptied_not_sealed(self, user, user2):
+        old = self._booking(user, user2, "PHPLN4", end_offset=0)
+
+        output = _run(commit=True)
+
+        old.refresh_from_db()
+        assert old.contact_phone == ""
+        assert "sealed (left in plain text): 0" in output
 
     def test_running_it_again_finds_nothing_more(self, user, user2):
         self._booking(user, user2, "PHOLD3", end_offset=-1)

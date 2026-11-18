@@ -16,12 +16,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import BookingPeriod, Collection, Thing, User
 from core.services.calendar_export_service import build_calendar_export
+from core.services.contact_seal import unseal
 from core.services.export_service import (
     build_account_export,
     build_collection_export,
     export_bytes,
 )
-from core.services.lending_contact import unseal
 
 pytestmark = pytest.mark.django_db
 

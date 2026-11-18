@@ -16,6 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import BookingPeriod, Collection, Thing, User
 from core.services.calendar_export_service import build_calendar_export
+from core.services.contact_seal import seal_phone, unseal_phone
 
 pytestmark = pytest.mark.django_db
 
@@ -84,7 +85,7 @@ def _booking_row(shed, *, start, end, phone=PHONE, status_=BookingPeriod.Status.
         owner_code=shed["owner"],
         start_date=start,
         end_date=end,
-        contact_phone=phone,
+        contact_phone=seal_phone(phone),
         status=status_,
     )
 
@@ -170,12 +171,24 @@ class TestTheRequestPageIsToldWhetherToAsk:
         assert res.data["collection_reservation_asks_phone"] is False
 
 
+def _stored_phone(res):
+    """The number a booking holds, opened (the column itself keeps a sealed token)."""
+    return unseal_phone(BookingPeriod.objects.get(code=res.data["booking_code"]).contact_phone)
+
+
 class TestSavingTheNumber:
     def test_it_is_saved_when_the_collection_asks(self, api_client, shed):
         res = _book(api_client, shed, contact_phone=PHONE)
 
         assert res.status_code == status.HTTP_201_CREATED, res.data
-        assert BookingPeriod.objects.get(code=res.data["booking_code"]).contact_phone == PHONE
+        assert _stored_phone(res) == PHONE
+
+    def test_the_row_never_holds_the_number_as_readable_text(self, api_client, shed):
+        res = _book(api_client, shed, contact_phone=PHONE)
+
+        raw = BookingPeriod.objects.get(code=res.data["booking_code"]).contact_phone
+        assert raw and PHONE not in raw
+        assert raw != PHONE
 
     def test_it_is_dropped_without_an_error_when_the_collection_does_not_ask(
         self, api_client, shed
@@ -202,14 +215,14 @@ class TestSavingTheNumber:
     def test_the_spaces_around_it_are_trimmed(self, api_client, shed):
         res = _book(api_client, shed, contact_phone=f"  {PHONE}  ")
 
-        assert BookingPeriod.objects.get(code=res.data["booking_code"]).contact_phone == PHONE
+        assert _stored_phone(res) == PHONE
 
     @pytest.mark.parametrize("number", ["+34 600 123 456", "(93) 123-45.67", "600123456", "123456"])
     def test_the_usual_ways_of_writing_a_number_are_accepted(self, api_client, shed, number):
         res = _book(api_client, shed, contact_phone=number)
 
         assert res.status_code == status.HTTP_201_CREATED, res.data
-        assert BookingPeriod.objects.get(code=res.data["booking_code"]).contact_phone == number
+        assert _stored_phone(res) == number
 
     @pytest.mark.parametrize(
         "number",
@@ -236,7 +249,7 @@ class TestSavingTheNumber:
         res = _book(api_client, shed, contact_phone=number)
 
         assert res.status_code == status.HTTP_201_CREATED, res.data
-        assert BookingPeriod.objects.get(code=res.data["booking_code"]).contact_phone == number
+        assert _stored_phone(res) == number
 
 
 class TestWhoReadsIt:
@@ -247,6 +260,25 @@ class TestWhoReadsIt:
 
         assert res.status_code == status.HTTP_200_OK
         assert [row["contact_phone"] for row in res.data["results"]] == [PHONE]
+
+    def test_a_phone_left_in_plain_text_by_the_release_before_is_still_read(self, api_client, shed):
+        _booking_row(shed, start=date.today(), end=date.today() + timedelta(days=1), phone=PHONE)
+        BookingPeriod.objects.update(contact_phone=PHONE)
+
+        res = _as(api_client, shed["owner"]).get(OWNER_BOOKINGS_URL)
+
+        assert [row["contact_phone"] for row in res.data["results"]] == [PHONE]
+
+    def test_a_token_that_cannot_be_opened_is_served_empty_and_breaks_nothing(
+        self, api_client, shed
+    ):
+        _booking_row(shed, start=date.today(), end=date.today() + timedelta(days=1))
+        BookingPeriod.objects.update(contact_phone="gAAAAAnot-a-token-of-this-key")
+
+        res = _as(api_client, shed["owner"]).get(OWNER_BOOKINGS_URL)
+
+        assert res.status_code == status.HTTP_200_OK
+        assert [row["contact_phone"] for row in res.data["results"]] == [""]
 
     def test_a_co_curator_receives_it_like_the_requester_email(self, api_client, shed):
         user3 = User.objects.create(code="PHCO01", email="lili3@your-domain.test", name="Co")
@@ -298,7 +330,7 @@ class TestItStopsBeingServedTheDayAfter:
 
         assert res.data["results"][0]["contact_phone"] == ""
         row.refresh_from_db()
-        assert row.contact_phone == PHONE  # the purge, not the reading, deletes
+        assert unseal_phone(row.contact_phone) == PHONE  # the purge, not the reading, deletes
 
     def test_an_hourly_reservation_of_today_still_shows_it(self, api_client, shed):
         today = date.today()

@@ -64,8 +64,8 @@ from core.models import (
     Thing,
     ThingTransfer,
 )
+from core.services.contact_seal import unseal, unseal_phone
 from core.services.email_service import resolve_email_language
-from core.services.lending_contact import unseal
 from core.utils import asset_url, doc_asset_url
 
 ACCOUNT_FORMAT = "oiueei-account-export/1"
@@ -612,7 +612,7 @@ def _bookings(user):
         "requested_by_me": [
             {
                 **_booking_columns(booking),
-                "contact_phone": booking.contact_phone,
+                "contact_phone": unseal_phone(booking.contact_phone),
                 # What they left a library when borrowing, opened: it is their own data (art. 15).
                 # `None` once it has been deleted. Never in `received_by_me` nor a group's copy.
                 "lending_contact": unseal(booking.lending_contact),

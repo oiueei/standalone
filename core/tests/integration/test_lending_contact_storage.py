@@ -18,7 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import BookingPeriod, Collection, Thing, User
 from core.services.booking_service import cancel_booking, reject_booking
-from core.services.lending_contact import seal, unseal
+from core.services.contact_seal import seal, unseal
 
 pytestmark = pytest.mark.django_db
 

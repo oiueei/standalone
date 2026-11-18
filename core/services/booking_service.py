@@ -16,7 +16,7 @@ from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
-from core.services.lending_contact import seal
+from core.services.contact_seal import seal, seal_phone
 from core.services.team import load_team
 
 DEFAULT_AVAILABILITY_HORIZON_DAYS = 90
@@ -712,7 +712,7 @@ def request_date_based_booking(
     dates, and the request must fit among the units still free.
 
     ``lending_contact`` is the borrower's cleaned contact details, when the library asks for
-    them (the view validates them): they are stored sealed (``core.services.lending_contact``),
+    them (the view validates them): they are stored sealed (``core.services.contact_seal``),
     never as readable text.
     """
     require_a_seat(thing, requester)
@@ -1085,9 +1085,9 @@ def request_reservation(
             start_time=start_time,
             end_time=end_time,
             project_note=project_note or "",
-            # Kept only when the group asked for it: a number nobody was told would
-            # be stored is not stored.
-            contact_phone=(contact_phone or "") if rc.reservation_asks_phone else "",
+            # Kept only when the group asked for it (a number nobody was told would
+            # be stored is not stored), and sealed: never readable in the column.
+            contact_phone=seal_phone(contact_phone) if rc.reservation_asks_phone else "",
             status=BookingPeriod.Status.ACCEPTED,
         )
 
