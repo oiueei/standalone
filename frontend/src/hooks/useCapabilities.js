@@ -119,6 +119,17 @@ export function loadUserLanguage() {
 }
 
 /**
+ * The signed-in account's own record as `/auth/me/` answers it, from the same shared
+ * fetch as the two above, or `null` for no session, a failed request or no answer.
+ * Whoever reads it paints nothing extra until it comes back: a missing answer is "ask
+ * nothing", never a half-drawn control.
+ */
+export function loadMeProfile() {
+  if (!localStorage.getItem('userCode')) return Promise.resolve(null);
+  return loadMe({ optionalAuth: false });
+}
+
+/**
  * Drops the shared `/auth/me/` cache so the next `loadCapabilities()` /
  * `loadUserLanguage()` call re-fetches instead of serving a stale answer.
  *

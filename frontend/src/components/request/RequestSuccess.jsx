@@ -1,7 +1,11 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button, Notification } from 'hds-react';
 import useTheeeme from '../../hooks/useTheeeme';
+import { loadMeProfile } from '../../hooks/useCapabilities';
+import { profileIncomplete } from '../../utils/profile';
+import ButtonLink from '../ButtonLink';
 
 /** What the request page says once the request has gone, and the way back. */
 export default function RequestSuccess({
@@ -14,7 +18,20 @@ export default function RequestSuccess({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { btnSecondaryStyle } = useTheeeme();
+  const { btnStyle, btnSecondaryStyle } = useTheeeme();
+  // Someone who arrived by a magic link has no name and no demographics: the one moment
+  // they have just done something here is the kind one to ask. Nothing is shown until
+  // `/auth/me/` has answered, and nothing if it never does.
+  const [incomplete, setIncomplete] = useState(false);
+  useEffect(() => {
+    let live = true;
+    loadMeProfile().then((me) => {
+      if (live) setIncomplete(profileIncomplete(me));
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
 
   return (
     <>
@@ -42,14 +59,25 @@ export default function RequestSuccess({
         )}
       </Notification>
       <div className="spacer-m" />
-      <Button
-        variant="secondary"
-        fullWidth
-        onClick={() => navigate(backPath)}
-        style={btnSecondaryStyle}
-      >
-        {t('request.backTo', { label: backLabel })}
-      </Button>
+      {incomplete ? (
+        <div className="button-row-wide">
+          <ButtonLink to="/me/edit" state={{ backPath, backLabel }} style={btnStyle}>
+            {t('request.completeProfile')}
+          </ButtonLink>
+          <Button variant="secondary" onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
+            {t('request.backTo', { label: backLabel })}
+          </Button>
+        </div>
+      ) : (
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => navigate(backPath)}
+          style={btnSecondaryStyle}
+        >
+          {t('request.backTo', { label: backLabel })}
+        </Button>
+      )}
     </>
   );
 }

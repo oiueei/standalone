@@ -465,6 +465,7 @@
     "successLabel": "¡Todo listo!",
     "successMessage": "Ya hemos avisado a quien gestiona esta cosa — te responderá pronto.",
     "backTo": "Volver a {{label}}",
+    "completeProfile": "Completa tu perfil en 2 minutos",
     "errorSending": "Error al enviar la solicitud.",
     "contactShared": "Quien gestiona esta cosa verá tu nombre y tu email.",
     "joinedGroup": "Para pedir aquí te has unido a {{group}}. Puedes salir desde tu perfil."

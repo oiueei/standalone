@@ -471,6 +471,7 @@
     "successLabel": "You're all set!",
     "successMessage": "We've let the people who run it know — they'll get back to you soon.",
     "backTo": "Back to {{label}}",
+    "completeProfile": "Complete your profile in 2 minutes",
     "errorSending": "Error sending request.",
     "contactShared": "Whoever runs this thing will see your name and email.",
     "joinedGroup": "To ask here you've joined {{group}}. You can leave it from your profile."

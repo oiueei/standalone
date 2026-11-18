@@ -465,6 +465,7 @@
     "successLabel": "Tot llest!",
     "successMessage": "Ja hem avisat qui gestiona aquesta cosa — aviat et respondrà.",
     "backTo": "Tornar a {{label}}",
+    "completeProfile": "Completa el teu perfil en 2 minuts",
     "errorSending": "Error en enviar la sol·licitud.",
     "contactShared": "Qui gestiona aquesta cosa veurà el teu nom i el teu email.",
     "joinedGroup": "Per demanar aquí t'has unit a {{group}}. Pots sortir-ne des del teu perfil."
