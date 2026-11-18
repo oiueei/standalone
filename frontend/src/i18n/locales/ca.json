@@ -655,7 +655,13 @@
     "remindReturn": "Recordar la devolució",
     "remindReturnSent": "Recordatori enviat.",
     "remindedOn": "Recordat el {{date}}",
-    "remindReturnNotice": "Quan recordes a algú que torni una cosa, et pot respondre directament: veurà la teva adreça de correu."
+    "remindReturnNotice": "Quan recordes a algú que torni una cosa, et pot respondre directament: veurà la teva adreça de correu.",
+    "onLoanHeading": "En préstec ara",
+    "markReturned": "Marcar com a retornat",
+    "returnedOn": "Retornat el {{date}}",
+    "overdue": "Amb retard",
+    "remindExtended": "Recordatori enviat. Ara ha de tornar el {{date}}.",
+    "remindCutShort": "Recordatori enviat. Només s'ha pogut allargar fins al {{date}}: a partir d'aleshores el té una altra persona."
   },
   "manageInvites": {
     "alreadyAskedNotice": "Algunes persones ja van rebre una invitació i no se'ls en pot enviar una altra per correu. Envia'ls tu l'enllaç d'invitació.",

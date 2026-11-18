@@ -40,8 +40,10 @@ const booking = (over = {}) => ({
   thing_type: 'LEND_THING',
   thing_is_endless: false,
   requester_name: 'Lele',
-  start_date: '2026-09-01',
-  end_date: '2026-09-08',
+  // Well before the 90-day window of "On loan now": a confirmed row with these dates is
+  // a settled one. A test about a loan out right now says its own dates.
+  start_date: '2025-09-01',
+  end_date: '2025-09-08',
   created: '2026-08-01T10:00:00Z',
   ...over,
 });
@@ -162,7 +164,7 @@ describe('OwnerBookingsPage listing', () => {
     expect(thing).not.toHaveTextContent(/Asked by/);
     expect(whoWhen).toHaveTextContent('Asked by Lele');
     expect(whoWhen).toHaveTextContent(/Requested/);
-    expect(whoWhen).toHaveTextContent('01/09/2026');
+    expect(whoWhen).toHaveTextContent('01/09/2025');
     // The project note is in this cell too, not in the first.
     expect(whoWhen).toHaveTextContent('Painting the hall');
     expect(thing).not.toHaveTextContent('Painting the hall');
@@ -526,7 +528,7 @@ describe('OwnerBookingsPage on a phone', () => {
     );
     expect(within(card).getByText('Asked by Lele')).toBeInTheDocument();
     expect(within(card).getByText('Requested 01/08/2026')).toBeInTheDocument();
-    expect(within(card).getByText('01/09/2026 — 08/09/2026')).toBeInTheDocument();
+    expect(within(card).getByText('01/09/2025 — 08/09/2025')).toBeInTheDocument();
     expect(within(card).getByText('Lend')).toBeInTheDocument();
     expect(within(card).getByText('Pending')).toBeInTheDocument();
     expect(within(card).getByRole('button', { name: 'Confirm this request' })).toBeVisible();
@@ -857,7 +859,7 @@ describe('OwnerBookingsPage — the requester’s address under the name', () =>
  */
 describe('OwnerBookingsPage — reminding a late return', () => {
   const ACTION = { name: 'Remind them to return it' };
-  const ANSWERED = 'Requests you have already answered';
+  const ON_LOAN = 'On loan now';
   const ENDPOINT = '/api/v1/bookings/LATE01/remind-return/';
   const late = (over = {}) =>
     booking({
@@ -880,7 +882,7 @@ describe('OwnerBookingsPage — reminding a late return', () => {
   afterEach(() => vi.useRealTimers());
 
   const rowOf = (headline) =>
-    within(screen.getByRole('table', { name: ANSWERED }))
+    within(screen.getByRole('table', { name: ON_LOAN }))
       .getAllByRole('row')
       .find((r) => within(r).queryByText(headline));
 
@@ -901,8 +903,13 @@ describe('OwnerBookingsPage — reminding a late return', () => {
     await screen.findByText('Drill');
     expect(screen.getAllByRole('button', ACTION)).toHaveLength(1);
     expect(within(rowOf('Drill')).getByRole('button', ACTION)).toBeInTheDocument();
-    expect(within(rowOf('Ladder')).queryByRole('button', ACTION)).toBeNull();
-    expect(within(rowOf('Tent')).queryByRole('button', ACTION)).toBeNull();
+    // The two without the flag are settled rows, in the answered table.
+    const answered = within(
+      screen.getByRole('table', { name: 'Requests you have already answered' })
+    );
+    expect(answered.getByText('Ladder')).toBeInTheDocument();
+    expect(answered.getByText('Tent')).toBeInTheDocument();
+    expect(answered.queryByRole('button', ACTION)).toBeNull();
   });
 
   // The reminder goes out with the presser's address as Reply-To — the one place a
@@ -915,7 +922,7 @@ describe('OwnerBookingsPage — reminding a late return', () => {
 
     await screen.findByText('Drill');
     const notice = screen.getByText(NOTICE);
-    const table = screen.getByRole('table', { name: ANSWERED });
+    const table = screen.getByRole('table', { name: ON_LOAN });
     expect(notice.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(postUrls()).toEqual([]);
   });
@@ -1111,12 +1118,13 @@ describe('OwnerBookingsPage — reminding a late return', () => {
       page(late(), booking({ code: 'DONE01', status: 'ACCEPTED', thing_headline: 'Ladder' }));
       renderPage();
 
-      const list = await screen.findByRole('list', { name: ANSWERED });
-      const [drill, ladder] = within(list).getAllByRole('listitem');
+      const list = await screen.findByRole('list', { name: ON_LOAN });
+      const [drill] = within(list).getAllByRole('listitem');
       const button = within(drill).getByRole('button', ACTION);
       expect(button).toBeVisible();
       expect(button.parentElement).toHaveClass('button-row-wide');
-      expect(within(ladder).queryByRole('button', ACTION)).toBeNull();
+      const answered = screen.getByRole('list', { name: 'Requests you have already answered' });
+      expect(within(answered).queryByRole('button', ACTION)).toBeNull();
     });
 
     test('it sends the same request the table’s icon sends, and the card says so', async () => {
@@ -1145,7 +1153,7 @@ describe('OwnerBookingsPage — reminding a late return', () => {
     test('the cards have no axe violations with the action', async () => {
       page(late());
       const { container } = renderPage();
-      await screen.findByRole('list', { name: ANSWERED });
+      await screen.findByRole('list', { name: ON_LOAN });
 
       await settle(apiFetch);
       expect(await axe(container, { rules: { region: { enabled: false } } })).toHaveNoViolations();
@@ -1236,5 +1244,309 @@ describe('OwnerBookingsPage — a request for several', () => {
     renderPage();
 
     expect(await screen.findByText('2 × Cordless drill')).toBeInTheDocument();
+  });
+});
+
+// The loans that are out right now have a table of their own, first on the page, and
+// there whoever manages them says one came back. The browser's today is fixed at the 7th
+// of October 2026; the window is 90 days after a return date.
+describe('OwnerBookingsPage — "On loan now"', () => {
+  const ON_LOAN = 'On loan now';
+  const ANSWERED = 'Requests you have already answered';
+  const MARK = { name: 'Mark as returned' };
+  const REMIND = { name: 'Remind them to return it' };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-07T12:00:00'));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  const out = (over = {}) =>
+    booking({
+      code: 'OUT001',
+      status: 'ACCEPTED',
+      thing_headline: 'Drill',
+      start_date: '2026-10-01',
+      end_date: '2026-10-12',
+      can_mark_returned: true,
+      can_remind_return: false,
+      returned_at: null,
+      ...over,
+    });
+  const page = (...results) => mockApi([{ results, next: null }]);
+  const withPost = (results, postBody, extra = {}) =>
+    mockApi([{ results, next: null }], { postBody, ...extra });
+  const onLoanTable = () => screen.getByRole('table', { name: ON_LOAN });
+  const answeredTable = () => screen.getByRole('table', { name: ANSWERED });
+  const headings = () => screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+
+  test('a confirmed loan or rental that has started and was not marked is out; every other row is not', async () => {
+    page(
+      out({ code: 'A', thing_headline: 'Drill' }),
+      out({ code: 'B', thing_headline: 'Saw', thing_type: 'RENT_THING' }),
+      out({ code: 'C', thing_headline: 'Starts today', start_date: '2026-10-07' }),
+      out({
+        code: 'D',
+        thing_headline: 'Future',
+        start_date: '2026-10-08',
+        end_date: '2026-10-15',
+      }),
+      out({ code: 'E', thing_headline: 'Back', returned_at: '2026-10-05T10:00:00Z' }),
+      out({ code: 'F', thing_headline: 'Space', thing_type: 'RESERVE_THING' }),
+      out({ code: 'G', thing_headline: 'Present', thing_type: 'GIFT_THING' }),
+      out({ code: 'H', thing_headline: 'Dropped', status: 'CANCELLED' }),
+      out({ code: 'I', thing_headline: 'Asked', status: 'PENDING' })
+    );
+    renderPage();
+
+    await screen.findByText('Drill');
+    const inside = within(onLoanTable());
+    for (const name of ['Drill', 'Saw', 'Starts today']) {
+      expect(inside.getByText(name)).toBeInTheDocument();
+    }
+    for (const name of ['Future', 'Back', 'Space', 'Present', 'Dropped', 'Asked']) {
+      expect(inside.queryByText(name)).toBeNull();
+    }
+    // And they are not in the other tables either: each row is in one place.
+    const answered = within(answeredTable());
+    for (const name of ['Drill', 'Saw', 'Starts today']) {
+      expect(answered.queryByText(name)).toBeNull();
+    }
+    for (const name of ['Future', 'Back', 'Space', 'Present', 'Dropped']) {
+      expect(answered.getByText(name)).toBeInTheDocument();
+    }
+  });
+
+  test('90 days after the return date is the last day it stays; one more and it is a settled row', async () => {
+    page(
+      out({
+        code: 'A',
+        thing_headline: 'Last day',
+        start_date: '2026-06-01',
+        end_date: '2026-07-09',
+      }),
+      out({
+        code: 'B',
+        thing_headline: 'Forgotten',
+        start_date: '2026-06-01',
+        end_date: '2026-07-08',
+      })
+    );
+    renderPage();
+
+    await screen.findByText('Last day');
+    expect(within(onLoanTable()).getByText('Last day')).toBeInTheDocument();
+    expect(within(onLoanTable()).queryByText('Forgotten')).toBeNull();
+    expect(within(answeredTable()).getByText('Forgotten')).toBeInTheDocument();
+  });
+
+  test('it is the first table of the page, and there is none when nothing is out', async () => {
+    page(out(), booking({ code: 'ASK001', thing_headline: 'Ladder' }));
+    renderPage();
+    await screen.findByText('Drill');
+    expect(headings().slice(0, 2)).toEqual([ON_LOAN, 'Waiting on you']);
+  });
+
+  test('with nothing out there is no such table and no empty heading', async () => {
+    page(booking({ code: 'ASK001', thing_headline: 'Ladder' }));
+    renderPage();
+
+    await screen.findByText('Ladder');
+    expect(screen.queryByRole('heading', { name: ON_LOAN })).toBeNull();
+    expect(screen.queryByRole('table', { name: ON_LOAN })).toBeNull();
+  });
+
+  test('the row says it is overdue only when its return date has passed', async () => {
+    page(
+      out({ code: 'A', thing_headline: 'Late', end_date: '2026-10-05' }),
+      out({ code: 'B', thing_headline: 'On time', end_date: '2026-10-07' })
+    );
+    renderPage();
+
+    await screen.findByText('Late');
+    const rows = within(onLoanTable()).getAllByRole('row');
+    const row = (name) => rows.find((r) => within(r).queryByText(name));
+    expect(within(row('Late')).getByText('Overdue')).toBeInTheDocument();
+    expect(within(row('Late')).getByText('Confirmed')).toBeInTheDocument();
+    expect(within(row('On time')).queryByText('Overdue')).toBeNull();
+  });
+
+  test('the actions are the ones the server allows, each on its own flag', async () => {
+    page(
+      out({ code: 'A', thing_headline: 'Both', can_remind_return: true, end_date: '2026-10-05' }),
+      out({ code: 'B', thing_headline: 'Only mark' }),
+      out({ code: 'C', thing_headline: 'Neither', can_mark_returned: false })
+    );
+    renderPage();
+
+    await screen.findByText('Both');
+    const rows = within(onLoanTable()).getAllByRole('row');
+    const row = (name) => rows.find((r) => within(r).queryByText(name));
+    expect(within(row('Both')).getByRole('button', MARK)).toBeInTheDocument();
+    expect(within(row('Both')).getByRole('button', REMIND)).toBeInTheDocument();
+    expect(within(row('Only mark')).getByRole('button', MARK)).toBeInTheDocument();
+    expect(within(row('Only mark')).queryByRole('button', REMIND)).toBeNull();
+    expect(within(row('Neither')).queryByRole('button', MARK)).toBeNull();
+    expect(within(row('Neither')).queryByRole('button', REMIND)).toBeNull();
+  });
+
+  test('marking it posts once and moves the row to the answered table with the day it came back', async () => {
+    withPost([out()], { returned_at: '2026-10-07T10:00:00Z', end_date: '2026-10-07' });
+    renderPage();
+    await screen.findByText('Drill');
+
+    fireEvent.click(within(onLoanTable()).getByRole('button', MARK));
+
+    await waitFor(() => expect(postUrls()).toEqual(['/api/v1/bookings/OUT001/returned/']));
+    await waitFor(() => expect(screen.queryByRole('table', { name: ON_LOAN })).toBeNull());
+    const row = within(answeredTable());
+    expect(row.getByText('Drill')).toBeInTheDocument();
+    expect(row.getByText('Returned on 07/10/2026')).toBeInTheDocument();
+    // It was due on the 12th and came back on the 7th: the row shows the shorter loan.
+    expect(row.getByText('01/10/2026 — 07/10/2026')).toBeInTheDocument();
+    expect(row.queryByRole('button', MARK)).toBeNull();
+    expect(row.queryByText('Overdue')).toBeNull();
+  });
+
+  test('the toast says it came back too, since the row has left the table the press was in', async () => {
+    withPost([out()], { returned_at: '2026-10-07T10:00:00Z', end_date: '2026-10-07' });
+    renderPage();
+    await screen.findByText('Drill');
+
+    fireEvent.click(within(onLoanTable()).getByRole('button', MARK));
+
+    // The row's own line and the toast: two places, so a screen reader hears it.
+    await waitFor(() => expect(screen.getAllByText('Returned on 07/10/2026')).toHaveLength(2));
+  });
+
+  test('a refusal is worded in the reader’s language and leaves the row where it was', async () => {
+    withPost([out()], { error: 'x', code: 'not_on_loan' }, { postOk: false, postStatus: 400 });
+    renderPage();
+    await screen.findByText('Drill');
+
+    fireEvent.click(within(onLoanTable()).getByRole('button', MARK));
+
+    expect(await screen.findByText(en.requestErrors.not_on_loan)).toBeInTheDocument();
+    expect(within(onLoanTable()).getByText('Drill')).toBeInTheDocument();
+    expect(within(onLoanTable()).getByRole('button', MARK)).toBeEnabled();
+  });
+
+  test('a refusal with no code is the page’s own line', async () => {
+    withPost([out()], {}, { postOk: false, postStatus: 500 });
+    renderPage();
+    await screen.findByText('Drill');
+
+    fireEvent.click(within(onLoanTable()).getByRole('button', MARK));
+
+    expect(await screen.findByText(en.ownerBookings.errorActing)).toBeInTheDocument();
+  });
+
+  test('a dropped connection is said as such and the row stays', async () => {
+    mockApi([{ results: [out()], next: null }]);
+    const answer = apiFetch.getMockImplementation();
+    apiFetch.mockImplementation((url, opts) =>
+      opts?.method === 'POST' ? Promise.reject(new TypeError('offline')) : answer(url, opts)
+    );
+    renderPage();
+    await screen.findByText('Drill');
+
+    fireEvent.click(within(onLoanTable()).getByRole('button', MARK));
+
+    expect(await screen.findByText(en.common.connectionError)).toBeInTheDocument();
+    expect(within(onLoanTable()).getByText('Drill')).toBeInTheDocument();
+  });
+
+  describe('what a reminder says now that it lends the loan again', () => {
+    const late = () =>
+      out({ end_date: '2026-10-05', can_remind_return: true, can_mark_returned: true });
+    const press = async (body) => {
+      withPost([late()], body);
+      renderPage();
+      await screen.findByText('Drill');
+      const row = within(onLoanTable());
+      fireEvent.click(row.getByRole('button', REMIND));
+      await waitFor(() => expect(postUrls()).toEqual(['/api/v1/bookings/OUT001/remind-return/']));
+      return row;
+    };
+
+    test('with the new date when it was extended', async () => {
+      const row = await press({ status: 'ok', extended_to: '2026-10-14', cut_short: false });
+      expect(
+        await row.findByText("Reminder sent. It's now due back on 14/10/2026.")
+      ).toBeInTheDocument();
+      // The row shows the loan as it now is: no longer overdue.
+      expect(row.getByText('01/10/2026 — 14/10/2026')).toBeInTheDocument();
+      expect(row.queryByText('Overdue')).toBeNull();
+    });
+
+    test('and says it was cut short when someone else has it from then', async () => {
+      const row = await press({ status: 'ok', extended_to: '2026-10-10', cut_short: true });
+      expect(
+        await row.findByText(
+          'Reminder sent. It could only be extended to 10/10/2026: someone else has it from then.'
+        )
+      ).toBeInTheDocument();
+    });
+
+    test('and is the plain "Reminder sent." when nothing could be extended', async () => {
+      const row = await press({ status: 'ok', extended_to: null, cut_short: true });
+      expect(await row.findByText('Reminder sent.')).toBeInTheDocument();
+      expect(row.getByText('01/10/2026 — 05/10/2026')).toBeInTheDocument();
+      expect(row.getByText('Overdue')).toBeInTheDocument();
+    });
+
+    test('and an answer with no body at all is still a sent reminder', async () => {
+      const row = await press(undefined);
+      expect(await row.findByText('Reminder sent.')).toBeInTheDocument();
+    });
+  });
+
+  describe('on a phone, where each loan is a card', () => {
+    let media;
+    beforeEach(() => {
+      media = mockMatchMedia({ [PHONE]: true });
+    });
+    afterEach(() => media.restore());
+
+    test('both actions are buttons with their words in one wide row, and marking posts the same request', async () => {
+      withPost([out({ can_remind_return: true, end_date: '2026-10-05' })], {
+        returned_at: '2026-10-07T10:00:00Z',
+        end_date: '2026-10-05',
+      });
+      renderPage();
+      const list = await screen.findByRole('list', { name: ON_LOAN });
+      const [card] = within(list).getAllByRole('listitem');
+      const mark = within(card).getByRole('button', MARK);
+      expect(mark).toBeVisible();
+      expect(mark.parentElement).toHaveClass('button-row-wide');
+      expect(within(card).getByRole('button', REMIND).parentElement).toBe(mark.parentElement);
+
+      fireEvent.click(mark);
+
+      await waitFor(() => expect(postUrls()).toEqual(['/api/v1/bookings/OUT001/returned/']));
+      await waitFor(() => expect(screen.queryByRole('list', { name: ON_LOAN })).toBeNull());
+      expect(
+        within(screen.getByRole('list', { name: ANSWERED })).getByText('Returned on 07/10/2026')
+      ).toBeInTheDocument();
+    });
+
+    test('the cards have no axe violations', async () => {
+      page(out({ can_remind_return: true, end_date: '2026-10-05' }));
+      const { container } = renderPage();
+      await screen.findByRole('list', { name: ON_LOAN });
+
+      await settle(apiFetch);
+      expect(await axe(container, { rules: { region: { enabled: false } } })).toHaveNoViolations();
+    });
+  });
+
+  test('the table has no axe violations with both actions on a row', async () => {
+    page(out({ can_remind_return: true, end_date: '2026-10-05' }));
+    const { container } = renderPage();
+    await screen.findByText('Drill');
+
+    await settle(apiFetch);
+    expect(await axe(container, { rules: { region: { enabled: false } } })).toHaveNoViolations();
   });
 });

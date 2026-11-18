@@ -655,7 +655,13 @@
     "remindReturn": "Recordar la devolución",
     "remindReturnSent": "Recordatorio enviado.",
     "remindedOn": "Recordado el {{date}}",
-    "remindReturnNotice": "Cuando recuerdas a alguien que devuelva una cosa, puede responderte directamente: verá tu dirección de correo."
+    "remindReturnNotice": "Cuando recuerdas a alguien que devuelva una cosa, puede responderte directamente: verá tu dirección de correo.",
+    "onLoanHeading": "Prestado ahora",
+    "markReturned": "Marcar como devuelto",
+    "returnedOn": "Devuelto el {{date}}",
+    "overdue": "Con retraso",
+    "remindExtended": "Recordatorio enviado. Ahora debe volver el {{date}}.",
+    "remindCutShort": "Recordatorio enviado. Solo se ha podido alargar hasta el {{date}}: a partir de ahí lo tiene otra persona."
   },
   "manageInvites": {
     "alreadyAskedNotice": "Algunas personas ya recibieron una invitación y no se les puede enviar otra por correo. Mándales tú el enlace de invitación.",

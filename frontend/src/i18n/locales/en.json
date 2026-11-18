@@ -661,7 +661,13 @@
     "remindReturn": "Remind them to return it",
     "remindReturnSent": "Reminder sent.",
     "remindedOn": "Reminded on {{date}}",
-    "remindReturnNotice": "When you remind someone to return a thing, they can reply to you directly: they'll see your email address."
+    "remindReturnNotice": "When you remind someone to return a thing, they can reply to you directly: they'll see your email address.",
+    "onLoanHeading": "On loan now",
+    "markReturned": "Mark as returned",
+    "returnedOn": "Returned on {{date}}",
+    "overdue": "Overdue",
+    "remindExtended": "Reminder sent. It's now due back on {{date}}.",
+    "remindCutShort": "Reminder sent. It could only be extended to {{date}}: someone else has it from then."
   },
   "manageInvites": {
     "alreadyAskedNotice": "Some people have already had an invitation and can't get another by email. Send them the invitation link yourself.",
