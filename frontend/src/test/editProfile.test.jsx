@@ -44,9 +44,9 @@ function setApi({ save = () => res({}), profile = PROFILE, profileOk = true } = 
   });
 }
 
-function renderPage() {
+function renderPage(state) {
   return render(
-    <MemoryRouter initialEntries={['/me/edit']}>
+    <MemoryRouter initialEntries={[{ pathname: '/me/edit', state }]}>
       <Routes>
         <Route path="/me/edit" element={<EditProfilePage />} />
       </Routes>
@@ -180,6 +180,16 @@ describe('EditProfilePage — what the save actually sends', () => {
     save();
 
     await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith('/'));
+  });
+
+  test('a save returns the person to the page that sent them, when it said which', async () => {
+    renderPage({ backPath: '/library/COL001/things/THG001', backLabel: 'Drill' });
+    await screen.findByDisplayValue('Lili');
+
+    save();
+
+    await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith('/library/COL001/things/THG001'));
+    expect(navigateSpy).not.toHaveBeenCalledWith('/');
   });
 });
 

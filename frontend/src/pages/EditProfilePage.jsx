@@ -118,7 +118,9 @@ export default function EditProfilePage() {
         // otherwise keep answering with the pre-edit language for the rest of
         // this session — it caches per account, not per save.
         invalidateMe();
-        navigate('/');
+        // Back to where the person came from (a thing's request page, say); home when
+        // the page was opened with no way back.
+        navigate(backPath);
       } else if (res.status === 429) {
         setToast({ type: 'error', message: t('common.tooManyAttempts') });
       } else {
