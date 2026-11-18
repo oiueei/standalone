@@ -38,6 +38,9 @@ import DayReservationFields from '../components/request/DayReservationFields';
 import HourlyReservationFields from '../components/request/HourlyReservationFields';
 import FreeRentalFields from '../components/request/FreeRentalFields';
 
+// The details a library may ask a borrower for, in the order the form shows them.
+const LENDING_FIELDS = ['full_name', 'address', 'phone', 'identity_document'];
+
 export default function RequestThingPage() {
   const { code, thingCode } = useParams();
   const navigate = useNavigate();
@@ -75,6 +78,15 @@ export default function RequestThingPage() {
   // The optional contact phone: only on a reservation whose collection asks for it.
   const [contactPhone, setContactPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  // The four contact details a library may ask whoever borrows for. Held in the page's state
+  // only: nothing is kept in the browser.
+  const [lending, setLending] = useState({
+    full_name: '',
+    address: '',
+    phone: '',
+    identity_document: '',
+  });
+  const [lendingErrors, setLendingErrors] = useState({});
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -128,6 +140,13 @@ export default function RequestThingPage() {
 
   // Several identical ones to a loan or a rental: the field, and what it asks for.
   const hasQuantity = !!thing && thing.type !== 'RESERVE_THING' && thing.units > 1;
+  // A loan or a rental of a library that asks for the borrower's contact details: all four
+  // are required, so asking is disabled until they are there. Gifts, sales and reservations
+  // never show the block.
+  const asksLendingContact =
+    !!thing?.collection_lending_asks_contact &&
+    (thing.type === 'LEND_THING' || thing.type === 'RENT_THING');
+  const lendingComplete = LENDING_FIELDS.every((field) => lending[field].trim());
   const askedQuantity = hasQuantity
     ? Math.min(thing.units, Math.max(1, Math.round(Number(quantity)) || 1))
     : 1;
@@ -258,6 +277,9 @@ export default function RequestThingPage() {
   // *separate* click, its own later render) build it the same way — the
   // fallback used to replay whatever body the earlier failed attempt had
   // captured, which could book a date the reader had since changed on screen.
+  const trimmedLending = () =>
+    Object.fromEntries(LENDING_FIELDS.map((field) => [field, lending[field].trim()]));
+
   const buildReservationBody = () => {
     // Sent only when the field is on screen and holds something.
     const phone =
@@ -298,12 +320,14 @@ export default function RequestThingPage() {
         const end = derivedReturnDate(startIso, chosenDuration);
         body = { start_date: startIso, end_date: end };
         if (hasQuantity) body.quantity = askedQuantity;
+        if (asksLendingContact) body.lending_contact = trimmedLending();
       } else {
         const startIso = displayToIso(startDate);
         const endIso = displayToIso(endDate);
         if (!startIso || !endIso) return null;
         body = { start_date: startIso, end_date: endIso };
         if (hasQuantity) body.quantity = askedQuantity;
+        if (asksLendingContact) body.lending_contact = trimmedLending();
       }
     }
     // Pass the collection context so the backend applies that collection's
@@ -324,6 +348,24 @@ export default function RequestThingPage() {
       if (data?.contact_phone) {
         // A field error belongs on the field, not in a toast.
         setPhoneError(t('reservation.phoneInvalid'));
+        return;
+      }
+      if (data?.lending_contact && typeof data.lending_contact === 'object') {
+        // Same for the borrower's contact details: each refused one says so in its own
+        // field, in the reader's language (the server's English is only the fallback).
+        const message = t(
+          data.code === 'lending_contact_required'
+            ? 'requestErrors.lending_contact_required'
+            : 'requestErrors.lending_contact_invalid'
+        );
+        setLendingErrors(
+          Object.fromEntries(
+            LENDING_FIELDS.filter((field) => data.lending_contact[field]).map((field) => [
+              field,
+              message,
+            ])
+          )
+        );
         return;
       }
       setToast({ type: 'error', message: apiErrorMessage(data) || t('thingPage.invalidRequest') });
@@ -472,6 +514,21 @@ export default function RequestThingPage() {
     setDuration(value);
     setStartDate('');
   };
+
+  // The borrower's contact details (when the library asks): an explanation, then the four
+  // fields, all required. Autocomplete only where the browser knows the answer (the name, the
+  // street address, the phone), never for the identity document.
+  const setLendingField = (field) => (e) => {
+    setLending((prev) => ({ ...prev, [field]: e.target.value }));
+    setLendingErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+  const lendingFieldProps = (field) => ({
+    required: true,
+    value: lending[field],
+    onChange: setLendingField(field),
+    invalid: !!lendingErrors[field],
+    errorText: lendingErrors[field] || undefined,
+  });
 
   // The optional contact phone (when the shed asks) and the optional project note — the
   // same fields in the DAY and HOUR flows, one or the other on screen, never both (their
@@ -671,6 +728,47 @@ export default function RequestThingPage() {
             />
           )}
 
+          {asksLendingContact && (
+            <>
+              <div className="spacer-s" />
+              <p>{t('lendingContact.intro')}</p>
+              <div className="form-grid">
+                <TextInput
+                  id="request-lending-full-name"
+                  autoComplete="name"
+                  maxLength={128}
+                  label={t('lendingContact.fullName')}
+                  helperText={t('lendingContact.fullNameHelp')}
+                  {...lendingFieldProps('full_name')}
+                />
+                <TextArea
+                  id="request-lending-address"
+                  autoComplete="street-address"
+                  maxLength={256}
+                  label={t('lendingContact.address')}
+                  helperText={t('lendingContact.addressHelp')}
+                  {...lendingFieldProps('address')}
+                />
+                <TextInput
+                  id="request-lending-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  maxLength={32}
+                  label={t('lendingContact.phone')}
+                  {...lendingFieldProps('phone')}
+                />
+                <TextInput
+                  id="request-lending-identity-document"
+                  autoComplete="off"
+                  maxLength={32}
+                  label={t('lendingContact.identityDocument')}
+                  helperText={t('lendingContact.identityDocumentHelp')}
+                  {...lendingFieldProps('identity_document')}
+                />
+              </div>
+            </>
+          )}
+
           <div className="spacer-xs" />
           {/* What is handed over and what comes back, read last: right above the button that asks. */}
           <div>
@@ -702,7 +800,12 @@ export default function RequestThingPage() {
             <p className="text-muted" style={{ margin: 0 }}>
               {isReservation ? t('reservation.contactShared') : t('request.contactShared')}
             </p>
-            <Button fullWidth disabled={submitting} onClick={handleSubmit} style={btnStyle}>
+            <Button
+              fullWidth
+              disabled={submitting || (asksLendingContact && !lendingComplete)}
+              onClick={handleSubmit}
+              style={btnStyle}
+            >
               {submitting
                 ? t('common.sending')
                 : t(`thingCard.action.${thing?.type}`, { defaultValue: t('thingCard.hold') })}

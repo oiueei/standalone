@@ -28,6 +28,17 @@
     "GEN_A": "Generació Alpha (2013–2024)",
     "GEN_B": "Generació Beta (2025–2039)"
   },
+  "lendingContact": {
+    "switchLabel": "Demanar les dades de contacte completes en prestar",
+    "intro": "Ens deixes les teves dades de contacte? Són per saber qui té el que t'emportes i poder-te localitzar si no torna. Només les veu qui t'ho presta, i les esborrarem quan ho tornis.",
+    "fullName": "Nom complet",
+    "fullNameHelp": "Com apareix al teu document d'identificació.",
+    "address": "Adreça",
+    "addressHelp": "Carrer, número, pis, codi postal i població.",
+    "phone": "Telèfon",
+    "identityDocument": "Document d'identificació",
+    "identityDocumentHelp": "Document d'identitat, passaport o un altre document oficial. Porta'l quan vinguis a recollir-ho."
+  },
   "profileNudge": {
     "label": "Explica'ns una mica de tu",
     "body": "Són 2 minuts i tot és opcional.",

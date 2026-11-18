@@ -123,7 +123,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('CollectionAvailabilityPage — a library', () => {
-  test('saves exactly its five fields and nothing the collection keeps elsewhere', async () => {
+  test('saves exactly its six fields and nothing the collection keeps elsewhere', async () => {
     mockApi({ collection: LIBRARY });
     renderPage();
     await loaded();
@@ -134,6 +134,7 @@ describe('CollectionAvailabilityPage — a library', () => {
     expect(keys()).toEqual([
       'closed_dates',
       'deposit_policy',
+      'lending_asks_contact',
       'rental_durations',
       'rental_weekdays',
       'request_info',
@@ -153,6 +154,7 @@ describe('CollectionAvailabilityPage — a library', () => {
       rental_durations: [7, 14],
       rental_weekdays: [5],
       deposit_policy: 'Back when returned.',
+      lending_asks_contact: false,
     });
   });
 
@@ -688,5 +690,71 @@ describe('CollectionAvailabilityPage — an hourly space with no opening hours',
     await save();
 
     expect(patchBody().opening_hours).toEqual(HOURS);
+  });
+});
+
+describe('CollectionAvailabilityPage — asking a borrower for contact details', () => {
+  // Like the phone switch: found by its label, its state is `aria-pressed`.
+  const toggle = () => screen.getByLabelText(/Ask for a full contact when borrowing/);
+
+  test('a library has the switch, off by default, after the closures and before the lengths', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+
+    const control = toggle();
+    expect(control).toHaveAttribute('aria-pressed', 'false');
+    const closures = screen.getByLabelText(/Holidays and closures/);
+    const lengths = screen.getByText('Rental lengths');
+    expect(
+      closures.compareDocumentPosition(control) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      control.compareDocumentPosition(lengths) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  test('turning it on is sent with the rest of the library’s fields', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+
+    fireEvent.click(toggle());
+    await save();
+
+    expect(patchBody().lending_asks_contact).toBe(true);
+  });
+
+  test('a library that already asks opens with it on and keeps it when saved untouched', async () => {
+    mockApi({ collection: { ...LIBRARY, lending_asks_contact: true } });
+    renderPage();
+    await loaded();
+
+    expect(toggle()).toHaveAttribute('aria-pressed', 'true');
+    await save();
+
+    expect(patchBody().lending_asks_contact).toBe(true);
+  });
+
+  test('turning it off again is sent as off', async () => {
+    mockApi({ collection: { ...LIBRARY, lending_asks_contact: true } });
+    renderPage();
+    await loaded();
+
+    fireEvent.click(toggle());
+    await save();
+
+    expect(patchBody().lending_asks_contact).toBe(false);
+  });
+
+  test('a shed has no such switch and sends no such field', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+
+    expect(screen.queryByLabelText(/Ask for a full contact when borrowing/)).toBeNull();
+    await save();
+
+    expect(patchBody()).not.toHaveProperty('lending_asks_contact');
   });
 });

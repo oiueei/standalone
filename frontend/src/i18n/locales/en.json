@@ -28,6 +28,17 @@
     "GEN_A": "Generation Alpha (2013–2024)",
     "GEN_B": "Generation Beta (2025–2039)"
   },
+  "lendingContact": {
+    "switchLabel": "Ask for a full contact when borrowing",
+    "intro": "Could you leave us your contact details? They're so we know who has what you're taking and can find you if it doesn't come back. Only whoever lends it to you sees them, and we'll delete them when you return it.",
+    "fullName": "Full name",
+    "fullNameHelp": "As it appears on your identity document.",
+    "address": "Address",
+    "addressHelp": "Street, number, floor, postcode and town.",
+    "phone": "Phone",
+    "identityDocument": "Identity document",
+    "identityDocumentHelp": "ID card, passport or another official document. Bring it when you pick the thing up."
+  },
   "profileNudge": {
     "label": "Tell us a little about yourself",
     "body": "It takes 2 minutes and it's all optional.",

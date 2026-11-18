@@ -2124,6 +2124,12 @@ figure[class*='Highlight-module_highlight'] {
   color: var(--color-black-70);
 }
 
+/* A line of a cell that keeps the line breaks it was written with: the borrower's address
+   on a loan the library asked contact details for. No colour of its own. */
+.table-cell-line--pre-line {
+  white-space: pre-line;
+}
+
 /* A quiet link in a cell: "Leave the group" in "My groups". The colour is the
    link's own — an <a> does not inherit it from the paragraph around it. */
 .table-cell-link--muted {

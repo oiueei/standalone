@@ -1550,3 +1550,77 @@ describe('OwnerBookingsPage — "On loan now"', () => {
     expect(await axe(container, { rules: { region: { enabled: false } } })).toHaveNoViolations();
   });
 });
+
+describe('OwnerBookingsPage — the contact details a library asked the borrower for', () => {
+  const DETAILS = {
+    full_name: 'Laura Pérez Gómez',
+    address: 'C/ de la Fusteria 12, 3r 2a\n08003 Barcelona',
+    phone: '+34 600 000 000',
+    identity_document: '12345678Z',
+  };
+  const loan = (over = {}) =>
+    booking({
+      code: 'LC0001',
+      status: 'PENDING',
+      thing_headline: 'Ladder',
+      requester_email: 'lele@your-domain.test',
+      lending_contact: DETAILS,
+      ...over,
+    });
+  const lines = (scope) => [
+    scope.getByText('Full name: Laura Pérez Gómez'),
+    scope.getByText(/^Address: C\/ de la Fusteria 12, 3r 2a/),
+    scope.getByText('Phone: +34 600 000 000'),
+    scope.getByText('Identity document: 12345678Z'),
+  ];
+
+  test('the four lines sit under the address, the address with its own line breaks', async () => {
+    mockApi([{ results: [loan()], next: null }]);
+    renderPage();
+
+    const [name, address, phone, document] = lines(within(await screen.findByRole('table')));
+    expect(address).toHaveClass('table-cell-line--pre-line');
+    expect(address).toHaveTextContent('08003 Barcelona');
+    const email = screen.getByRole('link', { name: 'lele@your-domain.test' }).closest('p');
+    expect(email.nextElementSibling).toBe(name);
+    expect([name, address, phone, document].map((p) => p.tagName)).toEqual(['P', 'P', 'P', 'P']);
+  });
+
+  test('a request with none (or an older payload) shows no such lines', async () => {
+    mockApi([
+      {
+        results: [
+          loan({ lending_contact: null }),
+          loan({ code: 'LC0002', lending_contact: undefined }),
+        ],
+        next: null,
+      },
+    ]);
+    renderPage();
+
+    await screen.findAllByText('Ladder');
+    expect(screen.queryByText(/^Identity document:/)).toBeNull();
+    expect(screen.queryByText(/^Full name:/)).toBeNull();
+  });
+
+  test('on a phone the card carries them too', async () => {
+    const media = mockMatchMedia({ [PHONE]: true });
+    try {
+      mockApi([{ results: [loan()], next: null }]);
+      renderPage();
+      const [card] = within(await screen.findByRole('list')).getAllByRole('listitem');
+      lines(within(card));
+    } finally {
+      media.restore();
+    }
+  });
+
+  test('the table has no axe violations with them', async () => {
+    mockApi([{ results: [loan()], next: null }]);
+    const { container } = renderPage();
+    await screen.findByText('Full name: Laura Pérez Gómez');
+
+    await settle(apiFetch);
+    expect(await axe(container, { rules: { region: { enabled: false } } })).toHaveNoViolations();
+  });
+});

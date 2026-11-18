@@ -61,6 +61,8 @@ export default function CollectionAvailabilityPage() {
   const [reservationHorizonDays, setReservationHorizonDays] = useState(90);
   const [reservationMaxActivePerMember, setReservationMaxActivePerMember] = useState(10);
   const [reservationAsksPhone, setReservationAsksPhone] = useState(false);
+  // A library may ask whoever borrows for a full name, address, phone and identity document.
+  const [lendingAsksContact, setLendingAsksContact] = useState(false);
   const [reservationMinMinutes, setReservationMinMinutes] = useState(60);
   const [reservationMaxMinutes, setReservationMaxMinutes] = useState(180);
   const [openingHours, setOpeningHours] = useState({});
@@ -84,6 +86,7 @@ export default function CollectionAvailabilityPage() {
         setReservationHorizonDays(data.reservation_horizon_days ?? 90);
         setReservationMaxActivePerMember(data.reservation_max_active_per_member ?? 10);
         setReservationAsksPhone(!!data.reservation_asks_phone);
+        setLendingAsksContact(!!data.lending_asks_contact);
         setReservationMinMinutes(data.reservation_min_minutes ?? 60);
         setReservationMaxMinutes(data.reservation_max_minutes ?? 180);
         setOpeningHours(data.opening_hours || {});
@@ -127,6 +130,7 @@ export default function CollectionAvailabilityPage() {
     if (isLibrary) {
       body.rental_durations = rentalDurations;
       body.deposit_policy = depositPolicy.trim();
+      body.lending_asks_contact = lendingAsksContact;
     }
     if (isShed) {
       body.reservation_horizon_days = reservationHorizonDays;
@@ -179,6 +183,15 @@ export default function CollectionAvailabilityPage() {
         />
         {isLibrary && (
           <>
+            {/* After the closures and before the lengths, as in the design. */}
+            <ToggleButton
+              id="availability-lending-asks-contact"
+              variant="inline"
+              label={t('lendingContact.switchLabel')}
+              checked={lendingAsksContact}
+              onChange={(val) => setLendingAsksContact(!val)}
+              theme={toggleTheme}
+            />
             <Select
               multiSelect
               id="availability-rental-durations"

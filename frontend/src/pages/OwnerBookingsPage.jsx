@@ -325,6 +325,9 @@ export default function OwnerBookingsPage() {
     _requesterName: b.requester_name,
     _requesterEmail: b.requester_email,
     _contactPhone: b.contact_phone,
+    // What a library asked the borrower for, as the server opened it for whoever manages the
+    // thing (`null` for everyone else, and once it is deleted).
+    _lendingContact: b.lending_contact,
     _startDate: b.start_date,
     _endDate: b.end_date,
     _when: formatBookingWhen(b),
@@ -434,6 +437,25 @@ export default function OwnerBookingsPage() {
             <p>
               <a href={`tel:${phoneHref(row._contactPhone)}`}>{row._contactPhone}</a>
             </p>
+          )}
+          {/* What a library asked the borrower for, only for whoever manages the thing (the
+              server sends it to nobody else): four lines under the address, the address with
+              its own line breaks. Deleted when the loan is marked returned. */}
+          {row._lendingContact && (
+            <>
+              <p>
+                {t('lendingContact.fullName')}: {row._lendingContact.full_name}
+              </p>
+              <p className="table-cell-line--pre-line">
+                {t('lendingContact.address')}: {row._lendingContact.address}
+              </p>
+              <p>
+                {t('lendingContact.phone')}: {row._lendingContact.phone}
+              </p>
+              <p>
+                {t('lendingContact.identityDocument')}: {row._lendingContact.identity_document}
+              </p>
+            </>
           )}
           <p>
             {t('myBookings.requested', {

@@ -28,6 +28,17 @@
     "GEN_A": "Generación Alpha (2013–2024)",
     "GEN_B": "Generación Beta (2025–2039)"
   },
+  "lendingContact": {
+    "switchLabel": "Pedir los datos de contacto completos al prestar",
+    "intro": "¿Nos dejas tus datos de contacto? Son para saber quién tiene lo que te llevas y poder localizarte si no vuelve. Solo los ve quien te lo presta, y los borraremos cuando lo devuelvas.",
+    "fullName": "Nombre completo",
+    "fullNameHelp": "Como aparece en tu documento de identificación.",
+    "address": "Dirección",
+    "addressHelp": "Calle, número, piso, código postal y población.",
+    "phone": "Teléfono",
+    "identityDocument": "Documento de identificación",
+    "identityDocumentHelp": "Documento de identidad, pasaporte u otro documento oficial. Tráelo cuando vengas a recogerlo."
+  },
   "profileNudge": {
     "label": "Cuéntanos un poco de ti",
     "body": "Son 2 minutos y todo es opcional.",
