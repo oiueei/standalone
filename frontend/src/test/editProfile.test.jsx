@@ -310,3 +310,15 @@ describe('EditProfilePage — no palette and no koro', () => {
     expect(putBody()).not.toHaveProperty('koro');
   });
 });
+
+describe('EditProfilePage — what the demographic fields say about who sees them', () => {
+  test('it says the team sees them added up, never yours alone, and that they are never public', async () => {
+    renderPage();
+    await screen.findByDisplayValue('Lili');
+
+    expect(screen.getByText(/Whoever runs your groups sees it in their stats/)).toBeInTheDocument();
+    expect(screen.getByText(/never yours alone/)).toBeInTheDocument();
+    expect(screen.getByText(/Never public\./)).toBeInTheDocument();
+    expect(screen.queryByText(/Only owners of the groups/)).toBeNull();
+  });
+});

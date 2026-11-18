@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button, Koros, Notification } from 'hds-react';
 import { apiFetch } from '../services/api';
 import { fetchAllPages } from '../utils/fetchAllPages';
+import { hasNoName } from '../utils/profile';
 import LoadingSpinner from '../components/LoadingSpinner';
 import FeedbackLink from '../components/FeedbackLink';
 import CollectionLinkbox from '../components/CollectionLinkbox';
@@ -383,6 +385,19 @@ export default function HomePage() {
                 </div>
               </Notification>
             ))}
+            <div className="spacer-m" />
+          </>
+        )}
+
+        {/* Until the account has a name (a nickname will do), a kind nudge to give one: whoever
+            runs a group sees "A member" otherwise. No close button and nothing remembered in
+            the browser: it goes by itself when the name is there. No `state` on the link, so
+            saving the profile comes back here, which is where the person is. */}
+        {hasNoName(user) && (
+          <>
+            <Notification label={t('profileNudge.label')} type="info">
+              {t('profileNudge.body')} <Link to="/me/edit">{t('profileNudge.link')}</Link>
+            </Notification>
             <div className="spacer-m" />
           </>
         )}

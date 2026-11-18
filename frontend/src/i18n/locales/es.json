@@ -28,9 +28,14 @@
     "GEN_A": "Generación Alpha (2013–2024)",
     "GEN_B": "Generación Beta (2025–2039)"
   },
+  "profileNudge": {
+    "label": "Cuéntanos un poco de ti",
+    "body": "Son 2 minutos y todo es opcional.",
+    "link": "Completar mi perfil"
+  },
   "communityProfile": {
     "heading": "Datos demográficos (opcional)",
-    "helper": "Opcional. Solo lo pueden ver los propietarios de los grupos en los que estás — nunca es público.",
+    "helper": "Opcional. Quienes llevan tus grupos lo ven en sus estadísticas, sumado con el del resto (nunca el tuyo solo); en un grupo comunitario, también junto a tu nombre. Nunca es público.",
     "ageLabel": "Año de nacimiento",
     "ageUnset": "Prefiero no decirlo",
     "postalLabel": "Código postal"
