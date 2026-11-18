@@ -1138,7 +1138,11 @@ body :focus-visible {
   min-width: 0;
 }
 
-.form-grid > div[class*='Select-module'] {
+/* HDS gives a Select's root a max-width of 420px, which leaves it short of the fields around it
+   (a date fills the column). A form drops it; so does the request page's `.summary-grid`, which
+   holds the rental length, a reservation's length and an hourly reservation's pickers. */
+.form-grid > div[class*='Select-module'],
+.summary-grid > div[class*='Select-module'] {
   max-width: 100%;
 }
 
