@@ -96,6 +96,13 @@ def lend(thing, requester, start, end, *, status="ACCEPTED", thing_type=None):
     )
 
 
+def keep_overdue(thing, other):
+    """Somebody has already asked for the thing from today, so a reminder has no free day
+    to lend it again over and the loan stays overdue: what the once-a-day cap is about.
+    (Otherwise the reminder lends the loan again and it is no longer overdue.)"""
+    return lend(thing, other, TODAY, TODAY + timedelta(days=30), status="PENDING")
+
+
 def remind(user, booking):
     return client_for(user).post(f"/api/v1/bookings/{booking.code}/remind-return/")
 
@@ -352,8 +359,9 @@ class TestRemindReturnEndpoint:
         assert remind(owner, first).status_code == 400
         assert mail.outbox == []
 
-    def test_only_one_reminder_a_day_and_the_second_says_why(self, drill, owner, borrower):
+    def test_only_one_reminder_a_day_and_the_second_says_why(self, drill, owner, borrower, member):
         booking = lend(drill, borrower, TODAY - timedelta(days=5), YESTERDAY)
+        keep_overdue(drill, member)
         assert remind(owner, booking).status_code == 200
         booking.refresh_from_db()
         reminded_at = booking.return_reminded_at
@@ -366,10 +374,13 @@ class TestRemindReturnEndpoint:
         booking.refresh_from_db()
         assert booking.return_reminded_at == reminded_at
 
-    def test_another_manager_cannot_get_round_the_cap(self, drill, owner, co_curator, borrower):
+    def test_another_manager_cannot_get_round_the_cap(
+        self, drill, owner, co_curator, borrower, member
+    ):
         """The cap is the booking's, not the person's: two curators pressing in turn
         would otherwise mail the same borrower twice a day."""
         booking = lend(drill, borrower, TODAY - timedelta(days=5), YESTERDAY)
+        keep_overdue(drill, member)
         assert remind(owner, booking).status_code == 200
 
         again = remind(co_curator, booking)
@@ -377,8 +388,9 @@ class TestRemindReturnEndpoint:
         assert again.status_code == 429
         assert len(mail.outbox) == 1
 
-    def test_tomorrow_it_works_again(self, drill, owner, borrower):
+    def test_tomorrow_it_works_again(self, drill, owner, borrower, member):
         booking = lend(drill, borrower, TODAY - timedelta(days=5), YESTERDAY)
+        keep_overdue(drill, member)
         assert remind(owner, booking).status_code == 200
 
         with time_machine.travel(datetime(2026, 10, 8, 12, 0, tzinfo=UTC)):
@@ -386,7 +398,7 @@ class TestRemindReturnEndpoint:
 
         assert len(mail.outbox) == 2
 
-    def test_a_day_is_the_calendar_day_not_twenty_four_hours(self, drill, owner, borrower):
+    def test_a_day_is_the_calendar_day_not_twenty_four_hours(self, drill, owner, borrower, member):
         """Pressed at 23:55 and again at 00:05 are two different days; pressed at
         00:05 and again at 23:55 are the same one."""
         zone = timezone.get_current_timezone()
@@ -395,6 +407,7 @@ class TestRemindReturnEndpoint:
             return datetime.combine(day, time(hour, minute), tzinfo=zone)
 
         booking = lend(drill, borrower, TODAY - timedelta(days=5), YESTERDAY)
+        keep_overdue(drill, member)
         with time_machine.travel(at(TODAY, 23, 55), tick=False):
             assert remind(owner, booking).status_code == 200
         with time_machine.travel(at(TODAY + timedelta(days=1), 0, 5), tick=False):

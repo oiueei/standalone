@@ -2525,7 +2525,7 @@ def send_pickup_reminder_email(requester_name, thing, start_date, owner_email, q
     _send(owner_email, subject, plain, html, CATEGORY_ACTIVITY, user=user, lang=lang, header=header)
 
 
-def send_return_overdue_email(manager, thing, end_date, requester_email, quantity=1):
+def send_return_overdue_email(manager, thing, end_date, requester_email, quantity=1, new_end=None):
     """Nudge the **borrower** whose loan or rental is past its return date.
 
     The one return email that is sent by a person rather than by the daily
@@ -2536,6 +2536,10 @@ def send_return_overdue_email(manager, thing, end_date, requester_email, quantit
     press — the borrower's natural answer ("I'll bring it tomorrow") goes
     straight to the person who asked. The wording leaves room for a return that
     simply was never recorded, since OIUEEI only assumes a loan comes back.
+
+    ``new_end`` is the return date the reminder has just set when it lent the thing again
+    (``booking_service.extend_overdue_loan``): one more line names it. Without it the
+    email is as it always was.
     """
     user, lang = _recipient(requester_email)
     T, L = _texts(lang), _local(lang)
@@ -2550,7 +2554,12 @@ def send_return_overdue_email(manager, thing, end_date, requester_email, quantit
     name = _member_name(manager.name, lang)
     plain = T("return_overdue_plain").format(manager=name, thing=headline, end=end)
     body = T("return_overdue_body").format(manager=name, thing=headline, end=end)
-    blocks = [_para(body), _cta(thing_url, T("view_thing_cta"), T("cta_fallback"))]
+    blocks = [_para(body)]
+    if new_end:
+        new_date = T("return_overdue_new_date").format(date=_fmt_date(new_end))
+        plain = f"{plain}\n\n{new_date}"
+        blocks.append(_para(new_date))
+    blocks.append(_cta(thing_url, T("view_thing_cta"), T("cta_fallback")))
     html = _render_email(blocks, lang=lang, header=header)
     _send(
         requester_email,

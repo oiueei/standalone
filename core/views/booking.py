@@ -35,6 +35,7 @@ from core.services.booking_service import (
     BookingRequestError,
     cancel_booking,
     cancel_reservation,
+    extend_overdue_loan,
     finalize_booking_decision,
 )
 from core.services.email_service import send_return_overdue_email
@@ -302,6 +303,11 @@ class BookingRemindReturnView(APIView):
     The day is claimed with one conditional UPDATE before the email goes — two
     presses at once cannot both match the row — and the email names whoever
     pressed, with their address as `Reply-To`.
+
+    The reminder also **keeps the loan going** (`extend_overdue_loan`): from today, for the
+    shortest fixed length of the collection (7 days with none), over free days only. The
+    answer carries `extended_to` (the new return date, `null` when nothing was extended) and
+    `cut_short` (it came out shorter than wanted, or not at all); the email names the new date.
     """
 
     permission_classes = [IsAuthenticated]
@@ -342,14 +348,24 @@ class BookingRemindReturnView(APIView):
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
+        # The reminder keeps the loan going, over days nobody else has asked for.
+        extended_to, cut_short = extend_overdue_loan(booking)
         send_return_overdue_email(
             request.user,
             booking.thing_code,
             booking.end_date,
             booking.requester_code.email,
             quantity=booking.quantity,
+            new_end=extended_to,
         )
-        return Response({"status": "ok"}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "status": "ok",
+                "extended_to": extended_to.isoformat() if extended_to else None,
+                "cut_short": cut_short,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class BookingReturnedView(APIView):

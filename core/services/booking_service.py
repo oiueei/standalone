@@ -775,6 +775,50 @@ def request_date_based_booking(
     return booking
 
 
+# How long a reminder lends a loan again when its collection has no fixed lengths.
+OVERDUE_EXTENSION_DAYS = 7
+
+
+def extend_overdue_loan(booking, today=None):
+    """What a "remind them to return it" does to the loan: keeps it going for a while.
+
+    A reminded borrower still holds the thing, so it must not read as free to the next
+    person. The loan is lent again **from today**: for the shortest fixed length of the
+    collection that governs it (a library that lends by the day gives 1, by the week 7),
+    or ``OVERDUE_EXTENSION_DAYS`` when it has none. The pickup and return weekdays and the
+    closures are **not** applied: this is a decision of whoever lends, not a request.
+
+    Only over free days. Under the lock the requests take on the thing, the stretch from
+    today to the new end is judged like any request (the booking itself aside, with the
+    thing's units and the booking's quantity) and, if it meets another live request, is
+    shortened a day at a time to the last end that fits; if not even one day fits, the
+    loan is left as it was. Nothing is ever cancelled or touched but this booking.
+
+    Returns ``(extended_to, cut_short)``: the new end date (``None`` when nothing was
+    extended) and whether it came out shorter than wanted, or not at all.
+    """
+    today = today or timezone.localdate()
+    with transaction.atomic():
+        thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
+        collection = resolve_rental_collection(thing)
+        lengths = collection.rental_durations if collection else []
+        wanted = today + timedelta(days=min(lengths) if lengths else OVERDUE_EXTENSION_DAYS)
+        new_end = wanted
+        while new_end > today and BookingPeriod.has_overlap(
+            thing.code,
+            today,
+            new_end,
+            exclude_booking_code=booking.code,
+            units=thing.units,
+            quantity=booking.quantity,
+        ):
+            new_end -= timedelta(days=1)
+        if new_end <= today:
+            return None, True
+        BookingPeriod.objects.filter(code=booking.code).update(end_date=new_end)
+    return new_end, new_end < wanted
+
+
 def request_standard_booking(thing, requester, collection_code=None):
     """GIFT/SELL — no dates; single-use things flip to TAKEN to block other requests."""
     # ``locked`` is the row read under ``select_for_update`` — fresh, but with no

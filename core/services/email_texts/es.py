@@ -317,6 +317,7 @@ TEXTS = {
         "{manager} te recuerda que {thing} tenía que volver el {end}. "
         "Si ya has hecho la devolución, puedes ignorar este correo."
     ),
+    "return_overdue_new_date": "Por favor, devuélvelo como tarde el {date}.",
     "view_thing_cta": "Ver la publicación",
     "demo_note": "Este grupo es de demostración: sus cosas y sus personas son de ejemplo.",
     # Reservas de espacio (RESERVE_THING) — confirmación automática, sin decisión
