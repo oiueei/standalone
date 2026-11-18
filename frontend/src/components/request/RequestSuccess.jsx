@@ -60,11 +60,19 @@ export default function RequestSuccess({
       </Notification>
       <div className="spacer-m" />
       {incomplete ? (
-        <div className="button-row-wide">
-          <ButtonLink to="/me/edit" state={{ backPath, backLabel }} style={btnStyle}>
+        // A column of two buttons across the whole width at every width, like the request
+        // button of the form above (a `.button-row-wide` would leave them in a row, as wide as
+        // their text, from 768px).
+        <div className="button-col">
+          <ButtonLink to="/me/edit" state={{ backPath, backLabel }} style={btnStyle} fullWidth>
             {t('request.completeProfile')}
           </ButtonLink>
-          <Button variant="secondary" onClick={() => navigate(backPath)} style={btnSecondaryStyle}>
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={() => navigate(backPath)}
+            style={btnSecondaryStyle}
+          >
             {t('request.backTo', { label: backLabel })}
           </Button>
         </div>

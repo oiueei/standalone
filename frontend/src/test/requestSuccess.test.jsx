@@ -118,18 +118,35 @@ describe('the way on after a request', () => {
     expect(back()).toBeInTheDocument();
   });
 
-  test('the profile comes first and primary, the way back second and secondary, in one wide row', async () => {
+  // HDS marks full width with a CSS-modules class whose hash changes between builds, so it is
+  // read by its stable part ("fullWidth"), as `doorSubmitButtons.test.jsx` does.
+  const fullWidth = (button) => [...button.classList].some((name) => /fullWidth/i.test(name));
+
+  test('the profile comes first and primary, the way back second and secondary, stacked at the full width', async () => {
     answerMe(ok(me({ name: '' })));
     renderSuccess();
     const link = await screen.findByRole('link', { name: 'Complete your profile in 2 minutes' });
-    const row = link.parentElement;
+    const column = link.parentElement;
 
-    expect(row).toHaveClass('button-row-wide');
-    expect(Array.from(row.children)).toEqual([link, back()]);
+    // A column of two, whatever the width of the screen: not a row that is only as wide as
+    // its text from 768px.
+    expect(column).toHaveClass('button-col');
+    expect(column).not.toHaveClass('button-row-wide');
+    expect(Array.from(column.children)).toEqual([link, back()]);
+    expect(link).toHaveClass('button-link--full');
+    expect(fullWidth(back())).toBe(true);
     expect(link.style.getPropertyValue('--background-color')).toBe('var(--color-bus)');
     expect(back().style.getPropertyValue('--background-color')).toBe('var(--color-white)');
-    expect(link).not.toHaveClass('button-link--full');
-    expect(within(row).getAllByRole('button')).toHaveLength(1);
+    expect(within(column).getAllByRole('button')).toHaveLength(1);
+  });
+
+  test('with a complete profile the way back is the full-width button it always was', async () => {
+    answerMe(ok(me()));
+    renderSuccess();
+    await settle(apiFetch);
+
+    expect(fullWidth(back())).toBe(true);
+    expect(back().parentElement.classList.contains('button-col')).toBe(false);
   });
 
   test('the link goes to the profile and brings the person back to the thing afterwards', async () => {
