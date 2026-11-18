@@ -318,6 +318,7 @@ TEXTS = {
         "{manager} is reminding you that {thing} was due back on {end}. "
         "If you've already returned it, you can ignore this email."
     ),
+    "return_overdue_new_date": "Please bring it back by {date} at the latest.",
     "view_thing_cta": "View the thing",
     "demo_note": "This group is a demo: its things and its people are examples.",
     # Reservations (RESERVE_THING) — auto-confirmed, so "confirmed", not "requested"

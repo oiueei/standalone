@@ -40,6 +40,7 @@ from core.models import (
     ThingTransfer,
     User,
 )
+from core.services.contact_seal import seal_phone
 from core.services.export_service import (
     ACCOUNT_FORMAT,
     COLLECTION_FORMAT,
@@ -283,7 +284,7 @@ class TestTheContactPhoneLeftWhenBooking:
 
     def _phones(self, **by_code):
         for code, phone in by_code.items():
-            BookingPeriod.objects.filter(code=code).update(contact_phone=phone)
+            BookingPeriod.objects.filter(code=code).update(contact_phone=seal_phone(phone))
 
     def test_the_one_who_booked_gets_it_in_what_they_requested(self, user, world):
         self._phones(BKOU01=self.PHONE)
@@ -291,6 +292,15 @@ class TestTheContactPhoneLeftWhenBooking:
         requested = build_account_export(user)["bookings"]["requested_by_me"]
 
         assert requested[0]["code"] == "BKOU01"
+        assert requested[0]["contact_phone"] == self.PHONE
+
+    def test_the_column_holds_a_token_and_the_copy_still_has_the_number(self, user, world):
+        self._phones(BKOU01=self.PHONE)
+
+        stored = BookingPeriod.objects.get(code="BKOU01").contact_phone
+        requested = build_account_export(user)["bookings"]["requested_by_me"]
+
+        assert stored != self.PHONE and self.PHONE not in stored
         assert requested[0]["contact_phone"] == self.PHONE
 
     def test_it_reads_empty_once_the_purge_has_emptied_it(self, user, world):

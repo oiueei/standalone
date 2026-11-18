@@ -306,8 +306,18 @@ no code**: six hexadecimal colours (`#RRGGBB`) and a Koros wave.
 A shed can ask, when someone books, for an optional contact phone, and the request page's label promises it
 is **deleted the day after the booking**. The app stops serving it that day by itself, but the deletion is
 done by `purge_expired_data`, whose period for this is fixed (no `RETENTION_*` setting, nothing to switch
-off). A deployment must therefore run `python manage.py purge_expired_data --commit` **every day** (the
-daily chain in [HEROKU.md](HEROKU.md) does); left in dry-run, the label would not be true.
+off). The number is also kept **sealed** in the database (Fernet, with a key derived from `SECRET_KEY`, like the
+library details below), so a dump or a backup shows no readable number. **Rotating `SECRET_KEY` makes the ones
+still kept unreadable** (they show as empty and nothing breaks). A deployment must therefore run
+`python manage.py purge_expired_data --commit` **every day** (the daily chain in [HEROKU.md](HEROKU.md) does);
+left in dry-run, the label would not be true, and the numbers a previous release left readable would not get
+sealed.
+
+The same goes for the contact details a **library** may ask a borrower for (full name, address, phone and an
+identity document, off in every library until its team turns the switch on): they are kept **sealed** (Fernet,
+with a key derived from `SECRET_KEY`), go when the loan is marked returned, and `purge_expired_data` empties
+them at the latest 90 days after the return date, also with a fixed period. **Rotating `SECRET_KEY` makes the
+details still kept unreadable** (they show as empty and nothing breaks); they live 90 days at most.
 
 ---
 

@@ -7,18 +7,79 @@ from datetime import date, timedelta
 
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ErrorDetail
 
 from core.models.booking import BookingPeriod
-from core.validators import SafeTextField
+from core.services.contact_seal import (
+    CONTACT_PHONE_MIN_DIGITS,
+    CONTACT_PHONE_PATTERN,
+    unseal,
+    unseal_phone,
+)
+from core.validators import SafeHeadlineField, SafeTextField
 
 # Bookings/orders can't be placed more than ~3 months ahead — matches the
 # frontend's today+90 cap and the availability horizon.
 MAX_BOOKING_HORIZON_DAYS = 90
 
-# A contact phone: digits and the punctuation people type around them, at least six
-# digits, at most the column's 32 characters.
-CONTACT_PHONE_PATTERN = re.compile(r"^[0-9 +().-]{6,32}$")
-CONTACT_PHONE_MIN_DIGITS = 6
+# The four details a library may ask a borrower for, in the order the form shows them. All
+# four are required whenever the library asks.
+LENDING_CONTACT_FIELDS = ("full_name", "address", "phone", "identity_document")
+# An identity document is an ID card, a passport or another official paper: letters, digits,
+# spaces, dots and hyphens, 4 to 32 of them.
+IDENTITY_DOCUMENT_PATTERN = re.compile(r"^[A-Za-z0-9 .\-]{4,32}$")
+
+
+def _check_phone(value):
+    digits = sum(ch.isdigit() for ch in value)
+    if not CONTACT_PHONE_PATTERN.match(value) or digits < CONTACT_PHONE_MIN_DIGITS:
+        raise serializers.ValidationError(
+            "Enter a phone number: digits, spaces and + ( ) . -, at least 6 digits."
+        )
+    return value
+
+
+def _check_identity_document(value):
+    if not IDENTITY_DOCUMENT_PATTERN.match(value):
+        raise serializers.ValidationError(
+            "Enter the number of your identity document: letters, digits, spaces, dots and "
+            "hyphens, 4 to 32 characters."
+        )
+    return value
+
+
+_LENDING_CONTACT_CHECKS = {
+    "full_name": SafeHeadlineField(max_length=128).run_validation,
+    "address": SafeTextField(max_length=256).run_validation,
+    "phone": _check_phone,
+    "identity_document": _check_identity_document,
+}
+
+
+def clean_lending_contact(raw):
+    """The four contact details of a request to a library that asks for them, cleaned.
+
+    All four are required: a missing or empty one is refused coded
+    ``lending_contact_required``, one that does not pass its rule ``lending_contact_invalid``,
+    each in its own field under ``lending_contact`` (``{"lending_contact": {"phone": [...]}}``);
+    the exception handler lifts the code to the top of the body when every refusal shares one.
+    Returns the details as a dict of trimmed text, ready to be sealed.
+    """
+    data = raw if isinstance(raw, dict) else {}
+    cleaned, errors = {}, {}
+    for name in LENDING_CONTACT_FIELDS:
+        value = data.get(name)
+        text = value.strip() if isinstance(value, str) else ""
+        if not text:
+            errors[name] = [ErrorDetail("This field is required.", code="lending_contact_required")]
+            continue
+        try:
+            cleaned[name] = _LENDING_CONTACT_CHECKS[name](text)
+        except serializers.ValidationError as exc:
+            errors[name] = [ErrorDetail(str(exc.detail[0]), code="lending_contact_invalid")]
+    if errors:
+        raise serializers.ValidationError({"lending_contact": errors})
+    return cleaned
 
 
 class BookingPeriodSerializer(serializers.ModelSerializer):
@@ -47,6 +108,14 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
     # since). The once-a-day cap is not in it: `return_reminded_at` says when it
     # last went and the client greys the action out until tomorrow.
     can_remind_return = serializers.SerializerMethodField()
+    # Whether this reader may say the loan came back (`BookingPeriod.can_be_marked_returned`
+    # and the thing's manager): the same rule the endpoint judges again under its lock.
+    can_mark_returned = serializers.SerializerMethodField()
+    # The borrower's contact details a library asked for, opened — **only** for whoever manages
+    # the thing (never the founder's rescue in a network), `None` for everyone else, without a
+    # request, and when there are none. Never in MyBookingSerializer, the calendars, an email or
+    # the group's export.
+    lending_contact = serializers.SerializerMethodField()
     # Whether this reader may accept the request, or only reject it: the founder
     # of a network sees every entity's requests but decides none of them.
     can_decide = serializers.SerializerMethodField()
@@ -80,8 +149,11 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             "project_note",
             "contact_phone",
             "can_remind_return",
+            "can_mark_returned",
             "can_decide",
             "return_reminded_at",
+            "returned_at",
+            "lending_contact",
         ]
 
     def get_contact_phone(self, obj):
@@ -89,7 +161,7 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
             return ""
         if obj.end_date is not None and obj.end_date <= timezone.localdate():
             return ""
-        return obj.contact_phone
+        return unseal_phone(obj.contact_phone)
 
     def get_can_decide(self, obj):
         request = self.context.get("request")
@@ -102,6 +174,20 @@ class BookingPeriodSerializer(serializers.ModelSerializer):
         if request is None or not request.user.is_authenticated:
             return False
         return obj.thing_code.can_manage(request.user.code) and obj.can_be_return_reminded()
+
+    def get_lending_contact(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated or not obj.lending_contact:
+            return None
+        if not obj.thing_code.can_manage(request.user.code):
+            return None
+        return unseal(obj.lending_contact)
+
+    def get_can_mark_returned(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return False
+        return obj.thing_code.can_manage(request.user.code) and obj.can_be_marked_returned()
 
     def _collection(self, obj):
         # A thing lives in one collection; the list is read (the view prefetches
@@ -220,12 +306,7 @@ class ReservationRequestSerializer(serializers.Serializer):
         value = value.strip()
         if not value:
             return ""
-        digits = sum(ch.isdigit() for ch in value)
-        if not CONTACT_PHONE_PATTERN.match(value) or digits < CONTACT_PHONE_MIN_DIGITS:
-            raise serializers.ValidationError(
-                "Enter a phone number: digits, spaces and + ( ) . -, at least 6 digits."
-            )
-        return value
+        return _check_phone(value)
 
     def validate_start_date(self, value):
         if value < date.today():

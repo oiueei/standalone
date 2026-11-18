@@ -16,6 +16,7 @@ from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
+from core.services.contact_seal import seal, seal_phone
 from core.services.team import load_team
 
 DEFAULT_AVAILABILITY_HORIZON_DAYS = 90
@@ -702,12 +703,17 @@ def request_date_based_booking(
     rental_collection=None,
     collection_code=None,
     quantity=1,
+    lending_contact=None,
 ):
     """LEND/RENT — date-based booking with rental-rules + overlap enforcement.
 
     ``quantity`` is how many of a thing's identical units the request holds (1 to
     ``thing.units``). With several units: one live request per person on the same
     dates, and the request must fit among the units still free.
+
+    ``lending_contact`` is the borrower's cleaned contact details, when the library asks for
+    them (the view validates them): they are stored sealed (``core.services.contact_seal``),
+    never as readable text.
     """
     require_a_seat(thing, requester)
     # Enforce the collection's rental rules (fixed durations + allowed pickup/
@@ -769,10 +775,55 @@ def request_date_based_booking(
             start_date=start_date,
             end_date=end_date,
             quantity=quantity,
+            lending_contact=seal(lending_contact) if lending_contact else "",
         )
 
     send_booking_request_notifications(requester, thing, booking, collection_code)
     return booking
+
+
+# How long a reminder lends a loan again when its collection has no fixed lengths.
+OVERDUE_EXTENSION_DAYS = 7
+
+
+def extend_overdue_loan(booking, today=None):
+    """What a "remind them to return it" does to the loan: keeps it going for a while.
+
+    A reminded borrower still holds the thing, so it must not read as free to the next
+    person. The loan is lent again **from today**: for the shortest fixed length of the
+    collection that governs it (a library that lends by the day gives 1, by the week 7),
+    or ``OVERDUE_EXTENSION_DAYS`` when it has none. The pickup and return weekdays and the
+    closures are **not** applied: this is a decision of whoever lends, not a request.
+
+    Only over free days. Under the lock the requests take on the thing, the stretch from
+    today to the new end is judged like any request (the booking itself aside, with the
+    thing's units and the booking's quantity) and, if it meets another live request, is
+    shortened a day at a time to the last end that fits; if not even one day fits, the
+    loan is left as it was. Nothing is ever cancelled or touched but this booking.
+
+    Returns ``(extended_to, cut_short)``: the new end date (``None`` when nothing was
+    extended) and whether it came out shorter than wanted, or not at all.
+    """
+    today = today or timezone.localdate()
+    with transaction.atomic():
+        thing = Thing.objects.select_for_update().get(code=booking.thing_code_id)
+        collection = resolve_rental_collection(thing)
+        lengths = collection.rental_durations if collection else []
+        wanted = today + timedelta(days=min(lengths) if lengths else OVERDUE_EXTENSION_DAYS)
+        new_end = wanted
+        while new_end > today and BookingPeriod.has_overlap(
+            thing.code,
+            today,
+            new_end,
+            exclude_booking_code=booking.code,
+            units=thing.units,
+            quantity=booking.quantity,
+        ):
+            new_end -= timedelta(days=1)
+        if new_end <= today:
+            return None, True
+        BookingPeriod.objects.filter(code=booking.code).update(end_date=new_end)
+    return new_end, new_end < wanted
 
 
 def request_standard_booking(thing, requester, collection_code=None):
@@ -1034,9 +1085,9 @@ def request_reservation(
             start_time=start_time,
             end_time=end_time,
             project_note=project_note or "",
-            # Kept only when the group asked for it: a number nobody was told would
-            # be stored is not stored.
-            contact_phone=(contact_phone or "") if rc.reservation_asks_phone else "",
+            # Kept only when the group asked for it (a number nobody was told would
+            # be stored is not stored), and sealed: never readable in the column.
+            contact_phone=seal_phone(contact_phone) if rc.reservation_asks_phone else "",
             status=BookingPeriod.Status.ACCEPTED,
         )
 

@@ -18,6 +18,8 @@ CODED_VALIDATION_REFUSALS = frozenset(
         "opening_hours_required",
         "units_below_booked",
         "donations_info_required",
+        "lending_contact_required",
+        "lending_contact_invalid",
     }
 )
 

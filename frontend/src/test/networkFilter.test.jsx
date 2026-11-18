@@ -84,6 +84,8 @@ const NETWORK = {
   ],
 };
 
+const ONLY_LELE = { ...NETWORK, things: NETWORK.things.filter((t) => t.owner === 'ENTA01') };
+
 function Where() {
   const { pathname } = useLocation();
   return <div data-testid="where">{pathname}</div>;
@@ -221,7 +223,7 @@ describe('the network’s filter by who lends', () => {
     expect(shown()).toEqual(['Drill']);
   });
 
-  test('with a single dinamizador there is no row: it would be the same button twice', async () => {
+  test('with a single dinamizador and no filter there is no row: it would be the same button twice', async () => {
     const onlyLele = {
       ...NETWORK,
       things: NETWORK.things.filter((t) => t.owner === 'ENTA01'),
@@ -231,14 +233,42 @@ describe('the network’s filter by who lends', () => {
     expect(shown()).toHaveLength(2);
   });
 
-  test('an address filtered by the only one there is still shows all their things, with no error', async () => {
-    const onlyLele = {
-      ...NETWORK,
-      things: NETWORK.things.filter((t) => t.owner === 'ENTA01'),
-    };
-    await openAt('/library/COL001/ENTA01', 'Drill', onlyLele);
+  test('an address filtered by the only one there is shows the row, with their button pressed and "All" not', async () => {
+    await openAt('/library/COL001/ENTA01', 'Drill', ONLY_LELE);
     expect(shown()).toHaveLength(2);
+    expect(chip('Cooperativa')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip('All')).toHaveAttribute('aria-pressed', 'false');
     expect(screen.queryByText(/not found|error/i)).toBeNull();
+  });
+
+  test('"All" in that one-person row goes back to the collection’s address and the row goes with it', async () => {
+    await openAt('/library/COL001/ENTA01', 'Drill', ONLY_LELE);
+
+    fireEvent.click(chip('All'));
+
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/library\/COL001$/);
+    expect(screen.queryByRole('group', { name: 'Who lends' })).toBeNull();
+    expect(shown()).toHaveLength(2);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+  });
+
+  test('pressing their own pressed button does the same', async () => {
+    await openAt('/library/COL001/ENTA01', 'Drill', ONLY_LELE);
+
+    fireEvent.click(chip('Cooperativa'));
+
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/library\/COL001$/);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+  });
+
+  test('with two dinamizadores the pressed button keeps the focus, not the heading', async () => {
+    await openAt('/library/COL001/ENTA01', 'Drill');
+    const all = chip('All');
+    all.focus();
+
+    fireEvent.click(all);
+
+    expect(document.activeElement).toBe(all);
   });
 
   test('with two it appears', async () => {
@@ -260,9 +290,11 @@ describe('the network’s filter by who lends', () => {
     expect(screen.queryByText(/not found|error/i)).toBeNull();
   });
 
-  test('a dinamizador with nothing to show is not a filter either', async () => {
-    await openAt('/library/COL001/ENTC01', 'Drill');
+  test('a code of someone outside the team shows the whole collection, with no error', async () => {
+    await openAt('/library/COL001/MEMB01', 'Drill');
     expect(shown()).toHaveLength(4);
+    expect(screen.queryByText(/not found|error/i)).toBeNull();
+    expect(screen.queryByText(/isn't lending/)).toBeNull();
   });
 
   test('moving between filters does not load the collection again', async () => {
@@ -280,5 +312,73 @@ describe('the network’s filter by who lends', () => {
     await openAt('/library/COL001/ENTA01', 'Drill', { ...NETWORK, mode: 'PROPRIETARY' });
     expect(screen.queryByRole('group', { name: 'Who lends' })).toBeNull();
     expect(shown()).toHaveLength(4);
+  });
+});
+
+describe('a team member who lends nothing yet', () => {
+  const noticeFor = (name) => screen.getByText(`${name} isn't lending anything yet.`);
+
+  test('a co-curator with no things gets a notice with their name, no one else’s cards and no button pressed', async () => {
+    await openAt(
+      '/library/COL001/ENTC01',
+      'Lulu isn\u2019t lending anything yet.'.replace('\u2019', "'")
+    );
+
+    expect(noticeFor('Lulu')).toBeInTheDocument();
+    expect(screen.queryByText('Drill')).toBeNull();
+    for (const button of within(lenderRow()).getAllByRole('button')) {
+      expect(button).toHaveAttribute('aria-pressed', 'false');
+    }
+  });
+
+  test('"See everything" goes to the collection’s address with the heading focused', async () => {
+    await openAt('/library/COL001/ENTC01', "Lulu isn't lending anything yet.");
+
+    fireEvent.click(screen.getByRole('button', { name: 'See everything' }));
+
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/library\/COL001$/);
+    expect(shown()).toHaveLength(4);
+    expect(screen.queryByText(/isn't lending/)).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+  });
+
+  test('the founder with no things comes out under the name of their account', async () => {
+    const noFounderThings = {
+      ...NETWORK,
+      things: NETWORK.things.filter((t) => t.owner !== 'FOUN01'),
+    };
+    await openAt('/library/COL001/FOUN01', "Lala isn't lending anything yet.", noFounderThings);
+    expect(screen.queryByText('Drill')).toBeNull();
+  });
+
+  test('the name is the one of their page in the group, not of their account', async () => {
+    await openAt('/library/COL001/ENTC01', "Cooperativa Lulu isn't lending anything yet.", {
+      ...NETWORK,
+      points: [{ user: 'ENTC01', display_name: 'Cooperativa Lulu' }],
+    });
+    expect(screen.queryByText('Drill')).toBeNull();
+  });
+
+  test('with no name at all it says "a member"', async () => {
+    await openAt('/library/COL001/ENTC01', "A member isn't lending anything yet.", {
+      ...NETWORK,
+      co_owners: NETWORK.co_owners.map((c) => (c.code === 'ENTC01' ? { ...c, name: '' } : c)),
+    });
+    expect(screen.queryByText('Drill')).toBeNull();
+  });
+
+  test('with something but nothing under the chosen tag, it is the tag’s message', async () => {
+    await openAt('/library/COL001/ENTB01', 'Rake');
+
+    fireEvent.click(screen.getByRole('button', { name: /^Kitchen/ }));
+
+    expect(screen.queryByText(/isn't lending/)).toBeNull();
+    expect(screen.getByText('No things with this tag.')).toBeInTheDocument();
+  });
+
+  test('on a collection that is not a network the code of a curator is ignored', async () => {
+    await openAt('/library/COL001/ENTC01', 'Drill', { ...NETWORK, mode: 'PROPRIETARY' });
+    expect(shown()).toHaveLength(4);
+    expect(screen.queryByText(/isn't lending/)).toBeNull();
   });
 });

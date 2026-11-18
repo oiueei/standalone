@@ -1,6 +1,9 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
 
 window.scrollTo = vi.fn();
 
@@ -599,5 +602,81 @@ describe('HomePage — more groups than one page holds', () => {
     expect(screen.getByText('Workshop 1')).toBeInTheDocument();
     expect(screen.getByText('Workshop 20')).toBeInTheDocument();
     expect(screen.queryByText('Workshop 21')).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Someone who arrived by a magic link has no name, and whoever runs their groups sees
+ * "A member". Home says so kindly until a name (a nickname will do) is there.
+ */
+describe('HomePage — the nudge to give a name', () => {
+  const nudge = () => screen.queryByText('Tell us a little about yourself');
+
+  test('without a name it asks, with a link to the profile that carries no way back', async () => {
+    mockDashboard({ mine: [MINE], user: { ...USER, name: '' } });
+    renderHome();
+
+    expect(await screen.findByText('Tell us a little about yourself')).toBeInTheDocument();
+    expect(screen.getByText(/It takes 2 minutes and it's all optional\./)).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'Complete my profile' });
+    expect(link).toHaveAttribute('href', '/me/edit');
+  });
+
+  test('a name of only spaces is no name', async () => {
+    mockDashboard({ mine: [MINE], user: { ...USER, name: '   ' } });
+    renderHome();
+    expect(await screen.findByText('Tell us a little about yourself')).toBeInTheDocument();
+  });
+
+  test('with a name there is nothing to ask, and nothing is left in the browser', async () => {
+    mockDashboard({ mine: [MINE] });
+    renderHome();
+
+    await screen.findByRole('heading', { name: 'Hello, Lulu' });
+    expect(nudge()).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Complete my profile' })).toBeNull();
+  });
+
+  test('it has no close button and stores nothing', async () => {
+    const write = vi.spyOn(localStorage, 'setItem');
+    mockDashboard({ mine: [MINE], user: { ...USER, name: '' } });
+    renderHome();
+    await screen.findByText('Tell us a little about yourself');
+
+    expect(screen.queryByRole('button', { name: /dismiss|close/i })).toBeNull();
+    // Home already keeps `userCode`; the nudge adds no key of its own.
+    expect(write.mock.calls.filter(([key]) => key !== 'userCode')).toEqual([]);
+    write.mockRestore();
+  });
+
+  test('it comes after the pending invitations and before My collections', async () => {
+    mockDashboard({
+      mine: [MINE],
+      user: { ...USER, name: '' },
+      invitations: [
+        {
+          accept_code: 'ACC001',
+          reject_code: 'REJ001',
+          owner_name: 'Lili',
+          collection_headline: 'Tool bank',
+        },
+      ],
+    });
+    renderHome();
+    const invitation = await screen.findByText('Tool bank');
+    const notice = await screen.findByText('Tell us a little about yourself');
+    const mine = screen.getByRole('heading', { level: 2, name: 'My collections' });
+
+    expect(
+      invitation.compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(notice.compareDocumentPosition(mine) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('the page with the nudge has no axe violations', async () => {
+    mockDashboard({ mine: [MINE], user: { ...USER, name: '' } });
+    const { container } = renderHome();
+    await screen.findByText('Tell us a little about yourself');
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

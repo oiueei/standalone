@@ -7,6 +7,7 @@ Accept/reject can also be done by the owner via authenticated API endpoints.
 
 from datetime import datetime, time
 
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -22,6 +23,7 @@ from core.models.booking import RETURNABLE_TYPES, BookingPeriod
 from core.models.collection import Collection
 from core.models.rsvp import RSVP
 from core.models.thing import Thing
+from core.models.transfer import ThingTransfer
 from core.pagination import StandardResultsPagination
 from core.serializers.booking import (
     BookingPeriodCalendarSerializer,
@@ -33,6 +35,7 @@ from core.services.booking_service import (
     BookingRequestError,
     cancel_booking,
     cancel_reservation,
+    extend_overdue_loan,
     finalize_booking_decision,
 )
 from core.services.email_service import send_return_overdue_email
@@ -300,6 +303,11 @@ class BookingRemindReturnView(APIView):
     The day is claimed with one conditional UPDATE before the email goes — two
     presses at once cannot both match the row — and the email names whoever
     pressed, with their address as `Reply-To`.
+
+    The reminder also **keeps the loan going** (`extend_overdue_loan`): from today, for the
+    shortest fixed length of the collection (7 days with none), over free days only. The
+    answer carries `extended_to` (the new return date, `null` when nothing was extended) and
+    `cut_short` (it came out shorter than wanted, or not at all); the email names the new date.
     """
 
     permission_classes = [IsAuthenticated]
@@ -340,11 +348,81 @@ class BookingRemindReturnView(APIView):
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
+        # The reminder keeps the loan going, over days nobody else has asked for.
+        extended_to, cut_short = extend_overdue_loan(booking)
         send_return_overdue_email(
             request.user,
             booking.thing_code,
             booking.end_date,
             booking.requester_code.email,
             quantity=booking.quantity,
+            new_end=extended_to,
         )
-        return Response({"status": "ok"}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "status": "ok",
+                "extended_to": extended_to.isoformat() if extended_to else None,
+                "cut_short": cut_short,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class BookingReturnedView(APIView):
+    """
+    POST /api/v1/bookings/{booking_code}/returned/
+
+    "Mark as returned": a manager of the thing says a loan or rental came back. Only an
+    ACCEPTED loan or rental that has started and was not marked before qualifies
+    (`BookingPeriod.can_be_marked_returned`); in a network the manager is the thing's
+    owner alone, so the founder's rescue does not reach here.
+
+    The booking is re-read under `select_for_update()` and judged again inside the lock,
+    so two presses at once mark it once and the second gets the 400. Giving it back
+    **before** `end_date` ends the loan today, so the thing is free for the next pickup
+    from today (the usual `has_overlap` rule). The loan's `ThingTransfer`, if there is
+    one, now carries a real return date: someone saw it come back, even where the daily
+    command had already closed it as "due back".
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @method_decorator(ratelimit(key="user", rate="30/h", method="POST", block=True))
+    def post(self, request, booking_code):
+        booking = get_object_or_404(
+            BookingPeriod.objects.select_related("thing_code").prefetch_related(
+                Prefetch("thing_code__collections", queryset=managers_ready_collections())
+            ),
+            code=booking_code,
+        )
+
+        if not booking.thing_code.can_manage(request.user.code):
+            return Response(
+                refusal_body("Not authorized", code="not_allowed"),
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        with transaction.atomic():
+            locked = BookingPeriod.objects.select_for_update().get(pk=booking.pk)
+            today = timezone.localdate()
+            if not locked.can_be_marked_returned(today):
+                return Response(
+                    refusal_body("This isn't a loan in progress.", code="not_on_loan"),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            locked.returned_at = timezone.now()
+            # The borrower's contact details were for the time the thing was out.
+            locked.lending_contact = ""
+            fields = ["returned_at", "lending_contact"]
+            if locked.end_date is not None and locked.end_date > today:
+                locked.end_date = today
+                fields.append("end_date")
+            locked.save(update_fields=fields)
+            ThingTransfer.objects.filter(booking=locked).update(
+                returned_date=today, auto_closed=False
+            )
+
+        return Response(
+            {"returned_at": locked.returned_at, "end_date": locked.end_date},
+            status=status.HTTP_200_OK,
+        )

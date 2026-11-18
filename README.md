@@ -495,6 +495,7 @@ Note what the second bullet means before you go public: **a PUBLIC collection's 
 | Headers | Content-Type | nosniff (prevents MIME confusion) |
 | Headers | Referrer-Policy | strict-origin-when-cross-origin |
 | Headers | Content-Security-Policy | Applied in every environment via `SecurityHeadersMiddleware` (`core/middleware.py`), plus a `Permissions-Policy` disabling camera/microphone/geolocation/payment. Violations are reported to **our own** `POST /api/v1/csp-report/` (`report-uri` + `report-to`) and logged to the `security` logger — a hosted collector would be handed the URL of every page a member visits, which §9 rules out |
+| Data at rest | Sealed contact details | The optional phone of a reservation and the contact details a library asks a borrower for are stored **encrypted** (Fernet, key derived from `SECRET_KEY`, `core/services/contact_seal.py`) and opened only for whoever manages the booking or lends the thing. The rest of the personal data (emails, names, profiles) is **not** encrypted in the database. |
 | Production | SSL | Forced HTTPS redirect, secure cookies |
 | Production | Admin Path | Custom path (`/oiueei-admin/`) instead of `/admin/` |
 | Production | API Renderer | JSON-only in production (BrowsableAPI disabled) |
@@ -518,6 +519,8 @@ Everything below is written so you don't have to take my word for it. Each claim
 - **No unnecessary browser storage either.** LSSI-CE art. 22.2 covers more than cookies — `localStorage`, `sessionStorage`, IndexedDB — so "no banner" has to be true of all of it, not just of what a cookie table shows.
 - **No tracking pixels or wrapped links in emails.** Links go where they say they go; there is no open-tracking pixel, no click-redirect domain.
 - **No sale, sharing, profiling or automated decisions** on user data. [DESIGN.md §9](DESIGN.md#9-user-data-is-never-a-product) lists what is forbidden here under any justification — it is a design rule, not a policy page.
+
+- **A reservation's phone and a borrower's contact details are stored encrypted.** The two pieces of contact data the app asks for only when a group needs them are sealed in the database (see *Sealed contact details* in the measures above), so a dump or a backup shows no number, address or document. Everything else you give (email, name, profile) is stored as plain text.
 
 ### How to check all of that
 

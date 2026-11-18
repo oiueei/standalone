@@ -8,6 +8,7 @@ import {
   Tag,
   IconBell,
   IconCheck,
+  IconCheckCircle,
   IconCrossCircle,
 } from 'hds-react';
 import ThemedDialog from '../components/ThemedDialog';
@@ -56,8 +57,18 @@ import { withQuantity } from '../utils/quantity';
  * A loan or rental that is past its return date carries one more action,
  * "remind them to return it" (`can_remind_return`, which the server decides:
  * overdue, and not lent again since). It is one nudge a day per booking, so the
- * action greys out once it has gone and the row says when.
+ * action greys out once it has gone and the row says when. The reminder also lends the
+ * loan again (the server answers with the new return date), and the page says so.
+ *
+ * The loans out right now have a table of their own, first on the page ("On loan now"),
+ * where whoever manages them can say one **came back** (`can_mark_returned`). A loan
+ * nobody marked stays there for 90 days after its return date and no longer, so the
+ * ones from before the action existed do not pile up for good.
  */
+const ON_LOAN_WINDOW_DAYS = 90;
+// The verbs whose thing is carried away and comes back (the server's `RETURNABLE_TYPES`).
+const RETURNABLE = ['LEND_THING', 'RENT_THING'];
+
 const STATUS_TYPES = {
   PENDING: 'alert',
   ACCEPTED: 'success',
@@ -79,7 +90,7 @@ export default function OwnerBookingsPage() {
   // The booking whose return reminder was just sent: its row says so in a live
   // region, once. What stays is the grey "Reminded on …" line, which comes from
   // the booking itself and survives a reload.
-  const [remindedNow, setRemindedNow] = useState(null);
+  const [remindedNow, setRemindedNow] = useState(null); // { code, extendedTo, cutShort }
   // The row whose acceptance would hand the thing over for good, pending
   // confirmation. Accepting a GIFT or SELL that isn't endless flips it INACTIVE,
   // adds the requester to `deal` and writes a ThingTransfer — the owner no
@@ -155,12 +166,64 @@ export default function OwnerBookingsPage() {
         method: 'POST',
       });
       if (res.ok) {
+        // The reminder lends the loan again: the answer carries the new return date
+        // (`null` when nothing could be extended), which the row shows from now on.
+        const data = await res.json().catch(() => null);
+        const extendedTo = data?.extended_to || null;
         setBookings((prev) =>
           prev.map((b) =>
-            b.code === bookingCode ? { ...b, return_reminded_at: new Date().toISOString() } : b
+            b.code === bookingCode
+              ? {
+                  ...b,
+                  return_reminded_at: new Date().toISOString(),
+                  ...(extendedTo ? { end_date: extendedTo } : {}),
+                }
+              : b
           )
         );
-        setRemindedNow(bookingCode);
+        setRemindedNow({ code: bookingCode, extendedTo, cutShort: !!data?.cut_short });
+      } else {
+        const data = await res.json().catch(() => null);
+        setToast({
+          type: 'error',
+          message: codedErrorMessage(data) || t('ownerBookings.errorActing'),
+        });
+      }
+    } catch {
+      setToast({ type: 'error', message: t('common.connectionError') });
+    } finally {
+      setActing(null);
+    }
+  };
+
+  // "Mark as returned": the loan came back. The server ends it today if it was still
+  // running; the row moves to the answered table and says when. The toast says it too,
+  // since the row leaves the table the press was made in.
+  const handleMarkReturned = async (bookingCode) => {
+    setActing(bookingCode);
+    try {
+      const res = await apiFetch(`/api/v1/bookings/${bookingCode}/returned/`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        const returnedAt = data?.returned_at || new Date().toISOString();
+        setBookings((prev) =>
+          prev.map((b) =>
+            b.code === bookingCode
+              ? {
+                  ...b,
+                  returned_at: returnedAt,
+                  end_date: data?.end_date || b.end_date,
+                  // Back: nothing left to mark, and nothing to remind.
+                  can_mark_returned: false,
+                  can_remind_return: false,
+                }
+              : b
+          )
+        );
+        setToast({
+          type: 'success',
+          message: t('ownerBookings.returnedOn', { date: formatDate(returnedAt) }),
+        });
       } else {
         const data = await res.json().catch(() => null);
         setToast({
@@ -234,6 +297,21 @@ export default function OwnerBookingsPage() {
 
   if (!bookings) return <LoadingSpinner />;
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - ON_LOAN_WINDOW_DAYS);
+  const cutoffIso = cutoff.toISOString().slice(0, 10);
+  // Out right now: a confirmed loan or rental that has started and nobody has said came
+  // back, until 90 days after its return date.
+  const isOnLoan = (b) =>
+    b.status === 'ACCEPTED' &&
+    RETURNABLE.includes(b.thing_type) &&
+    !!b.start_date &&
+    b.start_date <= todayIso &&
+    !b.returned_at &&
+    !!b.end_date &&
+    b.end_date >= cutoffIso;
+
   const rows = bookings.map((b) => ({
     _id: b.code,
     _code: b.code,
@@ -247,6 +325,9 @@ export default function OwnerBookingsPage() {
     _requesterName: b.requester_name,
     _requesterEmail: b.requester_email,
     _contactPhone: b.contact_phone,
+    // What a library asked the borrower for, as the server opened it for whoever manages the
+    // thing (`null` for everyone else, and once it is deleted).
+    _lendingContact: b.lending_contact,
     _startDate: b.start_date,
     _endDate: b.end_date,
     _when: formatBookingWhen(b),
@@ -255,12 +336,15 @@ export default function OwnerBookingsPage() {
     // The founder of a network sees every entity's requests and may only reject
     // the ones that are not theirs; an older payload without the field decides.
     _canDecide: b.can_decide !== false,
+    _onLoan: isOnLoan(b),
+    _overdue: isOnLoan(b) && b.end_date < todayIso,
+    _canMarkReturned: !!b.can_mark_returned,
     _canRemindReturn: !!b.can_remind_return,
     _returnRemindedAt: b.return_reminded_at,
+    _returnedAt: b.returned_at,
     _transfersOwnership: !DATE_TYPES.includes(b.thing_type) && !b.thing_is_endless,
   }));
 
-  const todayIso = new Date().toISOString().slice(0, 10);
   const isFutureReservation = (row) =>
     row._type === 'RESERVE_THING' && row._status === 'ACCEPTED' && row._startDate >= todayIso;
 
@@ -280,8 +364,19 @@ export default function OwnerBookingsPage() {
   // action, so the message is announced when it lands in it.
   const remindStatus = (row) => (
     <StatusRegion>
-      {remindedNow === row._code && (
-        <p className="table-cell-line--muted">{t('ownerBookings.remindReturnSent')}</p>
+      {remindedNow?.code === row._code && (
+        <p className="table-cell-line--muted">
+          {remindedNow.extendedTo
+            ? t(
+                remindedNow.cutShort
+                  ? 'ownerBookings.remindCutShort'
+                  : 'ownerBookings.remindExtended',
+                {
+                  date: formatDate(remindedNow.extendedTo),
+                }
+              )
+            : t('ownerBookings.remindReturnSent')}
+        </p>
       )}
     </StatusRegion>
   );
@@ -311,20 +406,15 @@ export default function OwnerBookingsPage() {
       ),
     },
     {
-      key: '_whoWhen',
-      headerName: t('ownerBookings.colWhoWhen'),
+      key: '_who',
+      headerName: t('ownerBookings.colWho'),
       transform: (row) => (
         <div className="table-cell-lines">
-          {/* Always shown: a requester who never set a name arrives as '' from
-              `requester_name` (the serializer never puts their address in the name's
-              place), and dropping the line entirely loses "who asked".
-              `common.aMember` is the same stand-in the inbox and the cards use. */}
-          <p>
-            {t('ownerBookings.requestedBy', {
-              name: row._requesterName || t('common.aMember'),
-            })}
-          </p>
-          {/* And the address itself, under the name, as a link: the
+          {/* The public name alone, as the person set it. With none there is no line
+              (the address below already says who it is); the dialogs that name them
+              in a sentence keep `common.aMember`. */}
+          {row._requesterName && <p>{row._requesterName}</p>}
+          {/* The address itself, under the name, as a link: the
               reader runs this thing, and the request email already carries it to them
               — the exception to never naming anyone by their address, the reader holds
               it. It arrives in
@@ -343,6 +433,30 @@ export default function OwnerBookingsPage() {
               <a href={`tel:${phoneHref(row._contactPhone)}`}>{row._contactPhone}</a>
             </p>
           )}
+          {/* What a library asked the borrower for, only for whoever manages the thing (the
+              server sends it to nobody else): four lines under the address, each on its own with no label, the address with
+              its own line breaks. Deleted when the loan is marked returned. */}
+          {row._lendingContact && (
+            <>
+              <p>{row._lendingContact.full_name}</p>
+              <p className="table-cell-line--pre-line">{row._lendingContact.address}</p>
+              <p>{row._lendingContact.phone}</p>
+              <p>{row._lendingContact.identity_document}</p>
+            </>
+          )}
+          {row._projectNote && (
+            <p className="table-cell-line--note">
+              {t('reservation.noteFrom', { note: row._projectNote })}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: '_when',
+      headerName: t('myBookings.colWhen'),
+      transform: (row) => (
+        <div className="table-cell-lines">
           <p>
             {t('myBookings.requested', {
               date: formatDate(row._created),
@@ -354,9 +468,9 @@ export default function OwnerBookingsPage() {
               {t('ownerBookings.remindedOn', { date: formatDate(row._returnRemindedAt) })}
             </p>
           )}
-          {row._projectNote && (
-            <p className="table-cell-line--note">
-              {t('reservation.noteFrom', { note: row._projectNote })}
+          {row._returnedAt && (
+            <p className="table-cell-line--muted">
+              {t('ownerBookings.returnedOn', { date: formatDate(row._returnedAt) })}
             </p>
           )}
         </div>
@@ -371,6 +485,7 @@ export default function OwnerBookingsPage() {
           <StatusLabel type={STATUS_TYPES[row._status] || 'neutral'}>
             {STATUS_LABELS[row._status] || row._status}
           </StatusLabel>
+          {row._overdue && <StatusLabel type="alert">{t('ownerBookings.overdue')}</StatusLabel>}
         </div>
       ),
     },
@@ -412,18 +527,29 @@ export default function OwnerBookingsPage() {
               {t('ownerBookings.cancelReservation')}
             </Button>
           </div>
-        ) : row._canRemindReturn ? (
+        ) : row._canMarkReturned || row._canRemindReturn ? (
           <div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <TooltipButton
-                tooltip={t('ownerBookings.remindReturn')}
-                onClick={() => handleRemindReturn(row._code)}
-                disabled={acting === row._code || remindedToday(row)}
-              >
-                <IconBell aria-hidden />
-              </TooltipButton>
+            <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'flex-end' }}>
+              {row._canMarkReturned && (
+                <TooltipButton
+                  tooltip={t('ownerBookings.markReturned')}
+                  onClick={() => handleMarkReturned(row._code)}
+                  disabled={acting === row._code}
+                >
+                  <IconCheckCircle aria-hidden />
+                </TooltipButton>
+              )}
+              {row._canRemindReturn && (
+                <TooltipButton
+                  tooltip={t('ownerBookings.remindReturn')}
+                  onClick={() => handleRemindReturn(row._code)}
+                  disabled={acting === row._code || remindedToday(row)}
+                >
+                  <IconBell aria-hidden />
+                </TooltipButton>
+              )}
             </div>
-            {remindStatus(row)}
+            {row._canRemindReturn && remindStatus(row)}
           </div>
         ) : null,
       // The card's face: the same decisions as buttons that say what they do.
@@ -459,19 +585,31 @@ export default function OwnerBookingsPage() {
               {t('ownerBookings.cancelReservation')}
             </Button>
           </div>
-        ) : row._canRemindReturn ? (
+        ) : row._canMarkReturned || row._canRemindReturn ? (
           <>
             <div className="button-row-wide">
-              <Button
-                variant="secondary"
-                style={btnSecondaryStyle}
-                onClick={() => handleRemindReturn(row._code)}
-                disabled={acting === row._code || remindedToday(row)}
-              >
-                {t('ownerBookings.remindReturn')}
-              </Button>
+              {row._canMarkReturned && (
+                <Button
+                  variant="secondary"
+                  style={btnSecondaryStyle}
+                  onClick={() => handleMarkReturned(row._code)}
+                  disabled={acting === row._code}
+                >
+                  {t('ownerBookings.markReturned')}
+                </Button>
+              )}
+              {row._canRemindReturn && (
+                <Button
+                  variant="secondary"
+                  style={btnSecondaryStyle}
+                  onClick={() => handleRemindReturn(row._code)}
+                  disabled={acting === row._code || remindedToday(row)}
+                >
+                  {t('ownerBookings.remindReturn')}
+                </Button>
+              )}
             </div>
-            {remindStatus(row)}
+            {row._canRemindReturn && remindStatus(row)}
           </>
         ) : null,
     },
@@ -479,9 +617,19 @@ export default function OwnerBookingsPage() {
 
   // Each table decides on its own whether its rows carry the verb's label: only when
   // it mixes verbs.
+  const onLoanRows = markMixedVerbs(rows.filter((r) => r._onLoan));
   const pendingRows = markMixedVerbs(rows.filter((r) => r._status === 'PENDING'));
-  const otherRows = markMixedVerbs(rows.filter((r) => r._status !== 'PENDING'));
+  const otherRows = markMixedVerbs(rows.filter((r) => r._status !== 'PENDING' && !r._onLoan));
 
+  // The reminder goes out with the presser's address as Reply-To, the one place a
+  // manager's address reaches a borrower — so it is said before the press, as the
+  // broadcast box says it, above whichever table holds a row that can be reminded.
+  const remindNotice = (
+    <>
+      <p className="text-muted">{t('ownerBookings.remindReturnNotice')}</p>
+      <div className="spacer-s" />
+    </>
+  );
   return (
     <PageLayout title={t('ownerBookings.pageTitle')} backTo="/" backLabel={t('common.home')}>
       {bookings.length === 0 ? (
@@ -498,6 +646,23 @@ export default function OwnerBookingsPage() {
         </div>
       ) : (
         <>
+          {onLoanRows.length > 0 && (
+            <>
+              <h2>{t('ownerBookings.onLoanHeading')}</h2>
+              <div className="spacer-s" />
+              {onLoanRows.some((r) => r._canRemindReturn) && remindNotice}
+              <ResponsiveTable
+                cols={cols}
+                caption={<span className="sr-only">{t('ownerBookings.onLoanHeading')}</span>}
+                rows={onLoanRows}
+                indexKey="_id"
+                renderIndexCol={false}
+                dense
+                theme={tableTheme}
+              />
+              <div className="spacer-xl" />
+            </>
+          )}
           <h2>{t('ownerBookings.waitingOnYou')}</h2>
           <div className="spacer-s" />
           {pendingRows.length === 0 ? (
@@ -518,15 +683,7 @@ export default function OwnerBookingsPage() {
               <div className="spacer-xl" />
               <h2>{t('myBookings.pastRequests')}</h2>
               <div className="spacer-s" />
-              {/* The reminder goes out with the presser's address as Reply-To, the
-                  one place a manager's address reaches a borrower — so it is said
-                  before the press, as the broadcast box says it. */}
-              {otherRows.some((r) => r._canRemindReturn) && (
-                <>
-                  <p className="text-muted">{t('ownerBookings.remindReturnNotice')}</p>
-                  <div className="spacer-s" />
-                </>
-              )}
+              {otherRows.some((r) => r._canRemindReturn) && remindNotice}
               <ResponsiveTable
                 cols={cols}
                 caption={<span className="sr-only">{t('ownerBookings.captionPast')}</span>}

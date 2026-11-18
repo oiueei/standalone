@@ -111,9 +111,9 @@ describe('the contact phone a group may ask for when booking', () => {
   // booking and deleted the day after; the privacy text has to say the same, in the
   // paragraph about who sees what inside a group, right after its first sentence.
   const SENTENCE = {
-    es: 'Si el grupo lo pide al reservar, puedes dejar también un teléfono de contacto: es opcional, solo lo ve quien gestiona esa reserva y se borra el día después de la reserva.',
-    ca: "Si el grup ho demana en reservar, també pots deixar un telèfon de contacte: és opcional, només el veu qui gestiona aquesta reserva i s'esborra l'endemà de la reserva.",
-    en: 'If the group asks for it when you book, you can also leave a contact phone number: it is optional, only those who manage that booking see it, and it is deleted the day after the booking.',
+    es: 'Si el grupo lo pide al reservar, puedes dejar también un teléfono de contacto: es opcional, se guarda cifrado, solo lo ve quien gestiona esa reserva y se borra el día después de la reserva.',
+    ca: "Si el grup ho demana en reservar, també pots deixar un telèfon de contacte: és opcional, es guarda xifrat, només el veu qui gestiona aquesta reserva i s'esborra l'endemà de la reserva.",
+    en: 'If the group asks for it when you book, you can also leave a contact phone number: it is optional, it is stored encrypted, only those who manage that booking see it, and it is deleted the day after the booking.',
   };
   const FIRST_SENTENCE_END = {
     es: 'para que puedan responderte. ',
@@ -125,6 +125,20 @@ describe('the contact phone a group may ask for when booking', () => {
     const text = LANGS[lang];
     expect(text.split(SENTENCE[lang])).toHaveLength(2);
     expect(text).toContain(FIRST_SENTENCE_END[lang] + SENTENCE[lang]);
+  });
+});
+
+describe('the contact details a library may ask a borrower for', () => {
+  // The request page promises they are seen only by whoever lends the thing and deleted
+  // when it comes back; they are also kept encrypted, and the privacy text says so.
+  const SENTENCE = {
+    es: 'solo los ve quien presta esa cosa, se guardan cifrados y se borran al devolverla y, como mucho, 90 días después de la fecha de devolución.',
+    ca: "només els veu qui presta aquesta cosa, es guarden xifrats i s'esborren en tornar-la i, com a molt, 90 dies després de la data de devolució.",
+    en: 'only whoever lends that thing sees them, they are stored encrypted, and they are deleted when it is returned and, at the latest, 90 days after the return date.',
+  };
+
+  test.each(CODES)('%s says they are stored encrypted, once', (lang) => {
+    expect(LANGS[lang].split(SENTENCE[lang])).toHaveLength(2);
   });
 });
 

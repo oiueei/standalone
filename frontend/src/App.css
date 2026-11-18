@@ -105,6 +105,26 @@ body {
   --hero-corners-width: calc(4 * 44px + 3 * var(--spacing-2-xs));
 }
 
+/* From 768px the account icon (yours: profile, requests, log out) is set apart from
+   the ones that follow it (the collection's: settings, collection, share): 24px
+   (`--spacing-m`) between them, the row's 8px `gap` plus a 16px margin, and only
+   when something follows it. The icons after it stay 8px apart. The corner reserves
+   those 16px too, so the back link keeps out from under the row. Under 768px
+   nothing changes. Pinned in test/heroCornerLayout.test.jsx. */
+@media (min-width: 768px) {
+  .form-hero-content {
+    --hero-corners-width: calc(3 * 44px + 2 * var(--spacing-2-xs) + var(--spacing-s));
+  }
+
+  .form-hero-content.form-hero-content--settings {
+    --hero-corners-width: calc(4 * 44px + 3 * var(--spacing-2-xs) + var(--spacing-s));
+  }
+
+  .hero-corners > .account-menu:not(:last-child) {
+    margin-right: var(--spacing-s);
+  }
+}
+
 .form-hero-content .back-link {
   color: var(--hero-text-color, var(--color-black-90));
   /* "← {collection name}" is the first thing in the hero and sits on the same
@@ -1138,7 +1158,11 @@ body :focus-visible {
   min-width: 0;
 }
 
-.form-grid > div[class*='Select-module'] {
+/* HDS gives a Select's root a max-width of 420px, which leaves it short of the fields around it
+   (a date fills the column). A form drops it; so does the request page's `.summary-grid`, which
+   holds the rental length, a reservation's length and an hourly reservation's pickers. */
+.form-grid > div[class*='Select-module'],
+.summary-grid > div[class*='Select-module'] {
   max-width: 100%;
 }
 
@@ -2122,6 +2146,12 @@ figure[class*='Highlight-module_highlight'] {
 .table-cell-line--note {
   font-style: italic;
   color: var(--color-black-70);
+}
+
+/* A line of a cell that keeps the line breaks it was written with: the borrower's address
+   on a loan the library asked contact details for. No colour of its own. */
+.table-cell-line--pre-line {
+  white-space: pre-line;
 }
 
 /* A quiet link in a cell: "Leave the group" in "My groups". The colour is the

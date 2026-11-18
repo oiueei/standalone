@@ -28,9 +28,25 @@
     "GEN_A": "Generación Alpha (2013–2024)",
     "GEN_B": "Generación Beta (2025–2039)"
   },
+  "lendingContact": {
+    "switchLabel": "Pedir los datos de contacto completos al prestar",
+    "intro": "¿Nos dejas tus datos de contacto? Son para saber quién tiene lo que te llevas y poder localizarte si no vuelve. Solo los ve quien te lo presta, y los borraremos cuando lo devuelvas.",
+    "fullName": "Nombre completo",
+    "fullNameHelp": "Como aparece en tu documento de identificación.",
+    "address": "Dirección",
+    "addressHelp": "Calle, número, piso, código postal y población.",
+    "phone": "Teléfono",
+    "identityDocument": "Documento de identificación",
+    "identityDocumentHelp": "Documento de identidad, pasaporte u otro documento oficial. Tráelo cuando vengas a recogerlo."
+  },
+  "profileNudge": {
+    "label": "Cuéntanos un poco de ti",
+    "body": "Son 2 minutos y todo es opcional.",
+    "link": "Completar mi perfil"
+  },
   "communityProfile": {
     "heading": "Datos demográficos (opcional)",
-    "helper": "Opcional. Solo lo pueden ver los propietarios de los grupos en los que estás — nunca es público.",
+    "helper": "Opcional. Quienes llevan tus grupos lo ven en sus estadísticas, sumado con el del resto (nunca el tuyo solo); en un grupo comunitario, también junto a tu nombre. Nunca es público.",
     "ageLabel": "Año de nacimiento",
     "ageUnset": "Prefiero no decirlo",
     "postalLabel": "Código postal"
@@ -465,6 +481,7 @@
     "successLabel": "¡Todo listo!",
     "successMessage": "Ya hemos avisado a quien gestiona esta cosa — te responderá pronto.",
     "backTo": "Volver a {{label}}",
+    "completeProfile": "Completa tu perfil en 2 minutos",
     "errorSending": "Error al enviar la solicitud.",
     "contactShared": "Quien gestiona esta cosa verá tu nombre y tu email.",
     "joinedGroup": "Para pedir aquí te has unido a {{group}}. Puedes salir desde tu perfil."
@@ -632,7 +649,7 @@
     "waitingOnYou": "Esperando tu respuesta",
     "noPending": "Ahora mismo no hay nada esperándote.",
     "noBookings": "Todavía nadie te ha pedido nada.",
-    "colWhoWhen": "Quién y cuándo",
+    "colWho": "Quién",
     "requestedBy": "La pide {{name}}",
     "acceptTooltip": "Confirmar esta solicitud",
     "rejectTooltip": "Rechazar esta solicitud",
@@ -649,7 +666,13 @@
     "remindReturn": "Recordar la devolución",
     "remindReturnSent": "Recordatorio enviado.",
     "remindedOn": "Recordado el {{date}}",
-    "remindReturnNotice": "Cuando recuerdas a alguien que devuelva una cosa, puede responderte directamente: verá tu dirección de correo."
+    "remindReturnNotice": "Cuando recuerdas a alguien que devuelva una cosa, puede responderte directamente: verá tu dirección de correo.",
+    "onLoanHeading": "Prestado ahora",
+    "markReturned": "Marcar como devuelto",
+    "returnedOn": "Devuelto el {{date}}",
+    "overdue": "Con retraso",
+    "remindExtended": "Recordatorio enviado. Ahora debe volver el {{date}}.",
+    "remindCutShort": "Recordatorio enviado. Solo se ha podido alargar hasta el {{date}}: a partir de ahí lo tiene otra persona."
   },
   "manageInvites": {
     "alreadyAskedNotice": "Algunas personas ya recibieron una invitación y no se les puede enviar otra por correo. Mándales tú el enlace de invitación.",
@@ -1122,7 +1145,9 @@
     "conditionsTitle": "Tus condiciones",
     "conditionsIntro": "Lo que dejes vacío es lo que dice la red.",
     "lentBy": "Lo presta {{name}}",
-    "filterLabel": "Quién presta"
+    "filterLabel": "Quién presta",
+    "lendsNothingYet": "{{name}} todavía no presta nada.",
+    "seeAll": "Ver todo"
   },
   "organisation": {
     "menuEntry": "Mi entidad",
@@ -1258,6 +1283,9 @@
     "not_a_member": "Tienes que ser miembro de este grupo para reservar.",
     "not_available": "Ahora mismo no está disponible.",
     "not_awaiting_return": "Esto ya no está pendiente de devolución.",
+    "not_on_loan": "Esto no es un préstamo en curso.",
+    "lending_contact_required": "Esta biblioteca pide tus datos de contacto para prestar. Rellena los cuatro.",
+    "lending_contact_invalid": "Revisa este dato y vuelve a intentarlo.",
     "priced_things_remain": "Algunas cosas de este grupo tienen precio. Quítaselo o retíralas antes de quitar a los miembros la opción de poner precio.",
     "opening_hours_required": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
     "units_below_booked": "Hay reservas que necesitan al menos {{min}} a la vez.",

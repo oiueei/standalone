@@ -330,6 +330,7 @@ TEXTS = {
         "{manager} et recorda que {thing} havia de tornar el {end}. "
         "Si ja has fet la devolució, pots ignorar aquest correu."
     ),
+    "return_overdue_new_date": "Si us plau, torna-ho com a molt tard el {date}.",
     "view_thing_cta": "Veure la publicació",
     "demo_note": "Aquest grup és de demostració: les seves coses i persones són d'exemple.",
     # Reserves d'espai (RESERVE_THING) — confirmació automàtica, sense decisió

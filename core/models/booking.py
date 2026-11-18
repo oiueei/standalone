@@ -193,17 +193,28 @@ class BookingPeriod(models.Model):
     project_note = models.CharField(max_length=512, blank=True, default="")
     # RESERVE_THING only, and only when the collection asks for it
     # (``Collection.reservation_asks_phone``): an optional phone number for a
-    # same-day problem. Served to whoever manages the reservation, blank from the
-    # day after it (``BookingPeriodSerializer``) and emptied for good by
-    # ``purge_expired_data``. Never in an email or the calendar export. The
-    # database default is for the previous release's dynos, which insert without
-    # naming the column.
-    contact_phone = models.CharField(max_length=32, blank=True, default="", db_default="")
+    # same-day problem. Kept **sealed** (``core.services.contact_seal``), never as
+    # readable text: the column is a ``TextField`` because a token does not fit
+    # 32 characters (the request serializer caps the number itself at 32). Served,
+    # opened, to whoever manages the reservation, blank from the day after it
+    # (``BookingPeriodSerializer``) and emptied for good by ``purge_expired_data``.
+    # Never in an email or the calendar export. The database default is for the
+    # previous release's dynos, which insert without naming the column.
+    contact_phone = models.TextField(blank=True, default="", db_default="")
     # LEND/RENT of a thing with several identical units: how many this request
     # holds. 1 everywhere else (a reservation takes one space, a gift or a sale one
     # thing). ``saturated_periods`` weighs each booking by it. The database default is
     # for the previous release's dynos, which insert without naming the column.
     quantity = models.PositiveSmallIntegerField(default=1, db_default=1)
+    # LEND/RENT in a library that asks (``Collection.lending_asks_contact``): the borrower's
+    # full name, address, phone and identity document as one **sealed** JSON token
+    # (``core.services.contact_seal``), never readable in the column. Empty = nobody left
+    # any. Served, opened, to whoever manages the thing; emptied when the loan is marked
+    # returned, when the request is rejected, cancelled or expires, and by
+    # ``purge_expired_data`` 90 days after the return date. Never in an email, the
+    # calendar file or the group's export. The database default is for the previous
+    # release's dynos, which insert without naming the column.
+    lending_contact = models.TextField(blank=True, default="", db_default="")
     requester_code = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,
@@ -232,6 +243,10 @@ class BookingPeriod(models.Model):
     # is capped at one nudge a day, so this is the timestamp that answers
     # "was it already today?" — see `can_be_return_reminded`.
     return_reminded_at = models.DateTimeField(null=True, blank=True)
+    # When whoever manages the thing said the loan came back
+    # (`/bookings/{code}/returned/`). Null = nobody has said so, which is also what
+    # every loan from before the field looks like. Nullable, so no `db_default`.
+    returned_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=9, choices=Status.choices, default=Status.PENDING, db_index=True
     )
@@ -290,6 +305,8 @@ class BookingPeriod(models.Model):
         """
         if self.status != self.Status.ACCEPTED or self.thing_type not in RETURNABLE_TYPES:
             return False
+        if self.returned_at is not None:
+            return False
         today = today or timezone.localdate()
         if not self.start_date or not self.end_date or self.end_date >= today:
             return False
@@ -303,6 +320,18 @@ class BookingPeriod(models.Model):
             ).exists()
         return not lent_again
 
+    def can_be_marked_returned(self, today=None):
+        """Whether a manager may say "it came back" about this booking: an ACCEPTED loan
+        or rental that has started (``start_date`` today or earlier) and that nobody has
+        marked returned yet. Overdue or not: a loan still inside its dates may also come
+        back early. Reads only the row, so the /owner-bookings/ serializer costs no
+        query per row; the endpoint asks it again under the row lock."""
+        if self.status != self.Status.ACCEPTED or self.thing_type not in RETURNABLE_TYPES:
+            return False
+        if self.returned_at is not None or self.start_date is None:
+            return False
+        return self.start_date <= (today or timezone.localdate())
+
     def accept(self):
         """Accept the booking request."""
         self.status = self.Status.ACCEPTED
@@ -311,17 +340,20 @@ class BookingPeriod(models.Model):
     def reject(self):
         """Reject the booking request."""
         self.status = self.Status.REJECTED
-        self.save(update_fields=["status"])
+        self.lending_contact = ""
+        self.save(update_fields=["status", "lending_contact"])
 
     def cancel(self):
         """Cancel the booking (by the requester)."""
         self.status = self.Status.CANCELLED
-        self.save(update_fields=["status"])
+        self.lending_contact = ""
+        self.save(update_fields=["status", "lending_contact"])
 
     def expire(self):
         """Mark the booking as expired."""
         self.status = self.Status.EXPIRED
-        self.save(update_fields=["status"])
+        self.lending_contact = ""
+        self.save(update_fields=["status", "lending_contact"])
 
     @classmethod
     def has_overlap(
@@ -469,7 +501,7 @@ class BookingPeriod(models.Model):
             expiring = cls.objects.filter(status=cls.Status.PENDING, created__lt=cutoff_time)
             expiring_codes = list(expiring.values_list("code", flat=True))
 
-            expired_count = expiring.update(status=cls.Status.EXPIRED)
+            expired_count = expiring.update(status=cls.Status.EXPIRED, lending_contact="")
 
             if expiring_codes:
                 InAppNotification.objects.filter(

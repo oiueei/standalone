@@ -36,7 +36,10 @@ const NETWORK = {
   owner: 'FOUN01',
   owner_name: 'Lala',
   is_member: true,
-  co_owners: [{ code: 'ENTA01', name: 'Lele' }],
+  co_owners: [
+    { code: 'ENTA01', name: 'Lele' },
+    { code: 'ENTB01', name: 'Lili' },
+  ],
   tags: [],
   invites: [],
   allowed_thing_types: ['LEND_THING', 'RENT_THING'],
@@ -67,10 +70,10 @@ afterEach(async () => {
 });
 afterEach(() => window.history.pushState({}, '', '/'));
 
-async function openApp() {
+async function openApp(first = 'Drill') {
   const { default: App } = await import('../App');
   render(<App />);
-  await screen.findByText('Drill');
+  await screen.findByText(first);
   // The inbox is asked for once the collection is painted; its answer is waited for here,
   // inside the test, and not left to land right after this returns.
   await settle(globalThis.fetch);
@@ -142,5 +145,46 @@ describe('the network’s filter keeps the reader where they are', () => {
 
     await waitFor(() => expect(document.activeElement).toBe(document.getElementById('main')));
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' });
+  });
+
+  test('"See everything" on a team member with nothing to lend leaves the focus on the Things heading and does not scroll', async () => {
+    window.history.pushState({}, '', '/library/COL001/ENTB01');
+    await openApp("Lili isn't lending anything yet.");
+    window.scrollTo.mockClear();
+
+    fireEvent.click(screen.getByRole('button', { name: 'See everything' }));
+
+    expect(window.location.pathname).toBe('/library/COL001');
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+    expect(window.scrollTo).not.toHaveBeenCalled();
+  });
+
+  test('taking off the only filter there is leaves the focus on the Things heading', async () => {
+    window.history.pushState({}, '', '/library/COL001/ENTA01');
+    const only = { ...NETWORK, things: NETWORK.things.filter((t) => t.owner === 'ENTA01') };
+    globalThis.fetch.mockImplementation((url) =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve(
+            String(url).includes('/inbox/')
+              ? []
+              : String(url).includes('/collections/COL001/')
+                ? only
+                : {}
+          ),
+      })
+    );
+    await openApp();
+    const group = screen.getByRole('group', { name: 'Who lends' });
+    window.scrollTo.mockClear();
+
+    fireEvent.click(group.querySelector('button[aria-pressed="false"]'));
+
+    expect(window.location.pathname).toBe('/library/COL001');
+    expect(screen.queryByRole('group', { name: 'Who lends' })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+    expect(window.scrollTo).not.toHaveBeenCalled();
   });
 });

@@ -33,6 +33,7 @@ SOURCES = [
     ROOT / "core" / "views" / "booking.py",
     ROOT / "core" / "views" / "_helpers.py",
     ROOT / "core" / "serializers" / "collection.py",
+    ROOT / "core" / "serializers" / "booking.py",
 ]
 LOCALES = ROOT / "frontend" / "src" / "i18n" / "locales"
 

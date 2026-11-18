@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'hds-react';
 import ThingLinkbox from '../ThingLinkbox';
 import useTheeeme from '../../hooks/useTheeeme';
 import { useLocalized } from '../../utils/localized';
-import { compareNames } from '../../utils/team';
+import { compareNames, teamMemberByCode } from '../../utils/team';
 import { collectionPath } from '../../utils/collectionPath';
 
 /**
@@ -87,12 +87,23 @@ export default function ThingsSection({
   // Only a dinamizador of this network counts, and only with a visible thing.
   const lenders =
     collection.mode === 'NETWORK' ? lendersOf(collection, visibleThings, t, language) : [];
-  // An address naming anybody else (not a dinamizador, not a network) is the collection
-  // as it is, with no error.
-  const effectiveLender = lenders.some((l) => l.code === curatorCode) ? curatorCode : null;
+  // The address names a member of a network's team (the founder or a co-curator): the
+  // page is filtered by them **even with nothing to show**, so a link to a pickup point
+  // that lends nothing yet does not pass for the whole network's. Anybody else in that
+  // place (not on the team, or not a network) is the collection as it is, with no error.
+  const filterMember =
+    collection.mode === 'NETWORK' && curatorCode ? teamMemberByCode(collection, curatorCode) : null;
+  const effectiveLender = filterMember ? curatorCode : null;
+  const filterHasThings = lenders.some((l) => l.code === effectiveLender);
   const base = collectionPath(code, collection.kind);
-  const chooseLender = (lenderCode) => {
+  const thingsHeading = useRef(null);
+  // `controlStays`: the button pressed is still on screen afterwards. When it is not
+  // (the row goes with its last choice, "See everything" goes with the notice), the focus
+  // would fall to the top of the page, so it goes to the "Things" heading, one Tab from
+  // the first card.
+  const chooseLender = (lenderCode, controlStays) => {
     setShownCount(CARDS_PER_PAGE);
+    if (!controlStays) thingsHeading.current?.focus({ preventScroll: true });
     // `replace`: a filter is a slice of the page, like a tag, and leaves no history for
     // "Back" to walk through. `keepFocus`: the button pressed keeps the focus and the
     // list stays where it is (see RouteFocusReset in App.jsx). The address is still the
@@ -102,6 +113,9 @@ export default function ThingsSection({
       state: { keepFocus: true },
     });
   };
+  // The row of chips: from two dinamizadores with things, or with a filter that applies to
+  // one (otherwise there would be no sign of the filter, nor a way to take it off).
+  const showLenderRow = lenders.length > 1 || filterHasThings;
 
   const matchingThings = visibleThings.filter(
     (thg) =>
@@ -123,7 +137,9 @@ export default function ThingsSection({
             them: take this out and the page jumps from <h1> to <h3>, which axe's
             heading-order flags. It also stays a landmark a screen-reader user can
             jump to, next to "Messages to the group". */}
-      <h2 className="sr-only">{t('collectionPage.things')}</h2>
+      <h2 className="sr-only" tabIndex={-1} ref={thingsHeading}>
+        {t('collectionPage.things')}
+      </h2>
       {/* A recorded DESIGN §1 exception, not an oversight: these are plain
             `<button aria-pressed>`s, not HDS `Tag`. HDS `Tag` (`variant="action"`)
             has no pressed/selected state to bind `aria-pressed` to, and a filter
@@ -165,15 +181,16 @@ export default function ThingsSection({
         </div>
       )}
       {/* The same chips, by who lends: a second row that combines with the tags. With a
-          single dinamizador it would be "All (5)" next to "Fusteria (5)": the same button
-          twice, so there is no row until there are two. */}
-      {visibleThings.length > 0 && lenders.length > 1 && (
+          single dinamizador and no filter it would be "All (5)" next to "Fusteria (5)": the
+          same button twice, so there is no row until there are two — or until the address
+          filters by that one, when one button says where you are and the other how to leave. */}
+      {visibleThings.length > 0 && showLenderRow && (
         <div className="tag-filter-bar" role="group" aria-label={t('networkPoint.filterLabel')}>
           <button
             type="button"
             className="tag-chip"
             aria-pressed={!effectiveLender}
-            onClick={() => chooseLender(null)}
+            onClick={() => chooseLender(null, lenders.length > 1)}
           >
             {t('collectionPage.allTags')} ({visibleThings.length})
           </button>
@@ -183,7 +200,12 @@ export default function ThingsSection({
               type="button"
               className="tag-chip"
               aria-pressed={effectiveLender === lender.code}
-              onClick={() => chooseLender(effectiveLender === lender.code ? null : lender.code)}
+              onClick={() =>
+                chooseLender(
+                  effectiveLender === lender.code ? null : lender.code,
+                  lenders.length > 1
+                )
+              }
             >
               {lender.name} ({lender.count})
             </button>
@@ -200,7 +222,27 @@ export default function ThingsSection({
           <p>{t('collectionPage.noThings')}</p>
         )
       ) : shownThings.length === 0 ? (
-        <p>{t('collectionPage.noThingsForTag')}</p>
+        effectiveLender && !filterHasThings ? (
+          <>
+            <p>
+              {t('networkPoint.lendsNothingYet', {
+                name: filterMember.name || t('common.aMember'),
+              })}
+            </p>
+            <div className="spacer-m" />
+            <div className="button-row-wide">
+              <Button
+                variant="secondary"
+                style={btnSecondaryStyle}
+                onClick={() => chooseLender(null, false)}
+              >
+                {t('networkPoint.seeAll')}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <p>{t('collectionPage.noThingsForTag')}</p>
+        )
       ) : (
         <>
           <div className="things-grid">

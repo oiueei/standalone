@@ -237,6 +237,98 @@ describe('the back link keeps out from under the corner icons', () => {
   });
 });
 
+describe('from 768px the account icon is set apart from the collection’s icons', () => {
+  // The Figma corner groups the collection's icons (8px apart) and leaves 24px
+  // (`--spacing-m`) between them and the account icon: the row's own 8px `gap` plus a
+  // 16px margin on the account, only when another control follows it.
+  const TABLET = '(min-width: 768px)';
+  const tabletRules = (selector) =>
+    mediaBlocks(TABLET).flatMap((block) => rulesIn(block, selector));
+  const MARGIN_RULE = '.hero-corners > .account-menu:not(:last-child)';
+
+  test('the account carries a right margin from 768px, and only with a control after it', () => {
+    expect(tabletRules(MARGIN_RULE).map((body) => declared(body, 'margin-right'))).toEqual([
+      'var(--spacing-s)',
+    ]);
+    // Not under 768px: no rule outside the media query touches the account's margin…
+    const outside = mediaBlocks(TABLET).reduce((rest, block) => rest.replace(block, ''), css);
+    expect(rulesIn(outside, MARGIN_RULE)).toEqual([]);
+    expect(declarations('.account-menu', 'margin-right')).toEqual([]);
+    expect(declarations('.account-menu', 'margin')).toEqual([]);
+    // …and the selector is `:not(:last-child)`, so the account alone does not move.
+    expect(MARGIN_RULE).toContain(':not(:last-child)');
+  });
+
+  test('the rule names the account control as the corner row paints it, signed in or out', () => {
+    const { container, unmount } = renderHero();
+    expect(container.querySelector(MARGIN_RULE.replace(':not(:last-child)', ''))).not.toBeNull();
+    unmount();
+    localStorage.removeItem('userCode');
+    const out = renderHero().container;
+    expect(out.querySelector('.hero-corners > .account-menu > a')).not.toBeNull();
+    // Alone in the row it is the last child: the margin does not apply.
+    expect(out.querySelector(MARGIN_RULE)).toBeNull();
+  });
+
+  test('8px gap + the margin make the 24px of the design', () => {
+    const [gap] = declarations('.hero-corners', 'gap');
+    const [margin] = tabletRules(MARGIN_RULE).map((body) => declared(body, 'margin-right'));
+    expect([gap, margin]).toEqual(['var(--spacing-2-xs)', 'var(--spacing-s)']);
+    // 8 + 16 = 24 = --spacing-m (the tokens are the HDS ones: 0.5rem, 1rem, 1.5rem).
+    const px = { 'var(--spacing-2-xs)': 8, 'var(--spacing-s)': 16, 'var(--spacing-m)': 24 };
+    expect(px[gap] + px[margin]).toBe(px['var(--spacing-m)']);
+  });
+
+  test('the room reserved for the corner grows by that margin from 768px, in both heroes', async () => {
+    const MARGIN = 'var(--spacing-s)';
+    const room = (selector) => {
+      const [value] = tabletRules(selector).map((body) => declared(body, '--hero-corners-width'));
+      const [, count, size, gaps, extra] =
+        /^calc\((\d+) \* (\d+)px \+ (\d+) \* var\(--spacing-2-xs\) \+ (var\(--spacing-s\))\)$/.exec(
+          value ?? ''
+        ) ?? [];
+      return { count: Number(count), size: Number(size), gaps: Number(gaps), extra };
+    };
+    const rest = room('.form-hero-content');
+    const own = room('.form-hero-content.form-hero-content--settings');
+
+    // Three controls (account, collection, share) and a curator's four: the same
+    // counts as under 768px, each gap one fewer, and the margin once.
+    expect(rest).toEqual({ count: 3, size: 44, gaps: 2, extra: MARGIN });
+    expect(own).toEqual({ count: 4, size: 44, gaps: 3, extra: MARGIN });
+
+    // …and the curator's corner really paints the four it reserves for.
+    apiFetch.mockImplementation(() =>
+      Promise.resolve({ ok: true, status: 200, json: async () => CURATED })
+    );
+    const { container } = render(
+      <MemoryRouter initialEntries={['/collections/COL001']}>
+        <Routes>
+          <Route path="/collections/:code" element={<CollectionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    await screen.findByRole('button', { name: /share collection/i });
+    const corners = container.querySelector('.hero-corners');
+    expect(corners.children).toHaveLength(own.count);
+    // Only the first control carries the margin, and one follows it.
+    expect(corners.firstElementChild.matches('.account-menu:not(:last-child)')).toBe(true);
+  });
+
+  test('the base reservation under 768px is unchanged, and the media rule comes after it', () => {
+    expect(declarations('.form-hero-content', '--hero-corners-width')[0]).toBe(
+      'calc(3 * 44px + 2 * var(--spacing-2-xs))'
+    );
+    expect(
+      declarations('.form-hero-content.form-hero-content--settings', '--hero-corners-width')[0]
+    ).toBe('calc(4 * 44px + 3 * var(--spacing-2-xs))');
+    const base = css.indexOf('--hero-corners-width: calc(3 * 44px + 2 * var(--spacing-2-xs));');
+    const tablet = css.indexOf('+ var(--spacing-s));');
+    expect(base).toBeGreaterThan(-1);
+    expect(tablet).toBeGreaterThan(base);
+  });
+});
+
 describe('the collection menu panel anchors to the corner row like the account menu', () => {
   test('the corner row reads account · settings · collection · share, left to right', async () => {
     apiFetch.mockImplementation(() =>

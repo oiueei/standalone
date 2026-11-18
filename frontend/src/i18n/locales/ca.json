@@ -28,9 +28,25 @@
     "GEN_A": "Generació Alpha (2013–2024)",
     "GEN_B": "Generació Beta (2025–2039)"
   },
+  "lendingContact": {
+    "switchLabel": "Demanar les dades de contacte completes en prestar",
+    "intro": "Ens deixes les teves dades de contacte? Són per saber qui té el que t'emportes i poder-te localitzar si no torna. Només les veu qui t'ho presta, i les esborrarem quan ho tornis.",
+    "fullName": "Nom complet",
+    "fullNameHelp": "Com apareix al teu document d'identificació.",
+    "address": "Adreça",
+    "addressHelp": "Carrer, número, pis, codi postal i població.",
+    "phone": "Telèfon",
+    "identityDocument": "Document d'identificació",
+    "identityDocumentHelp": "Document d'identitat, passaport o un altre document oficial. Porta'l quan vinguis a recollir-ho."
+  },
+  "profileNudge": {
+    "label": "Explica'ns una mica de tu",
+    "body": "Són 2 minuts i tot és opcional.",
+    "link": "Completar el meu perfil"
+  },
   "communityProfile": {
     "heading": "Dades demogràfiques (opcional)",
-    "helper": "Opcional. Només ho poden veure els propietaris dels grups on participes — mai és públic.",
+    "helper": "Opcional. Qui porta els teus grups ho veu a les seves estadístiques, sumat amb el de la resta (mai el teu sol); en un grup comunitari, també al costat del teu nom. Mai és públic.",
     "ageLabel": "Any de naixement",
     "ageUnset": "Prefereixo no dir-ho",
     "postalLabel": "Codi postal"
@@ -465,6 +481,7 @@
     "successLabel": "Tot llest!",
     "successMessage": "Ja hem avisat qui gestiona aquesta cosa — aviat et respondrà.",
     "backTo": "Tornar a {{label}}",
+    "completeProfile": "Completa el teu perfil en 2 minuts",
     "errorSending": "Error en enviar la sol·licitud.",
     "contactShared": "Qui gestiona aquesta cosa veurà el teu nom i el teu email.",
     "joinedGroup": "Per demanar aquí t'has unit a {{group}}. Pots sortir-ne des del teu perfil."
@@ -632,7 +649,7 @@
     "waitingOnYou": "Esperant la teva resposta",
     "noPending": "Ara mateix no hi ha res esperant-te.",
     "noBookings": "Encara ningú no t'ha demanat res.",
-    "colWhoWhen": "Qui i quan",
+    "colWho": "Qui",
     "requestedBy": "La demana {{name}}",
     "acceptTooltip": "Confirmar aquesta sol·licitud",
     "rejectTooltip": "Rebutjar aquesta sol·licitud",
@@ -649,7 +666,13 @@
     "remindReturn": "Recordar la devolució",
     "remindReturnSent": "Recordatori enviat.",
     "remindedOn": "Recordat el {{date}}",
-    "remindReturnNotice": "Quan recordes a algú que torni una cosa, et pot respondre directament: veurà la teva adreça de correu."
+    "remindReturnNotice": "Quan recordes a algú que torni una cosa, et pot respondre directament: veurà la teva adreça de correu.",
+    "onLoanHeading": "En préstec ara",
+    "markReturned": "Marcar com a retornat",
+    "returnedOn": "Retornat el {{date}}",
+    "overdue": "Amb retard",
+    "remindExtended": "Recordatori enviat. Ara ha de tornar el {{date}}.",
+    "remindCutShort": "Recordatori enviat. Només s'ha pogut allargar fins al {{date}}: a partir d'aleshores el té una altra persona."
   },
   "manageInvites": {
     "alreadyAskedNotice": "Algunes persones ja van rebre una invitació i no se'ls en pot enviar una altra per correu. Envia'ls tu l'enllaç d'invitació.",
@@ -1122,7 +1145,9 @@
     "conditionsTitle": "Les teves condicions",
     "conditionsIntro": "El que deixis buit és el que diu la xarxa.",
     "lentBy": "Ho presta {{name}}",
-    "filterLabel": "Qui presta"
+    "filterLabel": "Qui presta",
+    "lendsNothingYet": "{{name}} encara no presta res.",
+    "seeAll": "Veure-ho tot"
   },
   "organisation": {
     "menuEntry": "La meva entitat",
@@ -1258,6 +1283,9 @@
     "not_a_member": "Has de ser membre d'aquest grup per reservar.",
     "not_available": "Ara mateix no està disponible.",
     "not_awaiting_return": "Això ja no està pendent de retorn.",
+    "not_on_loan": "Això no és un préstec en curs.",
+    "lending_contact_required": "Aquesta biblioteca demana les teves dades de contacte per prestar. Omple'ls tots quatre.",
+    "lending_contact_invalid": "Revisa aquesta dada i torna-ho a provar.",
     "priced_things_remain": "Algunes coses d'aquest grup tenen preu. Treu-los-el o retira-les abans de treure als membres l'opció de posar preu.",
     "opening_hours_required": "Per reservar per hores, posa almenys una franja a «Horari setmanal».",
     "units_below_booked": "Hi ha reserves que necessiten almenys {{min}} alhora.",
