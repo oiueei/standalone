@@ -213,6 +213,13 @@ class Collection(models.Model):
     # one: the previous release's dynos keep inserting rows without naming the
     # column while the release phase runs.
     reservation_asks_phone = models.BooleanField(default=False, db_default=False)
+    # LIBRARY only. Whether the request page asks whoever borrows for a full name, an
+    # address, a phone and an identity document (all four required; see
+    # `BookingPeriod.lending_contact`). Off by default in every library, and the
+    # existing ones stay off. Inert on every other kind. Carries a database default as
+    # well as the Python one, for the previous release's dynos, which insert without
+    # naming the column while the release phase runs.
+    lending_asks_contact = models.BooleanField(default=False, db_default=False)
     # RESERVE_THING collections only. DAY (default) is the original shape above:
     # a reservation occupies one or more whole days. HOUR books a single day in
     # slots within that day's opening_hours. Never both at once — a

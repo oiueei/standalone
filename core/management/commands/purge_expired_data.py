@@ -71,6 +71,10 @@ security_logger = logging.getLogger("security")
 # take it.
 DEFAULT_MAX_WARNINGS = 200
 
+# How long after a loan's return date a library's borrower contact details may stay at the
+# very most. Fixed, not a `RETENTION_*`: the request page and /legal promise it.
+LENDING_CONTACT_DAYS = 90
+
 
 def months_ago(months, now=None):
     """The same day of the month, ``months`` calendar months back.
@@ -125,6 +129,7 @@ class Command(BaseCommand):
             self._reports,
             self._invitation_records,
             self._reservation_phones,
+            self._lending_contacts,
         ]
         results = []
         for step in steps:
@@ -396,3 +401,23 @@ class Command(BaseCommand):
         if commit and count:
             rows.update(contact_phone="")
         return ("Reservation contact phones emptied (the day after the booking)", count)
+
+    def _lending_contacts(self, now, commit):
+        """Empties the contact details a library asked a borrower for, 90 days after the
+        loan's return date at the latest.
+
+        They are normally gone long before: marking the loan returned, or a request that is
+        refused, cancelled or expires, empties them in the same step. This is the backstop
+        for a loan nobody marked. The period is fixed, neither a ``RETENTION_*`` setting nor
+        switchable off: the request page and ``/legal`` promise it. Cancelled and expired
+        rows are emptied too. A dry run counts and touches nothing.
+        """
+        cutoff = timezone.localdate(now) - timedelta(days=LENDING_CONTACT_DAYS)
+        rows = BookingPeriod.objects.filter(end_date__lte=cutoff).exclude(lending_contact="")
+        count = rows.count()
+        if commit and count:
+            rows.update(lending_contact="")
+        return (
+            f"Lending contact details emptied ({LENDING_CONTACT_DAYS} days after return)",
+            count,
+        )

@@ -411,7 +411,9 @@ class BookingReturnedView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             locked.returned_at = timezone.now()
-            fields = ["returned_at"]
+            # The borrower's contact details were for the time the thing was out.
+            locked.lending_contact = ""
+            fields = ["returned_at", "lending_contact"]
             if locked.end_date is not None and locked.end_date > today:
                 locked.end_date = today
                 fields.append("end_date")

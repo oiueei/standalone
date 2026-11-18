@@ -309,6 +309,12 @@ done by `purge_expired_data`, whose period for this is fixed (no `RETENTION_*` s
 off). A deployment must therefore run `python manage.py purge_expired_data --commit` **every day** (the
 daily chain in [HEROKU.md](HEROKU.md) does); left in dry-run, the label would not be true.
 
+The same goes for the contact details a **library** may ask a borrower for (full name, address, phone and an
+identity document, off in every library until its team turns the switch on): they are kept **sealed** (Fernet,
+with a key derived from `SECRET_KEY`), go when the loan is marked returned, and `purge_expired_data` empties
+them at the latest 90 days after the return date, also with a fixed period. **Rotating `SECRET_KEY` makes the
+details still kept unreadable** (they show as empty and nothing breaks); they live 90 days at most.
+
 ---
 
 ## What upstream deliberately does not have

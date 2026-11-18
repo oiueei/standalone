@@ -163,6 +163,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "accepts_donations",
             "donations_info",
             "reservation_asks_phone",
+            "lending_asks_contact",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -443,6 +444,9 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     # Sheds only: whether the request page asks for an optional contact phone.
     # A True on any other kind is refused (``_validate_phone_switch``).
     reservation_asks_phone = serializers.BooleanField(required=False)
+    # Libraries only: whether the request page asks the borrower for full contact details.
+    # A True on any other kind is refused (``_validate_lending_contact_switch``).
+    lending_asks_contact = serializers.BooleanField(required=False)
     # RESERVE_THING collections only: DAY (default) or HOUR — never both. See
     # Collection.ReservationUnit.
     reservation_unit = serializers.ChoiceField(
@@ -514,6 +518,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "reservation_horizon_days",
             "reservation_max_active_per_member",
             "reservation_asks_phone",
+            "lending_asks_contact",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -565,6 +570,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         attrs["kind"] = kind
         attrs["allowed_thing_types"] = normalize_allowed_thing_types(kind, mode, listed)
         _validate_phone_switch(kind, attrs.get("reservation_asks_phone", False))
+        _validate_lending_contact_switch(kind, attrs.get("lending_asks_contact", False))
         _validate_reservation_minutes(
             attrs.get("reservation_min_minutes", 60), attrs.get("reservation_max_minutes", 180)
         )
@@ -620,6 +626,15 @@ def _validate_phone_switch(kind, asks_phone):
     if asks_phone and kind != Collection.Kind.SHED:
         raise serializers.ValidationError(
             {"reservation_asks_phone": "Only a shed can ask for a contact phone."}
+        )
+
+
+def _validate_lending_contact_switch(kind, asks_contact):
+    """Asking a borrower for contact details means something in a library only: turning it on
+    anywhere else would promise a form no request page of that kind will ever show."""
+    if asks_contact and kind != Collection.Kind.LIBRARY:
+        raise serializers.ValidationError(
+            {"lending_asks_contact": "Only a library can ask borrowers for contact details."}
         )
 
 
@@ -880,6 +895,9 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     # Sheds only: whether the request page asks for an optional contact phone.
     # A True on any other kind is refused (``_validate_phone_switch``).
     reservation_asks_phone = serializers.BooleanField(required=False)
+    # Libraries only: whether the request page asks the borrower for full contact details.
+    # A True on any other kind is refused (``_validate_lending_contact_switch``).
+    lending_asks_contact = serializers.BooleanField(required=False)
     reservation_unit = serializers.ChoiceField(
         choices=Collection.ReservationUnit.choices, required=False
     )
@@ -953,6 +971,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "accepts_donations",
             "donations_info",
             "reservation_asks_phone",
+            "lending_asks_contact",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -1010,6 +1029,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         kind = instance.kind if instance else Collection.Kind.STALL
         allowed_thing_types = normalize_allowed_thing_types(kind, mode, allowed_thing_types)
         _validate_phone_switch(kind, attrs.get("reservation_asks_phone", False))
+        _validate_lending_contact_switch(kind, attrs.get("lending_asks_contact", False))
         if instance is not None and ("accepts_donations" in attrs or "donations_info" in attrs):
             _validate_donations(
                 kind,

@@ -204,6 +204,15 @@ class BookingPeriod(models.Model):
     # thing). ``saturated_periods`` weighs each booking by it. The database default is
     # for the previous release's dynos, which insert without naming the column.
     quantity = models.PositiveSmallIntegerField(default=1, db_default=1)
+    # LEND/RENT in a library that asks (``Collection.lending_asks_contact``): the borrower's
+    # full name, address, phone and identity document as one **sealed** JSON token
+    # (``core.services.lending_contact``), never readable in the column. Empty = nobody left
+    # any. Served, opened, to whoever manages the thing; emptied when the loan is marked
+    # returned, when the request is rejected, cancelled or expires, and by
+    # ``purge_expired_data`` 90 days after the return date. Never in an email, the
+    # calendar file or the group's export. The database default is for the previous
+    # release's dynos, which insert without naming the column.
+    lending_contact = models.TextField(blank=True, default="", db_default="")
     requester_code = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,
@@ -329,17 +338,20 @@ class BookingPeriod(models.Model):
     def reject(self):
         """Reject the booking request."""
         self.status = self.Status.REJECTED
-        self.save(update_fields=["status"])
+        self.lending_contact = ""
+        self.save(update_fields=["status", "lending_contact"])
 
     def cancel(self):
         """Cancel the booking (by the requester)."""
         self.status = self.Status.CANCELLED
-        self.save(update_fields=["status"])
+        self.lending_contact = ""
+        self.save(update_fields=["status", "lending_contact"])
 
     def expire(self):
         """Mark the booking as expired."""
         self.status = self.Status.EXPIRED
-        self.save(update_fields=["status"])
+        self.lending_contact = ""
+        self.save(update_fields=["status", "lending_contact"])
 
     @classmethod
     def has_overlap(
@@ -487,7 +499,7 @@ class BookingPeriod(models.Model):
             expiring = cls.objects.filter(status=cls.Status.PENDING, created__lt=cutoff_time)
             expiring_codes = list(expiring.values_list("code", flat=True))
 
-            expired_count = expiring.update(status=cls.Status.EXPIRED)
+            expired_count = expiring.update(status=cls.Status.EXPIRED, lending_contact="")
 
             if expiring_codes:
                 InAppNotification.objects.filter(

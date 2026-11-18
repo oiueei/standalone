@@ -447,6 +447,7 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
     collection_is_onboarding = serializers.SerializerMethodField()
     collection_request_info = serializers.SerializerMethodField()
     collection_reservation_asks_phone = serializers.SerializerMethodField()
+    collection_lending_asks_contact = serializers.SerializerMethodField()
     deposit_policy = serializers.SerializerMethodField()
     live_requesters_count = serializers.SerializerMethodField()
     collection_language = serializers.SerializerMethodField()
@@ -508,6 +509,7 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
             "collection_is_onboarding",
             "collection_request_info",
             "collection_reservation_asks_phone",
+            "collection_lending_asks_contact",
             "deposit_policy",
             "live_requesters_count",
             "collection_language",
@@ -679,6 +681,13 @@ class ThingSerializer(ThingComputedFieldsMixin, serializers.ModelSerializer):
         ``collection_request_info`` so the form follows the collection its POST names."""
         first = self._viewable_collection(obj)
         return bool(first.reservation_asks_phone) if first else False
+
+    def get_collection_lending_asks_contact(self, obj):
+        """Whether the request page asks the borrower for full contact details: the switch
+        of the collection this reader sees the thing through, resolved like
+        ``collection_reservation_asks_phone``."""
+        first = self._viewable_collection(obj)
+        return bool(first.lending_asks_contact) if first else False
 
     def get_live_requesters_count(self, obj):
         """How many people would be emailed if the reader deleted this thing — those with a

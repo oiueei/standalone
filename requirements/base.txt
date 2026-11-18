@@ -33,3 +33,6 @@ python-dotenv==1.2.2
 # already pins it exactly.
 boto3==1.43.78
 requests==2.34.2
+# Fernet (authenticated symmetric encryption) for the lending contact details a library
+# may ask for, sealed at rest (core/services/lending_contact.py).
+cryptography==50.0.2
