@@ -98,7 +98,7 @@ export default function ThingsSection({
   const base = collectionPath(code, collection.kind);
   const thingsHeading = useRef(null);
   // `controlStays`: the button pressed is still on screen afterwards. When it is not
-  // ("See everything" goes with the notice), the focus
+  // (the row goes with its last choice, "See everything" goes with the notice), the focus
   // would fall to the top of the page, so it goes to the "Things" heading, one Tab from
   // the first card.
   const chooseLender = (lenderCode, controlStays) => {
@@ -113,6 +113,9 @@ export default function ThingsSection({
       state: { keepFocus: true },
     });
   };
+  // The row of chips: from two dinamizadores with things, or with a filter that applies to
+  // one (otherwise there would be no sign of the filter, nor a way to take it off).
+  const showLenderRow = lenders.length > 1 || filterHasThings;
 
   const matchingThings = visibleThings.filter(
     (thg) =>
@@ -178,15 +181,16 @@ export default function ThingsSection({
         </div>
       )}
       {/* The same chips, by who lends: a second row that combines with the tags. With a
-          single dinamizador it would be "All (5)" next to "Fusteria (5)": the same button
-          twice, so there is no row until there are two. */}
-      {visibleThings.length > 0 && lenders.length > 1 && (
+          single dinamizador and no filter it would be "All (5)" next to "Fusteria (5)": the
+          same button twice, so there is no row until there are two — or until the address
+          filters by that one, when one button says where you are and the other how to leave. */}
+      {visibleThings.length > 0 && showLenderRow && (
         <div className="tag-filter-bar" role="group" aria-label={t('networkPoint.filterLabel')}>
           <button
             type="button"
             className="tag-chip"
             aria-pressed={!effectiveLender}
-            onClick={() => chooseLender(null, true)}
+            onClick={() => chooseLender(null, lenders.length > 1)}
           >
             {t('collectionPage.allTags')} ({visibleThings.length})
           </button>
@@ -197,7 +201,10 @@ export default function ThingsSection({
               className="tag-chip"
               aria-pressed={effectiveLender === lender.code}
               onClick={() =>
-                chooseLender(effectiveLender === lender.code ? null : lender.code, true)
+                chooseLender(
+                  effectiveLender === lender.code ? null : lender.code,
+                  lenders.length > 1
+                )
               }
             >
               {lender.name} ({lender.count})

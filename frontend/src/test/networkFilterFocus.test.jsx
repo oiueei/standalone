@@ -158,4 +158,33 @@ describe('the network’s filter keeps the reader where they are', () => {
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
     expect(window.scrollTo).not.toHaveBeenCalled();
   });
+
+  test('taking off the only filter there is leaves the focus on the Things heading', async () => {
+    window.history.pushState({}, '', '/library/COL001/ENTA01');
+    const only = { ...NETWORK, things: NETWORK.things.filter((t) => t.owner === 'ENTA01') };
+    globalThis.fetch.mockImplementation((url) =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve(
+            String(url).includes('/inbox/')
+              ? []
+              : String(url).includes('/collections/COL001/')
+                ? only
+                : {}
+          ),
+      })
+    );
+    await openApp();
+    const group = screen.getByRole('group', { name: 'Who lends' });
+    window.scrollTo.mockClear();
+
+    fireEvent.click(group.querySelector('button[aria-pressed="false"]'));
+
+    expect(window.location.pathname).toBe('/library/COL001');
+    expect(screen.queryByRole('group', { name: 'Who lends' })).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+    expect(window.scrollTo).not.toHaveBeenCalled();
+  });
 });

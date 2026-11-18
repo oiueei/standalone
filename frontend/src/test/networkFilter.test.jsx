@@ -233,10 +233,42 @@ describe('the network’s filter by who lends', () => {
     expect(shown()).toHaveLength(2);
   });
 
-  test('an address filtered by the only one there is still shows all their things, with no error', async () => {
+  test('an address filtered by the only one there is shows the row, with their button pressed and "All" not', async () => {
     await openAt('/library/COL001/ENTA01', 'Drill', ONLY_LELE);
     expect(shown()).toHaveLength(2);
+    expect(chip('Cooperativa')).toHaveAttribute('aria-pressed', 'true');
+    expect(chip('All')).toHaveAttribute('aria-pressed', 'false');
     expect(screen.queryByText(/not found|error/i)).toBeNull();
+  });
+
+  test('"All" in that one-person row goes back to the collection’s address and the row goes with it', async () => {
+    await openAt('/library/COL001/ENTA01', 'Drill', ONLY_LELE);
+
+    fireEvent.click(chip('All'));
+
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/library\/COL001$/);
+    expect(screen.queryByRole('group', { name: 'Who lends' })).toBeNull();
+    expect(shown()).toHaveLength(2);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+  });
+
+  test('pressing their own pressed button does the same', async () => {
+    await openAt('/library/COL001/ENTA01', 'Drill', ONLY_LELE);
+
+    fireEvent.click(chip('Cooperativa'));
+
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/library\/COL001$/);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Things' }));
+  });
+
+  test('with two dinamizadores the pressed button keeps the focus, not the heading', async () => {
+    await openAt('/library/COL001/ENTA01', 'Drill');
+    const all = chip('All');
+    all.focus();
+
+    fireEvent.click(all);
+
+    expect(document.activeElement).toBe(all);
   });
 
   test('with two it appears', async () => {
