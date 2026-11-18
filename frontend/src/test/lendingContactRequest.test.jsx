@@ -4,6 +4,7 @@ import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import en from '../i18n/locales/en.json';
 import declarePalette from './declarePalette';
+import { settle } from './settle';
 
 expect.extend(toHaveNoViolations);
 window.scrollTo = vi.fn();
@@ -74,6 +75,14 @@ function renderPage(thing) {
   );
 }
 
+// The page is ready when its title is up AND the calendar (and whatever else it asked for)
+// has answered: that answer sets state after the title, and a test that ends before it
+// lands is reported as an update outside `act` — or, with `axe` awaited, it lands mid-run.
+const pageReady = async (title = /Request: Ladder/) => {
+  await screen.findByText(title);
+  await settle(apiFetch);
+};
+
 const typeInto = (container, selector, display) => {
   const input = container.querySelector(selector);
   fireEvent.change(input, { target: { value: display } });
@@ -123,7 +132,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
   test('says why, then asks for the four, each required, with the right autocomplete', async () => {
     setApi(LEND_THING);
     renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
 
     expect(screen.getByText(en.lendingContact.intro)).toBeInTheDocument();
     for (const field of Object.values(FIELDS)) expect(field()).toBeRequired();
@@ -142,7 +151,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
   test('comes after the dates and before the deposit', async () => {
     setApi(LEND_THING);
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
 
     const endDate = container.querySelector('#request-end-date');
     const intro = screen.getByText(en.lendingContact.intro);
@@ -156,7 +165,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
   test('the button waits until all four are there', async () => {
     setApi(LEND_THING);
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     dates(container);
     expect(borrow()).toBeDisabled();
 
@@ -171,7 +180,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
   test('a detail of only spaces is still missing', async () => {
     setApi(LEND_THING);
     renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     fill({ ...DETAILS, phone: '   ' });
 
     expect(borrow()).toBeDisabled();
@@ -180,7 +189,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
   test('the request carries the four, trimmed, beside the dates and the group', async () => {
     setApi(LEND_THING);
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     dates(container);
     fill(Object.fromEntries(Object.entries(DETAILS).map(([k, v]) => [k, `  ${v}  `])));
 
@@ -222,7 +231,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
       )
     );
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     dates(container);
     fill();
 
@@ -250,7 +259,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
       )
     );
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     dates(container);
     fill();
 
@@ -266,7 +275,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
       res({ lending_contact: { phone: ['x'] }, code: 'lending_contact_invalid' }, 400)
     );
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     dates(container);
     fill();
     fireEvent.click(borrow());
@@ -282,7 +291,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
     const write = vi.spyOn(localStorage, 'setItem');
     setApi(LEND_THING);
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     dates(container);
     fill();
     fireEvent.click(borrow());
@@ -296,7 +305,7 @@ describe('RequestThingPage — a library that asks for contact details', () => {
   test('the page with the block has no axe violations', async () => {
     setApi(LEND_THING);
     const { container } = renderPage(LEND_THING);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
 
     expect(await axe(container, { rules: { region: { enabled: false } } })).toHaveNoViolations();
   });
@@ -308,7 +317,7 @@ describe('RequestThingPage — a library that does not ask', () => {
   test('the page has none of it and asking is as before', async () => {
     setApi(plain);
     const { container } = renderPage(plain);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
     dates(container);
 
     expect(screen.queryByText(en.lendingContact.intro)).toBeNull();
@@ -323,7 +332,7 @@ describe('RequestThingPage — a library that does not ask', () => {
     const { collection_lending_asks_contact: _gone, ...older } = LEND_THING;
     setApi(older);
     renderPage(older);
-    await screen.findByText(/Request: Ladder/);
+    await pageReady();
 
     expect(screen.queryByText(en.lendingContact.intro)).toBeNull();
   });
@@ -343,7 +352,7 @@ describe('RequestThingPage — a library that does not ask', () => {
     };
     setApi(space);
     renderPage(space);
-    await screen.findByText(/Reserve: Sala|Sala/);
+    await pageReady(/Reserve: Sala|Sala/);
 
     expect(screen.queryByText(en.lendingContact.intro)).toBeNull();
     expect(within(document.body).queryByLabelText(/^Identity document/)).toBeNull();
