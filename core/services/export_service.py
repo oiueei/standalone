@@ -65,6 +65,7 @@ from core.models import (
     ThingTransfer,
 )
 from core.services.email_service import resolve_email_language
+from core.services.lending_contact import unseal
 from core.utils import asset_url, doc_asset_url
 
 ACCOUNT_FORMAT = "oiueei-account-export/1"
@@ -599,8 +600,9 @@ def _bookings(user):
     """Both sides of every reservation they were part of.
 
     The contact phone a person left when booking is theirs, so it is in what they
-    requested (``""`` once the daily purge has emptied it). It is not in the bookings
-    they received nor in a group's copy: the request page promises that only whoever
+    requested (``""`` once the daily purge has emptied it). So are the contact details a
+    library asked them for when borrowing (art. 15), opened, `None` once deleted. Neither is
+    in the bookings they received nor in a group's copy: the request page promises that only whoever
     manages the booking sees it and that it is gone the day after, and a downloaded
     file is not deleted.
     """
@@ -611,6 +613,9 @@ def _bookings(user):
             {
                 **_booking_columns(booking),
                 "contact_phone": booking.contact_phone,
+                # What they left a library when borrowing, opened: it is their own data (art. 15).
+                # `None` once it has been deleted. Never in `received_by_me` nor a group's copy.
+                "lending_contact": unseal(booking.lending_contact),
                 "owner": _person(booking.owner_code),
             }
             for booking in requested

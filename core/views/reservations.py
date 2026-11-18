@@ -26,6 +26,7 @@ from core.models.booking import DATE_BASED_TYPES, RETURNABLE_TYPES
 from core.serializers.booking import (
     ReservationRequestSerializer,
     ThingRequestWithDatesSerializer,
+    clean_lending_contact,
 )
 from core.services.booking_service import (
     BookingRequestError,
@@ -33,6 +34,7 @@ from core.services.booking_service import (
     request_reservation,
     request_standard_booking,
     resolve_rental_collection,
+    resolve_request_collection,
 )
 from core.services.team import managers_ready_collections
 from core.views._helpers import body_dict, deny_if_cannot_view, refusal_body
@@ -197,6 +199,12 @@ class ThingRequestView(APIView):
         start_date = serializer.validated_data["start_date"]
         end_date = serializer.validated_data["end_date"]
         rental_collection = resolve_rental_collection(thing, collection_code, request.user)
+        # A library that asks borrowers for contact details wants all four, or no loan. A
+        # library that does not ask ignores whatever came, without an error, and keeps none.
+        asking = resolve_request_collection(thing, collection_code, request.user)
+        lending_contact = None
+        if asking is not None and asking.lending_asks_contact:
+            lending_contact = clean_lending_contact(body_dict(request).get("lending_contact"))
 
         booking = request_date_based_booking(
             thing,
@@ -206,6 +214,7 @@ class ThingRequestView(APIView):
             rental_collection,
             collection_code,
             quantity=serializer.validated_data["quantity"],
+            lending_contact=lending_contact,
         )
         return Response(
             {

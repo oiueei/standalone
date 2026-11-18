@@ -16,6 +16,7 @@ from core.models.booking import SINGLE_USE_TYPES, BookingPeriod
 from core.models.event import Event
 from core.models.notification import InAppNotification
 from core.models.transfer import ThingTransfer
+from core.services.lending_contact import seal
 from core.services.team import load_team
 
 DEFAULT_AVAILABILITY_HORIZON_DAYS = 90
@@ -702,12 +703,17 @@ def request_date_based_booking(
     rental_collection=None,
     collection_code=None,
     quantity=1,
+    lending_contact=None,
 ):
     """LEND/RENT — date-based booking with rental-rules + overlap enforcement.
 
     ``quantity`` is how many of a thing's identical units the request holds (1 to
     ``thing.units``). With several units: one live request per person on the same
     dates, and the request must fit among the units still free.
+
+    ``lending_contact`` is the borrower's cleaned contact details, when the library asks for
+    them (the view validates them): they are stored sealed (``core.services.lending_contact``),
+    never as readable text.
     """
     require_a_seat(thing, requester)
     # Enforce the collection's rental rules (fixed durations + allowed pickup/
@@ -769,6 +775,7 @@ def request_date_based_booking(
             start_date=start_date,
             end_date=end_date,
             quantity=quantity,
+            lending_contact=seal(lending_contact) if lending_contact else "",
         )
 
     send_booking_request_notifications(requester, thing, booking, collection_code)
