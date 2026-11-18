@@ -9,6 +9,19 @@ export function teamMemberName(collection, member) {
 }
 
 /**
+ * The member of the team (the founder or a co-curator) with this code, as
+ * `{ code, name }` with `name` as `teamMemberName` gives it, or `null` for a code that
+ * is nobody's on this team.
+ */
+export function teamMemberByCode(collection, code) {
+  const member = [
+    { code: collection.owner, name: collection.owner_name },
+    ...(collection.co_owners ?? []),
+  ].find((candidate) => candidate.code === code);
+  return member ? { ...member, name: teamMemberName(collection, member) } : null;
+}
+
+/**
  * The comparator every list of names follows, the team line and a network's lender
  * filter alike: the alphabet of the language on screen, accents and case set aside
  * (`sensitivity: 'base'`), so "Àgora" sorts with the A's and "Ça" with the C's.

@@ -1122,7 +1122,9 @@
     "conditionsTitle": "Your conditions",
     "conditionsIntro": "Whatever you leave empty is what the network says.",
     "lentBy": "Lent by {{name}}",
-    "filterLabel": "Who lends"
+    "filterLabel": "Who lends",
+    "lendsNothingYet": "{{name}} isn't lending anything yet.",
+    "seeAll": "See everything"
   },
   "organisation": {
     "menuEntry": "My organisation",

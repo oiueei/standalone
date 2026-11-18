@@ -1122,7 +1122,9 @@
     "conditionsTitle": "Les teves condicions",
     "conditionsIntro": "El que deixis buit és el que diu la xarxa.",
     "lentBy": "Ho presta {{name}}",
-    "filterLabel": "Qui presta"
+    "filterLabel": "Qui presta",
+    "lendsNothingYet": "{{name}} encara no presta res.",
+    "seeAll": "Veure-ho tot"
   },
   "organisation": {
     "menuEntry": "La meva entitat",

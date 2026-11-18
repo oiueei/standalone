@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'hds-react';
 import ThingLinkbox from '../ThingLinkbox';
 import useTheeeme from '../../hooks/useTheeeme';
 import { useLocalized } from '../../utils/localized';
-import { compareNames } from '../../utils/team';
+import { compareNames, teamMemberByCode } from '../../utils/team';
 import { collectionPath } from '../../utils/collectionPath';
 
 /**
@@ -87,12 +87,23 @@ export default function ThingsSection({
   // Only a dinamizador of this network counts, and only with a visible thing.
   const lenders =
     collection.mode === 'NETWORK' ? lendersOf(collection, visibleThings, t, language) : [];
-  // An address naming anybody else (not a dinamizador, not a network) is the collection
-  // as it is, with no error.
-  const effectiveLender = lenders.some((l) => l.code === curatorCode) ? curatorCode : null;
+  // The address names a member of a network's team (the founder or a co-curator): the
+  // page is filtered by them **even with nothing to show**, so a link to a pickup point
+  // that lends nothing yet does not pass for the whole network's. Anybody else in that
+  // place (not on the team, or not a network) is the collection as it is, with no error.
+  const filterMember =
+    collection.mode === 'NETWORK' && curatorCode ? teamMemberByCode(collection, curatorCode) : null;
+  const effectiveLender = filterMember ? curatorCode : null;
+  const filterHasThings = lenders.some((l) => l.code === effectiveLender);
   const base = collectionPath(code, collection.kind);
-  const chooseLender = (lenderCode) => {
+  const thingsHeading = useRef(null);
+  // `controlStays`: the button pressed is still on screen afterwards. When it is not
+  // ("See everything" goes with the notice), the focus
+  // would fall to the top of the page, so it goes to the "Things" heading, one Tab from
+  // the first card.
+  const chooseLender = (lenderCode, controlStays) => {
     setShownCount(CARDS_PER_PAGE);
+    if (!controlStays) thingsHeading.current?.focus({ preventScroll: true });
     // `replace`: a filter is a slice of the page, like a tag, and leaves no history for
     // "Back" to walk through. `keepFocus`: the button pressed keeps the focus and the
     // list stays where it is (see RouteFocusReset in App.jsx). The address is still the
@@ -123,7 +134,9 @@ export default function ThingsSection({
             them: take this out and the page jumps from <h1> to <h3>, which axe's
             heading-order flags. It also stays a landmark a screen-reader user can
             jump to, next to "Messages to the group". */}
-      <h2 className="sr-only">{t('collectionPage.things')}</h2>
+      <h2 className="sr-only" tabIndex={-1} ref={thingsHeading}>
+        {t('collectionPage.things')}
+      </h2>
       {/* A recorded DESIGN §1 exception, not an oversight: these are plain
             `<button aria-pressed>`s, not HDS `Tag`. HDS `Tag` (`variant="action"`)
             has no pressed/selected state to bind `aria-pressed` to, and a filter
@@ -173,7 +186,7 @@ export default function ThingsSection({
             type="button"
             className="tag-chip"
             aria-pressed={!effectiveLender}
-            onClick={() => chooseLender(null)}
+            onClick={() => chooseLender(null, true)}
           >
             {t('collectionPage.allTags')} ({visibleThings.length})
           </button>
@@ -183,7 +196,9 @@ export default function ThingsSection({
               type="button"
               className="tag-chip"
               aria-pressed={effectiveLender === lender.code}
-              onClick={() => chooseLender(effectiveLender === lender.code ? null : lender.code)}
+              onClick={() =>
+                chooseLender(effectiveLender === lender.code ? null : lender.code, true)
+              }
             >
               {lender.name} ({lender.count})
             </button>
@@ -200,7 +215,27 @@ export default function ThingsSection({
           <p>{t('collectionPage.noThings')}</p>
         )
       ) : shownThings.length === 0 ? (
-        <p>{t('collectionPage.noThingsForTag')}</p>
+        effectiveLender && !filterHasThings ? (
+          <>
+            <p>
+              {t('networkPoint.lendsNothingYet', {
+                name: filterMember.name || t('common.aMember'),
+              })}
+            </p>
+            <div className="spacer-m" />
+            <div className="button-row-wide">
+              <Button
+                variant="secondary"
+                style={btnSecondaryStyle}
+                onClick={() => chooseLender(null, false)}
+              >
+                {t('networkPoint.seeAll')}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <p>{t('collectionPage.noThingsForTag')}</p>
+        )
       ) : (
         <>
           <div className="things-grid">
