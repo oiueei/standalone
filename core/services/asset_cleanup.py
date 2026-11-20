@@ -40,6 +40,14 @@ could see someone else's photo could save its key on a thing of their own and
 delete that thing — and this handler deleted the other person's photo with it.
 The check runs at destroy time, after the commit, so the row being deleted no
 longer counts.
+
+**A loan's accepted document stays while the loan exists.** ``BookingPeriod.terms_doc``
+is in ``ASSET_FIELDS``, so a library replacing its welcome PDF keeps the old object
+for as long as a loan names it, and the orphan sweep keeps it too. The loan has only
+the delete handler: ``terms_doc`` is written once, when the request is created, and
+never changes, so there is no ``post_init``/``post_save`` pair (it would cost a
+snapshot on every loan an account export loads). Deleting the last loan that names
+it — directly or in a cascade from an account or a collection — destroys it.
 """
 
 import logging
@@ -49,7 +57,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_init, post_save
 from django.dispatch import receiver
 
-from core.models import Collection, NetworkPoint, Thing, User
+from core.models import BookingPeriod, Collection, NetworkPoint, Thing, User
 from core.services import storage
 
 logger = logging.getLogger(__name__)
@@ -66,6 +74,9 @@ ASSET_FIELDS = {
     User: ("photo",),
     # The entity's logo, held by a dinamizador's pickup point.
     NetworkPoint: ("logo",),
+    # The welcome document a borrower accepted: a loan that names it keeps it in
+    # use after the library replaces it.
+    BookingPeriod: ("terms_doc",),
 }
 # The one column that holds an ordered list of keys rather than a single key.
 _LIST_FIELDS = frozenset({"gallery"})
@@ -157,6 +168,7 @@ def _destroy(key):
 @receiver(post_delete, sender=Collection)
 @receiver(post_delete, sender=User)
 @receiver(post_delete, sender=NetworkPoint)
+@receiver(post_delete, sender=BookingPeriod)
 def _cleanup_assets_on_delete(sender, instance, **kwargs):
     if _suspended:
         return
