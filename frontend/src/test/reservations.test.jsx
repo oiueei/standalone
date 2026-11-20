@@ -19,6 +19,7 @@ vi.mock('../services/api', async (importOriginal) => ({
 
 import { apiFetch } from '../services/api';
 import RequestThingPage from '../pages/RequestThingPage';
+import { requestPageReady } from './requestPageReady';
 import InboxNotifications from '../components/InboxNotifications';
 
 function mockResponse(data, ok = true) {
@@ -99,7 +100,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
   test('with max 1 day there is no duration select, and a project note field is shown', async () => {
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1 } });
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
     expect(screen.queryByRole('combobox', { name: /How many days/ })).toBeNull();
     expect(screen.getByLabelText(/What do you need it for/)).toBeInTheDocument();
   });
@@ -107,7 +108,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
   test('with a one-day cap the date is labelled “Day”', async () => {
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1 } });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     const label = container.querySelector('label[for="reservation-pickup-date"]');
     expect(label.textContent).toMatch(/^Day\b/);
@@ -115,7 +116,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
 
   test('with a longer cap the date is labelled “From”', async () => {
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     const label = container.querySelector('label[for="reservation-pickup-date"]');
     expect(label.textContent).toMatch(/^From\b/);
@@ -123,7 +124,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
 
   test('with a longer cap the duration select is offered', async () => {
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
     expect(screen.getByRole('combobox', { name: /How many days/ })).toBeInTheDocument();
   });
 
@@ -133,7 +134,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
     // day, not the exclusive end_date — Collection.reservation_violation).
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1, reservation_horizon_days: 7 } });
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
     fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
     await waitFor(() => expect(document.querySelector('[data-date]')).toBeTruthy());
     // 2026-06-05 is within the 7-day window — selectable
@@ -148,7 +149,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
   test('the pickup field explains why some days are greyed out', async () => {
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1 } });
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
     expect(screen.getByText(/greyed out/i)).toBeInTheDocument();
   });
 
@@ -156,7 +157,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
     // Default RESERVE_THING: max 3 days, weekdays unrestricted. System time is
     // Mon 2026-06-01, so 03/06 is a Wednesday and free.
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     fireEvent.click(screen.getByRole('combobox', { name: /How many days/ }));
     fireEvent.click(await screen.findByRole('option', { name: '3 days' }));
@@ -171,7 +172,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
   test('a date past the collection horizon is rejected with the collection’s own limit', async () => {
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1, reservation_horizon_days: 7 } });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '30/06/2026'); // well past today + 7 days
     expect(await screen.findByText(/between today and 7 days from now/i)).toBeInTheDocument();
@@ -180,7 +181,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
   test('submitting posts a duration + note and shows the confirmed message', async () => {
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1 } });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     fireEvent.change(screen.getByLabelText(/What do you need it for/), {
       target: { value: 'A screen-printing workshop.' },
@@ -206,7 +207,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
   test('Reserve with no pickup date says so and sends nothing', async () => {
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1 } });
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
     expect(screen.queryByText('Start date is required.')).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -219,7 +220,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
     // With a cap over one day the pickup picker waits for a length (the open days
     // depend on it), so a missing length is reached with a missing date too.
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
     expect(screen.queryByText('Please choose a length')).toBeNull();
     expect(container.querySelector('#reservation-pickup-date')).toBeDisabled();
 
@@ -235,7 +236,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
     // again (the 4th here); the member reserved the 3rd, and only the 3rd.
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1 } });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -280,7 +281,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -319,7 +320,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -373,7 +374,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -409,7 +410,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -456,7 +457,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
     const joins = [];
     notAMemberApi(joins);
     const { container } = renderPage('/collections/EVIL01/things/RSV01/request');
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -494,7 +495,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -534,7 +535,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -551,7 +552,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
     const joins = [];
     notAMemberApi(joins);
     const { container } = renderPage('/things/RSV01/request');
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -595,7 +596,7 @@ describe('RequestThingPage — RESERVE_THING', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -616,7 +617,7 @@ describe('RequestThingPage — reads the thing through the collection it was ope
     // one by the hour; the form must show the rules of the collection the
     // request is made through, or the server refuses what the form offered.
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     const reads = apiFetch.mock.calls
       .map(([url, opts]) => (!opts?.method ? url : null))
@@ -635,7 +636,7 @@ describe("RequestThingPage — the collection's request-page note", () => {
       },
     });
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     const strong = screen.getByText('photo ID');
     expect(strong.tagName).toBe('STRONG');
@@ -645,7 +646,7 @@ describe("RequestThingPage — the collection's request-page note", () => {
   test('is absent when the collection has no note', async () => {
     setApi({ thing: { ...RESERVE_THING, reservation_max_days: 1 } });
     renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     expect(document.querySelector('.form-hero-text')).toBeNull();
   });
@@ -695,7 +696,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('the hourly date is asked as “Which day?”', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     const label = container.querySelector('label[for="reservation-pickup-date-hourly"]');
     expect(label.textContent).toMatch(/^Which day\?/);
@@ -704,7 +705,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('renders the hourly pickup field, not the day-count select', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
     expect(screen.queryByRole('combobox', { name: /How many days/ })).toBeNull();
     expect(document.querySelector('#reservation-pickup-date-hourly')).toBeInTheDocument();
   });
@@ -712,7 +713,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('picking a day reveals the duration radios, capped at reservation_max_minutes', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026'); // a Wednesday, both blocks open
 
@@ -729,7 +730,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
     // hours" multiple — what "Full day" used to name before its removal.
     setApi({ thing: { ...HOURLY_RESERVE_THING, reservation_max_minutes: 240 } });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '05/06/2026'); // Friday, single 10:00-14:00 block
 
@@ -745,7 +746,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
       thing: { ...HOURLY_RESERVE_THING, reservation_min_minutes: 20, reservation_max_minutes: 100 },
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026'); // Wednesday, both blocks open
 
@@ -770,7 +771,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
       thing: { ...HOURLY_RESERVE_THING, reservation_min_minutes: 15, reservation_max_minutes: 180 },
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
     typeHourlyPickup(container, '03/06/2026');
 
     const durations = await screen.findByRole('combobox', { name: /How long/ });
@@ -801,7 +802,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
       thing: { ...HOURLY_RESERVE_THING, reservation_min_minutes: 15, reservation_max_minutes: 180 },
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
     typeHourlyPickup(container, '03/06/2026');
     const durations = await screen.findByRole('combobox', { name: /How long/ });
 
@@ -815,7 +816,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('picking a duration reveals the start-time radios, stepped hour by hour', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '2 hours' }));
@@ -847,7 +848,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
       ],
     });
     renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
     await waitFor(() => expect(document.querySelector('[data-date]')).toBeTruthy());
@@ -880,7 +881,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
       ],
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '1 hour' }));
@@ -911,7 +912,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('submitting posts start_time/end_time (never duration_days) for an hourly reservation', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '2 hours' }));
@@ -940,7 +941,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
     // The end time appears nowhere else on the page, and the slot auto-confirms.
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '2 hours' }));
@@ -976,7 +977,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
       return Promise.resolve(mockResponse({}));
     });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '2 hours' }));
     fireEvent.click(await screen.findByRole('radio', { name: '11:00' }));
@@ -993,7 +994,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('the confirmation restates the booked slot, end time included', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '2 hours' }));
@@ -1011,7 +1012,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('today only offers starts that have not begun yet', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '01/06/2026'); // today, a Monday
     fireEvent.click(await screen.findByRole('radio', { name: '1 hour' }));
@@ -1026,7 +1027,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
     vi.setSystemTime(new Date(2026, 5, 1, 11, 59));
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
     typeHourlyPickup(container, '01/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '1 hour' }));
     fireEvent.click(await screen.findByRole('radio', { name: '12:00' }));
@@ -1053,7 +1054,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
     vi.setSystemTime(new Date(2026, 5, 5, 13, 30)); // Friday: only 10:00-14:00, last 1h start 13:00
     setApi({ thing: HOURLY_RESERVE_THING });
     renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
     await waitFor(() => expect(document.querySelector('[data-date]')).toBeTruthy());
@@ -1072,7 +1073,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('Reserve with a day but no duration says so and takes focus to the durations', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
     typeHourlyPickup(container, '03/06/2026');
     await screen.findByRole('radio', { name: '1 hour' });
 
@@ -1086,7 +1087,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('Reserve with a duration but no start time says so and takes focus to the times', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '2 hours' }));
     await screen.findByRole('radio', { name: '10:00' });
@@ -1102,7 +1103,7 @@ describe('RequestThingPage — RESERVE_THING (HOUR unit)', () => {
   test('changing the day resets an already-chosen duration and start time', async () => {
     setApi({ thing: HOURLY_RESERVE_THING });
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala amb hores/);
+    await requestPageReady(apiFetch, /Reserve Sala amb hores/);
 
     typeHourlyPickup(container, '03/06/2026');
     fireEvent.click(await screen.findByRole('radio', { name: '2 hours' }));
@@ -1175,7 +1176,7 @@ describe('RequestThingPage — a clash (409)', () => {
   test('a clash with no body it can read still says the dates clash', async () => {
     clashApi({ ...RESERVE_THING, reservation_max_days: 1 }, clash(undefined));
     const { container } = renderPage();
-    await screen.findByText(/Reserve Sala polivalent/);
+    await requestPageReady(apiFetch, /Reserve Sala polivalent/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));

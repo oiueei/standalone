@@ -5,6 +5,7 @@ import { axe, toHaveNoViolations } from 'jest-axe';
 import en from '../i18n/locales/en.json';
 import declarePalette from './declarePalette';
 import { settle } from './settle';
+import { requestPageReady } from './requestPageReady';
 
 expect.extend(toHaveNoViolations);
 window.scrollTo = vi.fn();
@@ -73,13 +74,7 @@ function renderPage(thing) {
   );
 }
 
-// The page is ready when its title is up AND the calendar has answered: that answer sets
-// state after the title, and a test that ends before it lands is reported as an update
-// outside `act`.
-const pageReady = async (title = /Request: Ladder/) => {
-  await screen.findByText(title);
-  await settle(apiFetch);
-};
+const pageReady = (title = /Request: Ladder/) => requestPageReady(apiFetch, title);
 
 const typeInto = (container, selector, display) => {
   const input = container.querySelector(selector);
