@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { useParams } from 'react-router';
-import { useTranslation } from 'react-i18next';
+import { Link, useParams } from 'react-router';
+import { Trans, useTranslation } from 'react-i18next';
 import { TextArea, Select, Button, Notification, ToggleButton } from 'hds-react';
 import PageLayout from '../components/PageLayout';
 import FieldNotice from '../components/FieldNotice';
@@ -208,7 +208,14 @@ export default function CollectionAvailabilityPage() {
               onChange={(val) => setLendingAsksTerms(!val)}
               theme={toggleTheme}
             />
-            {!hasWelcomeDoc && <p className="text-muted">{t('lendingTerms.needsWelcomeDoc')}</p>}
+            {!hasWelcomeDoc && (
+              <p className="text-muted">
+                <Trans
+                  i18nKey="lendingTerms.needsWelcomeDoc"
+                  components={[<Link key="0" to={`${base}/settings/notifications`} />]}
+                />
+              </p>
+            )}
             <Select
               multiSelect
               id="availability-rental-durations"
