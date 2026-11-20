@@ -23,8 +23,6 @@ import { apiFetch, extractApiError } from '../services/api';
  * - `onThingChange(patch)`— apply a partial update to the underlying thing
  *                           (ThingPage feeds `setThing`, ThingLinkbox `onUpdateThing`).
  * - `setToast`            — toast setter from the consuming view.
- * - `initialActivePending`— initial active pending booking code (ThingLinkbox seeds
- *                           it from `thing.pending_booking`; ThingPage starts null).
  * - `initialRequested`    — initial "already requested" flag (ThingLinkbox seeds it
  *                           from the thing's pending booking; ThingPage starts false).
  * - `fetchOnEndless`      — also fetch the calendar for endless GIFT/SELL (ThingLinkbox).
@@ -47,7 +45,6 @@ export default function useThingBooking(
     canManage = false,
     onThingChange = () => {},
     setToast = () => {},
-    initialActivePending = null,
     initialRequested = false,
     fetchOnEndless = false,
     bookingKeepsStatus = false,
@@ -64,7 +61,13 @@ export default function useThingBooking(
   const [requested, setRequested] = useState(initialRequested);
   const [bookingAction, setBookingAction] = useState(null);
   const [bookings, setBookings] = useState([]);
-  const [activePendingCode, setActivePendingCode] = useState(initialActivePending);
+  // The booking a manager's Confirm / Decline answers. It is known from the first
+  // paint: the thing itself carries `pending_booking`, so the code never waits for
+  // the owner's calendar. Once the calendar (or an accept/decline) has said which
+  // booking is the first pending, that answer wins; `undefined` means "not said yet".
+  const [decidedPendingCode, setActivePendingCode] = useState(undefined);
+  const activePendingCode =
+    decidedPendingCode !== undefined ? decidedPendingCode : thing?.pending_booking || null;
   const [activating, setActivating] = useState(false);
   const [bookingActionVerb, setBookingActionVerb] = useState(null);
 
@@ -250,9 +253,10 @@ export default function useThingBooking(
   };
 
   const handleBookingAction = async (action, bookingCode) => {
-    if (bookingLockRef.current) return;
-    bookingLockRef.current = true;
+    // Nobody to answer: no request, no lock, no state.
     const targetCode = bookingCode || activePendingCode;
+    if (!targetCode || bookingLockRef.current) return;
+    bookingLockRef.current = true;
     setBookingAction(targetCode);
     setBookingActionVerb(action);
     try {

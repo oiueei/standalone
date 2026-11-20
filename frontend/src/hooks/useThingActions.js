@@ -23,7 +23,7 @@ import useThingBooking from './useThingBooking';
  * - `joinCollectionCode` / `joinedGroupName` / `onJoined` — forwarded to
  *   {@link useThingBooking}: the one group a refused "not a member" request may
  *   join the reader to before asking again.
- * - `onThingChange` / `setToast` / `initialActivePending` / `initialRequested`
+ * - `onThingChange` / `setToast` / `initialRequested`
  *   / `fetchOnEndless` / `activateSuccessMessage` / `collectionCode` — forwarded to
  *   {@link useThingBooking} (card vs page seeds differ).
  *
@@ -52,7 +52,6 @@ export default function useThingActions(
     collectionOwner = null,
     onThingChange = () => {},
     setToast = () => {},
-    initialActivePending = null,
     initialRequested = false,
     fetchOnEndless = false,
     activateSuccessMessage = null,
@@ -91,7 +90,6 @@ export default function useThingActions(
     canManage,
     onThingChange,
     setToast,
-    initialActivePending,
     initialRequested,
     fetchOnEndless,
     bookingKeepsStatus,

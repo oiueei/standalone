@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, renderHook, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
 
@@ -20,14 +20,27 @@ vi.mock('../services/api', () => ({
 import { apiFetch, extractApiError } from '../services/api';
 import ThingLinkbox from '../components/ThingLinkbox';
 import ThingPage from '../pages/ThingPage';
+import useThingBooking from '../hooks/useThingBooking';
 import declarePalette from './declarePalette';
+import { settle } from './settle';
 
 function mockResponse(data, ok = true, status = ok ? 200 : 400) {
   return { ok, status, json: () => Promise.resolve(data) };
 }
 
+// A calendar answer the test lets through when it chooses, so what the page does
+// before the calendar arrives is checked with the answer provably still missing.
+function heldCalendar() {
+  let release;
+  const calendarGate = new Promise((resolve) => {
+    release = resolve;
+  });
+  return { calendarGate, release };
+}
+
 // Route apiFetch by URL. `thing` feeds the ThingPage detail fetch; `calendar`
-// feeds the owner bookings fetch.
+// feeds the owner bookings fetch; `calendarGate` (see `heldCalendar`) holds its
+// answer back until the test lets it through.
 // `request`/`activate`/`booking` override a single route outright, for the
 // failure branches that need a status code or a throw.
 function setApi({
@@ -38,9 +51,13 @@ function setApi({
   request = null,
   activate = null,
   booking = null,
+  calendarGate = null,
 } = {}) {
   apiFetch.mockImplementation((url) => {
-    if (/\/things\/[^/]+\/calendar\//.test(url)) return Promise.resolve(mockResponse(calendar));
+    if (/\/things\/[^/]+\/calendar\//.test(url)) {
+      const answer = mockResponse(calendar);
+      return calendarGate ? calendarGate.then(() => answer) : Promise.resolve(answer);
+    }
     if (/\/things\/[^/]+\/request\//.test(url)) {
       return request ? request() : Promise.resolve(mockResponse({}, requestOk));
     }
@@ -329,6 +346,26 @@ describe('ThingPage — owner button matrix', () => {
     expect(screen.getByRole('button', { name: 'Decline request' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Edit' })).toBeInTheDocument();
   });
+
+  test('TAKEN decides the booking the thing names, before the calendar has answered', async () => {
+    localStorage.setItem('userCode', 'OWNER1');
+    const { calendarGate, release } = heldCalendar();
+    setApi({
+      thing: makeThing({ status: 'TAKEN', owner: 'OWNER1', pending_booking: 'BK1' }),
+      calendarGate,
+    });
+    renderThingPage();
+
+    const decline = await screen.findByRole('button', { name: 'Decline request' });
+    expect(decline).toBeEnabled();
+    fireEvent.click(decline);
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/bookings/BK1/reject/', { method: 'POST' })
+    );
+    release();
+    await settle(apiFetch);
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -375,7 +412,10 @@ describe('ThingPage — the decision about a request sits in the hero', () => {
 
   test('a taken gift: its transfer confirm and Decline are in the hero, and the confirm opens there', async () => {
     localStorage.setItem('userCode', 'OWNER1');
-    setApi({ thing: makeThing({ status: 'TAKEN', owner: 'OWNER1' }), calendar: PENDING });
+    setApi({
+      thing: makeThing({ status: 'TAKEN', owner: 'OWNER1', pending_booking: 'BK1' }),
+      calendar: PENDING,
+    });
     const { container } = renderThingPage();
 
     const confirm = await screen.findByRole('button', { name: 'Confirm request' });
@@ -607,6 +647,8 @@ describe('useThingBooking — a guest asks for a hold', () => {
 // option exists — a rental keeps circulating, a gift does not.
 // ════════════════════════════════════════════════════════════════════════
 describe('useThingBooking — the owner decides a hold', () => {
+  const GIFT_ASKED = makeThing({ type: 'GIFT_THING', status: 'TAKEN', pending_booking: 'BK1' });
+
   function renderOwner(thing, api = {}) {
     const onUpdateThing = vi.fn();
     setApi({ calendar: [{ code: 'BK1', status: 'PENDING', end_date: '2099-12-31' }], ...api });
@@ -614,9 +656,13 @@ describe('useThingBooking — the owner decides a hold', () => {
     return onUpdateThing;
   }
 
+  // The calendar is held back in these: the booking to answer is the one the thing
+  // names, so a decision never waits for it. It is let through at the end only so
+  // its answer lands inside the test.
   // GIFT/SELL (bookingKeepsStatus false): the thing is gone once given.
   test('accepting a gift retires the thing', async () => {
-    const onUpdateThing = renderOwner(makeThing({ type: 'GIFT_THING', status: 'TAKEN' }));
+    const { calendarGate, release } = heldCalendar();
+    const onUpdateThing = renderOwner(GIFT_ASKED, { calendarGate });
 
     fireEvent.click(await screen.findByRole('button', { name: 'Confirm request' }));
 
@@ -628,10 +674,13 @@ describe('useThingBooking — the owner decides a hold', () => {
       pending_booking: null,
     });
     expect(await screen.findByText('Request confirmed.')).toBeInTheDocument();
+    release();
+    await settle(apiFetch);
   });
 
   test('rejecting a gift puts it back on offer', async () => {
-    const onUpdateThing = renderOwner(makeThing({ type: 'GIFT_THING', status: 'TAKEN' }));
+    const { calendarGate, release } = heldCalendar();
+    const onUpdateThing = renderOwner(GIFT_ASKED, { calendarGate });
 
     fireEvent.click(await screen.findByRole('button', { name: 'Decline request' }));
 
@@ -643,6 +692,65 @@ describe('useThingBooking — the owner decides a hold', () => {
       pending_booking: null,
     });
     expect(await screen.findByText('Request declined.')).toBeInTheDocument();
+    release();
+    await settle(apiFetch);
+  });
+
+  // A payload that does not carry `pending_booking` is the only way to have buttons
+  // and no code: they wait for the calendar, and a press never reaches
+  // `/bookings/null/`.
+  test('with no code in the thing the buttons wait for the calendar and never act on nobody', async () => {
+    const { calendarGate, release } = heldCalendar();
+    renderOwner(makeThing({ type: 'GIFT_THING', status: 'TAKEN' }), { calendarGate });
+
+    const confirm = await screen.findByRole('button', { name: 'Confirm request' });
+    const decline = screen.getByRole('button', { name: 'Decline request' });
+    expect(confirm).toBeDisabled();
+    expect(decline).toBeDisabled();
+    fireEvent.click(confirm);
+    fireEvent.click(decline);
+    expect(apiFetch).not.toHaveBeenCalledWith(
+      expect.stringContaining('/bookings/'),
+      expect.anything()
+    );
+
+    release();
+    await waitFor(() => expect(confirm).toBeEnabled());
+    fireEvent.click(confirm);
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/bookings/BK1/accept/', { method: 'POST' })
+    );
+    const urls = apiFetch.mock.calls.map(([url]) => url);
+    expect(urls.some((url) => url.includes('/bookings/null/'))).toBe(false);
+    await settle(apiFetch);
+  });
+
+  test('the booking the calendar names wins over the one the thing carried', async () => {
+    renderOwner(GIFT_ASKED, { calendar: [{ code: 'BK2', status: 'PENDING' }] });
+    await screen.findByRole('button', { name: 'Decline request' });
+    await settle(apiFetch);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Decline request' }));
+
+    await waitFor(() =>
+      expect(apiFetch).toHaveBeenCalledWith('/api/v1/bookings/BK2/reject/', { method: 'POST' })
+    );
+    expect(apiFetch).not.toHaveBeenCalledWith('/api/v1/bookings/BK1/reject/', {
+      method: 'POST',
+    });
+  });
+
+  test('the handler itself does nothing when there is nobody to answer', async () => {
+    setApi({});
+    const { result } = renderHook(() => useThingBooking(makeThing({ status: 'TAKEN' })));
+
+    await act(async () => {
+      await result.current.handleBookingAction('accept');
+    });
+
+    expect(apiFetch).not.toHaveBeenCalled();
+    expect(result.current.bookingAction).toBeNull();
   });
 
   // LEND/RENT (bookingKeepsStatus true): the thing keeps circulating, so a
