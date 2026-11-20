@@ -41,7 +41,7 @@
   },
   "lendingTerms": {
     "switchLabel": "Pedir que acepten las condiciones al prestar",
-    "needsWelcomeDoc": "Primero sube un documento de bienvenida en General: son las condiciones que aceptan.",
+    "needsWelcomeDoc": "Primero sube un documento de bienvenida en <0>Notificaciones</0>: son las condiciones que aceptan.",
     "accept": "He leído y acepto las condiciones de préstamo",
     "read": "Leerlas"
   },
@@ -1293,7 +1293,7 @@
     "lending_contact_required": "Esta biblioteca pide tus datos de contacto para prestar. Rellena los cuatro.",
     "lending_contact_invalid": "Revisa este dato y vuelve a intentarlo.",
     "terms_required": "Marca la casilla para aceptar las condiciones de préstamo.",
-    "terms_need_welcome_doc": "Primero sube un documento de bienvenida: son las condiciones que aceptan.",
+    "terms_need_welcome_doc": "Primero sube un documento de bienvenida en Notificaciones: son las condiciones que aceptan.",
     "priced_things_remain": "Algunas cosas de este grupo tienen precio. Quítaselo o retíralas antes de quitar a los miembros la opción de poner precio.",
     "opening_hours_required": "Para reservar por horas, pon al menos un tramo en «Horario semanal».",
     "units_below_booked": "Hay reservas que necesitan al menos {{min}} a la vez.",

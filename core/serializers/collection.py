@@ -662,7 +662,8 @@ def _validate_lending_terms_switch(kind, asks_terms, welcome_doc, already_on=Fal
         raise RefusedField(
             "lending_asks_terms",
             Refusal(
-                "Upload a welcome document first: it is the terms borrowers accept.",
+                "Upload a welcome document in Notifications first: "
+                "it is the terms borrowers accept.",
                 "terms_need_welcome_doc",
             ),
         )

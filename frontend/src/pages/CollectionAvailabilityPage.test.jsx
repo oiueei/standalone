@@ -21,6 +21,8 @@ vi.mock('../hooks/useCollectionLanguage', () => ({ default: vi.fn() }));
 import { apiFetch } from '../services/api';
 import CollectionAvailabilityPage from './CollectionAvailabilityPage';
 import en from '../i18n/locales/en.json';
+import es from '../i18n/locales/es.json';
+import ca from '../i18n/locales/ca.json';
 import { dropHdsStyles } from '../test/dropHdsStyles';
 import { settle } from '../test/settle';
 import { axe, toHaveNoViolations } from 'jest-axe';
@@ -815,10 +817,32 @@ describe('CollectionAvailabilityPage — a library that asks borrowers to accept
 
     expect(terms()).toBeDisabled();
     expect(terms()).toHaveAttribute('aria-pressed', 'false');
-    const why = screen.getByText(en.lendingTerms.needsWelcomeDoc);
+    const why = screen.getByText(/Upload a welcome document in/);
     expect(why).toHaveClass('text-muted');
     fireEvent.click(terms());
     expect(terms()).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test("the line sends the owner to the collection's Notifications page, where the document is uploaded", async () => {
+    mockApi({ collection: { ...LIBRARY, welcome_doc: '' } });
+    renderPage();
+    await loaded();
+
+    const link = screen.getByRole('link', { name: 'Notifications' });
+    expect(link).toHaveAttribute('href', '/library/COL001/settings/notifications');
+    expect(link.closest('p')).toHaveClass('text-muted');
+  });
+
+  test.each([
+    ['en', en],
+    ['es', es],
+    ['ca', ca],
+  ])('in %s the warning and the server refusal name Notifications, not General', (_lang, tr) => {
+    const page = { en: 'Notifications', es: 'Notificaciones', ca: 'Notificacions' }[_lang];
+    expect(tr.lendingTerms.needsWelcomeDoc).toContain(`<0>${page}</0>`);
+    expect(tr.requestErrors.terms_need_welcome_doc).toContain(page);
+    expect(tr.lendingTerms.needsWelcomeDoc).not.toContain('General');
+    expect(tr.requestErrors.terms_need_welcome_doc).not.toContain('General');
   });
 
   test('with a document there is no such line', async () => {
@@ -826,7 +850,7 @@ describe('CollectionAvailabilityPage — a library that asks borrowers to accept
     renderPage();
     await loaded();
 
-    expect(screen.queryByText(en.lendingTerms.needsWelcomeDoc)).toBeNull();
+    expect(screen.queryByText(/Upload a welcome document in/)).toBeNull();
   });
 
   test('a library already on that lost its document shows it off but sends what it had', async () => {
@@ -846,7 +870,7 @@ describe('CollectionAvailabilityPage — a library that asks borrowers to accept
     await loaded();
 
     expect(screen.queryByLabelText(/accept the terms/)).toBeNull();
-    expect(screen.queryByText(en.lendingTerms.needsWelcomeDoc)).toBeNull();
+    expect(screen.queryByText(/Upload a welcome document in/)).toBeNull();
     await save();
 
     expect(patchBody()).not.toHaveProperty('lending_asks_terms');
