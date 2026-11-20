@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Button, Notification, TextArea, TextInput } from 'hds-react';
+import { Button, Checkbox, Notification, TextArea, TextInput } from 'hds-react';
 import BoundedNumberInput from '../components/BoundedNumberInput';
 import { DATE_TYPES, amountTimes, hasAmount } from '../constants/things';
 import {
@@ -87,6 +87,10 @@ export default function RequestThingPage() {
     identity_document: '',
   });
   const [lendingErrors, setLendingErrors] = useState({});
+  // The tick a library that asks for its terms to be accepted waits for, and the server's
+  // refusal of a missing one. Neither is kept anywhere: a new visit starts unticked.
+  const [acceptsTerms, setAcceptsTerms] = useState(false);
+  const [termsError, setTermsError] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [blockedPeriods, setBlockedPeriods] = useState([]);
@@ -147,6 +151,13 @@ export default function RequestThingPage() {
     !!thing?.collection_lending_asks_contact &&
     (thing.type === 'LEND_THING' || thing.type === 'RENT_THING');
   const lendingComplete = LENDING_FIELDS.every((field) => lending[field].trim());
+  // A loan or a rental of a library that asks borrowers to accept its terms (its welcome
+  // document, which the page links): the box is required, so asking waits for the tick.
+  const termsUrl = thing?.collection_menu?.welcome_doc_url;
+  const asksTerms =
+    !!thing?.collection_lending_asks_terms &&
+    !!termsUrl &&
+    (thing.type === 'LEND_THING' || thing.type === 'RENT_THING');
   const askedQuantity = hasQuantity
     ? Math.min(thing.units, Math.max(1, Math.round(Number(quantity)) || 1))
     : 1;
@@ -321,6 +332,7 @@ export default function RequestThingPage() {
         body = { start_date: startIso, end_date: end };
         if (hasQuantity) body.quantity = askedQuantity;
         if (asksLendingContact) body.lending_contact = trimmedLending();
+        if (asksTerms) body.accepts_terms = true;
       } else {
         const startIso = displayToIso(startDate);
         const endIso = displayToIso(endDate);
@@ -328,6 +340,7 @@ export default function RequestThingPage() {
         body = { start_date: startIso, end_date: endIso };
         if (hasQuantity) body.quantity = askedQuantity;
         if (asksLendingContact) body.lending_contact = trimmedLending();
+        if (asksTerms) body.accepts_terms = true;
       }
     }
     // Pass the collection context so the backend applies that collection's
@@ -348,6 +361,11 @@ export default function RequestThingPage() {
       if (data?.contact_phone) {
         // A field error belongs on the field, not in a toast.
         setPhoneError(t('reservation.phoneInvalid'));
+        return;
+      }
+      if (data?.code === 'terms_required' || data?.accepts_terms) {
+        // The unticked box says so on the box, in the reader's language.
+        setTermsError(t('requestErrors.terms_required'));
         return;
       }
       if (data?.lending_contact && typeof data.lending_contact === 'object') {
@@ -800,9 +818,39 @@ export default function RequestThingPage() {
             <p className="text-muted" style={{ margin: 0 }}>
               {isReservation ? t('reservation.contactShared') : t('request.contactShared')}
             </p>
+            {asksTerms && (
+              <Checkbox
+                id="request-accepts-terms"
+                required
+                checked={acceptsTerms}
+                onChange={(e) => {
+                  setAcceptsTerms(e.target.checked);
+                  setTermsError('');
+                }}
+                errorText={termsError || undefined}
+                label={
+                  <>
+                    {t('lendingTerms.accept')} (
+                    <a
+                      href={termsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${t('lendingTerms.read')}. ${t('common.opensInNewTab')}`}
+                    >
+                      {t('lendingTerms.read')}
+                    </a>
+                    )
+                  </>
+                }
+              />
+            )}
             <Button
               fullWidth
-              disabled={submitting || (asksLendingContact && !lendingComplete)}
+              disabled={
+                submitting ||
+                (asksLendingContact && !lendingComplete) ||
+                (asksTerms && !acceptsTerms)
+              }
               onClick={handleSubmit}
               style={btnStyle}
             >

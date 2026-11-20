@@ -63,6 +63,10 @@ export default function CollectionAvailabilityPage() {
   const [reservationAsksPhone, setReservationAsksPhone] = useState(false);
   // A library may ask whoever borrows for a full name, address, phone and identity document.
   const [lendingAsksContact, setLendingAsksContact] = useState(false);
+  // ... and to accept the library's terms, which are its welcome document: with none there is
+  // nothing to accept, so the switch waits for one.
+  const [lendingAsksTerms, setLendingAsksTerms] = useState(false);
+  const [hasWelcomeDoc, setHasWelcomeDoc] = useState(false);
   const [reservationMinMinutes, setReservationMinMinutes] = useState(60);
   const [reservationMaxMinutes, setReservationMaxMinutes] = useState(180);
   const [openingHours, setOpeningHours] = useState({});
@@ -87,6 +91,8 @@ export default function CollectionAvailabilityPage() {
         setReservationMaxActivePerMember(data.reservation_max_active_per_member ?? 10);
         setReservationAsksPhone(!!data.reservation_asks_phone);
         setLendingAsksContact(!!data.lending_asks_contact);
+        setLendingAsksTerms(!!data.lending_asks_terms);
+        setHasWelcomeDoc(!!data.welcome_doc);
         setReservationMinMinutes(data.reservation_min_minutes ?? 60);
         setReservationMaxMinutes(data.reservation_max_minutes ?? 180);
         setOpeningHours(data.opening_hours || {});
@@ -131,6 +137,7 @@ export default function CollectionAvailabilityPage() {
       body.rental_durations = rentalDurations;
       body.deposit_policy = depositPolicy.trim();
       body.lending_asks_contact = lendingAsksContact;
+      body.lending_asks_terms = lendingAsksTerms;
     }
     if (isShed) {
       body.reservation_horizon_days = reservationHorizonDays;
@@ -192,6 +199,16 @@ export default function CollectionAvailabilityPage() {
               onChange={(val) => setLendingAsksContact(!val)}
               theme={toggleTheme}
             />
+            <ToggleButton
+              id="availability-lending-asks-terms"
+              variant="inline"
+              label={t('lendingTerms.switchLabel')}
+              checked={hasWelcomeDoc && lendingAsksTerms}
+              disabled={!hasWelcomeDoc}
+              onChange={(val) => setLendingAsksTerms(!val)}
+              theme={toggleTheme}
+            />
+            {!hasWelcomeDoc && <p className="text-muted">{t('lendingTerms.needsWelcomeDoc')}</p>}
             <Select
               multiSelect
               id="availability-rental-durations"

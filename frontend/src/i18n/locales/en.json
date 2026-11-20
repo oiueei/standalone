@@ -39,6 +39,12 @@
     "identityDocument": "Identity document",
     "identityDocumentHelp": "ID card, passport or another official document. Bring it when you pick the thing up."
   },
+  "lendingTerms": {
+    "switchLabel": "Ask borrowers to accept the terms",
+    "needsWelcomeDoc": "Upload a welcome document in General first: it is the terms they accept.",
+    "accept": "I have read and accept the lending terms",
+    "read": "Read them"
+  },
   "profileNudge": {
     "label": "Tell us a little about yourself",
     "body": "It takes 2 minutes and it's all optional.",
