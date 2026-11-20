@@ -20,6 +20,8 @@ CODED_VALIDATION_REFUSALS = frozenset(
         "donations_info_required",
         "lending_contact_required",
         "lending_contact_invalid",
+        "terms_required",
+        "terms_need_welcome_doc",
     }
 )
 

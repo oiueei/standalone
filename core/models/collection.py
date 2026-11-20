@@ -220,6 +220,14 @@ class Collection(models.Model):
     # well as the Python one, for the previous release's dynos, which insert without
     # naming the column while the release phase runs.
     lending_asks_contact = models.BooleanField(default=False, db_default=False)
+    # LIBRARY only. Whether the request page asks whoever borrows to accept the library's
+    # terms — the welcome document (`welcome_doc`) — before a loan can be requested. The
+    # switch alone is not enough: the effective value also needs the document, so a library
+    # that later removes it stops asking instead of breaking its request page (see
+    # `ThingSerializer.collection_lending_asks_terms`). Off by default in every library.
+    # Inert on every other kind. Carries a database default as well as the Python one, for
+    # the previous release's dynos, which insert without naming the column.
+    lending_asks_terms = models.BooleanField(default=False, db_default=False)
     # RESERVE_THING collections only. DAY (default) is the original shape above:
     # a reservation occupies one or more whole days. HOUR books a single day in
     # slots within that day's opening_hours. Never both at once — a

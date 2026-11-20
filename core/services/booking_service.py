@@ -704,6 +704,7 @@ def request_date_based_booking(
     collection_code=None,
     quantity=1,
     lending_contact=None,
+    terms_doc=None,
 ):
     """LEND/RENT — date-based booking with rental-rules + overlap enforcement.
 
@@ -714,6 +715,10 @@ def request_date_based_booking(
     ``lending_contact`` is the borrower's cleaned contact details, when the library asks for
     them (the view validates them): they are stored sealed (``core.services.contact_seal``),
     never as readable text.
+
+    ``terms_doc`` is the welcome document the borrower just accepted, when the library asks
+    for that (the view checked the box): it is recorded with the moment of acceptance.
+    ``None`` = the library did not ask, nothing is recorded.
     """
     require_a_seat(thing, requester)
     # Enforce the collection's rental rules (fixed durations + allowed pickup/
@@ -776,6 +781,8 @@ def request_date_based_booking(
             end_date=end_date,
             quantity=quantity,
             lending_contact=seal(lending_contact) if lending_contact else "",
+            terms_accepted_at=timezone.now() if terms_doc is not None else None,
+            terms_doc=terms_doc or "",
         )
 
     send_booking_request_notifications(requester, thing, booking, collection_code)

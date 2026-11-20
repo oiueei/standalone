@@ -35,7 +35,8 @@ Safety rails:
   a ``--prefix`` that does not fall inside an upload folder is refused with a
   ``CommandError`` before anything is listed.
 - Cross-references **every** DB asset field — Thing.thumbnail + Thing.gallery,
-  User.photo, Collection.thumbnail and Collection.welcome_doc, the one table in
+  User.photo, Collection.thumbnail, Collection.welcome_doc and BookingPeriod.terms_doc
+  (the document a borrower accepted), the one table in
   ``asset_cleanup.ASSET_FIELDS`` — so anything in use is kept. The welcome PDF
   matters here: it is an object in the same tree as the photos, so it turns up
   in this sweep like any of them, and a missing cross-reference would delete a

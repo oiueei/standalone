@@ -123,7 +123,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('CollectionAvailabilityPage — a library', () => {
-  test('saves exactly its six fields and nothing the collection keeps elsewhere', async () => {
+  test('saves exactly its seven fields and nothing the collection keeps elsewhere', async () => {
     mockApi({ collection: LIBRARY });
     renderPage();
     await loaded();
@@ -135,6 +135,7 @@ describe('CollectionAvailabilityPage — a library', () => {
       'closed_dates',
       'deposit_policy',
       'lending_asks_contact',
+      'lending_asks_terms',
       'rental_durations',
       'rental_weekdays',
       'request_info',
@@ -155,6 +156,7 @@ describe('CollectionAvailabilityPage — a library', () => {
       rental_weekdays: [5],
       deposit_policy: 'Back when returned.',
       lending_asks_contact: false,
+      lending_asks_terms: false,
     });
   });
 
@@ -756,5 +758,97 @@ describe('CollectionAvailabilityPage — asking a borrower for contact details',
     await save();
 
     expect(patchBody()).not.toHaveProperty('lending_asks_contact');
+  });
+});
+
+describe('CollectionAvailabilityPage — a library that asks borrowers to accept its terms', () => {
+  const terms = () => screen.getByLabelText(/Ask borrowers to accept the terms/);
+  const contact = () => screen.getByLabelText(/Ask for a full contact when borrowing/);
+
+  test('has the switch right under the contact one, off by default', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+
+    expect(terms()).toHaveAttribute('aria-pressed', 'false');
+    expect(terms()).toBeEnabled();
+    expect(
+      contact().compareDocumentPosition(terms()) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      terms().compareDocumentPosition(screen.getByText('Rental lengths')) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+  });
+
+  test('turning it on is sent with the rest', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+
+    fireEvent.click(terms());
+    await save();
+
+    expect(patchBody().lending_asks_terms).toBe(true);
+    expect(patchBody().lending_asks_contact).toBe(false);
+  });
+
+  test('a library that already asks opens with it on, keeps it saved untouched, and can turn it off', async () => {
+    mockApi({ collection: { ...LIBRARY, lending_asks_terms: true } });
+    renderPage();
+    await loaded();
+
+    expect(terms()).toHaveAttribute('aria-pressed', 'true');
+    await save();
+    expect(patchBody().lending_asks_terms).toBe(true);
+
+    apiFetch.mockClear();
+    fireEvent.click(terms());
+    await save();
+    expect(patchBody().lending_asks_terms).toBe(false);
+  });
+
+  test('without a welcome document the switch is disabled, says why, and stays off', async () => {
+    mockApi({ collection: { ...LIBRARY, welcome_doc: '' } });
+    renderPage();
+    await loaded();
+
+    expect(terms()).toBeDisabled();
+    expect(terms()).toHaveAttribute('aria-pressed', 'false');
+    const why = screen.getByText(en.lendingTerms.needsWelcomeDoc);
+    expect(why).toHaveClass('text-muted');
+    fireEvent.click(terms());
+    expect(terms()).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('with a document there is no such line', async () => {
+    mockApi({ collection: LIBRARY });
+    renderPage();
+    await loaded();
+
+    expect(screen.queryByText(en.lendingTerms.needsWelcomeDoc)).toBeNull();
+  });
+
+  test('a library already on that lost its document shows it off but sends what it had', async () => {
+    mockApi({ collection: { ...LIBRARY, welcome_doc: '', lending_asks_terms: true } });
+    renderPage();
+    await loaded();
+
+    expect(terms()).toHaveAttribute('aria-pressed', 'false');
+    await save();
+
+    expect(patchBody().lending_asks_terms).toBe(true);
+  });
+
+  test('a shed has no such switch and sends no such field', async () => {
+    mockApi({ collection: SHED_DAYS });
+    renderPage('shed');
+    await loaded();
+
+    expect(screen.queryByLabelText(/accept the terms/)).toBeNull();
+    expect(screen.queryByText(en.lendingTerms.needsWelcomeDoc)).toBeNull();
+    await save();
+
+    expect(patchBody()).not.toHaveProperty('lending_asks_terms');
   });
 });

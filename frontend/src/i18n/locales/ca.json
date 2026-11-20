@@ -39,6 +39,12 @@
     "identityDocument": "Document d'identificació",
     "identityDocumentHelp": "Document d'identitat, passaport o un altre document oficial. Porta'l quan vinguis a recollir-ho."
   },
+  "lendingTerms": {
+    "switchLabel": "Demanar que acceptin les condicions en prestar",
+    "needsWelcomeDoc": "Primer puja un document de benvinguda a General: són les condicions que accepten.",
+    "accept": "He llegit i accepto les condicions de préstec",
+    "read": "Llegir-les"
+  },
   "profileNudge": {
     "label": "Explica'ns una mica de tu",
     "body": "Són 2 minuts i tot és opcional.",
@@ -1286,6 +1292,8 @@
     "not_on_loan": "Això no és un préstec en curs.",
     "lending_contact_required": "Aquesta biblioteca demana les teves dades de contacte per prestar. Omple'ls tots quatre.",
     "lending_contact_invalid": "Revisa aquesta dada i torna-ho a provar.",
+    "terms_required": "Marca la casella per acceptar les condicions de préstec.",
+    "terms_need_welcome_doc": "Primer puja un document de benvinguda: són les condicions que accepten.",
     "priced_things_remain": "Algunes coses d'aquest grup tenen preu. Treu-los-el o retira-les abans de treure als membres l'opció de posar preu.",
     "opening_hours_required": "Per reservar per hores, posa almenys una franja a «Horari setmanal».",
     "units_below_booked": "Hi ha reserves que necessiten almenys {{min}} alhora.",

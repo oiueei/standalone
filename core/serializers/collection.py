@@ -164,6 +164,7 @@ class CollectionSerializer(serializers.ModelSerializer):
             "donations_info",
             "reservation_asks_phone",
             "lending_asks_contact",
+            "lending_asks_terms",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -447,6 +448,9 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
     # Libraries only: whether the request page asks the borrower for full contact details.
     # A True on any other kind is refused (``_validate_lending_contact_switch``).
     lending_asks_contact = serializers.BooleanField(required=False)
+    # Libraries only: whether the request page asks the borrower to accept the welcome
+    # document as the lending terms (``_validate_lending_terms_switch``).
+    lending_asks_terms = serializers.BooleanField(required=False)
     # RESERVE_THING collections only: DAY (default) or HOUR — never both. See
     # Collection.ReservationUnit.
     reservation_unit = serializers.ChoiceField(
@@ -519,6 +523,7 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
             "reservation_max_active_per_member",
             "reservation_asks_phone",
             "lending_asks_contact",
+            "lending_asks_terms",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -571,6 +576,9 @@ class CollectionCreateSerializer(serializers.ModelSerializer):
         attrs["allowed_thing_types"] = normalize_allowed_thing_types(kind, mode, listed)
         _validate_phone_switch(kind, attrs.get("reservation_asks_phone", False))
         _validate_lending_contact_switch(kind, attrs.get("lending_asks_contact", False))
+        _validate_lending_terms_switch(
+            kind, attrs.get("lending_asks_terms", False), attrs.get("welcome_doc", "")
+        )
         _validate_reservation_minutes(
             attrs.get("reservation_min_minutes", 60), attrs.get("reservation_max_minutes", 180)
         )
@@ -635,6 +643,28 @@ def _validate_lending_contact_switch(kind, asks_contact):
     if asks_contact and kind != Collection.Kind.LIBRARY:
         raise serializers.ValidationError(
             {"lending_asks_contact": "Only a library can ask borrowers for contact details."}
+        )
+
+
+def _validate_lending_terms_switch(kind, asks_terms, welcome_doc, already_on=False):
+    """Asking borrowers to accept the terms means something in a library only, and only
+    with a welcome document to accept: turning it on anywhere else would promise a box no
+    request page of that kind shows, and on with no document would promise terms nobody can
+    read. Only *turning it on* is judged: a library that is already on and later removes
+    the document stays on (it just stops asking), so saving its other settings still works."""
+    if not asks_terms:
+        return
+    if kind != Collection.Kind.LIBRARY:
+        raise serializers.ValidationError(
+            {"lending_asks_terms": "Only a library can ask borrowers to accept its terms."}
+        )
+    if not welcome_doc and not already_on:
+        raise RefusedField(
+            "lending_asks_terms",
+            Refusal(
+                "Upload a welcome document first: it is the terms borrowers accept.",
+                "terms_need_welcome_doc",
+            ),
         )
 
 
@@ -898,6 +928,9 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
     # Libraries only: whether the request page asks the borrower for full contact details.
     # A True on any other kind is refused (``_validate_lending_contact_switch``).
     lending_asks_contact = serializers.BooleanField(required=False)
+    # Libraries only: whether the request page asks the borrower to accept the welcome
+    # document as the lending terms (``_validate_lending_terms_switch``).
+    lending_asks_terms = serializers.BooleanField(required=False)
     reservation_unit = serializers.ChoiceField(
         choices=Collection.ReservationUnit.choices, required=False
     )
@@ -972,6 +1005,7 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
             "donations_info",
             "reservation_asks_phone",
             "lending_asks_contact",
+            "lending_asks_terms",
             "reservation_unit",
             "opening_hours",
             "reservation_min_minutes",
@@ -1030,6 +1064,13 @@ class CollectionUpdateSerializer(serializers.ModelSerializer):
         allowed_thing_types = normalize_allowed_thing_types(kind, mode, allowed_thing_types)
         _validate_phone_switch(kind, attrs.get("reservation_asks_phone", False))
         _validate_lending_contact_switch(kind, attrs.get("lending_asks_contact", False))
+        if instance is not None:
+            _validate_lending_terms_switch(
+                kind,
+                attrs.get("lending_asks_terms", False),
+                attrs.get("welcome_doc", instance.welcome_doc),
+                already_on=instance.lending_asks_terms,
+            )
         if instance is not None and ("accepts_donations" in attrs or "donations_info" in attrs):
             _validate_donations(
                 kind,
