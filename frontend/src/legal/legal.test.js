@@ -142,6 +142,27 @@ describe('the contact details a library may ask a borrower for', () => {
   });
 });
 
+describe('the terms a library may ask a borrower to accept', () => {
+  // The request page can show a box to tick before borrowing; the privacy text says what
+  // is kept of it, right after the sentence about the contact details a library may ask for.
+  const AFTER = {
+    es: '90 días después de la fecha de devolución. ',
+    ca: '90 dies després de la data de devolució. ',
+    en: '90 days after the return date. ',
+  };
+  const SENTENCE = {
+    es: 'Si una biblioteca te pide que aceptes sus condiciones para prestarte algo, se guarda cuándo las aceptaste y cuáles eran.',
+    ca: 'Si una biblioteca et demana que acceptis les seves condicions per deixar-te alguna cosa, es guarda quan les vas acceptar i quines eren.',
+    en: 'If a library asks you to accept its terms in order to lend you something, it keeps when you accepted them and which they were.',
+  };
+
+  test.each(CODES)('%s says it, once, right after the contact details of a library', (lang) => {
+    const text = LANGS[lang];
+    expect(text.split(SENTENCE[lang])).toHaveLength(2);
+    expect(text).toContain(AFTER[lang] + SENTENCE[lang]);
+  });
+});
+
 describe('what is seen of a profile, of a team page and of an invitation', () => {
   // Three things the paragraph about who sees what inside a group has to say: a profile
   // is seen by people who share a group (`can_view_user`, `UserPublicSerializer`), a

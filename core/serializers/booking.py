@@ -82,6 +82,20 @@ def clean_lending_contact(raw):
     return cleaned
 
 
+def require_accepted_terms(raw):
+    """A request to a library that asks borrowers to accept its terms must say it did:
+    ``accepts_terms`` is exactly ``true``. Anything else (missing, ``false``, the string
+    ``"true"``) is refused coded ``terms_required``, on the field."""
+    if raw is not True:
+        raise serializers.ValidationError(
+            {
+                "accepts_terms": [
+                    ErrorDetail("Accept the lending terms to borrow.", code="terms_required")
+                ]
+            }
+        )
+
+
 class BookingPeriodSerializer(serializers.ModelSerializer):
     """Full booking period serializer (for owner view)."""
 

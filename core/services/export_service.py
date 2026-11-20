@@ -405,6 +405,16 @@ def _booking_columns(booking):
     }
 
 
+def _terms_columns(booking):
+    """When a borrower accepted a library's terms and which document those were
+    (``None`` for both when the library did not ask). A downloaded file only: the app
+    shows it to no one."""
+    return {
+        "terms_accepted_at": _iso(booking.terms_accepted_at),
+        "terms_doc_url": doc_asset_url(booking.terms_doc) if booking.terms_doc else None,
+    }
+
+
 def _faq_columns(faq):
     return {
         "code": faq.code,
@@ -616,6 +626,9 @@ def _bookings(user):
                 # What they left a library when borrowing, opened: it is their own data (art. 15).
                 # `None` once it has been deleted. Never in `received_by_me` nor a group's copy.
                 "lending_contact": unseal(booking.lending_contact),
+                # The terms they accepted to borrow, when a library asked: the moment and the
+                # document (its URL). Their own data (art. 15), also in the group's copy.
+                **_terms_columns(booking),
                 "owner": _person(booking.owner_code),
             }
             for booking in requested
@@ -958,6 +971,8 @@ def _collection_bookings(thing_codes, people=None):
     return [
         {
             **_booking_columns(booking),
+            # The library's record that this borrower accepted its terms, and which.
+            **_terms_columns(booking),
             "owner": _person(booking.owner_code),
             "requester": _person(booking.requester_code),
         }

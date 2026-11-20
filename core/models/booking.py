@@ -215,6 +215,16 @@ class BookingPeriod(models.Model):
     # calendar file or the group's export. The database default is for the previous
     # release's dynos, which insert without naming the column.
     lending_contact = models.TextField(blank=True, default="", db_default="")
+    # LEND/RENT in a library that asks borrowers to accept its terms
+    # (``Collection.lending_asks_terms``): when they did, and which document they accepted
+    # (the ``welcome_doc`` id at that moment, so a library that later replaces the PDF still
+    # knows what each loan was made under). Null / empty = the library did not ask. It is the
+    # library's record, so it is kept with the loan and never emptied; it is served nowhere
+    # in the app, in no email and no calendar file, only in the two downloads (the borrower's
+    # own copy and the group's). The database defaults are for the previous release's dynos,
+    # which insert without naming the columns.
+    terms_accepted_at = models.DateTimeField(null=True, blank=True)
+    terms_doc = models.CharField(max_length=255, blank=True, default="", db_default="")
     requester_code = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,

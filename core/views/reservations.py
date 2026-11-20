@@ -27,6 +27,7 @@ from core.serializers.booking import (
     ReservationRequestSerializer,
     ThingRequestWithDatesSerializer,
     clean_lending_contact,
+    require_accepted_terms,
 )
 from core.services.booking_service import (
     BookingRequestError,
@@ -205,6 +206,13 @@ class ThingRequestView(APIView):
         lending_contact = None
         if asking is not None and asking.lending_asks_contact:
             lending_contact = clean_lending_contact(body_dict(request).get("lending_contact"))
+        # A library that asks for its terms to be accepted (and still has the document that
+        # holds them) wants an explicit `accepts_terms: true`; one that does not ask ignores
+        # it and records nothing.
+        terms_doc = None
+        if asking is not None and asking.lending_asks_terms and asking.welcome_doc:
+            require_accepted_terms(body_dict(request).get("accepts_terms"))
+            terms_doc = asking.welcome_doc
 
         booking = request_date_based_booking(
             thing,
@@ -215,6 +223,7 @@ class ThingRequestView(APIView):
             collection_code,
             quantity=serializer.validated_data["quantity"],
             lending_contact=lending_contact,
+            terms_doc=terms_doc,
         )
         return Response(
             {
