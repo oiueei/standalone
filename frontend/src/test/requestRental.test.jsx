@@ -15,6 +15,7 @@ vi.mock('../services/api', () => ({
 import { apiFetch } from '../services/api';
 import RequestThingPage from '../pages/RequestThingPage';
 import declarePalette from './declarePalette';
+import { settle } from './settle';
 
 function mockResponse(data, ok = true) {
   return { ok, status: ok ? 200 : 400, json: () => Promise.resolve(data) };
@@ -228,8 +229,11 @@ async function openFreeCalendar(which) {
   fireEvent.click(buttons[which === 'return' ? 1 : 0]);
   await waitFor(() => expect(document.querySelector('[data-date]')).toBeTruthy());
 }
-// The form is there once its two calendar buttons are.
-const freeFormReady = () => screen.findAllByRole('button', { name: 'Choose date' });
+// The form is there once its two calendar buttons are and the calendar has answered.
+const freeFormReady = async () => {
+  await screen.findAllByRole('button', { name: 'Choose date' });
+  await settle(apiFetch);
+};
 const typeInto = (container, selector, display) => {
   const input = container.querySelector(selector);
   fireEvent.change(input, { target: { value: display } });

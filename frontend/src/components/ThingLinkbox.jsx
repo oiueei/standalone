@@ -73,7 +73,6 @@ function ThingLinkbox({
     collectionOwner,
     onThingChange: (patch) => onUpdateThing(thing.code, patch),
     setToast,
-    initialActivePending: thing.pending_booking,
     fetchOnEndless: true,
     collectionCode: collectionCode || thing.collection_code,
     // The group the page lists this card from: the card's payload carries no
@@ -266,7 +265,7 @@ function ThingLinkbox({
             <>
               <Button
                 fullWidth
-                disabled={!!bookingAction}
+                disabled={!!bookingAction || !activePendingCode}
                 onClick={() => handleBookingAction('accept')}
                 style={btnStyle}
               >
@@ -275,7 +274,7 @@ function ThingLinkbox({
               <Button
                 variant="secondary"
                 fullWidth
-                disabled={!!bookingAction}
+                disabled={!!bookingAction || !activePendingCode}
                 onClick={() => handleBookingAction('reject')}
                 style={btnSecondaryStyle}
               >

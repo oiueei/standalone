@@ -20,6 +20,7 @@ vi.mock('../services/api', async (importOriginal) => ({
 
 import { apiFetch } from '../services/api';
 import RequestThingPage from '../pages/RequestThingPage';
+import { requestPageReady } from './requestPageReady';
 
 /**
  * A shed can ask, on the request page, for an optional contact phone. The field exists
@@ -139,7 +140,7 @@ describe('RequestThingPage — the phone comes before the project note', () => {
   ])('%s: the phone field is above the note', async (_unit, thing) => {
     setApi(thing);
     renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     const phone = screen.getByLabelText(LABEL.en);
     const note = screen.getByLabelText(NOTE);
@@ -154,7 +155,7 @@ describe('RequestThingPage — the phone comes before the project note', () => {
   ])('%s: the phone keeps its id, derived from the note’s', async (_unit, thing, selector) => {
     setApi(thing);
     const { container } = renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     expect(container.querySelector(selector)).toBe(screen.getByLabelText(LABEL.en));
   });
@@ -165,7 +166,7 @@ describe('RequestThingPage — the phone comes before the project note', () => {
   ])('%s: with no phone asked, the note is there alone', async (_unit, thing) => {
     setApi({ ...thing, collection_reservation_asks_phone: false });
     renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     expect(screen.getByLabelText(NOTE)).toBeInTheDocument();
     expect(screen.queryByLabelText(LABEL.en)).toBeNull();
@@ -176,7 +177,7 @@ describe('RequestThingPage — the optional contact phone', () => {
   test('it is a telephone field, optional, when the collection asks', async () => {
     setApi(SHED_THING);
     renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     const field = screen.getByLabelText(LABEL.en);
     expect(field).toHaveAttribute('type', 'tel');
@@ -188,7 +189,7 @@ describe('RequestThingPage — the optional contact phone', () => {
   test('it is not there when the collection does not ask', async () => {
     setApi({ ...SHED_THING, collection_reservation_asks_phone: false });
     renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     expect(screen.queryByLabelText(LABEL.en)).toBeNull();
   });
@@ -196,7 +197,7 @@ describe('RequestThingPage — the optional contact phone', () => {
   test('a number typed is sent, trimmed, with the rest of the reservation', async () => {
     setApi(SHED_THING);
     const { container } = renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     fireEvent.change(screen.getByLabelText(LABEL.en), { target: { value: '  600 123 456 ' } });
     typePickup(container, '03/06/2026');
@@ -213,7 +214,7 @@ describe('RequestThingPage — the optional contact phone', () => {
   test('left empty, the key is not sent at all and the reservation goes through', async () => {
     setApi(SHED_THING);
     const { container } = renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -225,7 +226,7 @@ describe('RequestThingPage — the optional contact phone', () => {
   test('only spaces count as empty', async () => {
     setApi(SHED_THING);
     const { container } = renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     fireEvent.change(screen.getByLabelText(LABEL.en), { target: { value: '   ' } });
     typePickup(container, '03/06/2026');
@@ -241,7 +242,7 @@ describe('RequestThingPage — the optional contact phone', () => {
       mockResponse({ contact_phone: ['Enter a phone number: digits…'] }, false, 400)
     );
     const { container } = renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
 
     fireEvent.change(screen.getByLabelText(LABEL.en), { target: { value: '12345' } });
     typePickup(container, '03/06/2026');
@@ -260,7 +261,7 @@ describe('RequestThingPage — the optional contact phone', () => {
       mockResponse({ contact_phone: ['Enter a phone number: digits…'] }, false, 400)
     );
     const { container } = renderPage();
-    await screen.findByText(/Reserve Lathe/);
+    await requestPageReady(apiFetch, /Reserve Lathe/);
     fireEvent.change(screen.getByLabelText(LABEL.en), { target: { value: '12345' } });
     typePickup(container, '03/06/2026');
     fireEvent.click(screen.getByRole('button', { name: 'Reserve' }));
@@ -274,6 +275,7 @@ describe('RequestThingPage — the optional contact phone', () => {
   test('axe finds nothing wrong with the page that asks', async () => {
     setApi(SHED_THING);
     const { container } = renderPage();
+    await requestPageReady(apiFetch, /Reserve Lathe/);
     await screen.findByLabelText(LABEL.en);
 
     expect(await axe(container)).toHaveNoViolations();

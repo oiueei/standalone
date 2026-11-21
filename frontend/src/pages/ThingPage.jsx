@@ -256,7 +256,7 @@ export default function ThingPage() {
       {thing.status === 'TAKEN' && acceptTransfersOwnership ? (
         <InlineConfirm
           triggerLabel={acceptLabel}
-          triggerProps={{ disabled: !!bookingAction, style: btnStyle }}
+          triggerProps={{ disabled: !!bookingAction || !activePendingCode, style: btnStyle }}
           title={t('thingCard.transferConfirmTitle')}
           body={t('thingCard.transferConfirmBody')}
           confirmLabel={t('thingCard.transferConfirm')}
@@ -266,7 +266,7 @@ export default function ThingPage() {
         />
       ) : (
         <Button
-          disabled={!!bookingAction}
+          disabled={!!bookingAction || !activePendingCode}
           onClick={() => handleBookingAction('accept')}
           style={btnStyle}
         >
@@ -275,7 +275,7 @@ export default function ThingPage() {
       )}
       <Button
         variant="secondary"
-        disabled={!!bookingAction}
+        disabled={!!bookingAction || !activePendingCode}
         onClick={() => handleBookingAction('reject')}
         style={btnSecondaryStyle}
       >
