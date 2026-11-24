@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { useTranslation, Trans } from 'react-i18next';
-import { TextInput, TextArea, Button, Select, ToggleButton } from 'hds-react';
+import { TextInput, TextArea, Button, Select, ToggleButton, Notification } from 'hds-react';
 import { apiFetch, extractApiError } from '../services/api';
 import PageLayout from '../components/PageLayout';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -14,6 +14,9 @@ import hdsLang from '../utils/hdsLang';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const AGE_RANGES = ['PRE_1946', 'BOOMER', 'GEN_X', 'GEN_Y', 'GEN_Z', 'GEN_A', 'GEN_B'];
+// The generations whose members are minors; choosing one shows a pointer to the legal
+// page (the age of consent differs by country, so no number is hard-coded).
+const MINOR_AGE_RANGES = ['GEN_A', 'GEN_B'];
 
 export default function EditProfilePage() {
   const { t, i18n } = useTranslation();
@@ -238,6 +241,14 @@ export default function EditProfilePage() {
             setAgeRange(selectedOptions.length > 0 ? selectedOptions[0].value : '');
           }}
         />
+        {MINOR_AGE_RANGES.includes(ageRange) && (
+          <Notification type="info" size="small" style={{ marginTop: 'var(--spacing-s)' }}>
+            <Trans
+              i18nKey="communityProfile.minorNotice"
+              components={[<Link key="0" to="/legal" />]}
+            />
+          </Notification>
+        )}
         <TextInput
           id="edit-profile-postal"
           label={t('communityProfile.postalLabel')}

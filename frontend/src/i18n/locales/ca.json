@@ -55,6 +55,7 @@
     "helper": "Opcional. Qui porta els teus grups ho veu a les seves estadístiques, sumat amb el de la resta (mai el teu sol); en un grup comunitari, també al costat del teu nom. Mai és públic.",
     "ageLabel": "Any de naixement",
     "ageUnset": "Prefereixo no dir-ho",
+    "minorNotice": "Si ets menor, comprova a la <0>pàgina legal</0> si necessites l'autorització dels teus pares o tutors per fer servir OIUEEI.",
     "postalLabel": "Codi postal"
   },
   "bulkInvite": {

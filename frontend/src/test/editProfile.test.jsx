@@ -1,6 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
+
+expect.extend(toHaveNoViolations);
 
 window.scrollTo = vi.fn();
 
@@ -320,5 +323,63 @@ describe('EditProfilePage — what the demographic fields say about who sees the
     expect(screen.getByText(/never yours alone/)).toBeInTheDocument();
     expect(screen.getByText(/Never public\./)).toBeInTheDocument();
     expect(screen.queryByText(/Only owners of the groups/)).toBeNull();
+  });
+});
+
+describe('EditProfilePage — the notice for minors under the birth year', () => {
+  const NOTICE = /if you are a minor/i;
+
+  async function pickGeneration(name) {
+    const combobox = await screen.findByRole('combobox', { name: /birth year/i });
+    fireEvent.click(combobox);
+    fireEvent.click(await screen.findByRole('option', { name }));
+  }
+
+  test.each(['GEN_A', 'GEN_B'])(
+    '%s shows the notice with a link to the legal page',
+    async (age) => {
+      setApi({ profile: { ...PROFILE, age_range: age } });
+      renderPage();
+
+      expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'legal page' })).toHaveAttribute('href', '/legal');
+    }
+  );
+
+  test.each(['GEN_Z', ''])('"%s" shows no notice', async (age) => {
+    setApi({ profile: { ...PROFILE, age_range: age } });
+    renderPage();
+
+    await screen.findByRole('combobox', { name: /birth year/i });
+    expect(screen.queryByText(NOTICE)).not.toBeInTheDocument();
+  });
+
+  test('the notice goes away when another generation is chosen', async () => {
+    setApi({ profile: { ...PROFILE, age_range: 'GEN_A' } });
+    renderPage();
+    expect(await screen.findByText(NOTICE)).toBeInTheDocument();
+
+    await pickGeneration(/Generation X/);
+
+    await waitFor(() => expect(screen.queryByText(NOTICE)).not.toBeInTheDocument());
+  });
+
+  test('has no accessibility violations with the notice showing', async () => {
+    setApi({ profile: { ...PROFILE, age_range: 'GEN_A' } });
+    const { container } = renderPage();
+    await screen.findByText(NOTICE);
+
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  test('saving as GEN_A sends it unchanged: the notice does not block', async () => {
+    setApi({ profile: { ...PROFILE, age_range: 'GEN_A' } });
+    renderPage();
+    await screen.findByText(NOTICE);
+
+    save();
+
+    await waitFor(() => expect(putCalls()).toHaveLength(1));
+    expect(putBody().age_range).toBe('GEN_A');
   });
 });
