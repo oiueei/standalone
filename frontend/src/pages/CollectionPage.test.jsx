@@ -1495,7 +1495,7 @@ describe('the ways a collection fails to load', () => {
     expect(screen.getByText('Notice')).toBeInTheDocument();
     expect(screen.queryByText('Error')).not.toBeInTheDocument();
     // The tab keeps saying what page it is.
-    expect(document.title).toBe('Collection — OIUEEI');
+    await waitFor(() => expect(document.title).toBe('Collection — OIUEEI'));
   });
 
   test.each([[404], [500]])('a %i is still an "Error"', async (status) => {

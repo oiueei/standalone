@@ -307,7 +307,7 @@ describe('ThingPage — how it fails to load', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(en.common.notice)).toBeInTheDocument();
     expect(screen.queryByText(en.common.error)).not.toBeInTheDocument();
-    expect(document.title).toBe(en.titles.thingDefault);
+    await waitFor(() => expect(document.title).toBe(en.titles.thingDefault));
   });
 
   test.each([404, 500])('a %i is still an "Error"', async (status) => {

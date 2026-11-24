@@ -244,7 +244,7 @@ describe('JoinPage — the title names the collection', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Join to take part' })
     ).toBeInTheDocument();
-    expect(document.title).toBe('Join to take part — OIUEEI');
+    await waitFor(() => expect(document.title).toBe('Join to take part — OIUEEI'));
   });
 });
 

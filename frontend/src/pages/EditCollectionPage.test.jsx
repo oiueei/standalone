@@ -242,7 +242,9 @@ describe('EditCollectionPage — saving', () => {
     mockApi();
     renderPage();
     await screen.findByDisplayValue('Kitchen Collection');
-    expect(document.title).toBe('General settings of Kitchen Collection — OIUEEI');
+    await waitFor(() =>
+      expect(document.title).toBe('General settings of Kitchen Collection — OIUEEI')
+    );
   });
 
   test('the three titles of the page are fixed in the three languages', () => {
