@@ -142,13 +142,33 @@ describe('the contact details a library may ask a borrower for', () => {
   });
 });
 
-describe('the terms a library may ask a borrower to accept', () => {
-  // The request page can show a box to tick before borrowing; the privacy text says what
-  // is kept of it, right after the sentence about the contact details a library may ask for.
+describe('who answers for the contact details a library asks for', () => {
+  // The library is the controller and the platform its processor: the privacy text says so
+  // right after the contact-details sentence, and says whom to write to about them.
   const AFTER = {
     es: '90 días después de la fecha de devolución. ',
     ca: '90 dies després de la data de devolució. ',
     en: '90 days after the return date. ',
+  };
+  const SENTENCE = {
+    es: 'De esos datos responde la biblioteca que te los pide, y la plataforma los guarda por su encargo: para ejercer tus derechos sobre ellos, escríbele a ella o al operador de esta instancia, que se lo hará llegar.',
+    ca: "D'aquestes dades en respon la biblioteca que te les demana, i la plataforma les guarda per encàrrec seu: per exercir els teus drets sobre elles, escriu-li a ella o a l'operador d'aquesta instància, que li ho farà arribar.",
+    en: "The library that asks you for these details answers for them, and the platform keeps them on its behalf: to exercise your rights over them, write to the library or to this instance's operator, who will pass it on.",
+  };
+
+  test.each(CODES)('%s says it, once, right after the contact details of a library', (lang) => {
+    const text = LANGS[lang];
+    expect(text.split(AFTER[lang] + SENTENCE[lang])).toHaveLength(2);
+  });
+});
+
+describe('the terms a library may ask a borrower to accept', () => {
+  // The request page can show a box to tick before borrowing; the privacy text says what
+  // is kept of it, right after the sentence saying who answers for the contact details.
+  const AFTER = {
+    es: 'escríbele a ella o al operador de esta instancia, que se lo hará llegar. ',
+    ca: "escriu-li a ella o a l'operador d'aquesta instància, que li ho farà arribar. ",
+    en: "write to the library or to this instance's operator, who will pass it on. ",
   };
   const SENTENCE = {
     es: 'Si una biblioteca te pide que aceptes sus condiciones para prestarte algo, se guarda cuándo las aceptaste y cuáles eran.',

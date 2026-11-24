@@ -29,7 +29,7 @@
     "GEN_B": "Generació Beta (2025–2039)"
   },
   "lendingContact": {
-    "switchLabel": "Demanar les dades de contacte completes en prestar",
+    "switchLabel": "Demanar les dades de contacte completes en prestar: les demanes tu i en respons; la plataforma només les guarda per encàrrec teu",
     "intro": "Ens deixes les teves dades de contacte? Són per saber qui té el que t'emportes i poder-te localitzar si no torna. Només les veu qui t'ho presta, i les esborrarem quan ho tornis.",
     "fullName": "Nom complet",
     "fullNameHelp": "Com apareix al teu document d'identificació.",
