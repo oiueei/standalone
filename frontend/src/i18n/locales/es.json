@@ -29,7 +29,7 @@
     "GEN_B": "Generación Beta (2025–2039)"
   },
   "lendingContact": {
-    "switchLabel": "Pedir los datos de contacto completos al prestar",
+    "switchLabel": "Pedir los datos de contacto completos al prestar: los pides tú y respondes de ellos; la plataforma solo los guarda por tu encargo",
     "intro": "¿Nos dejas tus datos de contacto? Son para saber quién tiene lo que te llevas y poder localizarte si no vuelve. Solo los ve quien te lo presta, y los borraremos cuando lo devuelvas.",
     "fullName": "Nombre completo",
     "fullNameHelp": "Como aparece en tu documento de identificación.",

@@ -722,6 +722,27 @@ class TestReadme:
                     kind,
                 )
 
+    @pytest.mark.parametrize(
+        ("lang", "stale", "now_says"),
+        [
+            ("en", "forwarded without being stored", "are not part of this file"),
+            ("es", "se reenvían sin almacenarse", "no van en este fichero"),
+            ("ca", "es reenvien sense desar-se", "no van en aquest fitxer"),
+        ],
+    )
+    def test_the_account_readme_does_not_claim_the_contact_form_is_not_stored(
+        self, user, lang, stale, now_says
+    ):
+        """Where contact messages go is each installation's choice (an external form may
+        keep them), so the file only says they are not in it and points to the policy."""
+        user.language = lang
+        user.save()
+
+        not_included = " ".join(build_account_export(user)["_readme"]["not_included"]).lower()
+
+        assert stale not in not_included
+        assert now_says in not_included
+
     def test_the_readme_speaks_the_readers_language(self, user, world):
         user.language = "ca"
         user.save()

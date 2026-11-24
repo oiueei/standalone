@@ -129,8 +129,8 @@ README_TEXTS = {
                 "this file tells you who reported. The ones you filed yourself are here.",
                 "Photos and PDFs travel as links, not as files. Careful: if you delete your "
                 "account those links stop working — download your images first.",
-                "Emails. We keep no copy of the ones we send you, and messages from the "
-                "contact form are forwarded without being stored.",
+                "Emails. We keep no copy of the ones we send you. Messages from the contact "
+                "form are not part of this file; the privacy policy says how they are handled.",
                 "Server logs (accesses, IP addresses) are not part of this file; the privacy "
                 "policy says how they are handled and for how long.",
                 "Anything you already deleted. Deleting in OIUEEI is final — there is no bin.",
@@ -187,8 +187,9 @@ README_TEXTS = {
                 "fichero te dicen quién denunció. Las que has hecho tú sí están.",
                 "Las fotos y los PDF viajan como enlaces, no como archivos. Ojo: si borras la "
                 "cuenta esos enlaces dejan de funcionar; descarga tus imágenes antes.",
-                "Los correos. No guardamos copia de los que te enviamos, y los mensajes del "
-                "formulario de contacto se reenvían sin almacenarse.",
+                "Los correos. No guardamos copia de los que te enviamos. Los mensajes del "
+                "formulario de contacto no van en este fichero; la política de privacidad "
+                "dice cómo se tratan.",
                 "Los registros técnicos del servidor (accesos, direcciones IP) no forman "
                 "parte de este fichero; la política de privacidad cuenta cómo se tratan y "
                 "durante cuánto tiempo.",
@@ -247,8 +248,9 @@ README_TEXTS = {
                 "Les fotos i els PDF viatgen com a enllaços, no com a fitxers. Compte: si "
                 "esborres el compte aquests enllaços deixen de funcionar; descarrega't les "
                 "imatges abans.",
-                "Els correus. No guardem còpia dels que t'enviem, i els missatges del "
-                "formulari de contacte es reenvien sense desar-se.",
+                "Els correus. No guardem còpia dels que t'enviem. Els missatges del "
+                "formulari de contacte no van en aquest fitxer; la política de privacitat "
+                "explica com es tracten.",
                 "Els registres tècnics del servidor (accessos, adreces IP) no formen part "
                 "d'aquest fitxer; la política de privacitat explica com es tracten i durant "
                 "quant de temps.",

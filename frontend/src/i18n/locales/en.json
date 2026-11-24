@@ -29,7 +29,7 @@
     "GEN_B": "Generation Beta (2025–2039)"
   },
   "lendingContact": {
-    "switchLabel": "Ask for a full contact when borrowing",
+    "switchLabel": "Ask for a full contact when borrowing: you ask for it and answer for it; the platform only keeps it on your behalf",
     "intro": "Could you leave us your contact details? They're so we know who has what you're taking and can find you if it doesn't come back. Only whoever lends it to you sees them, and we'll delete them when you return it.",
     "fullName": "Full name",
     "fullNameHelp": "As it appears on your identity document.",
