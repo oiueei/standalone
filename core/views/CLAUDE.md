@@ -1194,6 +1194,8 @@ Enforces the retention table (GDPR art. 5.1.e): one period per category of data,
 
 `purge_expired_data` also deletes `InvitationRecord` rows whose `sent_at` is more than `INVITE_RECORD_MONTHS` (12) months old. That period is a constant in `core/models/invitation_record.py`, not a `RETENTION_*` setting and not switchable off: the invitation email promises "a year".
 
+`purge_expired_data` also deletes `InvitationProposal` rows (a member's suggestion: the proposed address and the member's note): decided ones (APPROVED/REJECTED) more than `PROPOSAL_RESOLVED_MONTHS` (12) months after `resolved`, unanswered ones (PENDING) more than `PROPOSAL_PENDING_DAYS` (60) days after `created`. Constants in `core/models/proposal.py`, not `RETENTION_*` settings (`/legal` promises them). Each deleted row first goes through `clear_proposal_traces`, so no in-app notice or approve/reject link is left pointing at it; a link already emailed answers `proposal_not_pending`. Two report lines, one per kind.
+
 ### Management Command: `backfill_events`
 
 One-off, idempotent seed of the `Event` log from existing rows (users → `USER_JOINED` at `date_joined`, collections/things/bookings at their `created`; accepted bookings also get `HOLD_ACCEPTED`). Run **once**, the day tracking ships, before forward instrumentation accumulates. Kept out of migrations per repo convention. Re-running never double-counts (skips when an equal event already exists).

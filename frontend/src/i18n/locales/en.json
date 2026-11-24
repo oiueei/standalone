@@ -55,6 +55,7 @@
     "helper": "Optional. Whoever runs your groups sees it in their stats, added up with everyone else's (never yours alone); in a community group, next to your name too. Never public.",
     "ageLabel": "Birth year",
     "ageUnset": "Prefer not to say",
+    "minorNotice": "If you are a minor, check the <0>legal page</0> to see whether you need your parents' or guardians' permission to use OIUEEI.",
     "postalLabel": "Postal code"
   },
   "bulkInvite": {

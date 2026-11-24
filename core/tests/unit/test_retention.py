@@ -29,12 +29,14 @@ from core.models import (
     DailyActivity,
     Event,
     InAppNotification,
+    InvitationProposal,
     InvitationRecord,
     Report,
     Thing,
     User,
 )
 from core.models.invitation_record import INVITE_RECORD_MONTHS, address_hash
+from core.models.proposal import PROPOSAL_PENDING_DAYS, PROPOSAL_RESOLVED_MONTHS
 from core.services.contact_seal import is_sealed_phone, seal_phone, unseal_phone
 
 pytestmark = pytest.mark.django_db
@@ -808,3 +810,144 @@ class TestReservationPhones:
 
         old.refresh_from_db()
         assert old.contact_phone == ""
+
+
+class TestInvitationProposals:
+    """A suggestion holds a third party's address and the proposer's note, so it expires: a
+    decided one 12 months after it was answered, an unanswered one after 60 days."""
+
+    def _proposal(self, user, code, *, status, email=None, **stamps):
+        member = User.objects.create(code=f"U{code[1:]}", email=f"m{code.lower()}@your-domain.test")
+        group = Collection.objects.create(code=f"G{code[1:]}", owner=user, headline="Group")
+        group.invites.add(member)
+        proposal = InvitationProposal.objects.create(
+            code=code,
+            collection=group,
+            proposer=member,
+            email=email or f"{code.lower()}@your-domain.test",
+            note="my neighbour",
+            status=status,
+        )
+        InvitationProposal.objects.filter(pk=code).update(**stamps)
+        return proposal
+
+    @pytest.mark.parametrize(
+        "status", [InvitationProposal.Status.APPROVED, InvitationProposal.Status.REJECTED]
+    )
+    def test_a_decided_one_goes_after_twelve_months_and_stays_inside_them(self, user, status):
+        old = self._proposal(
+            user,
+            "PRPOLD",
+            status=status,
+            resolved=months_ago(PROPOSAL_RESOLVED_MONTHS) - timedelta(days=1),
+        )
+        inside = self._proposal(
+            user, "PRPIN1", status=status, resolved=months_ago(PROPOSAL_RESOLVED_MONTHS - 1)
+        )
+
+        _run(commit=True)
+
+        assert not InvitationProposal.objects.filter(pk=old.pk).exists()
+        assert InvitationProposal.objects.filter(pk=inside.pk).exists()
+
+    def test_an_unanswered_one_goes_after_sixty_days_and_stays_inside_them(self, user):
+        pending = InvitationProposal.Status.PENDING
+        now = timezone.now()
+        old = self._proposal(
+            user, "PRPPD1", status=pending, created=now - timedelta(days=PROPOSAL_PENDING_DAYS + 1)
+        )
+        inside = self._proposal(
+            user, "PRPPD2", status=pending, created=now - timedelta(days=PROPOSAL_PENDING_DAYS - 1)
+        )
+
+        _run(commit=True)
+
+        assert not InvitationProposal.objects.filter(pk=old.pk).exists()
+        assert InvitationProposal.objects.filter(pk=inside.pk).exists()
+
+    def test_a_decided_one_is_not_cut_at_sixty_days(self, user):
+        decided = self._proposal(
+            user,
+            "PRPDEC",
+            status=InvitationProposal.Status.APPROVED,
+            created=timezone.now() - timedelta(days=PROPOSAL_PENDING_DAYS + 1),
+            resolved=timezone.now() - timedelta(days=PROPOSAL_PENDING_DAYS),
+        )
+
+        _run(commit=True)
+
+        assert InvitationProposal.objects.filter(pk=decided.pk).exists()
+
+    def test_a_dry_run_counts_them_and_deletes_nothing(self, user):
+        old = self._proposal(
+            user,
+            "PRPDRY",
+            status=InvitationProposal.Status.PENDING,
+            created=timezone.now() - timedelta(days=PROPOSAL_PENDING_DAYS + 1),
+        )
+
+        output = _run()
+
+        assert "Unanswered invitation proposals deleted (>60d): 1" in output
+        assert InvitationProposal.objects.filter(pk=old.pk).exists()
+
+    def test_a_link_already_emailed_answers_as_a_settled_suggestion(self, user):
+        from rest_framework.test import APIClient
+
+        old = self._proposal(
+            user,
+            "PRPLNK",
+            status=InvitationProposal.Status.PENDING,
+            created=timezone.now() - timedelta(days=PROPOSAL_PENDING_DAYS + 1),
+        )
+        link = RSVP.objects.create(
+            user_code=user,
+            action=RSVP.Action.PROPOSAL_APPROVE,
+            target_code=old.code,
+        )
+        notice = InAppNotification.objects.create(
+            user=user,
+            type=InAppNotification.Type.INVITE_PROPOSED,
+            payload={"proposal_code": old.code},
+        )
+
+        _run(commit=True)
+        # An unrelated link to a suggestion still alive must survive the sweep.
+        assert not InAppNotification.objects.filter(pk=notice.pk).exists()
+        assert not RSVP.objects.filter(pk=link.pk).exists()
+        survivor = RSVP.objects.create(
+            user_code=user,
+            action=RSVP.Action.PROPOSAL_APPROVE,
+            target_code="GONE00",
+        )
+        resp = APIClient().post(f"/api/v1/rsvp/{survivor.token}/")
+
+        assert resp.status_code == 400
+        assert resp.data["code"] == "proposal_not_pending"
+
+    def test_the_same_address_can_be_suggested_again_after_a_rejection(self, user):
+        from rest_framework.test import APIClient
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        rejected = self._proposal(
+            user,
+            "PRPREJ",
+            status=InvitationProposal.Status.REJECTED,
+            email="again@your-domain.test",
+            resolved=timezone.now() - timedelta(days=3),
+        )
+        group = rejected.collection
+        group.allow_member_proposals = True
+        group.save()
+        client = APIClient()
+        client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {RefreshToken.for_user(rejected.proposer).access_token}"
+        )
+
+        resp = client.post(
+            f"/api/v1/collections/{group.code}/invite/propose/",
+            {"email": "again@your-domain.test"},
+            format="json",
+        )
+
+        assert resp.status_code in (200, 201)
