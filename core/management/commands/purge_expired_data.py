@@ -27,6 +27,11 @@ Two shapes of expiry, and the difference is the whole point:
 - **Deleted** — the guest accounts nobody ever answered for, ``DailyActivity``,
   ``InAppNotification``, ``Report``. There is no version of these that stops
   being about somebody.
+
+Some periods are fixed and not settings, because the product promises them in
+words: invitation fingerprints 12 months, a member's invitation suggestion 12
+months after it was answered or 60 days if nobody answered, a booking's contact
+phone the day after, a borrower's contact details 90 days after the return date.
 """
 
 import calendar
@@ -45,14 +50,17 @@ from core.models import (
     DailyActivity,
     Event,
     InAppNotification,
+    InvitationProposal,
     InvitationRecord,
     Report,
     User,
 )
 from core.models.invitation_record import INVITE_RECORD_MONTHS
+from core.models.proposal import PROPOSAL_PENDING_DAYS, PROPOSAL_RESOLVED_MONTHS
 from core.services.account_service import delete_account
 from core.services.contact_seal import is_sealed_phone, seal_phone
 from core.services.email_service import send_inactivity_warning_email
+from core.services.invitation_service import clear_proposal_traces
 
 security_logger = logging.getLogger("security")
 
@@ -129,6 +137,7 @@ class Command(BaseCommand):
             self._notifications,
             self._reports,
             self._invitation_records,
+            self._invitation_proposals,
             self._reservation_phones,
             self._seal_plain_phones,
             self._lending_contacts,
@@ -386,6 +395,36 @@ class Command(BaseCommand):
         if commit and count:
             rows.delete()
         return (f"Invitation records deleted (>{INVITE_RECORD_MONTHS}m)", count)
+
+    def _invitation_proposals(self, now, commit):
+        """A member's suggestion to invite somebody holds the suggested person's address and
+        the member's note, so it expires: a decided one (approved or rejected) 12 months
+        after ``resolved``, an unanswered one 60 days after ``created``. Fixed periods and
+        not ``RETENTION_*`` settings, because ``/legal`` promises them.
+
+        The curators' in-app notices and approve/reject links for a suggestion go with it
+        (the same clean-up a decision does), so nothing is left pointing at a deleted row;
+        a link already sent answers as a settled suggestion."""
+        resolved = InvitationProposal.objects.filter(
+            status__in=[InvitationProposal.Status.APPROVED, InvitationProposal.Status.REJECTED],
+            resolved__lt=months_ago(PROPOSAL_RESOLVED_MONTHS, now),
+        )
+        pending = InvitationProposal.objects.filter(
+            status=InvitationProposal.Status.PENDING,
+            created__lt=now - timedelta(days=PROPOSAL_PENDING_DAYS),
+        )
+        counts = []
+        for label, rows in (
+            (f"Resolved invitation proposals deleted (>{PROPOSAL_RESOLVED_MONTHS}m)", resolved),
+            (f"Unanswered invitation proposals deleted (>{PROPOSAL_PENDING_DAYS}d)", pending),
+        ):
+            count = rows.count()
+            if commit and count:
+                for proposal in rows:
+                    clear_proposal_traces(proposal)
+                rows.delete()
+            counts.append((label, count))
+        return counts
 
     def _reservation_phones(self, now, commit):
         """Empties the contact phone of every reservation whose last day has passed.

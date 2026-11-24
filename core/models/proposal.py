@@ -9,6 +9,12 @@ from core.utils import generate_id
 from .collection import Collection
 from .user import User
 
+# How long a suggestion is kept. Constants and not ``RETENTION_*`` settings: ``/legal``
+# promises them, so there is no value an operator could choose. A suggestion holds a
+# third party's address and the proposer's note, so neither kind is kept without a limit.
+PROPOSAL_RESOLVED_MONTHS = 12  # counted from ``resolved``
+PROPOSAL_PENDING_DAYS = 60  # counted from ``created``
+
 
 class InvitationProposal(models.Model):
     """A member asking the owner to invite somebody to their collection.

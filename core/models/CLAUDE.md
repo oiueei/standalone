@@ -718,7 +718,7 @@ nothing about — so **the member proposes and the owner decides**.
 | `email` | CharField(64) | **Yes** | The proposed address. **No `User` row is created for it and no email is sent to it while the proposal is pending** |
 | `note` | CharField(256) | No | The proposer's word to the owner ("my downstairs neighbour", "he's paid the subs"). What makes the approval a decision rather than a guess. **Owner-only — never travels to the person it describes** |
 | `status` | CharField(8) | No | PENDING (default) / APPROVED / REJECTED, indexed |
-| `created` / `resolved` | DateTimeField | Auto / No | |
+| `created` / `resolved` | DateTimeField | Auto / No | Drive the retention: `purge_expired_data` deletes a decided proposal 12 months after `resolved` (`PROPOSAL_RESOLVED_MONTHS`) and an unanswered one 60 days after `created` (`PROPOSAL_PENDING_DAYS`), both constants in `core/models/proposal.py` that `/legal` promises (not `RETENTION_*` settings). The sweep also clears the curators' notices and approve/reject links (`clear_proposal_traces`), so a link already sent answers as a settled suggestion |
 
 ### Business Rules
 

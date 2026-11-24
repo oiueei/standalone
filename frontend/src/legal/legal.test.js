@@ -167,22 +167,26 @@ describe('what is seen of a profile, of a team page and of an invitation', () =>
   // Three things the paragraph about who sees what inside a group has to say: a profile
   // is seen by people who share a group (`can_view_user`, `UserPublicSerializer`), a
   // curator's page travels with the group (`NetworkPointSerializer`), and an emailed
-  // invitation leaves a year-long fingerprint of the address (`InvitationRecord`).
+  // invitation leaves a year-long fingerprint of the address (`InvitationRecord`), and a
+  // member's suggestion to invite somebody expires (`InvitationProposal`).
   const SENTENCES = {
     es: [
       'Tu perfil (nombre público, presentación, «acerca de ti» y foto) lo ve quien comparte algún grupo contigo, nunca tu email, tu idioma ni tus datos demográficos.',
       'Quien dinamiza un grupo puede tener en él una página con el nombre de su entidad, un logo, una presentación y un contacto (y, en una red, la dirección y el horario de su punto de recogida): se ve junto con el grupo, también sin cuenta si el grupo es público.',
       'Si alguien te invita por email, el grupo guarda durante un año una huella de tu dirección (no la dirección) para no volver a invitarte; se borra pasado ese año.',
+      'Si un miembro propone invitarte, quienes dinamizan el grupo ven tu dirección y su nota; la propuesta se borra a los 60 días si nadie la responde y al año de responderse.',
     ],
     ca: [
       'El teu perfil (nom públic, presentació, «sobre tu» i foto) el veu qui comparteix algun grup amb tu, mai el teu email, el teu idioma ni les teves dades demogràfiques.',
       "Qui dinamitza un grup hi pot tenir una pàgina amb el nom de la seva entitat, un logo, una presentació i un contacte (i, en una xarxa, l'adreça i l'horari del seu punt de recollida): es veu juntament amb el grup, també sense compte si el grup és públic.",
       "Si algú et convida per email, el grup guarda durant un any una empremta de la teva adreça (no l'adreça) per no tornar a convidar-te; s'esborra passat aquest any.",
+      "Si un membre proposa convidar-te, qui dinamitza el grup veu la teva adreça i la seva nota; la proposta s'esborra als 60 dies si ningú la respon i a l'any de respondre-la.",
     ],
     en: [
       'Your profile (public name, bio, about and photo) is seen by the people who share a group with you, never your email, your language or your demographic details.',
       'Whoever runs a group can have a page in it with the name of their organisation, a logo, an introduction and a contact (and, in a network, the address and hours of their pickup point): it is seen together with the group, also without an account if the group is public.',
       'If someone invites you by email, the group keeps for a year a fingerprint of your address (not the address) so as not to invite you again; it is deleted after that year.',
+      'If a member proposes inviting you, the people who run the group see your address and their note; the proposal is deleted after 60 days if nobody answers it and a year after it is answered.',
     ],
   };
   const PARAGRAPH_LEAD = {
@@ -191,7 +195,7 @@ describe('what is seen of a profile, of a team page and of an invitation', () =>
     en: '**Who sees what inside a group:**',
   };
 
-  test.each(CODES.flatMap((lang) => [0, 1, 2].map((i) => [lang, i])))(
+  test.each(CODES.flatMap((lang) => [0, 1, 2, 3].map((i) => [lang, i])))(
     '%s says sentence %i once, inside that paragraph',
     (lang, i) => {
       const text = LANGS[lang];
