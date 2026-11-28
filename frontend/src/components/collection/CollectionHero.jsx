@@ -21,6 +21,7 @@ import { teamParts, teamMemberName } from '../../utils/team';
 import { collectionPath } from '../../utils/collectionPath';
 import { canEditCollection } from '../../utils/canEditCollection';
 import { DATE_TYPES } from '../../constants/things';
+import { uiLanguage } from '../../utils/uiLanguage';
 
 // What the member's "Invite someone" button controls (aria-controls) and the
 // form it opens sits under.
@@ -89,7 +90,7 @@ export default function CollectionHero({
   // ("A y B", "A, B y C") — one rule (`utils/team.js`) shared with the "Run by"
   // column of "My groups", so the two cannot disagree. The pieces come apart so
   // each name can be a link.
-  const teamLine = teamParts(collection, t, i18n.resolvedLanguage || i18n.language);
+  const teamLine = teamParts(collection, t, uiLanguage(i18n));
   const isAuthenticated = !!userCode;
   // The Community/visibility tags in the H1 are purely informational — no
   // click, no delete, so no hover/focus state to design for — so they follow

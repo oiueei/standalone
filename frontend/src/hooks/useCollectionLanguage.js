@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import i18n, { SUPPORTED_LANGUAGES } from '../i18n';
 import { loadUserLanguage } from './useCapabilities';
 import { parseLocalized } from '../utils/localized';
+import { uiLanguage } from '../utils/uiLanguage';
 
 const STORAGE_KEY = 'i18nextLng';
 const SUPPORTED_CODES = SUPPORTED_LANGUAGES.map((entry) => entry.code);
@@ -102,7 +103,7 @@ export default function useCollectionLanguage(collectionLanguage, ownerTexts = [
     // nothing to do.
     if (ownLanguage) return undefined;
     // The owner wrote this page in the reader's own language too: keep it.
-    const readerLanguage = (i18n.resolvedLanguage || i18n.language || '').split('-')[0];
+    const readerLanguage = uiLanguage(i18n);
     if (writtenIn.split(',').includes(readerLanguage)) return undefined;
     if (i18n.language === collectionLanguage) return undefined;
 

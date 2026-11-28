@@ -16,6 +16,7 @@ import ApprovalNotice from '../components/ApprovalNotice';
 import { collectionPath, kindOfPrefix } from '../utils/collectionPath';
 import { allowedVerbsFor } from '../utils/collectionKind';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import { uiLanguage } from '../utils/uiLanguage';
 
 // A code sample the owner copies: the keys are the language codes the server accepts, so it
 // reads the same in whatever language the form is in.
@@ -69,16 +70,6 @@ function CreateCollectionForm({ kind }) {
 
   const [headline, setHeadline] = useState('');
   const [description, setDescription] = useState('');
-  const [mode, setMode] = useState('PROPRIETARY');
-  const [visibility, setVisibility] = useState('PRIVATE');
-  // Whether the members of a COMMUNITY stall or library may set a price: on, both of
-  // the kind's verbs; off, only the free one.
-  const [membersPrice, setMembersPrice] = useState(true);
-  // The group's emails speak the owner's own interface language; each member's own
-  // preference still wins over it, and the Notifications page changes it.
-  const language = i18n.resolvedLanguage || i18n.language;
-  const [errors, setErrors] = useState({});
-
   const ALL_MODE_OPTIONS = [
     {
       label: t('createCollection.modeProprietaryFull'),
@@ -108,19 +99,44 @@ function CreateCollectionForm({ kind }) {
     isOfferable(capabilities, 'collection_modes', opt.value)
   );
 
+  // The mode the form starts in is the first one the deployment offers (PROPRIETARY
+  // unless it withholds it), so the visibility below starts from the mode that is really
+  // selected and not from a constant.
+  const [mode, setMode] = useState(
+    isReservations ? 'PROPRIETARY' : (MODE_OPTIONS[0]?.value ?? 'PROPRIETARY')
+  );
+  // A group someone runs (proprietary, a network, a shed) starts public: whoever creates
+  // it sees this switch, and it is the team that publishes. A community starts private.
+  const [visibility, setVisibility] = useState(mode === 'COMMUNITY' ? 'PRIVATE' : 'PUBLIC');
+  // Whether the switch was ever pressed, so a change of mode never undoes that choice.
+  const [visibilityTouched, setVisibilityTouched] = useState(false);
+  const chooseVisibility = (value) => {
+    setVisibilityTouched(true);
+    setVisibility(value);
+  };
+  // Whether the members of a COMMUNITY stall or library may set a price: on, both of
+  // the kind's verbs; off, only the free one.
+  const [membersPrice, setMembersPrice] = useState(true);
+  // The group's emails speak the owner's own interface language; each member's own
+  // preference still wins over it, and the Notifications page changes it.
+  const language = uiLanguage(i18n);
+  const [errors, setErrors] = useState({});
+
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
   const handleModeChange = (newMode) => {
     if (newMode === mode) return;
     setMode(newMode);
-    // The mode does not touch visibility: a new group is private in either mode
-    // and only the switch makes it public. Community used to turn
-    // the switch on by itself — and again every time it was re-chosen, even after
-    // the curator had switched it off — but whoever contributes to a group is
-    // never shown whether it is public, so a group of families ended up readable
-    // by anyone without its members knowing. The server takes the same view when
-    // no visibility is sent (`CollectionCreateSerializer.validate`).
+    // Community goes private every time: whoever contributes to a group is never shown
+    // whether it is public, so a group of families must not become readable by anyone
+    // without its members knowing, and private is the safe direction. A group someone
+    // runs goes public only while the switch has not been pressed: it used to turn itself
+    // back on after the curator had switched it off, and a choice made here is never undone.
+    // The server takes the same view when no visibility is sent
+    // (`CollectionCreateSerializer.validate`: private).
+    if (newMode === 'COMMUNITY') setVisibility('PRIVATE');
+    else if (!visibilityTouched) setVisibility('PUBLIC');
   };
 
   const validate = () => {
@@ -217,7 +233,7 @@ function CreateCollectionForm({ kind }) {
           kind={kind}
           mode={mode}
           visibility={visibility}
-          setVisibility={setVisibility}
+          setVisibility={chooseVisibility}
           membersPrice={membersPrice}
           setMembersPrice={setMembersPrice}
         />

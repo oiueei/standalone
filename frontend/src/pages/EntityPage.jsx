@@ -18,6 +18,7 @@ import { collectionPath } from '../utils/collectionPath';
 import { useLocalized } from '../utils/localized';
 import { weekdayLabel } from '../utils/rental';
 import { formatList } from '../utils/team';
+import { uiLanguage } from '../utils/uiLanguage';
 
 /**
  * The page a curator has in a group, as everyone who can read the group sees it
@@ -100,7 +101,7 @@ export default function EntityPage() {
   const isNetwork = collection.mode === 'NETWORK';
   const base = collectionPath(code, collection.kind);
   const groupName = L(collection.headline);
-  const language = i18n.resolvedLanguage || i18n.language;
+  const language = uiLanguage(i18n);
   const days = isNetwork && card?.weekdays?.length ? card.weekdays : [];
   const about = card?.about ? L(card.about) : '';
   // The place is a network's: outside one the address, hours and days are never shown,

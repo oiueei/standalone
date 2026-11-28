@@ -95,7 +95,7 @@ describe('the three cards', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: en.createCollection.pageTitle })
     ).toBeInTheDocument();
-    expect(document.title).toBe(en.titles.newCollection);
+    await waitFor(() => expect(document.title).toBe(en.titles.newCollection));
   });
 
   test('each button goes to its own form, and there is one button per card', async () => {

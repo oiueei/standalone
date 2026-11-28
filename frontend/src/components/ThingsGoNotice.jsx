@@ -2,6 +2,7 @@ import { Notification } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { useLocalized } from '../utils/localized';
 import { formatList } from '../utils/team';
+import { uiLanguage } from '../utils/uiLanguage';
 
 /**
  * The warning on the two pages that end a membership (leaving a group, removing
@@ -16,7 +17,7 @@ export default function ThingsGoNotice({ titles, label, body }) {
   const { i18n } = useTranslation();
   const L = useLocalized();
   if (!titles?.length) return null;
-  const list = formatList(titles.map(L), i18n.resolvedLanguage || i18n.language);
+  const list = formatList(titles.map(L), uiLanguage(i18n));
   return (
     <>
       <div className="spacer-xs" />

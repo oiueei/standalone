@@ -103,7 +103,7 @@
   "visibility": {
     "publicTag": "Pública",
     "privateTag": "Privada",
-    "publicFull": "Colección pública: Cualquiera con el enlace puede verla y unirse para participar. Desactívalo para mantenerla solo por invitación."
+    "publicFull": "Colección pública: Cualquiera con el enlace puede verla y unirse para participar. Si lo desactivas, solo entra quien tenga invitación."
   },
   "accountMenu": {
     "label": "Tu cuenta"

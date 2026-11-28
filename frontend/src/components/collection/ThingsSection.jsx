@@ -7,6 +7,7 @@ import useTheeeme from '../../hooks/useTheeeme';
 import { useLocalized } from '../../utils/localized';
 import { compareNames, teamMemberByCode } from '../../utils/team';
 import { collectionPath } from '../../utils/collectionPath';
+import { uiLanguage } from '../../utils/uiLanguage';
 
 /**
  * Cards mounted before the "Show more" button appears.
@@ -62,7 +63,7 @@ export default function ThingsSection({
   onJoinedGroup,
 }) {
   const { t, i18n } = useTranslation();
-  const language = i18n.resolvedLanguage || i18n.language;
+  const language = uiLanguage(i18n);
   const { btnSecondaryStyle } = useTheeeme();
   const L = useLocalized();
   const navigate = useNavigate();

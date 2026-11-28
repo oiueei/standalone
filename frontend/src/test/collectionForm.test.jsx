@@ -77,6 +77,13 @@ async function renderCreate(kind = 'stall') {
   return kind === 'collections' ? view : formShown(view);
 }
 
+const createBodyOf = () => {
+  const post = apiFetch.mock.calls.find(
+    ([u, o]) => u === '/api/v1/collections/' && o?.method === 'POST'
+  );
+  return post && JSON.parse(post[1].body);
+};
+
 // What the server serves with a collection: its kind, which these older fixtures
 // leave out, follows from the verbs they list.
 const KIND_OF_VERB = {
@@ -156,39 +163,98 @@ describe('CreateCollectionPage', () => {
 
     expect(
       screen.getByRole('button', {
-        name: 'Public collection: Anyone with the link can view it and join to take part. Turn off to keep it invite-only.',
+        name: "Public collection: Anyone with the link can view it and join to take part. When it's off, only people with an invitation can get in.",
       })
     ).toBeInTheDocument();
     expect(container.querySelector('#create-collection-visibility-help')).toBeNull();
   });
 
-  // The mode radio does not decide who can read the group — only the switch does.
-  // Community used to turn the switch on by itself, and again on
-  // every re-choice even after the curator had switched it off; but whoever
-  // contributes to a group is never shown whether it is public, so a group of
-  // neighbours' families ended up readable by anyone without its members knowing.
-  // Making a group public is now a deliberate act, in either mode.
-  test('choosing a mode leaves the group private: only the switch changes that', async () => {
+  // A group someone runs starts public (its creator sees the switch and publishes it); a
+  // community starts private, because whoever contributes to it is never shown whether it
+  // is public. A change of mode moves the switch only where no choice was made.
+  const visibilitySwitch = (container) => container.querySelector('#create-collection-visibility');
+  const pressed = (container) => visibilitySwitch(container).getAttribute('aria-pressed');
+  const submitCreate = () =>
+    fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
+
+  test.each(['stall', 'library'])(
+    'a %s run by its owner starts with the switch on and ships PUBLIC',
+    async (prefix) => {
+      const { container } = await renderCreate(prefix);
+      await fillTheRequiredFields(container, 'Open doors');
+
+      expect(pressed(container)).toBe('true');
+      submitCreate();
+
+      await waitFor(() => expect(createBody()?.visibility).toBe('PUBLIC'));
+      expect(createBody()?.mode).toBe('PROPRIETARY');
+    }
+  );
+
+  test('a network starts with the switch on and ships PUBLIC', async () => {
+    const { container } = await renderCreate('library');
+    await fillTheRequiredFields(container, 'The network');
+
+    fireEvent.click(screen.getByRole('radio', { name: /^Network:/ }));
+    expect(pressed(container)).toBe('true');
+    submitCreate();
+
+    await waitFor(() => expect(createBody()?.visibility).toBe('PUBLIC'));
+    expect(createBody()?.mode).toBe('NETWORK');
+  });
+
+  test('a shed starts with the switch on and ships PUBLIC', async () => {
+    const { container } = await renderCreate('shed');
+    await fillTheRequiredFields(container, 'Spaces');
+
+    expect(pressed(container)).toBe('true');
+    submitCreate();
+
+    await waitFor(() => expect(createBody()?.visibility).toBe('PUBLIC'));
+  });
+
+  test('choosing Community switches it off, and the POST carries PRIVATE', async () => {
     const { container } = await renderCreate();
-    const visibility = () => container.querySelector('#create-collection-visibility');
-
-    expect(visibility()).toHaveAttribute('aria-pressed', 'false');
+    await fillTheRequiredFields(container, 'Families');
 
     fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
-    expect(visibility()).toHaveAttribute('aria-pressed', 'false');
+    expect(pressed(container)).toBe('false');
+    submitCreate();
 
-    fireEvent.click(visibility());
-    expect(visibility()).toHaveAttribute('aria-pressed', 'true');
+    await waitFor(() => expect(createBody()?.visibility).toBe('PRIVATE'));
+  });
 
-    // What the curator chose survives a change of mode (it used to go private)…
+  test('proprietary, community, proprietary without touching the switch comes back on', async () => {
+    const { container } = await renderCreate();
+
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+    expect(pressed(container)).toBe('false');
     fireEvent.click(screen.getByRole('radio', { name: /^Proprietary:/ }));
-    expect(visibility()).toHaveAttribute('aria-pressed', 'true');
+    expect(pressed(container)).toBe('true');
+  });
 
-    // …and a switch they turned off stays off when Community is chosen again (it
-    // used to come back on).
-    fireEvent.click(visibility());
+  test('a switch turned off in a proprietary group stays off after a trip through Community', async () => {
+    const { container } = await renderCreate();
+
+    fireEvent.click(visibilitySwitch(container));
+    expect(pressed(container)).toBe('false');
     fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
-    expect(visibility()).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(screen.getByRole('radio', { name: /^Proprietary:/ }));
+
+    expect(pressed(container)).toBe('false');
+  });
+
+  test('a switch turned on in Community stays on in proprietary, and Community turns it off again', async () => {
+    const { container } = await renderCreate();
+
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+    fireEvent.click(visibilitySwitch(container));
+    expect(pressed(container)).toBe('true');
+    fireEvent.click(screen.getByRole('radio', { name: /^Proprietary:/ }));
+    expect(pressed(container)).toBe('true');
+    fireEvent.click(screen.getByRole('radio', { name: /^Community:/ }));
+
+    expect(pressed(container)).toBe('false');
   });
 
   // Public is a decision, and it has to survive to the POST.
@@ -629,7 +695,7 @@ describe('CreateCollectionPage — a shed', () => {
     expect(body.kind).toBe('SHED');
     expect(body.allowed_thing_types).toEqual(['RESERVE_THING']);
     expect(body.mode).toBe('PROPRIETARY');
-    expect(body.visibility).toBe('PRIVATE');
+    expect(body.visibility).toBe('PUBLIC');
   });
 
   test('its rules (by day, the limits, the hours) are the model’s, not sent from here', async () => {
@@ -698,7 +764,7 @@ describe('CreateCollectionPage — the short form', () => {
         headline: 'The street',
         description: 'Things for all',
         mode,
-        visibility: 'PRIVATE',
+        visibility: 'PUBLIC',
         allowed_thing_types: verbs,
         language: 'en',
       });
@@ -798,6 +864,39 @@ describe('CreateCollectionPage — the short form', () => {
     create('stall');
 
     await waitFor(() => expect(createBody()?.language).toBe('en'));
+  });
+});
+
+describe('the language a new collection is saved with', () => {
+  test('it is the language on screen even when `resolvedLanguage` lags behind', async () => {
+    const { default: i18n } = await import('i18next');
+    const before = { language: i18n.language, resolvedLanguage: i18n.resolvedLanguage };
+    Object.defineProperty(i18n, 'language', { value: 'es', configurable: true, writable: true });
+    Object.defineProperty(i18n, 'resolvedLanguage', {
+      value: 'en',
+      configurable: true,
+      writable: true,
+    });
+    try {
+      const { container } = await renderCreate();
+      fireEvent.change(container.querySelector('#create-collection-headline'), {
+        target: { value: 'Las cosas' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
+
+      await waitFor(() => expect(createBodyOf()?.language).toBe('es'));
+    } finally {
+      Object.defineProperty(i18n, 'language', {
+        value: before.language,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(i18n, 'resolvedLanguage', {
+        value: before.resolvedLanguage,
+        writable: true,
+        configurable: true,
+      });
+    }
   });
 });
 

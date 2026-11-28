@@ -76,7 +76,7 @@ describe('DonatePage', () => {
       'href',
       '/library/COL001'
     );
-    expect(document.title).toBe('Donate things to La Marina — OIUEEI');
+    await waitFor(() => expect(document.title).toBe('Donate things to La Marina — OIUEEI'));
   });
 
   test('the instructions are rendered as Markdown', async () => {
