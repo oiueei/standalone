@@ -109,6 +109,19 @@ afterEach(async () => {
   }
 });
 
+describe('when `resolvedLanguage` lags behind the language on screen', () => {
+  test('the footer’s "Contact us" is the form of the language on screen, not of the lagging one', async () => {
+    const { SiteFooter } = await setUp({ language: 'es' });
+    // i18next works `resolvedLanguage` out apart from `language`, and it can stay on the
+    // fallback while `t()` already translates in the language that was asked for.
+    Object.defineProperty(i18n, 'resolvedLanguage', { value: 'en', configurable: true });
+    expect(i18n.language).toBe('es');
+    const { container } = inRouter(<SiteFooter />);
+
+    expect(contactDoor(container).getAttribute('href')).toBe(FORMS.contact.es);
+  });
+});
+
 describe.each(LANGUAGES)('with forms hosted elsewhere, in %s', (language) => {
   const locale = LOCALES[language];
   const opensInNewTab = locale.common.opensInNewTab;

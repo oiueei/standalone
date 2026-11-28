@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { uiLanguage } from './uiLanguage';
 
 /**
  * Owner content that carries one text per language.
@@ -64,7 +65,7 @@ export function localizedText(value, lang) {
  */
 export function useLocalized() {
   const { i18n } = useTranslation();
-  const lang = i18n.resolvedLanguage || i18n.language;
+  const lang = uiLanguage(i18n);
   return useCallback((value) => localizedText(value, lang), [lang]);
 }
 

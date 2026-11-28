@@ -16,6 +16,7 @@ import ApprovalNotice from '../components/ApprovalNotice';
 import { collectionPath, kindOfPrefix } from '../utils/collectionPath';
 import { allowedVerbsFor } from '../utils/collectionKind';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import { uiLanguage } from '../utils/uiLanguage';
 
 // A code sample the owner copies: the keys are the language codes the server accepts, so it
 // reads the same in whatever language the form is in.
@@ -118,7 +119,7 @@ function CreateCollectionForm({ kind }) {
   const [membersPrice, setMembersPrice] = useState(true);
   // The group's emails speak the owner's own interface language; each member's own
   // preference still wins over it, and the Notifications page changes it.
-  const language = i18n.resolvedLanguage || i18n.language;
+  const language = uiLanguage(i18n);
   const [errors, setErrors] = useState({});
 
   const [submitting, setSubmitting] = useState(false);

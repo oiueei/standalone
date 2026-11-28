@@ -1,6 +1,7 @@
 import { Link as HdsLink } from 'hds-react';
 import { useTranslation } from 'react-i18next';
 import { externalFormUrl } from '../utils/externalForms';
+import { uiLanguage } from '../utils/uiLanguage';
 
 // Alpha feedback channel. This is service-layer policy, not product: without a form
 // the door simply isn't offered, the same pattern as `popInPath`/`aboutPath` in
@@ -38,7 +39,7 @@ const FEEDBACK_URL = import.meta.env.VITE_FEEDBACK_URL;
  */
 export default function FeedbackLink({ style }) {
   const { t, i18n } = useTranslation();
-  const url = externalFormUrl('feedback', i18n.resolvedLanguage || i18n.language) || FEEDBACK_URL;
+  const url = externalFormUrl('feedback', uiLanguage(i18n)) || FEEDBACK_URL;
   if (!url) return null;
   const label = t('feedback.button');
   return (

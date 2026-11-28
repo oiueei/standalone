@@ -77,6 +77,13 @@ async function renderCreate(kind = 'stall') {
   return kind === 'collections' ? view : formShown(view);
 }
 
+const createBodyOf = () => {
+  const post = apiFetch.mock.calls.find(
+    ([u, o]) => u === '/api/v1/collections/' && o?.method === 'POST'
+  );
+  return post && JSON.parse(post[1].body);
+};
+
 // What the server serves with a collection: its kind, which these older fixtures
 // leave out, follows from the verbs they list.
 const KIND_OF_VERB = {
@@ -857,6 +864,39 @@ describe('CreateCollectionPage — the short form', () => {
     create('stall');
 
     await waitFor(() => expect(createBody()?.language).toBe('en'));
+  });
+});
+
+describe('the language a new collection is saved with', () => {
+  test('it is the language on screen even when `resolvedLanguage` lags behind', async () => {
+    const { default: i18n } = await import('i18next');
+    const before = { language: i18n.language, resolvedLanguage: i18n.resolvedLanguage };
+    Object.defineProperty(i18n, 'language', { value: 'es', configurable: true, writable: true });
+    Object.defineProperty(i18n, 'resolvedLanguage', {
+      value: 'en',
+      configurable: true,
+      writable: true,
+    });
+    try {
+      const { container } = await renderCreate();
+      fireEvent.change(container.querySelector('#create-collection-headline'), {
+        target: { value: 'Las cosas' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^Create (stall|library|shed)$/ }));
+
+      await waitFor(() => expect(createBodyOf()?.language).toBe('es'));
+    } finally {
+      Object.defineProperty(i18n, 'language', {
+        value: before.language,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(i18n, 'resolvedLanguage', {
+        value: before.resolvedLanguage,
+        writable: true,
+        configurable: true,
+      });
+    }
   });
 });
 

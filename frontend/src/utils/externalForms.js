@@ -13,7 +13,7 @@ import { externalForms } from '../deployment';
  * the forms are always written in, and with none at all, or with no `externalForms`
  * (upstream), it is `null`, which each place reads as "keep the way it was".
  *
- * `language` is the one on screen (`i18n.resolvedLanguage || i18n.language`); a
+ * `language` is the one on screen (`uiLanguage(i18n)`); a
  * regional tag (`ca-ES`) counts as its language.
  *
  * @param {'contact'|'feedback'|'requestAccess'} kind

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import useTheeeme from '../hooks/useTheeeme';
 import { aboutPath } from '../deployment';
 import { externalFormUrl } from '../utils/externalForms';
+import { uiLanguage } from '../utils/uiLanguage';
 
 /**
  * The colophon under every page: "Made with ♥︎ in Zona Franca,
@@ -77,7 +78,7 @@ export default function SiteFooter() {
   const { tc } = useTheeeme();
   // Where "Contact us" goes: a form a deployment hosts elsewhere, in the reader's
   // language and in a new tab, or the app's own `/contact`.
-  const contactUrl = externalFormUrl('contact', i18n.resolvedLanguage || i18n.language);
+  const contactUrl = externalFormUrl('contact', uiLanguage(i18n));
   const showTagline = !localStorage.getItem('userCode') && !aboutPath && pathname !== '/login';
   return (
     <footer

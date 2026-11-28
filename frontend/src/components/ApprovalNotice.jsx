@@ -5,6 +5,7 @@ import useCapabilities from '../hooks/useCapabilities';
 import useTheeeme from '../hooks/useTheeeme';
 import { externalFormUrl } from '../utils/externalForms';
 import { requestAccessPaths } from '../deployment';
+import { uiLanguage } from '../utils/uiLanguage';
 
 /**
  * "Some of these need approval here" — the one line a narrowed deployment owes
@@ -57,9 +58,7 @@ export default function ApprovalNotice({ kind, catalogue }) {
   // the reader's language (`externalForms.requestAccess`, as written), or the address
   // the server gives (`capabilities.request_url`), as before. Those two open in a new tab.
   const appPath = withheld.map((option) => requestAccessPaths?.[option.value]).find(Boolean);
-  const requestUrl =
-    externalFormUrl('requestAccess', i18n.resolvedLanguage || i18n.language) ||
-    capabilities.request_url;
+  const requestUrl = externalFormUrl('requestAccess', uiLanguage(i18n)) || capabilities.request_url;
   const canAsk = appPath || requestUrl;
 
   const requestLabel = t('capabilities.requestAccess');

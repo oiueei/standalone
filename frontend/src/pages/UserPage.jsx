@@ -20,6 +20,7 @@ import useTheeeme from '../hooks/useTheeeme';
 import { collectionPath } from '../utils/collectionPath';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 import { errorKey, translateError } from '../utils/errorKey';
+import { uiLanguage } from '../utils/uiLanguage';
 
 // The groups of the account, each once: the ones it runs first, then the ones it is
 // only a member of; each part keeps the order of its own list. What it runs is what
@@ -277,7 +278,7 @@ export default function UserPage() {
                 _code: c.code,
                 _kind: c.kind,
                 _headline: L(c.headline),
-                _team: teamText(c, t, i18n.resolvedLanguage || i18n.language),
+                _team: teamText(c, t, uiLanguage(i18n)),
                 _runs: c._runs,
               }))}
               indexKey="_id"
