@@ -132,7 +132,7 @@ describe('Create — the body of the short form', () => {
     });
   });
 
-  test('a stall left as it opens sends the private proprietary default', async () => {
+  test('a stall left as it opens sends the public proprietary default', async () => {
     const { container } = await renderCreate('stall');
     type(container, '#create-collection-headline', 'Free stall');
 
@@ -143,7 +143,7 @@ describe('Create — the body of the short form', () => {
       kind: 'STALL',
       headline: 'Free stall',
       mode: 'PROPRIETARY',
-      visibility: 'PRIVATE',
+      visibility: 'PUBLIC',
       allowed_thing_types: ['GIFT_THING', 'SELL_THING'],
       language: 'en',
     });
